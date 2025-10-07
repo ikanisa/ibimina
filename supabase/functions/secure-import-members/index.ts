@@ -19,8 +19,9 @@ interface MemberPayload {
 interface ImportRequest {
   ikiminaId: string;
   members: MemberPayload[];
-  actorId?: string | null;
 }
+
+const AUTHORIZED_ROLES = new Set(["SYSTEM_ADMIN", "SACCO_MANAGER", "SACCO_STAFF"]);
 
 const normalizeMsisdn = (value: string) => {
   const digits = value.replace(/[^0-9+]/g, "");
@@ -49,14 +50,77 @@ Deno.serve(async (req) => {
       throw new Error("Missing Supabase credentials");
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
+      return new Response(JSON.stringify({ success: false, error: "Missing authorization header" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const serviceClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const userClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: authHeader } },
+    });
+
     const payload = (await req.json()) as ImportRequest;
 
     if (!payload.ikiminaId || !payload.members?.length) {
       throw new Error("Ikimina ID and members are required");
     }
 
-    const allowed = await enforceRateLimit(supabase, `members:${payload.ikiminaId}`, {
+    const {
+      data: { user },
+      error: authError,
+    } = await userClient.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const { data: requesterProfile, error: profileError } = await serviceClient
+      .from("users")
+      .select("id, role, sacco_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !requesterProfile || !AUTHORIZED_ROLES.has(requesterProfile.role)) {
+      return new Response(JSON.stringify({ success: false, error: "Forbidden" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
+    const { data: ikimina, error: ikiminaError } = await serviceClient
+      .from("ibimina")
+      .select("id, sacco_id")
+      .eq("id", payload.ikiminaId)
+      .single();
+
+    if (ikiminaError || !ikimina) {
+      throw ikiminaError ?? new Error("Ikimina not found");
+    }
+
+    const isSystemAdmin = requesterProfile.role === "SYSTEM_ADMIN";
+    const isSameSacco = Boolean(
+      requesterProfile.sacco_id && requesterProfile.sacco_id === ikimina.sacco_id,
+    );
+    const hasSaccoPrivileges = requesterProfile.role === "SACCO_MANAGER" || requesterProfile.role === "SACCO_STAFF";
+
+    if (!isSystemAdmin && !(isSameSacco && hasSaccoPrivileges)) {
+      return new Response(JSON.stringify({ success: false, error: "Forbidden" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
+    const allowed = await enforceRateLimit(serviceClient, `members:${payload.ikiminaId}`, {
       maxHits: Math.max(payload.members.length, 10),
     });
 
@@ -95,21 +159,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { error } = await supabase.from("ikimina_members").insert(records);
+    const { error } = await serviceClient.from("ikimina_members").insert(records);
 
     if (error) {
       throw error;
     }
 
-    await writeAuditLog(supabase, {
-      actorId: payload.actorId,
+    await writeAuditLog(serviceClient, {
+      actorId: user.id,
       action: "MEMBER_IMPORT",
       entity: "IKIMINA",
       entityId: payload.ikiminaId,
       diff: { imported: records.length },
     });
 
-    await recordMetric(supabase, "members_imported", records.length, {
+    await recordMetric(serviceClient, "members_imported", records.length, {
       ikiminaId: payload.ikiminaId,
     });
 
