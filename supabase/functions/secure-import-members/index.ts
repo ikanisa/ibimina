@@ -25,15 +25,9 @@ const AUTHORIZED_ROLES = new Set(["SYSTEM_ADMIN", "SACCO_MANAGER", "SACCO_STAFF"
 
 const normalizeMsisdn = (value: string) => {
   const digits = value.replace(/[^0-9+]/g, "");
-  if (digits.startsWith("+")) {
-    return digits;
-  }
-  if (digits.startsWith("2507")) {
-    return `+${digits}`;
-  }
-  if (digits.startsWith("07")) {
-    return `+250${digits.slice(2)}`;
-  }
+  if (digits.startsWith("+")) return digits;
+  if (digits.startsWith("2507")) return `+${digits}`;
+  if (digits.startsWith("07")) return `+250${digits.slice(2)}`;
   return value;
 };
 
@@ -45,10 +39,7 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error("Missing Supabase credentials");
-    }
+    if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase credentials");
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
@@ -58,6 +49,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Service client (for privileged reads/writes) and user-scoped client (to read current user)
     const serviceClient = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
@@ -67,16 +59,15 @@ Deno.serve(async (req) => {
     });
 
     const payload = (await req.json()) as ImportRequest;
-
     if (!payload.ikiminaId || !payload.members?.length) {
       throw new Error("Ikimina ID and members are required");
     }
 
+    // Who is calling?
     const {
       data: { user },
       error: authError,
     } = await userClient.auth.getUser();
-
     if (authError || !user) {
       return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -84,6 +75,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Load requester profile and enforce role
     const { data: requesterProfile, error: profileError } = await serviceClient
       .from("users")
       .select("id, role, sacco_id")
@@ -97,6 +89,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Target ikimina and sacco alignment
     const { data: ikimina, error: ikiminaError } = await serviceClient
       .from("ibimina")
       .select("id, sacco_id")
@@ -104,14 +97,17 @@ Deno.serve(async (req) => {
       .single();
 
     if (ikiminaError || !ikimina) {
-      throw ikiminaError ?? new Error("Ikimina not found");
+      return new Response(JSON.stringify({ success: false, error: "Ikimina not found" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+      });
     }
 
     const isSystemAdmin = requesterProfile.role === "SYSTEM_ADMIN";
-    const isSameSacco = Boolean(
-      requesterProfile.sacco_id && requesterProfile.sacco_id === ikimina.sacco_id,
-    );
-    const hasSaccoPrivileges = requesterProfile.role === "SACCO_MANAGER" || requesterProfile.role === "SACCO_STAFF";
+    const isSameSacco =
+      Boolean(requesterProfile.sacco_id) && requesterProfile.sacco_id === ikimina.sacco_id;
+    const hasSaccoPrivileges =
+      requesterProfile.role === "SACCO_MANAGER" || requesterProfile.role === "SACCO_STAFF";
 
     if (!isSystemAdmin && !(isSameSacco && hasSaccoPrivileges)) {
       return new Response(JSON.stringify({ success: false, error: "Forbidden" }), {
@@ -120,10 +116,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Rate limit keyed to ikimina
     const allowed = await enforceRateLimit(serviceClient, `members:${payload.ikiminaId}`, {
       maxHits: Math.max(payload.members.length, 10),
     });
-
     if (!allowed) {
       return new Response(JSON.stringify({ success: false, error: "Rate limit exceeded" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -131,8 +127,8 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Prepare rows
     const records: Record<string, unknown>[] = [];
-
     for (const member of payload.members) {
       const msisdn = normalizeMsisdn(member.msisdn);
       const encryptedMsisdn = await encryptField(msisdn);
@@ -149,6 +145,7 @@ Deno.serve(async (req) => {
         full_name: member.fullName,
         member_code: member.memberCode ?? null,
         status: "ACTIVE",
+        // store masked display + encrypted + hash
         msisdn: maskedMsisdn,
         msisdn_encrypted: encryptedMsisdn,
         msisdn_hash: msisdnHash,
@@ -159,11 +156,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { error } = await serviceClient.from("ikimina_members").insert(records);
-
-    if (error) {
-      throw error;
-    }
+    const { error: insertError } = await serviceClient.from("ikimina_members").insert(records);
+    if (insertError) throw insertError;
 
     await writeAuditLog(serviceClient, {
       actorId: user.id,
@@ -177,10 +171,9 @@ Deno.serve(async (req) => {
       ikiminaId: payload.ikiminaId,
     });
 
-    return new Response(
-      JSON.stringify({ success: true, inserted: records.length }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ success: true, inserted: records.length }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("secure-import-members error", error);
     const message = error instanceof Error ? error.message : "Unknown error";
