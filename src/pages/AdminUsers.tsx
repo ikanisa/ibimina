@@ -26,11 +26,21 @@ const roleLabels: Record<Database["public"]["Enums"]["app_role"], string> = {
   SACCO_STAFF: "SACCO Staff",
 };
 
-type ManagedUser = Database["public"]["Tables"]["users"]["Row"] & {
+type ManagedUser = {
+  id: string;
+  email: string;
+  role: Database["public"]["Enums"]["app_role"];
+  sacco_id: string | null;
+  created_at: string;
   saccos?: { name: string | null } | null;
 };
 
-type Sacco = Database["public"]["Tables"]["saccos"]["Row"];
+type Sacco = {
+  id: string;
+  name: string;
+  district: string;
+  sector_code: string;
+};
 
 type InviteState = {
   email: string;

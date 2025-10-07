@@ -19,20 +19,15 @@ interface MemberPayload {
 interface ImportRequest {
   ikiminaId: string;
   members: MemberPayload[];
-  actorId?: string | null;
 }
+
+const AUTHORIZED_ROLES = new Set(["SYSTEM_ADMIN", "SACCO_MANAGER", "SACCO_STAFF"]);
 
 const normalizeMsisdn = (value: string) => {
   const digits = value.replace(/[^0-9+]/g, "");
-  if (digits.startsWith("+")) {
-    return digits;
-  }
-  if (digits.startsWith("2507")) {
-    return `+${digits}`;
-  }
-  if (digits.startsWith("07")) {
-    return `+250${digits.slice(2)}`;
-  }
+  if (digits.startsWith("+")) return digits;
+  if (digits.startsWith("2507")) return `+${digits}`;
+  if (digits.startsWith("07")) return `+250${digits.slice(2)}`;
   return value;
 };
 
@@ -44,36 +39,35 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error("Missing Supabase credentials");
-    }
+    if (!supabaseUrl || !supabaseKey) throw new Error("Missing Supabase credentials");
 
     const authHeader = req.headers.get("Authorization");
-
-    if (!authHeader) {
-      return new Response(JSON.stringify({ success: false, error: "Missing authorization" }), {
+    if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
+      return new Response(JSON.stringify({ success: false, error: "Missing authorization header" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
       });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Service client (for privileged reads/writes) and user-scoped client (to read current user)
+    const serviceClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
     const userClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
       global: { headers: { Authorization: authHeader } },
     });
 
     const payload = (await req.json()) as ImportRequest;
-
     if (!payload.ikiminaId || !payload.members?.length) {
       throw new Error("Ikimina ID and members are required");
     }
 
+    // Who is calling?
     const {
       data: { user },
       error: authError,
     } = await userClient.auth.getUser();
-
     if (authError || !user) {
       return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -81,52 +75,51 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: profile, error: profileError } = await supabase
+    // Load requester profile and enforce role
+    const { data: requesterProfile, error: profileError } = await serviceClient
       .from("users")
-      .select("role, sacco_id")
+      .select("id, role, sacco_id")
       .eq("id", user.id)
-      .maybeSingle();
+      .single();
 
-    if (profileError || !profile) {
-      console.error("Failed to load user profile", profileError);
+    if (profileError || !requesterProfile || !AUTHORIZED_ROLES.has(requesterProfile.role)) {
       return new Response(JSON.stringify({ success: false, error: "Forbidden" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 403,
       });
     }
 
-    const { data: ikimina, error: ikiminaError } = await supabase
+    // Target ikimina and sacco alignment
+    const { data: ikimina, error: ikiminaError } = await serviceClient
       .from("ibimina")
       .select("id, sacco_id")
       .eq("id", payload.ikiminaId)
-      .maybeSingle();
+      .single();
 
-    if (ikiminaError) {
-      console.error("Failed to load ikimina", ikiminaError);
-      throw ikiminaError;
-    }
-
-    if (!ikimina) {
+    if (ikiminaError || !ikimina) {
       return new Response(JSON.stringify({ success: false, error: "Ikimina not found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 404,
       });
     }
 
-    const isSystemAdmin = profile.role === "SYSTEM_ADMIN";
-    const sharesSacco = Boolean(profile.sacco_id && profile.sacco_id === ikimina.sacco_id);
+    const isSystemAdmin = requesterProfile.role === "SYSTEM_ADMIN";
+    const isSameSacco =
+      Boolean(requesterProfile.sacco_id) && requesterProfile.sacco_id === ikimina.sacco_id;
+    const hasSaccoPrivileges =
+      requesterProfile.role === "SACCO_MANAGER" || requesterProfile.role === "SACCO_STAFF";
 
-    if (!isSystemAdmin && !sharesSacco) {
+    if (!isSystemAdmin && !(isSameSacco && hasSaccoPrivileges)) {
       return new Response(JSON.stringify({ success: false, error: "Forbidden" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 403,
       });
     }
 
-    const allowed = await enforceRateLimit(supabase, `members:${payload.ikiminaId}`, {
+    // Rate limit keyed to ikimina
+    const allowed = await enforceRateLimit(serviceClient, `members:${payload.ikiminaId}`, {
       maxHits: Math.max(payload.members.length, 10),
     });
-
     if (!allowed) {
       return new Response(JSON.stringify({ success: false, error: "Rate limit exceeded" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -134,8 +127,8 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Prepare rows
     const records: Record<string, unknown>[] = [];
-
     for (const member of payload.members) {
       const msisdn = normalizeMsisdn(member.msisdn);
       const encryptedMsisdn = await encryptField(msisdn);
@@ -152,6 +145,7 @@ Deno.serve(async (req) => {
         full_name: member.fullName,
         member_code: member.memberCode ?? null,
         status: "ACTIVE",
+        // store masked display + encrypted + hash
         msisdn: maskedMsisdn,
         msisdn_encrypted: encryptedMsisdn,
         msisdn_hash: msisdnHash,
@@ -162,13 +156,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { error } = await supabase.from("ikimina_members").insert(records);
+    const { error: insertError } = await serviceClient.from("ikimina_members").insert(records);
+    if (insertError) throw insertError;
 
-    if (error) {
-      throw error;
-    }
-
-    await writeAuditLog(supabase, {
+    await writeAuditLog(serviceClient, {
       actorId: user.id,
       action: "MEMBER_IMPORT",
       entity: "IKIMINA",
@@ -176,14 +167,13 @@ Deno.serve(async (req) => {
       diff: { imported: records.length },
     });
 
-    await recordMetric(supabase, "members_imported", records.length, {
+    await recordMetric(serviceClient, "members_imported", records.length, {
       ikiminaId: payload.ikiminaId,
     });
 
-    return new Response(
-      JSON.stringify({ success: true, inserted: records.length }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ success: true, inserted: records.length }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("secure-import-members error", error);
     const message = error instanceof Error ? error.message : "Unknown error";

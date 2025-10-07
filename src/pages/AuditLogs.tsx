@@ -46,14 +46,11 @@ const AuditLogs = () => {
 
       if (error) {
         console.error(error);
+        toast.error("Failed to load audit logs");
         throw error;
       }
 
       return data as AuditLogRow[];
-    },
-    onError: (error) => {
-      console.error(error);
-      toast.error("Failed to load audit logs");
     },
   });
 

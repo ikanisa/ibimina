@@ -13,7 +13,7 @@ const manifest = {
   description: "Staff-only PWA for Umurenge SACCO ibimina onboarding, deposits, reconciliation, and reporting.",
   theme_color: "#00A1DE",
   background_color: "#0B1020",
-  display: "standalone",
+  display: "standalone" as const,
   start_url: "/",
   icons: [
     {
@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => {
   ];
 
   if (mode === "development") {
-    plugins.push(componentTagger());
+    plugins.push(componentTagger() as any);
   }
 
   return {

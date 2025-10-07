@@ -54,6 +54,24 @@ export const OfflineQueueProvider = ({ children }: { children: React.ReactNode }
     syncQueuedCount();
   }, []);
 
+  const flushQueue = useCallback(async () => {
+    const actions = await getQueuedActions();
+    let remaining = actions.length;
+
+    for (const action of actions) {
+      try {
+        await processQueuedAction(action);
+        await removeQueuedAction(action.id);
+        remaining -= 1;
+      } catch (error) {
+        console.error("Failed to replay queued action", error);
+        break;
+      }
+    }
+
+    setQueuedCount(remaining);
+  }, []);
+
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
@@ -110,9 +128,9 @@ export const OfflineQueueProvider = ({ children }: { children: React.ReactNode }
 
     if ("serviceWorker" in navigator) {
       const registration = await navigator.serviceWorker.ready;
-      if ("sync" in registration) {
+      if ("sync" in registration && (registration as any).sync) {
         try {
-          await registration.sync.register("flush-offline-queue");
+          await (registration as any).sync.register("flush-offline-queue");
         } catch (error) {
           console.warn("Background sync registration failed", error);
         }

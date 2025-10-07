@@ -6,6 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const AUTHORIZED_ROLES = new Set(["SYSTEM_ADMIN", "SACCO_MANAGER", "SACCO_STAFF"]);
+
 const parseDate = (value: string | null, fallback: Date) => {
   if (!value) return fallback;
   const parsed = new Date(value);
@@ -42,14 +44,53 @@ Deno.serve(async (req) => {
       throw new Error("Missing Supabase credentials");
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
+      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const serviceClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const userClient = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const {
+      data: { user },
+      error: authError,
+    } = await userClient.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const { data: requesterProfile, error: profileError } = await serviceClient
+      .from("users")
+      .select("id, role, sacco_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !requesterProfile || !AUTHORIZED_ROLES.has(requesterProfile.role)) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
 
     const start = parseDate(url.searchParams.get("start"), new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
     const end = parseDate(url.searchParams.get("end"), new Date());
 
-    const { data: ikimina, error: ikiminaError } = await supabase
+    const { data: ikimina, error: ikiminaError } = await serviceClient
       .from("ibimina")
-      .select("id, name, code")
+      .select("id, name, code, sacco_id")
       .eq("id", ikiminaId)
       .single();
 
@@ -57,7 +98,20 @@ Deno.serve(async (req) => {
       throw ikiminaError ?? new Error("Ikimina not found");
     }
 
-    const { data: payments, error: paymentsError } = await supabase
+    const isSystemAdmin = requesterProfile.role === "SYSTEM_ADMIN";
+    const isSameSacco = Boolean(
+      requesterProfile.sacco_id && requesterProfile.sacco_id === ikimina.sacco_id,
+    );
+    const hasSaccoPrivileges = requesterProfile.role === "SACCO_MANAGER" || requesterProfile.role === "SACCO_STAFF";
+
+    if (!isSystemAdmin && !(isSameSacco && hasSaccoPrivileges)) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
+    const { data: payments, error: paymentsError } = await serviceClient
       .from("payments")
       .select("id, amount, occurred_at, status, reference, txn_id")
       .eq("ikimina_id", ikiminaId)

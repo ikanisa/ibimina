@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,21 @@ const Auth = () => {
   const [mfaCode, setMfaCode] = useState("");
   const [mfaVerifying, setMfaVerifying] = useState(false);
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeState | null>(null);
+
+  useEffect(() => {
+    // Bootstrap admin user on component mount
+    const bootstrapAdmin = async () => {
+      try {
+        await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bootstrap-admin`,
+          { method: "POST" }
+        );
+      } catch (error) {
+        console.error("Bootstrap error:", error);
+      }
+    };
+    bootstrapAdmin();
+  }, []);
 
   const handleSignIn = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -149,7 +164,7 @@ const Auth = () => {
           </div>
           <CardTitle className="text-3xl font-bold">Umurenge SACCO</CardTitle>
           <CardDescription className="text-base">
-            Staff-only ibimina management portal
+            Staff login - Contact system administrator for access
           </CardDescription>
         </CardHeader>
         <CardContent>
