@@ -138,18 +138,47 @@
   }
 
   .bg-nyungwe {
-    background: radial-gradient(circle at 20% 20%, 
-      hsla(var(--rw-blue) / 0.6), 
-      hsla(var(--rw-yellow) / 0.5), 
+    background: radial-gradient(circle at 20% 20%,
+      hsla(var(--rw-blue) / 0.6),
+      hsla(var(--rw-yellow) / 0.5),
       hsla(var(--rw-green) / 0.6)
     );
   }
 
   .bg-volcanoes {
-    background: linear-gradient(45deg, 
-      hsl(var(--rw-blue)) 0%, 
+    background: linear-gradient(45deg,
+      hsl(var(--rw-blue)) 0%,
       hsl(var(--rw-green)) 100%
     );
+  }
+
+  .bg-kivu {
+    background: radial-gradient(ellipse at top left,
+      hsla(var(--rw-blue) / 0.8) 0%,
+      hsla(var(--rw-yellow) / 0.35) 40%,
+      hsla(var(--rw-green) / 0.7) 100%
+    );
+  }
+
+  .bg-ibisi {
+    background: linear-gradient(160deg,
+      hsla(var(--rw-blue) / 0.85) 0%,
+      hsla(var(--rw-yellow) / 0.45) 45%,
+      hsla(var(--rw-green) / 0.9) 100%
+    );
+  }
+
+  .border-rwanda {
+    border-image: linear-gradient(90deg,
+      hsl(var(--rw-blue)),
+      hsl(var(--rw-yellow)),
+      hsl(var(--rw-green))
+    ) 1;
+  }
+
+  .glow-rwanda {
+    box-shadow: 0 20px 40px -25px hsla(var(--rw-blue) / 0.55),
+      0 30px 60px -30px hsla(var(--rw-green) / 0.45);
   }
 
   /* Animated shimmer effect */
@@ -213,5 +242,17 @@
       hsl(var(--rw-yellow)), 
       hsl(var(--rw-green))
     );
+  }
+
+  .executive-grid {
+    background: radial-gradient(circle at 25% -10%, hsla(var(--rw-yellow) / 0.35), transparent 55%),
+      radial-gradient(circle at 100% 0%, hsla(var(--rw-blue) / 0.18), transparent 60%),
+      hsla(var(--background) / 0.95);
+    backdrop-filter: blur(18px) saturate(1.25);
+    border: 1px solid hsla(var(--border) / 0.5);
+  }
+
+  .forecast-line {
+    stroke-dasharray: 6 6;
   }
 }

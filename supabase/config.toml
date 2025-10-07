@@ -5,3 +5,22 @@ verify_jwt = false
 
 [functions.ingest-sms]
 verify_jwt = false
+
+[functions.invite-user]
+verify_jwt = true
+
+[functions.import-statement]
+verify_jwt = true
+
+[functions.secure-import-members]
+verify_jwt = true
+
+[functions.settle-payment]
+verify_jwt = true
+
+[functions.sms-review]
+verify_jwt = true
+
+[functions.scheduled-reconciliation]
+verify_jwt = false
+

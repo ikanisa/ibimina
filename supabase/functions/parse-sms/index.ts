@@ -1,14 +1,14 @@
-// Deno edge function for parsing MoMo SMS messages
+// Deno edge function for parsing MoMo SMS messages using deterministic regex with OpenAI Structured Outputs fallback
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface SmsParseRequest {
   rawText: string;
-  receivedAt: string;
-  vendorMeta?: any;
+  receivedAt?: string;
+  vendorMeta?: unknown;
 }
 
 interface ParsedTransaction {
@@ -21,28 +21,67 @@ interface ParsedTransaction {
   confidence: number;
 }
 
-// MTN Rwanda MoMo SMS patterns (deterministic regex)
 const MTN_PATTERNS = [
-  // Pattern: "You have received RWF 20,000 from 0788123456 (UWIZEYE Marie). Ref: NYA.GAS.TWIZ.001. Balance: RWF 50,000. Txn ID: MTN123456789"
   /You have received RWF ([0-9,]+) from (\d{10}) \(([^)]+)\)\. Ref: ([A-Z0-9.]+)\. Balance: RWF [0-9,]+\. Txn ID: ([A-Z0-9]+)/i,
-  
-  // Pattern: "Received RWF 20000 from +250788123456. Ref: NYA.GAS.TWIZ.001. ID: MTN123456789"
   /Received RWF ([0-9,]+) from (\+?250\d{9})\. Ref: ([A-Z0-9.]+)\. ID: ([A-Z0-9]+)/i,
-  
-  // Pattern: "RWF 20000 received from 0788123456. Reference: NYA.GAS.TWIZ.001. Transaction: MTN123456789"
   /RWF ([0-9,]+) received from (\d{10})\. Reference: ([A-Z0-9.]+)\. Transaction: ([A-Z0-9]+)/i,
 ];
 
-function parseWithRegex(rawText: string): ParsedTransaction | null {
+const toIsoString = (value?: string) => {
+  if (!value) {
+    return new Date().toISOString();
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return new Date().toISOString();
+  }
+
+  return parsed.toISOString();
+};
+
+const normalizeMsisdn = (value: string) => {
+  const cleaned = value.replace(/[^0-9+]/g, "");
+  if (!cleaned) {
+    return value;
+  }
+
+  if (cleaned.startsWith("+")) {
+    const digits = cleaned.replace(/[^0-9]/g, "");
+    return `+${digits}`;
+  }
+
+  if (cleaned.startsWith("2507")) {
+    return `+${cleaned}`;
+  }
+
+  if (cleaned.startsWith("07")) {
+    return `+250${cleaned.slice(2)}`;
+  }
+
+  if (cleaned.startsWith("7") && cleaned.length === 9) {
+    return `+250${cleaned}`;
+  }
+
+  return value;
+};
+
+const clampConfidence = (value: unknown, fallback: number) => {
+  const num = typeof value === "number" ? value : Number.parseFloat(String(value ?? ""));
+  if (Number.isFinite(num)) {
+    return Math.min(Math.max(num, 0), 1);
+  }
+  return fallback;
+};
+
+function parseWithRegex(rawText: string, receivedAt?: string): ParsedTransaction | null {
   for (const pattern of MTN_PATTERNS) {
     const match = rawText.match(pattern);
     if (match) {
-      const amount = parseInt(match[1].replace(/,/g, ''));
-      const msisdn = match[2].startsWith('+') ? match[2] : `+250${match[2].substring(1)}`;
+      const amount = Number.parseInt(match[1].replace(/,/g, ""), 10);
+      const msisdn = normalizeMsisdn(match[2]);
       const reference = match[3] || match[4];
       const txnId = match[4] || match[5];
-      
-      // Extract payer name if available (from first pattern)
       const payerMatch = rawText.match(/\(([^)]+)\)/);
       const payerName = payerMatch ? payerMatch[1] : undefined;
 
@@ -50,141 +89,247 @@ function parseWithRegex(rawText: string): ParsedTransaction | null {
         msisdn,
         amount,
         txn_id: txnId,
-        timestamp: new Date().toISOString(),
+        timestamp: toIsoString(receivedAt),
         payer_name: payerName,
         reference,
-        confidence: 0.95 // High confidence for regex matches
+        confidence: 0.95,
       };
     }
   }
+
   return null;
 }
 
-async function parseWithAI(rawText: string): Promise<ParsedTransaction> {
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) {
-    throw new Error('LOVABLE_API_KEY not configured');
+type OpenAIJsonOutput = {
+  msisdn: string;
+  amount: number | string;
+  txn_id?: string;
+  txnId?: string;
+  timestamp?: string;
+  payer_name?: string | null;
+  payerName?: string | null;
+  reference?: string | null;
+  confidence?: number | string | null;
+};
+
+const extractJsonOutput = (payload: any): OpenAIJsonOutput | null => {
+  if (payload?.output && Array.isArray(payload.output)) {
+    for (const item of payload.output) {
+      if (item?.type === "output_json" && item.json) {
+        return item.json as OpenAIJsonOutput;
+      }
+      if (item?.type === "output_text" && typeof item.text === "string") {
+        try {
+          return JSON.parse(item.text) as OpenAIJsonOutput;
+        } catch (_) {
+          // ignore parse errors and continue searching
+        }
+      }
+    }
   }
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
+  if (payload?.response?.output_text && Array.isArray(payload.response.output_text)) {
+    for (const item of payload.response.output_text) {
+      if (typeof item === "string") {
+        try {
+          return JSON.parse(item) as OpenAIJsonOutput;
+        } catch (_) {
+          // continue searching
+        }
+      }
+    }
+  }
+
+  if (payload?.choices && Array.isArray(payload.choices)) {
+    const choice = payload.choices[0];
+    const content = choice?.message?.content;
+    if (typeof content === "string") {
+      try {
+        return JSON.parse(content) as OpenAIJsonOutput;
+      } catch (_) {
+        // ignore
+      }
+    }
+    if (Array.isArray(content)) {
+      for (const block of content) {
+        if (block?.type === "text" && typeof block.text === "string") {
+          try {
+            return JSON.parse(block.text) as OpenAIJsonOutput;
+          } catch (_) {
+            // ignore
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+};
+
+async function parseWithOpenAI(rawText: string, receivedAt?: string) {
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY not configured");
+  }
+
+  const model = Deno.env.get("OPENAI_RESPONSES_MODEL") ?? "gpt-4.1-mini";
+
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
+      model,
+      input: [
         {
-          role: 'system',
-          content: 'You are an expert SMS parser for MoMo transactions. Extract transaction details and return ONLY valid JSON with no additional text.'
+          role: "system",
+          content:
+            "You extract MTN Rwanda MoMo transaction details from raw SMS. Return only valid JSON that matches the provided schema.",
         },
         {
-          role: 'user',
-          content: `Parse this MoMo SMS and extract the transaction details. Return ONLY a JSON object with these exact fields:
-{
-  "msisdn": "phone number in E.164 format (+250...)",
-  "amount": number (integer, no commas),
-  "txn_id": "transaction ID string",
-  "timestamp": "ISO8601 timestamp",
-  "payer_name": "name if available, else null",
-  "reference": "reference code if available, else null",
-  "confidence": number between 0 and 1
-}
-
-SMS text:
-${rawText}
-
-Return ONLY the JSON, no markdown, no explanation.`
-        }
+          role: "user",
+          content: `Extract the transaction details from the following SMS. If a field is missing, return null. SMS: ${rawText}`,
+        },
       ],
-      temperature: 0.1,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "momo_transaction",
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["msisdn", "amount", "txn_id"],
+            properties: {
+              msisdn: {
+                description: "Payer MSISDN in E.164 format (e.g. +2507XXXXXXX)",
+                type: "string",
+                pattern: "^\\+?2507\\d{8}$",
+              },
+              amount: {
+                description: "Transaction amount in RWF",
+                type: ["integer", "string"],
+                pattern: "^\\d+$",
+              },
+              txn_id: {
+                description: "MoMo transaction identifier",
+                type: "string",
+                minLength: 3,
+              },
+              timestamp: {
+                description: "Timestamp of the transaction (ISO8601)",
+                type: ["string", "null"],
+              },
+              payer_name: {
+                description: "Optional payer name",
+                type: ["string", "null"],
+              },
+              reference: {
+                description: "Optional reference code",
+                type: ["string", "null"],
+              },
+              confidence: {
+                description: "Model confidence between 0 and 1",
+                type: ["number", "string", "null"],
+              },
+            },
+          },
+        },
+      },
+      temperature: 0,
     }),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    console.error('AI gateway error:', response.status, error);
-    throw new Error(`AI gateway error: ${response.status}`);
+    const errorText = await response.text();
+    console.error("OpenAI error", response.status, errorText);
+    throw new Error(`OpenAI error ${response.status}`);
   }
 
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  
-  if (!content) {
-    throw new Error('No content in AI response');
+  const payload = await response.json();
+  const jsonOutput = extractJsonOutput(payload);
+
+  if (!jsonOutput) {
+    throw new Error("Unable to parse OpenAI structured output");
   }
 
-  // Clean up markdown if present
-  let jsonStr = content.trim();
-  if (jsonStr.startsWith('```json')) {
-    jsonStr = jsonStr.substring(7);
-  }
-  if (jsonStr.startsWith('```')) {
-    jsonStr = jsonStr.substring(3);
-  }
-  if (jsonStr.endsWith('```')) {
-    jsonStr = jsonStr.substring(0, jsonStr.length - 3);
+  const msisdn = normalizeMsisdn(String(jsonOutput.msisdn));
+  const amount = Number.parseInt(String(jsonOutput.amount).replace(/,/g, ""), 10);
+  const txnId = (jsonOutput.txn_id ?? jsonOutput.txnId ?? "").toString().trim();
+
+  if (!msisdn || Number.isNaN(amount) || !txnId) {
+    throw new Error("OpenAI response missing required fields");
   }
 
-  const parsed = JSON.parse(jsonStr.trim());
-  
-  // Validate required fields
-  if (!parsed.msisdn || !parsed.amount || !parsed.txn_id) {
-    throw new Error('Missing required fields in AI response');
-  }
+  const timestamp = jsonOutput.timestamp
+    ? toIsoString(jsonOutput.timestamp)
+    : toIsoString(receivedAt);
 
-  return parsed;
+  const confidence = clampConfidence(jsonOutput.confidence, 0.85);
+
+  const transaction: ParsedTransaction = {
+    msisdn,
+    amount,
+    txn_id: txnId,
+    timestamp,
+    payer_name: (jsonOutput.payer_name ?? jsonOutput.payerName ?? undefined) || undefined,
+    reference: jsonOutput.reference ?? undefined,
+    confidence,
+  };
+
+  return { transaction, model: payload.model ?? model };
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { rawText, receivedAt, vendorMeta }: SmsParseRequest = await req.json();
 
-    console.log('Parsing SMS:', { rawText, receivedAt });
+    console.log("Parsing SMS", { receivedAt, length: rawText?.length ?? 0 });
 
-    // Try regex parsing first
-    let parsed = parseWithRegex(rawText);
-    let parseSource = 'REGEX';
+    let parsed = parseWithRegex(rawText, receivedAt);
+    let parseSource: "REGEX" | "AI" = "REGEX";
+    let modelUsed: string | null = null;
 
-    // If regex fails or confidence too low, use AI
     if (!parsed || parsed.confidence < 0.9) {
-      console.log('Regex failed or low confidence, trying AI parsing...');
-      parsed = await parseWithAI(rawText);
-      parseSource = 'AI';
+      console.log("Regex failed or low confidence, invoking OpenAI fallback");
+      const { transaction, model } = await parseWithOpenAI(rawText, receivedAt);
+      parsed = transaction;
+      parseSource = "AI";
+      modelUsed = model;
     }
 
-    console.log('Parse successful:', { parseSource, confidence: parsed.confidence });
+    console.log("Parse successful", { parseSource, confidence: parsed.confidence, model: modelUsed });
 
     return new Response(
       JSON.stringify({
         success: true,
         parsed,
         parseSource,
-        vendorMeta
+        modelUsed,
+        vendorMeta,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   } catch (error) {
-    console.error('Parse error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown parsing error';
+    console.error("Parse error", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown parsing error";
     return new Response(
       JSON.stringify({
         success: false,
-        error: errorMessage
+        error: errorMessage,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      }
+      },
     );
   }
 });

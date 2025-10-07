@@ -312,3 +312,155 @@ CREATE INDEX idx_payments_txn_id ON public.payments(txn_id);
 CREATE INDEX idx_payments_reference ON public.payments(reference);
 CREATE INDEX idx_ledger_entries_external_id ON public.ledger_entries(external_id);
 CREATE INDEX idx_audit_logs_entity ON public.audit_logs(entity, entity_id);
+-- Field level encryption columns for sensitive data
+ALTER TABLE public.ikimina_members
+  ADD COLUMN IF NOT EXISTS msisdn_encrypted TEXT,
+  ADD COLUMN IF NOT EXISTS msisdn_masked TEXT,
+  ADD COLUMN IF NOT EXISTS msisdn_hash TEXT,
+  ADD COLUMN IF NOT EXISTS national_id_encrypted TEXT,
+  ADD COLUMN IF NOT EXISTS national_id_masked TEXT,
+  ADD COLUMN IF NOT EXISTS national_id_hash TEXT;
+
+ALTER TABLE public.sms_inbox
+  ADD COLUMN IF NOT EXISTS msisdn_encrypted TEXT,
+  ADD COLUMN IF NOT EXISTS msisdn_masked TEXT,
+  ADD COLUMN IF NOT EXISTS msisdn_hash TEXT;
+
+ALTER TABLE public.payments
+  ADD COLUMN IF NOT EXISTS msisdn_encrypted TEXT,
+  ADD COLUMN IF NOT EXISTS msisdn_masked TEXT,
+  ADD COLUMN IF NOT EXISTS msisdn_hash TEXT;
+
+-- Ensure audit logs can be written without explicit actor (system generated)
+ALTER TABLE public.audit_logs
+  ALTER COLUMN actor_id SET DEFAULT '00000000-0000-0000-0000-000000000000'::uuid;
+
+-- Rate limiting support
+CREATE TABLE IF NOT EXISTS public.rate_limit_counters (
+  key TEXT PRIMARY KEY,
+  hits INTEGER NOT NULL DEFAULT 0,
+  window_expires TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE OR REPLACE FUNCTION public.consume_rate_limit(
+  key TEXT,
+  max_hits INTEGER,
+  window_seconds INTEGER
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  existing RECORD;
+BEGIN
+  SELECT * INTO existing FROM public.rate_limit_counters WHERE public.rate_limit_counters.key = consume_rate_limit.key;
+
+  IF existing.key IS NULL OR existing.window_expires < NOW() THEN
+    INSERT INTO public.rate_limit_counters(key, hits, window_expires)
+    VALUES (consume_rate_limit.key, 1, NOW() + make_interval(secs => GREATEST(window_seconds, 1)))
+    ON CONFLICT (key) DO UPDATE
+      SET hits = EXCLUDED.hits,
+          window_expires = EXCLUDED.window_expires;
+    RETURN TRUE;
+  END IF;
+
+  IF existing.hits >= max_hits THEN
+    RETURN FALSE;
+  END IF;
+
+  UPDATE public.rate_limit_counters
+    SET hits = existing.hits + 1
+  WHERE key = consume_rate_limit.key;
+
+  RETURN TRUE;
+END;
+$$;
+
+-- Metrics aggregation
+CREATE TABLE IF NOT EXISTS public.system_metrics (
+  event TEXT PRIMARY KEY,
+  total BIGINT NOT NULL DEFAULT 0,
+  last_occurred TIMESTAMPTZ,
+  meta JSONB DEFAULT '{}'::jsonb
+);
+
+CREATE OR REPLACE FUNCTION public.increment_metric(
+  event_name TEXT,
+  delta INTEGER,
+  meta JSONB DEFAULT '{}'::jsonb
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  INSERT INTO public.system_metrics(event, total, last_occurred, meta)
+  VALUES (event_name, delta, NOW(), COALESCE(meta, '{}'::jsonb))
+  ON CONFLICT (event) DO UPDATE
+    SET total = public.system_metrics.total + GREATEST(delta, 0),
+        last_occurred = NOW(),
+        meta = CASE
+          WHEN meta = '{}'::jsonb THEN public.system_metrics.meta
+          ELSE meta
+        END;
+END;
+$$;
+
+-- Notification queue for automation hooks
+CREATE TABLE IF NOT EXISTS public.notification_queue (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event TEXT NOT NULL,
+  payment_id UUID,
+  payload JSONB NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  scheduled_for TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  processed_at TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_queue_payment ON public.notification_queue(payment_id) WHERE payment_id IS NOT NULL;
+
+ALTER TABLE public.notification_queue ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "System can manage notification queue"
+  ON public.notification_queue FOR ALL
+  USING (public.has_role(auth.uid(), 'SYSTEM_ADMIN'))
+  WITH CHECK (public.has_role(auth.uid(), 'SYSTEM_ADMIN'));
+
+-- Indexes to support encrypted lookup patterns
+CREATE INDEX IF NOT EXISTS idx_ikimina_members_msisdn_hash ON public.ikimina_members(msisdn_hash);
+CREATE INDEX IF NOT EXISTS idx_ikimina_members_national_id_hash ON public.ikimina_members(national_id_hash);
+CREATE INDEX IF NOT EXISTS idx_payments_msisdn_hash ON public.payments(msisdn_hash);
+CREATE INDEX IF NOT EXISTS idx_sms_inbox_msisdn_hash ON public.sms_inbox(msisdn_hash);
+
+-- Seed masked values for existing rows
+UPDATE public.ikimina_members
+SET msisdn_masked = CASE
+  WHEN msisdn IS NULL THEN NULL
+  ELSE substr(msisdn, 1, 5) || '••••' || substr(msisdn, greatest(length(msisdn) - 2, 1), 3)
+END
+WHERE msisdn_masked IS NULL;
+
+UPDATE public.payments
+SET msisdn_masked = CASE
+  WHEN msisdn IS NULL THEN NULL
+  ELSE substr(msisdn, 1, 5) || '••••' || substr(msisdn, greatest(length(msisdn) - 2, 1), 3)
+END
+WHERE msisdn_masked IS NULL;
+
+UPDATE public.sms_inbox
+SET msisdn_masked = CASE
+  WHEN msisdn IS NULL THEN NULL
+  ELSE substr(msisdn, 1, 5) || '••••' || substr(msisdn, greatest(length(msisdn) - 2, 1), 3)
+END
+WHERE msisdn_masked IS NULL;
+
+ALTER TABLE public.system_metrics ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can view metrics"
+  ON public.system_metrics FOR SELECT
+  USING (public.has_role(auth.uid(), 'SYSTEM_ADMIN'));
+
+CREATE POLICY "Admins can manage metrics"
+  ON public.system_metrics FOR ALL
+  USING (public.has_role(auth.uid(), 'SYSTEM_ADMIN'))
+  WITH CHECK (public.has_role(auth.uid(), 'SYSTEM_ADMIN'));
