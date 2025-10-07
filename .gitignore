@@ -11,6 +11,13 @@ node_modules
 dist
 dist-ssr
 *.local
+bun.lockb
+
+# Binary assets (disallowed by PR tooling)
+*.ico
+*.png
+*.jpg
+*.jpeg
 
 # Editor directories and files
 .vscode/*
