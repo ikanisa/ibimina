@@ -49,11 +49,78 @@ Deno.serve(async (req) => {
       throw new Error("Missing Supabase credentials");
     }
 
+    const authHeader = req.headers.get("Authorization");
+
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, error: "Missing authorization" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey);
+    const userClient = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
     const payload = (await req.json()) as ImportRequest;
 
     if (!payload.ikiminaId || !payload.members?.length) {
       throw new Error("Ikimina ID and members are required");
+    }
+
+    const {
+      data: { user },
+      error: authError,
+    } = await userClient.auth.getUser();
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("role, sacco_id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      console.error("Failed to load user profile", profileError);
+      return new Response(JSON.stringify({ success: false, error: "Forbidden" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
+    const { data: ikimina, error: ikiminaError } = await supabase
+      .from("ibimina")
+      .select("id, sacco_id")
+      .eq("id", payload.ikiminaId)
+      .maybeSingle();
+
+    if (ikiminaError) {
+      console.error("Failed to load ikimina", ikiminaError);
+      throw ikiminaError;
+    }
+
+    if (!ikimina) {
+      return new Response(JSON.stringify({ success: false, error: "Ikimina not found" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+      });
+    }
+
+    const isSystemAdmin = profile.role === "SYSTEM_ADMIN";
+    const sharesSacco = Boolean(profile.sacco_id && profile.sacco_id === ikimina.sacco_id);
+
+    if (!isSystemAdmin && !sharesSacco) {
+      return new Response(JSON.stringify({ success: false, error: "Forbidden" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
     }
 
     const allowed = await enforceRateLimit(supabase, `members:${payload.ikiminaId}`, {
@@ -102,7 +169,7 @@ Deno.serve(async (req) => {
     }
 
     await writeAuditLog(supabase, {
-      actorId: payload.actorId,
+      actorId: user.id,
       action: "MEMBER_IMPORT",
       entity: "IKIMINA",
       entityId: payload.ikiminaId,
