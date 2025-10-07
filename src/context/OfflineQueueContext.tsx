@@ -23,6 +23,24 @@ export const OfflineQueueProvider = ({ children }: { children: React.ReactNode }
   const [queuedCount, setQueuedCount] = useState(0);
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== "undefined" ? navigator.onLine : true);
 
+  const flushQueue = useCallback(async () => {
+    const actions = await getQueuedActions();
+    let remaining = actions.length;
+
+    for (const action of actions) {
+      try {
+        await processQueuedAction(action);
+        await removeQueuedAction(action.id);
+        remaining -= 1;
+      } catch (error) {
+        console.error("Failed to replay queued action", error);
+        break;
+      }
+    }
+
+    setQueuedCount(remaining);
+  }, []);
+
   useEffect(() => {
     const syncQueuedCount = async () => {
       try {
@@ -65,24 +83,6 @@ export const OfflineQueueProvider = ({ children }: { children: React.ReactNode }
 
     navigator.serviceWorker.addEventListener("message", listener);
     return () => navigator.serviceWorker.removeEventListener("message", listener);
-  }, []);
-
-  const flushQueue = useCallback(async () => {
-    const actions = await getQueuedActions();
-    let remaining = actions.length;
-
-    for (const action of actions) {
-      try {
-        await processQueuedAction(action);
-        await removeQueuedAction(action.id);
-        remaining -= 1;
-      } catch (error) {
-        console.error("Failed to replay queued action", error);
-        break;
-      }
-    }
-
-    setQueuedCount(remaining);
   }, []);
 
   const queueSupabaseFunction = useCallback(async (functionName: string, payload: unknown) => {
