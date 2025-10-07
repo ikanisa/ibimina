@@ -1,4 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { postToLedger } from "../_shared/ledger.ts";
+import { encryptField, hashField, maskMsisdn } from "../_shared/crypto.ts";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
+import { writeAuditLog } from "../_shared/audit.ts";
+import { recordMetric } from "../_shared/metrics.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,7 +28,27 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    const sharedSecret = Deno.env.get('SMS_SHARED_SECRET');
+    if (sharedSecret) {
+      const provided = req.headers.get('x-sms-shared-secret');
+      if (provided !== sharedSecret) {
+        return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        });
+      }
+    }
+
     const { rawText, receivedAt, vendorMeta, saccoId }: IngestRequest = await req.json();
+
+    const allowed = await enforceRateLimit(supabase, `sms:${saccoId ?? 'global'}`, { maxHits: 200 });
+
+    if (!allowed) {
+      return new Response(JSON.stringify({ success: false, error: 'Rate limit exceeded' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 429,
+      });
+    }
 
     console.log('Ingesting SMS:', { length: rawText.length, receivedAt, saccoId });
 
@@ -67,18 +92,36 @@ Deno.serve(async (req) => {
       throw parseResponse.error;
     }
 
-    const { parsed, parseSource } = parseResponse.data;
+    const { parsed, parseSource, modelUsed } = parseResponse.data as {
+      parsed: {
+        msisdn: string;
+        confidence: number;
+        reference?: string | null;
+        txn_id: string;
+        amount: number;
+        timestamp: string;
+      };
+      parseSource: 'REGEX' | 'AI';
+      modelUsed?: string | null;
+    };
 
-    console.log('SMS parsed:', { parseSource, confidence: parsed.confidence });
+    console.log('SMS parsed:', { parseSource, confidence: parsed.confidence, modelUsed });
 
     // Step 3: Update SMS with parsed data
+    const encryptedMsisdn = await encryptField(parsed.msisdn);
+    const msisdnHash = await hashField(parsed.msisdn);
+    const maskedMsisdn = maskMsisdn(parsed.msisdn) ?? parsed.msisdn;
+
     await supabase
       .from('sms_inbox')
       .update({
         parsed_json: parsed,
         parse_source: parseSource,
         confidence: parsed.confidence,
-        msisdn: parsed.msisdn,
+        msisdn: maskedMsisdn,
+        msisdn_encrypted: encryptedMsisdn,
+        msisdn_hash: msisdnHash,
+        msisdn_masked: maskedMsisdn,
         status: 'PARSED'
       })
       .eq('id', smsRecord.id);
@@ -88,6 +131,37 @@ Deno.serve(async (req) => {
     let ikiminaId = null;
     let memberId = null;
     let paymentStatus = 'PENDING';
+
+    // Duplicate guard
+    const { data: duplicate } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('txn_id', parsed.txn_id)
+      .maybeSingle();
+
+    if (duplicate?.id) {
+      await supabase
+        .from('sms_inbox')
+        .update({ status: 'APPLIED', error: 'Duplicate transaction' })
+        .eq('id', smsRecord.id);
+
+      await recordMetric(supabase, 'sms_duplicates', 1, {
+        saccoId: mappedSaccoId || saccoId,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          smsId: smsRecord.id,
+          paymentId: duplicate.id,
+          status: 'DUPLICATE',
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      );
+    }
 
     if (parsed.reference) {
       // Parse reference: DISTRICT.SACCO.GROUP(.MEMBER)?
@@ -141,7 +215,10 @@ Deno.serve(async (req) => {
         sacco_id: mappedSaccoId || saccoId,
         ikimina_id: ikiminaId,
         member_id: memberId,
-        msisdn: parsed.msisdn,
+        msisdn: maskedMsisdn,
+        msisdn_encrypted: encryptedMsisdn,
+        msisdn_hash: msisdnHash,
+        msisdn_masked: maskedMsisdn,
         amount: parsed.amount,
         currency: 'RWF',
         txn_id: parsed.txn_id,
@@ -149,7 +226,7 @@ Deno.serve(async (req) => {
         occurred_at: parsed.timestamp,
         status: paymentStatus,
         source_id: smsRecord.id,
-        ai_version: parseSource === 'AI' ? 'gemini-2.5-flash' : null,
+        ai_version: parseSource === 'AI' ? modelUsed ?? 'openai-structured' : null,
         confidence: parsed.confidence
       })
       .select()
@@ -161,6 +238,37 @@ Deno.serve(async (req) => {
     }
 
     console.log('Payment created:', { id: payment.id, status: paymentStatus });
+
+    if (paymentStatus === 'POSTED') {
+      await postToLedger(supabase, {
+        id: payment.id,
+        sacco_id: payment.sacco_id,
+        ikimina_id: payment.ikimina_id,
+        member_id: payment.member_id,
+        amount: payment.amount,
+        currency: payment.currency,
+        txn_id: payment.txn_id,
+      });
+    }
+
+    await writeAuditLog(supabase, {
+      action: 'SMS_INGESTED',
+      entity: 'SMS_INBOX',
+      entityId: smsRecord.id,
+      diff: {
+        paymentId: payment.id,
+        saccoId: mappedSaccoId || saccoId,
+        parseSource,
+        status: paymentStatus,
+      },
+    });
+
+    await recordMetric(supabase, 'sms_ingested', 1, {
+      saccoId: mappedSaccoId || saccoId,
+      status: paymentStatus,
+      parseSource,
+      model: modelUsed ?? null,
+    });
 
     // Step 6: Update SMS status
     await supabase
