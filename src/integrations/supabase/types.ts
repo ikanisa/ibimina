@@ -129,8 +129,17 @@ export type Database = {
           ikimina_id: string
           joined_at: string | null
           member_code: string | null
-          msisdn: string
+          msisdn: string | null
+          msisdn_encrypted: string | null
+          msisdn_hash: string | null
+          msisdn_masked: string | null
+          msisdn_encrypted: string | null
+          msisdn_hash: string | null
+          msisdn_masked: string | null
           national_id: string | null
+          national_id_encrypted: string | null
+          national_id_hash: string | null
+          national_id_masked: string | null
           status: string
           updated_at: string | null
         }
@@ -141,8 +150,17 @@ export type Database = {
           ikimina_id: string
           joined_at?: string | null
           member_code?: string | null
-          msisdn: string
+          msisdn?: string | null
+          msisdn_encrypted?: string | null
+          msisdn_hash?: string | null
+          msisdn_masked?: string | null
+          msisdn_encrypted?: string | null
+          msisdn_hash?: string | null
+          msisdn_masked?: string | null
           national_id?: string | null
+          national_id_encrypted?: string | null
+          national_id_hash?: string | null
+          national_id_masked?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -153,8 +171,17 @@ export type Database = {
           ikimina_id?: string
           joined_at?: string | null
           member_code?: string | null
-          msisdn?: string
+          msisdn?: string | null
+          msisdn_encrypted?: string | null
+          msisdn_hash?: string | null
+          msisdn_masked?: string | null
+          msisdn_encrypted?: string | null
+          msisdn_hash?: string | null
+          msisdn_masked?: string | null
           national_id?: string | null
+          national_id_encrypted?: string | null
+          national_id_hash?: string | null
+          national_id_masked?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -230,7 +257,10 @@ export type Database = {
           id: string
           ikimina_id: string | null
           member_id: string | null
-          msisdn: string
+          msisdn: string | null
+          msisdn_encrypted: string | null
+          msisdn_hash: string | null
+          msisdn_masked: string | null
           occurred_at: string
           reference: string | null
           sacco_id: string
@@ -248,7 +278,10 @@ export type Database = {
           id?: string
           ikimina_id?: string | null
           member_id?: string | null
-          msisdn: string
+          msisdn?: string | null
+          msisdn_encrypted?: string | null
+          msisdn_hash?: string | null
+          msisdn_masked?: string | null
           occurred_at: string
           reference?: string | null
           sacco_id: string
@@ -266,7 +299,10 @@ export type Database = {
           id?: string
           ikimina_id?: string | null
           member_id?: string | null
-          msisdn?: string
+          msisdn?: string | null
+          msisdn_encrypted?: string | null
+          msisdn_hash?: string | null
+          msisdn_masked?: string | null
           occurred_at?: string
           reference?: string | null
           sacco_id?: string
@@ -345,6 +381,9 @@ export type Database = {
           error: string | null
           id: string
           msisdn: string | null
+          msisdn_encrypted: string | null
+          msisdn_hash: string | null
+          msisdn_masked: string | null
           parse_source: string | null
           parsed_json: Json | null
           raw_text: string
@@ -359,6 +398,9 @@ export type Database = {
           error?: string | null
           id?: string
           msisdn?: string | null
+          msisdn_encrypted?: string | null
+          msisdn_hash?: string | null
+          msisdn_masked?: string | null
           parse_source?: string | null
           parsed_json?: Json | null
           raw_text: string
@@ -373,6 +415,9 @@ export type Database = {
           error?: string | null
           id?: string
           msisdn?: string | null
+          msisdn_encrypted?: string | null
+          msisdn_hash?: string | null
+          msisdn_masked?: string | null
           parse_source?: string | null
           parsed_json?: Json | null
           raw_text?: string
@@ -390,6 +435,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_queue: {
+        Row: {
+          created_at: string | null
+          event: string
+          id: string
+          payload: Json
+          payment_id: string | null
+          processed_at: string | null
+          scheduled_for: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          event: string
+          id?: string
+          payload: Json
+          payment_id?: string | null
+          processed_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string | null
+          event?: string
+          id?: string
+          payload?: Json
+          payment_id?: string | null
+          processed_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_queue_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rate_limit_counters: {
+        Row: {
+          hits: number
+          key: string
+          window_expires: string
+        }
+        Insert: {
+          hits?: number
+          key: string
+          window_expires?: string
+        }
+        Update: {
+          hits?: number
+          key?: string
+          window_expires?: string
+        }
+        Relationships: []
+      }
+      system_metrics: {
+        Row: {
+          event: string
+          last_occurred: string | null
+          meta: Json | null
+          total: number
+        }
+        Insert: {
+          event: string
+          last_occurred?: string | null
+          meta?: Json | null
+          total?: number
+        }
+        Update: {
+          event?: string
+          last_occurred?: string | null
+          meta?: Json | null
+          total?: number
+        }
+        Relationships: []
       }
       users: {
         Row: {
