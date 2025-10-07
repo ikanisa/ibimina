@@ -334,31 +334,40 @@ export type Database = {
       }
       saccos: {
         Row: {
+          category: string | null
           created_at: string | null
           district: string
+          email: string | null
           id: string
           merchant_code: string | null
           name: string
+          province: string | null
           sector_code: string
           status: string
           updated_at: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           district: string
+          email?: string | null
           id?: string
           merchant_code?: string | null
           name: string
+          province?: string | null
           sector_code: string
           status?: string
           updated_at?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           district?: string
+          email?: string | null
           id?: string
           merchant_code?: string | null
           name?: string
+          province?: string | null
           sector_code?: string
           status?: string
           updated_at?: string | null
