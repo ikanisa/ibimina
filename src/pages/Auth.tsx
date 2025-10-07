@@ -29,12 +29,12 @@ const Auth = () => {
     // Bootstrap admin user on component mount
     const bootstrapAdmin = async () => {
       try {
-        await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bootstrap-admin`,
-          { method: "POST" }
-        );
+        const { error } = await supabase.functions.invoke("bootstrap-admin");
+        if (error) {
+          console.error("Bootstrap admin error:", error);
+        }
       } catch (error) {
-        console.error("Bootstrap error:", error);
+        console.error("Failed to bootstrap admin:", error);
       }
     };
     bootstrapAdmin();

@@ -76,22 +76,8 @@ const Dashboard = () => {
     },
   });
 
-  const { data: metrics } = useQuery({
-    queryKey: ["system-metrics"],
-    enabled: profile?.role === "SYSTEM_ADMIN",
-    queryFn: async (): Promise<MetricRow[]> => {
-      const { data, error } = await supabase
-        .from("system_metrics")
-        .select("event, total, last_occurred")
-        .order("event", { ascending: true });
-
-      if (error) {
-        throw error;
-      }
-
-      return data as MetricRow[];
-    },
-  });
+  // System metrics table doesn't exist yet - disabled
+  const metrics = undefined;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
