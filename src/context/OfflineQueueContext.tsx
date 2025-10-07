@@ -54,24 +54,6 @@ export const OfflineQueueProvider = ({ children }: { children: React.ReactNode }
     syncQueuedCount();
   }, []);
 
-  const flushQueue = useCallback(async () => {
-    const actions = await getQueuedActions();
-    let remaining = actions.length;
-
-    for (const action of actions) {
-      try {
-        await processQueuedAction(action);
-        await removeQueuedAction(action.id);
-        remaining -= 1;
-      } catch (error) {
-        console.error("Failed to replay queued action", error);
-        break;
-      }
-    }
-
-    setQueuedCount(remaining);
-  }, []);
-
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
