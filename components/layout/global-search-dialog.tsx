@@ -293,16 +293,14 @@ export function GlobalSearchDialog({
 
       const [membersRes, paymentsRes] = await Promise.all([
         supabase
-          .from("ikimina_members")
-          .select("id, full_name, member_code, msisdn, ikimina_id, group:ibimina(name)")
+          .from("ikimina_members_public")
+          .select("id, full_name, member_code, msisdn, ikimina_id, ikimina_name")
           .in("ikimina_id", scopedIds)
-          .order("created_at", { ascending: false })
+          .order("joined_at", { ascending: false })
           .limit(memberLimit),
         supabase
           .from("payments")
-          .select(
-            "id, amount, status, occurred_at, reference, ikimina_id, member_id, group:ibimina(name), member:ikimina_members(full_name)"
-          )
+          .select("id, amount, status, occurred_at, reference, ikimina_id, member_id, group:ibimina(name)")
           .in("ikimina_id", scopedIds)
           .order("occurred_at", { ascending: false })
           .limit(paymentLimit),
@@ -322,19 +320,21 @@ export function GlobalSearchDialog({
           member_code: string | null;
           msisdn: string | null;
           ikimina_id: string | null;
-          group: { name: string | null } | null;
+          ikimina_name: string | null;
         }>).map((row) => ({
           id: row.id,
           fullName: row.full_name,
           memberCode: row.member_code,
           msisdn: row.msisdn,
           ikiminaId: row.ikimina_id,
-          ikiminaName: row.group?.name ?? null,
+          ikiminaName: row.ikimina_name ?? null,
         }));
         setMembers(memberRows);
         setMembersError(null);
       }
       setMembersLoading(false);
+
+      const memberNameMap = new Map(memberRows.map((member) => [member.id, member.fullName]));
 
       let paymentRows: PaymentResult[] = [];
       if (paymentsRes.error) {
@@ -351,7 +351,6 @@ export function GlobalSearchDialog({
           ikimina_id: string | null;
           member_id: string | null;
           group: { name: string | null } | null;
-          member: { full_name: string | null } | null;
         }>).map((row) => ({
           id: row.id,
           amount: row.amount,
@@ -361,7 +360,7 @@ export function GlobalSearchDialog({
           ikiminaId: row.ikimina_id,
           ikiminaName: row.group?.name ?? null,
           memberId: row.member_id,
-          memberName: row.member?.full_name ?? null,
+          memberName: row.member_id ? memberNameMap.get(row.member_id) ?? null : null,
         }));
         setPayments(paymentRows);
         setPaymentsError(null);

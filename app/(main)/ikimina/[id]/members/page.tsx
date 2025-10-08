@@ -4,6 +4,7 @@ import { StatusChip } from "@/components/common/status-chip";
 import { MemberImportWizard } from "@/components/ikimina/member-import-wizard";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -28,12 +29,15 @@ export default async function MembersPage({ params }: PageProps) {
     notFound();
   }
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== group.sacco_id) {
+  type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
+  const resolvedGroup = group as GroupRow;
+
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== resolvedGroup.sacco_id) {
     notFound();
   }
 
   const { data: members, error: membersError } = await supabase
-    .from("ikimina_members")
+    .from("ikimina_members_public")
     .select("id, full_name, member_code, msisdn, status, joined_at")
     .eq("ikimina_id", id)
     .order("joined_at", { ascending: false });
@@ -42,11 +46,14 @@ export default async function MembersPage({ params }: PageProps) {
     throw membersError;
   }
 
+  type MemberRow = Database["public"]["Views"]["ikimina_members_public"]["Row"];
+  const memberRows = (members ?? []) as MemberRow[];
+
   return (
     <GlassCard
-      title={`Members · ${group.name}`}
-      subtitle={`${members?.length ?? 0} members`}
-      actions={<MemberImportWizard ikiminaId={id} saccoId={group.sacco_id} />}
+      title={`Members · ${resolvedGroup.name}`}
+      subtitle={`${memberRows.length} members`}
+      actions={<MemberImportWizard ikiminaId={id} saccoId={resolvedGroup.sacco_id} />}
     >
       <div className="overflow-hidden rounded-2xl border border-white/10">
         <table className="w-full border-collapse text-sm">
@@ -60,14 +67,14 @@ export default async function MembersPage({ params }: PageProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {(members ?? []).length === 0 && (
+            {memberRows.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-center text-neutral-2">
                   No members found.
                 </td>
               </tr>
             )}
-            {members?.map((member) => (
+            {memberRows.map((member) => (
               <tr key={member.id} className="hover:bg-white/5">
                 <td className="px-4 py-3 font-medium text-neutral-0">{member.full_name}</td>
                 <td className="px-4 py-3 font-mono text-xs text-neutral-2">{member.member_code ?? "—"}</td>

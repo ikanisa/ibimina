@@ -3,6 +3,7 @@ import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { IkiminaTable, type IkiminaTableRow } from "@/components/ikimina/ikimina-table";
 import { BilingualText } from "@/components/common/bilingual-text";
+import type { Database } from "@/lib/supabase/types";
 
 const ACTIVE_PAYMENT_STATUSES = new Set(["POSTED", "SETTLED"]);
 
@@ -12,7 +13,7 @@ export default async function IkiminaPage() {
 
   const baseQuery = supabase
     .from("ibimina")
-    .select("id, name, code, status, type, sacco_id, created_at, updated_at, ikimina_members(count), saccos(name)")
+    .select("id, name, code, status, type, sacco_id, created_at, updated_at, saccos(name)")
     .order("updated_at", { ascending: false })
     .limit(500);
 
@@ -30,8 +31,33 @@ export default async function IkiminaPage() {
   const startOfWindow = new Date(now);
   startOfWindow.setDate(now.getDate() - 60);
 
-  const rawRows = data ?? [];
+  type IkiminaRow = Database["public"]["Tables"]["ibimina"]["Row"] & {
+    saccos: { name: string | null } | null;
+  };
+
+  const rawRows = (data ?? []) as IkiminaRow[];
   const groupIds = rawRows.map((row) => row.id);
+
+  const memberCounts = new Map<string, number>();
+
+  if (groupIds.length > 0) {
+    const { data: memberCountRows, error: memberCountError } = await supabase
+      .from("ikimina_members_public")
+      .select("ikimina_id, count")
+      .in("ikimina_id", groupIds)
+      .group("ikimina_id");
+
+    if (memberCountError) {
+      throw memberCountError;
+    }
+
+    type MemberCountRow = { ikimina_id: string | null; count: number | null };
+    (memberCountRows ?? []).forEach((row) => {
+      const typedRow = row as MemberCountRow;
+      if (!typedRow.ikimina_id) return;
+      memberCounts.set(typedRow.ikimina_id, Number(typedRow.count ?? 0));
+    });
+  }
 
   const aggregates = new Map<
     string,
@@ -86,7 +112,7 @@ export default async function IkiminaPage() {
       code: row.code,
       status: row.status,
       type: row.type,
-      members_count: row.ikimina_members?.[0]?.count ?? 0,
+      members_count: memberCounts.get(row.id) ?? 0,
       created_at: row.created_at,
       updated_at: row.updated_at,
       month_total: aggregate?.monthTotal ?? 0,

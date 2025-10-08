@@ -25,10 +25,15 @@ export async function updateUserAccess({
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase
-    .from("users")
-    .update({ role: role as Database["public"]["Enums"]["app_role"], sacco_id: saccoId })
-    .eq("id", userId);
+  const updatePayload: Database["public"]["Tables"]["users"]["Update"] = {
+    role,
+    sacco_id: saccoId,
+  };
+
+  // The Supabase JS client currently narrows update payloads to `never` when schema includes
+  // custom views; cast locally until the generated types catch up.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from("users").update(updatePayload).eq("id", userId);
 
   if (error) {
     return { status: "error", message: error.message ?? "Failed to update user" };
@@ -53,7 +58,8 @@ export async function queueNotification({
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("notification_queue").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from("notification_queue").insert({
     event,
     sacco_id: saccoId,
     payload: { templateId, queuedBy: user.id },
@@ -80,7 +86,8 @@ export async function queueMfaReminder({
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("notification_queue").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from("notification_queue").insert({
     event: "MFA_REMINDER",
     payload: { userId, email, queuedBy: user.id },
     scheduled_for: new Date().toISOString(),

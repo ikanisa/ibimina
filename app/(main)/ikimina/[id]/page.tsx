@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { IkiminaDetailTabs } from "@/components/ikimina/ikimina-detail-tabs";
+import type { Database } from "@/lib/supabase/types";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -14,18 +15,25 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
 
   const { data: group, error } = await supabase
     .from("ibimina")
-    .select("id, name, code, status, type, sacco_id, settings_json, saccos(name, district, province), ikimina_members(count)")
+    .select("id, name, code, status, type, sacco_id, settings_json, saccos(name, district, province)")
     .eq("id", id)
     .maybeSingle();
 
   if (error) throw error;
   if (!group) notFound();
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && group.sacco_id !== profile.sacco_id) notFound();
 
-  const [membersRes, paymentsRes] = await Promise.all([
+  type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"] & {
+    saccos: { name: string | null; district: string | null; province: string | null } | null;
+  };
+
+  const resolvedGroup = group as GroupRow;
+
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && resolvedGroup.sacco_id !== profile.sacco_id) notFound();
+
+  const [membersRes, paymentsRes, membersCountRes] = await Promise.all([
     supabase
-      .from("ikimina_members")
-      .select("*")
+      .from("ikimina_members_public")
+      .select("id, full_name, member_code, msisdn, status, joined_at, ikimina_id")
       .eq("ikimina_id", id)
       .order("joined_at", { ascending: false }),
     supabase
@@ -34,13 +42,21 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
       .eq("ikimina_id", id)
       .order("occurred_at", { ascending: false })
       .limit(200),
+    supabase
+      .from("ikimina_members_public")
+      .select("id", { count: "exact", head: true })
+      .eq("ikimina_id", id),
   ]);
 
   if (membersRes.error) throw membersRes.error;
   if (paymentsRes.error) throw paymentsRes.error;
+  if (membersCountRes.error) throw membersCountRes.error;
 
-  const payments = paymentsRes.data ?? [];
-  const members = membersRes.data ?? [];
+  type MemberRow = Database["public"]["Views"]["ikimina_members_public"]["Row"];
+  type PaymentRow = Database["public"]["Tables"]["payments"]["Row"];
+
+  const payments = (paymentsRes.data ?? []) as PaymentRow[];
+  const members = (membersRes.data ?? []) as MemberRow[];
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -133,16 +149,16 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
   return (
     <IkiminaDetailTabs
       detail={{
-        id: group.id,
-        name: group.name,
-        code: group.code,
-        status: group.status,
-        type: group.type,
-        saccoName: group.saccos?.name ?? null,
-        saccoDistrict: group.saccos?.district ?? null,
-        saccoId: group.sacco_id,
-        settings: group.settings_json as Record<string, unknown> | null,
-        membersCount: group.ikimina_members?.[0]?.count ?? 0,
+        id: resolvedGroup.id,
+        name: resolvedGroup.name,
+        code: resolvedGroup.code,
+        status: resolvedGroup.status,
+        type: resolvedGroup.type,
+        saccoName: resolvedGroup.saccos?.name ?? null,
+        saccoDistrict: resolvedGroup.saccos?.district ?? null,
+        saccoId: resolvedGroup.sacco_id,
+        settings: resolvedGroup.settings_json as Record<string, unknown> | null,
+        membersCount: membersCountRes.count ?? members.length,
         recentTotal,
         analytics: {
           monthTotal,

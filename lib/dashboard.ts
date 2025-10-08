@@ -6,7 +6,7 @@ const DAYS_THRESHOLD = 30;
 
 type PaymentRow = Pick<Database["public"]["Tables"]["payments"]["Row"], "amount" | "status" | "occurred_at" | "ikimina_id" | "member_id">;
 type IkiminaRow = Pick<Database["public"]["Tables"]["ibimina"]["Row"], "id" | "name" | "code" | "status" | "updated_at">;
-type MemberRow = Pick<Database["public"]["Tables"]["ikimina_members"]["Row"], "id" | "full_name" | "msisdn" | "member_code" | "ikimina_id" | "status">;
+type MemberRow = Pick<Database["public"]["Views"]["ikimina_members_public"]["Row"], "id" | "full_name" | "msisdn" | "member_code" | "ikimina_id" | "status">;
 
 export interface DashboardSummary {
   totals: {
@@ -156,7 +156,7 @@ export async function getDashboardSummary(saccoId: string | null): Promise<Dashb
   let membersForGroups: MemberRow[] = [];
   if (groupIdsForMembers.length > 0) {
     const { data: memberRows } = await supabase
-      .from("ikimina_members")
+      .from("ikimina_members_public")
       .select("id, full_name, msisdn, member_code, ikimina_id, status")
       .eq("status", "ACTIVE")
       .in("ikimina_id", groupIdsForMembers)

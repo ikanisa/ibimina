@@ -15,7 +15,10 @@ const MEMBER_TABS = ["Overview", "Members", "Deposits", "Statements", "Settings"
 
 type TabKey = typeof MEMBER_TABS[number];
 
-type MemberRow = Database["public"]["Tables"]["ikimina_members"]["Row"];
+type MemberRow = Pick<
+  Database["public"]["Views"]["ikimina_members_public"]["Row"],
+  "id" | "ikimina_id" | "full_name" | "member_code" | "msisdn" | "status" | "joined_at"
+>;
 type PaymentRow = Database["public"]["Tables"]["payments"]["Row"];
 
 type StatementSummary = {

@@ -10,6 +10,7 @@ import { NotificationQueueTable } from "@/components/admin/notification-queue-ta
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BilingualText } from "@/components/common/bilingual-text";
+import type { Database } from "@/lib/supabase/types";
 
 export default async function AdminPage() {
   const { profile } = await requireUserAndProfile();
@@ -55,7 +56,31 @@ export default async function AdminPage() {
     .order("created_at", { ascending: false })
     .limit(20);
 
-  const normalizedUsers = (users ?? []).map((user) => ({
+  type UserRow = {
+    id: string;
+    email: string;
+    role: Database["public"]["Enums"]["app_role"];
+    sacco_id: string | null;
+    created_at: string | null;
+    saccos: { name: string | null } | null;
+  };
+
+  type SaccoRow = Database["public"]["Tables"]["saccos"]["Row"];
+
+  type NotificationRow = {
+    id: string;
+    event: string;
+    sacco_id: string | null;
+    template_id: string | null;
+    status: string | null;
+    scheduled_for: string | null;
+    created_at: string | null;
+  };
+
+  const saccoList = (saccos ?? []) as SaccoRow[];
+  const notificationRows = (notificationQueue ?? []) as NotificationRow[];
+
+  const normalizedUsers = ((users ?? []) as UserRow[]).map((user) => ({
     id: user.id,
     email: user.email,
     role: user.role,
@@ -64,19 +89,20 @@ export default async function AdminPage() {
     created_at: user.created_at,
   }));
 
-  const saccoOptions = (saccos ?? []).map((sacco) => ({ id: sacco.id, name: sacco.name }));
+  const saccoOptions = saccoList.map((sacco) => ({ id: sacco.id, name: sacco.name }));
   const saccoLookup = new Map(saccoOptions.map((option) => [option.id, option.name]));
   const templateLookup = new Map<string, string>();
 
-  if (notificationQueue && notificationQueue.length > 0) {
-    const templateIds = Array.from(new Set(notificationQueue.map((row) => row.template_id).filter((value): value is string => Boolean(value))));
+  if (notificationRows.length > 0) {
+    const templateIds = Array.from(new Set(notificationRows.map((row) => row.template_id).filter((value): value is string => Boolean(value))));
     if (templateIds.length > 0) {
       const { data: templateMeta } = await supabase
         .from("sms_templates")
         .select("id, name")
         .in("id", templateIds);
-      templateMeta?.forEach((template) => {
-        templateLookup.set(template.id, template.name);
+      (templateMeta ?? []).forEach((template) => {
+        const typed = template as { id: string; name: string | null };
+        templateLookup.set(typed.id, typed.name ?? typed.id);
       });
     }
   }
@@ -112,13 +138,13 @@ export default async function AdminPage() {
         title={<BilingualText primary="SACCO Registry" secondary="Urutonde rwa SACCO" />}
         subtitle={
           <BilingualText
-            primary={`${saccos?.length ?? 0} Umurenge SACCOs in the dataset.`}
-            secondary={`${saccos?.length ?? 0} Umurenge SACCOs ziri muri sisitemu.`}
+          primary={`${saccoList.length} Umurenge SACCOs in the dataset.`}
+          secondary={`${saccoList.length} Umurenge SACCOs ziri muri sisitemu.`}
             secondaryClassName="text-xs text-neutral-3"
           />
         }
       >
-        <SaccoRegistryManager initialSaccos={saccos ?? []} />
+        <SaccoRegistryManager initialSaccos={saccoList} />
       </GlassCard>
 
       <GlassCard
@@ -131,9 +157,9 @@ export default async function AdminPage() {
           />
         }
       >
-        {saccos && saccos.length > 0 ? (
+        {saccoList.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
-            {saccos.slice(0, 6).map((sacco) => (
+            {saccoList.slice(0, 6).map((sacco) => (
               <SaccoBrandingCard key={sacco.id} sacco={sacco} />
             ))}
           </div>
@@ -152,9 +178,9 @@ export default async function AdminPage() {
           />
         }
       >
-        {saccos && saccos.length > 0 ? (
+        {saccoList.length > 0 ? (
           <SmsTemplatePanel
-            saccos={saccos.map((sacco) => ({ id: sacco.id, name: sacco.name }))}
+            saccos={saccoList.map((sacco) => ({ id: sacco.id, name: sacco.name }))}
           />
         ) : (
           <p className="text-sm text-neutral-2">Add a SACCO first to manage templates.</p>
@@ -171,11 +197,7 @@ export default async function AdminPage() {
           />
         }
       >
-        <NotificationQueueTable
-          rows={notificationQueue ?? []}
-          saccoLookup={saccoLookup}
-          templateLookup={templateLookup}
-        />
+        <NotificationQueueTable rows={notificationRows} saccoLookup={saccoLookup} templateLookup={templateLookup} />
       </GlassCard>
 
       <GlassCard

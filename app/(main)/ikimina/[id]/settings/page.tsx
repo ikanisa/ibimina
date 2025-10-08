@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { IkiminaSettingsEditor } from "@/components/ikimina/ikimina-settings-editor";
+import type { Database } from "@/lib/supabase/types";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -26,7 +27,10 @@ export default async function SettingsPage({ params }: PageProps) {
     notFound();
   }
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== group.sacco_id) {
+  type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
+  const resolvedGroup = group as GroupRow;
+
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== resolvedGroup.sacco_id) {
     notFound();
   }
 
@@ -68,10 +72,10 @@ export default async function SettingsPage({ params }: PageProps) {
 
   return (
     <IkiminaSettingsEditor
-      ikiminaId={group.id}
-      ikiminaName={group.name}
-      saccoId={group.sacco_id}
-      initialSettings={group.settings_json as Record<string, unknown> | null}
+      ikiminaId={resolvedGroup.id}
+      ikiminaName={resolvedGroup.name}
+      saccoId={resolvedGroup.sacco_id}
+      initialSettings={resolvedGroup.settings_json as Record<string, unknown> | null}
       history={history}
     />
   );

@@ -471,15 +471,15 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
     const timeout = window.setTimeout(async () => {
       const sanitized = term.replace(/%/g, "");
       let query = supabase
-        .from("ikimina_members")
-        .select("id, full_name, member_code, msisdn, ikimina_id, ikimina:ibimina(id, name)")
+        .from("ikimina_members_public")
+        .select("id, full_name, member_code, msisdn, ikimina_id, ikimina_name, sacco_id")
         .order("full_name", { ascending: true })
         .limit(8);
 
       if (selected.ikimina_id) {
         query = query.eq("ikimina_id", selected.ikimina_id);
       } else if (saccoId) {
-        query = query.eq("ikimina.sacco_id", saccoId);
+        query = query.eq("sacco_id", saccoId);
       }
 
       const like = `%${sanitized}%`;
@@ -502,7 +502,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
           member_code: string | null;
           msisdn: string | null;
           ikimina_id: string;
-          ikimina: { id: string; name: string | null } | null;
+          ikimina_name: string | null;
         };
         setMemberResults(
           (data as RawMember[] | null | undefined)?.map((member) => ({
@@ -511,7 +511,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
             member_code: member.member_code,
             msisdn: member.msisdn,
             ikimina_id: member.ikimina_id,
-            ikimina_name: member.ikimina?.name ?? null,
+            ikimina_name: member.ikimina_name ?? null,
           })) ?? []
         );
       }

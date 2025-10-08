@@ -4,6 +4,7 @@ import { StatementImportWizard } from "@/components/ikimina/statement-import-wiz
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { IkiminaDepositsTable } from "@/components/ikimina/ikimina-deposits-table";
+import type { Database } from "@/lib/supabase/types";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -28,7 +29,10 @@ export default async function DepositsPage({ params }: PageProps) {
     notFound();
   }
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== group.sacco_id) {
+  type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
+  const resolvedGroup = group as GroupRow;
+
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== resolvedGroup.sacco_id) {
     notFound();
   }
 
@@ -43,13 +47,25 @@ export default async function DepositsPage({ params }: PageProps) {
     throw depositsError;
   }
 
+  type DepositRow = {
+    id: string;
+    amount: number;
+    currency: string;
+    status: string;
+    occurred_at: string;
+    reference: string | null;
+    msisdn: string | null;
+  };
+
+  const depositRows = (deposits ?? []) as DepositRow[];
+
   return (
     <GlassCard
-      title={`Deposits · ${group.name}`}
+      title={`Deposits · ${resolvedGroup.name}`}
       subtitle={`${deposits?.length ?? 0} recent payments`}
-      actions={<StatementImportWizard saccoId={group.sacco_id} ikiminaId={group.id} />}
+      actions={<StatementImportWizard saccoId={resolvedGroup.sacco_id} ikiminaId={resolvedGroup.id} />}
     >
-      <IkiminaDepositsTable data={(deposits ?? []).map((row) => ({
+      <IkiminaDepositsTable data={depositRows.map((row) => ({
         id: row.id,
         amount: row.amount,
         currency: row.currency,

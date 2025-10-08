@@ -639,7 +639,20 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      ikimina_members_public: {
+        Row: {
+          id: string;
+          ikimina_id: string;
+          member_code: string | null;
+          full_name: string;
+          status: string;
+          joined_at: string | null;
+          msisdn: string | null;
+          national_id: string | null;
+          ikimina_name: string | null;
+          sacco_id: string | null;
+        };
+      };
     };
     Functions: {
       get_user_sacco: {

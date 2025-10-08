@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { GlassCard } from "@/components/ui/glass-card";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -26,13 +27,16 @@ export default async function StatementsPage({ params }: PageProps) {
     notFound();
   }
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== group.sacco_id) {
+  type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
+  const resolvedGroup = group as GroupRow;
+
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== resolvedGroup.sacco_id) {
     notFound();
   }
 
   return (
     <GlassCard
-      title={`Statements · ${group.name}`}
+      title={`Statements · ${resolvedGroup.name}`}
       subtitle="Choose a period and export PDF/CSV statements."
       actions={<span className="text-xs text-neutral-2">Coming soon</span>}
     >
