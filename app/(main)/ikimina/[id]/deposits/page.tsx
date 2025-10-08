@@ -5,6 +5,7 @@ import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { IkiminaDepositsTable } from "@/components/ikimina/ikimina-deposits-table";
 import type { Database } from "@/lib/supabase/types";
+import { canImportStatements, hasSaccoReadAccess } from "@/lib/permissions";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -32,9 +33,7 @@ export default async function DepositsPage({ params }: PageProps) {
   type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
   const resolvedGroup = group as GroupRow;
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== resolvedGroup.sacco_id) {
-    notFound();
-  }
+  if (!hasSaccoReadAccess(profile, resolvedGroup.sacco_id)) notFound();
 
   const { data: deposits, error: depositsError } = await supabase
     .from("payments")
@@ -59,11 +58,19 @@ export default async function DepositsPage({ params }: PageProps) {
 
   const depositRows = (deposits ?? []) as DepositRow[];
 
+  const allowImport = canImportStatements(profile, resolvedGroup.sacco_id);
+
   return (
     <GlassCard
       title={`Deposits · ${resolvedGroup.name}`}
       subtitle={`${deposits?.length ?? 0} recent payments`}
-      actions={<StatementImportWizard saccoId={resolvedGroup.sacco_id} ikiminaId={resolvedGroup.id} />}
+      actions={
+        allowImport ? (
+          <StatementImportWizard saccoId={resolvedGroup.sacco_id} ikiminaId={resolvedGroup.id} canImport />
+        ) : (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-3">Read only</span>
+        )
+      }
     >
       <IkiminaDepositsTable data={depositRows.map((row) => ({
         id: row.id,

@@ -8,7 +8,9 @@ import { queueMfaReminder, updateUserAccess } from "@/app/(main)/admin/actions";
 
 const ROLES: Array<Database["public"]["Enums"]["app_role"]> = [
   "SYSTEM_ADMIN",
+  "SACCO_MANAGER",
   "SACCO_STAFF",
+  "SACCO_VIEWER",
 ];
 
 interface AdminUserRow {

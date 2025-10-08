@@ -68,6 +68,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "SACCO assignment required for OCR import" }, { status: 403 });
     }
 
+    const canImport =
+      auth.profile.role === "SYSTEM_ADMIN" ||
+      auth.profile.role === "SACCO_MANAGER" ||
+      auth.profile.role === "SACCO_STAFF";
+
+    if (!canImport) {
+      return NextResponse.json({ error: "Your role is read-only for member imports" }, { status: 403 });
+    }
+
     const formData = await request.formData();
     const file = formData.get("file");
 

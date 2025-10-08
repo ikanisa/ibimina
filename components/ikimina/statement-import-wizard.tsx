@@ -40,6 +40,8 @@ interface StatementImportWizardProps {
   saccoId: string;
   ikiminaId?: string;
   variant?: StatementWizardVariant;
+  canImport?: boolean;
+  disabledReason?: string;
 }
 
 type CsvRow = Record<string, string | null>;
@@ -65,7 +67,7 @@ const createInitialStatementMasks = (variant: StatementWizardVariant) =>
 
 const supabase = getSupabaseBrowserClient();
 
-export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic" }: StatementImportWizardProps) {
+export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic", canImport = true, disabledReason }: StatementImportWizardProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [importMode, setImportMode] = useState<ImportMode>("file");
@@ -397,13 +399,21 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic" 
     <div className="space-y-3">
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-sm font-semibold text-ink shadow-glass"
+        onClick={() => {
+          if (!canImport) return;
+          setOpen(true);
+        }}
+        disabled={!canImport}
+        title={!canImport ? disabledReason ?? "Read-only access" : undefined}
+        className={cn(
+          "interactive-scale rounded-xl bg-kigali px-4 py-2 text-sm font-semibold text-ink shadow-glass",
+          !canImport && "cursor-not-allowed opacity-60"
+        )}
       >
         Import statements
       </button>
 
-      {open && (
+      {open && canImport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="glass relative w-full max-w-2xl rounded-3xl p-6 text-neutral-0">
             {(parsing || smsParsing) && (

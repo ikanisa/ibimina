@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useToast } from "@/providers/toast-provider";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import {
   DEFAULT_MEMBER_MASKS,
   getMaskOptions,
@@ -20,6 +21,8 @@ const MAX_PREVIEW_ROWS = 150;
 interface MemberPdfImportDialogProps {
   ikiminaId: string;
   saccoId: string | null;
+  canImport?: boolean;
+  disabledReason?: string;
 }
 
 interface AiMemberRecord {
@@ -32,7 +35,7 @@ type MemberInsert = Partial<Database["public"]["Tables"]["ikimina_members"]["Ins
 
 type ProcessedMemberRow = ProcessedRow<MemberInsert> & { index: number };
 
-export function MemberPdfImportDialog({ ikiminaId, saccoId }: MemberPdfImportDialogProps) {
+export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, disabledReason }: MemberPdfImportDialogProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
@@ -223,13 +226,21 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId }: MemberPdfImportDia
     <div className="space-y-3">
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="interactive-scale rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-0 shadow-glass"
+        onClick={() => {
+          if (!canImport) return;
+          setOpen(true);
+        }}
+        disabled={!canImport}
+        title={!canImport ? disabledReason ?? "Read-only access" : undefined}
+        className={cn(
+          "interactive-scale rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-0 shadow-glass",
+          !canImport && "cursor-not-allowed opacity-60"
+        )}
       >
         AI PDF import
       </button>
 
-      {open && (
+      {open && canImport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="glass relative w-full max-w-3xl rounded-3xl p-6 text-neutral-0">
             {loading && (

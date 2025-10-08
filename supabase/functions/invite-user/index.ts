@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ALLOWED_ROLES = ["SYSTEM_ADMIN", "SACCO_MANAGER", "SACCO_STAFF"] as const;
+const ALLOWED_ROLES = ["SYSTEM_ADMIN", "SACCO_MANAGER", "SACCO_STAFF", "SACCO_VIEWER"] as const;
 type AllowedRole = (typeof ALLOWED_ROLES)[number];
 
 interface InviteRequestBody {

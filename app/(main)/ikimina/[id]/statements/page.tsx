@@ -3,6 +3,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { hasSaccoReadAccess } from "@/lib/permissions";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -30,9 +31,7 @@ export default async function StatementsPage({ params }: PageProps) {
   type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
   const resolvedGroup = group as GroupRow;
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== resolvedGroup.sacco_id) {
-    notFound();
-  }
+  if (!hasSaccoReadAccess(profile, resolvedGroup.sacco_id)) notFound();
 
   return (
     <GlassCard

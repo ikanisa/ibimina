@@ -688,7 +688,7 @@ export type Database = {
       };
     };
     Enums: {
-      app_role: "SYSTEM_ADMIN" | "SACCO_MANAGER" | "SACCO_STAFF";
+      app_role: "SYSTEM_ADMIN" | "SACCO_MANAGER" | "SACCO_STAFF" | "SACCO_VIEWER";
     };
     CompositeTypes: {
       [_ in never]: never;

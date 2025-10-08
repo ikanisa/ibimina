@@ -7,6 +7,7 @@ import { SmsInboxPanel } from "@/components/recon/sms-inbox-panel";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { canImportStatements, canReconcilePayments, isSystemAdmin } from "@/lib/permissions";
 import { BilingualText } from "@/components/common/bilingual-text";
 
 const EXCEPTION_STATUSES = ["UNALLOCATED", "PENDING", "REJECTED"] as const;
@@ -83,6 +84,13 @@ export default async function ReconciliationPage() {
     error: item.error ?? null,
   }));
 
+  const allowStatementImport = profile.sacco_id
+    ? canImportStatements(profile, profile.sacco_id)
+    : isSystemAdmin(profile);
+  const allowReconciliationUpdates = profile.sacco_id
+    ? canReconcilePayments(profile, profile.sacco_id)
+    : isSystemAdmin(profile);
+
   return (
     <div className="space-y-8">
       <GradientHeader
@@ -108,7 +116,12 @@ export default async function ReconciliationPage() {
         }
         actions={
           profile.sacco_id ? (
-            <StatementImportWizard saccoId={profile.sacco_id} variant="momo" />
+            <StatementImportWizard
+              saccoId={profile.sacco_id}
+              variant="momo"
+              canImport={allowStatementImport}
+              disabledReason="Read-only access"
+            />
           ) : undefined
         }
       >
@@ -170,7 +183,11 @@ export default async function ReconciliationPage() {
           />
         }
       >
-        <ReconciliationTable rows={data ?? []} saccoId={profile.sacco_id} />
+        <ReconciliationTable
+          rows={data ?? []}
+          saccoId={profile.sacco_id}
+          canWrite={allowReconciliationUpdates}
+        />
       </GlassCard>
     </div>
   );

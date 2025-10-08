@@ -30,6 +30,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const canRequestSuggestion =
+      auth.profile.role === "SYSTEM_ADMIN" ||
+      auth.profile.role === "SACCO_MANAGER" ||
+      auth.profile.role === "SACCO_STAFF";
+
+    if (!canRequestSuggestion) {
+      return NextResponse.json({ error: "Your role is read-only" }, { status: 403 });
+    }
+
     const supabase = await createSupabaseServerClient();
     const { data: payment, error: paymentError } = await supabase
       .from("payments")

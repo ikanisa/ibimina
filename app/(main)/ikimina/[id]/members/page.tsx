@@ -6,6 +6,7 @@ import { MemberPdfImportDialog } from "@/components/ikimina/member-pdf-import-di
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { canManageMembers, hasSaccoReadAccess } from "@/lib/permissions";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -33,9 +34,7 @@ export default async function MembersPage({ params }: PageProps) {
   type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
   const resolvedGroup = group as GroupRow;
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== resolvedGroup.sacco_id) {
-    notFound();
-  }
+  if (!hasSaccoReadAccess(profile, resolvedGroup.sacco_id)) notFound();
 
   const { data: members, error: membersError } = await supabase
     .from("ikimina_members_public")
@@ -50,15 +49,21 @@ export default async function MembersPage({ params }: PageProps) {
   type MemberRow = Database["public"]["Views"]["ikimina_members_public"]["Row"];
   const memberRows = (members ?? []) as MemberRow[];
 
+  const allowImports = canManageMembers(profile, resolvedGroup.sacco_id);
+
   return (
     <GlassCard
       title={`Members · ${resolvedGroup.name}`}
       subtitle={`${memberRows.length} members`}
       actions={
-        <div className="flex flex-wrap items-center gap-2">
-          <MemberImportWizard ikiminaId={id} saccoId={resolvedGroup.sacco_id} />
-          <MemberPdfImportDialog ikiminaId={id} saccoId={resolvedGroup.sacco_id} />
-        </div>
+        allowImports ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <MemberImportWizard ikiminaId={id} saccoId={resolvedGroup.sacco_id} />
+            <MemberPdfImportDialog ikiminaId={id} saccoId={resolvedGroup.sacco_id} />
+          </div>
+        ) : (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-3">Read only</span>
+        )
       }
     >
       <div className="overflow-hidden rounded-2xl border border-white/10">

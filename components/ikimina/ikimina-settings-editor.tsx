@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/providers/toast-provider";
 import { IKIMINA_SETTINGS_INITIAL_STATE, SettingsActionState, updateIkiminaSettings } from "@/app/(main)/ikimina/actions";
 import { useProfileContext } from "@/providers/profile-provider";
+import { canManageSettings } from "@/lib/permissions";
 
 const FREQUENCIES = [
   { value: "WEEKLY", label: "Weekly" },
@@ -107,7 +108,7 @@ export function IkiminaSettingsEditor({ ikiminaId, ikiminaName, saccoId, initial
     },
   }), [fields]);
 
-  const canEdit = profile.role === "SYSTEM_ADMIN" || (!!profile.sacco_id && profile.sacco_id === saccoId);
+  const canEdit = canManageSettings(profile, saccoId);
 
   const fieldErrors = state.fieldErrors ?? {};
 

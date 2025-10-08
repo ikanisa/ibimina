@@ -3,6 +3,7 @@ import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { IkiminaDetailTabs } from "@/components/ikimina/ikimina-detail-tabs";
 import type { Database } from "@/lib/supabase/types";
+import { hasSaccoReadAccess } from "@/lib/permissions";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -28,7 +29,7 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
 
   const resolvedGroup = group as GroupRow;
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && resolvedGroup.sacco_id !== profile.sacco_id) notFound();
+  if (!hasSaccoReadAccess(profile, resolvedGroup.sacco_id)) notFound();
 
   const [membersRes, paymentsRes, membersCountRes] = await Promise.all([
     supabase

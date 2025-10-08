@@ -18,6 +18,7 @@ export type ReconciliationRow = Database["public"]["Tables"]["payments"]["Row"] 
 interface ReconciliationTableProps {
   rows: ReconciliationRow[];
   saccoId: string | null;
+  canWrite: boolean;
 }
 
 const STATUS_OPTIONS: Database["public"]["Tables"]["payments"]["Row"]["status"][] = [
@@ -129,7 +130,7 @@ const reasonGuidance: Record<ReasonChip["id"], { primary: string; secondary: str
   },
 };
 
-export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps) {
+export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationTableProps) {
   const [selected, setSelected] = useState<ReconciliationRow | null>(null);
   const [newStatus, setNewStatus] = useState<string>("POSTED");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -291,10 +292,12 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
   const allSelected = selectedIds.length > 0 && selectedIds.length === displayRows.length;
 
   const toggleSelect = (id: string) => {
+    if (!canWrite) return;
     setSelectedIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
   };
 
   const toggleSelectAll = () => {
+    if (!canWrite) return;
     if (allSelected) {
       setSelectedIds([]);
       return;
@@ -303,7 +306,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
   };
 
   const handleBulkStatus = (status: Database["public"]["Tables"]["payments"]["Row"]["status"]) => {
-    if (!selectedIds.length) return;
+    if (!canWrite || !selectedIds.length) return;
     startTransition(async () => {
       setBulkMessage(null);
       setBulkError(null);
@@ -331,7 +334,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
 
   const handleBulkAssign = () => {
     const trimmed = bulkIkiminaId.trim();
-    if (!trimmed || !selectedIds.length) {
+    if (!canWrite || !trimmed || !selectedIds.length) {
       return;
     }
     startTransition(async () => {
@@ -360,7 +363,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
   };
 
   const handleBulkAssignByReference = () => {
-    if (selectedIds.length === 0) return;
+    if (!canWrite || selectedIds.length === 0) return;
     const references = selectedIds
       .map((id) => rowMap.get(id)?.reference ?? null)
       .filter((value): value is string => Boolean(value));
@@ -434,7 +437,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
   };
 
   const handleUpdateStatus = () => {
-    if (!selected) return;
+    if (!selected || !canWrite) return;
     startTransition(async () => {
       setActionMessage(null);
       setActionError(null);
@@ -455,7 +458,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
   };
 
   const handleAssignToIkimina = async (ikiminaId: string, memberId: string | null = null) => {
-    if (!selected) return;
+    if (!selected || !canWrite) return;
     startTransition(async () => {
       setActionMessage(null);
       setActionError(null);
@@ -475,6 +478,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
   };
 
   const handleLinkMember = (member: MemberResult) => {
+    if (!canWrite) return;
     handleAssignToIkimina(member.ikimina_id, member.id);
     setMemberQuery("");
     setMemberResults([]);
@@ -496,6 +500,10 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
       );
       setActionError(bilingual);
       toastError(bilingual);
+      return;
+    }
+    if (!canWrite) {
+      toastError(joinBilingual("Upgrade access to apply AI suggestions.", "Ongera uburenganzira kugira ngo ukoreshe icyifuzo."));
       return;
     }
     handleAssignToIkimina(targetIkiminaId, suggestion.member_id);
@@ -536,6 +544,12 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
 
   useEffect(() => {
     const term = memberQuery.trim();
+    if (!canWrite) {
+      setMemberResults([]);
+      setMemberLoading(false);
+      return;
+    }
+
     if (!selected || term.length < 2) {
       setMemberResults([]);
       setMemberLoading(false);
@@ -599,7 +613,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [memberQuery, selected, saccoId, toastError]);
+  }, [memberQuery, selected, saccoId, toastError, canWrite]);
 
   useEffect(() => {
     if (!selected) {
@@ -824,13 +838,13 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
         </div>
       </div>
 
-      {selectedIds.length > 0 && (
+      {canWrite && selectedIds.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-white/5 px-4 py-3 text-xs text-neutral-0">
           <span>{joinBilingual(`${selectedIds.length} selected`, `${selectedIds.length} byatoranyijwe`)}</span>
           <button
             type="button"
             onClick={() => handleBulkStatus("POSTED")}
-            disabled={pending}
+            disabled={pending || !canWrite}
             className="interactive-scale rounded-full bg-kigali px-3 py-1 text-ink shadow-glass disabled:opacity-60"
           >
             <BilingualText
@@ -844,7 +858,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
           <button
             type="button"
             onClick={() => handleBulkStatus("REJECTED")}
-            disabled={pending}
+            disabled={pending || !canWrite}
             className="interactive-scale rounded-full border border-white/15 px-3 py-1 text-neutral-0 disabled:opacity-60"
           >
             <BilingualText
@@ -862,12 +876,12 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
               value={bulkIkiminaId}
               onChange={(event) => setBulkIkiminaId(event.target.value)}
               className="w-40 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-neutral-0 placeholder:text-neutral-3 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-              disabled={pending}
+              disabled={pending || !canWrite}
             />
             <button
               type="button"
               onClick={handleBulkAssign}
-              disabled={pending || !bulkIkiminaId.trim()}
+              disabled={pending || !bulkIkiminaId.trim() || !canWrite}
               className="interactive-scale rounded-full bg-white/15 px-3 py-1 text-neutral-0 disabled:opacity-60"
             >
               <BilingualText
@@ -895,7 +909,12 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
               />
             </button>
           )}
-          <button type="button" onClick={() => setSelectedIds([])} className="text-neutral-2 hover:text-neutral-0">
+          <button
+            type="button"
+            onClick={() => setSelectedIds([])}
+            disabled={!canWrite}
+            className="text-neutral-2 hover:text-neutral-0 disabled:cursor-not-allowed disabled:opacity-40"
+          >
             <BilingualText
               primary="Clear"
               secondary="Siba"
@@ -919,7 +938,8 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
                   checked={allSelected}
                   aria-label="Select all"
                   onChange={toggleSelectAll}
-                  className="h-4 w-4 rounded border-white/30 bg-transparent"
+                  disabled={!canWrite}
+                  className="h-4 w-4 rounded border-white/30 bg-transparent disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </th>
               <th className="px-4 py-3">
@@ -969,7 +989,8 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
                       aria-label="Select exception"
                       onClick={(event) => event.stopPropagation()}
                       onChange={() => toggleSelect(row.id)}
-                      className="h-4 w-4 rounded border-white/30 bg-transparent"
+                      disabled={!canWrite}
+                      className="h-4 w-4 rounded border-white/30 bg-transparent disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   </td>
                   <td className="px-4 py-3 text-neutral-2">{new Date(row.occurred_at).toLocaleString()}</td>
@@ -1236,7 +1257,8 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
                     <button
                       type="button"
                       onClick={() => applyAiSuggestion(aiSuggestion)}
-                      className="w-full rounded-xl bg-kigali py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
+                      disabled={!canWrite}
+                      className="w-full rounded-xl bg-kigali py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {joinBilingual("Apply suggestion", "Kurikiza icyifuzo")}
                     </button>
@@ -1264,8 +1286,10 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
                           </div>
                           <button
                             type="button"
-                            className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/40"
                             onClick={() => applyAiSuggestion(option)}
+                            disabled={!canWrite}
+                            title={!canWrite ? joinBilingual("Read-only access", "Uburenganzira bwo gusoma gusa") : undefined}
+                            className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/40 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             {joinBilingual("Apply", "Shyiraho")}
                           </button>

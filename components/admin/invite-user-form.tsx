@@ -7,7 +7,12 @@ import { SaccoSearchCombobox, type SaccoSearchResult } from "@/components/saccos
 import { useToast } from "@/providers/toast-provider";
 import { BilingualText } from "@/components/common/bilingual-text";
 
-const ROLES: Array<Database["public"]["Enums"]["app_role"]> = ["SYSTEM_ADMIN", "SACCO_STAFF"];
+const ROLES: Array<Database["public"]["Enums"]["app_role"]> = [
+  "SYSTEM_ADMIN",
+  "SACCO_MANAGER",
+  "SACCO_STAFF",
+  "SACCO_VIEWER",
+];
 
 export function InviteUserForm() {
   const supabase = getSupabaseBrowserClient();
@@ -76,8 +81,8 @@ export function InviteUserForm() {
           secondaryClassName="text-[10px] text-neutral-3"
         />
         <BilingualText
-          primary="Only system administrators or SACCO staff roles are available; assign a SACCO when inviting staff."
-          secondary="Ushobora guhitamo gusa System Admin cyangwa SACCO Staff; hitamo SACCO igihe utumiye umukozi."
+          primary="Assign managers for full control, staff for day-to-day updates, and viewers for read-only dashboards."
+          secondary="Hitamo Manager ku igenzura ryose, Staff ku mikorere ya buri munsi, na Viewer ku gusoma raporo gusa."
           secondaryClassName="text-[10px] text-neutral-3"
         />
       </div>
@@ -106,7 +111,7 @@ export function InviteUserForm() {
         >
           {ROLES.map((value) => (
             <option key={value} value={value}>
-              {value.replace("_", " ")}
+              {value.replace(/_/g, " ")}
             </option>
           ))}
         </select>
