@@ -4,14 +4,12 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { KPIStat } from "@/components/dashboard/kpi-stat";
 import { QuickAction } from "@/components/dashboard/quick-action";
 import { StatusChip } from "@/components/common/status-chip";
-import { VirtualTable } from "@/components/datagrid/virtual-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MissedContributorsList } from "@/components/dashboard/missed-contributors-list";
 import { requireUserAndProfile } from "@/lib/auth";
 import { getDashboardSummary } from "@/lib/dashboard";
-import type { DashboardSummary } from "@/lib/dashboard";
-import { ColumnDef } from "@tanstack/react-table";
 import { BilingualText } from "@/components/common/bilingual-text";
+import { TopIkiminaTable } from "@/components/dashboard/top-ikimina-table";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-RW", { style: "currency", currency: "RWF", maximumFractionDigits: 0 }).format(amount);
@@ -57,76 +55,6 @@ export default async function DashboardPage() {
     { label: "Week to Date", value: formatCurrency(summary.totals.week), accent: "yellow" as const },
     { label: "Month to Date", value: formatCurrency(summary.totals.month), accent: "green" as const },
     { label: "Unallocated", value: summary.totals.unallocated.toString(), accent: "neutral" as const },
-  ];
-
-  const topIkiminaColumns: ColumnDef<DashboardSummary["topIkimina"][number]>[] = [
-    {
-      accessorKey: "name",
-      header: () => (
-        <BilingualText
-          primary="Ikimina"
-          secondary="Itsinda"
-          secondaryClassName="text-[10px] text-neutral-3"
-        />
-      ),
-      cell: ({ row }) => (
-        <div>
-          <p className="font-medium text-neutral-0">{row.original.name}</p>
-          <p className="text-xs text-neutral-2">Code · {row.original.code}</p>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "updated_at",
-      header: () => (
-        <BilingualText
-          primary="Updated"
-          secondary="Igihe gishize"
-          secondaryClassName="text-[10px] text-neutral-3"
-        />
-      ),
-      cell: ({ getValue }) => {
-        const value = getValue() as string | null;
-        return value ? new Date(value).toLocaleDateString() : "—";
-      },
-    },
-    {
-      accessorKey: "month_total",
-      header: () => (
-        <BilingualText
-          primary="This month"
-          secondary="Ukwezi"
-          secondaryClassName="text-[10px] text-neutral-3"
-        />
-      ),
-      cell: ({ getValue }) => formatCurrency(Number(getValue() ?? 0)),
-    },
-    {
-      accessorKey: "member_count",
-      header: () => (
-        <BilingualText
-          primary="Members"
-          secondary="Abanyamuryango"
-          secondaryClassName="text-[10px] text-neutral-3"
-        />
-      ),
-      cell: ({ getValue }) => (
-        <span className="text-neutral-0">{Number(getValue() ?? 0)}</span>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: () => (
-        <BilingualText
-          primary="Status"
-          secondary="Imiterere"
-          secondaryClassName="text-[10px] text-neutral-3"
-        />
-      ),
-      cell: ({ getValue }) => (
-        <StatusChip tone="neutral">{String(getValue() ?? "UNKNOWN")}</StatusChip>
-      ),
-    },
   ];
 
   return (
@@ -197,12 +125,7 @@ export default async function DashboardPage() {
         }
         actions={<StatusChip tone="neutral">{summary.activeIkimina} active</StatusChip>}
       >
-        <VirtualTable
-          data={summary.topIkimina}
-          columns={topIkiminaColumns}
-          tableHeight={260}
-          emptyState={<EmptyState title="No ikimina activity" description="Recent groups will show here once transactions start flowing." />}
-        />
+        <TopIkiminaTable data={summary.topIkimina} />
       </GlassCard>
     </div>
   );
