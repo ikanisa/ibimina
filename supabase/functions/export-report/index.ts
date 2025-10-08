@@ -34,13 +34,37 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const params: ExportRequest = {
+    const queryParams: ExportRequest = {
       saccoId: url.searchParams.get("saccoId") ?? undefined,
       district: url.searchParams.get("district") ?? undefined,
       start: url.searchParams.get("start") ?? undefined,
       end: url.searchParams.get("end") ?? undefined,
       format: (url.searchParams.get("format") as "csv" | "pdf" | null) ?? "pdf",
     };
+
+    let params: ExportRequest = { ...queryParams };
+
+    if (req.method !== "GET") {
+      const contentType = req.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+        if (body && typeof body === "object") {
+          const readString = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : undefined);
+          const readFormat = (value: unknown): "csv" | "pdf" | undefined =>
+            value === "csv" || value === "pdf" ? value : undefined;
+
+          params = {
+            saccoId: readString(body.saccoId) ?? params.saccoId ?? readString(body.sacco_id),
+            district: readString(body.district) ?? params.district,
+            start: readString(body.start) ?? readString(body.from) ?? params.start,
+            end: readString(body.end) ?? readString(body.to) ?? params.end,
+            format: readFormat(body.format) ?? params.format ?? "pdf",
+          };
+        }
+      }
+    }
+
+    params.format = params.format ?? "pdf";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");

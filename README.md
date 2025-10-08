@@ -1,73 +1,72 @@
-# Welcome to your Lovable project
+# Ibimina Staff Console — Next.js App Router
 
-## Project info
+A staff-only Progressive Web App for Umurenge SACCO ibimina operations. The UI foundation now matches the Rwanda-inspired liquid-glass spec: Next.js 15 App Router, mobile-first gradients, Framer Motion transitions, and Supabase-backed semantic SACCO search.
 
-**URL**: https://lovable.dev/projects/283b4162-b919-4d0a-a3fd-88a5b3340ca9
+## Tech stack
 
-## How can I edit this code?
+- Next.js 15 (App Router, typed routes)
+- TypeScript + Tailwind design tokens (`styles/tokens.css`)
+- Framer Motion for page transitions
+- Supabase (`@supabase/ssr`) for auth and data
+- PWA manifest & service worker ready for Lovable Cloud deploys
 
-There are several ways of editing your application.
+## Getting started
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/283b4162-b919-4d0a-a3fd-88a5b3340ca9) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Set the required environment variables:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=public-anon-key
+SUPABASE_SERVICE_ROLE_KEY=service-role-key
+```
 
-**Use GitHub Codespaces**
+Copy `.env.example` to `.env` and fill in the secrets you already use in Lovable Cloud.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Running Supabase migrations
 
-## What technologies are used for this project?
+The Umurenge SACCO master list is seeded by the latest SQL migration:
 
-This project is built with:
+```
+supabase/migrations/20251008120000_enrich_saccos_with_umurenge_master.sql
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Run this migration inside Lovable Cloud’s SQL console (or through your preferred Supabase admin workflow) to apply the schema updates, semantic search function, and the 416 BNR records captured in `supabase/data/umurenge_saccos.json`.
 
-## How can I deploy this project?
+## Project layout
 
-Simply open [Lovable](https://lovable.dev/projects/283b4162-b919-4d0a-a3fd-88a5b3340ca9) and click on Share -> Publish.
+```
+app/                     # App Router routes
+  (auth)/                # Auth shell + login
+  (main)/                # Dashboard, Ikimina, Recon, Reports, Admin
+components/              # Shared UI building blocks
+lib/supabase/            # Supabase client + typed schema
+providers/               # Motion + theme + profile contexts
+styles/                  # Global design tokens
+supabase/                # Config, migrations, seed data
+```
 
-## Can I connect a custom domain to my Lovable project?
+## Supabase integration
 
-Yes, you can!
+- `lib/supabase/server.ts` exposes a server-side client that reads the session cookie (no project linking required in Lovable Cloud).
+- `lib/auth.ts` centralises user/session lookups and guards the `(main)` route group.
+- Dashboard, Ikimina, Recon, Reports, and Admin pages now query Supabase directly in server components.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Recent polish
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Revamped the AppShell with bilingual navigation, skip links, quick actions, and a global search palette that exposes semantic SACCO lookup.
+- Extended global search to surface ikimina, members, and recent payments with bilingual microcopy baked into the palette.
+- Expanded client-side search across Ikimina directories while keeping upload wizards and RPC-powered SACCO picking in sync with Supabase.
+- Rounded out accessibility with consistent focus treatments, bilingual microcopy, and a `viewport` export that advertises the active theme colour.
+
+## Scripts
+
+- `npm run dev` – start the dev server
+- `npm run lint` – lint the project
+- `npm run build` – production build
+
+Deployments continue through Lovable Cloud; push changes or publish from the Lovable dashboard when ready.

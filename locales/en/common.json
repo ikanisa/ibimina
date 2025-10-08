@@ -1,0 +1,9 @@
+{
+  "addToHome.title": "Add to your home screen",
+  "addToHome.description": "Install Ibimina Staff for faster access and limited offline support.",
+  "addToHome.install": "Install",
+  "addToHome.dismiss": "Later",
+  "actions.close": "Close",
+  "toast.genericSuccess": "Done!",
+  "toast.genericError": "Something went wrong. Please try again."
+}
