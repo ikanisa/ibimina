@@ -246,7 +246,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
         onClick={() => setOpen(true)}
         className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-sm font-semibold text-ink shadow-glass"
       >
-        Import members
+        Spreadsheet import
       </button>
 
       {open && (

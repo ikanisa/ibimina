@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useTransition, useDeferredValue } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition, useDeferredValue } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { StatusChip } from "@/components/common/status-chip";
@@ -141,6 +141,25 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
   const [memberQuery, setMemberQuery] = useState("");
   const [memberResults, setMemberResults] = useState<MemberResult[]>([]);
   const [memberLoading, setMemberLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<{
+    member_id: string;
+    ikimina_id: string | null;
+    confidence: number;
+    reason: string;
+    member_code?: string | null;
+  } | null>(null);
+  const [aiAlternatives, setAiAlternatives] = useState<
+    Array<{
+      member_id: string;
+      ikimina_id: string | null;
+      confidence: number;
+      reason: string;
+      member_code?: string | null;
+    }>
+  >([]);
+  const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiRefreshToken, setAiRefreshToken] = useState(0);
   const [pending, startTransition] = useTransition();
   const { success: toastSuccess, error: toastError } = useToast();
 
@@ -151,6 +170,27 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
   const [reasonFilters, setReasonFilters] = useState<string[]>([]);
 
   const deferredSearch = useDeferredValue(searchTerm);
+  const suggestionCache = useRef(
+    new Map<
+      string,
+      {
+        suggestion: {
+          member_id: string;
+          ikimina_id: string | null;
+          confidence: number;
+          reason: string;
+          member_code?: string | null;
+        } | null;
+        alternatives: Array<{
+          member_id: string;
+          ikimina_id: string | null;
+          confidence: number;
+          reason: string;
+          member_code?: string | null;
+        }>;
+      }
+    >()
+  );
 
   const duplicateTxnIds = useMemo(() => {
     const counts = new Map<string, number>();
@@ -440,6 +480,35 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
     setMemberResults([]);
   };
 
+  const applyAiSuggestion = (suggestion: {
+    member_id: string;
+    ikimina_id: string | null;
+    confidence: number;
+    reason: string;
+    member_code?: string | null;
+  }) => {
+    if (!selected) return;
+    const targetIkiminaId = suggestion.ikimina_id ?? selected.ikimina_id;
+    if (!targetIkiminaId) {
+      const bilingual = joinBilingual(
+        "Suggestion missing ikimina. Assign a group manually.",
+        "Icyifuzo ntigaragaza ikimina. Banza uhitemo itsinda."
+      );
+      setActionError(bilingual);
+      toastError(bilingual);
+      return;
+    }
+    handleAssignToIkimina(targetIkiminaId, suggestion.member_id);
+  };
+
+  const refreshAiSuggestion = () => {
+    if (!selected) return;
+    suggestionCache.current.delete(selected.id);
+    setAiStatus("idle");
+    setAiError(null);
+    setAiRefreshToken((token) => token + 1);
+  };
+
   useEffect(() => {
     if (selected && !rowMap.has(selected.id)) {
       setSelected(null);
@@ -463,7 +532,7 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
 
     const memberCode = selected.reference?.split(".")[3];
     setMemberQuery(memberCode ?? "");
-  }, [selected]);
+  }, [selected, aiRefreshToken]);
 
   useEffect(() => {
     const term = memberQuery.trim();
@@ -531,6 +600,86 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
       window.clearTimeout(timeout);
     };
   }, [memberQuery, selected, saccoId, toastError]);
+
+  useEffect(() => {
+    if (!selected) {
+      setAiSuggestion(null);
+      setAiAlternatives([]);
+      setAiStatus("idle");
+      setAiError(null);
+      return;
+    }
+
+    const cached = suggestionCache.current.get(selected.id);
+    if (cached) {
+      setAiSuggestion(cached.suggestion ?? null);
+      setAiAlternatives(cached.alternatives ?? []);
+      setAiStatus("ready");
+      setAiError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    let cancelled = false;
+    setAiStatus("loading");
+    setAiError(null);
+
+    fetch("/api/reconciliation/suggest", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ paymentId: selected.id }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error ?? `Suggestion request failed (${response.status})`);
+        }
+        return response.json() as Promise<{
+          suggestion: {
+            member_id: string;
+            ikimina_id: string | null;
+            confidence: number;
+            reason: string;
+            member_code?: string | null;
+          } | null;
+          alternatives: Array<{
+            member_id: string;
+            ikimina_id: string | null;
+            confidence: number;
+            reason: string;
+            member_code?: string | null;
+          }>;
+        }>;
+      })
+      .then((payload) => {
+        if (cancelled) return;
+        suggestionCache.current.set(selected.id, {
+          suggestion: payload.suggestion ?? null,
+          alternatives: payload.alternatives ?? [],
+        });
+        setAiSuggestion(payload.suggestion ?? null);
+        setAiAlternatives(payload.alternatives ?? []);
+        setAiStatus("ready");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("AI suggestion fetch error", err);
+        const bilingual = joinBilingual(
+          err instanceof Error ? err.message : "Suggestion lookup failed",
+          "Gusaba inama byanze"
+        );
+        setAiError(bilingual);
+        setAiStatus("error");
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [selected]);
 
   const sharedReference = useMemo(() => {
     if (selectedIds.length === 0) return null;
@@ -1020,10 +1169,10 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
             <div className="space-y-3 text-sm text-neutral-0">
               <h4 className="font-semibold">Actions</h4>
               <div className="space-y-2 text-xs text-neutral-2">
-        <label className="block uppercase tracking-[0.2em]">
-          <BilingualText primary="Update status" secondary="Hindura imiterere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-        </label>
-        <select
+                <label className="block uppercase tracking-[0.2em]">
+                  <BilingualText primary="Update status" secondary="Hindura imiterere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+                </label>
+                <select
           value={newStatus}
           onChange={(event) => setNewStatus(event.target.value)}
           className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
@@ -1045,6 +1194,86 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
                 >
                   {pending ? joinBilingual("Saving…", "Kubika…") : joinBilingual("Save status", "Bika imiterere")}
                 </button>
+              </div>
+              <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">
+                <div className="flex items-center justify-between">
+                  <span className="uppercase tracking-[0.2em] text-neutral-2">
+                    <BilingualText primary="AI suggestion" secondary="Inama ya AI" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+                  </span>
+                  <button
+                    type="button"
+                    onClick={refreshAiSuggestion}
+                    className="text-[11px] text-neutral-2 underline-offset-2 hover:underline"
+                  >
+                    {joinBilingual("Retry", "Ongera")}
+                  </button>
+                </div>
+                {aiStatus === "loading" && (
+                  <p>{joinBilingual("Analyzing payment…", "Irasesengura ubwishyu…")}</p>
+                )}
+                {aiStatus === "error" && aiError && (
+                  <p className="text-rose-300">{aiError}</p>
+                )}
+                {aiStatus === "ready" && aiSuggestion && (
+                  <div className="space-y-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-neutral-0">
+                    <p className="font-semibold text-sm">
+                      {joinBilingual("Suggested member", "Umugenerwa w'icyifuzo")}
+                    </p>
+                    <p className="text-xs text-neutral-2">{aiSuggestion.reason}</p>
+                    <div className="flex items-center justify-between text-[11px] text-neutral-2">
+                      <span>
+                        {joinBilingual(
+                          `Confidence ${Math.round(aiSuggestion.confidence * 100)}%`,
+                          `Icyizere ${Math.round(aiSuggestion.confidence * 100)}%`
+                        )}
+                      </span>
+                      {aiSuggestion.member_code && (
+                        <span>
+                          {joinBilingual(`Code ${aiSuggestion.member_code}`, `Kode ${aiSuggestion.member_code}`)}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => applyAiSuggestion(aiSuggestion)}
+                      className="w-full rounded-xl bg-kigali py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
+                    >
+                      {joinBilingual("Apply suggestion", "Kurikiza icyifuzo")}
+                    </button>
+                  </div>
+                )}
+                {aiStatus === "ready" && !aiSuggestion && (
+                  <p>{joinBilingual("No confident suggestion. Review alternatives or assign manually.", "Nta cyizere gihagije. Reba amahitamo cyangwa uhuze intoki.")}</p>
+                )}
+                {aiStatus === "ready" && aiAlternatives.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-2">
+                      {joinBilingual("Other options", "Andi mahitamo")}
+                    </p>
+                    <ul className="space-y-1">
+                      {aiAlternatives.map((option) => (
+                        <li key={`${option.member_id}-${option.reason}`} className="flex items-center justify-between gap-3 rounded-xl bg-black/15 px-3 py-2">
+                          <div className="text-left text-[11px] text-neutral-0">
+                            <p className="font-semibold">{joinBilingual(option.reason, option.reason)}</p>
+                            <p className="text-neutral-2">
+                              {joinBilingual(
+                                `Confidence ${Math.round(option.confidence * 100)}%`,
+                                `Icyizere ${Math.round(option.confidence * 100)}%`
+                              )}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/40"
+                            onClick={() => applyAiSuggestion(option)}
+                          >
+                            {joinBilingual("Apply", "Shyiraho")}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
               <div className="space-y-2 text-xs text-neutral-2">
                 <label className="block uppercase tracking-[0.2em]">

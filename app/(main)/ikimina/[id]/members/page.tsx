@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { MemberImportWizard } from "@/components/ikimina/member-import-wizard";
+import { MemberPdfImportDialog } from "@/components/ikimina/member-pdf-import-dialog";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -53,7 +54,12 @@ export default async function MembersPage({ params }: PageProps) {
     <GlassCard
       title={`Members · ${resolvedGroup.name}`}
       subtitle={`${memberRows.length} members`}
-      actions={<MemberImportWizard ikiminaId={id} saccoId={resolvedGroup.sacco_id} />}
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
+          <MemberImportWizard ikiminaId={id} saccoId={resolvedGroup.sacco_id} />
+          <MemberPdfImportDialog ikiminaId={id} saccoId={resolvedGroup.sacco_id} />
+        </div>
+      }
     >
       <div className="overflow-hidden rounded-2xl border border-white/10">
         <table className="w-full border-collapse text-sm">
