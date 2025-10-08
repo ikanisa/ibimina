@@ -45,6 +45,7 @@ BEGIN
 END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS saccos_bnr_index_unique ON public.saccos(bnr_index);
+CREATE UNIQUE INDEX IF NOT EXISTS saccos_sector_code_unique ON public.saccos(sector_code);
 CREATE INDEX IF NOT EXISTS saccos_search_document_idx ON public.saccos USING GIN(search_document);
 CREATE INDEX IF NOT EXISTS saccos_name_trgm_idx ON public.saccos USING GIN (name gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS saccos_sector_trgm_idx ON public.saccos USING GIN (sector gin_trgm_ops);
@@ -192,17 +193,15 @@ SELECT
   NOW(),
   NOW()
 FROM prepared
-ON CONFLICT (bnr_index) DO UPDATE SET
+ON CONFLICT (sector_code) DO UPDATE SET
   name = EXCLUDED.name,
   sector = EXCLUDED.sector,
   district = EXCLUDED.district,
   province = EXCLUDED.province,
   email = EXCLUDED.email,
   category = EXCLUDED.category,
+  bnr_index = EXCLUDED.bnr_index,
   status = 'ACTIVE',
   search_slug = EXCLUDED.search_slug,
   sector_code = EXCLUDED.sector_code,
   updated_at = NOW();
-
-ALTER TABLE public.saccos
-  ALTER COLUMN bnr_index SET NOT NULL;
