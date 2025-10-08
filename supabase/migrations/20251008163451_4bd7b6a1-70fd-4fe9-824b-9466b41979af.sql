@@ -23,7 +23,6 @@ INSERT INTO public.saccos (name, sector_code, district, province, email, categor
 ('AB Rwanda PLC', 'NYARUGENGE', 'NYARUGENGE', 'CITY OF KIGALI', 'info@abr.rw', 'Deposit-Taking Microfinance Company'),
 ('URWEGO FINANCE CBC', 'REMERA', 'GASABO', 'CITY OF KIGALI', 'info@urwegobank.com', 'Deposit-Taking Microfinance Company'),
 ('LOLC UNGUKA FINANCE PLC', 'NYARUGENGE', 'NYARUGENGE', 'CITY OF KIGALI', 'info@lolcunguka.com', 'Deposit-Taking Microfinance Company'),
--- Additional UMURENGE SACCOs (370-457)
 ('COOPERATIVE D''EPARGNE ET DE CREDIT DE RUREMBO', 'RUREMBO', 'NYABIHU', 'WESTERN PROVINCE', 'abisunganyesacco@gmail.com', 'Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)'),
 ('SACCO KALISIMBI JENDA', 'JENDA', 'NYABIHU', 'WESTERN PROVINCE', 'saccojenda2@gmail.com', 'Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)'),
 ('DUKIZANYE MULINGA SACCO', 'MULINGA', 'NYABIHU', 'WESTERN PROVINCE', 'usaccomulinga@gmail.com', 'Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)'),
