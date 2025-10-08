@@ -256,10 +256,18 @@ export function GlobalSearchDialog({
         return;
       }
 
-      const rows = (data ?? []).map((row) => ({
+      type IkiminaRow = {
+        id: string;
+        name: string;
+        code: string | null;
+        status: string;
+        saccos: { name: string | null } | null;
+      };
+
+      const rows = ((data ?? []) as IkiminaRow[]).map((row) => ({
         id: row.id,
         name: row.name,
-        code: row.code,
+        code: row.code ?? "",
         status: row.status,
         saccoName: row.saccos?.name ?? null,
       }));

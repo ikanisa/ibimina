@@ -137,7 +137,8 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
             sms_sender: editing.sms_sender ?? null,
             logo_url: editing.logo_url ?? null,
           } satisfies Database["public"]["Tables"]["saccos"]["Insert"];
-          const { data, error: insertError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data, error: insertError } = await (supabase as any)
             .from("saccos")
             .insert(payload)
             .select("id, name, district, province, sector, bnr_index, status, email, category, merchant_code, brand_color, sms_sender, logo_url")
@@ -161,7 +162,8 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
             brand_color: editing.brand_color ?? null,
             sms_sender: editing.sms_sender ?? null,
           };
-          const { error: updateError } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error: updateError } = await (supabase as any)
             .from("saccos")
             .update(payload)
             .eq("id", editing.id);
@@ -200,7 +202,8 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
   const handleDelete = (saccoId: string) => {
     if (!confirm("Delete this SACCO? This cannot be undone. / Gusiba iyi SACCO? Ntabwo bizasubizwa.")) return;
     startTransition(async () => {
-      const { error: deleteError } = await supabase.from("saccos").delete().eq("id", saccoId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: deleteError } = await (supabase as any).from("saccos").delete().eq("id", saccoId);
       if (deleteError) {
         notifyError(deleteError.message ?? "Failed to delete SACCO", "Gusiba SACCO byanze");
         return;

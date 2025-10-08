@@ -106,7 +106,8 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         tokens,
         version: 1,
       };
-      const { data, error: insertError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: insertError } = await (supabase as any)
         .from("sms_templates")
         .insert(payload)
         .select("id, name, body, is_active, sacco_id, created_at, updated_at, version, tokens, description")
@@ -123,7 +124,8 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
 
   const handleToggleActive = (template: TemplateRow) => {
     startTransition(async () => {
-      const { error: updateError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (supabase as any)
         .from("sms_templates")
         .update({ is_active: !template.is_active })
         .eq("id", template.id);
@@ -148,7 +150,8 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
   const handleDelete = (templateId: string) => {
     if (!confirm("Delete this template? / Gusiba iyi nyandiko?")) return;
     startTransition(async () => {
-      const { error: deleteError } = await supabase.from("sms_templates").delete().eq("id", templateId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: deleteError } = await (supabase as any).from("sms_templates").delete().eq("id", templateId);
       if (deleteError) {
         notifyError(deleteError.message ?? "Failed to delete template", "Gusiba inyandiko byanze");
         return;
@@ -170,7 +173,8 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         version: (template.version ?? 1) + 1,
         is_active: false,
       };
-      const { data, error: insertError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error: insertError } = await (supabase as any)
         .from("sms_templates")
         .insert(payload)
         .select("id, name, body, is_active, sacco_id, created_at, updated_at, version, tokens, description")

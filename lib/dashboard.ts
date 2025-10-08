@@ -122,8 +122,9 @@ export async function getDashboardSummary(saccoId: string | null): Promise<Dashb
       .select("id, name, code, status, updated_at")
       .in("id", topGroupIds);
 
-    topGroupsMeta?.forEach((group) => {
-      groupMetaMap.set(group.id, group);
+    (topGroupsMeta ?? []).forEach((group) => {
+      const typed = group as IkiminaRow;
+      groupMetaMap.set(typed.id, typed);
     });
   }
 
@@ -140,12 +141,13 @@ export async function getDashboardSummary(saccoId: string | null): Promise<Dashb
     }
 
     const { data: fallbackGroups } = await fallbackQuery;
-    fallbackGroups?.forEach((group) => {
-      if (!groupMetaMap.has(group.id)) {
-        groupMetaMap.set(group.id, group);
-        if (!groupTotals.has(group.id)) {
-          groupTotals.set(group.id, { amount: 0, members: new Set<string>() });
-          topGroupEntries.push([group.id, groupTotals.get(group.id)!]);
+    (fallbackGroups ?? []).forEach((group) => {
+      const typed = group as IkiminaRow;
+      if (!groupMetaMap.has(typed.id)) {
+        groupMetaMap.set(typed.id, typed);
+        if (!groupTotals.has(typed.id)) {
+          groupTotals.set(typed.id, { amount: 0, members: new Set<string>() });
+          topGroupEntries.push([typed.id, groupTotals.get(typed.id)!]);
         }
       }
     });

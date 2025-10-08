@@ -41,22 +41,24 @@ export default async function IkiminaPage() {
   const memberCounts = new Map<string, number>();
 
   if (groupIds.length > 0) {
-    const { data: memberCountRows, error: memberCountError } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const memberCountQuery = (supabase as any)
       .from("ikimina_members_public")
       .select("ikimina_id, count")
       .in("ikimina_id", groupIds)
       .group("ikimina_id");
+
+    const { data: memberCountRows, error: memberCountError } = await memberCountQuery;
 
     if (memberCountError) {
       throw memberCountError;
     }
 
     type MemberCountRow = { ikimina_id: string | null; count: number | null };
-    (memberCountRows ?? []).forEach((row) => {
-      const typedRow = row as MemberCountRow;
-      if (!typedRow.ikimina_id) return;
-      memberCounts.set(typedRow.ikimina_id, Number(typedRow.count ?? 0));
-    });
+    for (const row of (memberCountRows ?? []) as MemberCountRow[]) {
+      if (!row.ikimina_id) continue;
+      memberCounts.set(row.ikimina_id, Number(row.count ?? 0));
+    }
   }
 
   const aggregates = new Map<
@@ -77,9 +79,10 @@ export default async function IkiminaPage() {
       .order("occurred_at", { ascending: false })
       .range(0, 4999);
 
-    paymentData?.forEach((payment) => {
+    type PaymentRow = Pick<Database["public"]["Tables"]["payments"]["Row"], "ikimina_id" | "amount" | "status" | "occurred_at">;
+    for (const payment of (paymentData ?? []) as PaymentRow[]) {
       const groupId = payment.ikimina_id;
-      if (!groupId) return;
+      if (!groupId) continue;
       const bucket = aggregates.get(groupId) ?? {
         monthTotal: 0,
         lastPaymentAt: null,
@@ -101,7 +104,7 @@ export default async function IkiminaPage() {
       }
 
       aggregates.set(groupId, bucket);
-    });
+    }
   }
 
   const rows: IkiminaTableRow[] = rawRows.map((row) => {

@@ -57,7 +57,8 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
   const handleSave = () => {
     if (!hasChanges) return;
     startTransition(async () => {
-      const { error: updateError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (supabase as any)
         .from("saccos")
         .update({
           brand_color: brandColor,

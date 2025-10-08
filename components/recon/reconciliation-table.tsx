@@ -267,7 +267,8 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
     startTransition(async () => {
       setBulkMessage(null);
       setBulkError(null);
-      const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
         .from("payments")
         .update({ status })
         .in("id", selectedIds);
@@ -296,7 +297,8 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
     startTransition(async () => {
       setBulkMessage(null);
       setBulkError(null);
-      const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
         .from("payments")
         .update({ ikimina_id: trimmed })
         .in("id", selectedIds);
@@ -353,13 +355,16 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
           queryBuilder = queryBuilder.eq("sacco_id", saccoId);
         }
         const { data: group, error: groupError } = await queryBuilder.maybeSingle();
-        if (groupError || !group) {
+        type GroupRow = { id: string };
+        const resolvedGroup = (group ?? null) as GroupRow | null;
+        if (groupError || !resolvedGroup) {
           throw new Error(groupError?.message ?? "No matching ikimina found for reference");
         }
 
-        const { error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase as any)
           .from("payments")
-          .update({ ikimina_id: group.id })
+          .update({ ikimina_id: resolvedGroup.id })
           .in("id", selectedIds);
 
         if (error) {
@@ -393,7 +398,8 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
     startTransition(async () => {
       setActionMessage(null);
       setActionError(null);
-      const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
         .from("payments")
         .update({ status: newStatus })
         .eq("id", selected.id);
@@ -413,7 +419,8 @@ export function ReconciliationTable({ rows, saccoId }: ReconciliationTableProps)
     startTransition(async () => {
       setActionMessage(null);
       setActionError(null);
-      const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
         .from("payments")
         .update({ ikimina_id: ikiminaId, member_id: memberId })
         .eq("id", selected.id);

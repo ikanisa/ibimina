@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUserAndProfile } from "@/lib/auth";
+import type { Database } from "@/lib/supabase/types";
 
 export type SettingsActionState = {
   status: "idle" | "success" | "error";
@@ -131,11 +132,14 @@ export async function updateIkiminaSettings(
     return { status: "error", message: "Failed to load ikimina record" };
   }
 
-  if (!existing) {
+  type IkiminaRow = Database["public"]["Tables"]["ibimina"]["Row"];
+  const typedExisting = existing as IkiminaRow | null;
+
+  if (!typedExisting) {
     return { status: "error", message: "Ikimina not found" };
   }
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== existing.sacco_id) {
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== typedExisting.sacco_id) {
     return { status: "error", message: "You do not have permission to update this ikimina." };
   }
 
@@ -155,7 +159,8 @@ export async function updateIkiminaSettings(
     },
   };
 
-  const { error: updateError } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any)
     .from("ibimina")
     .update({ settings_json: settingsPayload })
     .eq("id", data.ikiminaId);
@@ -165,7 +170,8 @@ export async function updateIkiminaSettings(
     return { status: "error", message: updateError.message ?? "Unable to update settings" };
   }
 
-  const { error: auditError } = await supabase.from("audit_logs").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: auditError } = await (supabase as any).from("audit_logs").insert({
     actor_id: user.id,
     action: "IKIMINA_SETTINGS_UPDATE",
     entity: "ibimina",
