@@ -1,6 +1,5 @@
 [
   {
-    "bnr_index": 42,
     "name": "HOPE SACCO MUHIMA",
     "sector": "MUHIMA",
     "district": "NYARUGENGE",
@@ -9,7 +8,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 43,
     "name": "KIGALI SACCO",
     "sector": "KIGALI",
     "district": "NYARUGENGE",
@@ -18,7 +16,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 44,
     "name": "EJOHEZA SACCO",
     "sector": "NYARUGENGE",
     "district": "NYARUGENGE",
@@ -27,7 +24,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 45,
     "name": "ICYIZERE SACCO GITEGA",
     "sector": "GITEGA",
     "district": "NYARUGENGE",
@@ -36,7 +32,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 46,
     "name": "SACCO MAGERAGERE ICYEREKEZO",
     "sector": "MAGERAGERE",
     "district": "NYARUGENGE",
@@ -45,7 +40,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 47,
     "name": "INDATWA SACCO KANYINYA",
     "sector": "KANYINYA",
     "district": "NYARUGENGE",
@@ -54,7 +48,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 48,
     "name": "KUNGAHARA SACCO NYAKABANDA",
     "sector": "NYAKABANDA",
     "district": "NYARUGENGE",
@@ -63,7 +56,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 49,
     "name": "URUGWIRO SACCO",
     "sector": "RWEZAMENYO",
     "district": "NYARUGENGE",
@@ -72,7 +64,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 50,
     "name": "DEVELOPMENT VISION SACCO",
     "sector": "KIMISAGARA",
     "district": "NYARUGENGE",
@@ -81,7 +72,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 51,
     "name": "TRUST SACCO NYAMIRAMBO",
     "sector": "NYAMIRAMBO",
     "district": "NYARUGENGE",
@@ -90,7 +80,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 52,
     "name": "GATSATA SACCO AMIZERO",
     "sector": "GATSATA",
     "district": "GASABO",
@@ -99,7 +88,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 53,
     "name": "GIKOMERO SACCO(KOPEKUKUGI)",
     "sector": "GIKOMERO",
     "district": "GASABO",
@@ -108,7 +96,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 54,
     "name": "GISOZI SACCO",
     "sector": "GISOZI",
     "district": "GASABO",
@@ -117,7 +104,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 55,
     "name": "SACCO ICYEREKEZO KINYINYA",
     "sector": "KINYINYA",
     "district": "GASABO",
@@ -126,7 +112,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 56,
     "name": "IJABO REMERA SACCO",
     "sector": "REMERA",
     "district": "GASABO",
@@ -135,7 +120,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 57,
     "name": "INDATSIKIRA SACCO KIMIHURURA",
     "sector": "KIMIHURURA",
     "district": "GASABO",
@@ -144,7 +128,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 58,
     "name": "JABANA SACCO",
     "sector": "JABANA",
     "district": "GASABO",
@@ -153,7 +136,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 59,
     "name": "UMUNARA SACCO JALI",
     "sector": "JALI",
     "district": "GASABO",
@@ -162,7 +144,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 60,
     "name": "KACYIRU SACCO",
     "sector": "KACYIRU",
     "district": "GASABO",
@@ -171,7 +152,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 61,
     "name": "HOME BASKET SACCO KIMIRONKO",
     "sector": "KIMIRONKO",
     "district": "GASABO",
@@ -180,7 +160,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 62,
     "name": "KOPERATIVE ZIGAMA GURINZWA NDUBA",
     "sector": "NDUBA",
     "district": "GASABO",
@@ -189,7 +168,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 63,
     "name": "RUSORORO SACCO",
     "sector": "RUSORORO",
     "district": "GASABO",
@@ -198,7 +176,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 64,
     "name": "SACCO RUTUNGA",
     "sector": "RUTUNGA",
     "district": "GASABO",
@@ -207,7 +184,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 65,
     "name": "ZAMUKA BUMBOGO SACCO",
     "sector": "BUMBOGO",
     "district": "GASABO",
@@ -216,7 +192,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 66,
     "name": "NDERA SACCO",
     "sector": "NDERA",
     "district": "GASABO",
@@ -225,7 +200,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 67,
     "name": "KANOMBE SACCO",
     "sector": "KANOMBE",
     "district": "KICUKIRO",
@@ -234,7 +208,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 68,
     "name": "IMBONEZA SACCO",
     "sector": "NYARUGUNGA",
     "district": "KICUKIRO",
@@ -243,7 +216,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 69,
     "name": "ABAHIZI SACCO",
     "sector": "GIKONDO",
     "district": "KICUKIRO",
@@ -252,7 +224,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 70,
     "name": "IJABO SACCO KIGARAMA",
     "sector": "KIGARAMA",
     "district": "KICUKIRO",
@@ -261,7 +232,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 71,
     "name": "IJABO SACCO KICUKIRO",
     "sector": "KICUKIRO",
     "district": "KICUKIRO",
@@ -270,7 +240,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 72,
     "name": "VISION SACCO GAHANGA (VISAGA)",
     "sector": "GAHANGA",
     "district": "KICUKIRO",
@@ -279,7 +248,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 73,
     "name": "ICYEREKEZO MASAKA SACCO",
     "sector": "MASAKA",
     "district": "KICUKIRO",
@@ -288,7 +256,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 74,
     "name": "GATENGA SACCO",
     "sector": "GATENGA",
     "district": "KICUKIRO",
@@ -297,7 +264,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 75,
     "name": "KAGARAMA SAVINGS AND CREDIT COOPERATIVE",
     "sector": "KAGARAMA",
     "district": "KICUKIRO",
@@ -306,7 +272,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 76,
     "name": "INDAHIGWA SACCO NIBOYE",
     "sector": "NIBOYE",
     "district": "KICUKIRO",
@@ -315,7 +280,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 77,
     "name": "TWIYUBAKE GASHORA SACCO",
     "sector": "GASHORA",
     "district": "BUGESERA",
@@ -324,7 +288,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 78,
     "name": "ZAMUKA JURU SACCO",
     "sector": "JURU",
     "district": "BUGESERA",
@@ -333,7 +296,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 79,
     "name": "KAMABUYE SACCO",
     "sector": "KAMABUYE",
     "district": "BUGESERA",
@@ -342,7 +304,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 80,
     "name": "JYAMBERE MAREBA SACCO",
     "sector": "MAREBA",
     "district": "BUGESERA",
@@ -351,7 +312,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 81,
     "name": "MAYANGE SACCO",
     "sector": "MAYANGE",
     "district": "BUGESERA",
@@ -360,7 +320,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 82,
     "name": "IMBARUTSO MUSENYI SACCO",
     "sector": "MUSENYI",
     "district": "BUGESERA",
@@ -369,7 +328,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 83,
     "name": "MWOGO SACCO",
     "sector": "MWOGO",
     "district": "BUGESERA",
@@ -378,7 +336,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 84,
     "name": "IJABO NGERUKA SACCO",
     "sector": "NGERUKA",
     "district": "BUGESERA",
@@ -387,7 +344,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 85,
     "name": "NTARAMA SACCO",
     "sector": "NTARAMA",
     "district": "BUGESERA",
@@ -396,7 +352,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 86,
     "name": "NYAMATA SACCO",
     "sector": "NYAMATA",
     "district": "BUGESERA",
@@ -405,7 +360,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 87,
     "name": "NYARUGENGE ICYEREKEZO SACCO",
     "sector": "NYARUGENGE",
     "district": "BUGESERA",
@@ -414,7 +368,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 88,
     "name": "RILIMA SACCO",
     "sector": "RILIMA",
     "district": "BUGESERA",
@@ -423,7 +376,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 89,
     "name": "RUHUHA DEVELOPMENT SACCO",
     "sector": "RUHUHA",
     "district": "BUGESERA",
@@ -432,7 +384,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 90,
     "name": "RWERU SACCO",
     "sector": "RWERU",
     "district": "BUGESERA",
@@ -441,7 +392,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 91,
     "name": "SHYARA SACCO",
     "sector": "SHYARA",
     "district": "BUGESERA",
@@ -450,7 +400,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 92,
     "name": "IMBONI KIGABIRO SACCO",
     "sector": "KIGABIRO",
     "district": "RWAMAGANA",
@@ -459,7 +408,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 93,
     "name": "IMBADUKO MUHAZI SACCO",
     "sector": "MUHAZI",
     "district": "RWAMAGANA",
@@ -468,7 +416,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 94,
     "name": "ICYEREKEZO GISHARI SACCO",
     "sector": "GISHARI",
     "district": "RWAMAGANA",
@@ -477,7 +424,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 95,
     "name": "MUNYIGINYA SACCO (MY SACCO)",
     "sector": "MUNYIGINYA",
     "district": "RWAMAGANA",
@@ -486,7 +432,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 96,
     "name": "IMPORE MWULIRE SACCO",
     "sector": "MWULIRE",
     "district": "RWAMAGANA",
@@ -495,7 +440,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 97,
     "name": "UMUSARE SACCO-MUSHA",
     "sector": "MUSHA",
     "district": "RWAMAGANA",
@@ -504,7 +448,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 98,
     "name": "SANGWA SACCO GAHENGERI",
     "sector": "GAHENGERI",
     "district": "RWAMAGANA",
@@ -513,7 +456,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 99,
     "name": "FUMBWE SACCO",
     "sector": "FUMBWE",
     "district": "RWAMAGANA",
@@ -522,7 +464,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 100,
     "name": "UMUGISHA SACCO MUYUMBU",
     "sector": "MUYUMBU",
     "district": "RWAMAGANA",
@@ -531,7 +472,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 101,
     "name": "COOPEC UBUMWE BWA NYAKARIRO",
     "sector": "NYAKARIRO",
     "district": "RWAMAGANA",
@@ -540,7 +480,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 102,
     "name": "GWIZA KARENGE SACCO",
     "sector": "KARENGE",
     "district": "RWAMAGANA",
@@ -549,7 +488,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 103,
     "name": "IZIGAMIRE NZIGE SACCO",
     "sector": "NZIGE",
     "district": "RWAMAGANA",
@@ -558,7 +496,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 104,
     "name": "IZERE RUBONA SACCO",
     "sector": "RUBONA",
     "district": "RWAMAGANA",
@@ -567,7 +504,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 105,
     "name": "TWIYUBAKE MUNYAGA SACCO",
     "sector": "MUNYAGA",
     "district": "RWAMAGANA",
@@ -576,7 +512,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 106,
     "name": "GAHINI SACCO",
     "sector": "GAHINI",
     "district": "KAYONZA",
@@ -585,7 +520,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 107,
     "name": "KOPERATIVE KUNGAHARA KABARE",
     "sector": "KABARE",
     "district": "KAYONZA",
@@ -594,7 +528,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 108,
     "name": "SACCO DUKIRE KABARONDO",
     "sector": "KABARONDO",
     "district": "KAYONZA",
@@ -603,7 +536,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 109,
     "name": "SACCO ICYOGERE MUKARANGE",
     "sector": "MUKARANGE",
     "district": "KAYONZA",
@@ -612,7 +544,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 110,
     "name": "DUKIRE SACCO MURAMA",
     "sector": "MURAMA",
     "district": "KAYONZA",
@@ -621,7 +552,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 111,
     "name": "SACCOMURUNDI",
     "sector": "MURUNDI",
     "district": "KAYONZA",
@@ -630,7 +560,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 112,
     "name": "MWILI SACCO",
     "sector": "MWIRI",
     "district": "KAYONZA",
@@ -639,7 +568,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 113,
     "name": "SACCO DUKIRE NDEGO",
     "sector": "NDEGO",
     "district": "KAYONZA",
@@ -648,7 +576,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 114,
     "name": "COOPEC ABANZUMUGAYO/NYAMIRAMA",
     "sector": "NYAMIRAMA",
     "district": "KAYONZA",
@@ -657,7 +584,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 115,
     "name": "SACCO UMUCYO RUKARA",
     "sector": "RUKARA",
     "district": "KAYONZA",
@@ -666,7 +592,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 116,
     "name": "SACCO RURAMIRA ICYEREKEZO",
     "sector": "RURAMIRA",
     "district": "KAYONZA",
@@ -675,7 +600,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 117,
     "name": "SACCO TWIFATANYE RWINKWAVU",
     "sector": "RWINKWAVU",
     "district": "KAYONZA",
@@ -684,7 +608,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 118,
     "name": "KOPERATIVE ABIZERANYE Y'I GASHANDA(KOPABIGA)",
     "sector": "GASHANDA",
     "district": "NGOMA",
@@ -693,7 +616,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 119,
     "name": "AMEREKEZO JARAMA SACCO (KOPAJA)",
     "sector": "JARAMA",
     "district": "NGOMA",
@@ -702,7 +624,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 120,
     "name": "COOPERATIVE IMENA ZA KAREMBO(CIMEKA)",
     "sector": "KAREMBO",
     "district": "NGOMA",
@@ -711,7 +632,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 121,
     "name": "KAZO SAVING AND CREDIT COOPERATIVE",
     "sector": "KAZO",
     "district": "NGOMA",
@@ -720,7 +640,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 122,
     "name": "KOPERATIVE ZIGAMA KIBUNGO (KOZIKI)",
     "sector": "KIBUNGO",
     "district": "NGOMA",
@@ -729,7 +648,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 123,
     "name": "IBYIZA MUGESERA SACCO",
     "sector": "MUGESERA",
     "district": "NGOMA",
@@ -738,7 +656,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 124,
     "name": "KOTIMU",
     "sector": "MURAMA",
     "district": "NGOMA",
@@ -747,7 +664,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 125,
     "name": "SACCO INGOBOKA MUTENDERI",
     "sector": "MUTENDERI",
     "district": "NGOMA",
@@ -756,7 +672,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 126,
     "name": "REMERA PEOPLE SAVING AND CREDIT COOPERATIVE",
     "sector": "REMERA",
     "district": "NGOMA",
@@ -765,7 +680,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 127,
     "name": "KUNGAHARA RUKIRA SACCO",
     "sector": "RUKIRA",
     "district": "NGOMA",
@@ -774,7 +688,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 128,
     "name": "ZIGAMA INTERA RUKUMBELI",
     "sector": "RUKUMBERI",
     "district": "NGOMA",
@@ -783,7 +696,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 129,
     "name": "RURENGE PEOPLE SACCO (RP SACCO)",
     "sector": "RURENGE",
     "district": "NGOMA",
@@ -792,7 +704,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 130,
     "name": "KOPERATIVE ZIGAMA ISANGE MURI SAKE(KOZISA)",
     "sector": "SAKE",
     "district": "NGOMA",
@@ -801,7 +712,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 131,
     "name": "SACCO NTUSIGARE(KOZINTU)",
     "sector": "ZAZA",
     "district": "NGOMA",
@@ -810,7 +720,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 132,
     "name": "JYAMBERE GAHARA",
     "sector": "GAHARA",
     "district": "KIREHE",
@@ -819,7 +728,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 133,
     "name": "VISION SACCO GATORE",
     "sector": "GATORE",
     "district": "KIREHE",
@@ -828,7 +736,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 134,
     "name": "IMIRASIRE Y'ITERAMBERE SACCO KIGARAMA",
     "sector": "KIGARAMA",
     "district": "KIREHE",
@@ -837,7 +744,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 135,
     "name": "KIGINA SACCO",
     "sector": "KIGINA",
     "district": "KIREHE",
@@ -846,7 +752,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 136,
     "name": "SACCO RUGERO",
     "sector": "KIREHE",
     "district": "KIREHE",
@@ -855,7 +760,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 137,
     "name": "SACCO IMBERE HEZA MAHAMA",
     "sector": "MAHAMA",
     "district": "KIREHE",
@@ -864,7 +768,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 138,
     "name": "SACCO HAGURUKA UKORE-MPANGA",
     "sector": "MPANGA",
     "district": "KIREHE",
@@ -873,7 +776,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 139,
     "name": "UMURUNGA SACCO MUSAZA",
     "sector": "MUSAZA",
     "district": "KIREHE",
@@ -882,7 +784,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 140,
     "name": "MUSHIKIRI SACCO DEVELOPMENT(M.S.D)",
     "sector": "MUSHIKIRI",
     "district": "KIREHE",
@@ -891,7 +792,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 141,
     "name": "SACCO MENYIBANGA",
     "sector": "NASHO",
     "district": "KIREHE",
@@ -900,7 +800,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 142,
     "name": "TWUNGURANE SACCO",
     "sector": "NYAMUGARI",
     "district": "KIREHE",
@@ -909,7 +808,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 143,
     "name": "NYARUBUYE SACCO VISION",
     "sector": "NYARUBYE",
     "district": "KIREHE",
@@ -918,7 +816,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 144,
     "name": "IMBARUTSO SACCO GATUNDA",
     "sector": "GATUNDA",
     "district": "NYAGATARE",
@@ -927,7 +824,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 145,
     "name": "COOPEC ISANGE KARAMA",
     "sector": "KARAMA",
     "district": "NYAGATARE",
@@ -936,7 +832,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 146,
     "name": "KARANGAZI UMURENGE SACCO",
     "sector": "KARANGAZI",
     "district": "NYAGATARE",
@@ -945,7 +840,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 147,
     "name": "KATABAGEMU SACCO (CESEKA)",
     "sector": "KATABAGEMU",
     "district": "NYAGATARE",
@@ -954,7 +848,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 148,
     "name": "UBUSUGIRE SACCO KIYOMBE",
     "sector": "KIYOMBE",
     "district": "NYAGATARE",
@@ -963,7 +856,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 149,
     "name": "MATIMBA VISION SACCO",
     "sector": "MATIMBA",
     "district": "NYAGATARE",
@@ -972,7 +864,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 150,
     "name": "UMURABYO SACCO MIMURI",
     "sector": "MIMURI",
     "district": "NYAGATARE",
@@ -981,7 +872,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 151,
     "name": "SACCO INGOBOKA MUKAMA",
     "sector": "MUKAMA",
     "district": "NYAGATARE",
@@ -990,7 +880,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 152,
     "name": "MUSHELI SACCO",
     "sector": "MUSHERI",
     "district": "NYAGATARE",
@@ -999,7 +888,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 153,
     "name": "NYAGATARE DEVELOPMENT SACCO",
     "sector": "NYAGATARE",
     "district": "NYAGATARE",
@@ -1008,7 +896,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 154,
     "name": "KARIBU SACCO RUKOMO",
     "sector": "RUKOMO",
     "district": "NYAGATARE",
@@ -1017,7 +904,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 155,
     "name": "RWEMPASHA SACCO",
     "sector": "RWEMPASHA",
     "district": "NYAGATARE",
@@ -1026,7 +912,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 156,
     "name": "SACCO TURWANYUBUKENE RWIMIYAGA",
     "sector": "RWIMIYAGA",
     "district": "NYAGATARE",
@@ -1035,7 +920,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 157,
     "name": "SACCO TABAGWE",
     "sector": "TABAGWE",
     "district": "NYAGATARE",
@@ -1044,7 +928,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 158,
     "name": "TURWUBAKANE GASANGE \"COTUGA SACCO\"",
     "sector": "GASANGE",
     "district": "GATSIBO",
@@ -1053,7 +936,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 159,
     "name": "GATSIBO UMURAGE SACCO",
     "sector": "GATSIBO",
     "district": "GATSIBO",
@@ -1062,7 +944,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 160,
     "name": "GITOKI IZERE SACCO",
     "sector": "GITOKI",
     "district": "GATSIBO",
@@ -1071,7 +952,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 161,
     "name": "ISONGA SACCO KABARORE",
     "sector": "KABARORE",
     "district": "GATSIBO",
@@ -1080,7 +960,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 162,
     "name": "KAGEYO SACCO IZIGAME",
     "sector": "KAGEYO",
     "district": "GATSIBO",
@@ -1089,7 +968,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 163,
     "name": "KIRAMURUZI UKURI SACCO",
     "sector": "KIRAMURUZI",
     "district": "GATSIBO",
@@ -1098,7 +976,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 164,
     "name": "KIZIGURO ISONGA SACCO",
     "sector": "KIZIGURO",
     "district": "GATSIBO",
@@ -1107,7 +984,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 165,
     "name": "UMUHIGO SACCO MUHURA",
     "sector": "MUHURA",
     "district": "GATSIBO",
@@ -1116,7 +992,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 166,
     "name": "INGENZI MURAMBI SACCO",
     "sector": "MURAMBI",
     "district": "GATSIBO",
@@ -1125,7 +1000,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 167,
     "name": "NGARAMA ISUNGE SACCO",
     "sector": "NGARAMA",
     "district": "GATSIBO",
@@ -1134,7 +1008,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 168,
     "name": "SACCO TERIMBERE NYAGIHANGA (SACCOTENYA)",
     "sector": "NYAGIHANGA",
     "district": "GATSIBO",
@@ -1143,7 +1016,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 169,
     "name": "REMERA SACCO GIRIBAKWE",
     "sector": "REMERA",
     "district": "GATSIBO",
@@ -1152,7 +1024,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 170,
     "name": "RUGARAMA URUMURI SACCO",
     "sector": "RUGARAMA",
     "district": "GATSIBO",
@@ -1161,7 +1032,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 171,
     "name": "TUGANEHEZA SACCO RWIMBOGO",
     "sector": "RWIMBOGO",
     "district": "GATSIBO",
@@ -1170,7 +1040,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 172,
     "name": "SACCO IREMBO RY'UBUKIRE KAYENZI",
     "sector": "KAYENZI",
     "district": "KAMONYI",
@@ -1179,7 +1048,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 173,
     "name": "SACCO IBONEMO GACURABWENGE (SIGA)",
     "sector": "GACURABWENGE",
     "district": "KAMONYI",
@@ -1188,7 +1056,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 174,
     "name": "SACCO IMARABUKENE NGAMBA",
     "sector": "NGAMBA",
     "district": "KAMONYI",
@@ -1197,7 +1064,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 175,
     "name": "SACCO URUYANGERUKOMA (SUR)",
     "sector": "RUKOMA",
     "district": "KAMONYI",
@@ -1206,7 +1072,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 176,
     "name": "SACCO INYUMBA YA KAYUMBU",
     "sector": "KAYUMBU",
     "district": "KAMONYI",
@@ -1215,7 +1080,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 177,
     "name": "SACCO MBONEZISONGA MUSAMBIRA",
     "sector": "MUSAMBIRA",
     "district": "KAMONYI",
@@ -1224,7 +1088,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 178,
     "name": "SACCO URUFUNGUZO RW'UBUKIRE RUNDA",
     "sector": "RUNDA",
     "district": "KAMONYI",
@@ -1233,7 +1096,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 179,
     "name": "SACCO ICYUZUZO RUGALIKA",
     "sector": "RUGALIKA",
     "district": "KAMONYI",
@@ -1242,7 +1104,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 180,
     "name": "SACCO KIRA KARAMA",
     "sector": "KARAMA",
     "district": "KAMONYI",
@@ -1251,7 +1112,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 181,
     "name": "SACCO ISHEMA RY'UMURYANGO NYAMIYAGA (SISUNYA)",
     "sector": "NYAMIYAGA",
     "district": "KAMONYI",
@@ -1260,7 +1120,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 182,
     "name": "SACCO DUSIZE UBUKENE NYARUBAKA",
     "sector": "NYARUBAKA",
     "district": "KAMONYI",
@@ -1269,7 +1128,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 183,
     "name": "SACCO MUGINA JYAMBERE (SAMUJYA)",
     "sector": "MUGINA",
     "district": "KAMONYI",
@@ -1278,7 +1136,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 184,
     "name": "ICYEREKEZO SACCO",
     "sector": "MUSHISHIRO",
     "district": "MUHANGA",
@@ -1287,7 +1144,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 185,
     "name": "SACCO IMBANGUKIRAGUKIRA",
     "sector": "KIBANGU",
     "district": "MUHANGA",
@@ -1296,7 +1152,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 186,
     "name": "SACCO TERIMBERE SHYOGWE",
     "sector": "SHYOGWE",
     "district": "MUHANGA",
@@ -1305,7 +1160,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 187,
     "name": "SACCO AMIZERO RONGI",
     "sector": "RONGI",
     "district": "MUHANGA",
@@ -1314,7 +1168,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 188,
     "name": "SACCO KORA UTEGANYA",
     "sector": "NYAMABUYE",
     "district": "MUHANGA",
@@ -1323,7 +1176,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 189,
     "name": "TUGANE SACCO NYABINONI",
     "sector": "NYABINONI",
     "district": "MUHANGA",
@@ -1332,7 +1184,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 190,
     "name": "SACCO DUKIRE NYARUSANGE",
     "sector": "NYARUSANGE",
     "district": "MUHANGA",
@@ -1341,7 +1192,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 191,
     "name": "SACCO ICYEREKEZO KIYUMBA",
     "sector": "KIYUMBA",
     "district": "MUHANGA",
@@ -1350,7 +1200,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 192,
     "name": "SACCO IZIGAMIRE KABACUZI",
     "sector": "KABACUZI",
     "district": "MUHANGA",
@@ -1359,7 +1208,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 193,
     "name": "SACCO WISIGARA MUHANGA",
     "sector": "MUHANGA",
     "district": "MUHANGA",
@@ -1368,7 +1216,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 194,
     "name": "SACCO AMIZERO RUGENDABARI",
     "sector": "RUGENDABARI",
     "district": "MUHANGA",
@@ -1377,7 +1224,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 195,
     "name": "SACCO INGERI CYEZA",
     "sector": "CYEZA",
     "district": "MUHANGA",
@@ -1386,7 +1232,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 196,
     "name": "JYAMBERE BWERAMANA",
     "sector": "BWERAMANA",
     "district": "RUHANGO",
@@ -1395,7 +1240,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 197,
     "name": "INGENZI SACCO BYIMANA",
     "sector": "BYIMANA",
     "district": "RUHANGO",
@@ -1404,7 +1248,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 198,
     "name": "COOPEC KABAGALI",
     "sector": "KABAGALI",
     "district": "RUHANGO",
@@ -1413,7 +1256,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 199,
     "name": "",
     "sector": "KINAZI",
     "district": "RUHANGO",
@@ -1422,7 +1264,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 200,
     "name": "COOPEC URUBUTO KINIHIRA",
     "sector": "KINIHIRA",
     "district": "RUHANGO",
@@ -1431,7 +1272,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 201,
     "name": "IMBONEZACYEREKEZO SACCO",
     "sector": "MBUYE",
     "district": "RUHANGO",
@@ -1440,7 +1280,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 202,
     "name": "SACCO ABAHIZI DUKIRE MWENDO",
     "sector": "MWENDO",
     "district": "RUHANGO",
@@ -1449,7 +1288,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 203,
     "name": "NKUNGANIRE",
     "sector": "NTONGWE",
     "district": "RUHANGO",
@@ -1458,7 +1296,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 204,
     "name": "SACCO BATUREBEREHO RUHANGO",
     "sector": "RUHANGO",
     "district": "RUHANGO",
@@ -1467,7 +1304,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 205,
     "name": "SACCO TEGANYA BUSASAMANA",
     "sector": "BUSASAMANA",
     "district": "NYANZA",
@@ -1476,7 +1312,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 206,
     "name": "SACCO VISION BUSORO",
     "sector": "BUSORO",
     "district": "NYANZA",
@@ -1485,7 +1320,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 207,
     "name": "SACCO JYEJURU CYABAKAMYI",
     "sector": "CYABAKAMYI",
     "district": "NYANZA",
@@ -1494,7 +1328,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 208,
     "name": "EJO HEZA TUZAMURANA SACCO KIBIRIZI",
     "sector": "KIBIRIZI",
     "district": "NYANZA",
@@ -1503,7 +1336,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 209,
     "name": "SACCO UMURAVA KIGOMA",
     "sector": "KIGOMA",
     "district": "NYANZA",
@@ -1512,7 +1344,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 210,
     "name": "SACCO TUZAMURANE MUKINGO",
     "sector": "MUKINGO",
     "district": "NYANZA",
@@ -1521,7 +1352,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 211,
     "name": "SACCO MUYIRA DUSHYIGIKIRANE",
     "sector": "MUYIRA",
     "district": "NYANZA",
@@ -1530,7 +1360,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 212,
     "name": "KOPERATIVE URUMURI RW'AMAJYAMBERE",
     "sector": "NTYAZO",
     "district": "NYANZA",
@@ -1539,7 +1368,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 213,
     "name": "SACCO GANAHEZA NYAGISOZI",
     "sector": "NYAGISOZI",
     "district": "NYANZA",
@@ -1548,7 +1376,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 214,
     "name": "SACCO IGISUBIZO RWABICUMA",
     "sector": "RWABICUMA",
     "district": "NYANZA",
@@ -1557,7 +1384,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 215,
     "name": "COOPEC INGERI GISHAMVU",
     "sector": "GISHAMVU",
     "district": "HUYE",
@@ -1566,7 +1392,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 216,
     "name": "TUJYANE HUYE SACCO",
     "sector": "HUYE",
     "district": "HUYE",
@@ -1575,7 +1400,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 217,
     "name": "SACCO TUGEREHEZA KARAMA",
     "sector": "KARAMA",
     "district": "HUYE",
@@ -1584,7 +1408,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 218,
     "name": "TEGANYA KIGOMA SACCO",
     "sector": "KIGOMA",
     "district": "HUYE",
@@ -1593,7 +1416,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 219,
     "name": "KINAZI AMIZERO SACCO",
     "sector": "KINAZI",
     "district": "HUYE",
@@ -1602,7 +1424,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 220,
     "name": "COOPEC KIRA MARABA",
     "sector": "MARABA",
     "district": "HUYE",
@@ -1611,7 +1432,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 221,
     "name": "MBAZI ISONGA SACCO",
     "sector": "MBAZI",
     "district": "HUYE",
@@ -1620,7 +1440,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 222,
     "name": "UBWUGAMO MUKURA SACCO",
     "sector": "MUKURA",
     "district": "HUYE",
@@ -1629,7 +1448,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 223,
     "name": "ISANGE NGOMA SACCO",
     "sector": "NGOMA",
     "district": "HUYE",
@@ -1638,7 +1456,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 224,
     "name": "TUGENDANE N'IGIHE RUHASHYA SACCO",
     "sector": "RUHASHYA",
     "district": "HUYE",
@@ -1647,7 +1464,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 225,
     "name": "SHISHOZA UKIRE RUSATIRA SACCO",
     "sector": "RUSATIRA",
     "district": "HUYE",
@@ -1656,7 +1472,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 226,
     "name": "SACCO HIRWA RWANIRO",
     "sector": "RWANIRO",
     "district": "HUYE",
@@ -1665,7 +1480,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 227,
     "name": "DUKIRE SIMBI SACCO",
     "sector": "SIMBI",
     "district": "HUYE",
@@ -1674,7 +1488,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 228,
     "name": "RATWA TUMBA SACCO",
     "sector": "TUMBA",
     "district": "HUYE",
@@ -1683,7 +1496,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 229,
     "name": "TERIMBERE KIBIRIZI SACCO",
     "sector": "KIBIRIZI",
     "district": "GISAGARA",
@@ -1692,7 +1504,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 230,
     "name": "SACCO IZERE GIKONKO",
     "sector": "GIKONKO",
     "district": "GISAGARA",
@@ -1701,7 +1512,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 231,
     "name": "COOPEC URUGERO MUGOMBWA",
     "sector": "MUGOMBWA",
     "district": "GISAGARA",
@@ -1710,7 +1520,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 232,
     "name": "URUMURI MAMBA SACCO",
     "sector": "MAMBA",
     "district": "GISAGARA",
@@ -1719,7 +1528,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 233,
     "name": "SACCO INDATWA KIGEMBE",
     "sector": "KIGEMBE",
     "district": "GISAGARA",
@@ -1728,7 +1536,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 234,
     "name": "SACCO IMBEREHEZA NDORA",
     "sector": "NDORA",
     "district": "GISAGARA",
@@ -1737,7 +1544,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 235,
     "name": "SACCO INDASHYIKIRWA MUGANZA",
     "sector": "MUGANZA",
     "district": "GISAGARA",
@@ -1746,7 +1552,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 236,
     "name": "INTWARI SACCO SAVE",
     "sector": "SAVE",
     "district": "GISAGARA",
@@ -1755,7 +1560,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 237,
     "name": "SACCO NYANZA DUKIRE",
     "sector": "NYANZA",
     "district": "GISAGARA",
@@ -1764,7 +1568,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 238,
     "name": "SACCO TUGANEHEZA GISHUBI",
     "sector": "GISHUBI",
     "district": "GISAGARA",
@@ -1773,7 +1576,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 239,
     "name": "UMUCYO SACCO MUKINDO",
     "sector": "MUKINDO",
     "district": "GISAGARA",
@@ -1782,7 +1584,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 240,
     "name": "ISHYAKA KANSI SACCO",
     "sector": "KANSI",
     "district": "GISAGARA",
@@ -1791,7 +1592,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 241,
     "name": "SACCO ITEGANYIRIZE MUSHA",
     "sector": "MUSHA",
     "district": "GISAGARA",
@@ -1800,7 +1600,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 242,
     "name": "SACCO KIRA BURUHUKIRO",
     "sector": "BURUHUKIRO",
     "district": "NYAMAGABE",
@@ -1809,7 +1608,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 243,
     "name": "IMBEREHEZA CYANIKA SACCO",
     "sector": "CYANIKA",
     "district": "NYAMAGABE",
@@ -1818,7 +1616,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 244,
     "name": "INGENZI GASAKA SACCO",
     "sector": "GASAKA",
     "district": "NYAMAGABE",
@@ -1827,7 +1624,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 245,
     "name": "SACCO JYAMBERE GATARE",
     "sector": "GATARE",
     "district": "NYAMAGABE",
@@ -1836,7 +1632,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 246,
     "name": "URUFUNGUZO RW'UBUKIRE KADUHA SACCO",
     "sector": "KADUHA",
     "district": "NYAMAGABE",
@@ -1845,7 +1640,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 247,
     "name": "SACCO INDAHIGWA KAMEGERI",
     "sector": "KAMEGERI",
     "district": "NYAMAGABE",
@@ -1854,7 +1648,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 248,
     "name": "SACCO INDATWA KIBIRIZI",
     "sector": "KIBIRIZI",
     "district": "NYAMAGABE",
@@ -1863,7 +1656,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 249,
     "name": "INDANGAMIRWA KIBUMBWE SACCO (IKS)",
     "sector": "KIBUMBWE",
     "district": "NYAMAGABE",
@@ -1872,7 +1664,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 250,
     "name": "SACCO TWITEGANYIRIZE KITABI",
     "sector": "KITABI",
     "district": "NYAMAGABE",
@@ -1881,7 +1672,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 251,
     "name": "ICYEREKEZO MBAZI SACCO (IMS)",
     "sector": "MBAZI",
     "district": "NYAMAGABE",
@@ -1890,7 +1680,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 252,
     "name": "INSHUTI Z'I MUGANO SACCO",
     "sector": "MUGANO",
     "district": "NYAMAGABE",
@@ -1899,7 +1688,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 253,
     "name": "URUMURI RWA MUSANGE SACCO (UMS)",
     "sector": "MUSANGE",
     "district": "NYAMAGABE",
@@ -1908,7 +1696,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 254,
     "name": "SACCO INDATWA MUSEBEYA",
     "sector": "MUSEBEYA",
     "district": "NYAMAGABE",
@@ -1917,7 +1704,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 255,
     "name": "INDASHYIKIRWA MUSHUBI SACCO",
     "sector": "MUSHUBI",
     "district": "NYAMAGABE",
@@ -1926,7 +1712,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 256,
     "name": "TUBWAMBUKENKOMANE SACCO",
     "sector": "NKOMANE",
     "district": "NYAMAGABE",
@@ -1935,7 +1720,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 257,
     "name": "SACCO TUZAMURANE TARE",
     "sector": "TARE",
     "district": "NYAMAGABE",
@@ -1944,7 +1728,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 258,
     "name": "SACCO IBYIRINGIRO UWINKINGI",
     "sector": "UWINKINGI",
     "district": "NYAMAGABE",
@@ -1953,7 +1736,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 259,
     "name": "SACCO JYAMBERE BUSANZE",
     "sector": "BUSANZE",
     "district": "NYARUGURU",
@@ -1962,7 +1744,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 260,
     "name": "SACCO AMIZERO CYAHINDA",
     "sector": "CYAHINDA",
     "district": "NYARUGURU",
@@ -1971,7 +1752,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 261,
     "name": "SACCO IMBONI KIBEHO",
     "sector": "KIBEHO",
     "district": "NYARUGURU",
@@ -1980,7 +1760,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 262,
     "name": "SACCO INKINGI Y'ITERAMBERE KIVU",
     "sector": "KIVU",
     "district": "NYARUGURU",
@@ -1989,7 +1768,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 263,
     "name": "SACCO ITEZIMBERE MATA",
     "sector": "MATA",
     "district": "NYARUGURU",
@@ -1998,7 +1776,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 264,
     "name": "SACCO UMURAVA MUGANZA",
     "sector": "MUGANZA",
     "district": "NYARUGURU",
@@ -2007,7 +1784,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 265,
     "name": "SACCO WISIGARA MUNINI",
     "sector": "MUNINI",
     "district": "NYARUGURU",
@@ -2016,7 +1792,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 266,
     "name": "SACCO TWIZIGAMIRE NGERA",
     "sector": "NGERA",
     "district": "NYARUGURU",
@@ -2025,7 +1800,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 267,
     "name": "SACCO ZAMUKA NGOMA",
     "sector": "NGOMA",
     "district": "NYARUGURU",
@@ -2034,7 +1808,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 268,
     "name": "UKURI NYABIMATA SACCO",
     "sector": "NYABIMATA",
     "district": "NYARUGURU",
@@ -2043,7 +1816,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 269,
     "name": "SACCO EJOHAZAZA NYAGISOZI",
     "sector": "NYAGISOZI",
     "district": "NYARUGURU",
@@ -2052,7 +1824,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 270,
     "name": "SACCO NKUNGANIRE",
     "sector": "RUHERU",
     "district": "NYARUGURU",
@@ -2061,7 +1832,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 271,
     "name": "KORUKIRE RURAMBA",
     "sector": "RURAMBA",
     "district": "NYARUGURU",
@@ -2070,7 +1840,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 272,
     "name": "SACCO INOZAMIHIGO RUSENGE",
     "sector": "RUSENGE",
     "district": "NYARUGURU",
@@ -2079,7 +1848,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 273,
     "name": "IZUBA SACCO BASE",
     "sector": "BASE",
     "district": "RULINDO",
@@ -2088,7 +1856,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 274,
     "name": "IMBADUKO SACCO BUREGA",
     "sector": "BUREGA",
     "district": "RULINDO",
@@ -2097,7 +1864,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 275,
     "name": "COOPERATIVE DE DEVELOPMENT DE BUSHOKI",
     "sector": "BUSHOKI",
     "district": "RULINDO",
@@ -2106,7 +1872,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 276,
     "name": "GIRUBUKIRE SACCO BUYOGA",
     "sector": "BUYOGA",
     "district": "RULINDO",
@@ -2115,7 +1880,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 277,
     "name": "IGISABO CYINZUZI SACCO",
     "sector": "CYINZUZI",
     "district": "RULINDO",
@@ -2124,7 +1888,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 278,
     "name": "TERIMBERE SACCO CYUNGO",
     "sector": "CYUNGO",
     "district": "RULINDO",
@@ -2133,7 +1896,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 279,
     "name": "KOPERATIVETUGIRUBUKIRE KINIHIRA",
     "sector": "KINIHIRA",
     "district": "RULINDO",
@@ -2142,7 +1904,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 280,
     "name": "UMUSINGIMW ITERAMBERE (UMITE)",
     "sector": "KISARO",
     "district": "RULINDO",
@@ -2151,7 +1912,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 281,
     "name": "SACCO COOPEBAMU",
     "sector": "MASORO",
     "district": "RULINDO",
@@ -2160,7 +1920,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 282,
     "name": "MBOGO DEVELOPMENT COOPERATIVE",
     "sector": "MBOGO",
     "district": "RULINDO",
@@ -2169,7 +1928,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 283,
     "name": "IJABO SACCO MURAMBI",
     "sector": "MURAMBI",
     "district": "RULINDO",
@@ -2178,7 +1936,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 284,
     "name": "SHIRUBUKENE SACCO NGOMA",
     "sector": "NGOMA",
     "district": "RULINDO",
@@ -2187,7 +1944,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 285,
     "name": "INGANZA SACCO NTARABANA",
     "sector": "NTARABANA",
     "district": "RULINDO",
@@ -2196,7 +1952,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 286,
     "name": "COOPERATIVE GARAGAZUMUSARURO RUKOZO",
     "sector": "RUKOZO",
     "district": "RULINDO",
@@ -2205,7 +1960,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 287,
     "name": "IMBARUTSO SACCO RUSIGA",
     "sector": "RUSIGA",
     "district": "RULINDO",
@@ -2214,7 +1968,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 288,
     "name": "BADUKA SACCO SHYORONGI",
     "sector": "SHYORONGI",
     "district": "RULINDO",
@@ -2223,7 +1976,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 289,
     "name": "ABAHIZI SACCO TUMBA",
     "sector": "TUMBA",
     "district": "RULINDO",
@@ -2232,7 +1984,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 290,
     "name": "SACCO BUSENGO",
     "sector": "BUSENGO",
     "district": "GAKENKE",
@@ -2241,7 +1992,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 291,
     "name": "REBAKURE SACCO",
     "sector": "COKO",
     "district": "GAKENKE",
@@ -2250,7 +2000,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 292,
     "name": "CYABINGO SACCO",
     "sector": "CYABINGO",
     "district": "GAKENKE",
@@ -2259,7 +2008,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 293,
     "name": "SACCO KUNGAHARA GAKENKE",
     "sector": "GAKENKE",
     "district": "GAKENKE",
@@ -2268,7 +2016,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 294,
     "name": "SACCO GASE",
     "sector": "GASHENYI",
     "district": "GAKENKE",
@@ -2277,7 +2024,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 295,
     "name": "UZAZUREBE SACCO",
     "sector": "JANJA",
     "district": "GAKENKE",
@@ -2286,7 +2032,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 296,
     "name": "IZIYIGIHE SACCO",
     "sector": "KAMUBUGA",
     "district": "GAKENKE",
@@ -2295,7 +2040,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 297,
     "name": "KARAMBO VA MU BUKENE SACCO",
     "sector": "KARAMBO",
     "district": "GAKENKE",
@@ -2304,7 +2048,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 298,
     "name": "GIRINTEGO SACCO",
     "sector": "KIVURUGA",
     "district": "GAKENKE",
@@ -2313,7 +2056,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 299,
     "name": "SIGARABUKENE SACCO",
     "sector": "MATABA",
     "district": "GAKENKE",
@@ -2322,7 +2064,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 300,
     "name": "SACCO INDASHYIKIRWA",
     "sector": "MINAZI",
     "district": "GAKENKE",
@@ -2331,7 +2072,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 301,
     "name": "SACCO NEW HOPE",
     "sector": "MUGUNGA",
     "district": "GAKENKE",
@@ -2340,7 +2080,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 302,
     "name": "SACCO TWAMBUTSANYE",
     "sector": "MUHONDO",
     "district": "GAKENKE",
@@ -2349,7 +2088,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 303,
     "name": "SACCO KATAZA MUYONGWE",
     "sector": "MUYONGWE",
     "district": "GAKENKE",
@@ -2358,7 +2096,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 304,
     "name": "",
     "sector": "MUZO",
     "district": "GAKENKE",
@@ -2367,7 +2104,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 305,
     "name": "INDASHYIKIRWA SACCO",
     "sector": "NEMBA",
     "district": "GAKENKE",
@@ -2376,7 +2112,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 306,
     "name": "IMBONERA SACCO",
     "sector": "RULI",
     "district": "GAKENKE",
@@ -2385,7 +2120,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 307,
     "name": "SACCO TUGIRE UBUKIRE",
     "sector": "RUSASA",
     "district": "GAKENKE",
@@ -2394,7 +2128,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 308,
     "name": "UMUSINGI SACCO RUSHASHI",
     "sector": "RUSHASHI",
     "district": "GAKENKE",
@@ -2403,7 +2136,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 309,
     "name": "ISONGA SACCO",
     "sector": "BUNGWE",
     "district": "BURERA",
@@ -2412,7 +2144,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 310,
     "name": "NDORWA SACCO",
     "sector": "BUTARO",
     "district": "BURERA",
@@ -2421,7 +2152,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 311,
     "name": "SACCO IYUNGURE CYANIKA",
     "sector": "CYANIKA",
     "district": "BURERA",
@@ -2430,7 +2160,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 312,
     "name": "UMURUNGA W'ITERAMBERE SACCO CYERU",
     "sector": "CYERU",
     "district": "BURERA",
@@ -2439,7 +2168,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 313,
     "name": "SACCO AKABANDO",
     "sector": "GAHUNGA",
     "district": "BURERA",
@@ -2448,7 +2176,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 314,
     "name": "SACCO DUKIRE GATEBE",
     "sector": "GATEBE",
     "district": "BURERA",
@@ -2457,7 +2184,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 315,
     "name": "GITOVU SACCO",
     "sector": "GITOVU",
     "district": "BURERA",
@@ -2466,7 +2192,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 316,
     "name": "KAGOGO VISION SACCO (KAVISACCO)",
     "sector": "KAGOGO",
     "district": "BURERA",
@@ -2475,7 +2200,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 317,
     "name": "KINONI SACCO",
     "sector": "KINONI",
     "district": "BURERA",
@@ -2484,7 +2208,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 318,
     "name": "INDORERWAMO KINYABABA SACCO",
     "sector": "KINYABABA",
     "district": "BURERA",
@@ -2493,7 +2216,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 319,
     "name": "COOPEC ICYEREKEZO KIZIMA",
     "sector": "KIVUYE",
     "district": "BURERA",
@@ -2502,7 +2224,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 320,
     "name": "DUHORANE IJABO SACCO",
     "sector": "NEMBA",
     "district": "BURERA",
@@ -2511,7 +2232,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 321,
     "name": "SACCO RUGARAMA IMBERE HEZA",
     "sector": "RUGARAMA",
     "district": "BURERA",
@@ -2520,7 +2240,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 322,
     "name": "UMURAGE SACCO",
     "sector": "RUGENGABARI",
     "district": "BURERA",
@@ -2529,7 +2248,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 323,
     "name": "RUHUNDE SACCO",
     "sector": "RUHUNDE",
     "district": "BURERA",
@@ -2538,7 +2256,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 324,
     "name": "SACCO REBAKURE RUSARABUYE",
     "sector": "RUSARABUYE",
     "district": "BURERA",
@@ -2547,7 +2264,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 325,
     "name": "RUGEZI SACCO",
     "sector": "RWERERE",
     "district": "BURERA",
@@ -2556,7 +2272,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 326,
     "name": "BUKURE SACCO",
     "sector": "BUKURE",
     "district": "GICUMBI",
@@ -2565,7 +2280,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 327,
     "name": "IMBARUTSO SACCO",
     "sector": "GITI",
     "district": "GICUMBI",
@@ -2574,7 +2288,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 328,
     "name": "IMBONI SACCO KAGEYO",
     "sector": "KAGEYO",
     "district": "GICUMBI",
@@ -2583,7 +2296,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 329,
     "name": "AGASHYA MANYAGIRO SACCO",
     "sector": "MANYANGIRO",
     "district": "GICUMBI",
@@ -2592,7 +2304,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 330,
     "name": "WISIGARA RUSHAKI SACCO",
     "sector": "RUSHAKI",
     "district": "GICUMBI",
@@ -2601,7 +2312,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 331,
     "name": "TSIMBURA SACCO",
     "sector": "SHANGASHA",
     "district": "GICUMBI",
@@ -2610,7 +2320,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 332,
     "name": "KIRA MUTETE SACCO",
     "sector": "MUTETE",
     "district": "GICUMBI",
@@ -2619,7 +2328,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 333,
     "name": "HASHYUBUKENE SACCO RWAMIKO",
     "sector": "RWAMIKO",
     "district": "GICUMBI",
@@ -2628,7 +2336,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 334,
     "name": "BYUMBA SACCO",
     "sector": "BYUMBA",
     "district": "GICUMBI",
@@ -2637,7 +2344,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 335,
     "name": "BWISIGE SACCO",
     "sector": "BWISIGE",
     "district": "GICUMBI",
@@ -2646,7 +2352,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 336,
     "name": "TUGENDANE N'IGIHE SACCO",
     "sector": "KANIGA",
     "district": "GICUMBI",
@@ -2655,7 +2360,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 337,
     "name": "IBAKWE SACCO MUKARANGE",
     "sector": "MUKARANGE",
     "district": "GICUMBI",
@@ -2664,7 +2368,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 338,
     "name": "UMURABYO SACCO NYAMIYAGA",
     "sector": "NYAMIYAGA",
     "district": "GICUMBI",
@@ -2673,7 +2376,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 339,
     "name": "IMIRASIRE Y'ITERAMBERE SACCO RUKOMO",
     "sector": "RUKOMO",
     "district": "GICUMBI",
@@ -2682,7 +2384,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 340,
     "name": "ITEGANYIRIZE SACCO RUTARE",
     "sector": "RUTARE",
     "district": "GICUMBI",
@@ -2691,7 +2392,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 341,
     "name": "SHIRUBUKENE SACCO RUVUNE",
     "sector": "RUVUNE",
     "district": "GICUMBI",
@@ -2700,7 +2400,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 342,
     "name": "IZIGAMIRE SACCO MIYOVE",
     "sector": "MIYOVE",
     "district": "GICUMBI",
@@ -2709,7 +2408,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 343,
     "name": "TUVUDUKE SACCO RUBAYA",
     "sector": "RUBAYA",
     "district": "GICUMBI",
@@ -2718,7 +2416,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 344,
     "name": "MFASHNKIRE SACCO",
     "sector": "NYANKENKE",
     "district": "GICUMBI",
@@ -2727,7 +2424,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 345,
     "name": "INDATWA SACCO MUKO",
     "sector": "MUKO",
     "district": "GICUMBI",
@@ -2736,7 +2432,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 346,
     "name": "HIRWA CYUMBA SACCO",
     "sector": "CYUMBA",
     "district": "GICUMBI",
@@ -2745,7 +2440,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 347,
     "name": "IHIRWE BUSOGO SACCO",
     "sector": "BUSOGO",
     "district": "MUSANZE",
@@ -2754,7 +2448,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 348,
     "name": "INYONGERA SACCO",
     "sector": "CYUVE",
     "district": "MUSANZE",
@@ -2763,7 +2456,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 349,
     "name": "NEW VISION SACCO",
     "sector": "GACACA",
     "district": "MUSANZE",
@@ -2772,7 +2464,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 350,
     "name": "UMURAVA SACCO GASHAKI",
     "sector": "GASHAKI",
     "district": "MUSANZE",
@@ -2781,7 +2472,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 351,
     "name": "GATARAGA TWIBUMBE SACCO",
     "sector": "GATARAGA",
     "district": "MUSANZE",
@@ -2790,7 +2480,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 352,
     "name": "KIMONYI SACCO",
     "sector": "KIMONYI",
     "district": "MUSANZE",
@@ -2799,7 +2488,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 353,
     "name": "SACCO ABIHUTA KINIGI",
     "sector": "KINIGI",
     "district": "MUSANZE",
@@ -2808,7 +2496,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 354,
     "name": "ABAMUHOZA SACCO",
     "sector": "MUHOZA",
     "district": "MUSANZE",
@@ -2817,7 +2504,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 355,
     "name": "SACCO IRENGERE",
     "sector": "MUKO",
     "district": "MUSANZE",
@@ -2826,7 +2512,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 356,
     "name": "UMUTUZO SACCO",
     "sector": "MUSANZE",
     "district": "MUSANZE",
@@ -2835,7 +2520,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 357,
     "name": "IGIHONDOHONDOSACCO",
     "sector": "NKOTSI",
     "district": "MUSANZE",
@@ -2844,7 +2528,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 358,
     "name": "INYANGE SACCO",
     "sector": "NYANGE",
     "district": "MUSANZE",
@@ -2853,7 +2536,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 359,
     "name": "ITEGANYIRIZE SACCO",
     "sector": "REMERA",
     "district": "MUSANZE",
@@ -2862,7 +2544,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 360,
     "name": "UMUSINGI RWAZA SACCO",
     "sector": "RWAZA",
     "district": "MUSANZE",
@@ -2871,7 +2552,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 361,
     "name": "NEZERWA 2020 SACCO",
     "sector": "SHINGIRO",
     "district": "MUSANZE",
@@ -2880,7 +2560,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 362,
     "name": "SACCO TWIHUTE KARAGO",
     "sector": "KARAGO",
     "district": "NYABIHU",
@@ -2889,7 +2568,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 363,
     "name": "KOPERATIVE IMBARUTSO Y'UBUKIRE",
     "sector": "JOMBA",
     "district": "NYABIHU",
@@ -2898,7 +2576,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 364,
     "name": "IFUMBA Y'UBUKIRE",
     "sector": "RAMBURA",
     "district": "NYABIHU",
@@ -2907,7 +2584,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 365,
     "name": "SACCO KIRA KABATWA",
     "sector": "KABATWA",
     "district": "NYABIHU",
@@ -2916,7 +2592,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 366,
     "name": "IMIRASIRE SACCO",
     "sector": "KINTOBO",
     "district": "NYABIHU",
@@ -2925,7 +2600,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 367,
     "name": "UMURAVA SACCO BIGOGWE",
     "sector": "BIGOGWE",
     "district": "NYABIHU",
@@ -2934,7 +2608,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 368,
     "name": "ISOKO Y'AMAJYAMBERE SACCO",
     "sector": "MUKAMIRA",
     "district": "NYABIHU",
@@ -2943,7 +2616,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 369,
     "name": "COOPERATIVE D'EPARGNE ET DE CREDIT DE RUGERA",
     "sector": "RUGERA",
     "district": "NYABIHU",
@@ -2952,7 +2624,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 370,
     "name": "COOPERATIVE D'EPARGNE ET DE CREDIT DE RUREMBO",
     "sector": "RUREMBO",
     "district": "NYABIHU",
@@ -2961,7 +2632,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 371,
     "name": "SACCO KALISIMBI JENDA",
     "sector": "JENDA",
     "district": "NYABIHU",
@@ -2970,7 +2640,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 372,
     "name": "DUKIZANYE MULINGA SACCO",
     "sector": "MULINGA",
     "district": "NYABIHU",
@@ -2979,7 +2648,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 373,
     "name": "SANGA SACCO",
     "sector": "SHYIRA",
     "district": "NYABIHU",
@@ -2988,7 +2656,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 374,
     "name": "TURAHUMURIJWE SACCO",
     "sector": "BUGESHI",
     "district": "RUBAVU",
@@ -2997,7 +2664,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 375,
     "name": "SACCO INTOZAMUCO",
     "sector": "BUSASAMANA",
     "district": "RUBAVU",
@@ -3006,7 +2672,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 376,
     "name": "SACCO ISANGANIRO",
     "sector": "CYANZARWE",
     "district": "RUBAVU",
@@ -3015,7 +2680,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 377,
     "name": "SACCO SERUKA",
     "sector": "GISENYI",
     "district": "RUBAVU",
@@ -3024,7 +2688,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 378,
     "name": "ICYEZA",
     "sector": "KANAMA",
     "district": "RUBAVU",
@@ -3033,7 +2696,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 379,
     "name": "ABADAHARANA SACCO",
     "sector": "KANZENZE",
     "district": "RUBAVU",
@@ -3042,7 +2704,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 380,
     "name": "IMBONERA SACCO MUDENDE",
     "sector": "MUDENDE",
     "district": "RUBAVU",
@@ -3051,7 +2712,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 381,
     "name": "UMUSHYIKIRANO SACCO",
     "sector": "NYAKILIBA",
     "district": "RUBAVU",
@@ -3060,7 +2720,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 382,
     "name": "ISHAKWE SACCO",
     "sector": "NYAMYUMBA",
     "district": "RUBAVU",
@@ -3069,7 +2728,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 383,
     "name": "SACCO UMWIMERERE",
     "sector": "NYUNDO",
     "district": "RUBAVU",
@@ -3078,7 +2736,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 384,
     "name": "INKERAGUTABARA SACCO OF RUBAVU",
     "sector": "RUBAVU",
     "district": "RUBAVU",
@@ -3087,7 +2744,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 385,
     "name": "INTARUTWA SACCO YA RUGERERO",
     "sector": "RUGERERO",
     "district": "RUBAVU",
@@ -3096,7 +2752,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 386,
     "name": "TERIMBERE SACCO BWIRA",
     "sector": "BWIRA",
     "district": "NGORORERO",
@@ -3105,7 +2760,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 387,
     "name": "UMUSUNGI SACCO GATUMBA",
     "sector": "GATUMBA",
     "district": "NGORORERO",
@@ -3114,7 +2768,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 388,
     "name": "HINDIRO SACCO",
     "sector": "HINDIRO",
     "district": "NGORORERO",
@@ -3123,7 +2776,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 389,
     "name": "SACCO KABAYA JYAMBERE",
     "sector": "KABAYA",
     "district": "NGORORERO",
@@ -3132,7 +2784,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 390,
     "name": "UMUKORE SACCO",
     "sector": "KAGEYO",
     "district": "NGORORERO",
@@ -3141,7 +2792,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 391,
     "name": "SACCO TUGANE HEZA",
     "sector": "KAVUMU",
     "district": "NGORORERO",
@@ -3150,7 +2800,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 392,
     "name": "MATYAZO SACCO",
     "sector": "MATYAZO",
     "district": "NGORORERO",
@@ -3159,7 +2808,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 393,
     "name": "HAGURUKA UKORE SACCO-MUHANDA",
     "sector": "MUHANDA",
     "district": "NGORORERO",
@@ -3168,7 +2816,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 394,
     "name": "MUHORORO SACCO",
     "sector": "MUHORORO",
     "district": "NGORORERO",
@@ -3177,7 +2824,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 395,
     "name": "JYAMBERE NDARO SACCO",
     "sector": "NDARO",
     "district": "NGORORERO",
@@ -3186,7 +2832,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 396,
     "name": "MAGIRIRANE SACCO",
     "sector": "NGORORERO",
     "district": "NGORORERO",
@@ -3195,7 +2840,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 397,
     "name": "INYANGE SACCO NSIBO",
     "sector": "NYANGE",
     "district": "NGORORERO",
@@ -3204,7 +2848,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 398,
     "name": "GIRUBUKIRE SACCO SOVU",
     "sector": "SOVU",
     "district": "NGORORERO",
@@ -3213,7 +2856,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 399,
     "name": "SACCO IBAKWE RYA BONEZA",
     "sector": "BONEZA",
     "district": "RUTSIRO",
@@ -3222,7 +2864,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 400,
     "name": "SACCO ABESAMIHIGO BA GIHANGO",
     "sector": "GIHANGO",
     "district": "RUTSIRO",
@@ -3231,7 +2872,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 401,
     "name": "SACCO NGWINO UREBE KIGEYO",
     "sector": "KIGEYO",
     "district": "RUTSIRO",
@@ -3240,7 +2880,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 402,
     "name": "SACCO TUZIGAMIRE ABACU KIVUMU",
     "sector": "KIVUMU",
     "district": "RUTSIRO",
@@ -3249,7 +2888,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 403,
     "name": "SACCO IMBERE HEZA MANIHIRA",
     "sector": "MANIHIRA",
     "district": "RUTSIRO",
@@ -3258,7 +2896,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 404,
     "name": "SACCOTUGENDANEN IGIHEMUKURA",
     "sector": "MUKURA",
     "district": "RUTSIRO",
@@ -3267,7 +2904,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 405,
     "name": "INDASHYIKIRWA ZA MURUNDA SACCO",
     "sector": "MURUNDA",
     "district": "RUTSIRO",
@@ -3276,7 +2912,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 406,
     "name": "IMBANZAMIHIGO SACCO",
     "sector": "MUSASA",
     "district": "RUTSIRO",
@@ -3285,7 +2920,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 407,
     "name": "SACCO TERIMBERE MUSHONYI",
     "sector": "MUSHONYI",
     "district": "RUTSIRO",
@@ -3294,7 +2928,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 408,
     "name": "SACCO DUFITUMURAVA MUSHUBATI",
     "sector": "MUSHUBATI",
     "district": "RUTSIRO",
@@ -3303,7 +2936,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 409,
     "name": "SACCO NYABIRASI_RUTSIRO",
     "sector": "NYABIRASI",
     "district": "RUTSIRO",
@@ -3312,7 +2944,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 410,
     "name": "SACCO DUKUNGAHARE RUHANGO",
     "sector": "RUHANGO",
     "district": "RUTSIRO",
@@ -3321,7 +2952,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 411,
     "name": "SACCO ICYEREKEZO RUSEBEYA",
     "sector": "RUSEBEYA",
     "district": "RUTSIRO",
@@ -3330,7 +2960,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 412,
     "name": "BWISHYURA SACCO",
     "sector": "BWISHYURA",
     "district": "KARONGI",
@@ -3339,7 +2968,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 413,
     "name": "INDATSIKIRA SACCO GASHALI",
     "sector": "GASHARI",
     "district": "KARONGI",
@@ -3348,7 +2976,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 414,
     "name": "GISHYITA SACCO",
     "sector": "GISHYITA",
     "district": "KARONGI",
@@ -3357,7 +2984,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 415,
     "name": "SACCO GITESI",
     "sector": "GITESI",
     "district": "KARONGI",
@@ -3366,7 +2992,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 416,
     "name": "DUHASHYUBUKENE SACCO MUBUGA",
     "sector": "MUBUGA",
     "district": "KARONGI",
@@ -3375,7 +3000,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 417,
     "name": "IMPARANIRAKURUSHA",
     "sector": "MURAMBI",
     "district": "KARONGI",
@@ -3384,7 +3008,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 418,
     "name": "SACCO NGWINO UREBE",
     "sector": "MURUNDI",
     "district": "KARONGI",
@@ -3393,7 +3016,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 419,
     "name": "MUTUNTU SACCO",
     "sector": "MUTUNTU",
     "district": "KARONGI",
@@ -3402,7 +3024,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 420,
     "name": "SACCO RUBENGERA",
     "sector": "RUBENGERA",
     "district": "KARONGI",
@@ -3411,7 +3032,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 421,
     "name": "RUGABANO SACCO",
     "sector": "RUGABANO",
     "district": "KARONGI",
@@ -3420,7 +3040,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 422,
     "name": "SACCO ISONGA RUGANDA",
     "sector": "RUGANDA",
     "district": "KARONGI",
@@ -3429,7 +3048,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 423,
     "name": "TWIYUBAKE RWANKUBA",
     "sector": "RWANKUBA",
     "district": "KARONGI",
@@ -3438,7 +3056,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 424,
     "name": "TWUMBA SACCO",
     "sector": "TWUMBA",
     "district": "KARONGI",
@@ -3447,7 +3064,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 425,
     "name": "BUSHENGE SACCO",
     "sector": "BUSHENGE",
     "district": "NYAMASHEKE",
@@ -3456,7 +3072,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 426,
     "name": "TERIMBERE RUHARAMBUGA SACCO",
     "sector": "RUHARAMBUGA",
     "district": "NYAMASHEKE",
@@ -3465,7 +3080,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 427,
     "name": "BUSHEKERI SACCO",
     "sector": "BUSHEKERI",
     "district": "NYAMASHEKE",
@@ -3474,7 +3088,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 428,
     "name": "DUFATANYE KARENGERA SACCO",
     "sector": "KARENGERA",
     "district": "NYAMASHEKE",
@@ -3483,7 +3096,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 429,
     "name": "NYABITEKERI SACCO",
     "sector": "NYABITEKERI",
     "district": "NYAMASHEKE",
@@ -3492,7 +3104,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 430,
     "name": "SHANGI SACCO",
     "sector": "SHANGI",
     "district": "NYAMASHEKE",
@@ -3501,7 +3112,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 431,
     "name": "CYATO SACCO",
     "sector": "CYATO",
     "district": "NYAMASHEKE",
@@ -3510,7 +3120,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 432,
     "name": "KAGANO SACCO",
     "sector": "KAGANO",
     "district": "NYAMASHEKE",
@@ -3519,7 +3128,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 433,
     "name": "UNGUKA GIHOMBO SACCO",
     "sector": "GIHOMBO",
     "district": "NYAMASHEKE",
@@ -3528,7 +3136,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 434,
     "name": "AMIZERO MACUBA SACCO",
     "sector": "MACUBA",
     "district": "NYAMASHEKE",
@@ -3537,7 +3144,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 435,
     "name": "SACCO WISIGARA RANGIRO",
     "sector": "RANGIRO",
     "district": "NYAMASHEKE",
@@ -3546,7 +3152,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 436,
     "name": "TWISUNGANE MAHEMBE SACCO",
     "sector": "MAHEMBE",
     "district": "NYAMASHEKE",
@@ -3555,7 +3160,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 437,
     "name": "TWITEZIMBERE KILIMBI SACCO",
     "sector": "KIRIMBI",
     "district": "NYAMASHEKE",
@@ -3564,7 +3168,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 438,
     "name": "KANJONGO SACCO",
     "sector": "KANJONGO",
     "district": "NYAMASHEKE",
@@ -3573,7 +3176,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 439,
     "name": "KARAMBI VISION SACCO",
     "sector": "KARAMBI",
     "district": "NYAMASHEKE",
@@ -3582,7 +3184,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 440,
     "name": "IMBATURABUKUNGU SACCO",
     "sector": "BUTARE",
     "district": "RUSIZI",
@@ -3591,7 +3192,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 441,
     "name": "TUBEHO SACCO BWEYEYE",
     "sector": "BWEYEYE",
     "district": "RUSIZI",
@@ -3600,7 +3200,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 442,
     "name": "URUYANGE SACCO",
     "sector": "BUGARAMA",
     "district": "RUSIZI",
@@ -3609,7 +3208,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 443,
     "name": "TUBEKWISONGA SACCO",
     "sector": "GASHONGA",
     "district": "RUSIZI",
@@ -3618,7 +3216,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 444,
     "name": "IREMBO SACCO",
     "sector": "GIHEKE",
     "district": "RUSIZI",
@@ -3627,7 +3224,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 445,
     "name": "UMUSINGI SACCO GIHUNDWE",
     "sector": "GIHUNDWE",
     "district": "RUSIZI",
@@ -3636,7 +3232,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 446,
     "name": "UBUMWE SACCO",
     "sector": "GIKUNDAMVURA",
     "district": "RUSIZI",
@@ -3645,7 +3240,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 447,
     "name": "INDATWA GITAMBI SACCO",
     "sector": "GITAMBI",
     "district": "RUSIZI",
@@ -3654,7 +3248,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 448,
     "name": "NKAMIRA SACCO",
     "sector": "KAMEMBE",
     "district": "RUSIZI",
@@ -3663,7 +3256,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 449,
     "name": "MASHYUZA SACCO",
     "sector": "MUGANZA",
     "district": "RUSIZI",
@@ -3672,7 +3264,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 450,
     "name": "HUZA SACCO",
     "sector": "MURURU",
     "district": "RUSIZI",
@@ -3681,7 +3272,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 451,
     "name": "SACCO REBIMBERE NKANKA",
     "sector": "NKANKA",
     "district": "RUSIZI",
@@ -3690,7 +3280,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 452,
     "name": "NGIRANKUGIRE SACCO",
     "sector": "NKOMBO",
     "district": "RUSIZI",
@@ -3699,7 +3288,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 453,
     "name": "SACCO NTUKABUMWE NKUNGU",
     "sector": "NKUNGU",
     "district": "RUSIZI",
@@ -3708,7 +3296,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 454,
     "name": "NTUSIGARE SACCO",
     "sector": "NYAKABUYE",
     "district": "RUSIZI",
@@ -3717,7 +3304,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 455,
     "name": "SACCO ABESAMIHIGO NYAKARENZO",
     "sector": "NYAKARENZO",
     "district": "RUSIZI",
@@ -3726,7 +3312,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 456,
     "name": "NZAHAHA INTSINZI SACCO",
     "sector": "NZAHAHA",
     "district": "RUSIZI",
@@ -3735,7 +3320,6 @@
     "category": "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)"
   },
   {
-    "bnr_index": 457,
     "name": "BAHO SACCO",
     "sector": "RWIMBOGO",
     "district": "RUSIZI",

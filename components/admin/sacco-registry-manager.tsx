@@ -9,27 +9,16 @@ import { BilingualText } from "@/components/common/bilingual-text";
 
 const supabase = getSupabaseBrowserClient();
 
-type SaccoRow = Pick<Database["public"]["Tables"]["saccos"]["Row"],
-  | "id"
-  | "name"
-  | "district"
-  | "province"
-  | "sector"
-  | "bnr_index"
-  | "status"
-  | "email"
-  | "category"
-  | "merchant_code"
-  | "brand_color"
-  | "sms_sender"
-  | "logo_url"
+type SaccoRow = Pick<
+  Database["public"]["Tables"]["saccos"]["Row"],
+  "id" | "name" | "district" | "province" | "sector" | "status" | "email" | "category" | "logo_url" | "sector_code"
 >;
 
 type SaccoRegistryManagerProps = {
   initialSaccos: SaccoRow[];
 };
 
-type SaccoFormState = SaccoRow & { sector_code?: string };
+type SaccoFormState = SaccoRow;
 
 const PROVINCES = [
   "CITY OF KIGALI",
@@ -45,6 +34,12 @@ function buildSectorCode(district: string, sector: string) {
   const raw = `${district}-${sector}`.toUpperCase().replace(/[^A-Z0-9]+/g, "-");
   return raw.replace(/^-+|-+$/g, "");
 }
+
+function buildSearchSlug(name: string) {
+  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+const DEFAULT_CATEGORY = "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)";
 
 export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProps) {
   const [saccos, setSaccos] = useState<SaccoRow[]>(initialSaccos);
@@ -62,7 +57,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
     if (!search.trim()) return saccos;
     const lowered = search.toLowerCase();
     return saccos.filter((sacco) =>
-      `${sacco.name} ${sacco.district} ${sacco.province} ${sacco.bnr_index}`.toLowerCase().includes(lowered)
+      `${sacco.name} ${sacco.district} ${sacco.province} ${sacco.category}`.toLowerCase().includes(lowered)
     );
   }, [saccos, search]);
 
@@ -72,7 +67,13 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
   };
 
   const handleEdit = (sacco: SaccoRow) => {
-    setEditing({ ...sacco, sector_code: buildSectorCode(sacco.district, sacco.sector) });
+    setEditing({
+      ...sacco,
+      category: sacco.category || DEFAULT_CATEGORY,
+      email: sacco.email ?? "",
+      logo_url: sacco.logo_url ?? null,
+      sector_code: buildSectorCode(sacco.district, sacco.sector),
+    });
     setMode("edit");
   };
 
@@ -83,13 +84,9 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
       district: "",
       province: PROVINCES[0],
       sector: "",
-      bnr_index: 0,
       status: "ACTIVE",
       email: "",
-      category: "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)",
-      merchant_code: "",
-      brand_color: "#1273E6",
-      sms_sender: "IKIMINA",
+      category: DEFAULT_CATEGORY,
       logo_url: null,
       sector_code: "",
     });
@@ -106,7 +103,6 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
     if (!state.district.trim()) return toBilingual("District is required", "Akarere karakenewe");
     if (!state.sector.trim()) return toBilingual("Sector is required", "Umurenge urakenewe");
     if (!state.province.trim()) return toBilingual("Province is required", "Intara irakenewe");
-    if (!state.bnr_index || Number.isNaN(state.bnr_index)) return toBilingual("BNR index is required", "Numero ya BNR irakenewe");
     return null;
   };
 
@@ -121,74 +117,44 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
 
     startTransition(async () => {
       try {
+        const basePayload = {
+          name: editing.name.trim(),
+          district: editing.district.trim().toUpperCase(),
+          province: editing.province.trim().toUpperCase(),
+          sector: editing.sector.trim().toUpperCase(),
+          sector_code: sectorCode,
+          category: (editing.category || DEFAULT_CATEGORY).trim(),
+          status: editing.status,
+          email: editing.email?.trim() ? editing.email.trim() : null,
+          logo_url: editing.logo_url ?? null,
+          search_slug: buildSearchSlug(editing.name),
+        };
+
         if (mode === "create") {
-          const payload = {
-            name: editing.name.trim(),
-            district: editing.district.trim().toUpperCase(),
-            province: editing.province.trim().toUpperCase(),
-            sector: editing.sector.trim().toUpperCase(),
-            sector_code: sectorCode,
-            category: editing.category,
-            bnr_index: Number(editing.bnr_index),
-            status: editing.status,
-            email: editing.email?.trim() || null,
-            merchant_code: editing.merchant_code?.trim() || null,
-            brand_color: editing.brand_color ?? null,
-            sms_sender: editing.sms_sender ?? null,
-            logo_url: editing.logo_url ?? null,
-          } satisfies Database["public"]["Tables"]["saccos"]["Insert"];
+          const payload: Database["public"]["Tables"]["saccos"]["Insert"] = basePayload;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { data, error: insertError } = await (supabase as any)
             .from("saccos")
             .insert(payload)
-            .select("id, name, district, province, sector, bnr_index, status, email, category, merchant_code, brand_color, sms_sender, logo_url")
+            .select("id, name, district, province, sector, status, email, category, logo_url, sector_code")
             .single();
           if (insertError) throw insertError;
           setSaccos((prev) => [...prev, data as SaccoRow]);
           notifySuccess("SACCO created", "SACCO yashyizweho");
           resetForm();
         } else {
-          const payload: Database["public"]["Tables"]["saccos"]["Update"] = {
-            name: editing.name.trim(),
-            district: editing.district.trim().toUpperCase(),
-            province: editing.province.trim().toUpperCase(),
-            sector: editing.sector.trim().toUpperCase(),
-            sector_code: sectorCode,
-            category: editing.category,
-            bnr_index: Number(editing.bnr_index),
-            status: editing.status,
-            email: editing.email?.trim() || null,
-            merchant_code: editing.merchant_code?.trim() || null,
-            brand_color: editing.brand_color ?? null,
-            sms_sender: editing.sms_sender ?? null,
-          };
+          const payload: Database["public"]["Tables"]["saccos"]["Update"] = basePayload;
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error: updateError } = await (supabase as any)
+          const { data, error: updateError } = await (supabase as any)
             .from("saccos")
             .update(payload)
-            .eq("id", editing.id);
+            .eq("id", editing.id)
+            .select("id, name, district, province, sector, status, email, category, logo_url, sector_code")
+            .single();
           if (updateError) throw updateError;
-          setSaccos((prev) =>
-            prev.map((item) => {
-              if (item.id !== editing.id) return item;
-              const updated: SaccoRow = {
-                ...item,
-                name: editing.name,
-                district: editing.district,
-                province: editing.province,
-                sector: editing.sector,
-                bnr_index: Number(editing.bnr_index),
-                status: editing.status,
-                email: editing.email ?? null,
-                category: editing.category,
-                merchant_code: editing.merchant_code ?? null,
-                brand_color: editing.brand_color ?? null,
-                sms_sender: editing.sms_sender ?? null,
-                logo_url: editing.logo_url ?? null,
-              };
-              return updated;
-            })
-          );
+          if (data) {
+            setSaccos((prev) => prev.map((item) => (item.id === editing.id ? (data as SaccoRow) : item)));
+          }
           notifySuccess("SACCO updated", "SACCO yavuguruwe");
           resetForm();
         }
@@ -221,9 +187,9 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
       <div className="flex flex-wrap items-center gap-3">
        <input
          type="search"
-         value={search}
-         onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search name, district, BNR # / Shakisha izina, akarere, BNR"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        placeholder="Search name, district / Shakisha izina, akarere"
          className="w-full max-w-xs rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
        />
        <button
@@ -255,9 +221,6 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
                 <BilingualText primary="Province" secondary="Intara" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
               </th>
               <th className="px-4 py-3">
-                <BilingualText primary="BNR #" secondary="Numero ya BNR" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-              </th>
-              <th className="px-4 py-3">
                 <BilingualText primary="Status" secondary="Imiterere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
               </th>
               <th className="px-4 py-3 text-right">
@@ -271,7 +234,6 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
                 <td className="px-4 py-3 font-medium text-neutral-0">{sacco.name}</td>
                 <td className="px-4 py-3 text-neutral-2">{sacco.district}</td>
                 <td className="px-4 py-3 text-neutral-2">{sacco.province}</td>
-                <td className="px-4 py-3 font-mono text-xs text-neutral-2">{sacco.bnr_index}</td>
                 <td className="px-4 py-3">
                   <span className={cn(
                     "rounded-full px-2 py-1 text-[11px] uppercase tracking-[0.2em]",
@@ -302,7 +264,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-neutral-2">
+                <td colSpan={5} className="px-4 py-6 text-center text-neutral-2">
                   {toBilingual("No SACCOs match this search.", "Nta SACCO ihuye n'iri shakisha.")}
                 </td>
               </tr>
@@ -336,15 +298,6 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
                 type="text"
                 value={editing.name}
                 onChange={(event) => handleChange("name", event.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">BNR Index</span>
-              <input
-                type="number"
-                value={editing.bnr_index}
-                onChange={(event) => handleChange("bnr_index", Number(event.target.value))}
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
               />
             </label>
@@ -400,15 +353,6 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
                 type="email"
                 value={editing.email ?? ""}
                 onChange={(event) => handleChange("email", event.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">Merchant code</span>
-              <input
-                type="text"
-                value={editing.merchant_code ?? ""}
-                onChange={(event) => handleChange("merchant_code", event.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
               />
             </label>

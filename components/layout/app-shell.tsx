@@ -13,11 +13,13 @@ import {
   ListPlus,
   Inbox,
   Search,
+  LineChart,
 } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { BilingualText } from "@/components/common/bilingual-text";
 import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
+import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -28,6 +30,7 @@ const NAV_ITEMS = [
   { href: "/dashboard" as const, primary: "Dashboard", secondary: "Ibipimo", icon: LayoutDashboard },
   { href: "/ikimina" as const, primary: "Ikimina", secondary: "Amatsinda", icon: Workflow },
   { href: "/recon" as const, primary: "Recon", secondary: "Guhuza konti", icon: Inbox },
+  { href: "/analytics" as const, primary: "Analytics", secondary: "Isesengura", icon: LineChart },
   { href: "/reports" as const, primary: "Reports", secondary: "Raporo", icon: BarChartBig },
   { href: "/admin" as const, primary: "Admin", secondary: "Ubuyobozi", icon: UsersRound },
 ];
@@ -60,6 +63,13 @@ const QUICK_ACTIONS = [
     secondary: "Suzuma guhuzwa",
     description: "Clear unassigned deposits.",
     secondaryDescription: "Huza amafaranga ataritangirwa ibisobanuro.",
+  },
+  {
+    href: "/analytics" as const,
+    primary: "View Analytics",
+    secondary: "Reba isesengura",
+    description: "Track contribution trends and risk signals.",
+    secondaryDescription: "Kurikirana uko imisanzu ihagaze n'ibimenyetso byo kuburira.",
   },
   {
     href: "/reports" as const,
@@ -197,6 +207,7 @@ export function AppShell({ children, profile }: AppShellProps) {
       <div className="relative mx-auto flex w-full max-w-6xl flex-1 px-4 pb-28 md:px-8">
         {children}
       </div>
+      <OfflineQueueIndicator />
 
       <nav className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-3xl border border-white/10 bg-ink/90 px-4 py-3 backdrop-blur md:hidden">
         {NAV_ITEMS.map(({ href, primary, icon: Icon }) => (

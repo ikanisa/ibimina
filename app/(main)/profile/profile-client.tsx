@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import {
   BadgeCheck,
   KeyRound,
   Loader2,
   ShieldCheck,
   Smartphone,
+  Trash2,
+  RefreshCw,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
@@ -23,42 +24,60 @@ interface ProfileClientProps {
   email: string;
 }
 
-type TotpFactor = {
-  id: string;
-  factor_type: string;
-  friendly_name?: string | null;
-  status: string;
+type TrustedDevice = {
+  deviceId: string;
+  createdAt: string;
+  lastUsedAt: string;
+  ipPrefix: string | null;
 };
 
-type TotpSetupState = {
-  factorId: string;
-  challengeId: string;
-  qrCode: string;
+type ProfileState = {
+  mfaEnabled: boolean;
+  enrolledAt: string | null;
+  backupCount: number;
+  trustedDevices: TrustedDevice[];
+  methods: string[];
+};
+
+type EnrollmentState = {
   secret: string;
+  secretPreview: string;
+  otpauth: string;
+  pendingToken: string;
 };
 
 export function ProfileClient({ email }: ProfileClientProps) {
   const router = useRouter();
   const { success, error, notify } = useToast();
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<ProfileState | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updatingPassword, startUpdatingPassword] = useTransition();
-  const [totpFactor, setTotpFactor] = useState<TotpFactor | null>(null);
-  const [totpSetup, setTotpSetup] = useState<TotpSetupState | null>(null);
-  const [totpCode, setTotpCode] = useState("");
-  const [verifyingTotp, startVerifyingTotp] = useTransition();
-  const [unenrolling, startUnenrolling] = useTransition();
+  const [enrollment, setEnrollment] = useState<EnrollmentState | null>(null);
+  const [codeA, setCodeA] = useState("");
+  const [codeB, setCodeB] = useState("");
+  const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
+  const [disableCode, setDisableCode] = useState("");
+  const [disableMethod, setDisableMethod] = useState<"totp" | "backup">("totp");
+  const [processingEnrollment, startProcessingEnrollment] = useTransition();
+  const [processingDisable, startProcessingDisable] = useTransition();
+  const [refreshing, startRefreshing] = useTransition();
 
-  const refreshFactors = useCallback(async () => {
-    const { data, error: factorsError } = await supabase.auth.mfa.listFactors();
-    if (factorsError) {
-      console.error(factorsError);
-      error("Unable to load multi-factor settings");
-      return;
-    }
-    setTotpFactor((data?.totp?.[0] as TotpFactor | undefined) ?? null);
-  }, [error]);
+  const fetchProfile = useCallback(async () => {
+    startRefreshing(async () => {
+      setLoading(true);
+      const response = await fetch("/api/mfa/profile", { cache: "no-store" });
+      if (!response.ok) {
+        error("Unable to load MFA settings" + " / Kwiyobora kwa MFA kwanze");
+        setLoading(false);
+        return;
+      }
+      const data = (await response.json()) as ProfileState;
+      setProfile(data);
+      setLoading(false);
+    });
+  }, [error, startRefreshing]);
 
   useEffect(() => {
     const initialise = async () => {
@@ -67,13 +86,11 @@ export function ProfileClient({ email }: ProfileClientProps) {
         router.replace("/login");
         return;
       }
-
-      await refreshFactors();
-      setLoading(false);
+      await fetchProfile();
     };
 
     initialise();
-  }, [refreshFactors, router]);
+  }, [fetchProfile, router]);
 
   const onUpdatePassword = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -102,91 +119,112 @@ export function ProfileClient({ email }: ProfileClientProps) {
     });
   };
 
-  const beginTotpEnrollment = async () => {
-    const { data, error: enrollError } = await supabase.auth.mfa.enroll({
-      factorType: "totp",
-      friendlyName: "Authenticator App",
-      issuer: "Umurenge SACCO",
+  const beginEnrollment = async () => {
+    startProcessingEnrollment(async () => {
+      const response = await fetch("/api/mfa/enroll", { method: "POST" });
+      if (!response.ok) {
+        error("Unable to start enrollment" + " / Ntibyakunze gutangira kwiyandikisha");
+        return;
+      }
+      const data = (await response.json()) as EnrollmentState & { secret: string };
+      setEnrollment({
+        secret: data.secret,
+        secretPreview: data.secretPreview,
+        otpauth: data.otpauth,
+        pendingToken: data.pendingToken,
+      });
+      setCodeA("");
+      setCodeB("");
+      setBackupCodes(null);
+      notify(
+        "Scan the QR code or use the secret with Google Authenticator." +
+          " / Sikana QR cyangwa ukoreshe ijambo rihishe muri Google Authenticator."
+      );
     });
-
-    if (enrollError || !data) {
-      console.error(enrollError);
-      error(enrollError?.message ?? "Unable to start authenticator setup");
-      return;
-    }
-
-    const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({
-      factorId: data.id,
-    });
-
-    if (challengeError || !challenge || !data.totp?.qr_code || !data.totp?.secret) {
-      console.error(challengeError);
-      error(challengeError?.message ?? "Unable to start verification challenge");
-      return;
-    }
-
-    setTotpSetup({
-      factorId: data.id,
-      challengeId: challenge.id,
-      qrCode: data.totp.qr_code,
-      secret: data.totp.secret,
-    });
-    setTotpCode("");
-    notify("Scan the code with your authenticator" + " / Sikana ikode ukoresheje porogaramu yawe");
   };
 
-  const verifyTotp = (event: React.FormEvent<HTMLFormElement>) => {
+  const confirmEnrollment = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!totpSetup) return;
-
-    if (!totpCode || totpCode.length < 6) {
-      error("Enter the 6-digit code" + " / Shyiramo kode y'ibiremo 6");
+    if (!enrollment) return;
+    if (codeA.length < 6 || codeB.length < 6) {
+      error("Enter two consecutive codes" + " / Shyiramo kode ebyiri zikurikirana");
       return;
     }
 
-    startVerifyingTotp(async () => {
-      const { error: verifyError } = await supabase.auth.mfa.verify({
-        factorId: totpSetup.factorId,
-        challengeId: totpSetup.challengeId,
-        code: totpCode,
+    startProcessingEnrollment(async () => {
+      const response = await fetch("/api/mfa/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: enrollment.pendingToken, codes: [codeA, codeB] }),
       });
 
-      if (verifyError) {
-        console.error(verifyError);
-        error(verifyError.message ?? "Invalid authentication code");
+      if (!response.ok) {
+        const { error: code } = await response.json();
+        error(
+          code === "invalid_codes"
+            ? "Authenticator codes were not accepted." + " / Kode zitari zo."
+            : "Unable to confirm enrollment" + " / Ntibyakunze kwemeza kwiyandikisha"
+        );
         return;
       }
 
-      success("Two-factor authentication enabled" + " / Uburyo bwa 2FA bwashyizweho");
-      setTotpSetup(null);
-      setTotpCode("");
-      await refreshFactors();
+      const data = (await response.json()) as { backupCodes: string[] };
+      setEnrollment(null);
+      setBackupCodes(data.backupCodes);
+      await fetchProfile();
     });
   };
 
-  const disableTotp = () => {
-    if (!totpFactor) return;
+  const disableMfa = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!disableCode) {
+      error("Enter a code" + " / Shyiramo kode");
+      return;
+    }
 
-    startUnenrolling(async () => {
-      const { error: unenrollError } = await supabase.auth.mfa.unenroll({
-        factorId: totpFactor.id,
+    startProcessingDisable(async () => {
+      const response = await fetch("/api/mfa/enroll", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: disableCode, method: disableMethod }),
       });
 
-      if (unenrollError) {
-        console.error(unenrollError);
-        error(unenrollError.message ?? "Unable to disable authenticator");
+      if (!response.ok) {
+        const { error: code } = await response.json().catch(() => ({ error: "unknown" }));
+        error(
+          code === "invalid_code"
+            ? "Code was not accepted" + " / Kode ntiyakiriwe"
+            : "Unable to disable two-factor" + " / Ntibyakunze kuzimya 2FA"
+        );
         return;
       }
 
-      success("Two-factor authentication disabled" + " / Uburyo bwa 2FA bwarahagaritswe");
-      await refreshFactors();
+      success("Two-factor authentication disabled" + " / 2FA yarahagaritswe");
+      setDisableCode("");
+      setBackupCodes(null);
+      setEnrollment(null);
+      await fetchProfile();
     });
   };
 
-  const totpEnabled = Boolean(totpFactor);
-  const busy = updatingPassword || verifyingTotp || unenrolling;
+  const revokeDevice = async (deviceId: string) => {
+    const response = await fetch(`/api/mfa/trusted-devices/${deviceId}`, { method: "DELETE" });
+    if (!response.ok) {
+      error("Unable to revoke device" + " / Ntibyakunze gukuraho igikoresho");
+      return;
+    }
+    await fetchProfile();
+  };
 
-  if (loading) {
+  const backupDownload = useMemo(() => {
+    if (!backupCodes || backupCodes.length === 0) return null;
+    const blob = new Blob([backupCodes.join("\n")], { type: "text/plain" });
+    return URL.createObjectURL(blob);
+  }, [backupCodes]);
+
+  const busy = updatingPassword || processingEnrollment || processingDisable || refreshing;
+
+  if (loading || !profile) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-neutral-2" aria-hidden />
@@ -261,116 +299,234 @@ export function ProfileClient({ email }: ProfileClientProps) {
       <GlassCard
         title={
           <div className="flex items-center gap-2 text-lg font-semibold text-neutral-0">
-            <ShieldCheck className="h-5 w-5 text-rw-green" />
+            <ShieldCheck className="h-5 w-5 text-rw-blue" />
             <BilingualText
               primary="Two-factor authentication"
-              secondary="Uburyo bwa 2FA"
+              secondary="Umutekano wa 2FA"
               secondaryClassName="text-xs text-neutral-3"
             />
           </div>
         }
         subtitle={
-          <BilingualText
-            primary="Secure sign-in with a 6-digit code from an authenticator app."
-            secondary="Teza umutekano w'ukwinjira ukoresheje kode ivuye mu porogaramu."
-            secondaryClassName="text-xs text-neutral-3"
-          />
+          profile.mfaEnabled ? (
+            <BilingualText
+              primary="Authenticator app is required on every sign-in."
+              secondary="Porogaramu ya Authenticator irakenewe buri kwinjira."
+              secondaryClassName="text-xs text-neutral-3"
+            />
+          ) : (
+            <BilingualText
+              primary="Enable Google Authenticator or compatible app to protect your account."
+              secondary="Bikore ukoresheje Google Authenticator cyangwa izindi porogaramu."
+              secondaryClassName="text-xs text-neutral-3"
+            />
+          )
         }
       >
-        <div className="space-y-6">
-          <div
-            className={
-              totpEnabled
-                ? "rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100"
-                : "rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100"
-            }
-          >
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em]">
-              {totpEnabled ? <BadgeCheck className="h-4 w-4" /> : <Smartphone className="h-4 w-4" />}
-              {totpEnabled ? "Enabled" : "Not enabled"}
-            </div>
-            <p className="mt-2 text-xs text-neutral-0">
-              {totpEnabled
-                ? "Your authenticator app will be required when signing in."
-                : "Enable an authenticator app to protect your account."}
-            </p>
-          </div>
-
-          {totpSetup ? (
-            <form onSubmit={verifyTotp} className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <div className="flex flex-col items-center justify-center rounded-3xl border border-white/15 bg-white/5 p-6">
-                <Image
-                  src={totpSetup.qrCode}
-                  alt="Authenticator QR code"
-                  width={168}
-                  height={168}
-                  className="h-40 w-40"
-                  unoptimized
-                />
-                <p className="mt-4 text-xs text-neutral-2 text-center">
-                  Scan this QR code with Google Authenticator, Authy, or a compatible app.
-                </p>
-              </div>
-              <div className="space-y-4">
-                <Input label="Manual setup code" value={totpSetup.secret} readOnly />
-                <Input
-                  label="Enter 6-digit code"
-                  id="totp-code"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  value={totpCode}
-                  onChange={(event) => setTotpCode(event.target.value.replace(/[^0-9]/g, ""))}
-                  required
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="submit"
-                    className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
-                    disabled={verifyingTotp || busy}
-                  >
-                    {verifyingTotp ? "Verifying…" : "Verify code"}
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
-                    onClick={() => setTotpSetup(null)}
-                    disabled={busy}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </form>
-          ) : (
-            <div className="flex flex-wrap gap-3">
+        {!profile.mfaEnabled ? (
+          <div className="space-y-4">
+            {!enrollment ? (
               <button
                 type="button"
-                onClick={beginTotpEnrollment}
-                className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
-                disabled={totpEnabled || busy}
+                onClick={beginEnrollment}
+                className="interactive-scale inline-flex items-center gap-2 rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
+                disabled={busy}
               >
-                {totpEnabled ? "Authenticator enabled" : "Enable authenticator"}
+                <BadgeCheck className="h-4 w-4" />
+                Enable authenticator
               </button>
-              {totpEnabled && (
-                <button
-                  type="button"
-                  onClick={disableTotp}
-                  className="rounded-full border border-red-400/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-red-200 hover:border-red-300"
-                  disabled={unenrolling || busy}
+            ) : (
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
+                  <p className="font-semibold">Scan or tap to add authenticator</p>
+                  <div className="mt-3 flex flex-col gap-2 text-xs text-neutral-2">
+                    <a
+                      href={enrollment.otpauth}
+                      className="inline-flex w-max items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
+                    >
+                      Open in authenticator app
+                    </a>
+                    <p>
+                      Secret key: <span className="font-mono text-neutral-0">{enrollment.secret}</span>
+                    </p>
+                    <p className="text-[10px] text-neutral-3">
+                      <BilingualText
+                        primary="Enter two consecutive codes to confirm."
+                        secondary="Shyiramo kode ebyiri zikurikirana kugirango wemeze."
+                        secondaryClassName="text-[10px]"
+                      />
+                    </p>
+                  </div>
+                </div>
+                <form onSubmit={confirmEnrollment} className="grid gap-3 md:grid-cols-2">
+                  <Input
+                    label="Code 1"
+                    value={codeA}
+                    onChange={(event) => setCodeA(event.target.value.replace(/[^0-9]/g, ""))}
+                    inputMode="numeric"
+                    maxLength={6}
+                    required
+                  />
+                  <Input
+                    label="Code 2"
+                    value={codeB}
+                    onChange={(event) => setCodeB(event.target.value.replace(/[^0-9]/g, ""))}
+                    inputMode="numeric"
+                    maxLength={6}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="interactive-scale md:col-span-2 rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-50"
+                    disabled={processingEnrollment}
+                  >
+                    {processingEnrollment ? "Verifying…" : "Confirm setup"}
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
+              <p className="font-semibold">Authenticator enabled</p>
+              <p className="text-xs text-neutral-2">
+                <BilingualText
+                  primary={`Enabled on ${profile.enrolledAt ? new Date(profile.enrolledAt).toLocaleString() : "unknown"}`}
+                  secondary="Byakajijwe"
+                  secondaryClassName="text-[11px]"
+                />
+              </p>
+              <p className="text-xs text-neutral-2">
+                <BilingualText
+                  primary={`${profile.backupCount} backup codes remaining.`}
+                  secondary={`${profile.backupCount} backup codes zisigaye.`}
+                  secondaryClassName="text-[11px]"
+                />
+              </p>
+            </div>
+
+            <form onSubmit={disableMfa} className="space-y-3">
+              <div className="grid gap-3 md:grid-cols-2">
+                <Input
+                  label="Authenticator or backup code"
+                  value={disableCode}
+                  onChange={(event) => setDisableCode(event.target.value.replace(/\s+/g, ""))}
+                  required
+                  helperText="Provide a valid code to disable two-factor"
+                />
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                    <BilingualText primary="Code type" secondary="Ubwoko bwa kode" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+                  </label>
+                  <select
+                    className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none"
+                    value={disableMethod}
+                    onChange={(event) => setDisableMethod(event.target.value as "totp" | "backup")}
+                  >
+                    <option value="totp">Authenticator code</option>
+                    <option value="backup">Backup code</option>
+                  </select>
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="interactive-scale inline-flex items-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-red-100 disabled:opacity-50"
+                disabled={processingDisable}
+              >
+                <Trash2 className="h-4 w-4" />
+                Disable two-factor
+              </button>
+            </form>
+          </div>
+        )}
+
+        {backupCodes && backupCodes.length > 0 && (
+          <div className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
+            <div className="flex items-center justify-between">
+              <BilingualText
+                primary="Backup codes"
+                secondary="Kode z'inyunganizi"
+                secondaryClassName="text-[11px] text-neutral-3"
+              />
+              {backupDownload && (
+                <a
+                  href={backupDownload}
+                  download="backup-codes.txt"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
                 >
-                  {unenrolling ? "Disabling…" : "Disable two-factor"}
-                </button>
+                  Download
+                </a>
               )}
             </div>
-          )}
-
-          <div className="h-px bg-white/10" />
-          <p className="text-xs text-neutral-3">
-            If you lose access to your authenticator, contact a system administrator to reset multi-factor authentication. Store the secret or backup codes securely.
-          </p>
-        </div>
+            <p className="text-[11px] text-neutral-2">
+              <BilingualText
+                primary="Each code can be used once. Store them securely and do not share."
+                secondary="Bika izi kode neza, buri imwe ikoreshwa rimwe gusa."
+                secondaryClassName="text-[10px] text-neutral-3"
+              />
+            </p>
+            <ul className="grid gap-2 md:grid-cols-2">
+              {backupCodes.map((code) => (
+                <li key={code} className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 font-mono text-neutral-0">
+                  {code}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </GlassCard>
+
+      {profile.trustedDevices.length > 0 && (
+        <GlassCard
+          title={
+            <div className="flex items-center gap-2 text-lg font-semibold text-neutral-0">
+              <Smartphone className="h-5 w-5 text-rw-blue" />
+              <BilingualText
+                primary="Trusted devices"
+                secondary="Ibikoresho byizewe"
+                secondaryClassName="text-xs text-neutral-3"
+              />
+            </div>
+          }
+          subtitle={
+            <BilingualText
+              primary="Devices that can skip MFA when the trusted cookie is present."
+              secondary="Ibikoresho bishobora kwinjira bitongeye kwemezwa nibyo byizewe."
+              secondaryClassName="text-xs text-neutral-3"
+            />
+          }
+        >
+          <div className="space-y-3">
+            {profile.trustedDevices.map((device) => (
+              <div key={device.deviceId} className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center">
+                <div className="space-y-1 text-xs text-neutral-2">
+                  <p className="font-semibold text-neutral-0">Device ID: {device.deviceId}</p>
+                  <p>Created: {new Date(device.createdAt).toLocaleString()}</p>
+                  <p>Last used: {new Date(device.lastUsedAt).toLocaleString()}</p>
+                  <p>IP prefix: {device.ipPrefix ?? "Unknown"}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => revokeDevice(device.deviceId)}
+                  className="inline-flex w-max items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/30"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Revoke
+                </button>
+              </div>
+            ))}
+            <p className="flex items-center gap-2 text-[11px] text-neutral-2">
+              <RefreshCw className="h-4 w-4" />
+              <BilingualText
+                primary="Revoke devices you no longer control."
+                secondary="Kuraho ibikoresho utacyizeye."
+                secondaryClassName="text-[10px] text-neutral-3"
+              />
+            </p>
+          </div>
+        </GlassCard>
+      )}
     </div>
   );
 }

@@ -24,3 +24,5 @@ verify_jwt = true
 [functions.scheduled-reconciliation]
 verify_jwt = false
 
+[functions.metrics-exporter]
+verify_jwt = false

@@ -3,7 +3,7 @@
 This checklist captures the recurring tasks we need to run before cutting a release candidate for the Ibimina Staff PWA. Keep it in the repo so every teammate can tick items off or attach evidence (screenshots, JSON, CSV). Update as workflows expand.
 
 ## 1. Performance Baseline
-- [ ] `npm run build` completes without warnings.
+- [x] `npm run build` completes without warnings. *(2025-10-09: succeeded; see Next.js route table above)*
 - [ ] Dev server started (`npm run dev`) and Lighthouse executed with `npm run check:lighthouse` against `http://localhost:3000`.
   - Capture the generated HTML report (Command outputs path); add score summary to release notes.
 - [ ] Track total JS < 250 kB on Lighthouse mobile run; note any regressions.
@@ -31,6 +31,8 @@ This checklist captures the recurring tasks we need to run before cutting a rele
 ## 5. Observability & Automation Checks
 - [ ] Supabase logs: confirm `export-report`, `import-statement`, and `scheduled-reconciliation` functions succeed under latest schema.
 - [ ] Review `system_metrics` / audit log tables for new entries after running reconciliation/import flows.
+- [ ] Run Prometheus/Grafana stack (`infra/metrics/docker-compose.yml`), confirm `ibimina_*` gauges populate, and capture a dashboard screenshot.
+- [ ] Record alert thresholds (SMS backlog, notifications, exporter health) in the runbook and link the Grafana URL.
 
 ## 6. Sign-off
 - [ ] Summarise findings + metrics in release notes.

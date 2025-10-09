@@ -25,7 +25,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=public-anon-key
 SUPABASE_SERVICE_ROLE_KEY=service-role-key
 ```
 
-Copy `.env.example` to `.env` and fill in the secrets you already use in Lovable Cloud.
+Copy `.env.example` to `.env` (for the Next.js app) and populate Supabase secrets separately using `supabase secrets set --env-file supabase/.env.production` during deployment.
 
 ## Running Supabase migrations
 
@@ -35,7 +35,7 @@ The Umurenge SACCO master list is seeded by the latest SQL migration:
 supabase/migrations/20251008120000_enrich_saccos_with_umurenge_master.sql
 ```
 
-Run this migration inside Lovable Cloud’s SQL console (or through your preferred Supabase admin workflow) to apply the schema updates, semantic search function, and the 416 BNR records captured in `supabase/data/umurenge_saccos.json`.
+Run this migration inside Lovable Cloud’s SQL console (or through your preferred Supabase admin workflow) to apply the schema updates, semantic search function, and the 416 Umurenge SACCO records captured in `supabase/data/umurenge_saccos.json`.
 
 ## Project layout
 
@@ -55,6 +55,31 @@ supabase/                # Config, migrations, seed data
 - `lib/supabase/server.ts` exposes a server-side client that reads the session cookie (no project linking required in Lovable Cloud).
 - `lib/auth.ts` centralises user/session lookups and guards the `(main)` route group.
 - Dashboard, Ikimina, Recon, Reports, and Admin pages now query Supabase directly in server components.
+- See `docs/go-live-checklist.md` for the full Supabase bootstrap sequence (migrations, secrets, edge functions, GSM ingestion).
+
+## Observability & Ops
+
+- `supabase/functions/metrics-exporter` exposes Prometheus gauges covering SMS/notification backlog, payments, and exporter health.
+- Run `docker compose up` inside `infra/metrics` to launch Prometheus + Grafana locally; the default dashboard (`ibimina-operations`) is provisioned automatically.
+- Operational runbooks live in `docs/security-observability.md`, feature flag procedures in `docs/operations/feature-flags.md`, and MFA rollout guidance in `docs/operations/mfa-rollout.md`.
+
+### GSM modem ingestion
+
+Edge functions no longer expect a third-party SMS webhook. The GSM modem reader can forward messages straight to Supabase by either inserting directly into `public.sms_inbox` with a service-role key or by invoking the `ingest-sms` edge function with the standard Supabase `Authorization: Bearer <service_role_key>` header:
+
+```
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+  https://<project-ref>.supabase.co/functions/v1/ingest-sms \
+  -d '{
+        "rawText": "15000 AIRTEL 2505221230 REF.KIG/NYARUGENGE.G2.M001",
+        "receivedAt": "2025-10-09T07:21:12Z",
+        "vendorMeta": {"modemPort": "usb0"}
+      }'
+```
+
+`ingest-sms` still runs parsing, deduplication, ledger posting, and auditing, but no longer checks `SMS_SHARED_SECRET`. Adjust rate limits if needed with `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW_SECONDS` secrets.
 
 ## Recent polish
 

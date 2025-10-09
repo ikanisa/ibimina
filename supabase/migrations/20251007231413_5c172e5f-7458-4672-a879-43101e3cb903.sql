@@ -3,7 +3,6 @@ ALTER TABLE public.saccos
 ADD COLUMN IF NOT EXISTS province text,
 ADD COLUMN IF NOT EXISTS email text,
 ADD COLUMN IF NOT EXISTS category text DEFAULT 'Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)';
-
 -- Insert all SACCO data
 INSERT INTO public.saccos (name, sector_code, district, province, email, category, status) VALUES
 ('UMWALIMU SACCO', 'KIMIRONKO', 'GASABO', 'CITY OF KIGALI', 'umwalimu.sacco@umwalimusacco.rw', 'Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)', 'ACTIVE'),

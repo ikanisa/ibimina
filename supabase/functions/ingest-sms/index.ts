@@ -28,17 +28,6 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const sharedSecret = Deno.env.get('SMS_SHARED_SECRET');
-    if (sharedSecret) {
-      const provided = req.headers.get('x-sms-shared-secret');
-      if (provided !== sharedSecret) {
-        return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401,
-        });
-      }
-    }
-
     const { rawText, receivedAt, vendorMeta, saccoId }: IngestRequest = await req.json();
 
     const allowed = await enforceRateLimit(supabase, `sms:${saccoId ?? 'global'}`, { maxHits: 200 });

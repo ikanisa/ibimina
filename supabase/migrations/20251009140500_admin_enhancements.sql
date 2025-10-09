@@ -19,13 +19,10 @@ begin
       add column pdf_footer_text text;
   end if;
 end $$;
-
 alter table public.sms_templates
   add column if not exists version integer not null default 1,
   add column if not exists tokens jsonb not null default '[]'::jsonb,
   add column if not exists description text;
-
 alter table public.sms_templates drop constraint if exists sms_templates_sacco_id_name_key;
 alter table public.sms_templates add constraint sms_templates_sacco_id_name_version_key unique (sacco_id, name, version);
-
 create index if not exists sms_templates_version_idx on public.sms_templates(sacco_id, name, version);

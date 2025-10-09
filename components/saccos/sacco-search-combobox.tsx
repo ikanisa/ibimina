@@ -11,7 +11,6 @@ export type SaccoSearchResult = {
   district: string;
   province: string;
   category: string;
-  bnr_index: number;
 };
 
 interface SaccoSearchComboboxProps {
@@ -58,7 +57,6 @@ export function SaccoSearchCombobox({ value, onChange, placeholder = "Search Umu
             district: row.district,
             province: row.province,
             category: row.category,
-            bnr_index: row.bnr_index,
           }))
         );
       }

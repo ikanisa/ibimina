@@ -20,10 +20,10 @@ export default async function ReportsPage() {
 
   const saccos =
     profile.role === "SYSTEM_ADMIN"
-      ? (await supabase
+      ? ((await supabase
           .from("saccos")
-          .select("id, name, district, province, category, bnr_index")
-          .order("name", { ascending: true })).data ?? []
+          .select("id, name, district, province, category")
+          .order("name", { ascending: true })).data as SaccoSearchResult[] | null ?? [])
       : profile.saccos
       ? [
           {
@@ -31,11 +31,10 @@ export default async function ReportsPage() {
             name: profile.saccos.name,
             district: profile.saccos.district ?? "",
             province: profile.saccos.province ?? "",
-            category: "",
-            bnr_index: 0,
-          },
+            category: profile.saccos.category ?? "",
+          } satisfies SaccoSearchResult,
         ]
-      : [];
+      : ([] as SaccoSearchResult[]);
 
   const initialSacco: SaccoSearchResult | null = saccos.length === 1 ? saccos[0]! : null;
 

@@ -1,6 +1,5 @@
 -- Drop overly permissive policy
 DROP POLICY IF EXISTS "Users can view ledger entries" ON public.ledger_entries;
-
 -- Helper to determine account visibility for a user
 CREATE OR REPLACE FUNCTION public.can_user_access_account(_account_id UUID, _user_id UUID)
 RETURNS BOOLEAN
@@ -45,7 +44,6 @@ AS $$
       )
   );
 $$;
-
 -- Restrictive policy tying ledger entries to accessible accounts
 CREATE POLICY "Users can view ledger entries for accessible accounts"
   ON public.ledger_entries FOR SELECT

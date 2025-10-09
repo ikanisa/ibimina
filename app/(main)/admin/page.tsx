@@ -7,6 +7,8 @@ import { SaccoBrandingCard } from "@/components/admin/sacco-branding-card";
 import { SmsTemplatePanel } from "@/components/admin/sms-template-panel";
 import { UserAccessTable } from "@/components/admin/user-access-table";
 import { NotificationQueueTable } from "@/components/admin/notification-queue-table";
+import { OperationalTelemetry } from "@/components/admin/operational-telemetry";
+import { AuditLogTable } from "@/components/admin/audit-log-table";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BilingualText } from "@/components/common/bilingual-text";
@@ -41,7 +43,7 @@ export default async function AdminPage() {
   const supabase = await createSupabaseServerClient();
   const { data: saccos } = await supabase
     .from("saccos")
-    .select("id, name, district, province, sector, status, bnr_index, email, category, merchant_code, brand_color, sms_sender, logo_url, pdf_header_text, pdf_footer_text")
+    .select("id, name, district, province, sector, status, email, category, logo_url, sector_code")
     .order("name", { ascending: true });
 
   const { data: users } = await supabase
@@ -55,6 +57,20 @@ export default async function AdminPage() {
     .select("id, event, sacco_id, template_id, status, scheduled_for, created_at")
     .order("created_at", { ascending: false })
     .limit(20);
+
+  const { data: telemetryRows, error: telemetryError } = await supabase
+    .from("system_metrics")
+    .select("event, total, last_occurred, meta")
+    .order("last_occurred", { ascending: false })
+    .limit(20);
+  if (telemetryError) throw telemetryError;
+
+  const { data: auditRows, error: auditError } = await supabase
+    .from("audit_logs")
+    .select("id, action, entity, entity_id, diff_json, created_at, actor_id")
+    .order("created_at", { ascending: false })
+    .limit(30);
+  if (auditError) throw auditError;
 
   type UserRow = {
     id: string;
@@ -75,6 +91,23 @@ export default async function AdminPage() {
     status: string | null;
     scheduled_for: string | null;
     created_at: string | null;
+  };
+
+  type TelemetryRow = {
+    event: string;
+    total: number | null;
+    last_occurred: string | null;
+    meta: Record<string, unknown> | null;
+  };
+
+  type AuditRow = {
+    id: string;
+    action: string;
+    entity: string;
+    entity_id: string | null;
+    diff_json: Record<string, unknown> | null;
+    created_at: string | null;
+    actor_id: string | null;
   };
 
   const saccoList = (saccos ?? []) as SaccoRow[];
@@ -106,6 +139,50 @@ export default async function AdminPage() {
       });
     }
   }
+
+  const telemetryMetrics = ((telemetryRows ?? []) as TelemetryRow[]).map((metric) => ({
+    event: metric.event,
+    total: Number(metric.total ?? 0),
+    last_occurred: metric.last_occurred,
+    meta: metric.meta ?? null,
+  }));
+
+  const auditRaw = (auditRows ?? []) as AuditRow[];
+  const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
+  const actorLookup = new Map<string, string>();
+  normalizedUsers.forEach((user) => {
+    actorLookup.set(user.id, user.email);
+  });
+
+  const actorIds = Array.from(
+    new Set(
+      auditRaw
+        .map((row) => row.actor_id)
+        .filter((value): value is string => Boolean(value) && value !== ZERO_UUID),
+    ),
+  );
+
+  const missingActorIds = actorIds.filter((id) => !actorLookup.has(id));
+  if (missingActorIds.length > 0) {
+    const { data: extraActors } = await supabase
+      .from("users")
+      .select("id, email")
+      .in("id", missingActorIds);
+    (extraActors ?? []).forEach((actor) => {
+      const typed = actor as { id: string; email: string | null };
+      actorLookup.set(typed.id, typed.email ?? typed.id);
+    });
+  }
+
+  const auditEntries = auditRaw.map((row) => ({
+    id: row.id,
+    action: row.action,
+    entity: row.entity,
+    entityId: row.entity_id,
+    diff: row.diff_json ?? null,
+    createdAt: row.created_at ?? new Date().toISOString(),
+    actorLabel: row.actor_id === ZERO_UUID || !row.actor_id ? "System" : actorLookup.get(row.actor_id) ?? row.actor_id,
+  }));
 
   return (
     <div className="space-y-8">
@@ -188,6 +265,19 @@ export default async function AdminPage() {
       </GlassCard>
 
       <GlassCard
+        title={<BilingualText primary="Operational telemetry" secondary="Igenzura ry'imikorere" />}
+        subtitle={
+          <BilingualText
+            primary="Monitor automation throughput and ingestion health."
+            secondary="Kurikirana uko automatike n'ubusobanuzi bw'ubutumwa bikomeje gukora."
+            secondaryClassName="text-xs text-neutral-3"
+          />
+        }
+      >
+        <OperationalTelemetry metrics={telemetryMetrics} />
+      </GlassCard>
+
+      <GlassCard
         title={<BilingualText primary="Notification queue" secondary="Urutonde rw'ubutumire" />}
         subtitle={
           <BilingualText
@@ -198,6 +288,19 @@ export default async function AdminPage() {
         }
       >
         <NotificationQueueTable rows={notificationRows} saccoLookup={saccoLookup} templateLookup={templateLookup} />
+      </GlassCard>
+
+      <GlassCard
+        title={<BilingualText primary="Recent audit trail" secondary="Amateka y'ibikorwa" />}
+        subtitle={
+          <BilingualText
+            primary="Track privileged actions and configuration updates."
+            secondary="Gukurikirana ibisabwa n'impinduka zakozwe n'abafite uburenganzira bwo hejuru."
+            secondaryClassName="text-xs text-neutral-3"
+          />
+        }
+      >
+        <AuditLogTable rows={auditEntries} />
       </GlassCard>
 
       <GlassCard

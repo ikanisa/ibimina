@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 import { BilingualText } from "@/components/common/bilingual-text";
+import { useOfflineQueue } from "@/providers/offline-queue-provider";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -163,6 +164,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
   const [aiRefreshToken, setAiRefreshToken] = useState(0);
   const [pending, startTransition] = useTransition();
   const { success: toastSuccess, error: toastError } = useToast();
+  const offlineQueue = useOfflineQueue();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -307,6 +309,23 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
 
   const handleBulkStatus = (status: Database["public"]["Tables"]["payments"]["Row"]["status"]) => {
     if (!canWrite || !selectedIds.length) return;
+
+    if (!offlineQueue.isOnline) {
+      const statusLabel = getStatusLabel(status);
+      void offlineQueue.queueAction({
+        type: "payments:update-status",
+        payload: { ids: selectedIds, status },
+        summary: {
+          primary: `Sync ${selectedIds.length} → ${statusLabel.primary}`,
+          secondary: `${selectedIds.length} ku ${statusLabel.secondary}`,
+        },
+      });
+      setBulkMessage(joinBilingual("Queued for sync when you're back online.", "Bizahuzwa umaze gusubira kuri murandasi."));
+      setBulkError(null);
+      setSelectedIds([]);
+      return;
+    }
+
     startTransition(async () => {
       setBulkMessage(null);
       setBulkError(null);
@@ -337,6 +356,21 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     if (!canWrite || !trimmed || !selectedIds.length) {
       return;
     }
+    if (!offlineQueue.isOnline) {
+      void offlineQueue.queueAction({
+        type: "payments:assign",
+        payload: { ids: selectedIds, ikiminaId: trimmed },
+        summary: {
+          primary: `Sync ${selectedIds.length} → ${trimmed}`,
+          secondary: `${selectedIds.length} kuri ${trimmed}`,
+        },
+      });
+      setBulkMessage(joinBilingual("Queued for sync when you're online.", "Bizahuzwa umaze kuboneka ku murandasi."));
+      setBulkError(null);
+      setSelectedIds([]);
+      setBulkIkiminaId("");
+      return;
+    }
     startTransition(async () => {
       setBulkMessage(null);
       setBulkError(null);
@@ -364,6 +398,10 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
 
   const handleBulkAssignByReference = () => {
     if (!canWrite || selectedIds.length === 0) return;
+    if (!offlineQueue.isOnline) {
+      setBulkError(joinBilingual("Auto assignment requires a connection.", "Guhuza byikora bisaba murandasi."));
+      return;
+    }
     const references = selectedIds
       .map((id) => rowMap.get(id)?.reference ?? null)
       .filter((value): value is string => Boolean(value));
@@ -438,6 +476,20 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
 
   const handleUpdateStatus = () => {
     if (!selected || !canWrite) return;
+    if (!offlineQueue.isOnline) {
+      const statusLabel = getStatusLabel(newStatus);
+      void offlineQueue.queueAction({
+        type: "payments:update-status",
+        payload: { ids: [selected.id], status: newStatus },
+        summary: {
+          primary: `Sync → ${statusLabel.primary}`,
+          secondary: `Bizahuzwa kuri ${statusLabel.secondary}`,
+        },
+      });
+      setActionError(null);
+      setActionMessage(joinBilingual("Queued for sync when you're back online.", "Byateguwe kuzahuzwa umaze gusubira kuri murandasi."));
+      return;
+    }
     startTransition(async () => {
       setActionMessage(null);
       setActionError(null);
@@ -459,6 +511,19 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
 
   const handleAssignToIkimina = async (ikiminaId: string, memberId: string | null = null) => {
     if (!selected || !canWrite) return;
+    if (!offlineQueue.isOnline) {
+      void offlineQueue.queueAction({
+        type: "payments:assign",
+        payload: { ids: [selected.id], ikiminaId, memberId },
+        summary: {
+          primary: `Sync assignment → ${ikiminaId}`,
+          secondary: `Byashyizwe kuri ${ikiminaId}`,
+        },
+      });
+      setActionError(null);
+      setActionMessage(joinBilingual("Queued for sync when you're back online.", "Byashyizwe mu rutonde kuzahuzwa umaze gusubira kuri murandasi."));
+      return;
+    }
     startTransition(async () => {
       setActionMessage(null);
       setActionError(null);

@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
 export type ProfileRow = Database["public"]["Tables"]["users"]["Row"] & {
-  saccos?: Pick<Database["public"]["Tables"]["saccos"]["Row"], "id" | "name" | "district" | "province" | "sector_code"> | null;
+  saccos?: Pick<Database["public"]["Tables"]["saccos"]["Row"], "id" | "name" | "district" | "province" | "sector_code" | "category"> | null;
 };
 
 export interface AuthContext {
@@ -25,7 +25,9 @@ export async function getUserAndProfile(): Promise<AuthContext | null> {
 
   const { data: profile, error } = await supabase
     .from("users")
-    .select("id, email, role, sacco_id, created_at, updated_at, saccos(id, name, district, province, sector_code)")
+    .select(
+      "id, email, role, sacco_id, created_at, updated_at, mfa_enabled, mfa_enrolled_at, mfa_methods, mfa_backup_hashes, failed_mfa_count, last_mfa_success_at, last_mfa_step, saccos(id, name, district, province, sector_code, category)"
+    )
     .eq("id", user.id)
     .maybeSingle();
 

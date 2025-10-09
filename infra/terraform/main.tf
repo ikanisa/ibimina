@@ -32,7 +32,6 @@ resource "aws_secretsmanager_secret_version" "ibimina" {
     FIELD_ENCRYPTION_KEY      = random_password.field_encryption.result
     RATE_LIMIT_MAX            = var.rate_limit_max
     RATE_LIMIT_WINDOW_SECONDS = var.rate_limit_window_seconds
-    SMS_SHARED_SECRET         = var.sms_shared_secret
     RECON_AUTO_ESCALATE_HOURS = var.recon_auto_escalate_hours
     OPENAI_API_KEY            = var.openai_api_key
     OPENAI_RESPONSES_MODEL    = var.openai_responses_model
@@ -87,11 +86,6 @@ variable "rate_limit_window_seconds" {
   type        = number
   description = "Rate limit window in seconds"
   default     = 60
-}
-
-variable "sms_shared_secret" {
-  type        = string
-  description = "Shared secret for GSM modem webhook authentication"
 }
 
 variable "recon_auto_escalate_hours" {

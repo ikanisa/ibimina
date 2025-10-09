@@ -39,6 +39,27 @@ export type Database = {
           owner_type?: string;
           status?: string;
           updated_at?: string | null;
+      };
+      Relationships: [];
+    };
+      configuration: {
+        Row: {
+          description: string | null;
+          key: string;
+          updated_at: string;
+          value: Json;
+        };
+        Insert: {
+          description?: string | null;
+          key: string;
+          updated_at?: string;
+          value?: Json;
+        };
+        Update: {
+          description?: string | null;
+          key?: string;
+          updated_at?: string;
+          value?: Json;
         };
         Relationships: [];
       };
@@ -347,68 +368,50 @@ export type Database = {
       };
       saccos: {
         Row: {
-          brand_color: string | null;
-          bnr_index: number;
           category: string;
           created_at: string | null;
           district: string;
           email: string | null;
           id: string;
           logo_url: string | null;
-          merchant_code: string | null;
           name: string;
           province: string;
           search_document: string | null;
           search_slug: string | null;
           sector: string;
           sector_code: string;
-          sms_sender: string | null;
-          pdf_header_text: string | null;
-          pdf_footer_text: string | null;
           status: string;
           updated_at: string | null;
         };
         Insert: {
-          brand_color?: string | null;
-          bnr_index: number;
           category: string;
           created_at?: string | null;
           district: string;
           email?: string | null;
           id?: string;
           logo_url?: string | null;
-          merchant_code?: string | null;
           name: string;
           province: string;
           search_document?: string | null;
           search_slug?: string | null;
           sector: string;
           sector_code: string;
-          sms_sender?: string | null;
-          pdf_header_text?: string | null;
-          pdf_footer_text?: string | null;
           status?: string;
           updated_at?: string | null;
         };
         Update: {
-          brand_color?: string | null;
-          bnr_index?: number;
           category?: string;
           created_at?: string | null;
           district?: string;
           email?: string | null;
           id?: string;
           logo_url?: string | null;
-          merchant_code?: string | null;
           name?: string;
           province?: string;
           search_document?: string | null;
           search_slug?: string | null;
           sector?: string;
           sector_code?: string;
-          sms_sender?: string | null;
-          pdf_header_text?: string | null;
-          pdf_footer_text?: string | null;
           status?: string;
           updated_at?: string | null;
         };
@@ -606,7 +609,15 @@ export type Database = {
         Row: {
           created_at: string | null;
           email: string;
+          failed_mfa_count: number;
           id: string;
+          last_mfa_step: number | null;
+          last_mfa_success_at: string | null;
+          mfa_backup_hashes: string[];
+          mfa_enabled: boolean;
+          mfa_enrolled_at: string | null;
+          mfa_methods: string[];
+          mfa_secret_enc: string | null;
           role: Database["public"]["Enums"]["app_role"];
           sacco_id: string | null;
           updated_at: string | null;
@@ -614,7 +625,15 @@ export type Database = {
         Insert: {
           created_at?: string | null;
           email: string;
+          failed_mfa_count?: number;
           id: string;
+          last_mfa_step?: number | null;
+          last_mfa_success_at?: string | null;
+          mfa_backup_hashes?: string[];
+          mfa_enabled?: boolean;
+          mfa_enrolled_at?: string | null;
+          mfa_methods?: string[];
+          mfa_secret_enc?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
           sacco_id?: string | null;
           updated_at?: string | null;
@@ -622,7 +641,15 @@ export type Database = {
         Update: {
           created_at?: string | null;
           email?: string;
+          failed_mfa_count?: number;
           id?: string;
+          last_mfa_step?: number | null;
+          last_mfa_success_at?: string | null;
+          mfa_backup_hashes?: string[];
+          mfa_enabled?: boolean;
+          mfa_enrolled_at?: string | null;
+          mfa_methods?: string[];
+          mfa_secret_enc?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
           sacco_id?: string | null;
           updated_at?: string | null;
@@ -633,6 +660,47 @@ export type Database = {
             columns: ["sacco_id"];
             isOneToOne: false;
             referencedRelation: "saccos";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      trusted_devices: {
+        Row: {
+          created_at: string;
+          device_fingerprint_hash: string;
+          device_id: string;
+          id: string;
+          ip_prefix: string | null;
+          last_used_at: string;
+          user_agent_hash: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          device_fingerprint_hash: string;
+          device_id: string;
+          id?: string;
+          ip_prefix?: string | null;
+          last_used_at?: string;
+          user_agent_hash: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          device_fingerprint_hash?: string;
+          device_id?: string;
+          id?: string;
+          ip_prefix?: string | null;
+          last_used_at?: string;
+          user_agent_hash?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "trusted_devices_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
             referencedColumns: ["id"];
           }
         ];
@@ -674,7 +742,6 @@ export type Database = {
           query?: string | null;
         };
         Returns: Array<{
-          bnr_index: number;
           category: string;
           district: string;
           email: string | null;

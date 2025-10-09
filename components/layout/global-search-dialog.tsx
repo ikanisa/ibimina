@@ -820,7 +820,7 @@ export function GlobalSearchDialog({
                   <p>
                     <span className="font-semibold">{selectedSacco.name}</span> — {selectedSacco.district} · {selectedSacco.province}
                   </p>
-                  <p className="mt-1 text-neutral-2">BNR index {selectedSacco.bnr_index}</p>
+                  <p className="mt-1 text-neutral-2">{selectedSacco.category}</p>
                   {profile.role === "SYSTEM_ADMIN" ? (
                     <button
                       type="button"
