@@ -6,6 +6,11 @@ const remotePatterns = [
     protocol: "https",
     hostname: "images.unsplash.com",
   },
+  {
+    protocol: "https",
+    hostname: "api.qrserver.com",
+    pathname: "/v1/create-qr-code/**",
+  },
 ];
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
