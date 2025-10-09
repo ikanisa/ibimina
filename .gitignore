@@ -5,6 +5,8 @@
 /.next/
 /out/
 /build
+/public/service-worker.js
+/public/workbox-*.js
 
 # Misc
 .DS_Store
@@ -19,6 +21,7 @@ yarn-error.log*
 
 # Environment
 .env*
+!.env.example
 .vercel
 
 # TypeScript

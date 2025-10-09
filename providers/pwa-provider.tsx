@@ -29,9 +29,17 @@ export function PwaProvider({ children }: PwaProviderProps) {
       return;
     }
 
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      // no-op; registration will be retried on navigation
-    });
+    navigator.serviceWorker
+      .getRegistration("/service-worker.js")
+      .then((registration) => {
+        if (!registration) {
+          return navigator.serviceWorker.register("/service-worker.js");
+        }
+        return registration;
+      })
+      .catch(() => {
+        // no-op; registration will be retried on navigation
+      });
   }, []);
 
   useEffect(() => {

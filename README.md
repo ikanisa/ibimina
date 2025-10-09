@@ -65,8 +65,12 @@ supabase/                # Config, migrations, seed data
 
 ## Scripts
 
-- `npm run dev` – start the dev server
+- `npm run dev` – start the dev server on port 3000
+- `npm run build` – production build with PWA bundling
+- `npm run start` – serve the built app on port 3000 (127.0.0.1)
 - `npm run lint` – lint the project
-- `npm run build` – production build
+- `npm run check:lighthouse` – open a Lighthouse report against localhost
+- `npm run analyze:pwa` – run Lighthouse PWA checks against `https://localhost:3000`
+- `npm run verify:pwa` – validate manifest/head/service worker and probe `/api/health`
 
 Deployments continue through Lovable Cloud; push changes or publish from the Lovable dashboard when ready.

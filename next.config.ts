@@ -21,13 +21,29 @@ if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
   }
 }
 
+let withPWA = (config: NextConfig) => config;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const withPWAInit = require("next-pwa");
+  withPWA = withPWAInit({
+    dest: "public",
+    disable: process.env.NODE_ENV === "development",
+    register: true,
+    skipWaiting: true,
+    sw: "service-worker.js",
+  });
+} catch {
+  console.warn("next-pwa not available during local build; proceeding without service worker bundling.");
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname, "./"),
   images: {
     remotePatterns,
     formats: ["image/avif", "image/webp"],
+    unoptimized: true,
   },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);

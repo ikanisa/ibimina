@@ -1,31 +1,14 @@
 {
-  "name": "Ibimina Staff",
+  "name": "Ibimina Staff Console",
   "short_name": "Ibimina",
-  "description": "Staff-only PWA for Umurenge SACCO ibimina workflows.",
   "start_url": "/",
-  "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#0B1020",
-  "theme_color": "#00A1DE",
   "scope": "/",
-  "shortcuts": [
-    { "name": "Dashboard", "url": "/dashboard", "icons": [{ "src": "/icons/icon.svg", "sizes": "128x128" }] },
-    { "name": "Recon", "url": "/recon", "icons": [{ "src": "/icons/icon.svg", "sizes": "128x128" }] }
-  ],
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "description": "A fast, installable PWA for Umurenge SACCO ibimina staff deployed on Vercel.",
   "icons": [
-    {
-      "src": "/icons/icon.svg",
-      "type": "image/svg+xml",
-      "sizes": "192x192 512x512",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-maskable.svg",
-      "type": "image/svg+xml",
-      "sizes": "192x192 512x512",
-      "purpose": "maskable"
-    }
-  ],
-  "display_override": ["standalone", "fullscreen"],
-  "categories": ["finance", "productivity", "business"]
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }
