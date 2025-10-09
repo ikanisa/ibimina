@@ -41,6 +41,10 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
   }, [filters.from, filters.to]);
 
   const handleExport = (format: "pdf" | "csv") => {
+    if (ikiminaCount === 0) {
+      setErrorMessage("Select a SACCO or adjust the date range to include ikimina activity.");
+      return;
+    }
     setMessage(null);
     setErrorMessage(null);
 
@@ -135,7 +139,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           <button
             type="button"
             onClick={() => handleExport("pdf")}
-            disabled={pending}
+            disabled={pending || ikiminaCount === 0}
             className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
           >
             <BilingualText
@@ -149,7 +153,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           <button
             type="button"
             onClick={() => handleExport("csv")}
-            disabled={pending}
+            disabled={pending || ikiminaCount === 0}
             className="interactive-scale rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 disabled:opacity-60"
           >
             <BilingualText

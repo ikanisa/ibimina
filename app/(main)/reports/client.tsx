@@ -28,6 +28,13 @@ export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps
 
   const exportContext = useMemo(() => ({ ...filters }), [filters]);
 
+  const formatCurrency = (value: number, currency: string) =>
+    new Intl.NumberFormat("en-RW", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(value);
+
   return (
     <div className="space-y-8">
       <GradientHeader
@@ -41,6 +48,35 @@ export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps
         }
         badge={<span className="rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-[0.3em] text-ink">PWA-ready</span>}
       />
+
+      <GlassCard
+        title={<BilingualText primary="Summary" secondary="Igasobanuro" />}
+        subtitle={
+          <BilingualText
+            primary={previewSummary ? "Figures reflect the applied filters." : "Adjust filters to populate the summary."}
+            secondary={previewSummary ? "Imibare igendeye ku muyunguruzi watanze." : "Hindura muyunguruzi kugirango ubone ishusho."}
+            secondaryClassName="text-xs text-neutral-3"
+          />
+        }
+      >
+        <div className="grid gap-3 md:grid-cols-3">
+          <SummaryTile
+            labelPrimary="Total volume"
+            labelSecondary="Ingano y'umusanzu"
+            value={previewSummary ? formatCurrency(previewSummary.totalAmount, previewSummary.currency) : "—"}
+          />
+          <SummaryTile
+            labelPrimary="Transactions"
+            labelSecondary="Imishinga"
+            value={previewSummary ? String(previewSummary.totalTransactions) : "—"}
+          />
+          <SummaryTile
+            labelPrimary="Unique ikimina"
+            labelSecondary="Amatsinda"
+            value={previewSummary ? String(previewSummary.uniqueIkimina) : "—"}
+          />
+        </div>
+      </GlassCard>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <GlassCard
@@ -79,6 +115,25 @@ export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps
           </div>
         </GlassCard>
       </div>
+    </div>
+  );
+}
+
+function SummaryTile({
+  labelPrimary,
+  labelSecondary,
+  value,
+}: {
+  labelPrimary: string;
+  labelSecondary: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
+      <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+        <BilingualText primary={labelPrimary} secondary={labelSecondary} />
+      </p>
+      <p className="mt-3 text-2xl font-semibold text-neutral-0">{value}</p>
     </div>
   );
 }

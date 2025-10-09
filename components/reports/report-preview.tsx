@@ -286,7 +286,7 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
         {data.dailyTotals.length === 0 ? (
           <p className="mt-4 text-xs text-neutral-2">No posted transactions in this window.</p>
         ) : (
-          <div className="mt-6 flex items-end gap-2">
+          <div className="mt-6 flex h-40 items-end gap-2">
             {data.dailyTotals.map((entry) => {
               const barHeight = maxDailyAmount > 0 ? Math.max(8, Math.round((entry.amount / maxDailyAmount) * 100)) : 8;
               return (

@@ -28,9 +28,10 @@ export function ReportFilters({ initialSacco, onChange }: ReportFiltersProps) {
   };
 
   useEffect(() => {
-    emit({});
+    setSelectedSacco(initialSacco ?? null);
+    emit({ sacco: initialSacco ?? null, from: "", to: "" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialSacco?.id]);
 
   return (
     <div className="space-y-4 text-sm text-neutral-0">
@@ -72,6 +73,18 @@ export function ReportFilters({ initialSacco, onChange }: ReportFiltersProps) {
           />
         </div>
       </div>
+      <button
+        type="button"
+        onClick={() => {
+          setSelectedSacco(initialSacco ?? null);
+          setFrom("");
+          setTo("");
+          emit({ sacco: initialSacco ?? null, from: "", to: "" });
+        }}
+        className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-neutral-2 hover:border-white/30"
+      >
+        <BilingualText primary="Reset filters" secondary="Siba muyunguruzi" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+      </button>
       <p className="text-xs text-neutral-2">
         <BilingualText
           primary="Choose a SACCO or leave blank for global scope (system admins only). Date range defaults to the last 30 days."
