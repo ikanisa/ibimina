@@ -18,7 +18,7 @@ import type { Database } from "@/lib/supabase/types";
 
 export async function GET() {
   const { user, profile } = await requireUserAndProfile();
-  const requireMfa = profile.role === "SYSTEM_ADMIN";
+  const requireMfa = true;
 
   if (!profile.mfa_enabled) {
     return NextResponse.json({

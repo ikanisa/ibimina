@@ -1,0 +1,9 @@
+{
+  "addToHome.title": "Ajouter à votre écran d'accueil",
+  "addToHome.description": "Installez Ibimina Staff pour un accès plus rapide et un support hors ligne limité.",
+  "addToHome.install": "Installer",
+  "addToHome.dismiss": "Plus tard",
+  "actions.close": "Fermer",
+  "toast.genericSuccess": "C'est fait !",
+  "toast.genericError": "Une erreur est survenue. Veuillez réessayer."
+}

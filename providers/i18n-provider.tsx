@@ -1,12 +1,14 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import enCommon from "@/locales/en/common.json";
 import rwCommon from "@/locales/rw/common.json";
+import frCommon from "@/locales/fr/common.json";
 
 const DICTIONARIES = {
   en: enCommon as Record<string, string>,
   rw: rwCommon as Record<string, string>,
+  fr: frCommon as Record<string, string>,
 };
 
 type SupportedLocale = keyof typeof DICTIONARIES;
@@ -24,8 +26,23 @@ interface I18nProviderProps {
   defaultLocale?: SupportedLocale;
 }
 
-export function I18nProvider({ children, defaultLocale = "rw" }: I18nProviderProps) {
-  const [locale, setLocale] = useState<SupportedLocale>(defaultLocale);
+export function I18nProvider({ children, defaultLocale = "en" }: I18nProviderProps) {
+  const [locale, setLocaleState] = useState<SupportedLocale>(defaultLocale);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("ibimina_locale") as SupportedLocale | null;
+    if (stored && stored in DICTIONARIES) {
+      setLocaleState(stored);
+    }
+  }, []);
+
+  const setLocale = useCallback((next: SupportedLocale) => {
+    setLocaleState(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("ibimina_locale", next);
+    }
+  }, []);
 
   const dictionary = useMemo(() => DICTIONARIES[locale], [locale]);
 
@@ -44,7 +61,7 @@ export function I18nProvider({ children, defaultLocale = "rw" }: I18nProviderPro
       setLocale,
       t: translate,
     }),
-    [locale, translate],
+    [locale, setLocale, translate],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

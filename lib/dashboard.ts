@@ -36,12 +36,33 @@ export interface DashboardSummary {
   }>;
 }
 
+export const EMPTY_DASHBOARD_SUMMARY: DashboardSummary = {
+  totals: {
+    today: 0,
+    week: 0,
+    month: 0,
+    unallocated: 0,
+  },
+  activeIkimina: 0,
+  topIkimina: [],
+  missedContributors: [],
+};
+
 function toISOString(date: Date) {
   return date.toISOString();
 }
 
-export async function getDashboardSummary(saccoId: string | null): Promise<DashboardSummary> {
+interface DashboardSummaryParams {
+  saccoId: string | null;
+  allowAll: boolean;
+}
+
+export async function getDashboardSummary({ saccoId, allowAll }: DashboardSummaryParams): Promise<DashboardSummary> {
   const supabase = await createSupabaseServerClient();
+
+  if (!allowAll && !saccoId) {
+    return EMPTY_DASHBOARD_SUMMARY;
+  }
 
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -54,7 +75,7 @@ export async function getDashboardSummary(saccoId: string | null): Promise<Dashb
     .select("amount, status, occurred_at, ikimina_id, member_id")
     .gte("occurred_at", toISOString(startOfMonth));
 
-  if (saccoId) {
+  if (!allowAll) {
     paymentsQuery = paymentsQuery.eq("sacco_id", saccoId);
   }
 
@@ -136,7 +157,7 @@ export async function getDashboardSummary(saccoId: string | null): Promise<Dashb
       .order("updated_at", { ascending: false })
       .limit(5);
 
-    if (saccoId) {
+    if (!allowAll) {
       fallbackQuery = fallbackQuery.eq("sacco_id", saccoId);
     }
 

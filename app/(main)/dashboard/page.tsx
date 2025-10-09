@@ -48,7 +48,21 @@ const quickActions = [
 
 export default async function DashboardPage() {
   const { profile } = await requireUserAndProfile();
-  const summary = await getDashboardSummary(profile.role === "SYSTEM_ADMIN" ? null : profile.sacco_id);
+  const isSystemAdmin = profile.role === "SYSTEM_ADMIN";
+  const hasSacco = Boolean(profile.sacco_id);
+
+  if (!isSystemAdmin && !hasSacco) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <EmptyState
+          title="SACCO assignment required"
+          description="Contact a system administrator to link your account to a SACCO before continuing."
+        />
+      </div>
+    );
+  }
+
+  const summary = await getDashboardSummary({ saccoId: profile.sacco_id, allowAll: isSystemAdmin });
 
   const kpis = [
     { label: "Today's Deposits", value: formatCurrency(summary.totals.today), accent: "blue" as const },

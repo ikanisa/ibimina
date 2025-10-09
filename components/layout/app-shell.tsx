@@ -18,6 +18,7 @@ import {
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { BilingualText } from "@/components/common/bilingual-text";
+import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator";
 
@@ -183,22 +184,19 @@ export function AppShell({ children, profile }: AppShellProps) {
                   </Link>
                 ))}
               </nav>
-              <button
-                type="button"
-                onClick={() => setShowGlobalSearch(true)}
-                className="interactive-scale inline-flex items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/25 hover:text-neutral-0"
-                aria-haspopup="dialog"
-                aria-expanded={showGlobalSearch}
-              >
-                <Search className="h-4 w-4" aria-hidden />
-                <BilingualText
-                  primary="Search"
-                  secondary="Shakisha"
-                  layout="inline"
-                  className="items-center"
-                  secondaryClassName="text-[10px] text-neutral-2"
-                />
-              </button>
+              <div className="flex items-center gap-3">
+                <LanguageSwitcher className="hidden text-[10px] md:flex" />
+                <button
+                  type="button"
+                  onClick={() => setShowGlobalSearch(true)}
+                  className="interactive-scale inline-flex items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/25 hover:text-neutral-0"
+                  aria-haspopup="dialog"
+                  aria-expanded={showGlobalSearch}
+                >
+                  <Search className="h-4 w-4" aria-hidden />
+                  <BilingualText primary="Search" secondary="Shakisha" layout="inline" className="items-center" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
