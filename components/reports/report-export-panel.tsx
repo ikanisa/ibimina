@@ -43,6 +43,16 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
     return t("reports.scope.defaultRange", "Last 30 days (default)");
   }, [filters.from, filters.to, t]);
 
+  const dateValidation = useMemo(() => {
+    const parse = (s?: string) => (s ? new Date(`${s}T00:00:00`) : null);
+    const start = parse(filters.from);
+    const end = parse(filters.to);
+    if (filters.from && (!start || Number.isNaN(start.getTime()))) return { valid: false as const, reason: "invalid" as const };
+    if (filters.to && (!end || Number.isNaN(end.getTime()))) return { valid: false as const, reason: "invalid" as const };
+    if (start && end && start > end) return { valid: false as const, reason: "order" as const };
+    return { valid: true as const };
+  }, [filters.from, filters.to]);
+
   const handleExport = (format: "pdf" | "csv") => {
     if (ikiminaCount === 0) {
       setErrorMessage(t("reports.export.noData", "Select a SACCO or adjust the date range to include ikimina activity."));
@@ -52,6 +62,15 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
     setErrorMessage(null);
 
     startTransition(async () => {
+      if (!dateValidation.valid) {
+        const msg =
+          dateValidation.reason === "order"
+            ? t("reports.errors.startBeforeEnd", "Start date must be before end date")
+            : t("reports.errors.invalidDates", "Invalid date filters");
+        setErrorMessage(msg);
+        error(msg);
+        return;
+      }
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) {
         const msg = sessionError.message ?? t("auth.sessionFailed", "Session lookup failed");
@@ -120,6 +139,13 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.scope", "Scope")}</p>
           <p className="mt-1 font-medium text-neutral-0">{saccoLabel}</p>
           <p className="text-xs text-neutral-2">{rangeLabel}</p>
+          {!dateValidation.valid && (
+            <p className="mt-1 text-xs text-red-300">
+              {dateValidation.reason === "order"
+                ? t("reports.errors.startBeforeEnd", "Start date must be before end date")
+                : t("reports.errors.invalidDates", "Invalid date filters")}
+            </p>
+          )}
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-neutral-0">
           <label className="flex items-center justify-between gap-3">
@@ -164,7 +190,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           <button
             type="button"
             onClick={() => handleExport("pdf")}
-            disabled={pending || ikiminaCount === 0}
+            disabled={pending || ikiminaCount === 0 || !dateValidation.valid}
             className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
           >
             {pending ? t("common.exporting", "Exporting…") : t("common.downloadPdf", "Download PDF")}
@@ -172,7 +198,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           <button
             type="button"
             onClick={() => handleExport("csv")}
-            disabled={pending || ikiminaCount === 0}
+            disabled={pending || ikiminaCount === 0 || !dateValidation.valid}
             className="interactive-scale rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 disabled:opacity-60"
           >
             {pending ? t("common.exporting", "Exporting…") : t("common.downloadCsv", "Download CSV")}
