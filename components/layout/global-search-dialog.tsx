@@ -408,7 +408,7 @@ export function GlobalSearchDialog({
     return () => {
       active = false;
     };
-  }, [open, profile.role, profile.sacco_id, toast]);
+  }, [open, profile.role, profile.sacco_id, toast, t]);
 
   useEffect(() => {
     if (!open) return;
