@@ -123,6 +123,7 @@
   ,
   "reports.title": "Reports",
   "reports.subtitle": "Generate branded exports for SACCO leadership, auditors, and members.",
+  "reports.badge.pwa": "PWA-ready",
   "reports.summary.title": "Summary",
   "reports.summary.pending": "Adjust filters to populate the summary.",
   "reports.summary.ready": "Figures reflect the applied filters.",

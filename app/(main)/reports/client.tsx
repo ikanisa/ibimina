@@ -41,7 +41,7 @@ export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps
       <GradientHeader
         title={<span>{t("reports.title", "Reports")}</span>}
         subtitle={<span className="text-xs text-ink/70">{t("reports.subtitle", "Generate branded exports for SACCO leadership, auditors, and members.")}</span>}
-        badge={<span className="rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-[0.3em] text-ink">PWA-ready</span>}
+        badge={<span className="rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-[0.3em] text-ink">{t("reports.badge.pwa", "PWA-ready")}</span>}
       />
 
       <GlassCard
