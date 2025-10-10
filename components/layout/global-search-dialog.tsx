@@ -8,7 +8,7 @@ import { ArrowUpRight, Loader2, Search, X } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { SaccoSearchCombobox, type SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
 
 const supabase = getSupabaseBrowserClient();
@@ -127,6 +127,7 @@ export function GlobalSearchDialog({
   navItems,
   quickActions,
 }: GlobalSearchDialogProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [ikimina, setIkimina] = useState<IkiminaResult[]>([]);
@@ -546,11 +547,7 @@ export function GlobalSearchDialog({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <BilingualText
-            primary={<span className="text-lg font-semibold text-neutral-0">Search console</span>}
-            secondary="Shakisha ibimina"
-            secondaryClassName="text-[10px] uppercase tracking-[0.35em] text-neutral-2"
-          />
+          <span className="text-lg font-semibold text-neutral-0">{t("search.console.title", "Search console")}</span>
           <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-neutral-2">
             <span className="hidden rounded-full border border-white/15 px-3 py-1 md:inline-flex">⌘K</span>
             <button
@@ -558,13 +555,7 @@ export function GlobalSearchDialog({
               onClick={onClose}
               className="rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
             >
-              <BilingualText
-                primary="Close"
-                secondary="Funga"
-                layout="inline"
-                className="items-center gap-1"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
+              {t("actions.close", "Close")}
             </button>
           </div>
         </div>
@@ -575,7 +566,7 @@ export function GlobalSearchDialog({
             ref={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={toBilingual("Search ikimina, quick actions, or SACCO registry", "Shakisha amatsinda, ibikorwa byihuse, cyangwa urutonde rwa SACCO")}
+            placeholder={t("search.console.placeholder", "Search ikimina, quick actions, or SACCO registry")}
             className="w-full rounded-2xl border border-white/10 bg-white/10 py-3 pl-11 pr-4 text-sm text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
           />
           {query && (
@@ -585,7 +576,7 @@ export function GlobalSearchDialog({
               className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 text-neutral-2 transition hover:text-neutral-0"
               aria-label="Clear search"
             >
-              <span className="sr-only">{toBilingual("Clear", "Siba")}</span>
+              <span className="sr-only">{t("common.clear", "Clear")}</span>
               <X className="h-3.5 w-3.5" aria-hidden />
             </button>
           )}
@@ -594,10 +585,10 @@ export function GlobalSearchDialog({
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
           <aside className="space-y-5">
             <section>
-              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">Navigate</header>
+              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">{t("search.console.navigate", "Navigate")}</header>
               <ul className="space-y-2">
                 {filteredNav.length === 0 && (
-                  <li className="text-xs text-neutral-2">{toBilingual("No sections found.", "Nta gice cyabonetse.")}</li>
+                  <li className="text-xs text-neutral-2">{t("search.console.noSections", "No sections found.")}</li>
                 )}
                 {filteredNav.map((item) => (
                   <li key={item.href}>
@@ -617,12 +608,10 @@ export function GlobalSearchDialog({
             </section>
 
             <section>
-              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                Quick actions
-              </header>
+              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">{t("search.console.quickActions", "Quick actions")}</header>
               <ul className="space-y-2">
                 {filteredActions.length === 0 && (
-                  <li className="text-xs text-neutral-2">Try another phrase to find workflows.</li>
+                  <li className="text-xs text-neutral-2">{t("search.console.tryAnother", "Try another phrase to find workflows.")}</li>
                 )}
                 {filteredActions.map((action) => (
                   <li key={action.primary}>
@@ -646,13 +635,13 @@ export function GlobalSearchDialog({
           <section className="space-y-5">
             <div>
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <span>Ikimina search</span>
+                <span>{t("search.ikimina.title", "Ikimina search")}</span>
                 <span className="flex flex-col text-[10px] text-neutral-3">
-                  <span>{ikimina.length} loaded</span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-neutral-3/80">Last synced · {lastSyncedLabel}</span>
+                  <span>{ikimina.length} {t("search.common.loadedSuffix", "loaded")}</span>
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-neutral-3/80">{t("search.common.lastSyncedPrefix", "Last synced")} · {lastSyncedLabel}</span>
                   {showRefreshBadge && (
                     <span className="mt-1 inline-flex items-center gap-1 self-start rounded-full bg-rw-blue/20 px-2 py-1 text-[9px] uppercase tracking-[0.3em] text-neutral-0">
-                      <span className="h-2 w-2 rounded-full bg-rw-yellow" /> {toBilingual("Updated", "Byavuguruwe")}
+                      <span className="h-2 w-2 rounded-full bg-rw-yellow" /> {t("common.updated", "Updated")}
                     </span>
                   )}
                 </span>
@@ -666,7 +655,7 @@ export function GlobalSearchDialog({
                   <div className="px-4 py-6 text-sm text-red-300">{error}</div>
                 ) : filteredIkimina.length === 0 ? (
                   <div className="px-4 py-6 text-sm text-neutral-2">
-                    {toBilingual(`No ikimina match “${query}”. Try refining the term or clear the search.`, `Nta ikimina rihura na “${query}”. Hindura uko ushakisha cyangwa siba.`)}
+                    {t("search.ikimina.noMatch", "No ikimina match your search. Try refining the term or clear the search.")}
                   </div>
                 ) : (
                   <ul className="divide-y divide-white/5 text-sm text-neutral-0">
@@ -695,8 +684,8 @@ export function GlobalSearchDialog({
 
             <div>
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <span>Member search</span>
-                <span className="text-[10px] text-neutral-3">{members.length} loaded</span>
+                <span>{t("search.members.title", "Member search")}</span>
+                <span className="text-[10px] text-neutral-3">{members.length} {t("search.common.loadedSuffix", "loaded")}</span>
               </header>
               <div className="max-h-72 overflow-y-auto rounded-2xl border border-white/10">
                 {membersLoading ? (
@@ -707,7 +696,7 @@ export function GlobalSearchDialog({
                   <div className="px-4 py-6 text-sm text-red-300">{membersError}</div>
                 ) : filteredMembers.length === 0 ? (
                   <div className="px-4 py-6 text-sm text-neutral-2">
-                    No members found for “{query}”. Try another code, name, or phone number.
+                    {t("search.members.none", "No members match your search. Try another code, name, or phone number.")}
                   </div>
                 ) : (
                   <ul className="divide-y divide-white/5 text-sm text-neutral-0">
@@ -766,7 +755,7 @@ export function GlobalSearchDialog({
                   <div className="px-4 py-6 text-sm text-red-300">{paymentsError}</div>
                 ) : filteredPayments.length === 0 ? (
                   <div className="px-4 py-6 text-sm text-neutral-2">
-                    No payments match “{query}”. Search by reference, member, or status.
+                    {t("search.payments.none", "No payments match your search. Search by reference, member, or status.")}
                   </div>
                 ) : (
                   <ul className="divide-y divide-white/5 text-sm text-neutral-0">
@@ -807,13 +796,11 @@ export function GlobalSearchDialog({
             </div>
 
             <div>
-              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                Semantic SACCO picker
-              </header>
+              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">{t("search.saccoPicker.title", "Semantic SACCO picker")}</header>
               <SaccoSearchCombobox
                 value={selectedSacco}
                 onChange={(value) => setSelectedSacco(value)}
-                placeholder="Search Umurenge SACCOs by name or district"
+                placeholder={t("search.saccoPicker.placeholder", "Search Umurenge SACCOs by name or district")}
               />
               {selectedSacco && (
                 <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-0">
@@ -831,12 +818,10 @@ export function GlobalSearchDialog({
                       }}
                       className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/25 hover:bg-white/10"
                     >
-                      Manage in admin <ArrowUpRight className="h-3.5 w-3.5" />
+                      {t("search.saccoPicker.manageInAdmin", "Manage in admin")} <ArrowUpRight className="h-3.5 w-3.5" />
                     </button>
                   ) : (
-                    <p className="mt-3 text-[11px] text-neutral-2">
-                      Contact your system administrator to update SACCO metadata.
-                    </p>
+                    <p className="mt-3 text-[11px] text-neutral-2">{t("search.saccoPicker.contactAdmin", "Contact your system administrator to update SACCO metadata.")}</p>
                   )}
                 </div>
               )}

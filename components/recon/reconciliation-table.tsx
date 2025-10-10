@@ -7,7 +7,7 @@ import { StatusChip } from "@/components/common/status-chip";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { useOfflineQueue } from "@/providers/offline-queue-provider";
 
 const supabase = getSupabaseBrowserClient();
@@ -132,6 +132,7 @@ const reasonGuidance: Record<ReasonChip["id"], { primary: string; secondary: str
 };
 
 export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationTableProps) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<ReconciliationRow | null>(null);
   const [newStatus, setNewStatus] = useState<string>("POSTED");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -320,7 +321,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
           secondary: `${selectedIds.length} ku ${statusLabel.secondary}`,
         },
       });
-      setBulkMessage(joinBilingual("Queued for sync when you're back online.", "Bizahuzwa umaze gusubira kuri murandasi."));
+      setBulkMessage(t("recon.bulk.queuedOffline", "Queued for sync when you're back online."));
       setBulkError(null);
       setSelectedIds([]);
       return;
@@ -335,18 +336,16 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         .update({ status })
         .in("id", selectedIds);
       if (error) {
-        const message = error.message ?? "Failed to update status";
-        const bilingualMessage = joinBilingual(message, "Guhindura imiterere byanze");
-        setBulkError(bilingualMessage);
-        toastError(bilingualMessage);
+        const message = error.message ?? t("recon.errors.statusUpdateFailed", "Failed to update status");
+        setBulkError(message);
+        toastError(message);
         return;
       }
       const statusLabel = getStatusLabel(status);
       const count = selectedIds.length;
       const messageEn = `Updated ${count} payment(s) to ${statusLabel.primary}. Refresh to verify.`;
-      const messageRw = `Byavuguruye imisanzu ${count} kuri ${statusLabel.secondary}. Ongera wemeze.`;
-      setBulkMessage(joinBilingual(messageEn, messageRw));
-      toastSuccess(joinBilingual(`Marked ${count} payment(s) as ${statusLabel.primary}`, `Imisanzu ${count} yashyizwe kuri ${statusLabel.secondary}`));
+      setBulkMessage(messageEn);
+      toastSuccess(`Marked ${count} payment(s) as ${statusLabel.primary}`);
       setSelectedIds([]);
     });
   };
@@ -365,7 +364,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
           secondary: `${selectedIds.length} kuri ${trimmed}`,
         },
       });
-      setBulkMessage(joinBilingual("Queued for sync when you're online.", "Bizahuzwa umaze kuboneka ku murandasi."));
+      setBulkMessage(t("recon.bulk.queuedOnline", "Queued for sync when you're online."));
       setBulkError(null);
       setSelectedIds([]);
       setBulkIkiminaId("");
@@ -380,17 +379,15 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         .update({ ikimina_id: trimmed })
         .in("id", selectedIds);
       if (error) {
-        const message = error.message ?? "Failed to assign ikimina";
-        const bilingualMessage = joinBilingual(message, "Guhuza n'ikimina byanze");
-        setBulkError(bilingualMessage);
-        toastError(bilingualMessage);
+        const message = error.message ?? t("recon.errors.bulkAssignFailed", "Failed to assign group");
+        setBulkError(message);
+        toastError(message);
         return;
       }
       const count = selectedIds.length;
       const assignedEn = `Assigned ${count} payment(s) to ikimina.`;
-      const assignedRw = `Imisanzu ${count} yashyizwe ku ikimina.`;
-      setBulkMessage(joinBilingual(assignedEn, assignedRw));
-      toastSuccess(joinBilingual(`Assigned ${count} payment(s).`, `Imisanzu ${count} yashyizweho.`));
+      setBulkMessage(assignedEn);
+      toastSuccess(`Assigned ${count} payment(s).`);
       setSelectedIds([]);
       setBulkIkiminaId("");
     });
@@ -399,26 +396,26 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
   const handleBulkAssignByReference = () => {
     if (!canWrite || selectedIds.length === 0) return;
     if (!offlineQueue.isOnline) {
-      setBulkError(joinBilingual("Auto assignment requires a connection.", "Guhuza byikora bisaba murandasi."));
+      setBulkError(t("recon.errors.autoAssignOffline", "Auto assignment requires a connection."));
       return;
     }
     const references = selectedIds
       .map((id) => rowMap.get(id)?.reference ?? null)
       .filter((value): value is string => Boolean(value));
     if (references.length !== selectedIds.length) {
-      setBulkError(joinBilingual("All selected rows must share a reference to auto-assign.", "Imirongo yose igomba kugirana indango imwe kugirango ihuzwe byikora."));
+      setBulkError(t("recon.errors.sameReferenceRequired", "All selected rows must share a reference to auto-assign."));
       return;
     }
     const uniqueReferences = Array.from(new Set(references));
     if (uniqueReferences.length !== 1) {
-      setBulkError(joinBilingual("Selected rows do not share the same reference.", "Imirongo mutoranyije nta indango imwe ifite."));
+      setBulkError(t("recon.errors.noSharedReference", "Selected rows do not share the same reference."));
       return;
     }
 
     const sharedReference = uniqueReferences[0];
     const parts = sharedReference.split(".");
     if (parts.length < 3) {
-      setBulkError(joinBilingual("Reference does not include an ikimina code.", "Indango ntiyerekana kode y'ikimina."));
+      setBulkError(t("recon.errors.noIkiminaCode", "Reference does not include an ikimina code."));
       return;
     }
 
@@ -487,7 +484,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         },
       });
       setActionError(null);
-      setActionMessage(joinBilingual("Queued for sync when you're back online.", "Byateguwe kuzahuzwa umaze gusubira kuri murandasi."));
+      setActionMessage(t("recon.action.queuedOffline", "Queued for sync when you're back online."));
       return;
     }
     startTransition(async () => {
@@ -500,12 +497,12 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         .eq("id", selected.id);
       if (error) {
         const message = error.message ?? "Failed to update status";
-        setActionError(joinBilingual(message, "Guhindura imiterere byanze"));
+        setActionError(message ?? t("recon.errors.statusUpdateFailed", "Failed to update status"));
         return;
       }
       const statusLabel = getStatusLabel(newStatus);
-      setActionMessage(joinBilingual("Status updated. Refresh the page to see latest data.", "Imiterere yavuguruwe. Ongera usubize urupapuro."));
-      toastSuccess(joinBilingual(`Status updated to ${statusLabel.primary}`, `Imiterere yahinduwe kuri ${statusLabel.secondary}`));
+      setActionMessage(t("recon.action.statusUpdated", "Status updated. Refresh the page to see latest data."));
+      toastSuccess(`Status updated to ${statusLabel.primary}`);
     });
   };
 
@@ -521,7 +518,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         },
       });
       setActionError(null);
-      setActionMessage(joinBilingual("Queued for sync when you're back online.", "Byashyizwe mu rutonde kuzahuzwa umaze gusubira kuri murandasi."));
+      setActionMessage(t("recon.action.queuedOffline", "Queued for sync when you're back online."));
       return;
     }
     startTransition(async () => {
@@ -533,12 +530,12 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         .update({ ikimina_id: ikiminaId, member_id: memberId })
         .eq("id", selected.id);
       if (error) {
-        const message = error.message ?? "Failed to assign";
-        setActionError(joinBilingual(message, "Guhuza byanze"));
+        const message = error.message ?? t("recon.errors.assignFailed", "Failed to assign");
+        setActionError(message);
         return;
       }
-      setActionMessage(joinBilingual("Assigned to ikimina. Refresh to verify.", "Byahuye n'ikimina. Ongera usubize urupapuro."));
-      toastSuccess(joinBilingual("Payment updated", "Imisanzu yavuguruwe"));
+      setActionMessage(t("recon.action.assigned", "Assigned to ikimina. Refresh to verify."));
+      toastSuccess(t("recon.action.paymentUpdated", "Payment updated"));
     });
   };
 
@@ -559,16 +556,13 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     if (!selected) return;
     const targetIkiminaId = suggestion.ikimina_id ?? selected.ikimina_id;
     if (!targetIkiminaId) {
-      const bilingual = joinBilingual(
-        "Suggestion missing ikimina. Assign a group manually.",
-        "Icyifuzo ntigaragaza ikimina. Banza uhitemo itsinda."
-      );
-      setActionError(bilingual);
-      toastError(bilingual);
+      const msg = t("recon.ai.missingIkimina", "Suggestion missing ikimina. Assign a group manually.");
+      setActionError(msg);
+      toastError(msg);
       return;
     }
     if (!canWrite) {
-      toastError(joinBilingual("Upgrade access to apply AI suggestions.", "Ongera uburenganzira kugira ngo ukoreshe icyifuzo."));
+      toastError(t("recon.ai.upgradeRequired", "Upgrade access to apply AI suggestions."));
       return;
     }
     handleAssignToIkimina(targetIkiminaId, suggestion.member_id);
@@ -647,8 +641,8 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       }
 
       if (error) {
-        const message = error.message ?? "Member search failed";
-        toastError(joinBilingual(message, "Gushakisha abanyamuryango byanze"));
+      const message = error.message ?? t("recon.search.memberFailed", "Member search failed");
+      toastError(message);
         setMemberResults([]);
       } else {
         type RawMember = {
@@ -678,7 +672,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [memberQuery, selected, saccoId, toastError, canWrite]);
+  }, [memberQuery, selected, saccoId, toastError, canWrite, t]);
 
   useEffect(() => {
     if (!selected) {
@@ -809,32 +803,24 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="w-full sm:w-64">
           <Input
-            label="Search / Shakisha"
-            placeholder="Reference, MSISDN, txn id / Indango, nimero cyangwa kode"
+            label={t("common.search", "Search")}
+            placeholder={t("recon.search.placeholder", "Reference, MSISDN, txn id")}
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
         </div>
         <div className="flex items-center gap-2 text-xs text-neutral-2">
-          <label htmlFor="status-filter">
-            <BilingualText
-              primary="Status"
-              secondary="Imiterere"
-              layout="inline"
-              className="items-center gap-1"
-              secondaryClassName="text-[10px] text-neutral-3"
-            />
-          </label>
+          <label htmlFor="status-filter" className="items-center gap-1">{t("table.status", "Status")}</label>
           <select
             id="status-filter"
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
             className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs uppercase tracking-[0.3em] text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
           >
-            <option value="ALL">All / Byose</option>
+            <option value="ALL">{t("common.all", "All")}</option>
             {STATUS_OPTIONS.map((option) => (
               <option key={option} value={option}>
-            {joinBilingual(option, getStatusLabel(option).secondary.toUpperCase())}
+                {option}
               </option>
             ))}
           </select>
@@ -847,13 +833,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             showDuplicatesOnly ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
           )}
         >
-          <BilingualText
-            primary="Duplicates only"
-            secondary="Byisubiyemo gusa"
-            layout="inline"
-            className="items-center gap-1"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
+          {t("recon.filters.duplicatesOnly", "Duplicates only")}
         </button>
         <button
           type="button"
@@ -863,13 +843,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             showLowConfidence ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
           )}
         >
-          <BilingualText
-            primary="Low confidence"
-            secondary="Icyizere gito"
-            layout="inline"
-            className="items-center gap-1"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
+          {t("recon.filters.lowConfidence", "Low confidence")}
         </button>
         <div className="flex flex-wrap gap-2">
           {reasonEntries.map((reason) => {
@@ -890,13 +864,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                   isActive ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
                 )}
               >
-                <BilingualText
-                  primary={reason.label.primary}
-                  secondary={reason.label.secondary}
-                  layout="inline"
-                  className="items-center gap-2"
-                  secondaryClassName="text-[10px] text-neutral-3"
-                />
+                <span className="items-center gap-2">{reason.label.primary}</span>
               </button>
             );
           })}
@@ -905,20 +873,14 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
 
       {canWrite && selectedIds.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-white/5 px-4 py-3 text-xs text-neutral-0">
-          <span>{joinBilingual(`${selectedIds.length} selected`, `${selectedIds.length} byatoranyijwe`)}</span>
+          <span>{`${selectedIds.length} ${t("recon.bulk.selectedSuffix", "selected")}`}</span>
           <button
             type="button"
             onClick={() => handleBulkStatus("POSTED")}
             disabled={pending || !canWrite}
             className="interactive-scale rounded-full bg-kigali px-3 py-1 text-ink shadow-glass disabled:opacity-60"
           >
-            <BilingualText
-              primary="Mark posted"
-              secondary="Shyira kuri byemejwe"
-              layout="inline"
-              className="items-center gap-1"
-              secondaryClassName="text-[10px] text-neutral-3"
-            />
+            {t("recon.actions.markPosted", "Mark posted")}
           </button>
           <button
             type="button"
@@ -926,18 +888,12 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             disabled={pending || !canWrite}
             className="interactive-scale rounded-full border border-white/15 px-3 py-1 text-neutral-0 disabled:opacity-60"
           >
-            <BilingualText
-              primary="Reject"
-              secondary="Byanzwe"
-              layout="inline"
-              className="items-center gap-1"
-              secondaryClassName="text-[10px] text-neutral-3"
-            />
+            {t("recon.actions.reject", "Reject")}
           </button>
           <div className="flex items-center gap-2">
             <input
               type="text"
-              placeholder="Ikimina UUID / Icyiciro"
+              placeholder={t("recon.bulk.ikiminaPlaceholder", "Ikimina UUID")}
               value={bulkIkiminaId}
               onChange={(event) => setBulkIkiminaId(event.target.value)}
               className="w-40 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-neutral-0 placeholder:text-neutral-3 focus:outline-none focus:ring-2 focus:ring-rw-blue"
@@ -949,13 +905,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
               disabled={pending || !bulkIkiminaId.trim() || !canWrite}
               className="interactive-scale rounded-full bg-white/15 px-3 py-1 text-neutral-0 disabled:opacity-60"
             >
-              <BilingualText
-                primary="Assign group"
-                secondary="Huza n'ikimina"
-                layout="inline"
-                className="items-center gap-1"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
+              {t("recon.actions.assignGroup", "Assign group")}
             </button>
           </div>
           {sharedReference && (
@@ -965,13 +915,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
               disabled={pending}
               className="rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-0"
             >
-              <BilingualText
-                primary="Assign via reference"
-                secondary="Huza uko indango ibigaragaza"
-                layout="inline"
-                className="items-center gap-1"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
+              {t("recon.actions.assignViaReference", "Assign via reference")}
             </button>
           )}
           <button
@@ -980,13 +924,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             disabled={!canWrite}
             className="text-neutral-2 hover:text-neutral-0 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <BilingualText
-              primary="Clear"
-              secondary="Siba"
-              layout="inline"
-              className="items-center gap-1"
-              secondaryClassName="text-[10px] text-neutral-3"
-            />
+            {t("common.clear", "Clear")}
           </button>
           {bulkMessage && <span className="text-[11px] text-emerald-200">{bulkMessage}</span>}
           {bulkError && <span className="text-[11px] text-amber-200">{bulkError}</span>}
@@ -1007,31 +945,19 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                   className="h-4 w-4 rounded border-white/30 bg-transparent disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </th>
-              <th className="px-4 py-3">
-                <BilingualText primary="Occurred" secondary="Igihe" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-              </th>
-              <th className="px-4 py-3">
-                <BilingualText primary="Amount" secondary="Amafaranga" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-              </th>
-              <th className="px-4 py-3">
-                <BilingualText primary="Reference" secondary="Indango" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-              </th>
-              <th className="px-4 py-3">
-                <BilingualText primary="MSISDN" secondary="Numero" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-              </th>
-              <th className="px-4 py-3">
-                <BilingualText primary="Reasons" secondary="Impamvu" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-              </th>
-              <th className="px-4 py-3">
-                <BilingualText primary="Status" secondary="Imiterere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-              </th>
+              <th className="px-4 py-3">{t("table.occurred", "Occurred")}</th>
+              <th className="px-4 py-3">{t("table.amount", "Amount")}</th>
+              <th className="px-4 py-3">{t("table.reference", "Reference")}</th>
+              <th className="px-4 py-3">{t("table.msisdn", "MSISDN")}</th>
+              <th className="px-4 py-3">{t("table.reasons", "Reasons")}</th>
+              <th className="px-4 py-3">{t("table.status", "Status")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {displayRows.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-neutral-2">
-                  {joinBilingual("No exceptions match your filters.", "Nta kibazo gihuye n'uburyo bwo muyunguruza." )}
+                  {t("recon.empty", "No exceptions match your filters.")}
                 </td>
               </tr>
             )}
@@ -1081,13 +1007,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                             )}
                             title={title}
                           >
-                            <BilingualText
-                              primary={reason.label.primary}
-                              secondary={reason.label.secondary}
-                              layout="inline"
-                              className="items-center gap-1"
-                              secondaryClassName="text-[10px] text-neutral-3"
-                            />
+                          <span className="items-center gap-1">{reason.label.primary}</span>
                           </span>
                         );
                       })}
@@ -1098,12 +1018,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                       const label = getStatusLabel(row.status);
                       return (
                         <StatusChip tone={row.status === "UNALLOCATED" ? "critical" : row.status === "POSTED" || row.status === "SETTLED" ? "success" : "warning"}>
-                          <BilingualText
-                            primary={label.primary.toUpperCase()}
-                            secondary={label.secondary.toUpperCase()}
-                            layout="stack"
-                            secondaryClassName="text-[9px] text-neutral-3"
-                          />
+                          <span>{label.primary.toUpperCase()}</span>
                         </StatusChip>
                       );
                     })()}
@@ -1123,72 +1038,45 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
               className="interactive-scale absolute right-4 top-4 text-sm text-neutral-2 hover:text-neutral-0"
               onClick={handleClose}
             >
-              <BilingualText
-                primary="Close"
-                secondary="Funga"
-                layout="inline"
-                className="items-center gap-1"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
+              {t("common.close", "Close")}
               <span aria-hidden className="ml-1">✕</span>
             </button>
             <div className="pt-6 text-sm text-neutral-0">
-              <h3 className="text-lg font-semibold">
-                <BilingualText
-                  primary="Transaction Details"
-                  secondary="Ibisobanuro by'ubwishyu"
-                  secondaryClassName="text-sm text-neutral-3"
-                />
-              </h3>
+              <h3 className="text-lg font-semibold">{t("recon.detail.title", "Transaction Details")}</h3>
               <dl className="mt-3 space-y-2 text-xs text-neutral-2">
                 <div>
-                  <dt className="uppercase tracking-[0.2em]">
-                    <BilingualText primary="Occurred" secondary="Igihe" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                  </dt>
+                  <dt className="uppercase tracking-[0.2em]">{t("table.occurred", "Occurred")}</dt>
                   <dd>{new Date(selected.occurred_at).toLocaleString()}</dd>
                 </div>
                 <div>
-                  <dt className="uppercase tracking-[0.2em]">
-                    <BilingualText primary="Amount" secondary="Amafaranga" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                  </dt>
+                  <dt className="uppercase tracking-[0.2em]">{t("table.amount", "Amount")}</dt>
                   <dd>
                     {new Intl.NumberFormat("en-RW", { style: "currency", currency: selected.currency ?? "RWF", maximumFractionDigits: 0 }).format(selected.amount)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="uppercase tracking-[0.2em]">
-                    <BilingualText primary="Reference" secondary="Indango" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                  </dt>
+                  <dt className="uppercase tracking-[0.2em]">{t("table.reference", "Reference")}</dt>
                   <dd>{selected.reference ?? "—"}</dd>
                 </div>
                 <div>
-                  <dt className="uppercase tracking-[0.2em]">
-                    <BilingualText primary="MSISDN" secondary="Numero" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                  </dt>
+                  <dt className="uppercase tracking-[0.2em]">{t("table.msisdn", "MSISDN")}</dt>
                   <dd>{selected.msisdn ?? "—"}</dd>
                 </div>
                 <div>
-                  <dt className="uppercase tracking-[0.2em]">
-                    <BilingualText primary="Status" secondary="Imiterere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                  </dt>
+                  <dt className="uppercase tracking-[0.2em]">{t("table.status", "Status")}</dt>
                   <dd>
                     {(() => {
-                      const label = getStatusLabel(selected.status);
-                      return joinBilingual(selected.status, label.secondary.toUpperCase());
+                      return selected.status;
                     })()}
                   </dd>
                 </div>
                 <div>
-                  <dt className="uppercase tracking-[0.2em]">
-                    <BilingualText primary="Confidence" secondary="Icyizere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                  </dt>
+                  <dt className="uppercase tracking-[0.2em]">{t("recon.detail.confidence", "Confidence")}</dt>
                   <dd>{selected.confidence != null ? `${Math.round(selected.confidence * 100)}%` : "—"}</dd>
                 </div>
                 {selectedReasons.length > 0 && (
                   <div>
-                    <dt className="uppercase tracking-[0.2em]">
-                      <BilingualText primary="Reason tags" secondary="Impamvu" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                    </dt>
+                    <dt className="uppercase tracking-[0.2em]">{t("recon.detail.reasonTags", "Reason tags")}</dt>
                     <dd>
                       <div className="mt-1 flex flex-wrap gap-1">
                        {selectedReasons.map((reason) => (
@@ -1201,13 +1089,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                               reason.tone === "info" && "bg-white/10 text-neutral-0"
                             )}
                           >
-                            <BilingualText
-                              primary={reason.label.primary}
-                              secondary={reason.label.secondary}
-                              layout="inline"
-                              className="items-center gap-1"
-                              secondaryClassName="text-[10px] text-neutral-3"
-                            />
+                            {reason.label.primary}
                           </span>
                         ))}
                       </div>
@@ -1216,9 +1098,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                 )}
                 {selectedReasons.length > 0 && (
                   <div>
-                    <dt className="uppercase tracking-[0.2em]">
-                      <BilingualText primary="Audit hints" secondary="Inama z'igenzura" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                    </dt>
+                    <dt className="uppercase tracking-[0.2em]">{t("recon.detail.auditHints", "Audit hints")}</dt>
                     <dd>
                       <ul className="mt-2 space-y-2">
                         {selectedReasons.map((reason) => {
@@ -1226,7 +1106,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                           if (!guidance) return null;
                           return (
                             <li key={`hint-${reason.id}`} className="rounded-xl bg-white/10 px-3 py-2 text-neutral-0">
-                              {joinBilingual(guidance.primary, guidance.secondary)}
+                              {guidance.primary}
                             </li>
                           );
                         })}
@@ -1248,16 +1128,14 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
               <pre className="max-h-48 overflow-y-auto rounded-xl bg-black/40 p-4 text-xs text-neutral-2">
                 {selected.source?.parsed_json
                   ? JSON.stringify(selected.source.parsed_json, null, 2)
-                  : joinBilingual("No parser output", "Nta bisohoka mu gusobanura")}
+                  : t("recon.detail.noParserOutput", "No parser output")}
               </pre>
             </div>
 
             <div className="space-y-3 text-sm text-neutral-0">
               <h4 className="font-semibold">Actions</h4>
               <div className="space-y-2 text-xs text-neutral-2">
-                <label className="block uppercase tracking-[0.2em]">
-                  <BilingualText primary="Update status" secondary="Hindura imiterere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                </label>
+                <label className="block uppercase tracking-[0.2em]">{t("recon.detail.updateStatus", "Update status")}</label>
                 <select
           value={newStatus}
           onChange={(event) => setNewStatus(event.target.value)}
@@ -1267,7 +1145,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             const label = getStatusLabel(status);
             return (
               <option key={status} value={status}>
-                {joinBilingual(status, label.secondary.toUpperCase())}
+                {label.primary}
               </option>
             );
           })}
@@ -1278,45 +1156,32 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                   disabled={pending}
                   className="interactive-scale w-full rounded-xl bg-kigali py-2 text-xs font-semibold uppercase tracking-wide text-ink shadow-glass disabled:opacity-60"
                 >
-                  {pending ? joinBilingual("Saving…", "Kubika…") : joinBilingual("Save status", "Bika imiterere")}
+                  {pending ? t("common.saving", "Saving…") : t("recon.detail.saveStatus", "Save status")}
                 </button>
               </div>
               <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">
                 <div className="flex items-center justify-between">
-                  <span className="uppercase tracking-[0.2em] text-neutral-2">
-                    <BilingualText primary="AI suggestion" secondary="Inama ya AI" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                  </span>
+                  <span className="uppercase tracking-[0.2em] text-neutral-2">{t("recon.ai.title", "AI suggestion")}</span>
                   <button
                     type="button"
                     onClick={refreshAiSuggestion}
                     className="text-[11px] text-neutral-2 underline-offset-2 hover:underline"
                   >
-                    {joinBilingual("Retry", "Ongera")}
+                    {t("common.retry", "Retry")}
                   </button>
                 </div>
-                {aiStatus === "loading" && (
-                  <p>{joinBilingual("Analyzing payment…", "Irasesengura ubwishyu…")}</p>
-                )}
+                {aiStatus === "loading" && <p>{t("recon.ai.analyzing", "Analyzing payment…")}</p>}
                 {aiStatus === "error" && aiError && (
                   <p className="text-rose-300">{aiError}</p>
                 )}
                 {aiStatus === "ready" && aiSuggestion && (
                   <div className="space-y-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-neutral-0">
-                    <p className="font-semibold text-sm">
-                      {joinBilingual("Suggested member", "Umugenerwa w'icyifuzo")}
-                    </p>
+                    <p className="font-semibold text-sm">{t("recon.ai.suggestedMember", "Suggested member")}</p>
                     <p className="text-xs text-neutral-2">{aiSuggestion.reason}</p>
                     <div className="flex items-center justify-between text-[11px] text-neutral-2">
-                      <span>
-                        {joinBilingual(
-                          `Confidence ${Math.round(aiSuggestion.confidence * 100)}%`,
-                          `Icyizere ${Math.round(aiSuggestion.confidence * 100)}%`
-                        )}
-                      </span>
+                      <span>{t("recon.detail.confidence", "Confidence")} {Math.round(aiSuggestion.confidence * 100)}%</span>
                       {aiSuggestion.member_code && (
-                        <span>
-                          {joinBilingual(`Code ${aiSuggestion.member_code}`, `Kode ${aiSuggestion.member_code}`)}
-                        </span>
+                        <span>{t("recon.ai.code", "Code")} {aiSuggestion.member_code}</span>
                       )}
                     </div>
                     <button
@@ -1325,23 +1190,19 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                       disabled={!canWrite}
                       className="w-full rounded-xl bg-kigali py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {joinBilingual("Apply suggestion", "Kurikiza icyifuzo")}
+                      {t("recon.ai.apply", "Apply suggestion")}
                     </button>
                   </div>
                 )}
-                {aiStatus === "ready" && !aiSuggestion && (
-                  <p>{joinBilingual("No confident suggestion. Review alternatives or assign manually.", "Nta cyizere gihagije. Reba amahitamo cyangwa uhuze intoki.")}</p>
-                )}
+                {aiStatus === "ready" && !aiSuggestion && <p>{t("recon.ai.noConfident", "No confident suggestion. Review alternatives or assign manually.")}</p>}
                 {aiStatus === "ready" && aiAlternatives.length > 0 && (
                   <div className="space-y-1">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-2">
-                      {joinBilingual("Other options", "Andi mahitamo")}
-                    </p>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-2">{t("recon.ai.otherOptions", "Other options")}</p>
                     <ul className="space-y-1">
                       {aiAlternatives.map((option) => (
                         <li key={`${option.member_id}-${option.reason}`} className="flex items-center justify-between gap-3 rounded-xl bg-black/15 px-3 py-2">
                           <div className="text-left text-[11px] text-neutral-0">
-                            <p className="font-semibold">{joinBilingual(option.reason, option.reason)}</p>
+                            <p className="font-semibold">{option.reason}</p>
                             <p className="text-neutral-2">
                               {joinBilingual(
                                 `Confidence ${Math.round(option.confidence * 100)}%`,
@@ -1353,10 +1214,10 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                             type="button"
                             onClick={() => applyAiSuggestion(option)}
                             disabled={!canWrite}
-                            title={!canWrite ? joinBilingual("Read-only access", "Uburenganzira bwo gusoma gusa") : undefined}
+                            title={!canWrite ? t("common.readOnly", "Read-only access") : undefined}
                             className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/40 disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            {joinBilingual("Apply", "Shyiraho")}
+                            {t("common.apply", "Apply")}
                           </button>
                         </li>
                       ))}
@@ -1365,14 +1226,12 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                 )}
               </div>
               <div className="space-y-2 text-xs text-neutral-2">
-                <label className="block uppercase tracking-[0.2em]">
-                  <BilingualText primary="Assign to ikimina (ID)" secondary="Huza ku ikimina (ID)" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                </label>
+                <label className="block uppercase tracking-[0.2em]">{t("recon.detail.assignLabel", "Assign to ikimina (ID)")}</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
                     className="flex-1 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                    placeholder={joinBilingual("Paste ikimina UUID", "Shyiramo UUID y'ikimina")}
+                    placeholder={t("recon.detail.assignPlaceholder", "Paste ikimina UUID")}
                     onBlur={(event) => {
                       const value = event.currentTarget.value.trim();
                       if (value) {
@@ -1381,13 +1240,11 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                       }
                     }}
                   />
-                  <span className="text-[10px] text-neutral-2">{joinBilingual("On blur to apply", "Bikora uhise ubisohokamo")}</span>
+                  <span className="text-[10px] text-neutral-2">{t("recon.detail.assignHint", "On blur to apply")}</span>
                 </div>
               </div>
               <div className="space-y-2 text-xs text-neutral-2">
-                <label className="block uppercase tracking-[0.2em]">
-                  <BilingualText primary="Link to member" secondary="Huza ku munyamuryango" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                </label>
+                <label className="block uppercase tracking-[0.2em]">{t("recon.detail.linkMember", "Link to member")}</label>
                 {recommendedQueries.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {recommendedQueries.map((item) => (
@@ -1397,13 +1254,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                         onClick={() => setMemberQuery(item.value)}
                         className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-neutral-0 hover:border-white/30"
                       >
-                        <BilingualText
-                          primary={item.primary}
-                          secondary={item.secondary}
-                          layout="inline"
-                          className="items-center gap-1"
-                          secondaryClassName="text-[9px] text-neutral-3"
-                        />
+                        <span className="items-center gap-1">{item.primary}</span>
                       </button>
                     ))}
                   </div>
@@ -1412,15 +1263,15 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                   type="search"
                   value={memberQuery}
                   onChange={(event) => setMemberQuery(event.target.value)}
-                  placeholder={joinBilingual("Search by name, MSISDN, or code", "Shakisha izina, nimero, cyangwa kode")}
+                  placeholder={t("recon.detail.memberSearchPlaceholder", "Search by name, MSISDN, or code")}
                   className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                 />
                 {memberQuery.trim().length > 0 && memberQuery.trim().length < 2 && (
-                  <p className="text-[10px] text-neutral-2">{joinBilingual("Type at least 2 characters.", "Andika byibura inyuguti 2.")}</p>
+                  <p className="text-[10px] text-neutral-2">{t("recon.detail.memberSearchHint", "Type at least 2 characters.")}</p>
                 )}
-                {memberLoading && <p className="text-[10px] text-neutral-2">{joinBilingual("Searching…", "Birashakishwa…")}</p>}
+                {memberLoading && <p className="text-[10px] text-neutral-2">{t("common.searching", "Searching…")}</p>}
                 {!memberLoading && memberQuery.trim().length >= 2 && memberResults.length === 0 && (
-                  <p className="text-[10px] text-neutral-2">{joinBilingual("No matches yet.", "Ntibiraboneka")}</p>
+                  <p className="text-[10px] text-neutral-2">{t("recon.detail.noMatches", "No matches yet.")}</p>
                 )}
                 {memberResults.length > 0 && (
                   <ul className="space-y-1">

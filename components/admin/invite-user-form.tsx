@@ -5,7 +5,6 @@ import type { Database } from "@/lib/supabase/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { SaccoSearchCombobox, type SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
 import { useToast } from "@/providers/toast-provider";
-import { BilingualText } from "@/components/common/bilingual-text";
 import { useTranslation } from "@/providers/i18n-provider";
 
 const ROLES: Array<Database["public"]["Enums"]["app_role"]> = [
@@ -72,16 +71,18 @@ export function InviteUserForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-neutral-2 space-y-2">
-        <BilingualText
-          primary="Invited users receive a one-time password via email; they must sign in with that password and change it immediately."
-          secondary="Abakoresha batumiwe bahabwa ijambobanga ry'igihe rimwe binyujijwe muri email, bakinjira bakaryahindura ako kanya."
-          secondaryClassName="text-[10px] text-neutral-3"
-        />
-        <BilingualText
-          primary="Assign managers for full control, staff for day-to-day updates, and viewers for read-only dashboards."
-          secondary="Hitamo Manager ku igenzura ryose, Staff ku mikorere ya buri munsi, na Viewer ku gusoma raporo gusa."
-          secondaryClassName="text-[10px] text-neutral-3"
-        />
+        <p className="text-neutral-2">
+          {t(
+            "admin.invite.helper1",
+            "Invited users receive a one-time password via email; they must sign in with that password and change it immediately."
+          )}
+        </p>
+        <p className="text-neutral-2">
+          {t(
+            "admin.invite.helper2",
+            "Assign managers for full control, staff for day-to-day updates, and viewers for read-only dashboards."
+          )}
+        </p>
       </div>
       <div>
         <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.email", "Email")}</label>

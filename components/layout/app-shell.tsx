@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { BilingualText } from "@/components/common/bilingual-text";
 import { useTranslation } from "@/providers/i18n-provider";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
@@ -113,7 +112,8 @@ export function AppShell({ children, profile }: AppShellProps) {
     () =>
       NAV_ITEMS.map((item) => ({
         href: item.href,
-        label: t(item.key),
+        primary: t(item.key),
+        secondary: t(item.key),
       })),
     [t]
   );
@@ -152,13 +152,11 @@ export function AppShell({ children, profile }: AppShellProps) {
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("brand.org", "Umurenge SACCO")}</p>
               <span className="text-gradient text-2xl font-semibold leading-tight">{t("brand.consoleTitle", "Ibimina Staff Console")}</span>
-              <BilingualText
-                primary={<span className="text-sm text-neutral-2">{saccoName}</span>}
-              />
+              <span className="text-sm text-neutral-2">{saccoName}</span>
             </div>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-3">
               <nav className="hidden items-center gap-2 text-sm font-medium md:flex">
-                {navTargets.map(({ href, label }, idx) => {
+                {navTargets.map(({ href, primary }, idx) => {
                   const Icon = NAV_ITEMS[idx].icon;
                   return (
                     <Link
@@ -172,7 +170,7 @@ export function AppShell({ children, profile }: AppShellProps) {
                       )}
                     >
                       <Icon className="h-4 w-4" aria-hidden />
-                      <span className="leading-tight">{label}</span>
+                      <span className="leading-tight">{primary}</span>
                     </Link>
                   );
                 })}
@@ -201,7 +199,7 @@ export function AppShell({ children, profile }: AppShellProps) {
       <OfflineQueueIndicator />
 
       <nav className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-3xl border border-white/10 bg-ink/90 px-4 py-3 backdrop-blur md:hidden">
-        {NAV_ITEMS.map(({ href, primary, icon: Icon }) => (
+        {NAV_ITEMS.map(({ href, key, icon: Icon }) => (
           <Link
             key={href}
             href={href}
@@ -211,7 +209,7 @@ export function AppShell({ children, profile }: AppShellProps) {
             )}
           >
             <Icon className="h-5 w-5" />
-            <span className="mt-1">{primary}</span>
+            <span className="mt-1">{t(key)}</span>
           </Link>
         ))}
         <button
@@ -244,13 +242,7 @@ export function AppShell({ children, profile }: AppShellProps) {
           >
             <div className="mb-4 flex items-center gap-2 text-neutral-2">
               <ListPlus className="h-4 w-4" />
-              <BilingualText
-                primary="Quick actions"
-                secondary="Ibikorwa byihuse"
-                layout="inline"
-                className="items-center gap-2 text-xs"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
+              <span className="items-center gap-2 text-xs">{t("dashboard.quick.title", "Quick actions")}</span>
             </div>
             <ul className="space-y-3">
               {QUICK_ACTIONS.map((action) => (
@@ -274,13 +266,7 @@ export function AppShell({ children, profile }: AppShellProps) {
               className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
             >
               <Settings2 className="h-3.5 w-3.5" />
-              <BilingualText
-                primary="Close"
-                secondary="Funga"
-                layout="inline"
-                className="items-center gap-2"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
+              {t("common.close", "Close")}
             </button>
           </div>
         </div>

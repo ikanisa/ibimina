@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 
 interface NotificationRow {
   id: string;
@@ -20,27 +20,24 @@ interface NotificationQueueTableProps {
 }
 
 export function NotificationQueueTable({ rows, saccoLookup, templateLookup }: NotificationQueueTableProps) {
+  const { t } = useTranslation();
   const emptyState = rows.length === 0;
   const formatted = useMemo(
     () =>
       rows.map((row) => ({
         ...row,
-        saccoLabel: row.sacco_id ? saccoLookup.get(row.sacco_id) ?? row.sacco_id : "All SACCOs",
+        saccoLabel: row.sacco_id ? saccoLookup.get(row.sacco_id) ?? row.sacco_id : t("sacco.all", "All SACCOs"),
         templateLabel: row.template_id ? templateLookup.get(row.template_id) ?? row.template_id : "—",
         createdLabel: row.created_at ? new Date(row.created_at).toLocaleString() : "—",
         scheduledLabel: row.scheduled_for ? new Date(row.scheduled_for).toLocaleString() : "—",
       })),
-    [rows, saccoLookup, templateLookup]
+    [rows, saccoLookup, templateLookup, t]
   );
 
   if (emptyState) {
     return (
       <p className="text-sm text-neutral-2">
-        <BilingualText
-          primary="No notifications queued yet."
-          secondary="Nta butumwa burategurwa."
-          secondaryClassName="text-xs text-neutral-3"
-        />
+        {t("admin.queue.empty", "No notifications queued yet.")}
       </p>
     );
   }
@@ -51,22 +48,22 @@ export function NotificationQueueTable({ rows, saccoLookup, templateLookup }: No
         <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-neutral-2">
           <tr>
             <th className="px-4 py-3">
-              <BilingualText primary="Event" secondary="Icyabaye" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("admin.queue.event", "Event")}
             </th>
             <th className="px-4 py-3">
-              <BilingualText primary="SACCO" secondary="Ikigo" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("admin.queue.sacco", "SACCO")}
             </th>
             <th className="px-4 py-3">
-              <BilingualText primary="Template" secondary="Inyandiko" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("admin.queue.template", "Template")}
             </th>
             <th className="px-4 py-3">
-              <BilingualText primary="Status" secondary="Imiterere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("table.status", "Status")}
             </th>
             <th className="px-4 py-3">
-              <BilingualText primary="Queued" secondary="Byashyizweho" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("admin.queue.queued", "Queued")}
             </th>
             <th className="px-4 py-3">
-              <BilingualText primary="Scheduled" secondary="Iteganijwe" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("admin.queue.scheduled", "Scheduled")}
             </th>
           </tr>
         </thead>

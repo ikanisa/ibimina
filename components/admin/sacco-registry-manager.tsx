@@ -5,7 +5,6 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
-import { BilingualText } from "@/components/common/bilingual-text";
 import { useTranslation } from "@/providers/i18n-provider";
 
 const supabase = getSupabaseBrowserClient();
@@ -243,15 +242,15 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
                      type="button"
                      onClick={() => handleEdit(sacco)}
                      className="text-xs text-neutral-2 underline-offset-2 hover:underline"
-                   >
-                      <BilingualText primary="Edit" secondary="Hindura" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+                    >
+                      {t("common.edit", "Edit")}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(sacco.id)}
                       className="text-xs text-red-300 underline-offset-2 hover:underline"
                     >
-                      <BilingualText primary="Delete" secondary="Siba" layout="inline" secondaryClassName="text-[10px] text-red-200" />
+                      {t("common.delete", "Delete")}
                     </button>
                   </div>
                 </td>

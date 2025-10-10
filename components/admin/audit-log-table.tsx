@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 
 export type AuditLogEntry = {
@@ -22,16 +22,11 @@ const dateFormatter = new Intl.DateTimeFormat("en-RW", {
 
 function DiffViewer({ diff }: { diff: Record<string, unknown> | null }) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useTranslation();
 
   if (!diff || Object.keys(diff).length === 0) {
     return (
-      <p className="text-[11px] text-neutral-3">
-        <BilingualText
-          primary="No diff captured."
-          secondary="Nta mpinduka zanditswe."
-          secondaryClassName="text-[10px]"
-        />
-      </p>
+      <p className="text-[11px] text-neutral-3">{t("admin.audit.noDiff", "No diff captured.")}</p>
     );
   }
 
@@ -45,12 +40,7 @@ function DiffViewer({ diff }: { diff: Record<string, unknown> | null }) {
         className="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-1 transition hover:border-white/40 hover:text-neutral-0"
       >
         {expanded ? <ChevronUp className="h-3 w-3" aria-hidden /> : <ChevronDown className="h-3 w-3" aria-hidden />}
-        <BilingualText
-          primary={expanded ? "Hide diff" : "Show diff"}
-          secondary={expanded ? "Hisha impinduka" : "Garagaza impinduka"}
-          className="leading-none"
-          secondaryClassName="text-[10px]"
-        />
+        <span className="leading-none">{t(expanded ? "admin.audit.hideDiff" : "admin.audit.showDiff", expanded ? "Hide diff" : "Show diff")}</span>
       </button>
       <pre className="max-h-48 overflow-auto rounded-xl bg-black/40 p-3 text-[11px] leading-snug text-neutral-0">{preview}</pre>
     </div>
@@ -62,14 +52,11 @@ interface AuditLogTableProps {
 }
 
 export function AuditLogTable({ rows }: AuditLogTableProps) {
+  const { t } = useTranslation();
   if (!rows.length) {
     return (
       <p className="text-sm text-neutral-2">
-        <BilingualText
-          primary="No audit records yet."
-          secondary="Nta byakozwe byanditswe."
-          secondaryClassName="text-xs text-neutral-3"
-        />
+        {t("admin.audit.empty", "No audit records yet.")}
       </p>
     );
   }
@@ -84,29 +71,12 @@ export function AuditLogTable({ rows }: AuditLogTableProps) {
           )}
         >
           <header className="flex flex-wrap items-baseline justify-between gap-2">
-            <BilingualText
-              primary={`${row.action} · ${row.entity}`}
-              secondary={`${row.action} · ${row.entity}`}
-              className="text-base font-semibold text-neutral-0"
-              secondaryClassName="text-[12px] text-neutral-2"
-            />
+            <span className="text-base font-semibold text-neutral-0">{row.action} · {row.entity}</span>
             <span className="text-xs text-neutral-3">{dateFormatter.format(new Date(row.createdAt))}</span>
           </header>
-          <p className="mt-2 text-xs text-neutral-2">
-            <BilingualText
-              primary={`Actor: ${row.actorLabel}`}
-              secondary={`Uwabikoze: ${row.actorLabel}`}
-              secondaryClassName="text-[11px]"
-            />
-          </p>
+          <p className="mt-2 text-xs text-neutral-2">{t("admin.audit.actor", "Actor:")} {row.actorLabel}</p>
           {row.entityId && (
-            <p className="mt-1 text-[11px] text-neutral-3">
-              <BilingualText
-                primary={`Entity ID: ${row.entityId}`}
-                secondary={`Indangamuntu: ${row.entityId}`}
-                secondaryClassName="text-[10px]"
-              />
-            </p>
+            <p className="mt-1 text-[11px] text-neutral-3">{t("admin.audit.entityId", "Entity ID:")} {row.entityId}</p>
           )}
           <div className="mt-3">
             <DiffViewer diff={row.diff} />

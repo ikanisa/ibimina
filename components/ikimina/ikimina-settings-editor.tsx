@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/providers/toast-provider";
@@ -59,6 +59,7 @@ type FieldState = {
 export function IkiminaSettingsEditor({ ikiminaId, ikiminaName, saccoId, initialSettings, history = [] }: IkiminaSettingsEditorProps) {
   const { profile } = useProfileContext();
   const { success, error } = useToast();
+  const { t } = useTranslation();
 
   const defaults = useMemo(() => {
     const settings = (initialSettings as IkiminaSettings | null) ?? null;
@@ -114,24 +115,16 @@ export function IkiminaSettingsEditor({ ikiminaId, ikiminaName, saccoId, initial
 
   return (
     <GlassCard
-      title={<BilingualText primary={`Settings · ${ikiminaName}`} secondary="Amabwiriza y'ikimina" />}
-      subtitle={
-        <BilingualText
-          primary="Adjust contribution policies, enforcement rules, and reminders."
-          secondary="Hindura amategeko y'umusanzu, uko ibihano bikorwa n'uburyo bwo kwibutsa."
-          secondaryClassName="text-xs text-neutral-3"
-        />
-      }
-      actions={!canEdit ? <span className="text-xs uppercase tracking-[0.3em] text-neutral-3">Read only</span> : undefined}
+      title={`${t("common.settings", "Settings")} · ${ikiminaName}`}
+      subtitle={t("ikimina.settings.subtitle", "Adjust contribution policies, enforcement rules, and reminders.")}
+      actions={!canEdit ? <span className="text-xs uppercase tracking-[0.3em] text-neutral-3">{t("common.readOnly", "Read only")}</span> : undefined}
     >
       <form action={formAction} className="space-y-6">
         <input type="hidden" name="ikiminaId" value={ikiminaId} />
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-              <BilingualText primary="Contribution amount" secondary="Umusanzu" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-            </label>
+            <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.settings.contributionAmount", "Contribution amount")}</label>
             <Input
               name="contributionFixedAmount"
               type="number"
@@ -141,16 +134,14 @@ export function IkiminaSettingsEditor({ ikiminaId, ikiminaName, saccoId, initial
               value={fields.contributionFixedAmount}
               onChange={(event) => setFields((prev) => ({ ...prev, contributionFixedAmount: event.target.value }))}
               disabled={!canEdit || pending}
-              helperText="Leave blank for flexible contributions"
+              helperText={t("ikimina.settings.contributionHint", "Leave blank for flexible contributions")}
             />
             {fieldErrors.contributionFixedAmount && (
               <p className="text-xs text-red-300">{fieldErrors.contributionFixedAmount}</p>
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-              <BilingualText primary="Frequency" secondary="Ubwisubizo" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-            </label>
+            <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.settings.frequency", "Frequency")}</label>
             <select
               name="contributionFrequency"
               className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue disabled:opacity-60"
@@ -181,13 +172,11 @@ export function IkiminaSettingsEditor({ ikiminaId, ikiminaName, saccoId, initial
               className="h-4 w-4 rounded border-white/30 bg-transparent"
               disabled={!canEdit || pending}
             />
-            <label htmlFor="allow-partial" className="text-sm text-neutral-0">
-              <BilingualText primary="Allow partial payments" secondary="Emera ibice by'umusanzu" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-            </label>
+            <label htmlFor="allow-partial" className="text-sm text-neutral-0">{t("ikimina.settings.allowPartial", "Allow partial payments")}</label>
           </div>
           <div className="space-y-2">
             <Input
-              label="Grace period (days)"
+              label={t("ikimina.settings.gracePeriod", "Grace period (days)")}
               name="gracePeriodDays"
               type="number"
               min={0}
@@ -200,7 +189,7 @@ export function IkiminaSettingsEditor({ ikiminaId, ikiminaName, saccoId, initial
           </div>
           <div className="space-y-2">
             <Input
-              label="Late fee (%)"
+              label={t("ikimina.settings.lateFee", "Late fee (%)")}
               name="lateFeePercent"
               type="number"
               min={0}
@@ -225,20 +214,18 @@ export function IkiminaSettingsEditor({ ikiminaId, ikiminaName, saccoId, initial
               className="h-4 w-4 rounded border-white/30 bg-transparent"
               disabled={!canEdit || pending}
             />
-            <label htmlFor="sms-reminders" className="text-sm text-neutral-0">
-              <BilingualText primary="Send SMS reminders" secondary="Ohereza ubutumwa bwo kwibutsa" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-            </label>
+            <label htmlFor="sms-reminders" className="text-sm text-neutral-0">{t("ikimina.settings.smsReminders", "Send SMS reminders")}</label>
           </div>
           <div className="space-y-2">
             <Input
-              label="Reminder lead time"
+              label={t("ikimina.settings.reminderLead", "Reminder lead time")}
               name="reminderDaysBefore"
               type="number"
               min={0}
               max={30}
               value={fields.reminderDaysBefore}
               onChange={(event) => setFields((prev) => ({ ...prev, reminderDaysBefore: event.target.value }))}
-              helperText="Days before due date"
+              helperText={t("ikimina.settings.reminderLeadHint", "Days before due date")}
               disabled={!canEdit || pending}
             />
             {fieldErrors.reminderDaysBefore && <p className="text-xs text-red-300">{fieldErrors.reminderDaysBefore}</p>}
@@ -258,23 +245,23 @@ export function IkiminaSettingsEditor({ ikiminaId, ikiminaName, saccoId, initial
             className="interactive-scale rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
             disabled={!canEdit || pending}
           >
-            {pending ? "Saving…" : "Save changes"}
+            {pending ? t("common.saving", "Saving…") : t("common.save", "Save")}
           </button>
           {!canEdit && (
             <span className="text-xs text-neutral-3">
-              Only system admins or the assigned SACCO can edit these settings.
+              {t("ikimina.settings.readOnlyHint", "Only system admins or the assigned SACCO can edit these settings.")}
             </span>
           )}
         </div>
       </form>
 
       <div className="mt-6 space-y-4">
-        <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">Preview JSON</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.settings.previewJson", "Preview JSON")}</p>
         <pre className="mt-2 overflow-x-auto rounded-2xl bg-black/30 p-4 text-xs text-neutral-2">{JSON.stringify(preview, null, 2)}</pre>
         <div className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">Recent updates</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.settings.recentUpdates", "Recent updates")}</p>
           {history.length === 0 ? (
-            <p className="text-xs text-neutral-3">No prior settings updates recorded.</p>
+            <p className="text-xs text-neutral-3">{t("ikimina.settings.noHistory", "No prior settings updates recorded.")}</p>
           ) : (
             <ul className="space-y-3 text-xs text-neutral-0">
               {history.map((entry) => (

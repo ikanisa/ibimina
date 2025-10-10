@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useToast } from "@/providers/toast-provider";
 
@@ -49,6 +49,7 @@ type EnrollmentState = {
 export function ProfileClient({ email }: ProfileClientProps) {
   const router = useRouter();
   const { success, error, notify } = useToast();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileState | null>(null);
   const [password, setPassword] = useState("");
@@ -69,7 +70,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
       setLoading(true);
       const response = await fetch("/api/mfa/profile", { cache: "no-store" });
       if (!response.ok) {
-        error("Unable to load MFA settings" + " / Kwiyobora kwa MFA kwanze");
+        error("Unable to load MFA settings");
         setLoading(false);
         return;
       }
@@ -96,12 +97,12 @@ export function ProfileClient({ email }: ProfileClientProps) {
     event.preventDefault();
 
     if (!password || !confirmPassword) {
-      error("Provide a new password" + " / Shyiraho ijambobanga rishya");
+      error("Provide a new password");
       return;
     }
 
     if (password !== confirmPassword) {
-      error("Passwords do not match" + " / Amagambo y'ibanga ntiyahuye");
+      error("Passwords do not match");
       return;
     }
 
@@ -113,7 +114,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
         return;
       }
 
-      success("Password updated" + " / Ijambobanga ryavuguruwe");
+      success("Password updated");
       setPassword("");
       setConfirmPassword("");
     });
@@ -123,7 +124,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
     startProcessingEnrollment(async () => {
       const response = await fetch("/api/mfa/enroll", { method: "POST" });
       if (!response.ok) {
-        error("Unable to start enrollment" + " / Ntibyakunze gutangira kwiyandikisha");
+        error("Unable to start enrollment");
         return;
       }
       const data = (await response.json()) as EnrollmentState & { secret: string };
@@ -136,10 +137,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
       setCodeA("");
       setCodeB("");
       setBackupCodes(null);
-      notify(
-        "Scan the QR code or use the secret with Google Authenticator." +
-          " / Sikana QR cyangwa ukoreshe ijambo rihishe muri Google Authenticator."
-      );
+      notify("Scan the QR code or use the secret with Google Authenticator.");
     });
   };
 
@@ -147,7 +145,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
     event.preventDefault();
     if (!enrollment) return;
     if (codeA.length < 6 || codeB.length < 6) {
-      error("Enter two consecutive codes" + " / Shyiramo kode ebyiri zikurikirana");
+      error("Enter two consecutive codes");
       return;
     }
 
@@ -160,11 +158,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
 
       if (!response.ok) {
         const { error: code } = await response.json();
-        error(
-          code === "invalid_codes"
-            ? "Authenticator codes were not accepted." + " / Kode zitari zo."
-            : "Unable to confirm enrollment" + " / Ntibyakunze kwemeza kwiyandikisha"
-        );
+        error(code === "invalid_codes" ? "Authenticator codes were not accepted." : "Unable to confirm enrollment");
         return;
       }
 
@@ -178,7 +172,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
   const disableMfa = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!disableCode) {
-      error("Enter a code" + " / Shyiramo kode");
+      error("Enter a code");
       return;
     }
 
@@ -191,15 +185,11 @@ export function ProfileClient({ email }: ProfileClientProps) {
 
       if (!response.ok) {
         const { error: code } = await response.json().catch(() => ({ error: "unknown" }));
-        error(
-          code === "invalid_code"
-            ? "Code was not accepted" + " / Kode ntiyakiriwe"
-            : "Unable to disable two-factor" + " / Ntibyakunze kuzimya 2FA"
-        );
+        error(code === "invalid_code" ? "Code was not accepted" : "Unable to disable two-factor");
         return;
       }
 
-      success("Two-factor authentication disabled" + " / 2FA yarahagaritswe");
+      success("Two-factor authentication disabled");
       setDisableCode("");
       setBackupCodes(null);
       setEnrollment(null);
@@ -210,7 +200,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
   const revokeDevice = async (deviceId: string) => {
     const response = await fetch(`/api/mfa/trusted-devices/${deviceId}`, { method: "DELETE" });
     if (!response.ok) {
-      error("Unable to revoke device" + " / Ntibyakunze gukuraho igikoresho");
+      error("Unable to revoke device");
       return;
     }
     await fetchProfile();
@@ -228,7 +218,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-neutral-2" aria-hidden />
-        <span className="sr-only">Loading profile</span>
+        <span className="sr-only">{t("profile.loading", "Loading profile")}</span>
       </div>
     );
   }
@@ -239,34 +229,24 @@ export function ProfileClient({ email }: ProfileClientProps) {
         title={
           <div className="flex items-center gap-2 text-lg font-semibold text-neutral-0">
             <KeyRound className="h-5 w-5 text-rw-blue" />
-            <BilingualText
-              primary="Account security"
-              secondary="Umutekano w'uburenganzira"
-              secondaryClassName="text-xs text-neutral-3"
-            />
+            <span>{t("profile.security.title", "Account security")}</span>
           </div>
         }
-        subtitle={
-          <BilingualText
-            primary="Manage your password and authenticator preferences."
-            secondary="Hindura ijambobanga ushyireho cyangwa ukureho uburyo bwa 2FA."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        subtitle={t("profile.security.subtitle", "Manage your password and authenticator preferences.")}
         actions={
           <Link
             href="/dashboard"
             className="inline-flex items-center justify-center rounded-full border border-white/15 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/30"
           >
-            Go to dashboard
+            {t("profile.actions.goDashboard", "Go to dashboard")}
           </Link>
         }
       >
         <form onSubmit={onUpdatePassword} className="grid gap-4 md:grid-cols-2">
-          <Input label="Email" value={email} readOnly disabled />
+          <Input label={t("common.email", "Email")} value={email} readOnly disabled />
           <div className="h-0" />
           <Input
-            label="New password"
+            label={t("profile.password.new", "New password")}
             id="new-password"
             name="new-password"
             type="password"
@@ -274,10 +254,10 @@ export function ProfileClient({ email }: ProfileClientProps) {
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            helperText="Use at least 8 characters"
+            helperText={t("profile.password.hint", "Use at least 8 characters")}
           />
           <Input
-            label="Confirm password"
+            label={t("profile.password.confirm", "Confirm password")}
             id="confirm-password"
             name="confirm-password"
             type="password"
@@ -291,7 +271,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
             className="interactive-scale md:col-span-2 rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
             disabled={updatingPassword}
           >
-            {updatingPassword ? "Updating…" : "Update password"}
+            {updatingPassword ? t("profile.password.updating", "Updating…") : t("profile.password.update", "Update password")}
           </button>
         </form>
       </GlassCard>
@@ -300,27 +280,13 @@ export function ProfileClient({ email }: ProfileClientProps) {
         title={
           <div className="flex items-center gap-2 text-lg font-semibold text-neutral-0">
             <ShieldCheck className="h-5 w-5 text-rw-blue" />
-            <BilingualText
-              primary="Two-factor authentication"
-              secondary="Umutekano wa 2FA"
-              secondaryClassName="text-xs text-neutral-3"
-            />
+            <span>{t("profile.mfa.title", "Two-factor authentication")}</span>
           </div>
         }
         subtitle={
-          profile.mfaEnabled ? (
-            <BilingualText
-              primary="Authenticator app is required on every sign-in."
-              secondary="Porogaramu ya Authenticator irakenewe buri kwinjira."
-              secondaryClassName="text-xs text-neutral-3"
-            />
-          ) : (
-            <BilingualText
-              primary="Enable Google Authenticator or compatible app to protect your account."
-              secondary="Bikore ukoresheje Google Authenticator cyangwa izindi porogaramu."
-              secondaryClassName="text-xs text-neutral-3"
-            />
-          )
+          profile.mfaEnabled
+            ? t("profile.mfa.enforced", "Authenticator app is required on every sign-in.")
+            : t("profile.mfa.prompt", "Enable Google Authenticator or compatible app to protect your account.")
         }
       >
         {!profile.mfaEnabled ? (
@@ -333,29 +299,23 @@ export function ProfileClient({ email }: ProfileClientProps) {
                 disabled={busy}
               >
                 <BadgeCheck className="h-4 w-4" />
-                Enable authenticator
+                {t("profile.mfa.enable", "Enable authenticator")}
               </button>
             ) : (
               <div className="space-y-4">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
-                  <p className="font-semibold">Scan or tap to add authenticator</p>
+                  <p className="font-semibold">{t("profile.mfa.scanTitle", "Scan or tap to add authenticator")}</p>
                   <div className="mt-3 flex flex-col gap-2 text-xs text-neutral-2">
                     <a
                       href={enrollment.otpauth}
                       className="inline-flex w-max items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
                     >
-                      Open in authenticator app
+                      {t("profile.mfa.openApp", "Open in authenticator app")}
                     </a>
                     <p>
-                      Secret key: <span className="font-mono text-neutral-0">{enrollment.secret}</span>
+                      {t("profile.mfa.secretKey", "Secret key")}: <span className="font-mono text-neutral-0">{enrollment.secret}</span>
                     </p>
-                    <p className="text-[10px] text-neutral-3">
-                      <BilingualText
-                        primary="Enter two consecutive codes to confirm."
-                        secondary="Shyiramo kode ebyiri zikurikirana kugirango wemeze."
-                        secondaryClassName="text-[10px]"
-                      />
-                    </p>
+                    <p className="text-[10px] text-neutral-3">{t("profile.mfa.codesHint", "Enter two consecutive codes to confirm.")}</p>
                   </div>
                 </div>
                 <form onSubmit={confirmEnrollment} className="grid gap-3 md:grid-cols-2">
@@ -390,20 +350,8 @@ export function ProfileClient({ email }: ProfileClientProps) {
           <div className="space-y-4">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
               <p className="font-semibold">Authenticator enabled</p>
-              <p className="text-xs text-neutral-2">
-                <BilingualText
-                  primary={`Enabled on ${profile.enrolledAt ? new Date(profile.enrolledAt).toLocaleString() : "unknown"}`}
-                  secondary="Byakajijwe"
-                  secondaryClassName="text-[11px]"
-                />
-              </p>
-              <p className="text-xs text-neutral-2">
-                <BilingualText
-                  primary={`${profile.backupCount} backup codes remaining.`}
-                  secondary={`${profile.backupCount} backup codes zisigaye.`}
-                  secondaryClassName="text-[11px]"
-                />
-              </p>
+              <p className="text-xs text-neutral-2">{t("profile.mfa.enabledOn", "Enabled on")} {profile.enrolledAt ? new Date(profile.enrolledAt).toLocaleString() : t("common.unknown", "unknown")}</p>
+              <p className="text-xs text-neutral-2">{t("profile.mfa.backupRemaining", "Backup codes remaining:")} {profile.backupCount}</p>
             </div>
 
             <form onSubmit={disableMfa} className="space-y-3">
@@ -416,16 +364,14 @@ export function ProfileClient({ email }: ProfileClientProps) {
                   helperText="Provide a valid code to disable two-factor"
                 />
                 <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                    <BilingualText primary="Code type" secondary="Ubwoko bwa kode" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-                  </label>
+                  <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("profile.mfa.codeType", "Code type")}</label>
                   <select
                     className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none"
                     value={disableMethod}
                     onChange={(event) => setDisableMethod(event.target.value as "totp" | "backup")}
                   >
-                    <option value="totp">Authenticator code</option>
-                    <option value="backup">Backup code</option>
+                    <option value="totp">{t("profile.mfa.codeType.totp", "Authenticator code")}</option>
+                    <option value="backup">{t("profile.mfa.codeType.backup", "Backup code")}</option>
                   </select>
                 </div>
               </div>
@@ -435,7 +381,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
                 disabled={processingDisable}
               >
                 <Trash2 className="h-4 w-4" />
-                Disable two-factor
+                {t("profile.mfa.disable", "Disable two-factor")}
               </button>
             </form>
           </div>
@@ -444,27 +390,19 @@ export function ProfileClient({ email }: ProfileClientProps) {
         {backupCodes && backupCodes.length > 0 && (
           <div className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
             <div className="flex items-center justify-between">
-              <BilingualText
-                primary="Backup codes"
-                secondary="Kode z'inyunganizi"
-                secondaryClassName="text-[11px] text-neutral-3"
-              />
+              <span>{t("profile.mfa.backup.title", "Backup codes")}</span>
               {backupDownload && (
                 <a
                   href={backupDownload}
                   download="backup-codes.txt"
                   className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
                 >
-                  Download
+                  {t("common.download", "Download")}
                 </a>
               )}
             </div>
             <p className="text-[11px] text-neutral-2">
-              <BilingualText
-                primary="Each code can be used once. Store them securely and do not share."
-                secondary="Bika izi kode neza, buri imwe ikoreshwa rimwe gusa."
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
+              {t("profile.mfa.backup.hint", "Each code can be used once. Store them securely and do not share.")}
             </p>
             <ul className="grid gap-2 md:grid-cols-2">
               {backupCodes.map((code) => (
@@ -482,29 +420,19 @@ export function ProfileClient({ email }: ProfileClientProps) {
           title={
             <div className="flex items-center gap-2 text-lg font-semibold text-neutral-0">
               <Smartphone className="h-5 w-5 text-rw-blue" />
-              <BilingualText
-                primary="Trusted devices"
-                secondary="Ibikoresho byizewe"
-                secondaryClassName="text-xs text-neutral-3"
-              />
+              <span>{t("profile.trusted.title", "Trusted devices")}</span>
             </div>
           }
-          subtitle={
-            <BilingualText
-              primary="Devices that can skip MFA when the trusted cookie is present."
-              secondary="Ibikoresho bishobora kwinjira bitongeye kwemezwa nibyo byizewe."
-              secondaryClassName="text-xs text-neutral-3"
-            />
-          }
+          subtitle={t("profile.trusted.subtitle", "Devices that can skip MFA when the trusted cookie is present.")}
         >
           <div className="space-y-3">
             {profile.trustedDevices.map((device) => (
               <div key={device.deviceId} className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center">
                 <div className="space-y-1 text-xs text-neutral-2">
-                  <p className="font-semibold text-neutral-0">Device ID: {device.deviceId}</p>
-                  <p>Created: {new Date(device.createdAt).toLocaleString()}</p>
-                  <p>Last used: {new Date(device.lastUsedAt).toLocaleString()}</p>
-                  <p>IP prefix: {device.ipPrefix ?? "Unknown"}</p>
+                  <p className="font-semibold text-neutral-0">{t("profile.trusted.deviceId", "Device ID")}: {device.deviceId}</p>
+                  <p>{t("profile.trusted.created", "Created")}: {new Date(device.createdAt).toLocaleString()}</p>
+                  <p>{t("profile.trusted.lastUsed", "Last used")}: {new Date(device.lastUsedAt).toLocaleString()}</p>
+                  <p>{t("profile.trusted.ipPrefix", "IP prefix")}: {device.ipPrefix ?? t("common.unknown", "Unknown")}</p>
                 </div>
                 <button
                   type="button"
@@ -512,17 +440,13 @@ export function ProfileClient({ email }: ProfileClientProps) {
                   className="inline-flex w-max items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/30"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Revoke
+                  {t("profile.trusted.revoke", "Revoke")}
                 </button>
               </div>
             ))}
             <p className="flex items-center gap-2 text-[11px] text-neutral-2">
               <RefreshCw className="h-4 w-4" />
-              <BilingualText
-                primary="Revoke devices you no longer control."
-                secondary="Kuraho ibikoresho utacyizeye."
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
+              {t("profile.trusted.revokeHint", "Revoke devices you no longer control.")}
             </p>
           </div>
         </GlassCard>

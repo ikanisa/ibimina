@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
 import { SaccoSearchCombobox } from "@/components/saccos/sacco-search-combobox";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 
 interface ReportFiltersProps {
   initialSacco?: SaccoSearchResult | null;
@@ -17,6 +17,7 @@ export interface ReportFiltersChange {
 }
 
 export function ReportFilters({ initialSacco, onChange }: ReportFiltersProps) {
+  const { t } = useTranslation();
   const [selectedSacco, setSelectedSacco] = useState<SaccoSearchResult | null>(initialSacco ?? null);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -41,12 +42,12 @@ export function ReportFilters({ initialSacco, onChange }: ReportFiltersProps) {
           setSelectedSacco(value);
           emit({ sacco: value });
         }}
-        placeholder="Filter by SACCO / Hitamo SACCO"
+        placeholder={t("reports.filters.saccoPlaceholder", "Filter by SACCO")}
       />
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-            <BilingualText primary="From" secondary="Itangira" layout="inline" secondaryClassName="text-[10px] text-neutral-2" />
+            {t("reports.filters.from", "From")}
           </label>
           <input
             type="date"
@@ -60,7 +61,7 @@ export function ReportFilters({ initialSacco, onChange }: ReportFiltersProps) {
         </div>
         <div>
           <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-            <BilingualText primary="To" secondary="Iherezo" layout="inline" secondaryClassName="text-[10px] text-neutral-2" />
+            {t("reports.filters.to", "To")}
           </label>
           <input
             type="date"
@@ -83,14 +84,13 @@ export function ReportFilters({ initialSacco, onChange }: ReportFiltersProps) {
         }}
         className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-neutral-2 hover:border-white/30"
       >
-        <BilingualText primary="Reset filters" secondary="Siba muyunguruzi" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+        {t("reports.filters.reset", "Reset filters")}
       </button>
       <p className="text-xs text-neutral-2">
-        <BilingualText
-          primary="Choose a SACCO or leave blank for global scope (system admins only). Date range defaults to the last 30 days."
-          secondary="Hitamo SACCO cyangwa ureke ubusa kugira ngo ukoreshe urwego rwose (abashinzwe sisitemu gusa). Igihe gihita gishyirwaho iminsi 30 ishize."
-          secondaryClassName="text-[11px] text-neutral-3"
-        />
+        {t(
+          "reports.filters.instructions",
+          "Choose a SACCO or leave blank for global scope (system admins only). Date range defaults to the last 30 days.",
+        )}
       </p>
     </div>
   );

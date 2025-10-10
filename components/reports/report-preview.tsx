@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
 import type { ReportExportFilters } from "@/components/reports/report-export-panel";
 
@@ -67,6 +67,7 @@ function formatCurrency(amount: number, currency: string) {
 }
 
 export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) {
+  const { t } = useTranslation();
   const { error: toastError } = useToast();
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -87,14 +88,14 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
       const endDate = filters.to ? new Date(`${filters.to}T00:00:00`) : now;
 
       if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-        setErrorMessage("Invalid date filters");
+        setErrorMessage(t("reports.errors.invalidDates", "Invalid date filters"));
         setData(null);
         setLoading(false);
         return;
       }
 
       if (startDate > endDate) {
-        setErrorMessage("Start date must be before end date");
+        setErrorMessage(t("reports.errors.startBeforeEnd", "Start date must be before end date"));
         setData(null);
         setLoading(false);
         return;
@@ -119,10 +120,10 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
       if (cancelled) return;
 
       if (error) {
-        const message = error.message ?? "Failed to load preview";
+        const message = error.message ?? t("reports.errors.loadFailed", "Failed to load preview");
         setErrorMessage(message);
         setData(null);
-        toastError(`${message} / Gushushanya raporo byanze`);
+        toastError(message);
         setLoading(false);
         return;
       }
@@ -209,7 +210,7 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
     return () => {
       cancelled = true;
     };
-  }, [filters.from, filters.to, filters.sacco?.id, onSummaryChange, toastError]);
+  }, [filters.from, filters.to, filters.sacco?.id, onSummaryChange, toastError, t]);
 
   const maxDailyAmount = useMemo(() => {
     if (!data || data.dailyTotals.length === 0) return 0;
@@ -241,8 +242,8 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
   if (!data) {
     return (
       <EmptyState
-        title="No data in range"
-        description="Adjust the filters or select a SACCO to generate a preview."
+        title={t("reports.empty.title", "No data in range")}
+        description={t("reports.empty.description", "Adjust the filters or select a SACCO to generate a preview.")}
       />
     );
   }
@@ -251,40 +252,30 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-3">
         <article className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-            <BilingualText primary="Total volume" secondary="Ingano y'umusanzu" />
-          </p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.cards.totalVolume", "Total volume")}</p>
           <p className="mt-2 text-2xl font-semibold text-neutral-0">
             {formatCurrency(data.totalAmount, data.currency)}
           </p>
         </article>
         <article className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-            <BilingualText primary="Transactions" secondary="Imishinga" />
-          </p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.cards.transactions", "Transactions")}</p>
           <p className="mt-2 text-2xl font-semibold text-neutral-0">{data.totalTransactions}</p>
         </article>
         <article className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-            <BilingualText primary="Unique ikimina" secondary="Amatsinda" />
-          </p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.cards.uniqueIkimina", "Unique ikimina")}</p>
           <p className="mt-2 text-2xl font-semibold text-neutral-0">{data.uniqueIkimina}</p>
         </article>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center justify-between">
-          <BilingualText
-            primary="Daily totals"
-            secondary="Umunsi ku munsi"
-            secondaryClassName="text-xs text-neutral-3"
-          />
+          <span className="text-xs text-neutral-3">{t("reports.chart.dailyTotals", "Daily totals")}</span>
           <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-3">
-            {data.dailyTotals.length} days
+            {data.dailyTotals.length} {t("reports.chart.daysSuffix", "days")}
           </span>
         </div>
         {data.dailyTotals.length === 0 ? (
-          <p className="mt-4 text-xs text-neutral-2">No posted transactions in this window.</p>
+          <p className="mt-4 text-xs text-neutral-2">{t("reports.chart.noPosted", "No posted transactions in this window.")}</p>
         ) : (
           <div className="mt-6 flex h-40 items-end gap-2">
             {data.dailyTotals.map((entry) => {
@@ -305,22 +296,18 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-        <BilingualText
-          primary="Top ikimina"
-          secondary="Amatsinda akomeye"
-          secondaryClassName="text-xs text-neutral-3"
-        />
+        <span className="text-xs text-neutral-3">{t("reports.topIkimina.title", "Top ikimina")}</span>
         {data.topIkimina.length === 0 ? (
-          <p className="mt-4 text-xs text-neutral-2">No ikimina activity captured during this window.</p>
+          <p className="mt-4 text-xs text-neutral-2">{t("reports.topIkimina.noActivity", "No ikimina activity captured during this window.")}</p>
         ) : (
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[320px] text-left text-sm">
               <thead className="text-xs uppercase tracking-[0.2em] text-neutral-3">
                 <tr>
-                  <th className="py-2">Ikimina</th>
-                  <th className="py-2">Code</th>
-                  <th className="py-2 text-right">Amount</th>
-                  <th className="py-2 text-right">Share</th>
+                  <th className="py-2">{t("reports.table.ikimina", "Ikimina")}</th>
+                  <th className="py-2">{t("reports.table.code", "Code")}</th>
+                  <th className="py-2 text-right">{t("reports.table.amount", "Amount")}</th>
+                  <th className="py-2 text-right">{t("reports.table.share", "Share")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">

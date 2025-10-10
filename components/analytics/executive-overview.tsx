@@ -1,6 +1,6 @@
 "use client";
 
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import type { ExecutiveAnalyticsSnapshot, RiskLevel } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
@@ -23,20 +23,18 @@ interface ExecutiveOverviewProps {
 }
 
 function AutomationSummary({ analytics }: ExecutiveOverviewProps) {
+  const { t } = useTranslation();
   const cards = [
     {
-      label: "Pending reconciliation",
-      secondary: "Imisanzu igikeneye gusobanurwa",
+      label: t("analytics.automation.pendingRecon", "Pending reconciliation"),
       value: analytics.automation.pendingRecon,
     },
     {
-      label: "Queued notifications",
-      secondary: "Ubutumwa butegereje koherezwa",
+      label: t("analytics.automation.queuedNotifications", "Queued notifications"),
       value: analytics.automation.pendingNotifications,
     },
     {
-      label: "Escalations triggered",
-      secondary: "Ibihutirijwe byashinzwe gukurikiranwa",
+      label: t("analytics.automation.escalations", "Escalations triggered"),
       value: analytics.automation.escalations,
     },
   ];
@@ -48,12 +46,7 @@ function AutomationSummary({ analytics }: ExecutiveOverviewProps) {
           key={card.label}
           className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-4 shadow-glass backdrop-blur"
         >
-          <BilingualText
-            primary={card.label}
-            secondary={card.secondary}
-            className="text-sm font-semibold text-neutral-0"
-            secondaryClassName="text-[11px] text-neutral-2"
-          />
+          <span className="text-sm font-semibold text-neutral-0">{card.label}</span>
           <p className="mt-2 text-2xl font-bold text-neutral-0">{numberFormatter.format(card.value)}</p>
         </article>
       ))}
@@ -62,15 +55,10 @@ function AutomationSummary({ analytics }: ExecutiveOverviewProps) {
 }
 
 function MonthlyTrend({ analytics }: ExecutiveOverviewProps) {
+  const { t } = useTranslation();
   if (!analytics.monthlyTrend.length) {
     return (
-      <p className="text-sm text-neutral-2">
-        <BilingualText
-          primary="No deposits recorded in the past six months."
-          secondary="Nta misanzu yanditswe mu mezi atandatu ashize."
-          secondaryClassName="text-xs text-neutral-3"
-        />
-      </p>
+      <p className="text-sm text-neutral-2">{t("analytics.monthly.noDeposits", "No deposits recorded in the past six months.")}</p>
     );
   }
 
@@ -97,15 +85,10 @@ function MonthlyTrend({ analytics }: ExecutiveOverviewProps) {
 }
 
 function SaccoLeaders({ analytics }: ExecutiveOverviewProps) {
+  const { t } = useTranslation();
   if (!analytics.saccoLeaders.length) {
     return (
-      <p className="text-sm text-neutral-2">
-        <BilingualText
-          primary="No SACCO contribution data yet."
-          secondary="Nta makuru y'umusanzu wa SACCO arahari."
-          secondaryClassName="text-xs text-neutral-3"
-        />
-      </p>
+      <p className="text-sm text-neutral-2">{t("analytics.sacco.noData", "No SACCO contribution data yet.")}</p>
     );
   }
 
@@ -114,9 +97,9 @@ function SaccoLeaders({ analytics }: ExecutiveOverviewProps) {
       <table className="min-w-full divide-y divide-white/10 text-sm text-neutral-0">
         <thead className="bg-white/5 text-left uppercase tracking-[0.25em] text-[11px] text-neutral-2">
           <tr>
-            <th className="px-4 py-3">SACCO</th>
-            <th className="px-4 py-3 text-right">Deposits</th>
-            <th className="px-4 py-3 text-right">Unallocated</th>
+            <th className="px-4 py-3">{t("table.sacco", "SACCO")}</th>
+            <th className="px-4 py-3 text-right">{t("table.deposits", "Deposits")}</th>
+            <th className="px-4 py-3 text-right">{t("table.unallocated", "Unallocated")}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-white/10 bg-white/5 text-xs">
@@ -134,15 +117,10 @@ function SaccoLeaders({ analytics }: ExecutiveOverviewProps) {
 }
 
 function RiskSignals({ analytics }: ExecutiveOverviewProps) {
+  const { t } = useTranslation();
   if (!analytics.riskSignals.length) {
     return (
-      <p className="text-sm text-neutral-2">
-        <BilingualText
-          primary="All ikimina have contributed in the last month."
-          secondary="Amatsinda yose yatanze umusanzu mu kwezi gushize."
-          secondaryClassName="text-xs text-neutral-3"
-        />
-      </p>
+      <p className="text-sm text-neutral-2">{t("analytics.risk.none", "All ikimina have contributed in the last month.")}</p>
     );
   }
 
@@ -159,15 +137,11 @@ function RiskSignals({ analytics }: ExecutiveOverviewProps) {
               {signal.saccoName && <p className="text-[11px] text-neutral-2">{signal.saccoName}</p>}
             </div>
             <span className={cn("rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.3em]", riskTone[signal.risk])}>
-              {signal.risk} · {signal.risk === "HIGH" ? "Kibazo" : signal.risk === "MEDIUM" ? "Icyitonderwa" : "Bimeze neza"}
+              {signal.risk === "HIGH" ? t("analytics.risk.high", "High risk") : signal.risk === "MEDIUM" ? t("analytics.risk.medium", "Medium risk") : t("analytics.risk.low", "Low risk")}
             </span>
           </div>
           <p className="mt-2 text-[11px] text-neutral-2">
-            <BilingualText
-              primary={`Last contribution ${signal.daysSince} days ago`}
-              secondary={`Umusanzu uheruka: iminsi ${signal.daysSince} ishize`}
-              secondaryClassName="text-[10px]"
-            />
+            {t("analytics.risk.lastContributionPrefix", "Last contribution")} {signal.daysSince} {t("common.daysAgoSuffix", "days ago")}
           </p>
         </article>
       ))}
@@ -176,52 +150,33 @@ function RiskSignals({ analytics }: ExecutiveOverviewProps) {
 }
 
 export function ExecutiveOverview({ analytics }: ExecutiveOverviewProps) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-8">
       <section className="space-y-4">
         <header>
-          <BilingualText
-            primary="Automation summary"
-            secondary="Igenzura rya automatike"
-            className="text-lg font-semibold text-neutral-0"
-            secondaryClassName="text-sm text-neutral-2"
-          />
+          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.automation", "Automation summary")}</span>
         </header>
         <AutomationSummary analytics={analytics} />
       </section>
 
       <section className="space-y-4">
         <header>
-          <BilingualText
-            primary="Deposit momentum"
-            secondary="Umuvuduko w'umusanzu"
-            className="text-lg font-semibold text-neutral-0"
-            secondaryClassName="text-sm text-neutral-2"
-          />
+          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.momentum", "Deposit momentum")}</span>
         </header>
         <MonthlyTrend analytics={analytics} />
       </section>
 
       <section className="space-y-4">
         <header>
-          <BilingualText
-            primary="SACCO leaders"
-            secondary="SACCO ziyoboye"
-            className="text-lg font-semibold text-neutral-0"
-            secondaryClassName="text-sm text-neutral-2"
-          />
+          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.saccoLeaders", "SACCO leaders")}</span>
         </header>
         <SaccoLeaders analytics={analytics} />
       </section>
 
       <section className="space-y-4">
         <header>
-          <BilingualText
-            primary="Risk signals"
-            secondary="Ibimenyetso by'ibibazo"
-            className="text-lg font-semibold text-neutral-0"
-            secondaryClassName="text-sm text-neutral-2"
-          />
+          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.risk", "Risk signals")}</span>
         </header>
         <RiskSignals analytics={analytics} />
       </section>

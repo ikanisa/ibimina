@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { StatusChip } from "@/components/common/status-chip";
 import { cn } from "@/lib/utils";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 
 export interface IkiminaTableRow {
   id: string;
@@ -54,6 +54,7 @@ const relativeDate = (value: string | null) => {
 };
 
 export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, showSaccoColumn = false }: IkiminaTableProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("");
   const [type, setType] = useState<string>("");
@@ -78,13 +79,7 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
       showSaccoColumn
         ? {
             accessorKey: "sacco_name",
-            header: () => (
-              <BilingualText
-                primary="SACCO"
-                secondary="Ikigo"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
-            ),
+            header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.sacco", "SACCO")}</span>,
             cell: (info: CellContext<IkiminaTableRow, unknown>) => {
               const value = info.getValue<string | null>();
               return <span className="text-sm text-neutral-2">{value ?? "—"}</span>;
@@ -94,13 +89,7 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
         : undefined,
       {
         accessorKey: "name",
-        header: () => (
-          <BilingualText
-            primary="Name"
-            secondary="Izina"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.name", "Name")}</span>,
         cell: (info: CellContext<IkiminaTableRow, unknown>) => (
           <div>
             <p className="font-medium text-neutral-0">{info.row.original.name}</p>
@@ -111,61 +100,31 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
       },
       {
         accessorKey: "type",
-        header: () => (
-          <BilingualText
-            primary="Type"
-            secondary="Ubwoko"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.type", "Type")}</span>,
         cell: (info: CellContext<IkiminaTableRow, unknown>) => <span className="text-sm text-neutral-0">{String(info.getValue() ?? "—")}</span>,
         meta: { template: "minmax(120px, 0.8fr)" },
       },
       {
         accessorKey: "members_count",
-        header: () => (
-          <BilingualText
-            primary="Members"
-            secondary="Abanyamuryango"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.members", "Members")}</span>,
         cell: (info: CellContext<IkiminaTableRow, unknown>) => <span className="font-semibold text-neutral-0">{String(info.getValue() ?? 0)}</span>,
         meta: { align: "right", template: "minmax(110px, 0.7fr)", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "month_total",
-        header: () => (
-          <BilingualText
-            primary="MTD volume"
-            secondary="Amafaranga y'ukwezi"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.mtdVolume", "MTD volume")}</span>,
         cell: (info: CellContext<IkiminaTableRow, unknown>) => currencyFormatter.format(Number(info.getValue() ?? 0)),
         meta: { align: "right", template: "minmax(140px, 0.9fr)", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "last_payment_at",
-        header: () => (
-          <BilingualText
-            primary="Last payment"
-            secondary="Umusanzu uheruka"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.lastPayment", "Last payment")}</span>,
         cell: (info: CellContext<IkiminaTableRow, unknown>) => <span className="text-sm text-neutral-0">{relativeDate(info.getValue<string | null>() ?? null)}</span>,
         meta: { template: "minmax(150px, 0.9fr)" },
       },
       {
         accessorKey: "unallocated_count",
-        header: () => (
-          <BilingualText
-            primary="Exceptions"
-            secondary="Ibibazo"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.exceptions", "Exceptions")}</span>,
         cell: (info: CellContext<IkiminaTableRow, unknown>) => {
           const value = Number(info.getValue() ?? 0);
           return (
@@ -183,13 +142,7 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
       },
       {
         accessorKey: "status",
-        header: () => (
-          <BilingualText
-            primary="Status"
-            secondary="Imiterere"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.status", "Status")}</span>,
         cell: (info: CellContext<IkiminaTableRow, unknown>) => <StatusChip tone="neutral">{String(info.getValue() ?? "")}</StatusChip>,
         meta: { template: "minmax(120px, 0.7fr)" },
       },
@@ -201,13 +154,7 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
             href={`/ikimina/${row.original.id}`}
             className="inline-flex items-center justify-center rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-0 transition hover:bg-white/10"
           >
-            <BilingualText
-              primary="Open"
-              secondary="Fungura"
-              layout="inline"
-              className="items-center gap-1"
-              secondaryClassName="text-[10px] text-neutral-3"
-            />
+            {t("common.open", "Open")}
           </Link>
         ),
         meta: { align: "right", template: "minmax(90px, 0.6fr)" },
@@ -215,7 +162,7 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
     ].filter(Boolean) as ColumnDef<IkiminaTableRow, unknown>[];
 
     return baseColumns;
-  }, [showSaccoColumn]);
+  }, [showSaccoColumn, t]);
 
   const showSaccoFilter = Boolean(saccoOptions && saccoOptions.length > 1);
 
@@ -223,33 +170,33 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
     <div className="space-y-4">
       <div className="grid gap-3 md:grid-cols-4">
         <Input
-          label="Search / Shakisha"
-          placeholder="Search name or code / Shakisha izina cyangwa kode"
+          label={t("ikimina.list.searchLabel", "Search")}
+          placeholder={t("ikimina.list.searchPlaceholder", "Search name or code")}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
         {showSaccoFilter && (
           <Select
-            label="SACCO / Ikigo"
+            label={t("table.sacco", "SACCO")}
             value={sacco}
             onChange={(event) => setSacco(event.target.value)}
             options={["", ...(saccoOptions ?? [])]}
-            emptyLabel="All / Byose"
+            emptyLabel={t("common.all", "All")}
           />
         )}
         <Select
-          label="Status / Imiterere"
+          label={t("table.status", "Status")}
           value={status}
           onChange={(event) => setStatus(event.target.value)}
           options={["", ...statusOptions]}
-          emptyLabel="All / Byose"
+          emptyLabel={t("common.all", "All")}
         />
         <Select
-          label="Type / Ubwoko"
+          label={t("table.type", "Type")}
           value={type}
           onChange={(event) => setType(event.target.value)}
           options={["", ...typeOptions]}
-          emptyLabel="All / Byose"
+          emptyLabel={t("common.all", "All")}
         />
         <button
           type="button"
@@ -261,13 +208,13 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
           }}
           className="self-end rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
         >
-          Reset filters
+          {t("reports.filters.reset", "Reset filters")}
         </button>
       </div>
       <VirtualTable
         data={filteredRows}
         columns={columns}
-        emptyState={<EmptyState title="No ikimina" description="Try adjusting filters or create a new group." />}
+        emptyState={<EmptyState title={t("ikimina.list.emptyTitle", "No ikimina")} description={t("ikimina.list.emptyDescription", "Try adjusting filters or create a new group.")} />}
       />
     </div>
   );

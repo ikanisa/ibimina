@@ -4,7 +4,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
+// i18n migrated: prefer t() over BilingualText
 
 type AuthStep = "credentials" | "enroll" | "challenge";
 type EnrollmentState = {
@@ -22,6 +23,7 @@ interface MfaStatusResponse {
 }
 
 export function LoginForm() {
+  const { t } = useTranslation();
   const supabase = getSupabaseBrowserClient();
   const router = useRouter();
 
@@ -91,24 +93,24 @@ export function LoginForm() {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
         if (signInError) {
-          setError(signInError.message ?? "Unable to sign in");
+          setError(signInError.message ?? t("auth.errors.signIn", "Unable to sign in"));
           return;
         }
 
         if (!data?.session) {
-          setError("Unable to establish a session");
+          setError(t("auth.errors.noSession", "Unable to establish a session"));
           return;
         }
 
         const statusResponse = await fetch("/api/mfa/status", { cache: "no-store" });
         if (!statusResponse.ok) {
-          setError("Unable to verify security requirements");
+          setError(t("auth.errors.status", "Unable to verify security requirements"));
           return;
         }
 
         const status = (await statusResponse.json()) as MfaStatusResponse;
         if (!status.mfaRequired) {
-          setMessage("Success! Redirecting to dashboard…");
+          setMessage(t("auth.success.redirect", "Success! Redirecting to dashboard…"));
           router.refresh();
           router.push("/dashboard");
           return;
@@ -117,7 +119,7 @@ export function LoginForm() {
         if (!status.mfaEnabled) {
           const enrollmentResponse = await fetch("/api/mfa/enroll", { method: "POST" });
           if (!enrollmentResponse.ok) {
-            setError("Unable to start authenticator setup / Ntibyakunze gutangira gushiraho porogaramu ya Authenticator");
+            setError(t("auth.errors.startEnroll", "Unable to start authenticator setup"));
             await supabase.auth.signOut();
             return;
           }
@@ -130,9 +132,7 @@ export function LoginForm() {
             pendingToken: data.pendingToken,
           });
           setStep("enroll");
-          setMessage(
-            "Scan the QR code or use the secret with Google Authenticator. / Sikana QR cyangwa ukoreshe ijambo rihishe muri Google Authenticator."
-          );
+          setMessage(t("auth.enroll.scanMessage", "Scan the QR code or use the secret with Google Authenticator."));
           setError(null);
           setCodeA("");
           setCodeB("");
@@ -142,22 +142,20 @@ export function LoginForm() {
         }
 
         setStep("challenge");
-        setMessage(
-          "Enter the 6-digit code from your authenticator app. / Shyiramo kode y'ibiremo 6 iva muri Google Authenticator."
-        );
+        setMessage(t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app."));
         setError(null);
         setMfaToken("");
         setMfaMethod("totp");
       });
     },
-    [email, password, router, supabase],
+    [email, password, router, supabase, t],
   );
 
   const handleMfaSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       if (!mfaToken) {
-        setError("Enter the security code" + " / Shyiramo kode" );
+        setError(t("auth.errors.enterCode", "Enter the security code"));
         return;
       }
 
@@ -171,34 +169,34 @@ export function LoginForm() {
         if (!response.ok) {
           const { error: code } = await response.json().catch(() => ({ error: "invalid_code" }));
           if (code === "invalid_code") {
-            setError("Invalid code" + " / Kode si yo");
+            setError(t("auth.errors.invalidCode", "Invalid code"));
           } else if (code === "rate_limit_exceeded") {
-            setError("Too many attempts. Try again later." + " / Wagerageje kenshi, gerageza nyuma" );
+            setError(t("auth.errors.rateLimit", "Too many attempts. Try again later."));
           } else {
-            setError("Unable to verify authentication code" + " / Ntibyakunze kugenzura kode" );
+            setError(t("auth.errors.verifyCode", "Unable to verify authentication code"));
           }
           return;
         }
 
-        setMessage("Success! Redirecting to dashboard…");
+        setMessage(t("auth.success.redirect", "Success! Redirecting to dashboard…"));
         setError(null);
         setMfaToken("");
         router.refresh();
         router.push("/dashboard");
       });
     },
-    [mfaMethod, mfaToken, rememberDevice, router],
+    [mfaMethod, mfaToken, rememberDevice, router, t],
   );
 
   const handleEnrollmentSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       if (!enrollment) {
-        setError("Unable to start authenticator setup / Ntibyakunze gutangira gushiraho porogaramu ya Authenticator");
+        setError(t("auth.errors.startEnroll", "Unable to start authenticator setup"));
         return;
       }
       if (codeA.length < 6 || codeB.length < 6) {
-        setError("Enter two consecutive codes" + " / Shyiramo kode ebyiri zikurikirana");
+        setError(t("auth.errors.enterTwoCodes", "Enter two consecutive codes"));
         return;
       }
 
@@ -212,9 +210,9 @@ export function LoginForm() {
         if (!response.ok) {
           const { error: code } = await response.json().catch(() => ({ error: "unknown" }));
           if (code === "invalid_codes") {
-            setError("Authenticator codes were not accepted." + " / Kode zitari zo.");
+            setError(t("auth.errors.invalidCodes", "Authenticator codes were not accepted."));
           } else {
-            setError("Unable to confirm enrollment" + " / Ntibyakunze kwemeza kwiyandikisha");
+            setError(t("auth.errors.confirmEnroll", "Unable to confirm enrollment"));
           }
           return;
         }
@@ -224,9 +222,7 @@ export function LoginForm() {
         setBackupCodes(issuedCodes);
         setCodeA("");
         setCodeB("");
-        setMessage(
-          "Authenticator verified. Enter the next 6-digit code to finish signing in. / Porogaramu yemejwe, shyiramo indi kode y'ibiremo 6 urangize kwinjira."
-        );
+        setMessage(t("auth.enroll.verifiedNextCode", "Authenticator verified. Enter the next 6-digit code to finish signing in."));
         setError(null);
         setStep("challenge");
         setMfaToken("");
@@ -234,7 +230,7 @@ export function LoginForm() {
         setRememberDevice(false);
       });
     },
-    [codeA, codeB, enrollment, setRememberDevice, startTransition],
+    [codeA, codeB, enrollment, setRememberDevice, startTransition, t],
   );
 
   const handleSubmit =
@@ -249,14 +245,7 @@ export function LoginForm() {
       {step === "credentials" && (
         <>
           <div className="space-y-2 text-left">
-            <label htmlFor="email" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-              <BilingualText
-                primary="Staff email"
-                secondary="Imeli y'umukozi"
-                layout="inline"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
-            </label>
+            <label htmlFor="email" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">{t("auth.email.label", "Staff email")}</label>
             <input
               id="email"
               type="email"
@@ -265,19 +254,12 @@ export function LoginForm() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-              placeholder="staff@sacco.rw / staff@ikimina.rw"
+              placeholder={t("auth.email.placeholder", "staff@sacco.rw")}
               disabled={pending}
             />
           </div>
           <div className="space-y-2 text-left">
-            <label htmlFor="password" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-              <BilingualText
-                primary="Password"
-                secondary="Ijambo ry'ibanga"
-                layout="inline"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
-            </label>
+            <label htmlFor="password" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">{t("auth.password.label", "Password")}</label>
             <input
               id="password"
               type="password"
@@ -296,47 +278,25 @@ export function LoginForm() {
       {step === "enroll" && enrollment && (
         <>
           <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-xs text-neutral-2">
-            <p className="text-sm text-neutral-0">
-              <BilingualText
-                primary="Before continuing, add “SACCO+” to the Google Authenticator app."
-                secondary="Mbere yo gukomeza, ongeramo “SACCO+” muri porogaramu ya Google Authenticator."
-                secondaryClassName="text-[11px] text-neutral-3"
-              />
-            </p>
+            <p className="text-sm text-neutral-0">{t("auth.enroll.intro", "Before continuing, add “SACCO+” to the Google Authenticator app.")}</p>
             {qrCodeUrl && (
               <div className="flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/10 p-4">
                 <Image
                   src={qrCodeUrl}
-                  alt="Scan this QR code with Google Authenticator to add SACCO+"
+                  alt={t("auth.enroll.qrAlt", "Scan this QR code with Google Authenticator to add SACCO+")}
                   width={220}
                   height={220}
                   className="h-44 w-44 rounded-lg border border-white/10 bg-neutral-0/5 p-2"
                   priority
                 />
-                <p className="text-[11px] text-neutral-3 text-center">
-                  <BilingualText
-                    primary="Open Google Authenticator, tap the + button, and choose “Scan a QR code”."
-                    secondary="Fungura Google Authenticator, ukande kuri buto ya +, uhitemo “Scan a QR code”."
-                    secondaryClassName="text-[10px] text-neutral-3"
-                  />
-                </p>
+                <p className="text-[11px] text-neutral-3 text-center">{t("auth.enroll.scanInstruction", "Open Google Authenticator, tap the + button, and choose “Scan a QR code”.")}</p>
               </div>
             )}
             <div className="space-y-2 text-neutral-2">
               <ol className="list-decimal list-inside space-y-1 text-[11px]">
-                <li>
-                  Open Google Authenticator and tap the <strong>+</strong> button. / Fungura Google
-                  Authenticator ukande kuri <strong>+</strong>.
-                </li>
-                <li>
-                  Scan the QR code above <em>or</em> choose “Enter a setup key” and copy the code below.
-                  / Sikana QR iri hejuru <em>cyangwa</em> wandike ijambo rihishe riri hepfo ukoresheje
-                  “Enter a setup key”.
-                </li>
-                <li>
-                  Give it the name <strong>SACCO+</strong>, confirm, then enter the next two 6-digit codes. /
-                  Yite “SACCO+”, wemere hanyuma winjize kode ebyiri zikurikirana z’ibiremo 6.
-                </li>
+                <li dangerouslySetInnerHTML={{ __html: t("auth.enroll.step1", "Open Google Authenticator and tap the <strong>+</strong> button.") }} />
+                <li>{t("auth.enroll.step2", "Scan the QR code above or choose “Enter a setup key” and copy the code below.")}</li>
+                <li dangerouslySetInnerHTML={{ __html: t("auth.enroll.step3", "Give it the name <strong>SACCO+</strong>, confirm, then enter the next two 6-digit codes.") }} />
               </ol>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/10 p-4 text-sm text-neutral-0">
@@ -345,44 +305,16 @@ export function LoginForm() {
                   href={enrollment.otpauth}
                   className="inline-flex w-max items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
                 >
-                  Open in authenticator app
+                  {t("auth.enroll.openInApp", "Open in authenticator app")}
                 </a>
-                <p className="text-xs text-neutral-2">
-                  <BilingualText
-                    primary={
-                      <>
-                        Secret key: <span className="font-mono text-neutral-0">{enrollment.secret}</span>
-                      </>
-                    }
-                    secondary={
-                      <>
-                        Ijambo rihishe: <span className="font-mono text-neutral-0">{enrollment.secret}</span>
-                      </>
-                    }
-                    layout="inline"
-                    secondaryClassName="text-xs text-neutral-2"
-                  />
-                </p>
-                <p className="text-[10px] text-neutral-3">
-                  <BilingualText
-                    primary="Enter the next two codes generated after adding the account."
-                    secondary="Injiza kode ebyiri zikurikirana zerekanywe nyuma yo kongera konti."
-                    secondaryClassName="text-[9px] text-neutral-3"
-                  />
-                </p>
+                <p className="text-xs text-neutral-2">{t("auth.enroll.secretLabel", "Secret key:")} <span className="font-mono text-neutral-0">{enrollment.secret}</span></p>
+                <p className="text-[10px] text-neutral-3">{t("auth.enroll.enterTwoCodes", "Enter the next two codes generated after adding the account.")}</p>
               </div>
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-2 text-left">
-              <label htmlFor="mfa-code-a" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-                <BilingualText
-                  primary="Code 1"
-                  secondary="Kode 1"
-                  layout="inline"
-                  secondaryClassName="text-[10px] text-neutral-3"
-                />
-              </label>
+              <label htmlFor="mfa-code-a" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">{t("auth.enroll.code1", "Code 1")}</label>
               <input
                 id="mfa-code-a"
                 inputMode="numeric"
@@ -395,14 +327,7 @@ export function LoginForm() {
               />
             </div>
             <div className="space-y-2 text-left">
-              <label htmlFor="mfa-code-b" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-                <BilingualText
-                  primary="Code 2"
-                  secondary="Kode 2"
-                  layout="inline"
-                  secondaryClassName="text-[10px] text-neutral-3"
-                />
-              </label>
+              <label htmlFor="mfa-code-b" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">{t("auth.enroll.code2", "Code 2")}</label>
               <input
                 id="mfa-code-b"
                 inputMode="numeric"
@@ -419,36 +344,17 @@ export function LoginForm() {
       )}
 
       {step === "enroll" && !enrollment && (
-        <p className="text-sm text-neutral-2">Preparing authenticator setup…</p>
+        <p className="text-sm text-neutral-2">{t("auth.enroll.preparing", "Preparing authenticator setup…")}</p>
       )}
 
       {step === "challenge" && (
         <>
           <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">
-            <p>
-              <BilingualText
-                primary="Enter the 6-digit code from your authenticator app."
-                secondary="Shyiramo kode y'ibiremo 6 iva muri Google Authenticator."
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
-            </p>
-            <p className="text-[10px] text-neutral-3">
-              <BilingualText
-                primary="Codes rotate every 30 seconds."
-                secondary="Kode ihinduka buri masegonda 30."
-                secondaryClassName="text-[9px] text-neutral-3"
-              />
-            </p>
+            <p>{t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app.")}</p>
+            <p className="text-[10px] text-neutral-3">{t("auth.challenge.rotate", "Codes rotate every 30 seconds.")}</p>
           </div>
           <div className="space-y-2 text-left">
-            <label htmlFor="mfa-token" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-              <BilingualText
-                primary={mfaMethod === "backup" ? "Backup code" : "Authenticator code"}
-                secondary={mfaMethod === "backup" ? "Kode y'ingoboka" : "Kode ya Authenticator"}
-                layout="inline"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
-            </label>
+            <label htmlFor="mfa-token" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">{mfaMethod === "backup" ? t("auth.challenge.backupCode", "Backup code") : t("auth.challenge.authCode", "Authenticator code")}</label>
             <input
               id="mfa-token"
               inputMode={mfaMethod === "backup" ? "text" : "numeric"}
@@ -476,12 +382,7 @@ export function LoginForm() {
                 onChange={(event) => setRememberDevice(event.target.checked)}
                 className="h-4 w-4 rounded border border-white/20 bg-white/10"
               />
-              <BilingualText
-                primary="Trust this device for 30 days"
-                secondary="Izere iyi mashini iminsi 30"
-                layout="inline"
-                secondaryClassName="text-[10px] text-neutral-3"
-              />
+              {t("auth.challenge.trustDevice", "Trust this device for 30 days")}
             </label>
             <button
               type="button"
@@ -491,7 +392,7 @@ export function LoginForm() {
                 setMfaToken("");
               }}
             >
-              {mfaMethod === "totp" ? "Use backup code" : "Use authenticator"}
+              {mfaMethod === "totp" ? t("auth.challenge.useBackup", "Use backup code") : t("auth.challenge.useAuthenticator", "Use authenticator")}
             </button>
           </div>
         </>
@@ -503,11 +404,7 @@ export function LoginForm() {
       {backupCodes && backupCodes.length > 0 && (
         <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
           <div className="flex items-center justify-between">
-            <BilingualText
-              primary="Backup codes"
-              secondary="Kode z'ingoboka"
-              secondaryClassName="text-[11px] text-neutral-3"
-            />
+            <span className="text-[11px]">{t("auth.backup.title", "Backup codes")}</span>
             {backupDownload && (
               <a
                 href={backupDownload}
@@ -518,13 +415,7 @@ export function LoginForm() {
               </a>
             )}
           </div>
-          <p className="text-[10px] text-neutral-3">
-            <BilingualText
-              primary="Store these codes securely. Each one can be used once if you lose access to the authenticator app."
-              secondary="Bika izi kode ahantu hizewe, buri imwe ikoreshwa rimwe gusa mu gihe wabuze porogaramu ya Authenticator."
-              secondaryClassName="text-[9px] text-neutral-3"
-            />
-          </p>
+          <p className="text-[10px] text-neutral-3">{t("auth.backup.storeInfo", "Store these codes securely. Each one can be used once if you lose access to the authenticator app.")}</p>
           <ul className="grid gap-2 md:grid-cols-2">
             {backupCodes.map((code) => (
               <li key={code} className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 font-mono text-neutral-0">
@@ -541,12 +432,12 @@ export function LoginForm() {
         disabled={pending}
       >
         {pending
-          ? "Processing…"
+          ? t("auth.buttons.processing", "Processing…")
           : step === "credentials"
-            ? "Sign in"
+            ? t("auth.buttons.signIn", "Sign in")
             : step === "enroll"
-              ? "Confirm setup"
-              : "Verify code"}
+              ? t("auth.buttons.confirmSetup", "Confirm setup")
+              : t("auth.buttons.verifyCode", "Verify code")}
       </button>
 
       {step !== "credentials" && (
@@ -555,7 +446,7 @@ export function LoginForm() {
           className="w-full text-center text-xs text-neutral-2 hover:text-neutral-0"
           onClick={reset}
         >
-          Cancel and sign in again
+          {t("auth.buttons.cancelAndSignInAgain", "Cancel and sign in again")}
         </button>
       )}
     </form>

@@ -13,6 +13,7 @@ import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 // import { BilingualText } from "@/components/common/bilingual-text";
 import type { Database } from "@/lib/supabase/types";
+import { Trans } from "@/components/common/trans";
 
 export default async function AdminPage() {
   const { profile } = await requireUserAndProfile();
@@ -20,10 +21,12 @@ export default async function AdminPage() {
   if (profile.role !== "SYSTEM_ADMIN") {
     return (
       <GlassCard
-        title={<span>Restricted</span>}
-        subtitle={<span className="text-xs text-neutral-3">Administrator permissions are required to manage global settings.</span>}
+        title={<Trans i18nKey="restricted.title" fallback="Restricted" />}
+        subtitle={<Trans i18nKey="restricted.subtitle" fallback="Administrator permissions are required to manage global settings." className="text-xs text-neutral-3" />}
       >
-        <p className="text-sm text-neutral-2">Contact your administrator if you need elevated access. You can still manage your assigned SACCO from other tabs.</p>
+        <p className="text-sm text-neutral-2">
+          <Trans i18nKey="restricted.contact" fallback="Contact your administrator if you need elevated access. You can still manage your assigned SACCO from other tabs." />
+        </p>
       </GlassCard>
     );
   }
@@ -175,28 +178,28 @@ export default async function AdminPage() {
   return (
     <div className="space-y-8">
       <GradientHeader
-        title={<span>Administration</span>}
-        subtitle={<span className="text-xs text-ink/70">Manage SACCO data, staff access, and templates.</span>}
+        title={<Trans i18nKey="admin.header.title" fallback="Administration" />}
+        subtitle={<Trans i18nKey="admin.header.subtitle" fallback="Manage SACCO data, staff access, and templates." className="text-xs text-ink/70" />}
         badge={<StatusChip tone="neutral">System Admin</StatusChip>}
       />
 
       <GlassCard
-        title={<span>Invite staff</span>}
-        subtitle={<span className="text-xs text-neutral-3">Send credentials and assign roles to SACCOs.</span>}
+        title={<Trans i18nKey="admin.invite.title" fallback="Invite staff" />}
+        subtitle={<Trans i18nKey="admin.invite.subtitle" fallback="Send credentials and assign roles to SACCOs." className="text-xs text-neutral-3" />}
       >
         <InviteUserForm />
       </GlassCard>
 
       <GlassCard
-        title={<span>SACCO registry</span>}
-        subtitle={<span className="text-xs text-neutral-3">{saccoList.length} Umurenge SACCOs</span>}
+        title={<Trans i18nKey="admin.registry.title" fallback="SACCO registry" />}
+        subtitle={<span className="text-xs text-neutral-3">{saccoList.length} <Trans i18nKey="admin.registry.countSuffix" fallback="Umurenge SACCOs" /></span>}
       >
         <SaccoRegistryManager initialSaccos={saccoList} />
       </GlassCard>
 
       <GlassCard
-        title={<span>Branding & logos</span>}
-        subtitle={<span className="text-xs text-neutral-3">Upload logos and brand accents.</span>}
+        title={<Trans i18nKey="admin.branding.title" fallback="Branding & logos" />}
+        subtitle={<Trans i18nKey="admin.branding.subtitle" fallback="Upload logos and brand accents." className="text-xs text-neutral-3" />}
       >
         {saccoList.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
@@ -210,8 +213,8 @@ export default async function AdminPage() {
       </GlassCard>
 
       <GlassCard
-        title={<span>SMS templates</span>}
-        subtitle={<span className="text-xs text-neutral-3">Draft and activate outbound messages.</span>}
+        title={<Trans i18nKey="admin.templates.title" fallback="SMS templates" />}
+        subtitle={<Trans i18nKey="admin.templates.subtitle" fallback="Draft and activate outbound messages." className="text-xs text-neutral-3" />}
       >
         {saccoList.length > 0 ? (
           <SmsTemplatePanel
@@ -223,29 +226,29 @@ export default async function AdminPage() {
       </GlassCard>
 
       <GlassCard
-        title={<span>Operational telemetry</span>}
-        subtitle={<span className="text-xs text-neutral-3">Monitor automation and ingestion health.</span>}
+        title={<Trans i18nKey="admin.telemetry.title" fallback="Operational telemetry" />}
+        subtitle={<Trans i18nKey="admin.telemetry.subtitle" fallback="Monitor automation and ingestion health." className="text-xs text-neutral-3" />}
       >
         <OperationalTelemetry metrics={telemetryMetrics} />
       </GlassCard>
 
       <GlassCard
-        title={<span>Notification queue</span>}
-        subtitle={<span className="text-xs text-neutral-3">Recent events and pending deliveries.</span>}
+        title={<Trans i18nKey="admin.queue.title" fallback="Notification queue" />}
+        subtitle={<Trans i18nKey="admin.queue.subtitle" fallback="Recent events and pending deliveries." className="text-xs text-neutral-3" />}
       >
         <NotificationQueueTable rows={notificationRows} saccoLookup={saccoLookup} templateLookup={templateLookup} />
       </GlassCard>
 
       <GlassCard
-        title={<span>Recent audit trail</span>}
-        subtitle={<span className="text-xs text-neutral-3">Privileged actions and config changes.</span>}
+        title={<Trans i18nKey="admin.audit.title" fallback="Recent audit trail" />}
+        subtitle={<Trans i18nKey="admin.audit.subtitle" fallback="Privileged actions and config changes." className="text-xs text-neutral-3" />}
       >
         <AuditLogTable rows={auditEntries} />
       </GlassCard>
 
       <GlassCard
-        title={<span>User access</span>}
-        subtitle={<span className="text-xs text-neutral-3">{`${users?.length ?? 0} recent staff records.`}</span>}
+        title={<Trans i18nKey="admin.users.title" fallback="User access" />}
+        subtitle={<span className="text-xs text-neutral-3">{`${users?.length ?? 0} `}<Trans i18nKey="admin.users.recentSuffix" fallback="recent staff records." /></span>}
       >
         <UserAccessTable users={normalizedUsers} saccos={saccoOptions} />
       </GlassCard>

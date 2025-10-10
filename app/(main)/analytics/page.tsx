@@ -2,7 +2,7 @@ import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { requireUserAndProfile } from "@/lib/auth";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { Trans } from "@/components/common/trans";
 import { getExecutiveAnalytics } from "@/lib/analytics";
 import { ExecutiveOverview } from "@/components/analytics/executive-overview";
 
@@ -19,26 +19,14 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-8">
       <GradientHeader
-        title={<BilingualText primary="Executive analytics" secondary="Isesengura ry'ubuyobozi" />}
-        subtitle={
-          <BilingualText
-            primary="Track contribution momentum, automation throughput, and at-risk ikimina."
-            secondary="Kurikirana uko imisanzu izamuka, uburyo automatike ikora n'amatsinda akeneye kwitabwaho."
-            secondaryClassName="text-xs text-ink/70"
-          />
-        }
+        title={<Trans i18nKey="analytics.title" fallback="Executive analytics" />}
+        subtitle={<Trans i18nKey="analytics.subtitle" fallback="Track contribution momentum, automation throughput, and at-risk ikimina." className="text-xs text-ink/70" />}
         badge={<StatusChip tone="neutral">{scopeLabel}</StatusChip>}
       />
 
       <GlassCard
-        title={<BilingualText primary="Executive overview" secondary="Incamake y'ubuyobozi" />}
-        subtitle={
-          <BilingualText
-            primary="Key indicators for leadership and SACCO follow-up."
-            secondary="Ibipimo by'ingenzi bigenewe abayobozi n'abakurikirana SACCO."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<Trans i18nKey="analytics.overview.title" fallback="Executive overview" />}
+        subtitle={<Trans i18nKey="analytics.overview.subtitle" fallback="Key indicators for leadership and SACCO follow-up." className="text-xs text-neutral-3" />}
       >
         <ExecutiveOverview analytics={analytics} />
       </GlassCard>

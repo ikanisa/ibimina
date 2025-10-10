@@ -7,7 +7,7 @@ import { ReportFilters, type ReportFiltersChange } from "@/components/reports/re
 import { ReportExportPanel } from "@/components/reports/report-export-panel";
 import { ReportPreview, type ReportPreviewSummary } from "@/components/reports/report-preview";
 import type { SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 
 interface ReportsClientProps {
   initialSacco: SaccoSearchResult | null;
@@ -15,6 +15,7 @@ interface ReportsClientProps {
 }
 
 export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps) {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<ReportFiltersChange>({
     sacco: initialSacco,
     from: "",
@@ -38,41 +39,26 @@ export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps
   return (
     <div className="space-y-8">
       <GradientHeader
-        title={<BilingualText primary="Reports" secondary="Raporo" />}
-        subtitle={
-          <BilingualText
-            primary="Generate branded exports for SACCO leadership, auditors, and members."
-            secondary="Tegura raporo zifite ibirango bya SACCO ku bayobozi, abagenzuzi n'abanyamuryango."
-            secondaryClassName="text-xs text-ink/70"
-          />
-        }
+        title={<span>{t("reports.title", "Reports")}</span>}
+        subtitle={<span className="text-xs text-ink/70">{t("reports.subtitle", "Generate branded exports for SACCO leadership, auditors, and members.")}</span>}
         badge={<span className="rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-[0.3em] text-ink">PWA-ready</span>}
       />
 
       <GlassCard
-        title={<BilingualText primary="Summary" secondary="Igasobanuro" />}
-        subtitle={
-          <BilingualText
-            primary={previewSummary ? "Figures reflect the applied filters." : "Adjust filters to populate the summary."}
-            secondary={previewSummary ? "Imibare igendeye ku muyunguruzi watanze." : "Hindura muyunguruzi kugirango ubone ishusho."}
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>{t("reports.summary.title", "Summary")}</span>}
+        subtitle={<span className="text-xs text-neutral-3">{previewSummary ? t("reports.summary.ready", "Figures reflect the applied filters.") : t("reports.summary.pending", "Adjust filters to populate the summary.")}</span>}
       >
         <div className="grid gap-3 md:grid-cols-3">
           <SummaryTile
-            labelPrimary="Total volume"
-            labelSecondary="Ingano y'umusanzu"
+            label={t("reports.cards.totalVolume", "Total volume")}
             value={previewSummary ? formatCurrency(previewSummary.totalAmount, previewSummary.currency) : "—"}
           />
           <SummaryTile
-            labelPrimary="Transactions"
-            labelSecondary="Imishinga"
+            label={t("reports.cards.transactions", "Transactions")}
             value={previewSummary ? String(previewSummary.totalTransactions) : "—"}
           />
           <SummaryTile
-            labelPrimary="Unique ikimina"
-            labelSecondary="Amatsinda"
+            label={t("reports.cards.uniqueIkimina", "Unique ikimina")}
             value={previewSummary ? String(previewSummary.uniqueIkimina) : "—"}
           />
         </div>
@@ -80,27 +66,15 @@ export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <GlassCard
-          title={<BilingualText primary="Filters" secondary="Muyunguruzi" />}
-          subtitle={
-            <BilingualText
-              primary="Fine-tune the reporting scope."
-              secondary="Hitamo uko raporo izajya igaragaramo."
-              secondaryClassName="text-xs text-neutral-3"
-            />
-          }
+          title={<span>{t("reports.filters.title", "Filters")}</span>}
+          subtitle={<span className="text-xs text-neutral-3">{t("reports.filters.subtitle", "Fine-tune the reporting scope.")}</span>}
         >
           <ReportFilters initialSacco={initialSacco} onChange={handleFiltersChange} />
         </GlassCard>
 
         <GlassCard
-          title={<BilingualText primary="Preview" secondary="Igaragaza ry'imbere" />}
-          subtitle={
-            <BilingualText
-              primary="Review performance before exporting."
-              secondary="Reba uko imisanzu yagenze mbere yo gusohora raporo."
-              secondaryClassName="text-xs text-neutral-3"
-            />
-          }
+          title={<span>{t("reports.preview.title", "Preview")}</span>}
+          subtitle={<span className="text-xs text-neutral-3">{t("reports.preview.subtitle", "Review performance before exporting.")}</span>}
           className="min-h-[320px] space-y-6"
         >
           <ReportPreview
@@ -119,19 +93,11 @@ export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps
   );
 }
 
-function SummaryTile({
-  labelPrimary,
-  labelSecondary,
-  value,
-}: {
-  labelPrimary: string;
-  labelSecondary: string;
-  value: string;
-}) {
+function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
       <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-        <BilingualText primary={labelPrimary} secondary={labelSecondary} />
+        {label}
       </p>
       <p className="mt-3 text-2xl font-semibold text-neutral-0">{value}</p>
     </div>

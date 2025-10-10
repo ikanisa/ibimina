@@ -2,7 +2,7 @@ import { GradientHeader } from "@/components/ui/gradient-header";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { IkiminaTable, type IkiminaTableRow } from "@/components/ikimina/ikimina-table";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { Trans } from "@/components/common/trans";
 import type { Database } from "@/lib/supabase/types";
 
 const ACTIVE_PAYMENT_STATUSES = new Set(["POSTED", "SETTLED"]);
@@ -134,14 +134,8 @@ export default async function IkiminaPage() {
   return (
     <div className="space-y-8">
       <GradientHeader
-        title={<BilingualText primary="Ikimina Directory" secondary="Urutonde rw'amatsinda" />}
-        subtitle={
-          <BilingualText
-            primary="Browse, filter, and drill into every group under your SACCO."
-            secondary="Reba, tongera n'isesengure amatsinda yose ari muri SACCO yawe."
-            secondaryClassName="text-xs text-ink/70"
-          />
-        }
+        title={<Trans i18nKey="ikimina.list.title" fallback="Ikimina Directory" />}
+        subtitle={<Trans i18nKey="ikimina.list.subtitle" fallback="Browse, filter, and drill into every group under your SACCO." className="text-xs text-ink/70" />}
       />
       <IkiminaTable
         rows={rows}

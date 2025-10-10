@@ -2,7 +2,7 @@
 
 import { useMemo, useTransition } from "react";
 import type { Database } from "@/lib/supabase/types";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
 import { queueMfaReminder, updateUserAccess } from "@/app/(main)/admin/actions";
 
@@ -28,10 +28,11 @@ interface UserAccessTableProps {
 }
 
 export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
+  const { t } = useTranslation();
   const { success, error } = useToast();
   const [pending, startTransition] = useTransition();
 
-  const saccoOptions = useMemo(() => [{ id: "", name: "All SACCOs" }, ...saccos], [saccos]);
+  const saccoOptions = useMemo(() => [{ id: "", name: t("sacco.all", "All SACCOs") }, ...saccos], [saccos, t]);
 
   const handleUpdate = (
     userId: string,
@@ -41,9 +42,9 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
     startTransition(async () => {
       const result = await updateUserAccess({ userId, role, saccoId });
       if (result.status === "error") {
-        error(result.message ?? "Update failed");
+        error(result.message ?? t("common.operationFailed", "Operation failed"));
       } else {
-        success(result.message ?? "User updated");
+        success(result.message ?? t("admin.users.updated", "User updated"));
       }
     });
   };
@@ -52,9 +53,9 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
     startTransition(async () => {
       const result = await queueMfaReminder({ userId: user.id, email: user.email });
       if (result.status === "error") {
-        error(result.message ?? "Reminder failed");
+        error(result.message ?? t("admin.users.reminderFailed", "Reminder failed"));
       } else {
-        success(result.message ?? "Reminder queued");
+        success(result.message ?? t("admin.users.reminderQueued", "Reminder queued"));
       }
     });
   };
@@ -65,19 +66,19 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
         <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-neutral-2">
           <tr>
             <th className="px-4 py-3">
-              <BilingualText primary="Email" secondary="Imeli" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("common.email", "Email")}
             </th>
             <th className="px-4 py-3">
-              <BilingualText primary="Role" secondary="Inshingano" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("admin.invite.role", "Role")}
             </th>
             <th className="px-4 py-3">
-              <BilingualText primary="SACCO" secondary="Ikigo" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("nav.ikimina", "Ikimina")}
             </th>
             <th className="px-4 py-3">
-              <BilingualText primary="Created" secondary="Byashyizweho" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("common.created", "Created")}
             </th>
             <th className="px-4 py-3">
-              <BilingualText primary="2FA" secondary="2FA" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              2FA
             </th>
           </tr>
         </thead>
@@ -122,14 +123,14 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
               </td>
               <td className="px-4 py-3 text-neutral-2">
                 <div className="flex flex-col gap-1 text-[11px]">
-                  <span>{"Managed in profile"} / {"Bikorerwa kuri profile"}</span>
+                  <span>{t("admin.users.mfaManaged", "Managed in profile")}</span>
                   <button
                     type="button"
                     onClick={() => handleMfaReminder(user)}
                     disabled={pending}
                     className="self-start rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-neutral-0 hover:border-white/30"
                   >
-                    <BilingualText primary="Send 2FA reminder" secondary="Ohereza ubutumwa bwa 2FA" layout="inline" secondaryClassName="text-[9px] text-neutral-3" />
+                    {t("admin.users.send2faReminder", "Send 2FA reminder")}
                   </button>
                 </div>
               </td>

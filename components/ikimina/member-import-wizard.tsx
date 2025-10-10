@@ -14,7 +14,8 @@ import {
 } from "@/lib/imports/validation";
 import { parseTabularFile } from "@/lib/imports/file-parser";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BilingualText } from "@/components/common/bilingual-text";
+// BilingualText removed; using t()
+import { useTranslation } from "@/providers/i18n-provider";
 
 const REQUIRED_FIELDS = [
   { key: "full_name", label: "Full name", hint: "Umuntu nyir'ikimina" },
@@ -34,6 +35,7 @@ interface MemberImportWizardProps {
 }
 
 export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -48,14 +50,12 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
   const [pending, startTransition] = useTransition();
   const { success, error: toastError } = useToast();
 
-  const toBilingual = (english: string, kinyarwanda: string) => `${english} / ${kinyarwanda}`;
-
-  const notifyError = (messageEn: string, messageRw: string) => {
-    toastError(toBilingual(messageEn, messageRw));
+  const notifyError = (messageEn: string) => {
+    toastError(messageEn);
   };
 
-  const notifySuccess = (messageEn: string, messageRw: string) => {
-    success(toBilingual(messageEn, messageRw));
+  const notifySuccess = (messageEn: string) => {
+    success(messageEn);
   };
   const confirmDialog = useConfirmDialog();
 
@@ -167,8 +167,8 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
       })
       .catch((parseError: unknown) => {
         const message = parseError instanceof Error ? parseError.message : "Unable to parse file";
-        setError(toBilingual(message, "Gufungura dosiye byanze"));
-        notifyError(message, "Gufungura dosiye byanze");
+        setError(message);
+        notifyError(message);
       })
       .finally(() => {
         setParsing(false);
@@ -177,13 +177,10 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
 
   const handleConfirm = async () => {
     const accepted = await confirmDialog({
-      title: "Confirm member import",
-      description: toBilingual(
-        `Import ${validRows.length} valid row(s) into this ikimina? (${processedRows.length} total)`,
-        `Kwinjiza imirongo ${validRows.length} mu ikimina (${processedRows.length} yose)`
-      ),
-      confirmLabel: "Import",
-      cancelLabel: "Cancel",
+      title: t("ikimina.import.confirmTitle", "Confirm member import"),
+      description: `Import ${validRows.length} valid row(s) into this ikimina? (${processedRows.length} total)`,
+      confirmLabel: t("ikimina.import.confirm", "Import"),
+      cancelLabel: t("common.cancel", "Cancel"),
     });
 
     if (!accepted) {
@@ -214,9 +211,8 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
         }
 
         const successEn = `Imported ${payload.length} of ${processedRows.length} row(s). Refresh to verify counts.`;
-        const successRw = `Byinjije imirongo ${payload.length} muri ${processedRows.length}. Ongera usubize urupapuro.`;
-        setMessage(toBilingual(successEn, successRw));
-        notifySuccess(`Imported ${payload.length} members`, `Byinjije abanyamuryango ${payload.length}`);
+        setMessage(successEn);
+        notifySuccess(`Imported ${payload.length} members`);
         if (typeof window !== "undefined" && signature) {
           try {
             const stored = window.localStorage.getItem("member-import-presets");
@@ -232,9 +228,8 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Import failed";
         console.error(err);
-        const bilingual = toBilingual(message, "Kwinjiza byanze");
-        setError(bilingual);
-        notifyError(message, "Kwinjiza byanze");
+        setError(message);
+        notifyError(message);
       }
     });
   };
@@ -246,7 +241,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
         onClick={() => setOpen(true)}
         className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-sm font-semibold text-ink shadow-glass"
       >
-        Spreadsheet import
+        {t("ikimina.import.button", "Spreadsheet import")}
       </button>
 
       {open && (
@@ -260,27 +255,21 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
             )}
             <header className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">Ikimina import</p>
-                <h2 className="text-lg font-semibold">Step {step} · {fileName ?? "Upload CSV"}</h2>
+                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.import.title", "Ikimina import")}</p>
+                <h2 className="text-lg font-semibold">{t("ikimina.import.step", "Step")} {step} · {fileName ?? t("ikimina.import.uploadCsv", "Upload CSV")}</h2>
               </div>
               <button className="text-sm text-neutral-2 hover:text-neutral-0" onClick={reset}>
-                <BilingualText
-                  primary="Close"
-                  secondary="Funga"
-                  layout="inline"
-                  className="items-center gap-1"
-                  secondaryClassName="text-[10px] text-neutral-3"
-                />
+                {t("common.close", "Close")}
                 <span aria-hidden className="ml-1">✕</span>
               </button>
             </header>
 
             {step === 1 && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>Upload a CSV exported from your SACCO system. Include column headers in the first row.</p>
+                <p>{t("ikimina.import.uploadHelp", "Upload a CSV exported from your SACCO system. Include column headers in the first row.")}</p>
                 <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 p-10 text-center transition hover:bg-white/10">
-                  <span className="text-sm font-semibold">Drop CSV here or click to browse</span>
-                  <span className="text-xs text-neutral-2">Supported: .csv, .xlsx</span>
+                  <span className="text-sm font-semibold">{t("ikimina.import.dropOrBrowse", "Drop CSV here or click to browse")}</span>
+                  <span className="text-xs text-neutral-2">{t("ikimina.import.supported", "Supported: .csv, .xlsx")}</span>
                   <input
                     type="file"
                     accept=".csv,.xlsx,.xls,.xlsm,.xlsb"
@@ -289,19 +278,15 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                   />
                 </label>
                 {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
-                <p className="text-xs text-neutral-2">
-                  Template columns: full_name, msisdn, member_code. You can adjust mapping in the next step.
-                </p>
+                <p className="text-xs text-neutral-2">{t("ikimina.import.templateColumns", "Template columns: full_name, msisdn, member_code. You can adjust mapping in the next step.")}</p>
               </div>
             )}
 
             {step === 2 && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>Drag a CSV column chip into each required field below.</p>
+                <p>{t("ikimina.import.dragMapping", "Drag a CSV column chip into each required field below.")}</p>
                 {presetAvailable && (
-                  <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">
-                    Previous mapping detected for this header set. Fields applied automatically.
-                  </p>
+                  <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">{t("ikimina.import.previousMapping", "Previous mapping detected for this header set. Fields applied automatically.")}</p>
                 )}
                 <div className="flex flex-wrap gap-2">
                   {headers
@@ -341,7 +326,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                             {assigned}
                           </span>
                         ) : (
-                          <span className="text-xs text-neutral-2">Drop a column here</span>
+                          <span className="text-xs text-neutral-2">{t("ikimina.import.dropHere", "Drop a column here")}</span>
                         )}
                         {assigned && (
                           <button
@@ -418,10 +403,9 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                     disabled={!mappingComplete}
                     onClick={() => {
       if (!mappingComplete) {
-        const msg = "Map all required fields before continuing.";
-        const bilingual = toBilingual(msg, "Shyira ahakwiye imirongo yose ibisabwa mbere yo gukomeza.");
-        setError(bilingual);
-        notifyError(msg, "Shyira ahakwiye imirongo yose ibisabwa mbere yo gukomeza.");
+        const msg = t("ikimina.import.mapAll", "Map all required fields before continuing.");
+        setError(msg);
+        notifyError(msg);
         return;
       }
                       setError(null);
@@ -480,7 +464,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                 </div>
                 <div className="flex items-start justify-between gap-4">
                   <button className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2" onClick={() => setStep(2)}>
-                    Back
+                    {t("common.back", "Back")}
                   </button>
                   <div className="flex flex-1 flex-col gap-2 text-right">
                     <div className="text-xs text-neutral-2">
@@ -492,13 +476,13 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                       disabled={pending || !mappingComplete || validRows.length === 0 || invalidRows.length > 0}
                       className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
                     >
-                      {pending ? "Importing…" : "Confirm import"}
+                      {pending ? t("ikimina.import.importing", "Importing…") : t("ikimina.import.confirmImport", "Confirm import")}
                     </button>
                     {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
                     {message && <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">{message}</p>}
                     {invalidRows.length > 0 && (
                       <div className="rounded-xl bg-amber-500/10 px-3 py-2 text-left text-[11px] text-amber-200">
-                        <p>{invalidRows.length} row(s) need fixes before importing.</p>
+                        <p>{invalidRows.length} {t("ikimina.import.rowsNeedFixes", "row(s) need fixes before importing.")}</p>
                         <ul className="mt-1 space-y-1">
                           {invalidRows.slice(0, 3).map((row) => (
                             <li key={row.index}>Row {row.index + 1}: {row.errors[0]}</li>
@@ -507,7 +491,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                       </div>
                     )}
                     <p className="text-[10px] text-neutral-2">
-                      Payload is sent to the `secure-import-members` edge function. Ensure it is deployed in Lovable Cloud.
+                      {t("ikimina.import.payloadNote", "Payload is sent to the secure-import-members edge function. Ensure it is deployed in Lovable Cloud.")}
                     </p>
                   </div>
                 </div>

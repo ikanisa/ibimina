@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
-import { BilingualText } from "@/components/common/bilingual-text";
 import { useTranslation } from "@/providers/i18n-provider";
 import { queueNotification } from "@/app/(main)/admin/actions";
 
@@ -161,25 +160,25 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         .select("id, name, body, is_active, sacco_id, created_at, updated_at, version, tokens, description")
         .single();
       if (insertError) {
-        notifyError(insertError.message ?? "Failed to create new version", "Gukora verisiyo nshya byanze");
+        notifyError(insertError.message ?? t("admin.templates.newVersionFailed", "Failed to create new version"));
         return;
       }
       setTemplates((prev) => [data as TemplateRow, ...prev]);
-      notifySuccess("New version drafted", "Verisiyo nshya yakozwe");
+      notifySuccess(t("admin.templates.newVersionDrafted", "New version drafted"));
     });
   };
 
   const handleQueueTest = (template: TemplateRow) => {
     if (!template.sacco_id) {
-      notifyError("Template is missing SACCO", "Inyandiko nta SACCO ifite");
+      notifyError(t("admin.templates.noSacco", "Template is missing SACCO"));
       return;
     }
     startTransition(async () => {
       const result = await queueNotification({ saccoId: template.sacco_id, templateId: template.id });
       if (result.status === "error") {
-        notifyError(result.message ?? "Failed to queue test", "Kohereza ikizamini byanze");
+        notifyError(result.message ?? t("admin.templates.testQueueFailed", "Failed to queue test"));
       } else {
-        notifySuccess(result.message ?? "Test queued", "Ikizamini cyoherejwe");
+        notifySuccess(result.message ?? t("admin.templates.testQueued", "Test queued"));
       }
     });
   };
@@ -187,9 +186,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-          <BilingualText primary="SACCO" secondary="Ikigo" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-        </label>
+        <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.sacco", "SACCO")}</label>
         <select
           value={selectedSacco ?? ""}
           onChange={(event) => setSelectedSacco(event.target.value || null)}
@@ -204,14 +201,10 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
       </div>
 
       <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-4">
-        <p className="text-xs uppercase tracking-[0.2em] text-neutral-2">
-          <BilingualText primary="Create template" secondary="Kora inyandiko" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-        </p>
+        <p className="text-xs uppercase tracking-[0.2em] text-neutral-2">{t("admin.templates.create", "Create template")}</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="space-y-1">
-            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-              <BilingualText primary="Name" secondary="Izina" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-            </span>
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.name", "Name")}</span>
             <input
               type="text"
               value={name}
@@ -221,9 +214,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
             />
           </label>
           <label className="space-y-1 sm:col-span-2">
-            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-              <BilingualText primary="Body" secondary="Ubutumwa" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-            </span>
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.templates.bodyLabel", "Body")}</span>
             <textarea
               value={body}
               onChange={(event) => setBody(event.target.value)}
@@ -239,7 +230,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
                   onClick={() => setBody((prev) => `${prev}${prev.endsWith(" ") || prev.length === 0 ? "" : " "}${token.token}`)}
                   className="rounded-full border border-white/15 px-2 py-1 text-neutral-0 hover:border-white/30"
                 >
-                  <BilingualText primary={token.primary} secondary={token.secondary} layout="inline" secondaryClassName="text-[9px] text-neutral-3" />
+                  <span className="text-[9px] text-neutral-3">{token.primary}</span>
                 </button>
               ))}
             </div>

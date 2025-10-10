@@ -76,7 +76,7 @@ export async function getDashboardSummary({ saccoId, allowAll }: DashboardSummar
     .gte("occurred_at", toISOString(startOfMonth));
 
   if (!allowAll) {
-    paymentsQuery = paymentsQuery.eq("sacco_id", saccoId);
+    paymentsQuery = paymentsQuery.eq("sacco_id", saccoId as string);
   }
 
   const { data: payments, error: paymentsError } = await paymentsQuery;
@@ -158,7 +158,7 @@ export async function getDashboardSummary({ saccoId, allowAll }: DashboardSummar
       .limit(5);
 
     if (!allowAll) {
-      fallbackQuery = fallbackQuery.eq("sacco_id", saccoId);
+      fallbackQuery = fallbackQuery.eq("sacco_id", saccoId as string);
     }
 
     const { data: fallbackGroups } = await fallbackQuery;

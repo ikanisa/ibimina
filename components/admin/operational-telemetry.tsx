@@ -1,4 +1,4 @@
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 
 type TelemetryMetric = {
@@ -90,14 +90,11 @@ interface OperationalTelemetryProps {
 }
 
 export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
+  const { t } = useTranslation();
   if (!metrics.length) {
     return (
       <p className="text-sm text-neutral-2">
-        <BilingualText
-          primary="No telemetry recorded yet."
-          secondary="Nta makuru y'igenzura aragaragara."
-          secondaryClassName="text-xs text-neutral-3"
-        />
+        {t("admin.telemetry.empty", "No telemetry recorded yet.")}
       </p>
     );
   }
@@ -115,8 +112,8 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
         const meta = METRIC_LABELS[metric.event] ?? {
           primary: metric.event,
           secondary: metric.event,
-          description: "Unmapped event.",
-          secondaryDescription: "Icyabaye kitagaragajwe.",
+          description: t("admin.telemetry.unmapped", "Unmapped event."),
+          secondaryDescription: "",
           accent: "blue" as const,
         };
 
@@ -136,25 +133,12 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
             )}
           >
             <header className="space-y-1">
-              <BilingualText
-                primary={meta.primary}
-                secondary={meta.secondary}
-                className="text-sm font-semibold text-neutral-0"
-                secondaryClassName="text-[11px] text-neutral-2"
-              />
-              <p className="text-xs text-neutral-2">
-                {meta.description}
-                {" · "}
-                {meta.secondaryDescription}
-              </p>
+              <span className="text-sm font-semibold text-neutral-0">{meta.primary}</span>
+              <p className="text-xs text-neutral-2">{meta.description}</p>
             </header>
             <p className="mt-3 text-3xl font-bold text-neutral-0">{numberFormatter.format(metric.total ?? 0)}</p>
             <p className="mt-2 text-xs text-neutral-2">
-              <BilingualText
-                primary={`Last occurred ${formatDate(metric.last_occurred)}`}
-                secondary={`Byabaye kuri ${formatDate(metric.last_occurred)}`}
-                secondaryClassName="text-[11px]"
-              />
+              <span>{t("admin.telemetry.lastOccurred", "Last occurred ")}{formatDate(metric.last_occurred)}</span>
             </p>
           </article>
         );

@@ -2,19 +2,17 @@
 
 import Link from "next/link";
 import type { Route } from "next";
+import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { BilingualText } from "@/components/common/bilingual-text";
 
 interface QuickActionProps {
   href: Route;
-  label: string;
-  description?: string;
-  secondaryLabel?: string;
-  secondaryDescription?: string;
+  label: ReactNode;
+  description?: ReactNode;
 }
 
-export function QuickAction({ href, label, description, secondaryLabel, secondaryDescription }: QuickActionProps) {
+export function QuickAction({ href, label, description }: QuickActionProps) {
   return (
     <Link href={href} className="block">
       <motion.div
@@ -26,18 +24,9 @@ export function QuickAction({ href, label, description, secondaryLabel, secondar
         )}
       >
         <div>
-          <BilingualText
-            primary={<span className="text-sm font-semibold text-neutral-0">{label}</span>}
-            secondary={secondaryLabel ?? label}
-            secondaryClassName="text-[11px] uppercase tracking-[0.25em] text-neutral-3"
-          />
+          <span className="text-sm font-semibold text-neutral-0">{label}</span>
           {description && (
-            <BilingualText
-              primary={<span className="mt-1 block text-xs text-neutral-2">{description}</span>}
-              secondary={secondaryDescription ?? description}
-              className="mt-1"
-              secondaryClassName="text-[11px] text-neutral-3"
-            />
+            <span className="mt-1 block text-xs text-neutral-2">{description}</span>
           )}
         </div>
         <span className="mt-4 inline-flex items-center text-xs font-semibold uppercase tracking-[0.3em] text-neutral-2 transition group-hover:text-neutral-0">

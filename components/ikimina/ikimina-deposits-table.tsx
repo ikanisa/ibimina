@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { VirtualTable } from "@/components/datagrid/virtual-table";
 import { StatusChip } from "@/components/common/status-chip";
+import { useTranslation } from "@/providers/i18n-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export interface IkiminaDepositRecord {
@@ -29,32 +30,33 @@ const formatAmount = (value: number, currency?: string | null) =>
   }).format(value);
 
 export function IkiminaDepositsTable({ data, tableHeight = 360 }: IkiminaDepositsTableProps) {
+  const { t } = useTranslation();
   const columns = useMemo<ColumnDef<IkiminaDepositRecord>[]>(
     () => [
       {
         accessorKey: "occurred_at",
-        header: "Occurred",
+        header: () => t("table.occurred", "Occurred"),
         cell: ({ getValue }) => new Date(getValue() as string).toLocaleString(),
       },
       {
         accessorKey: "amount",
-        header: "Amount",
+        header: () => t("table.amount", "Amount"),
         cell: ({ row }) => formatAmount(row.original.amount, row.original.currency),
         meta: { align: "right" as const },
       },
       {
         accessorKey: "reference",
-        header: "Reference",
+        header: () => t("table.reference", "Reference"),
         cell: ({ getValue }) => (getValue() as string | null) ?? "—",
       },
       {
         accessorKey: "msisdn",
-        header: "MSISDN",
+        header: () => t("table.msisdn", "MSISDN"),
         cell: ({ getValue }) => (getValue() as string | null) ?? "—",
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: () => t("table.status", "Status"),
         cell: ({ getValue }) => (
           <StatusChip tone={(getValue() as string) === "POSTED" || (getValue() as string) === "SETTLED" ? "success" : "warning"}>
             {getValue() as string}
@@ -62,13 +64,13 @@ export function IkiminaDepositsTable({ data, tableHeight = 360 }: IkiminaDeposit
         ),
       },
     ],
-    []
+    [t]
   );
 
   const empty = (
     <EmptyState
-      title="No deposits"
-      description="Use the statement wizard to ingest CSV files."
+      title={t("ikimina.deposits.emptyTitle", "No deposits")}
+      description={t("ikimina.deposits.emptyDescription", "Use the statement wizard to ingest CSV files.")}
     />
   );
 

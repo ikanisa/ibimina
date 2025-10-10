@@ -15,7 +15,7 @@ import {
 import { parseTabularFile } from "@/lib/imports/file-parser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 
 const REQUIRED_FIELDS = [
   { key: "occurredAt", label: "Occurred at", hint: "ISO date or 2024-09-01 08:53" },
@@ -68,6 +68,7 @@ const createInitialStatementMasks = (variant: StatementWizardVariant) =>
 const supabase = getSupabaseBrowserClient();
 
 export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic", canImport = true, disabledReason }: StatementImportWizardProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [importMode, setImportMode] = useState<ImportMode>("file");
@@ -428,13 +429,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                 <h2 className="text-lg font-semibold">Step {step} · {fileName ?? "Upload"}</h2>
               </div>
               <button className="text-sm text-neutral-2 hover:text-neutral-0" onClick={reset}>
-                <BilingualText
-                  primary="Close"
-                  secondary="Funga"
-                  layout="inline"
-                  className="items-center gap-1"
-                  secondaryClassName="text-[10px] text-neutral-3"
-                />
+                <span>{t("common.close", "Close")}</span>
                 <span aria-hidden className="ml-1">✕</span>
               </button>
             </header>

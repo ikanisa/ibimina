@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MissedContributorsList } from "@/components/dashboard/missed-contributors-list";
 import { requireUserAndProfile } from "@/lib/auth";
 import { getDashboardSummary } from "@/lib/dashboard";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { Trans } from "@/components/common/trans";
 import { TopIkiminaTable } from "@/components/dashboard/top-ikimina-table";
 
 function formatCurrency(amount: number) {
@@ -17,31 +17,23 @@ function formatCurrency(amount: number) {
 
 const quickActions = [
   {
-    label: "Create Ikimina",
-    description: "Launch a new group with the configured policies.",
-    secondaryLabel: "Tangira ikimina",
-    secondaryDescription: "Tangira itsinda rishya uko amategeko abiteganya.",
+    label: <Trans i18nKey="dashboard.quick.createIkimina.title" fallback="Create Ikimina" />,
+    description: <Trans i18nKey="dashboard.quick.createIkimina.description" fallback="Launch a new group with the configured policies." />,
     href: "/ikimina" as Route,
   },
   {
-    label: "Import Members",
-    description: "Bulk-upload CSV or spreadsheet rosters.",
-    secondaryLabel: "Injiza abanyamuryango",
-    secondaryDescription: "Kuramo urutonde rw'abanyamuryango mu ikimina.",
+    label: <Trans i18nKey="dashboard.quick.importMembers.title" fallback="Import Members" />,
+    description: <Trans i18nKey="dashboard.quick.importMembers.description" fallback="Bulk-upload CSV or spreadsheet rosters." />,
     href: "/ikimina" as Route,
   },
   {
-    label: "Import Statement",
-    description: "Drop MoMo statements for matching and posting.",
-    secondaryLabel: "Shyiramo raporo ya MoMo",
-    secondaryDescription: "Ohereza raporo za MoMo zisuzumwa.",
+    label: <Trans i18nKey="dashboard.quick.importStatement.title" fallback="Import Statement" />,
+    description: <Trans i18nKey="dashboard.quick.importStatement.description" fallback="Drop MoMo statements for matching and posting." />,
     href: "/recon" as Route,
   },
   {
-    label: "Go to Reconciliation",
-    description: "Review unknown references and exceptions.",
-    secondaryLabel: "Jya mu guhuzwa",
-    secondaryDescription: "Reba amafaranga atahuye n'abanyamuryango.",
+    label: <Trans i18nKey="dashboard.quick.goRecon.title" fallback="Go to Reconciliation" />,
+    description: <Trans i18nKey="dashboard.quick.goRecon.description" fallback="Review unknown references and exceptions." />,
     href: "/recon" as Route,
   },
 ] as const;
@@ -74,49 +66,31 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <GradientHeader
-        title={<BilingualText primary="SACCO overview" secondary="Inshamake ya SACCO" />}
-        subtitle={
-          <BilingualText
-            primary="Monitor deposits, member activity, and reconciliation health across your Umurenge SACCO."
-            secondary="Kurikira ubwizigame, ibikorwa by'abanyamuryango n'imiterere yo guhuzwa muri SACCO yawe."
-            secondaryClassName="text-xs text-ink/70"
-          />
-        }
+        title={<Trans i18nKey="dashboard.title" fallback="SACCO overview" />}
+        subtitle={<Trans i18nKey="dashboard.subtitle" fallback="Monitor deposits, member activity, and reconciliation health across your Umurenge SACCO." className="text-xs text-ink/70" />}
         badge={<StatusChip tone="neutral">Staff access</StatusChip>}
       >
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-          {kpis.map((kpi) => (
-            <KPIStat key={kpi.label} label={kpi.label} value={kpi.value} accent={kpi.accent} />
+          {kpis.map((kpi, idx) => (
+            <KPIStat key={idx} label={kpi.label} value={kpi.value} accent={kpi.accent} />
           ))}
         </div>
       </GradientHeader>
 
       <GlassCard
-        title={<BilingualText primary="Quick actions" secondary="Ibikorwa byihuse" />}
-        subtitle={
-          <BilingualText
-            primary="Shave seconds off your daily workflows with the most common tasks."
-            secondary="Bika umwanya ukoresha mu bikorwa by'umunsi ku munsi."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<Trans i18nKey="dashboard.quick.title" fallback="Quick actions" />}
+        subtitle={<Trans i18nKey="dashboard.quick.subtitle" fallback="Shave seconds off your daily workflows with the most common tasks." className="text-xs text-neutral-3" />}
       >
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {quickActions.map((action) => (
-            <QuickAction key={action.label} {...action} />
+          {quickActions.map((action, idx) => (
+            <QuickAction key={idx} {...action} />
           ))}
         </div>
       </GlassCard>
 
       <GlassCard
-        title={<BilingualText primary="Missed contributors" secondary="Abadasigira amafaranga" />}
-        subtitle={
-          <BilingualText
-            primary="Members without a recorded contribution in the last month."
-            secondary="Abanyamuryango batagize umusanzu muri uku kwezi."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<Trans i18nKey="dashboard.missed.title" fallback="Missed contributors" />}
+        subtitle={<Trans i18nKey="dashboard.missed.subtitle" fallback="Members without a recorded contribution in the last month." className="text-xs text-neutral-3" />}
       >
         {summary.missedContributors.length > 0 ? (
           <MissedContributorsList contributors={summary.missedContributors} />
@@ -129,14 +103,8 @@ export default async function DashboardPage() {
       </GlassCard>
 
       <GlassCard
-        title={<BilingualText primary="Top Ikimina" secondary="Amatsinda akora neza" />}
-        subtitle={
-          <BilingualText
-            primary="Most active groups by deposit volume this month."
-            secondary="Amatsinda afite umusaruro munini w'ukwezi."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<Trans i18nKey="dashboard.top.title" fallback="Top Ikimina" />}
+        subtitle={<Trans i18nKey="dashboard.top.subtitle" fallback="Most active groups by deposit volume this month." className="text-xs text-neutral-3" />}
         actions={<StatusChip tone="neutral">{summary.activeIkimina} active</StatusChip>}
       >
         <TopIkiminaTable data={summary.topIkimina} />

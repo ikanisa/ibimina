@@ -8,7 +8,7 @@ import type { Database } from "@/lib/supabase/types";
 import { StatusChip } from "@/components/common/status-chip";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { IkiminaSettingsEditor } from "@/components/ikimina/ikimina-settings-editor";
 
 const MEMBER_TABS = ["Overview", "Members", "Deposits", "Statements", "Settings"] as const;
@@ -89,12 +89,12 @@ const paymentStatuses = ["ALL", "POSTED", "SETTLED", "UNALLOCATED", "PENDING"] a
 
 type PaymentFilter = (typeof paymentStatuses)[number];
 
-const TAB_LABELS: Record<TabKey, { primary: string; secondary: string }> = {
-  Overview: { primary: "Overview", secondary: "Inshamake" },
-  Members: { primary: "Members", secondary: "Abanyamuryango" },
-  Deposits: { primary: "Deposits", secondary: "Imisanzu" },
-  Statements: { primary: "Statements", secondary: "Raporo" },
-  Settings: { primary: "Settings", secondary: "Amabwiriza" },
+const TAB_KEYS: Record<TabKey, string> = {
+  Overview: "ikimina.tabs.overview",
+  Members: "ikimina.tabs.members",
+  Deposits: "ikimina.tabs.deposits",
+  Statements: "ikimina.tabs.statements",
+  Settings: "ikimina.tabs.settings",
 };
 
 const PAYMENT_STATUS_LABELS: Record<PaymentFilter, { primary: string; secondary: string }> = {
@@ -106,6 +106,7 @@ const PAYMENT_STATUS_LABELS: Record<PaymentFilter, { primary: string; secondary:
 };
 
 export function IkiminaDetailTabs({ detail, members, payments, statements, history }: IkiminaDetailTabsProps) {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<TabKey>("Overview");
   const [memberSearch, setMemberSearch] = useState("");
   const [depositFilter, setDepositFilter] = useState<PaymentFilter>("ALL");
@@ -116,53 +117,29 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
     () => [
       {
         accessorKey: "full_name",
-        header: () => (
-          <BilingualText
-            primary="Name"
-            secondary="Izina"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.name", "Name")}</span>,
         cell: ({ row }) => (
           <div>
             <p className="font-medium text-neutral-0">{row.original.full_name}</p>
-            <p className="text-xs text-neutral-2">Code · {row.original.member_code ?? "—"}</p>
+            <p className="text-xs text-neutral-2">{t("reports.table.code", "Code")} · {row.original.member_code ?? "—"}</p>
           </div>
         ),
         meta: { template: "minmax(220px, 2fr)" },
       },
       {
         accessorKey: "msisdn",
-        header: () => (
-          <BilingualText
-            primary="MSISDN"
-            secondary="Numero"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.members.msisdn", "MSISDN")}</span>,
         meta: { template: "minmax(180px, 1fr)" },
       },
       {
         accessorKey: "status",
-        header: () => (
-          <BilingualText
-            primary="Status"
-            secondary="Imiterere"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.status", "Status")}</span>,
         cell: ({ getValue }) => <StatusChip tone="neutral">{getValue() as string}</StatusChip>,
         meta: { template: "minmax(140px, 0.8fr)" },
       },
       {
         accessorKey: "joined_at",
-        header: () => (
-          <BilingualText
-            primary="Joined"
-            secondary="Yinjiye"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.members.joined", "Joined")}</span>,
         cell: ({ getValue }) => {
           const value = getValue() as string | null;
           return value ? new Date(value).toLocaleDateString() : "—";
@@ -170,113 +147,65 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
         meta: { template: "minmax(140px, 0.9fr)" },
       },
     ],
-    [],
+    [t],
   );
 
   const paymentColumns = useMemo<ColumnDef<PaymentRow, unknown>[]>(
     () => [
       {
         accessorKey: "occurred_at",
-        header: () => (
-          <BilingualText
-            primary="Occurred"
-            secondary="Igihe byabereye"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("payments.occurred", "Occurred")}</span>,
         cell: ({ getValue }) => dateFormatter.format(new Date(getValue() as string)),
         meta: { template: "minmax(180px, 1.2fr)" },
       },
       {
         accessorKey: "amount",
-        header: () => (
-          <BilingualText
-            primary="Amount"
-            secondary="Amafaranga"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.table.amount", "Amount")}</span>,
         cell: ({ row }) => currencyFormatter.format(row.original.amount),
         meta: { align: "right", template: "minmax(150px, 0.8fr)", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "reference",
-        header: () => (
-          <BilingualText
-            primary="Reference"
-            secondary="Indango"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("payments.reference", "Reference")}</span>,
         cell: ({ getValue }) => (getValue() as string | null) ?? "—",
         meta: { template: "minmax(180px, 1.2fr)" },
       },
       {
         accessorKey: "status",
-        header: () => (
-          <BilingualText
-            primary="Status"
-            secondary="Imiterere"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.status", "Status")}</span>,
         cell: ({ getValue }) => <StatusChip tone="neutral">{getValue() as string}</StatusChip>,
         meta: { template: "minmax(140px, 0.8fr)" },
       },
     ],
-    [],
+    [t],
   );
 
   const statementColumns = useMemo<ColumnDef<StatementSummary, unknown>[]>(
     () => [
       {
         accessorKey: "label",
-        header: () => (
-          <BilingualText
-            primary="Month"
-            secondary="Ukwezi"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.table.month", "Month")}</span>,
         meta: { template: "minmax(160px, 1fr)" },
       },
       {
         accessorKey: "postedTotal",
-        header: () => (
-          <BilingualText
-            primary="Posted"
-            secondary="Byemejwe"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.posted", "Posted")}</span>,
         cell: ({ getValue }) => currencyFormatter.format(Number(getValue() ?? 0)),
         meta: { align: "right", template: "minmax(150px, 0.8fr)", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "unallocatedTotal",
-        header: () => (
-          <BilingualText
-            primary="Unallocated"
-            secondary="Bitaragabanywa"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.unallocated", "Unallocated")}</span>,
         cell: ({ getValue }) => currencyFormatter.format(Number(getValue() ?? 0)),
         meta: { align: "right", template: "minmax(150px, 0.8fr)" },
       },
       {
         accessorKey: "transactionCount",
-        header: () => (
-          <BilingualText
-            primary="Transactions"
-            secondary="Imyitwarire"
-            secondaryClassName="text-[10px] text-neutral-3"
-          />
-        ),
+        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.transactions", "Transactions")}</span>,
         meta: { align: "right", template: "minmax(130px, 0.7fr)" },
       },
     ],
-    [],
+    [t],
   );
 
   const filteredMembers = useMemo(() => {
@@ -306,13 +235,7 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
               tab === item ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
             )}
           >
-            <BilingualText
-              primary={TAB_LABELS[item].primary}
-              secondary={TAB_LABELS[item].secondary}
-              layout="inline"
-              className="items-center gap-2"
-              secondaryClassName="text-[10px] text-neutral-3"
-            />
+            {t(TAB_KEYS[item], TAB_KEYS[item].split(".").pop() ?? item)}
           </button>
         ))}
       </div>
@@ -346,8 +269,8 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
         <div className="space-y-4">
           <div className="max-w-sm">
             <Input
-              label="Search members / Shakisha abanyamuryango"
-              placeholder="Search by name, MSISDN, or code / Shakisha izina, nimero cyangwa kode"
+              label={t("ikimina.members.searchLabel", "Search members")}
+              placeholder={t("ikimina.members.searchPlaceholder", "Search by name, MSISDN, or code")}
               value={memberSearch}
               onChange={(event) => setMemberSearch(event.target.value)}
             />
@@ -355,7 +278,7 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
           <VirtualTable
             data={filteredMembers}
             columns={memberColumns}
-            emptyState={<EmptyState title="No members" description="Import members to get started." />}
+            emptyState={<EmptyState title={t("ikimina.members.emptyTitle", "No members")} description={t("ikimina.members.emptyDescription", "Import members to get started.")} />}
           />
         </div>
       )}
@@ -373,20 +296,14 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
                   depositFilter === option ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
                 )}
               >
-                <BilingualText
-                  primary={PAYMENT_STATUS_LABELS[option].primary}
-                  secondary={PAYMENT_STATUS_LABELS[option].secondary}
-                  layout="inline"
-                  className="items-center gap-2"
-                  secondaryClassName="text-[10px] text-neutral-3"
-                />
+                {t(`payments.filter.${option.toLowerCase()}`, PAYMENT_STATUS_LABELS[option as keyof typeof PAYMENT_STATUS_LABELS]?.primary ?? option)}
               </button>
             ))}
           </div>
           <VirtualTable
             data={filteredPayments}
             columns={paymentColumns}
-            emptyState={<EmptyState title="No deposits" description="Recent transactions will appear here." />}
+            emptyState={<EmptyState title={t("ikimina.deposits.emptyTitle", "No deposits")} description={t("ikimina.deposits.emptyDescription", "Recent transactions will appear here.")} />}
           />
         </div>
       )}
@@ -395,7 +312,7 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
         <VirtualTable
           data={statements}
           columns={statementColumns}
-          emptyState={<EmptyState title="No statements" description="Statements will appear as transactions post." />}
+          emptyState={<EmptyState title={t("ikimina.statements.emptyTitle", "No statements")} description={t("ikimina.statements.emptyDescription", "Statements will appear as transactions post.")} />}
         />
       )}
 

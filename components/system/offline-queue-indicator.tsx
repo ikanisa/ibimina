@@ -3,29 +3,9 @@
 import { useState } from "react";
 import { Loader2, RefreshCcw, Wifi, WifiOff, X } from "lucide-react";
 import { useOfflineQueue } from "@/providers/offline-queue-provider";
-import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 
-const STATUS_LABEL: Record<
-  import("@/lib/offline/queue").OfflineActionStatus,
-  { primary: string; secondary: string; tone: "neutral" | "warning" }
-> = {
-  pending: {
-    primary: "Queued",
-    secondary: "Birategereje",
-    tone: "neutral",
-  },
-  syncing: {
-    primary: "Syncing",
-    secondary: "Birimo bihuzwa",
-    tone: "neutral",
-  },
-  failed: {
-    primary: "Retry",
-    secondary: "Ongera ugerageze",
-    tone: "warning",
-  },
-};
 
 function formatTimestamp(timestamp: string) {
   const date = new Date(timestamp);
@@ -35,6 +15,7 @@ function formatTimestamp(timestamp: string) {
 
 export function OfflineQueueIndicator() {
   const { isOnline, actions, pendingCount, retryFailed, clearAction, processing } = useOfflineQueue();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   if (isOnline && actions.length === 0) {
@@ -44,10 +25,10 @@ export function OfflineQueueIndicator() {
   const failed = actions.filter((action) => action.status === "failed").length;
   const indicatorTone = !isOnline ? "bg-red-500/80" : failed > 0 ? "bg-amber-400/80" : "bg-emerald-400/80";
   const helperText = !isOnline
-    ? "Offline · Ohoraho"
+    ? t("system.offlineQueue.banner.offline", "Offline")
     : failed > 0
-      ? "Needs retry · Ongera ugerageze"
-      : "Queued · Birategereje";
+      ? t("system.offlineQueue.banner.needsRetry", "Needs retry")
+      : t("system.offlineQueue.banner.queued", "Queued");
 
   return (
     <div className="fixed bottom-6 left-6 z-40 flex flex-col items-start gap-3 text-sm">
@@ -75,21 +56,17 @@ export function OfflineQueueIndicator() {
         >
           <header className="mb-3 flex items-center justify-between">
             <div>
-              <BilingualText
-                primary="Offline queue"
-                secondary="Urutonde rwo gufata"
-                secondaryClassName="text-[11px] text-neutral-2"
-              />
+              <p className="font-semibold text-neutral-0">{t("system.offlineQueue.title", "Offline queue")}</p>
               <p className="text-xs text-neutral-2">
                 {isOnline ? (
                   <span className="inline-flex items-center gap-1">
                     <Wifi className="h-3 w-3" aria-hidden />
-                    <span>Online · Ku murongo</span>
+                    <span>{t("common.online", "Online")}</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-red-300">
                     <WifiOff className="h-3 w-3" aria-hidden />
-                    <span>Offline · Ntibiri ku murongo</span>
+                    <span>{t("common.offline", "Offline")}</span>
                   </span>
                 )}
               </p>
@@ -99,7 +76,7 @@ export function OfflineQueueIndicator() {
                 type="button"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-neutral-1 transition hover:border-white/40 hover:text-neutral-0"
                 onClick={() => void retryFailed()}
-                aria-label="Retry queued actions"
+                aria-label={t("system.offlineQueue.retryAria", "Retry queued actions")}
                 disabled={processing || actions.length === 0}
               >
                 {processing ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <RefreshCcw className="h-4 w-4" aria-hidden />}
@@ -108,7 +85,7 @@ export function OfflineQueueIndicator() {
                 type="button"
                 className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-neutral-1 transition hover:border-white/40 hover:text-neutral-0"
                 onClick={() => setOpen(false)}
-                aria-label="Close offline queue"
+                aria-label={t("system.offlineQueue.closeAria", "Close offline queue")}
               >
                 <X className="h-4 w-4" aria-hidden />
               </button>
@@ -118,15 +95,17 @@ export function OfflineQueueIndicator() {
           <div className="space-y-3">
             {actions.length === 0 ? (
               <p className="text-xs text-neutral-2">
-                <BilingualText
-                  primary="No queued actions."
-                  secondary="Nta bikorwa biri mu rutonde."
-                  secondaryClassName="text-[11px] text-neutral-3"
-                />
+                {t("system.offlineQueue.empty", "No queued actions.")}
               </p>
             ) : (
               actions.map((action) => {
-                const status = STATUS_LABEL[action.status];
+                const tone: "neutral" | "warning" = action.status === "failed" ? "warning" : "neutral";
+                const statusLabel =
+                  action.status === "pending"
+                    ? t("system.offlineQueue.status.pending", "Queued")
+                    : action.status === "syncing"
+                      ? t("system.offlineQueue.status.syncing", "Syncing")
+                      : t("common.retry", "Retry");
                 return (
                   <article
                     key={action.id}
@@ -144,7 +123,7 @@ export function OfflineQueueIndicator() {
                         type="button"
                         className="text-neutral-3 transition hover:text-neutral-0"
                         onClick={() => void clearAction(action.id)}
-                        aria-label="Remove action"
+                        aria-label={t("system.offlineQueue.removeAction", "Remove action")}
                       >
                         <X className="h-3.5 w-3.5" aria-hidden />
                       </button>
@@ -153,10 +132,10 @@ export function OfflineQueueIndicator() {
                       <span
                         className={cn(
                           "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium uppercase tracking-[0.2em]",
-                          status.tone === "warning" ? "bg-amber-400/10 text-amber-200" : "bg-white/10 text-neutral-1",
+                          tone === "warning" ? "bg-amber-400/10 text-amber-200" : "bg-white/10 text-neutral-1",
                         )}
                       >
-                        {status.primary} · {status.secondary}
+                        {statusLabel}
                       </span>
                       <span>{formatTimestamp(action.createdAt)}</span>
                     </div>
