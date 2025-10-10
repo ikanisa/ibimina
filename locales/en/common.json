@@ -15,5 +15,15 @@
   "nav.recon": "Recon",
   "nav.analytics": "Analytics",
   "nav.reports": "Reports",
-  "nav.admin": "Admin"
+  "nav.admin": "Admin",
+  "common.email": "Email",
+  "common.sending": "Sending…",
+  "admin.invite.selectSacco": "Select a SACCO for this role",
+  "admin.invite.fail": "Invite failed",
+  "admin.invite.sentWithTemp": "Invitation sent. Temporary password: ",
+  "admin.invite.sent": "Invitation sent successfully",
+  "admin.invite.notice": "Invitation sent to staff",
+  "admin.invite.role": "Role",
+  "admin.invite.emailPlaceholder": "staff@sacco.rw",
+  "admin.invite.send": "Send invite"
 }
