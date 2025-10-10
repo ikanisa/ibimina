@@ -19,6 +19,7 @@
   "common.scope": "Uko bigaragara",
   "reports.title": "Raporo",
   "reports.subtitle": "Tegura raporo zifite ibirango bya SACCO ku bayobozi, abagenzuzi n'abanyamuryango.",
+  "reports.badge.pwa": "PWA-yiteguye",
   "reports.summary.title": "Igasobanuro",
   "reports.summary.pending": "Hindura muyunguruzi kugirango ubone ishusho.",
   "reports.summary.ready": "Imibare igendeye ku muyunguruzi watanze.",
@@ -421,5 +422,10 @@
   "profile.trusted.lastUsed": "Byakoreshejwe bwa nyuma",
   "profile.trusted.ipPrefix": "Imbanziriza IP",
   "profile.trusted.revoke": "Kuraho",
-  "profile.trusted.revokeHint": "Kuraho ibikoresho utacyizeye."
+  "profile.trusted.revokeHint": "Kuraho ibikoresho utacyizeye.",
+  "reports.scope.defaultRange": "Iminsi 30 ishize (mburabuzi)",
+  "reports.scope.toDefault": "(mburabuzi)",
+  "reports.scope.fromLatest": "(iheruka)",
+  "reports.export.startedPdf": "Kohereza PDF byatangiye",
+  "reports.export.startedCsv": "Kohereza CSV byatangiye"
 }
