@@ -172,6 +172,7 @@ Deno.serve(async (req) => {
 
     const totalsByIkimina = new Map<string, { name: string; code: string; amount: number; count: number }>();
     let grandTotal = 0;
+    let totalCount = 0;
 
     for (const payment of payments ?? []) {
       if (!payment.ikimina_id || !["POSTED", "SETTLED"].includes(payment.status)) continue;
@@ -182,6 +183,7 @@ Deno.serve(async (req) => {
       current.count += 1;
       totalsByIkimina.set(payment.ikimina_id, current);
       grandTotal += payment.amount;
+      totalCount += 1;
     }
 
     const sortedTotals = Array.from(totalsByIkimina.values()).sort((a, b) => b.amount - a.amount);
@@ -204,7 +206,7 @@ Deno.serve(async (req) => {
         const share = grandTotal > 0 ? Math.round((row.amount / grandTotal) * 100) : 0;
         csv += `${csvEscape(row.name)},${csvEscape(row.code)},${row.count},${row.amount},${share}%\n`;
       }
-      csv += `${labels[locale].csvTotal},,,${grandTotal},100%\n`;
+      csv += `${labels[locale].csvTotal},,${totalCount},${grandTotal},100%\n`;
 
       return new Response(csv, {
         headers: {
@@ -355,6 +357,7 @@ Deno.serve(async (req) => {
     page.drawRectangle({ x: 48, y: cursorY - 1, width: 472, height: 0.75, color: rgb(0.12, 0.25, 0.2) });
     cursorY -= rowHeight;
     page.drawText(`${labels[locale].grandTotal}: ${formatCurrency(grandTotal)}`, { x: 48, y: cursorY, size: 11, font: bold });
+    page.drawText(`Txn: ${totalCount}`, { x: 310, y: cursorY, size: 11, font: bold });
 
     // Footer
     page.drawText(`${labels[locale].generated} ${new Date().toISOString().slice(0,10)}`,

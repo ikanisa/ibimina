@@ -458,6 +458,7 @@
   "reports.export.eligibleSuffix": "amatsinda ahari kuvanwamo raporo.",
   "reports.export.hint": "Iyo nta minsi watanze, raporo ifata iminsi 30 ishize.",
   "reports.export.startedCsv": "Kohereza CSV byatangiye",
+  "reports.export.localeLabel": "Ururimi rwa raporo",
   "reports.export.startedPdf": "Kohereza PDF byatangiye",
   "reports.filters.from": "Itangira",
   "reports.filters.instructions": "Hitamo SACCO cyangwa ureke ubusa kugira ngo ukoreshe urwego rwose (abashinzwe sisitemu gusa). Igihe gihita gishyirwaho iminsi 30 ishize.",

@@ -458,6 +458,7 @@
   "reports.export.eligibleSuffix": "ikimina éligibles à l’export.",
   "reports.export.hint": "Les exports utilisent par défaut les 30 derniers jours si aucune date n’est fournie.",
   "reports.export.startedCsv": "Export CSV démarré",
+  "reports.export.localeLabel": "Langue d’export",
   "reports.export.startedPdf": "Export PDF démarré",
   "reports.filters.from": "De",
   "reports.filters.instructions": "Choisissez un SACCO ou laissez vide pour le périmètre global (administrateurs système uniquement). La plage par défaut est les 30 derniers jours.",

@@ -25,6 +25,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedLocale, setSelectedLocale] = useState(locale);
 
   const saccoLabel = useMemo(() => {
     if (filters.sacco) {
@@ -72,7 +73,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           start: filters.from || undefined,
           end: filters.to || undefined,
           format,
-          locale,
+          locale: selectedLocale,
         }),
       }).catch((fetchError: unknown) => {
         const msg = fetchError instanceof Error ? fetchError.message : t("common.networkError", "Network error");
@@ -117,6 +118,20 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.scope", "Scope")}</p>
           <p className="mt-1 font-medium text-neutral-0">{saccoLabel}</p>
           <p className="text-xs text-neutral-2">{rangeLabel}</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-neutral-0">
+          <label className="flex items-center justify-between gap-3">
+            <span className="text-neutral-2">{t("reports.export.localeLabel", "Export locale")}</span>
+            <select
+              className="rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-neutral-0"
+              value={selectedLocale}
+              onChange={(e) => setSelectedLocale(e.target.value as typeof selectedLocale)}
+            >
+              <option value="en">English</option>
+              <option value="rw">Kinyarwanda</option>
+              <option value="fr">Français</option>
+            </select>
+          </label>
         </div>
         <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 p-3 text-xs text-neutral-2">
           <span>{ikiminaCount} {t("reports.export.eligibleSuffix", "ikimina eligible for export.")}</span>

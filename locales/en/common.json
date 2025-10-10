@@ -164,7 +164,8 @@
   "common.networkError": "Network error",
   "reports.export.startedPdf": "PDF export started",
   "reports.export.startedCsv": "CSV export started",
-  "reports.filters.saccoPlaceholder": "Filter by SACCO"
+  "reports.filters.saccoPlaceholder": "Filter by SACCO",
+  "reports.export.localeLabel": "Export locale"
   ,
   "restricted.title": "Restricted",
   "restricted.subtitle": "Administrator permissions are required to manage global settings.",
