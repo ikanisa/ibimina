@@ -209,7 +209,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Payment reminder / Kwibutsa umusanzu"
+              placeholder={t("admin.templates.namePlaceholder", "Payment reminder")}
               className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
             />
           </label>
@@ -219,7 +219,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
               value={body}
               onChange={(event) => setBody(event.target.value)}
               rows={4}
-              placeholder="Muraho {member_name}, uributswe ku mushahara w'uku kwezi... / Hello {member_name}, this is your reminder..."
+              placeholder={t("admin.templates.bodyPlaceholder", "Hello {member_name}, this is your reminder for this month…")}
               className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
             />
             <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-neutral-2">

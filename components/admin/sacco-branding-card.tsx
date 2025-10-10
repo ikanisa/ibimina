@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
+import { useTranslation } from "@/providers/i18n-provider";
 
 interface SaccoBrandingCardProps {
   sacco: Pick<
@@ -19,10 +20,10 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
   const [pending, startTransition] = useTransition();
   const [logoUrl, setLogoUrl] = useState<string | null>(sacco.logo_url ?? null);
   const { success, error } = useToast();
+  const { t } = useTranslation();
 
-  const toBilingual = (en: string, rw: string) => `${en} / ${rw}`;
-  const notifySuccess = (en: string, rw: string) => success(toBilingual(en, rw));
-  const notifyError = (en: string, rw: string) => error(toBilingual(en, rw));
+  const notifySuccess = (msg: string) => success(msg);
+  const notifyError = (msg: string) => error(msg);
 
   const updateLogo = async (logoUrl: string | null) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,10 +32,10 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
       .update({ logo_url: logoUrl })
       .eq("id", sacco.id);
     if (updateError) {
-      notifyError(updateError.message ?? "Failed to update logo", "Kuvugurura logo byanze");
+      notifyError(updateError.message ?? t("admin.branding.logoUpdateFailed", "Failed to update logo"));
       throw updateError;
     }
-    notifySuccess("Logo updated", "Logo yavuguruwe");
+    notifySuccess(t("admin.branding.logoUpdated", "Logo updated"));
     setLogoUrl(logoUrl);
   };
 
@@ -46,7 +47,7 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
         upsert: true,
       });
       if (uploadError) {
-        notifyError(uploadError.message ?? "Failed to upload logo", "Gushyira logo byanze");
+        notifyError(uploadError.message ?? t("admin.branding.logoUploadFailed", "Failed to upload logo"));
         return;
       }
       const {
@@ -66,7 +67,7 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
     <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">SACCO Profile</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.branding.profile", "SACCO Profile")}</p>
           <h3 className="text-lg font-semibold">{sacco.name}</h3>
           <p className="text-xs text-neutral-2">
             {sacco.district}, {sacco.province}
@@ -85,11 +86,11 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
             />
           ) : (
             <div className="flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-white/20 text-xs text-neutral-2">
-              No logo
+              {t("admin.branding.noLogo", "No logo")}
             </div>
           )}
           <label className="interactive-scale cursor-pointer rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-2">
-            Upload logo
+            {t("admin.branding.upload", "Upload logo")}
             <input
               type="file"
               accept="image/png,image/jpeg,image/svg+xml"
@@ -98,7 +99,7 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
                 const file = event.target.files?.[0];
                 if (!file) return;
                 if (file.size > 1.5 * 1024 * 1024) {
-                  notifyError("Logo must be under 1.5MB", "Logo igomba kuba munsi ya 1.5MB");
+                  notifyError(t("admin.branding.sizeLimit", "Logo must be under 1.5MB"));
                   return;
                 }
                 handleLogoUpload(file);
@@ -114,7 +115,7 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
           disabled={pending}
           className="self-start text-xs text-amber-200 underline-offset-2 hover:underline disabled:opacity-60"
         >
-          Remove logo
+          {t("admin.branding.remove", "Remove logo")}
         </button>
       )}
     </div>
