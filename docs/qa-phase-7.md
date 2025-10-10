@@ -8,7 +8,7 @@ This log captures the current QA status for the Ibimina Staff PWA. It supplement
 - Recommendation: capture mobile Lighthouse scores (Performance ≥ 90) and attach HTML report during release prep.
 
 ## 2. Accessibility & i18n
-- ✅ Manual spot-check: pages render bilingual labels (`BilingualText`), toast provider exposes `aria-live` announcements, recon/preview screens keep keyboard focus outlines.
+- ✅ Manual spot-check: pages render localised labels via `t()`, toast provider exposes `aria-live` announcements, recon/preview screens keep keyboard focus outlines.
 - 🚧 Automated axe run pending — install `@axe-core/cli` (requires network) and execute `npx @axe-core/cli http://localhost:3000/dashboard`.
 - Follow-up: document any violations, update tokens/translations in `locales/` as needed.
 

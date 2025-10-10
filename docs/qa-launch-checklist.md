@@ -12,7 +12,7 @@ This checklist captures the recurring tasks we need to run before cutting a rele
 ## 2. Accessibility Sweep
 - [ ] Run automated checks (e.g. `npx @axe-core/cli http://localhost:3000/dashboard`). Record any violations and file fixes.
 - [ ] Keyboard navigation: ensure primary nav, command palette, quick actions, recon tables, and admin forms are reachable and focus-styled.
-- [ ] Screen reader spot-check: verify bilingual labels (`BilingualText`) read primary copy first and aria-live toasts announce messages.
+- [ ] Screen reader spot-check: verify localised labels (via `t()`) read primary copy first and aria-live toasts announce messages.
 - [ ] Contrast spot-check: confirm gradients + glass overlays meet AA in light/dark contexts.
 
 ## 3. Internationalisation Review
