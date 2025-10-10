@@ -6,6 +6,7 @@ import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
 import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -42,6 +43,7 @@ function buildSearchSlug(name: string) {
 const DEFAULT_CATEGORY = "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)";
 
 export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProps) {
+  const { t } = useTranslation();
   const [saccos, setSaccos] = useState<SaccoRow[]>(initialSaccos);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<SaccoFormState | null>(null);
@@ -49,9 +51,8 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
   const [pending, startTransition] = useTransition();
   const { success, error } = useToast();
 
-  const toBilingual = (en: string, rw: string) => `${en} / ${rw}`;
-  const notifySuccess = (en: string, rw: string) => success(toBilingual(en, rw));
-  const notifyError = (en: string, rw: string) => error(toBilingual(en, rw));
+  const notifySuccess = (msg: string) => success(msg);
+  const notifyError = (msg: string) => error(msg);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return saccos;
@@ -98,11 +99,11 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
   };
 
   const validateForm = (state: SaccoFormState | null) => {
-    if (!state) return toBilingual("No record selected", "Nta makuru mwatoranyije");
-    if (!state.name.trim()) return toBilingual("Name is required", "Izina rirakenewe");
-    if (!state.district.trim()) return toBilingual("District is required", "Akarere karakenewe");
-    if (!state.sector.trim()) return toBilingual("Sector is required", "Umurenge urakenewe");
-    if (!state.province.trim()) return toBilingual("Province is required", "Intara irakenewe");
+    if (!state) return t("admin.registry.noRecord", "No record selected");
+    if (!state.name.trim()) return t("admin.registry.nameRequired", "Name is required");
+    if (!state.district.trim()) return t("admin.registry.districtRequired", "District is required");
+    if (!state.sector.trim()) return t("admin.registry.sectorRequired", "Sector is required");
+    if (!state.province.trim()) return t("admin.registry.provinceRequired", "Province is required");
     return null;
   };
 
@@ -140,7 +141,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
             .single();
           if (insertError) throw insertError;
           setSaccos((prev) => [...prev, data as SaccoRow]);
-          notifySuccess("SACCO created", "SACCO yashyizweho");
+          notifySuccess(t("admin.registry.created", "SACCO created"));
           resetForm();
         } else {
           const payload: Database["public"]["Tables"]["saccos"]["Update"] = basePayload;
@@ -155,27 +156,27 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
           if (data) {
             setSaccos((prev) => prev.map((item) => (item.id === editing.id ? (data as SaccoRow) : item)));
           }
-          notifySuccess("SACCO updated", "SACCO yavuguruwe");
+          notifySuccess(t("admin.registry.updated", "SACCO updated"));
           resetForm();
         }
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Operation failed";
-        notifyError(message, "Igikorwa cyanze");
+        const message = err instanceof Error ? err.message : t("common.operationFailed", "Operation failed");
+        notifyError(message);
       }
     });
   };
 
   const handleDelete = (saccoId: string) => {
-    if (!confirm("Delete this SACCO? This cannot be undone. / Gusiba iyi SACCO? Ntabwo bizasubizwa.")) return;
+    if (!confirm(t("admin.registry.deleteConfirm", "Delete this SACCO? This cannot be undone."))) return;
     startTransition(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: deleteError } = await (supabase as any).from("saccos").delete().eq("id", saccoId);
       if (deleteError) {
-        notifyError(deleteError.message ?? "Failed to delete SACCO", "Gusiba SACCO byanze");
+        notifyError(deleteError.message ?? t("admin.registry.deleteFailed", "Failed to delete SACCO"));
         return;
       }
       setSaccos((prev) => prev.filter((s) => s.id !== saccoId));
-      notifySuccess("SACCO deleted", "SACCO yasibwe");
+      notifySuccess(t("admin.registry.deleted", "SACCO deleted"));
       if (editing?.id === saccoId) {
         resetForm();
       }
@@ -189,7 +190,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
          type="search"
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        placeholder="Search name, district / Shakisha izina, akarere"
+        placeholder={t("admin.registry.searchPlaceholder", "Search name, district")}
          className="w-full max-w-xs rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
        />
        <button
@@ -197,13 +198,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
          onClick={handleCreate}
          className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
        >
-          <BilingualText
-            primary="New SACCO"
-            secondary="SACCO nshya"
-            layout="inline"
-            className="items-center gap-1"
-            secondaryClassName="text-[10px] text-ink/80"
-          />
+          {t("admin.registry.new", "New SACCO")}
         </button>
       </div>
 
@@ -212,19 +207,19 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
           <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-neutral-2">
             <tr>
               <th className="px-4 py-3">
-                <BilingualText primary="Name" secondary="Izina" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+                {t("table.name", "Name")}
               </th>
               <th className="px-4 py-3">
-                <BilingualText primary="District" secondary="Akarere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+                {t("table.district", "District")}
               </th>
               <th className="px-4 py-3">
-                <BilingualText primary="Province" secondary="Intara" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+                {t("table.province", "Province")}
               </th>
               <th className="px-4 py-3">
-                <BilingualText primary="Status" secondary="Imiterere" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+                {t("table.status", "Status")}
               </th>
               <th className="px-4 py-3 text-right">
-                <BilingualText primary="Actions" secondary="Ibikorwa" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+                {t("table.actions", "Actions")}
               </th>
             </tr>
           </thead>
@@ -265,7 +260,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-center text-neutral-2">
-                  {toBilingual("No SACCOs match this search.", "Nta SACCO ihuye n'iri shakisha.")}
+                  {t("admin.registry.none", "No SACCOs match this search.")}
                 </td>
               </tr>
             )}
@@ -278,22 +273,22 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                {mode === "create" ? "Create SACCO" : "Edit SACCO"}
+                {mode === "create" ? t("admin.registry.createTitle", "Create SACCO") : t("admin.registry.editTitle", "Edit SACCO")}
               </p>
-              <h3 className="text-lg font-semibold">{editing.name || "New SACCO"}</h3>
+              <h3 className="text-lg font-semibold">{editing.name || t("admin.registry.new", "New SACCO")}</h3>
             </div>
             <button
               type="button"
               onClick={resetForm}
               className="text-xs text-neutral-2 underline-offset-2 hover:underline"
             >
-              <BilingualText primary="Close" secondary="Funga" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
+              {t("common.close", "Close")}
             </button>
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">Name</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.name", "Name")}</span>
               <input
                 type="text"
                 value={editing.name}
@@ -302,7 +297,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
               />
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">Province</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.province", "Province")}</span>
               <select
                 value={editing.province}
                 onChange={(event) => handleChange("province", event.target.value)}
@@ -316,7 +311,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
               </select>
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">District</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.district", "District")}</span>
               <input
                 type="text"
                 value={editing.district}
@@ -325,7 +320,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
               />
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">Sector</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.sector", "Sector")}</span>
               <input
                 type="text"
                 value={editing.sector}
@@ -334,7 +329,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
               />
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">Status</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.status", "Status")}</span>
               <select
                 value={editing.status}
                 onChange={(event) => handleChange("status", event.target.value as SaccoRow["status"])}
@@ -348,7 +343,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
               </select>
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">Email</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.email", "Email")}</span>
               <input
                 type="email"
                 value={editing.email ?? ""}
@@ -357,7 +352,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
               />
             </label>
             <label className="space-y-1 sm:col-span-2">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">Category</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.registry.category", "Category")}</span>
               <input
                 type="text"
                 value={editing.category}
@@ -373,7 +368,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
               onClick={resetForm}
               className="rounded-full border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
             >
-              Cancel
+              {t("common.cancel", "Cancel")}
             </button>
             <button
               type="button"
@@ -381,7 +376,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
               disabled={pending}
               className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
             >
-              {pending ? "Saving…" : mode === "create" ? "Create" : "Save"}
+              {pending ? t("common.saving", "Saving…") : mode === "create" ? t("common.create", "Create") : t("common.save", "Save")}
             </button>
           </div>
         </div>
