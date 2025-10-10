@@ -8,73 +8,28 @@ type TelemetryMetric = {
   meta: Record<string, unknown> | null;
 };
 
-const METRIC_LABELS: Record<
-  string,
-  {
-    primary: string;
-    secondary: string;
-    description: string;
-    secondaryDescription: string;
-    accent?: "blue" | "green" | "amber";
+function getMetricMeta(event: string, t: (k: string, f?: string) => string) {
+  switch (event) {
+    case "sms_ingested":
+      return { title: t("admin.telemetry.events.smsIngested", "SMS ingested"), desc: t("admin.telemetry.desc.smsIngested", "Messages captured from the GSM modem."), accent: "blue" as const };
+    case "sms_duplicates":
+      return { title: t("admin.telemetry.events.smsDuplicates", "SMS duplicates"), desc: t("admin.telemetry.desc.smsDuplicates", "Potential duplicates blocked from posting."), accent: "amber" as const };
+    case "sms_reprocessed":
+      return { title: t("admin.telemetry.events.smsReprocessed", "SMS reprocessed"), desc: t("admin.telemetry.desc.smsReprocessed", "Messages retried after review or automation."), accent: "blue" as const };
+    case "statement_imported":
+      return { title: t("admin.telemetry.events.statementImported", "Statements imported"), desc: t("admin.telemetry.desc.statementImported", "Rows parsed via the MoMo statement wizard."), accent: "green" as const };
+    case "members_imported":
+      return { title: t("admin.telemetry.events.membersImported", "Members imported"), desc: t("admin.telemetry.desc.membersImported", "Roster entries synced through secure import."), accent: "green" as const };
+    case "payment_action":
+      return { title: t("admin.telemetry.events.paymentAction", "Payments applied"), desc: t("admin.telemetry.desc.paymentAction", "Ledger actions triggered from reconciliation."), accent: "green" as const };
+    case "recon_escalations":
+      return { title: t("admin.telemetry.events.reconEscalations", "Recon escalations"), desc: t("admin.telemetry.desc.reconEscalations", "Pending deposits escalated for follow-up."), accent: "amber" as const };
+    case "sms_flagged":
+      return { title: t("admin.telemetry.events.smsFlagged", "SMS flagged"), desc: t("admin.telemetry.desc.smsFlagged", "Messages awaiting manual review."), accent: "amber" as const };
+    default:
+      return { title: event, desc: t("admin.telemetry.unmapped", "Unmapped event."), accent: "blue" as const };
   }
-> = {
-  sms_ingested: {
-    primary: "SMS ingested",
-    secondary: "Ubutumwa bwakiriwe",
-    description: "Messages captured from the GSM modem.",
-    secondaryDescription: "Ubutumwa bwinjiye bivuye kuri modem GSM.",
-    accent: "blue",
-  },
-  sms_duplicates: {
-    primary: "SMS duplicates",
-    secondary: "Ubutumwa bwisubiyemo",
-    description: "Potential duplicates blocked from posting.",
-    secondaryDescription: "Ubutumwa bwagaragaye kabiri bukumirwa kubyemezwa.",
-    accent: "amber",
-  },
-  sms_reprocessed: {
-    primary: "SMS reprocessed",
-    secondary: "Ubutumwa bwongeye gusobanurwa",
-    description: "Messages retried after review or automation.",
-    secondaryDescription: "Ubutumwa bwongeye gusuzumwa nyuma yo kugenzurwa.",
-    accent: "blue",
-  },
-  statement_imported: {
-    primary: "Statements imported",
-    secondary: "Raporo zinjiye",
-    description: "Rows parsed via the MoMo statement wizard.",
-    secondaryDescription: "Imbata zinjiye ukoresheje wizard ya MoMo.",
-    accent: "green",
-  },
-  members_imported: {
-    primary: "Members imported",
-    secondary: "Abanyamuryango yinjiye",
-    description: "Roster entries synced through secure import.",
-    secondaryDescription: "Urutonde rw'abanyamuryango rwinjiye binyuze mu buryo bwizewe.",
-    accent: "green",
-  },
-  payment_action: {
-    primary: "Payments applied",
-    secondary: "Imisanzu yatunganijwe",
-    description: "Ledger actions triggered from reconciliation.",
-    secondaryDescription: "Ibikorwa by'ibaruramari byavuye mu guhuzwa.",
-    accent: "green",
-  },
-  recon_escalations: {
-    primary: "Recon escalations",
-    secondary: "Ibyakomeje mu guhuzwa",
-    description: "Pending deposits escalated for follow-up.",
-    secondaryDescription: "Imisanzu itarashyingurwa yashyizwe mu rwego rwo gukurikiranwa.",
-    accent: "amber",
-  },
-  sms_flagged: {
-    primary: "SMS flagged",
-    secondary: "Ubutumwa bwashyizweho ibimenyetso",
-    description: "Messages awaiting manual review.",
-    secondaryDescription: "Ubutumwa butegereje gusuzumwa n'intoki.",
-    accent: "amber",
-  },
-};
+}
 
 const numberFormatter = new Intl.NumberFormat("en-RW");
 
@@ -100,8 +55,8 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
   }
 
   const sorted = [...metrics].sort((a, b) => {
-    const weightA = METRIC_LABELS[a.event] ? 0 : 1;
-    const weightB = METRIC_LABELS[b.event] ? 0 : 1;
+    const weightA = ["sms_ingested","sms_duplicates","sms_reprocessed","statement_imported","members_imported","payment_action","recon_escalations","sms_flagged"].includes(a.event) ? 0 : 1;
+    const weightB = ["sms_ingested","sms_duplicates","sms_reprocessed","statement_imported","members_imported","payment_action","recon_escalations","sms_flagged"].includes(b.event) ? 0 : 1;
     if (weightA !== weightB) return weightA - weightB;
     return (b.last_occurred ? new Date(b.last_occurred).getTime() : 0) - (a.last_occurred ? new Date(a.last_occurred).getTime() : 0);
   });
@@ -109,13 +64,7 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {sorted.map((metric) => {
-        const meta = METRIC_LABELS[metric.event] ?? {
-          primary: metric.event,
-          secondary: metric.event,
-          description: t("admin.telemetry.unmapped", "Unmapped event."),
-          secondaryDescription: "",
-          accent: "blue" as const,
-        };
+        const meta = getMetricMeta(metric.event, t);
 
         const accentClass =
           meta.accent === "green"
@@ -133,8 +82,8 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
             )}
           >
             <header className="space-y-1">
-              <span className="text-sm font-semibold text-neutral-0">{meta.primary}</span>
-              <p className="text-xs text-neutral-2">{meta.description}</p>
+              <span className="text-sm font-semibold text-neutral-0">{meta.title}</span>
+              <p className="text-xs text-neutral-2">{meta.desc}</p>
             </header>
             <p className="mt-3 text-3xl font-bold text-neutral-0">{numberFormatter.format(metric.total ?? 0)}</p>
             <p className="mt-2 text-xs text-neutral-2">
