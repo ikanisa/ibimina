@@ -24,6 +24,12 @@ const parseDate = (value: string | undefined, fallback: Date) => {
 };
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat("rw-RW", { style: "currency", currency: "RWF", minimumFractionDigits: 0 }).format(amount);
+const csvEscape = (value: string) => {
+  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    return '"' + value.replace(/"/g, '""') + '"';
+  }
+  return value;
+};
 
 const toDateOnly = (value: Date) => value.toISOString().slice(0, 10);
 
@@ -137,7 +143,7 @@ Deno.serve(async (req) => {
       let csv = "Ikimina,Code,Transactions,Amount,Share\n";
       for (const row of sortedTotals) {
         const share = grandTotal > 0 ? Math.round((row.amount / grandTotal) * 100) : 0;
-        csv += `${row.name},${row.code},${row.count},${row.amount},${share}%\n`;
+        csv += `${csvEscape(row.name)},${csvEscape(row.code)},${row.count},${row.amount},${share}%\n`;
       }
       csv += `Total,,,${grandTotal},100%\n`;
 
@@ -234,12 +240,43 @@ Deno.serve(async (req) => {
       cursorY = baseY - chartHeight - 16;
     }
 
-    // Table header
-    page.drawText("Ikimina", { x: 48, y: cursorY, size: 11, font: bold });
-    page.drawText("Code", { x: 240, y: cursorY, size: 11, font: bold });
-    page.drawText("Txn", { x: 310, y: cursorY, size: 11, font: bold });
-    page.drawText("Amount", { x: 360, y: cursorY, size: 11, font: bold });
-    page.drawText("Share", { x: 460, y: cursorY, size: 11, font: bold });
+    // Table header and layout helpers
+    const nameX = 48;
+    const codeX = 240;
+    const txnX = 310;
+    const amtX = 360;
+    const shareX = 460;
+    const nameColWidth = codeX - nameX - 8;
+    const codeColWidth = txnX - codeX - 8;
+
+    // Utility to fit text into column with ellipsis
+    const fitText = (text: string, maxWidth: number, fnt: typeof font, size = 10) => {
+      let t = text ?? '';
+      const widthOf = (s: string) => fnt.widthOfTextAtSize(s, size);
+      if (widthOf(t) <= maxWidth) return t;
+      const ell = '…';
+      // binary shrink
+      let lo = 0;
+      let hi = t.length;
+      let best = '';
+      while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        const candidate = t.slice(0, mid) + ell;
+        if (widthOf(candidate) <= maxWidth) {
+          best = candidate;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
+        }
+      }
+      return best || ell;
+    };
+
+    page.drawText("Ikimina", { x: nameX, y: cursorY, size: 11, font: bold });
+    page.drawText("Code", { x: codeX, y: cursorY, size: 11, font: bold });
+    page.drawText("Txn", { x: txnX, y: cursorY, size: 11, font: bold });
+    page.drawText("Amount", { x: amtX, y: cursorY, size: 11, font: bold });
+    page.drawText("Share", { x: shareX, y: cursorY, size: 11, font: bold });
     cursorY -= rowHeight;
 
     for (const row of sortedTotals) {
@@ -247,12 +284,12 @@ Deno.serve(async (req) => {
         page.drawText("…", { x: 48, y: cursorY, size: 11, font });
         break;
       }
-      page.drawText(row.name, { x: 48, y: cursorY, size: 10, font });
-      page.drawText(row.code, { x: 240, y: cursorY, size: 10, font });
-      page.drawText(String(row.count ?? 0), { x: 310, y: cursorY, size: 10, font });
-      page.drawText(formatCurrency(row.amount), { x: 360, y: cursorY, size: 10, font });
+      page.drawText(fitText(row.name, nameColWidth, font), { x: nameX, y: cursorY, size: 10, font });
+      page.drawText(fitText(row.code, codeColWidth, font), { x: codeX, y: cursorY, size: 10, font });
+      page.drawText(String(row.count ?? 0), { x: txnX, y: cursorY, size: 10, font });
+      page.drawText(formatCurrency(row.amount), { x: amtX, y: cursorY, size: 10, font });
       const share = grandTotal > 0 ? Math.round((row.amount / grandTotal) * 100) : 0;
-      page.drawText(`${share}%`, { x: 460, y: cursorY, size: 10, font });
+      page.drawText(`${share}%`, { x: shareX, y: cursorY, size: 10, font });
       cursorY -= rowHeight;
     }
 
