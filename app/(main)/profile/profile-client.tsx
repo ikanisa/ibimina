@@ -320,7 +320,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
                 </div>
                 <form onSubmit={confirmEnrollment} className="grid gap-3 md:grid-cols-2">
                   <Input
-                    label="Code 1"
+                    label={t("auth.enroll.code1", "Code 1")}
                     value={codeA}
                     onChange={(event) => setCodeA(event.target.value.replace(/[^0-9]/g, ""))}
                     inputMode="numeric"
@@ -328,7 +328,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
                     required
                   />
                   <Input
-                    label="Code 2"
+                    label={t("auth.enroll.code2", "Code 2")}
                     value={codeB}
                     onChange={(event) => setCodeB(event.target.value.replace(/[^0-9]/g, ""))}
                     inputMode="numeric"
@@ -349,7 +349,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
         ) : (
           <div className="space-y-4">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
-              <p className="font-semibold">Authenticator enabled</p>
+              <p className="font-semibold">{t("profile.mfa.enabledTitle", "Authenticator enabled")}</p>
               <p className="text-xs text-neutral-2">{t("profile.mfa.enabledOn", "Enabled on")} {profile.enrolledAt ? new Date(profile.enrolledAt).toLocaleString() : t("common.unknown", "unknown")}</p>
               <p className="text-xs text-neutral-2">{t("profile.mfa.backupRemaining", "Backup codes remaining:")} {profile.backupCount}</p>
             </div>
@@ -357,11 +357,11 @@ export function ProfileClient({ email }: ProfileClientProps) {
             <form onSubmit={disableMfa} className="space-y-3">
               <div className="grid gap-3 md:grid-cols-2">
                 <Input
-                  label="Authenticator or backup code"
+                  label={t("profile.mfa.disableInputLabel", "Authenticator or backup code")}
                   value={disableCode}
                   onChange={(event) => setDisableCode(event.target.value.replace(/\s+/g, ""))}
                   required
-                  helperText="Provide a valid code to disable two-factor"
+                  helperText={t("profile.mfa.disableHint", "Provide a valid code to disable two-factor")}
                 />
                 <div className="space-y-2">
                   <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("profile.mfa.codeType", "Code type")}</label>

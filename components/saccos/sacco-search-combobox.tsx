@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/providers/i18n-provider";
 
 export type SaccoSearchResult = {
   id: string;
@@ -23,7 +24,8 @@ interface SaccoSearchComboboxProps {
 
 const supabase = getSupabaseBrowserClient();
 
-export function SaccoSearchCombobox({ value, onChange, placeholder = "Search Umurenge SACCOs / Shakisha SACCO", disabled, className }: SaccoSearchComboboxProps) {
+export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, className }: SaccoSearchComboboxProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SaccoSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,7 @@ export function SaccoSearchCombobox({ value, onChange, placeholder = "Search Umu
       if (!active) return;
       if (error) {
         console.error(error);
-        setError(error.message ?? "Search failed");
+        setError(error.message ?? t("common.searchFailed", "Search failed"));
         setResults([]);
       } else {
         const rows = (data as Database["public"]["Functions"]["search_saccos"]["Returns"] | null) ?? [];
@@ -77,12 +79,12 @@ export function SaccoSearchCombobox({ value, onChange, placeholder = "Search Umu
   return (
     <div className={cn("w-full", className)}>
       <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-        <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">Assign SACCO</label>
+        <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("sacco.search.assignLabel", "Assign SACCO")}</label>
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t("sacco.search.placeholder", "Search Umurenge SACCOs")}
           disabled={disabled}
           className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue disabled:opacity-50"
         />
@@ -94,15 +96,15 @@ export function SaccoSearchCombobox({ value, onChange, placeholder = "Search Umu
               className="ml-2 text-rw-yellow underline-offset-2 hover:underline"
               onClick={() => onChange(null)}
             >
-              Clear / Siba
+              {t("common.clear", "Clear")}
             </button>
           </div>
         )}
         <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border border-white/10">
-          {loading && <p className="px-3 py-2 text-xs text-neutral-2">Searching…</p>}
+          {loading && <p className="px-3 py-2 text-xs text-neutral-2">{t("common.searching", "Searching…")}</p>}
           {error && <p className="px-3 py-2 text-xs text-red-300">{error}</p>}
           {!loading && !error && results.length === 0 && query && (
-            <p className="px-3 py-2 text-xs text-neutral-2">No matches / Nta bihuye</p>
+            <p className="px-3 py-2 text-xs text-neutral-2">{t("sacco.search.none", "No matches")}</p>
           )}
           <ul>
             {results.map((result) => (

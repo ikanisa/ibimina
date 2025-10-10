@@ -243,24 +243,24 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
       {tab === "Overview" && (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <OverviewCard
-            title="Active members"
+            title={t("ikimina.overview.activeMembers", "Active members")}
             primary={`${detail.analytics.activeMembers}/${detail.analytics.totalMembers}`}
-            subtitle="Active / total"
+            subtitle={t("ikimina.overview.activeVsTotal", "Active / total")}
           />
           <OverviewCard
-            title="This month"
+            title={t("ikimina.overview.thisMonth", "This month")}
             primary={currencyFormatter.format(detail.analytics.monthTotal)}
-            subtitle="Posted volume"
+            subtitle={t("ikimina.overview.postedVolume", "Posted volume")}
           />
           <OverviewCard
-            title="On-time rate"
+            title={t("ikimina.overview.onTimeRate", "On-time rate")}
             primary={`${detail.analytics.onTimeRate}%`}
-            subtitle="Posted vs total"
+            subtitle={t("ikimina.overview.postedVsTotal", "Posted vs total")}
           />
           <OverviewCard
-            title="Last deposit"
+            title={t("ikimina.overview.lastDeposit", "Last deposit")}
             primary={relativeDate(detail.analytics.lastDepositAt)}
-            subtitle={detail.analytics.lastDepositAt ? dateFormatter.format(new Date(detail.analytics.lastDepositAt)) : "No deposits recorded"}
+            subtitle={detail.analytics.lastDepositAt ? dateFormatter.format(new Date(detail.analytics.lastDepositAt)) : t("ikimina.overview.noDeposits", "No deposits recorded")}
           />
         </div>
       )}

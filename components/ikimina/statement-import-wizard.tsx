@@ -447,17 +447,17 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                         importMode === mode ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
                       )}
                     >
-                      {mode === "file" ? "Upload file" : "Paste SMS"}
+                      {mode === "file" ? t("statement.mode.file", "Upload file") : t("statement.mode.sms", "Paste SMS")}
                     </button>
                   ))}
                 </div>
 
                 {importMode === "file" ? (
                   <>
-                    <p>Upload bank or MoMo statements exported as CSV or Excel. Include a header row.</p>
+                    <p>{t("statement.upload.intro", "Upload bank or MoMo statements exported as CSV or Excel. Include a header row.")}</p>
                     <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 p-10 text-center transition hover:bg-white/10">
-                      <span className="text-sm font-semibold">Drop file here or click to browse</span>
-                      <span className="text-xs text-neutral-2">Supported: .csv, .xlsx</span>
+                      <span className="text-sm font-semibold">{t("statement.upload.dropCta", "Drop file here or click to browse")}</span>
+                      <span className="text-xs text-neutral-2">{t("statement.upload.supported", "Supported: .csv, .xlsx")}</span>
                       <input
                         type="file"
                         accept=".csv,.xlsx,.xls,.xlsm,.xlsb"
@@ -466,11 +466,11 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                       />
                     </label>
                     {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
-                    <p className="text-xs text-neutral-2">Required columns: date, transaction id, amount, msisdn. Optional: reference.</p>
+                    <p className="text-xs text-neutral-2">{t("statement.upload.requiredCols", "Required columns: date, transaction id, amount, msisdn. Optional: reference.")}</p>
                   </>
                 ) : (
                   <>
-                    <p>Paste one or more MoMo SMS messages. Each line should be a full SMS.</p>
+                    <p>{t("statement.sms.intro", "Paste one or more MoMo SMS messages. Each line should be a full SMS.")}</p>
                     <textarea
                       value={smsInput}
                       onChange={(event) => setSmsInput(event.target.value)}
@@ -485,7 +485,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                         onClick={handleSmsParse}
                         className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
                       >
-                        Parse SMS
+                        {t("statement.sms.parse", "Parse SMS")}
                       </button>
                     </div>
                   </>
@@ -495,7 +495,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
 
             {step === 2 && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>Drag a column chip into each required field below.</p>
+                <p>{t("statement.map.intro", "Drag a column chip into each required field below.")}</p>
                 <div className="flex flex-wrap gap-2">
                   {headers
                     .filter((header) => !Object.values(mapping).includes(header))
@@ -582,7 +582,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                 })}
                 <div className="flex justify-end gap-2">
                   <button className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2" onClick={() => setStep(1)}>
-                    Back
+                    {t("common.back", "Back")}
                   </button>
                   <button
                     className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
@@ -598,7 +598,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                       setStep(3);
                     }}
                   >
-                    Review
+                    {t("common.review", "Review")}
                   </button>
                 </div>
               </div>
@@ -606,23 +606,13 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
 
             {step === 3 && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>Preview the first rows. Invalid entries are highlighted.</p>
+                <p>{t("statement.preview.intro", "Preview the first rows. Invalid entries are highlighted.")}</p>
                 <div className="flex flex-wrap gap-2 text-xs text-neutral-2">
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    Likely auto-match: {parserFeedback.autoMatch}
-                  </span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    Duplicate rows: {parserFeedback.duplicateRows}
-                  </span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    Missing references: {parserFeedback.missingReference}
-                  </span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    Invalid MSISDN: {parserFeedback.invalidMsisdn}
-                  </span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    Invalid dates: {parserFeedback.invalidDate}
-                  </span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.autoMatch", "Likely auto-match:")} {parserFeedback.autoMatch}</span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.duplicateRows", "Duplicate rows:")} {parserFeedback.duplicateRows}</span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.missingRef", "Missing references:")} {parserFeedback.missingReference}</span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.invalidMsisdn", "Invalid MSISDN:")} {parserFeedback.invalidMsisdn}</span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.invalidDates", "Invalid dates:")} {parserFeedback.invalidDate}</span>
                 </div>
                 <div className="max-h-64 overflow-auto rounded-2xl border border-white/10">
                   <table className="w-full border-collapse text-xs">
@@ -688,7 +678,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                             <td className="px-4 py-2 text-neutral-2">
                               {referenceCell?.value ?? "—"}
                               {missingReference && (
-                                <p className="mt-1 text-[10px] text-amber-200">No reference · will require manual allocation</p>
+                                <p className="mt-1 text-[10px] text-amber-200">{t("statement.preview.noRefHint", "No reference · will require manual allocation")}</p>
                               )}
                               {!referenceCell?.valid && referenceCell?.reason && (
                                 <p className="mt-1 text-[10px] text-amber-200">{referenceCell.reason}</p>
@@ -702,7 +692,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                 </div>
                 <div className="flex items-start justify-between gap-4">
                   <button className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2" onClick={() => setStep(2)}>
-                    Back
+                    {t("common.back", "Back")}
                   </button>
                   <div className="flex flex-1 flex-col gap-2 text-right">
                     <div className="text-xs text-neutral-2">Valid rows: {validRows.length} / {processedRows.length}</div>
@@ -712,7 +702,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                       disabled={pending || !mappingComplete || validRows.length === 0 || invalidRows.length > 0}
                       className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
                     >
-                      {pending ? "Importing…" : "Confirm import"}
+                      {pending ? t("statement.import.importing", "Importing…") : t("statement.import.confirm", "Confirm import")}
                     </button>
                     {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
                     {message && <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">{message}</p>}
@@ -728,7 +718,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                     )}
                     {parserFeedback.duplicateRows > 0 && (
                       <div className="rounded-xl bg-white/5 px-3 py-2 text-left text-[11px] text-neutral-2">
-                        <p>Duplicate txn IDs detected. They will be skipped by the importer.</p>
+                        <p>{t("statement.preview.duplicatesHint", "Duplicate txn IDs detected. They will be skipped by the importer.")}</p>
                       </div>
                     )}
                     {result && (
@@ -738,7 +728,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                         <p>Unallocated: {result.unallocated}</p>
                         <p>Duplicates skipped: {result.duplicates}</p>
                         <Link href="/recon" className="inline-block text-xs font-semibold uppercase tracking-[0.3em] text-rw-yellow hover:underline">
-                          View in Recon →
+                          {t("statement.preview.viewRecon", "View in Recon →")}
                         </Link>
                       </div>
                     )}

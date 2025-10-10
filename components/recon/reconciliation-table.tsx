@@ -939,7 +939,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                 <input
                   type="checkbox"
                   checked={allSelected}
-                  aria-label="Select all"
+                  aria-label={t("common.selectAll", "Select all")}
                   onChange={toggleSelectAll}
                   disabled={!canWrite}
                   className="h-4 w-4 rounded border-white/30 bg-transparent disabled:cursor-not-allowed disabled:opacity-60"
@@ -977,7 +977,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                     <input
                       type="checkbox"
                       checked={isRowSelected}
-                      aria-label="Select exception"
+                      aria-label={t("recon.selectException", "Select exception")}
                       onClick={(event) => event.stopPropagation()}
                       onChange={() => toggleSelect(row.id)}
                       disabled={!canWrite}
@@ -1118,13 +1118,13 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             </div>
 
             <div className="space-y-3 text-sm text-neutral-0">
-              <h4 className="font-semibold">Raw SMS</h4>
+              <h4 className="font-semibold">{t("recon.detail.rawSms", "Raw SMS")}</h4>
               <pre className="max-h-48 overflow-y-auto rounded-xl bg-black/40 p-4 text-xs text-neutral-2">
                 {selected.source?.raw_text ?? joinBilingual("No SMS source", "Nta SMS iboneka")}
               </pre>
             </div>
             <div className="space-y-3 text-sm text-neutral-0">
-              <h4 className="font-semibold">Parsed JSON</h4>
+              <h4 className="font-semibold">{t("recon.detail.parsedJson", "Parsed JSON")}</h4>
               <pre className="max-h-48 overflow-y-auto rounded-xl bg-black/40 p-4 text-xs text-neutral-2">
                 {selected.source?.parsed_json
                   ? JSON.stringify(selected.source.parsed_json, null, 2)
@@ -1133,7 +1133,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             </div>
 
             <div className="space-y-3 text-sm text-neutral-0">
-              <h4 className="font-semibold">Actions</h4>
+              <h4 className="font-semibold">{t("common.actions", "Actions")}</h4>
               <div className="space-y-2 text-xs text-neutral-2">
                 <label className="block uppercase tracking-[0.2em]">{t("recon.detail.updateStatus", "Update status")}</label>
                 <select

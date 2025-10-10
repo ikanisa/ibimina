@@ -23,7 +23,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
 
   return (
     <label className={cn("flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-neutral-2", className)}>
-      <span>Language</span>
+      <span>{useTranslation().t("common.language", "Language")}</span>
       <select
         value={locale}
         onChange={handleChange}
