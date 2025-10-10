@@ -16,15 +16,25 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+      - name: Restore Next.js cache
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-next-
       - name: Install dependencies
         run: npm ci
       - name: Lint
         run: npm run lint -- --max-warnings=0
-      - name: Typecheck + Build
-        run: npm run build
+      - name: Typecheck
+        run: npm run typecheck
       - name: i18n Check
-        run: npm run check:i18n || true
+        run: npm run check:i18n
+      - name: i18n Glossary Consistency
+        run: npm run check:i18n:consistency
+      - name: Build
+        run: npm run build
       # Optional: enable later when smoke tests are added
       # - name: E2E Smoke
       #   run: npm run test:smoke
-

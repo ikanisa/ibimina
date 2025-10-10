@@ -44,5 +44,5 @@ for (const [locale, missing] of Object.entries(report)) {
 }
 
 if (!exit) console.log('All locale files have matching keys.');
-process.exit(0);
-
+// Exit non-zero when keys are missing so CI can fail fast
+process.exit(exit);

@@ -133,7 +133,6 @@ export async function createSmsTemplate({
     is_active: false,
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
     .from("sms_templates")
     .insert(payload)
