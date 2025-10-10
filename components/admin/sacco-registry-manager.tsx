@@ -1,14 +1,12 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
 import { upsertSacco, removeSacco } from "@/app/(main)/admin/actions";
 
-const supabase = getSupabaseBrowserClient();
 
 type SaccoRow = Pick<
   Database["public"]["Tables"]["saccos"]["Row"],
@@ -36,9 +34,7 @@ function buildSectorCode(district: string, sector: string) {
   return raw.replace(/^-+|-+$/g, "");
 }
 
-function buildSearchSlug(name: string) {
-  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-}
+//
 
 const DEFAULT_CATEGORY = "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)";
 

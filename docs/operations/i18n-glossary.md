@@ -1,0 +1,121 @@
+# i18n Glossary
+
+Canonical wording for high‑frequency UI terms to keep translations consistent.
+
+- Scope
+  - en: Scope
+  - rw: Urwego
+  - fr: Portée
+- Transactions
+  - en: Transactions
+  - rw: Transakisi
+  - fr: Transactions
+- Notification queue
+  - en: Notification queue
+  - rw: Urutonde rw'ubutumwa
+  - fr: File de notifications
+- Offline queue
+  - en: Offline queue
+  - rw: Urutonde rwo gufata
+  - fr: File hors ligne
+- Needs retry
+  - en: Needs retry
+  - rw: Bikeneye kongera kugeragezwa
+  - fr: Relance nécessaire
+- SMS templates
+  - en: SMS templates
+  - rw: Inyandiko za SMS
+  - fr: Modèles SMS
+- Status
+  - en: Status
+  - rw: Imiterere
+  - fr: Statut
+- Exceptions
+  - en: Exceptions
+  - rw: Ibibazo byabonetse
+  - fr: Exceptions
+- Duplicates only
+  - en: Duplicates only
+  - rw: Byisubiyemo gusa
+  - fr: Doublons seulement
+- Low confidence
+  - en: Low confidence
+  - rw: Icyizere gito
+  - fr: Faible confiance
+- Month
+  - en: Month
+  - rw: Ukwezi
+  - fr: Mois
+- Cancel
+  - en: Cancel
+  - rw: Kureka
+  - fr: Annuler
+- Retry
+  - en: Retry
+  - rw: Ongera
+  - fr: Réessayer
+- Delete
+  - en: Delete
+  - rw: Siba
+  - fr: Supprimer
+- Save
+  - en: Save
+  - rw: Bika
+  - fr: Enregistrer
+- Edit
+  - en: Edit
+  - rw: Hindura
+  - fr: Modifier
+- Open
+  - en: Open
+  - rw: Fungura
+  - fr: Ouvrir
+- Created
+  - en: Created
+  - rw: Byakozwe
+  - fr: Créé
+- Updated
+  - en: Updated
+  - rw: Byavuguruwe
+  - fr: Mis à jour
+- Processing
+  - en: Processing…
+  - rw: Birimo gutunganywa…
+  - fr: Traitement…
+- Sign in
+  - en: Sign in
+  - rw: Injira
+  - fr: Se connecter
+- Download PDF
+  - en: Download PDF
+  - rw: Kuramo PDF
+  - fr: Télécharger PDF
+- Download CSV
+  - en: Download CSV
+  - rw: Kuramo CSV
+  - fr: Télécharger CSV
+- Members
+  - en: Members
+  - rw: Abanyamuryango
+  - fr: Membres
+- Amount
+  - en: Amount
+  - rw: Amafaranga
+  - fr: Montant
+- Name
+  - en: Name
+  - rw: Izina
+  - fr: Nom
+- Type
+  - en: Type
+  - rw: Ubwoko
+  - fr: Type
+
+Checks
+- `npm run check:i18n:consistency` verifies the above keys match the glossary.
+- `npm run fix:i18n` fills missing keys in `rw`/`fr` from `en`.
+
+Contribution tips
+- Prefer adding new keys under existing sections (e.g., `reports.*`, `admin.*`).
+- Add English first, then run `npm run fix:i18n` to keep parity until translations are provided.
+- If you need to modify glossary terms, update this file and `scripts/check-i18n-consistency.mjs` together.
