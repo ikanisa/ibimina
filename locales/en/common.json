@@ -5,5 +5,15 @@
   "addToHome.dismiss": "Later",
   "actions.close": "Close",
   "toast.genericSuccess": "Done!",
-  "toast.genericError": "Something went wrong. Please try again."
+  "toast.genericError": "Something went wrong. Please try again.",
+  "brand.org": "Umurenge SACCO",
+  "brand.consoleTitle": "Ibimina Staff Console",
+  "common.search": "Search",
+  "sacco.all": "All SACCOs",
+  "nav.dashboard": "Dashboard",
+  "nav.ikimina": "Ikimina",
+  "nav.recon": "Recon",
+  "nav.analytics": "Analytics",
+  "nav.reports": "Reports",
+  "nav.admin": "Admin"
 }

@@ -18,6 +18,7 @@ import {
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator";
@@ -28,12 +29,12 @@ interface AppShellProps {
 }
 
 const NAV_ITEMS = [
-  { href: "/dashboard" as const, primary: "Dashboard", secondary: "Ibipimo", icon: LayoutDashboard },
-  { href: "/ikimina" as const, primary: "Ikimina", secondary: "Amatsinda", icon: Workflow },
-  { href: "/recon" as const, primary: "Recon", secondary: "Guhuza konti", icon: Inbox },
-  { href: "/analytics" as const, primary: "Analytics", secondary: "Isesengura", icon: LineChart },
-  { href: "/reports" as const, primary: "Reports", secondary: "Raporo", icon: BarChartBig },
-  { href: "/admin" as const, primary: "Admin", secondary: "Ubuyobozi", icon: UsersRound },
+  { href: "/dashboard" as const, key: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/ikimina" as const, key: "nav.ikimina", icon: Workflow },
+  { href: "/recon" as const, key: "nav.recon", icon: Inbox },
+  { href: "/analytics" as const, key: "nav.analytics", icon: LineChart },
+  { href: "/reports" as const, key: "nav.reports", icon: BarChartBig },
+  { href: "/admin" as const, key: "nav.admin", icon: UsersRound },
 ];
 
 const QUICK_ACTIONS = [
@@ -92,8 +93,9 @@ export function AppShell({ children, profile }: AppShellProps) {
   const pathname = usePathname();
   const [showActions, setShowActions] = useState(false);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+  const { t } = useTranslation();
 
-  const saccoName = useMemo(() => profile.saccos?.name ?? "All SACCOs", [profile.saccos?.name]);
+  const saccoName = useMemo(() => profile.saccos?.name ?? t("sacco.all", "All SACCOs"), [profile.saccos?.name, t]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -111,10 +113,9 @@ export function AppShell({ children, profile }: AppShellProps) {
     () =>
       NAV_ITEMS.map((item) => ({
         href: item.href,
-        primary: item.primary,
-        secondary: item.secondary,
+        label: t(item.key),
       })),
-    []
+    [t]
   );
 
   const quickActionTargets = useMemo(
@@ -149,40 +150,32 @@ export function AppShell({ children, profile }: AppShellProps) {
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5" aria-hidden />
           <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">Umurenge SACCO</p>
-              <BilingualText
-                primary={<span className="text-gradient text-2xl font-semibold leading-tight">Ibimina Staff Console</span>}
-                secondary="Porogaramu y'abakozi b'ibimina"
-                secondaryClassName="text-[11px] uppercase tracking-[0.35em] text-neutral-2"
-              />
+              <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("brand.org", "Umurenge SACCO")}</p>
+              <span className="text-gradient text-2xl font-semibold leading-tight">{t("brand.consoleTitle", "Ibimina Staff Console")}</span>
               <BilingualText
                 primary={<span className="text-sm text-neutral-2">{saccoName}</span>}
-                secondary="SACCO ihari"
-                secondaryClassName="text-[10px] uppercase tracking-[0.3em] text-neutral-3"
               />
             </div>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-3">
               <nav className="hidden items-center gap-2 text-sm font-medium md:flex">
-                {NAV_ITEMS.map(({ href, primary, secondary, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={cn(
-                      "interactive-scale flex items-center gap-2 rounded-full px-4 py-2 text-left text-xs uppercase tracking-[0.25em] transition",
-                      isActive(href)
-                        ? "bg-white/20 text-neutral-0"
-                        : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" aria-hidden />
-                    <BilingualText
-                      primary={primary}
-                      secondary={secondary}
-                      className="leading-tight"
-                      secondaryClassName="text-[9px] text-neutral-2"
-                    />
-                  </Link>
-                ))}
+                {navTargets.map(({ href, label }, idx) => {
+                  const Icon = NAV_ITEMS[idx].icon;
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      className={cn(
+                        "interactive-scale flex items-center gap-2 rounded-full px-4 py-2 text-left text-xs uppercase tracking-[0.25em] transition",
+                        isActive(href)
+                          ? "bg-white/20 text-neutral-0"
+                          : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
+                      )}
+                    >
+                      <Icon className="h-4 w-4" aria-hidden />
+                      <span className="leading-tight">{label}</span>
+                    </Link>
+                  );
+                })}
               </nav>
               <div className="flex items-center gap-3">
                 <LanguageSwitcher className="hidden text-[10px] md:flex" />
@@ -194,7 +187,7 @@ export function AppShell({ children, profile }: AppShellProps) {
                   aria-expanded={showGlobalSearch}
                 >
                   <Search className="h-4 w-4" aria-hidden />
-                  <BilingualText primary="Search" secondary="Shakisha" layout="inline" className="items-center" />
+                  <span className="items-center">{t("common.search", "Search")}</span>
                 </button>
               </div>
             </div>

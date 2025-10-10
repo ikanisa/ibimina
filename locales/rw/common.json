@@ -5,5 +5,15 @@
   "addToHome.dismiss": "Nyuma",
   "actions.close": "Funga",
   "toast.genericSuccess": "Byagenze neza!",
-  "toast.genericError": "Habaye ikibazo. Ongera ugerageze."
+  "toast.genericError": "Habaye ikibazo. Ongera ugerageze.",
+  "brand.org": "Umurenge SACCO",
+  "brand.consoleTitle": "Porogaramu y'abakozi b'ibimina",
+  "common.search": "Shakisha",
+  "sacco.all": "SACCO zose",
+  "nav.dashboard": "Ibipimo",
+  "nav.ikimina": "Amatsinda",
+  "nav.recon": "Guhuza konti",
+  "nav.analytics": "Isesengura",
+  "nav.reports": "Raporo",
+  "nav.admin": "Ubuyobozi"
 }

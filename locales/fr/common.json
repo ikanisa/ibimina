@@ -5,5 +5,15 @@
   "addToHome.dismiss": "Plus tard",
   "actions.close": "Fermer",
   "toast.genericSuccess": "C'est fait !",
-  "toast.genericError": "Une erreur est survenue. Veuillez réessayer."
+  "toast.genericError": "Une erreur est survenue. Veuillez réessayer.",
+  "brand.org": "Umurenge SACCO",
+  "brand.consoleTitle": "Console Ibimina Staff",
+  "common.search": "Rechercher",
+  "sacco.all": "Toutes les SACCO",
+  "nav.dashboard": "Tableau de bord",
+  "nav.ikimina": "Ikimina",
+  "nav.recon": "Rapprochement",
+  "nav.analytics": "Analytique",
+  "nav.reports": "Rapports",
+  "nav.admin": "Administration"
 }
