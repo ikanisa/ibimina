@@ -221,8 +221,8 @@ export function AppShell({ children, profile }: AppShellProps) {
         >
           <Plus className="h-4 w-4" />
           <span className="flex flex-col text-left leading-none">
-            <span>New</span>
-            <span className="text-[9px] uppercase tracking-[0.3em] text-ink/70">Gishya</span>
+            <span>{t("dashboard.quick.newPrimary", "New")}</span>
+            <span className="text-[9px] uppercase tracking-[0.3em] text-ink/70">{t("dashboard.quick.newSecondary", "New")}</span>
           </span>
         </button>
       </nav>
@@ -237,7 +237,7 @@ export function AppShell({ children, profile }: AppShellProps) {
             className="glass interactive-scale m-6 max-w-sm rounded-3xl p-6 text-sm text-neutral-0 shadow-2xl"
             role="dialog"
             aria-modal="true"
-            aria-label="Quick actions"
+            aria-label={t("dashboard.quick.title", "Quick actions")}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-4 flex items-center gap-2 text-neutral-2">

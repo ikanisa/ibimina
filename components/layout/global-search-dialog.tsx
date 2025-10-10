@@ -13,7 +13,6 @@ import { useToast } from "@/providers/toast-provider";
 
 const supabase = getSupabaseBrowserClient();
 
-const toBilingual = (en: string, rw: string) => `${en} / ${rw}`;
 
 type SearchCacheEntry = {
   ikimina: IkiminaResult[];
@@ -157,7 +156,7 @@ export function GlobalSearchDialog({
       inputRef.current?.focus();
     }, 30);
     return () => window.clearTimeout(timeout);
-  }, [open]);
+  }, [open, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -389,7 +388,7 @@ export function GlobalSearchDialog({
       setLastSyncedAt(new Date(cacheTimestamp));
       const now = Date.now();
       if (!toastShownRef.current) {
-        toast.notify(toBilingual("Search results refreshed", "Ibisubizo byashya byageze"));
+        toast.notify(t("search.console.refreshed", "Search results refreshed"));
         toastShownRef.current = true;
         lastRefreshToastAt.current = now;
       } else {
@@ -539,7 +538,7 @@ export function GlobalSearchDialog({
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 md:items-center"
       role="dialog"
       aria-modal="true"
-      aria-label="Global search"
+      aria-label={t("search.aria.global", "Global search")}
       onClick={onClose}
     >
       <div
@@ -574,7 +573,7 @@ export function GlobalSearchDialog({
               type="button"
               onClick={() => setQuery("")}
               className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 text-neutral-2 transition hover:text-neutral-0"
-              aria-label="Clear search"
+              aria-label={t("search.actions.clear", "Clear search")}
             >
               <span className="sr-only">{t("common.clear", "Clear")}</span>
               <X className="h-3.5 w-3.5" aria-hidden />
@@ -717,7 +716,7 @@ export function GlobalSearchDialog({
                                     Code · <span className="font-mono text-neutral-1">{renderHighlighted(member.memberCode ?? "", query)}</span>
                                   </>
                                 ) : (
-                                  <span>No member code</span>
+                                  <span>{t("search.members.noCode", "No member code")}</span>
                                 )}
                                 {member.msisdn && (
                                   <>
@@ -743,13 +742,13 @@ export function GlobalSearchDialog({
 
             <div>
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <span>Recent payments</span>
-                <span className="text-[10px] text-neutral-3">{payments.length} loaded</span>
+                <span>{t("search.payments.title", "Recent payments")}</span>
+                <span className="text-[10px] text-neutral-3">{payments.length} {t("search.common.loadedSuffix", "loaded")}</span>
               </header>
               <div className="max-h-72 overflow-y-auto rounded-2xl border border-white/10">
                 {paymentsLoading ? (
                   <div className="flex items-center gap-2 px-4 py-6 text-sm text-neutral-2">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Loading payments…
+                    <Loader2 className="h-4 w-4 animate-spin" /> {t("search.payments.loading", "Loading payments…")}
                   </div>
                 ) : paymentsError ? (
                   <div className="px-4 py-6 text-sm text-red-300">{paymentsError}</div>
@@ -774,7 +773,7 @@ export function GlobalSearchDialog({
                               </p>
                               <p className="text-xs text-neutral-2">
                                 {payment.memberName ? `${payment.memberName} • ` : ""}
-                                {payment.ikiminaName ?? "No ikimina"}
+                                {payment.ikiminaName ?? t("search.payments.noIkimina", "No ikimina")}
                               </p>
                               {payment.reference && (
                                 <p className="text-[11px] font-mono text-neutral-2">
