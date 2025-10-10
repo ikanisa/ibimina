@@ -21,6 +21,7 @@ export interface ExecutiveAnalyticsSnapshot {
     pendingNotifications: number;
     escalations: number;
   };
+  forecastNext: number;
 }
 
 const monthLabel = new Intl.DateTimeFormat("en-RW", { month: "short", year: "numeric" });
@@ -106,6 +107,18 @@ export async function getExecutiveAnalytics(saccoId: string | null): Promise<Exe
       label: monthLabel.format(entry.date),
       total: Math.round(entry.total),
     }));
+
+  // Forecast next month using average delta across the most recent intervals (up to last 3)
+  let forecastNext = 0;
+  if (monthlyTrend.length >= 2) {
+    const totals = monthlyTrend.map((m) => m.total);
+    const diffs: number[] = [];
+    for (let i = totals.length - 1; i > 0 && diffs.length < 3; i--) {
+      diffs.push(totals[i] - totals[i - 1]);
+    }
+    const avg = diffs.reduce((s, v) => s + v, 0) / diffs.length;
+    forecastNext = Math.max(0, Math.round(totals[totals.length - 1] + avg));
+  }
 
   const saccoIds = Array.from(
     new Set(
@@ -204,5 +217,6 @@ export async function getExecutiveAnalytics(saccoId: string | null): Promise<Exe
       pendingNotifications: pendingNotifications ?? 0,
       escalations: escalationMetricRow ? Number(escalationMetricRow.total ?? 0) : 0,
     },
+    forecastNext,
   };
 }

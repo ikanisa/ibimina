@@ -155,6 +155,15 @@ export function ExecutiveOverview({ analytics }: ExecutiveOverviewProps) {
     <div className="space-y-8">
       <section className="space-y-4">
         <header>
+          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.forecast", "Forecast")}</span>
+        </header>
+        <article className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("analytics.forecast.next", "Next month (estimate)")}</p>
+          <p className="mt-2 text-2xl font-semibold text-neutral-0">{currency.format(analytics.forecastNext)}</p>
+        </article>
+      </section>
+      <section className="space-y-4">
+        <header>
           <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.automation", "Automation summary")}</span>
         </header>
         <AutomationSummary analytics={analytics} />

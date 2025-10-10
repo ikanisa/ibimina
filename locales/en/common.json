@@ -228,6 +228,7 @@
   "analytics.overview.title": "Executive overview",
   "analytics.overview.subtitle": "Key indicators for leadership and SACCO follow-up.",
   "analytics.sections.automation": "Automation summary",
+  "analytics.sections.forecast": "Forecast",
   "analytics.sections.momentum": "Deposit momentum",
   "analytics.sections.saccoLeaders": "SACCO leaders",
   "analytics.sections.risk": "Risk signals",
@@ -239,6 +240,7 @@
   "analytics.risk.low": "Low risk",
   "analytics.risk.lastContributionPrefix": "Last contribution",
   "common.daysAgoSuffix": "days ago",
+  "analytics.forecast.next": "Next month (estimate)",
   "table.sacco": "SACCO",
   "table.deposits": "Deposits",
   "table.unallocated": "Unallocated"
