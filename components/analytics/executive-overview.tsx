@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslation } from "@/providers/i18n-provider";
 import type { ExecutiveAnalyticsSnapshot, RiskLevel } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
@@ -127,9 +128,10 @@ function RiskSignals({ analytics }: ExecutiveOverviewProps) {
   return (
     <div className="space-y-3">
       {analytics.riskSignals.map((signal) => (
-        <article
+        <Link
           key={signal.ikiminaId}
-          className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs shadow-inner backdrop-blur"
+          href={`/ikimina/${signal.ikiminaId}`}
+          className="block rounded-2xl border border-white/10 bg-white/5 p-4 text-xs shadow-inner backdrop-blur transition hover:border-white/20"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -143,7 +145,7 @@ function RiskSignals({ analytics }: ExecutiveOverviewProps) {
           <p className="mt-2 text-[11px] text-neutral-2">
             {t("analytics.risk.lastContributionPrefix", "Last contribution")} {signal.daysSince} {t("common.daysAgoSuffix", "days ago")}
           </p>
-        </article>
+        </Link>
       ))}
     </div>
   );
