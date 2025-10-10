@@ -69,7 +69,7 @@ export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, cl
       active = false;
       clearTimeout(handle);
     };
-  }, [query]);
+  }, [query, t]);
 
   const selectedLabel = useMemo(() => {
     if (!value) return placeholder;

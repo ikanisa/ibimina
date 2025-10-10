@@ -340,7 +340,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
                     className="interactive-scale md:col-span-2 rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-50"
                     disabled={processingEnrollment}
                   >
-                    {processingEnrollment ? "Verifying…" : "Confirm setup"}
+                    {processingEnrollment ? t("auth.buttons.verifyCode", "Verify code") : t("auth.buttons.confirmSetup", "Confirm setup")}
                   </button>
                 </form>
               </div>
