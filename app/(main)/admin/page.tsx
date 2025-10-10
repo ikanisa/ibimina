@@ -11,7 +11,7 @@ import { OperationalTelemetry } from "@/components/admin/operational-telemetry";
 import { AuditLogTable } from "@/components/admin/audit-log-table";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { BilingualText } from "@/components/common/bilingual-text";
+// import { BilingualText } from "@/components/common/bilingual-text";
 import type { Database } from "@/lib/supabase/types";
 
 export default async function AdminPage() {
@@ -20,22 +20,10 @@ export default async function AdminPage() {
   if (profile.role !== "SYSTEM_ADMIN") {
     return (
       <GlassCard
-        title={<BilingualText primary="Restricted" secondary="Ntibyemewe" />}
-        subtitle={
-          <BilingualText
-            primary="Administrator permissions are required to manage global settings."
-            secondary="Ukeneye uburenganzira bw'umuyobozi kugira ngo uhindure izi nshyirahamwe."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>Restricted</span>}
+        subtitle={<span className="text-xs text-neutral-3">Administrator permissions are required to manage global settings.</span>}
       >
-        <p className="text-sm text-neutral-2">
-          <BilingualText
-            primary="Contact your system administrator if you need elevated access. You can still manage your assigned SACCO from the other tabs."
-            secondary="Vugana n'umuyobozi wa sisitemu niba ukeneye uburenganzira bwo hejuru. Uracyashobora gucunga SACCO washinzwe ukoresheje izindi paji."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        </p>
+        <p className="text-sm text-neutral-2">Contact your administrator if you need elevated access. You can still manage your assigned SACCO from other tabs.</p>
       </GlassCard>
     );
   }
@@ -187,52 +175,28 @@ export default async function AdminPage() {
   return (
     <div className="space-y-8">
       <GradientHeader
-        title={<BilingualText primary="Administration" secondary="Ubuyobozi" />}
-        subtitle={
-          <BilingualText
-            primary="Manage SACCO metadata, staff access, and forthcoming branding/SMS templates."
-            secondary="Tunganya amakuru ya SACCO, uburenganzira bw'abakozi n'inyandiko z'ubutumire na SMS."
-            secondaryClassName="text-xs text-ink/70"
-          />
-        }
+        title={<span>Administration</span>}
+        subtitle={<span className="text-xs text-ink/70">Manage SACCO data, staff access, and templates.</span>}
         badge={<StatusChip tone="neutral">System Admin</StatusChip>}
       />
 
       <GlassCard
-        title={<BilingualText primary="Invite a staff member" secondary="Tumira umukozi" />}
-        subtitle={
-          <BilingualText
-            primary="Send credentials and map roles to SACCOs instantly."
-            secondary="Ohereza uburenganzira hanyuma uhuze inshingano na SACCO ako kanya."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>Invite staff</span>}
+        subtitle={<span className="text-xs text-neutral-3">Send credentials and assign roles to SACCOs.</span>}
       >
         <InviteUserForm />
       </GlassCard>
 
       <GlassCard
-        title={<BilingualText primary="SACCO Registry" secondary="Urutonde rwa SACCO" />}
-        subtitle={
-          <BilingualText
-          primary={`${saccoList.length} Umurenge SACCOs in the dataset.`}
-          secondary={`${saccoList.length} Umurenge SACCOs ziri muri sisitemu.`}
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>SACCO registry</span>}
+        subtitle={<span className="text-xs text-neutral-3">{saccoList.length} Umurenge SACCOs</span>}
       >
         <SaccoRegistryManager initialSaccos={saccoList} />
       </GlassCard>
 
       <GlassCard
-        title={<BilingualText primary="Branding & logos" secondary="Ibimenyetso n'amabendera" />}
-        subtitle={
-          <BilingualText
-            primary="Upload SACCO logos and update brand accents for downstream portals."
-            secondary="Shyiraho ibirango bya SACCO kandi uvugurure amabara ku mbuga zindi."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>Branding & logos</span>}
+        subtitle={<span className="text-xs text-neutral-3">Upload logos and brand accents.</span>}
       >
         {saccoList.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
@@ -246,14 +210,8 @@ export default async function AdminPage() {
       </GlassCard>
 
       <GlassCard
-        title={<BilingualText primary="SMS templates" secondary="Imiterere y'ubutumwa" />}
-        subtitle={
-          <BilingualText
-            primary="Draft and activate outbound communication scripts per SACCO."
-            secondary="Tegura no gutangiza ubutumwa bugenewe buri SACCO."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>SMS templates</span>}
+        subtitle={<span className="text-xs text-neutral-3">Draft and activate outbound messages.</span>}
       >
         {saccoList.length > 0 ? (
           <SmsTemplatePanel
@@ -265,53 +223,29 @@ export default async function AdminPage() {
       </GlassCard>
 
       <GlassCard
-        title={<BilingualText primary="Operational telemetry" secondary="Igenzura ry'imikorere" />}
-        subtitle={
-          <BilingualText
-            primary="Monitor automation throughput and ingestion health."
-            secondary="Kurikirana uko automatike n'ubusobanuzi bw'ubutumwa bikomeje gukora."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>Operational telemetry</span>}
+        subtitle={<span className="text-xs text-neutral-3">Monitor automation and ingestion health.</span>}
       >
         <OperationalTelemetry metrics={telemetryMetrics} />
       </GlassCard>
 
       <GlassCard
-        title={<BilingualText primary="Notification queue" secondary="Urutonde rw'ubutumire" />}
-        subtitle={
-          <BilingualText
-            primary="Review recent notification events and pending deliveries."
-            secondary="Reba ubutumwa buheruka kubikwa no guteganyirizwa." 
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>Notification queue</span>}
+        subtitle={<span className="text-xs text-neutral-3">Recent events and pending deliveries.</span>}
       >
         <NotificationQueueTable rows={notificationRows} saccoLookup={saccoLookup} templateLookup={templateLookup} />
       </GlassCard>
 
       <GlassCard
-        title={<BilingualText primary="Recent audit trail" secondary="Amateka y'ibikorwa" />}
-        subtitle={
-          <BilingualText
-            primary="Track privileged actions and configuration updates."
-            secondary="Gukurikirana ibisabwa n'impinduka zakozwe n'abafite uburenganzira bwo hejuru."
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>Recent audit trail</span>}
+        subtitle={<span className="text-xs text-neutral-3">Privileged actions and config changes.</span>}
       >
         <AuditLogTable rows={auditEntries} />
       </GlassCard>
 
       <GlassCard
-        title={<BilingualText primary="User Access" secondary="Uburenganzira bw'abakozi" />}
-        subtitle={
-          <BilingualText
-            primary={`${users?.length ?? 0} recent staff records.`}
-            secondary={`${users?.length ?? 0} abakozi baheruka kwiyandikisha.`}
-            secondaryClassName="text-xs text-neutral-3"
-          />
-        }
+        title={<span>User access</span>}
+        subtitle={<span className="text-xs text-neutral-3">{`${users?.length ?? 0} recent staff records.`}</span>}
       >
         <UserAccessTable users={normalizedUsers} saccos={saccoOptions} />
       </GlassCard>
