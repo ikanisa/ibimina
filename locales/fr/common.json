@@ -256,6 +256,7 @@
   "common.settings": "Settings",
   "common.download": "Download",
   "common.unknown": "Unknown",
+  "common.version": "Version",
   "table.posted": "Posted",
   "table.transactions": "Transactions",
   "reports.table.month": "Month",

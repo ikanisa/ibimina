@@ -9,7 +9,6 @@ import { queueNotification } from "@/app/(main)/admin/actions";
 
 const supabase = getSupabaseBrowserClient();
 
-const toBilingual = (en: string, rw: string) => `${en} / ${rw}`;
 
 const TOKEN_LIBRARY = [
   { token: "{member_name}", primary: "Member name", secondary: "Izina ry'umunyamuryango" },
@@ -270,7 +269,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
                <div>
                   <h4 className="text-base font-semibold">{template.name}</h4>
                   <p className="text-[11px] text-neutral-2">
-                    {toBilingual("Version", "Verisiyo")}: {template.version ?? 1} · {toBilingual("Updated", "Byavuguruwe")}: {new Date(template.updated_at).toLocaleString()}
+                    {t("common.version", "Version")}: {template.version ?? 1} · {t("common.updated", "Updated")}: {new Date(template.updated_at).toLocaleString()}
                   </p>
                   {template.description && (
                     <p className="text-[11px] text-neutral-2">{template.description}</p>
