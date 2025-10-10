@@ -105,27 +105,41 @@ Deno.serve(async (req) => {
 
     const { data: ibiminaRows } = await supabase.from("ibimina").select("id, name, code, sacco_id");
 
-    const totalsByIkimina = new Map<string, { name: string; code: string; amount: number }>();
+    const totalsByIkimina = new Map<string, { name: string; code: string; amount: number; count: number }>();
     let grandTotal = 0;
 
     for (const payment of payments ?? []) {
       if (!payment.ikimina_id || !["POSTED", "SETTLED"].includes(payment.status)) continue;
       const match = (ibiminaRows ?? []).find((row) => row.id === payment.ikimina_id);
       if (!match) continue;
-      const current = totalsByIkimina.get(payment.ikimina_id) ?? { name: match.name, code: match.code, amount: 0 };
+      const current = totalsByIkimina.get(payment.ikimina_id) ?? { name: match.name, code: match.code, amount: 0, count: 0 };
       current.amount += payment.amount;
+      current.count += 1;
       totalsByIkimina.set(payment.ikimina_id, current);
       grandTotal += payment.amount;
     }
 
     const sortedTotals = Array.from(totalsByIkimina.values()).sort((a, b) => b.amount - a.amount);
 
+    // Build daily totals sparkline data (last 14 days within the requested period)
+    const dailyMap = new Map<string, number>();
+    for (const row of (payments ?? [])) {
+      if (!["POSTED", "SETTLED"].includes(row.status)) continue;
+      const day = (row.occurred_at as string).slice(0, 10);
+      dailyMap.set(day, (dailyMap.get(day) ?? 0) + (row.amount as number));
+    }
+    const dailyTotals = Array.from(dailyMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, amount]) => ({ date, amount }));
+    const lastDays = dailyTotals.slice(-14);
+
     if (params.format === "csv") {
-      let csv = "Ikimina,Code,Amount\n";
+      let csv = "Ikimina,Code,Transactions,Amount,Share\n";
       for (const row of sortedTotals) {
-        csv += `${row.name},${row.code},${row.amount}\n`;
+        const share = grandTotal > 0 ? Math.round((row.amount / grandTotal) * 100) : 0;
+        csv += `${row.name},${row.code},${row.count},${row.amount},${share}%\n`;
       }
-      csv += `Total,,${grandTotal}\n`;
+      csv += `Total,,,${grandTotal},100%\n`;
 
       return new Response(csv, {
         headers: {
@@ -199,9 +213,33 @@ Deno.serve(async (req) => {
     cursorY = height - 168;
     const rowHeight = 18;
 
+    // Small sparkline chart (daily totals) above the table
+    const chartTop = cursorY;
+    if (lastDays.length > 0) {
+      const chartHeight = 36;
+      const chartWidth = 472;
+      const chartX = 48;
+      const maxVal = Math.max(...lastDays.map((d) => d.amount), 1);
+      const barGap = 4;
+      const barWidth = Math.max(6, Math.floor((chartWidth - (barGap * (lastDays.length - 1))) / lastDays.length));
+      // Label
+      page.drawText("Daily totals (last 14 days)", { x: chartX, y: cursorY, size: 10, font, color: rgb(0.35, 0.45, 0.5) });
+      const baseY = cursorY - 6;
+      let x = chartX;
+      for (const d of lastDays) {
+        const h = Math.max(2, Math.round((d.amount / maxVal) * chartHeight));
+        page.drawRectangle({ x, y: baseY - h, width: barWidth, height: h, color: titleColor });
+        x += barWidth + barGap;
+      }
+      cursorY = baseY - chartHeight - 16;
+    }
+
+    // Table header
     page.drawText("Ikimina", { x: 48, y: cursorY, size: 11, font: bold });
     page.drawText("Code", { x: 240, y: cursorY, size: 11, font: bold });
+    page.drawText("Txn", { x: 310, y: cursorY, size: 11, font: bold });
     page.drawText("Amount", { x: 360, y: cursorY, size: 11, font: bold });
+    page.drawText("Share", { x: 460, y: cursorY, size: 11, font: bold });
     cursorY -= rowHeight;
 
     for (const row of sortedTotals) {
@@ -211,7 +249,10 @@ Deno.serve(async (req) => {
       }
       page.drawText(row.name, { x: 48, y: cursorY, size: 10, font });
       page.drawText(row.code, { x: 240, y: cursorY, size: 10, font });
+      page.drawText(String(row.count ?? 0), { x: 310, y: cursorY, size: 10, font });
       page.drawText(formatCurrency(row.amount), { x: 360, y: cursorY, size: 10, font });
+      const share = grandTotal > 0 ? Math.round((row.amount / grandTotal) * 100) : 0;
+      page.drawText(`${share}%`, { x: 460, y: cursorY, size: 10, font });
       cursorY -= rowHeight;
     }
 
