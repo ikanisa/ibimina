@@ -38,7 +38,6 @@ type ReasonChip = {
   tone: "warning" | "critical" | "info";
 };
 
-const joinBilingual = (primary: string, secondary: string) => `${primary} / ${secondary}`;
 
 const STATUS_BILINGUAL: Record<string, { primary: string; secondary: string }> = {
   UNALLOCATED: { primary: "unallocated", secondary: "bitaragabanywa" },
@@ -129,6 +128,15 @@ const reasonGuidance: Record<ReasonChip["id"], { primary: string; secondary: str
     primary: "Double-check amount and reference before marking posted.",
     secondary: "Ongera wemeze amafaranga n'indango mbere yo kubyemeza.",
   },
+};
+const REASON_GUIDANCE_KEYS: Record<ReasonChip["id"], string> = {
+  "missing-reference": "recon.guidance.missingReference",
+  "needs-member": "recon.guidance.needsMember",
+  duplicate: "recon.guidance.duplicate",
+  "manual-review": "recon.guidance.manualReview",
+  "parser-failure": "recon.guidance.parserFailure",
+  "msisdn-mismatch": "recon.guidance.msisdnMismatch",
+  "low-confidence": "recon.guidance.lowConfidence",
 };
 
 export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationTableProps) {
@@ -451,15 +459,14 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
 
         const count = selectedIds.length;
         const assignedEn = `Assigned ${count} payment(s) to ${groupCode}.`;
-        const assignedRw = `Imisanzu ${count} yashyizwe kuri ${groupCode}.`;
-        setBulkMessage(joinBilingual(assignedEn, assignedRw));
-        toastSuccess(joinBilingual(`Assigned ${count} payment(s).`, `Imisanzu ${count} yashyizweho.`));
+        setBulkMessage(t("recon.bulk.assignedTo", assignedEn));
+        toastSuccess(t("recon.bulk.assigned", `Assigned ${count} payment(s).`));
         setSelectedIds([]);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to auto-assign";
-        const bilingualMessage = joinBilingual(message, "Guhuza byikora byanze");
-        setBulkError(bilingualMessage);
-        toastError(bilingualMessage);
+        const local = t("recon.errors.autoAssignFailed", message);
+        setBulkError(local);
+        toastError(local);
       }
     });
   };
@@ -740,11 +747,8 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       .catch((err) => {
         if (cancelled) return;
         console.error("AI suggestion fetch error", err);
-        const bilingual = joinBilingual(
-          err instanceof Error ? err.message : "Suggestion lookup failed",
-          "Gusaba inama byanze"
-        );
-        setAiError(bilingual);
+        const msg = err instanceof Error ? err.message : "Suggestion lookup failed";
+        setAiError(t("recon.errors.suggestionFailed", msg));
         setAiStatus("error");
       });
 
@@ -752,7 +756,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       cancelled = true;
       controller.abort();
     };
-  }, [selected]);
+  }, [selected, t]);
 
   const sharedReference = useMemo(() => {
     if (selectedIds.length === 0) return null;
@@ -995,7 +999,8 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                       {reasons.length === 0 && <span className="text-[11px] text-neutral-2">—</span>}
                       {reasons.map((reason) => {
                         const guidance = reasonGuidance[reason.id];
-                        const title = guidance ? joinBilingual(guidance.primary, guidance.secondary) : undefined;
+                        const key = REASON_GUIDANCE_KEYS[reason.id];
+                        const title = key ? t(key, guidance?.primary ?? "") : guidance?.primary;
                         return (
                           <span
                             key={reason.id}
@@ -1120,7 +1125,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             <div className="space-y-3 text-sm text-neutral-0">
               <h4 className="font-semibold">{t("recon.detail.rawSms", "Raw SMS")}</h4>
               <pre className="max-h-48 overflow-y-auto rounded-xl bg-black/40 p-4 text-xs text-neutral-2">
-                {selected.source?.raw_text ?? joinBilingual("No SMS source", "Nta SMS iboneka")}
+                {selected.source?.raw_text ?? t("recon.detail.noSmsSource", "No SMS source")}
               </pre>
             </div>
             <div className="space-y-3 text-sm text-neutral-0">
@@ -1203,12 +1208,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                         <li key={`${option.member_id}-${option.reason}`} className="flex items-center justify-between gap-3 rounded-xl bg-black/15 px-3 py-2">
                           <div className="text-left text-[11px] text-neutral-0">
                             <p className="font-semibold">{option.reason}</p>
-                            <p className="text-neutral-2">
-                              {joinBilingual(
-                                `Confidence ${Math.round(option.confidence * 100)}%`,
-                                `Icyizere ${Math.round(option.confidence * 100)}%`
-                              )}
-                            </p>
+                            <p className="text-neutral-2">{t("common.confidence", "Confidence")} {Math.round(option.confidence * 100)}%</p>
                           </div>
                           <button
                             type="button"
@@ -1285,10 +1285,10 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                         >
                           <span className="font-medium">{member.full_name}</span>
                           <span className="ml-2 text-[11px] uppercase tracking-[0.2em] text-neutral-2">
-                            {member.member_code ?? joinBilingual("No code", "Nta kode")}
+                            {member.member_code ?? t("recon.detail.noCode", "No code")}
                           </span>
                           <div className="text-[11px] text-neutral-2">
-                            {member.msisdn ?? joinBilingual("No MSISDN", "Nta nimero" )} · {member.ikimina_name ?? joinBilingual("Unknown ikimina", "Ikimina kitazwi")}
+                            {member.msisdn ?? t("recon.detail.noMsisdn", "No MSISDN")} · {member.ikimina_name ?? t("recon.detail.unknownIkimina", "Unknown ikimina")}
                           </div>
                         </button>
                       </li>
