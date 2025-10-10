@@ -9,6 +9,7 @@ import { UserAccessTable } from "@/components/admin/user-access-table";
 import { NotificationQueueTable } from "@/components/admin/notification-queue-table";
 import { OperationalTelemetry } from "@/components/admin/operational-telemetry";
 import { AuditLogTable } from "@/components/admin/audit-log-table";
+import { FeatureFlagsCard } from "@/components/admin/feature-flags-card";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 // import { BilingualText } from "@/components/common/bilingual-text";
@@ -223,6 +224,13 @@ export default async function AdminPage() {
         ) : (
           <p className="text-sm text-neutral-2">Add a SACCO first to manage templates.</p>
         )}
+      </GlassCard>
+
+      <GlassCard
+        title={<Trans i18nKey="admin.flags.title" fallback="Feature flags" />}
+        subtitle={<Trans i18nKey="admin.flags.subtitle" fallback="Toggle automation and offline capabilities." className="text-xs text-neutral-3" />}
+      >
+        <FeatureFlagsCard />
       </GlassCard>
 
       <GlassCard
