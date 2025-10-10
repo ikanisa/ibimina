@@ -22,7 +22,19 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const windowHours = Math.max(DEFAULT_LOOKBACK_HOURS, 1);
+    let windowHours = Math.max(DEFAULT_LOOKBACK_HOURS, 1);
+    // Optional override when invoked manually with a JSON body: { "hours": number }
+    if (req.method !== "OPTIONS") {
+      const contentType = req.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        const payload = (await req.json().catch(() => null)) as { hours?: unknown } | null;
+        if (payload && typeof payload.hours === "number" && Number.isFinite(payload.hours)) {
+          // Clamp between 1 hour and 14 days for safety
+          const clamped = Math.max(1, Math.min(Math.floor(payload.hours), 14 * 24));
+          windowHours = clamped;
+        }
+      }
+    }
     const cutoff = new Date(Date.now() - windowHours * 60 * 60 * 1000).toISOString();
 
     const { data: pending, error } = await supabase

@@ -10,6 +10,7 @@ import { NotificationQueueTable } from "@/components/admin/notification-queue-ta
 import { OperationalTelemetry } from "@/components/admin/operational-telemetry";
 import { AuditLogTable } from "@/components/admin/audit-log-table";
 import { FeatureFlagsCard } from "@/components/admin/feature-flags-card";
+import { OutreachAutomationCard } from "@/components/admin/outreach-automation-card";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 // import { BilingualText } from "@/components/common/bilingual-text";
@@ -238,6 +239,13 @@ export default async function AdminPage() {
         subtitle={<Trans i18nKey="admin.telemetry.subtitle" fallback="Monitor automation and ingestion health." className="text-xs text-neutral-3" />}
       >
         <OperationalTelemetry metrics={telemetryMetrics} />
+      </GlassCard>
+
+      <GlassCard
+        title={<Trans i18nKey="admin.outreach.title" fallback="Outreach automation" />}
+        subtitle={<Trans i18nKey="admin.outreach.subtitle" fallback="Escalate stale payments to notification queue." className="text-xs text-neutral-3" />}
+      >
+        <OutreachAutomationCard />
       </GlassCard>
 
       <GlassCard
