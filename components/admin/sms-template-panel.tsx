@@ -5,6 +5,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { BilingualText } from "@/components/common/bilingual-text";
+import { useTranslation } from "@/providers/i18n-provider";
 import { queueNotification } from "@/app/(main)/admin/actions";
 
 const supabase = getSupabaseBrowserClient();
@@ -32,6 +33,7 @@ type SmsTemplatePanelProps = {
 };
 
 export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
+  const { t } = useTranslation();
   const [selectedSacco, setSelectedSacco] = useState<string | null>(saccos[0]?.id ?? null);
   const [templates, setTemplates] = useState<TemplateRow[]>([]);
   const [name, setName] = useState("");
@@ -39,8 +41,8 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
   const [description, setDescription] = useState("");
   const [pending, startTransition] = useTransition();
   const toast = useToast();
-  const notifySuccess = (en: string, rw: string) => toast.success(toBilingual(en, rw));
-  const notifyError = (en: string, rw: string) => toast.error(toBilingual(en, rw));
+  const notifySuccess = (msg: string) => toast.success(msg);
+  const notifyError = (msg: string) => toast.error(msg);
 
   const selectedSaccoName = useMemo(
     () => saccos.find((sacco) => sacco.id === selectedSacco)?.name ?? "",
@@ -61,7 +63,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         .order("updated_at", { ascending: false });
       if (cancelled) return;
       if (fetchError) {
-        toast.error(toBilingual(fetchError.message ?? "Failed to load templates", "Kuzana inyandiko byanze"));
+        toast.error(fetchError.message ?? t("admin.templates.loadFailed", "Failed to load templates"));
         return;
       }
       setTemplates(data ?? []);
@@ -69,7 +71,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
     return () => {
       cancelled = true;
     };
-  }, [selectedSacco, toast]);
+  }, [selectedSacco, toast, t]);
 
   const resetForm = () => {
     setName("");
@@ -83,18 +85,9 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
   };
 
   const handleCreate = () => {
-    if (!selectedSacco) {
-      notifyError("Select a SACCO first", "Hitamo SACCO mbere");
-      return;
-    }
-    if (!name.trim()) {
-      notifyError("Template name is required", "Izina ry'inyandiko rirakenewe");
-      return;
-    }
-    if (!body.trim()) {
-      notifyError("Template body is required", "Ubutumwa bw'inyandiko burakenewe");
-      return;
-    }
+    if (!selectedSacco) return notifyError(t("admin.templates.selectSacco", "Select a SACCO first"));
+    if (!name.trim()) return notifyError(t("admin.templates.nameRequired", "Template name is required"));
+    if (!body.trim()) return notifyError(t("admin.templates.bodyRequired", "Template body is required"));
 
     startTransition(async () => {
       const tokens = extractTokens(body.trim());
@@ -112,12 +105,9 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         .insert(payload)
         .select("id, name, body, is_active, sacco_id, created_at, updated_at, version, tokens, description")
         .single();
-      if (insertError) {
-        notifyError(insertError.message ?? "Failed to create template", "Gukora inyandiko byanze");
-        return;
-      }
+      if (insertError) return notifyError(insertError.message ?? t("admin.templates.createFailed", "Failed to create template"));
       setTemplates((prev) => [data as TemplateRow, ...prev]);
-      notifySuccess("Template created", "Inyandiko yashyizweho");
+      notifySuccess(t("admin.templates.created", "Template created"));
       resetForm();
     });
   };
@@ -129,10 +119,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         .from("sms_templates")
         .update({ is_active: !template.is_active })
         .eq("id", template.id);
-      if (updateError) {
-        notifyError(updateError.message ?? "Failed to update template", "Kuvugurura inyandiko byanze");
-        return;
-      }
+      if (updateError) return notifyError(updateError.message ?? t("admin.templates.updateFailed", "Failed to update template"));
       setTemplates((prev) =>
         prev.map((item) =>
           item.id === template.id
@@ -140,24 +127,18 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
             : item
         )
       );
-      notifySuccess(
-        template.is_active ? "Template deactivated" : "Template activated",
-        template.is_active ? "Inyandiko yahagaritswe" : "Inyandiko yashyizweho"
-      );
+      notifySuccess(template.is_active ? t("admin.templates.deactivated", "Template deactivated") : t("admin.templates.activated", "Template activated"));
     });
   };
 
   const handleDelete = (templateId: string) => {
-    if (!confirm("Delete this template? / Gusiba iyi nyandiko?")) return;
+    if (!confirm(t("admin.templates.deleteConfirm", "Delete this template?"))) return;
     startTransition(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: deleteError } = await (supabase as any).from("sms_templates").delete().eq("id", templateId);
-      if (deleteError) {
-        notifyError(deleteError.message ?? "Failed to delete template", "Gusiba inyandiko byanze");
-        return;
-      }
+      if (deleteError) return notifyError(deleteError.message ?? t("admin.templates.deleteFailed", "Failed to delete template"));
       setTemplates((prev) => prev.filter((item) => item.id !== templateId));
-      notifySuccess("Template deleted", "Inyandiko yasibwe");
+      notifySuccess(t("admin.templates.deleted", "Template deleted"));
     });
   };
 
@@ -264,14 +245,12 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
             </div>
           </label>
           <label className="space-y-1 sm:col-span-2">
-            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-              <BilingualText primary="Description" secondary="Ibisobanuro" layout="inline" secondaryClassName="text-[10px] text-neutral-3" />
-            </span>
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.templates.description", "Description")}</span>
             <input
               type="text"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Reminder for weekly contributions"
+              placeholder={t("admin.templates.descriptionPlaceholder", "Reminder for weekly contributions")}
               className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
             />
           </label>
@@ -283,17 +262,15 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
             disabled={pending || !selectedSacco}
             className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
           >
-            {pending ? toBilingual("Saving…", "Birimo kubikwa…") : toBilingual("Save template", "Bika inyandiko")}
+            {pending ? t("common.saving", "Saving…") : t("admin.templates.create", "Create template")}
           </button>
         </div>
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-          {toBilingual(`${templates.length} template(s) for ${selectedSaccoName}`, `${templates.length} inyandiko kuri ${selectedSaccoName}`)}
-        </p>
+        <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{templates.length} {t("admin.templates.count", "template(s)")} {t("admin.templates.for", "for")} {selectedSaccoName}</p>
         {templates.length === 0 && (
-          <p className="text-sm text-neutral-2">{toBilingual("No templates yet. Create one above to get started.", "Nta nyandiko irahari. Tangira uhange imwe hejuru.")}</p>
+          <p className="text-sm text-neutral-2">{t("admin.templates.empty", "No templates yet. Create one above to get started.")}</p>
         )}
         <div className="space-y-3">
           {templates.map((template) => (
@@ -314,30 +291,28 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
                     onClick={() => handleToggleActive(template)}
                     className="text-xs text-neutral-2 underline-offset-2 hover:underline"
                   >
-                    {template.is_active ? toBilingual("Deactivate", "Hagarika") : toBilingual("Activate", "Koresha")}
+                    {template.is_active ? t("admin.templates.deactivate", "Deactivate") : t("admin.templates.activate", "Activate")}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleNewVersion(template)}
                     className="text-xs text-neutral-2 underline-offset-2 hover:underline"
                   >
-                    {toBilingual("New version", "Verisiyo nshya")}
+                    {t("admin.templates.newVersion", "New version")}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDelete(template.id)}
                     className="text-xs text-red-300 underline-offset-2 hover:underline"
                   >
-                    {toBilingual("Delete", "Siba")}
+                    {t("common.delete", "Delete")}
                   </button>
                 </div>
               </div>
               <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-black/30 p-3 text-sm text-neutral-0">
                 {template.body}
               </pre>
-              <p className="mt-2 text-[10px] text-neutral-2">
-                {toBilingual("Status", "Imiterere")}: {template.is_active ? toBilingual("Active", "Ikora") : toBilingual("Inactive", "Ntikora")}
-              </p>
+              <p className="mt-2 text-[10px] text-neutral-2">{t("table.status", "Status")}: {template.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")}</p>
               <div className="mt-2 flex flex-wrap gap-1 text-[10px] text-neutral-3">
                 {(Array.isArray(template.tokens) ? template.tokens : extractTokens(template.body)).map((token) => {
                   const tokenText = typeof token === "string" ? token : JSON.stringify(token);
@@ -354,11 +329,9 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
                   onClick={() => handleQueueTest(template)}
                   className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-neutral-0 hover:border-white/30"
                 >
-                  {toBilingual("Send test SMS", "Ohereza SMS ikizamini")}
+                  {t("admin.templates.sendTest", "Send test SMS")}
                 </button>
-                <span className="text-[10px] text-neutral-3">
-                  {toBilingual("Queues an event in notification pipeline", "Bishyira ikizamini muri pipeline ya notifikasi")}
-                </span>
+                <span className="text-[10px] text-neutral-3">{t("admin.templates.queueHint", "Queues an event in notification pipeline")}</span>
               </div>
             </div>
           ))}
