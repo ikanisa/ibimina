@@ -20,7 +20,7 @@ interface ReportExportPanelProps {
 const supabase = getSupabaseBrowserClient();
 
 export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { success, error } = useToast();
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -72,6 +72,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           start: filters.from || undefined,
           end: filters.to || undefined,
           format,
+          locale,
         }),
       }).catch((fetchError: unknown) => {
         const msg = fetchError instanceof Error ? fetchError.message : t("common.networkError", "Network error");
