@@ -6,6 +6,7 @@ import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
+import { upsertSacco, removeSacco } from "@/app/(main)/admin/actions";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -116,69 +117,46 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
     const sectorCode = buildSectorCode(editing.district, editing.sector);
 
     startTransition(async () => {
-      try {
-        const basePayload = {
-          name: editing.name.trim(),
-          district: editing.district.trim().toUpperCase(),
-          province: editing.province.trim().toUpperCase(),
-          sector: editing.sector.trim().toUpperCase(),
-          sector_code: sectorCode,
-          category: (editing.category || DEFAULT_CATEGORY).trim(),
-          status: editing.status,
-          email: editing.email?.trim() ? editing.email.trim() : null,
-          logo_url: editing.logo_url ?? null,
-          search_slug: buildSearchSlug(editing.name),
-        };
+      const basePayload = {
+        name: editing.name.trim(),
+        district: editing.district.trim().toUpperCase(),
+        province: editing.province.trim().toUpperCase(),
+        sector: editing.sector.trim().toUpperCase(),
+        sector_code: sectorCode,
+        category: (editing.category || DEFAULT_CATEGORY).trim(),
+        status: editing.status,
+        email: editing.email?.trim() ? editing.email.trim() : null,
+        logo_url: editing.logo_url ?? null,
+      } as Database["public"]["Tables"]["saccos"]["Insert"];
 
-        if (mode === "create") {
-          const payload: Database["public"]["Tables"]["saccos"]["Insert"] = basePayload;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data, error: insertError } = await (supabase as any)
-            .from("saccos")
-            .insert(payload)
-            .select("id, name, district, province, sector, status, email, category, logo_url, sector_code")
-            .single();
-          if (insertError) throw insertError;
-          setSaccos((prev) => [...prev, data as SaccoRow]);
-          notifySuccess(t("admin.registry.created", "SACCO created"));
-          resetForm();
-        } else {
-          const payload: Database["public"]["Tables"]["saccos"]["Update"] = basePayload;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data, error: updateError } = await (supabase as any)
-            .from("saccos")
-            .update(payload)
-            .eq("id", editing.id)
-            .select("id, name, district, province, sector, status, email, category, logo_url, sector_code")
-            .single();
-          if (updateError) throw updateError;
-          if (data) {
-            setSaccos((prev) => prev.map((item) => (item.id === editing.id ? (data as SaccoRow) : item)));
-          }
-          notifySuccess(t("admin.registry.updated", "SACCO updated"));
-          resetForm();
-        }
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : t("common.operationFailed", "Operation failed");
-        notifyError(message);
+      const result = await upsertSacco({
+        mode: mode === "create" ? "create" : "update",
+        // id is present in update mode
+        sacco: mode === "create" ? basePayload : ({ ...basePayload, id: editing.id } as unknown as Database["public"]["Tables"]["saccos"]["Update"] & { id: string }),
+      });
+      if (result.status === "error") {
+        notifyError(result.message ?? t("common.operationFailed", "Operation failed"));
+        return;
       }
+      if (result.sacco) {
+        setSaccos((prev) => (mode === "create" ? [...prev, result.sacco as SaccoRow] : prev.map((s) => (s.id === editing.id ? (result.sacco as SaccoRow) : s))));
+      }
+      notifySuccess(mode === "create" ? t("admin.registry.created", "SACCO created") : t("admin.registry.updated", "SACCO updated"));
+      resetForm();
     });
   };
 
   const handleDelete = (saccoId: string) => {
     if (!confirm(t("admin.registry.deleteConfirm", "Delete this SACCO? This cannot be undone."))) return;
     startTransition(async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: deleteError } = await (supabase as any).from("saccos").delete().eq("id", saccoId);
-      if (deleteError) {
-        notifyError(deleteError.message ?? t("admin.registry.deleteFailed", "Failed to delete SACCO"));
+      const result = await removeSacco({ id: saccoId });
+      if (result.status === "error") {
+        notifyError(result.message ?? t("admin.registry.deleteFailed", "Failed to delete SACCO"));
         return;
       }
       setSaccos((prev) => prev.filter((s) => s.id !== saccoId));
       notifySuccess(t("admin.registry.deleted", "SACCO deleted"));
-      if (editing?.id === saccoId) {
-        resetForm();
-      }
+      if (editing?.id === saccoId) resetForm();
     });
   };
 

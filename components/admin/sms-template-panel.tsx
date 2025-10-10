@@ -5,9 +5,9 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
-import { queueNotification } from "@/app/(main)/admin/actions";
+import { queueNotification, createSmsTemplate, setSmsTemplateActive, deleteSmsTemplate } from "@/app/(main)/admin/actions";
 
-const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient();
 
 
 const TOKEN_LIBRARY = [
@@ -89,22 +89,15 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
 
     startTransition(async () => {
       const tokens = extractTokens(body.trim());
-      const payload: Database["public"]["Tables"]["sms_templates"]["Insert"] = {
-        sacco_id: selectedSacco,
-        name: name.trim(),
-        body: body.trim(),
-        description: description.trim() || null,
+      const result = await createSmsTemplate({
+        saccoId: selectedSacco as string,
+        name,
+        body,
+        description,
         tokens,
-        version: 1,
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error: insertError } = await (supabase as any)
-        .from("sms_templates")
-        .insert(payload)
-        .select("id, name, body, is_active, sacco_id, created_at, updated_at, version, tokens, description")
-        .single();
-      if (insertError) return notifyError(insertError.message ?? t("admin.templates.createFailed", "Failed to create template"));
-      setTemplates((prev) => [data as TemplateRow, ...prev]);
+      });
+      if (result.status === "error") return notifyError(result.message ?? t("admin.templates.createFailed", "Failed to create template"));
+      if (result.template) setTemplates((prev) => [result.template as TemplateRow, ...prev]);
       notifySuccess(t("admin.templates.created", "Template created"));
       resetForm();
     });
@@ -112,19 +105,9 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
 
   const handleToggleActive = (template: TemplateRow) => {
     startTransition(async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: updateError } = await (supabase as any)
-        .from("sms_templates")
-        .update({ is_active: !template.is_active })
-        .eq("id", template.id);
-      if (updateError) return notifyError(updateError.message ?? t("admin.templates.updateFailed", "Failed to update template"));
-      setTemplates((prev) =>
-        prev.map((item) =>
-          item.id === template.id
-            ? { ...item, is_active: !template.is_active, updated_at: new Date().toISOString() }
-            : item
-        )
-      );
+      const result = await setSmsTemplateActive({ templateId: template.id, isActive: !template.is_active });
+      if (result.status === "error") return notifyError(result.message ?? t("admin.templates.updateFailed", "Failed to update template"));
+      setTemplates((prev) => prev.map((item) => (item.id === template.id ? { ...item, is_active: !template.is_active, updated_at: new Date().toISOString() } : item)));
       notifySuccess(template.is_active ? t("admin.templates.deactivated", "Template deactivated") : t("admin.templates.activated", "Template activated"));
     });
   };
@@ -132,9 +115,8 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
   const handleDelete = (templateId: string) => {
     if (!confirm(t("admin.templates.deleteConfirm", "Delete this template?"))) return;
     startTransition(async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: deleteError } = await (supabase as any).from("sms_templates").delete().eq("id", templateId);
-      if (deleteError) return notifyError(deleteError.message ?? t("admin.templates.deleteFailed", "Failed to delete template"));
+      const result = await deleteSmsTemplate({ templateId });
+      if (result.status === "error") return notifyError(result.message ?? t("admin.templates.deleteFailed", "Failed to delete template"));
       setTemplates((prev) => prev.filter((item) => item.id !== templateId));
       notifySuccess(t("admin.templates.deleted", "Template deleted"));
     });

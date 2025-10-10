@@ -52,6 +52,12 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
     const payload = (await req.json()) as ImportRequest;
+    if (!payload || !payload.saccoId || !Array.isArray(payload.rows)) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid payload" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
 
     const allowed = await enforceRateLimit(supabase, `statement:${payload.saccoId}`, {
       maxHits: Math.max(payload.rows.length, 100),
@@ -71,6 +77,10 @@ Deno.serve(async (req) => {
     let unallocated = 0;
 
     for (const row of payload.rows) {
+      if (!row.txnId || !row.msisdn || !Number.isFinite(row.amount) || row.amount <= 0) {
+        // skip invalid row but do not fail entire payload
+        continue;
+      }
       const { data: existing } = await supabase
         .from("payments")
         .select("id")

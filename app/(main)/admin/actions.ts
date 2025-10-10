@@ -99,3 +99,131 @@ export async function queueMfaReminder({
 
   return { status: "success", message: "Reminder queued" };
 }
+
+export async function createSmsTemplate({
+  saccoId,
+  name,
+  body,
+  description,
+  tokens,
+}: {
+  saccoId: string;
+  name: string;
+  body: string;
+  description?: string | null;
+  tokens?: string[];
+}): Promise<AdminActionResult & { template?: Database["public"]["Tables"]["sms_templates"]["Row"] }> {
+  const { profile } = await requireUserAndProfile();
+  if (profile.role !== "SYSTEM_ADMIN") {
+    return { status: "error", message: "Only system administrators can create templates." };
+  }
+
+  if (!name.trim() || !body.trim()) {
+    return { status: "error", message: "Template name and body are required." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const payload: Database["public"]["Tables"]["sms_templates"]["Insert"] = {
+    sacco_id: saccoId,
+    name: name.trim(),
+    body: body.trim(),
+    description: description?.trim() || null,
+    tokens: tokens ?? null,
+    version: 1,
+    is_active: false,
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
+    .from("sms_templates")
+    .insert(payload)
+    .select("*")
+    .single();
+  if (error) return { status: "error", message: error.message ?? "Failed to create template" };
+  await revalidatePath("/admin");
+  return { status: "success", message: "Template created", template: data };
+}
+
+export async function setSmsTemplateActive({
+  templateId,
+  isActive,
+}: {
+  templateId: string;
+  isActive: boolean;
+}): Promise<AdminActionResult> {
+  const { profile } = await requireUserAndProfile();
+  if (profile.role !== "SYSTEM_ADMIN") {
+    return { status: "error", message: "Only system administrators can update templates." };
+  }
+  const supabase = await createSupabaseServerClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from("sms_templates")
+    .update({ is_active: isActive })
+    .eq("id", templateId);
+  if (error) return { status: "error", message: error.message ?? "Failed to update template" };
+  await revalidatePath("/admin");
+  return { status: "success", message: isActive ? "Template activated" : "Template deactivated" };
+}
+
+export async function deleteSmsTemplate({
+  templateId,
+}: { templateId: string }): Promise<AdminActionResult> {
+  const { profile } = await requireUserAndProfile();
+  if (profile.role !== "SYSTEM_ADMIN") {
+    return { status: "error", message: "Only system administrators can delete templates." };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from("sms_templates").delete().eq("id", templateId);
+  if (error) return { status: "error", message: error.message ?? "Failed to delete template" };
+  await revalidatePath("/admin");
+  return { status: "success", message: "Template deleted" };
+}
+
+export async function upsertSacco({
+  mode,
+  sacco,
+}: {
+  mode: "create" | "update";
+  sacco: Database["public"]["Tables"]["saccos"]["Insert"] | (Database["public"]["Tables"]["saccos"]["Update"] & { id: string });
+}): Promise<AdminActionResult & { sacco?: Database["public"]["Tables"]["saccos"]["Row"] }> {
+  const { profile } = await requireUserAndProfile();
+  if (profile.role !== "SYSTEM_ADMIN") {
+    return { status: "error", message: "Only system administrators can modify SACCO registry." };
+  }
+  const supabase = await createSupabaseServerClient();
+  if (mode === "create") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
+    .from("saccos")
+    .insert(sacco as Database["public"]["Tables"]["saccos"]["Insert"])
+    .select("*")
+    .single();
+    if (error) return { status: "error", message: error.message ?? "Failed to create SACCO" };
+    await revalidatePath("/admin");
+    return { status: "success", sacco: data };
+  }
+  // update path
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
+    .from("saccos")
+    .update(sacco as Database["public"]["Tables"]["saccos"]["Update"])
+    .eq("id", (sacco as unknown as { id: string }).id)
+    .select("*")
+    .single();
+  if (error) return { status: "error", message: error.message ?? "Failed to update SACCO" };
+  await revalidatePath("/admin");
+  return { status: "success", sacco: data };
+}
+
+export async function removeSacco({ id }: { id: string }): Promise<AdminActionResult> {
+  const { profile } = await requireUserAndProfile();
+  if (profile.role !== "SYSTEM_ADMIN") {
+    return { status: "error", message: "Only system administrators can delete SACCOs." };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from("saccos").delete().eq("id", id);
+  if (error) return { status: "error", message: error.message ?? "Failed to delete SACCO" };
+  await revalidatePath("/admin");
+  return { status: "success", message: "SACCO deleted" };
+}
