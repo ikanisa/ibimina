@@ -101,5 +101,14 @@ curl -X POST \
 - `npm run check:i18n` – ensure en/rw/fr have matching keys
 - `npm run check:i18n:consistency` – enforce canonical glossary terms across locales
 - `npm run fix:i18n` – backfill missing rw/fr keys from en (flat keys)
+- `npm run announce:slack` – send the latest release announcement to Slack (requires SLACK_WEBHOOK_URL)
+- `npm run announce:teams` – send the latest release announcement to Microsoft Teams (requires TEAMS_WEBHOOK_URL)
 
 Deployments continue through Lovable Cloud; push changes or publish from the Lovable dashboard when ready.
+
+### Release notifications
+
+- Set GitHub repository secrets `SLACK_WEBHOOK_URL` and/or `TEAMS_WEBHOOK_URL` to enable the `Notify Release` workflow to post on each published release.
+- You can also post manually:
+  - `SLACK_WEBHOOK_URL=... npm run announce:slack`
+  - `TEAMS_WEBHOOK_URL=... npm run announce:teams`
