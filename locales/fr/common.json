@@ -459,6 +459,8 @@
   "reports.export.hint": "Les exports utilisent par défaut les 30 derniers jours si aucune date n’est fournie.",
   "reports.export.startedCsv": "Export CSV démarré",
   "reports.export.localeLabel": "Langue d’export",
+  "reports.export.separatorLabel": "Séparateur CSV",
+  "reports.export.brandingHelp": "Le PDF inclut le logo/couleur du SACCO si disponible ; le CSV contient des valeurs brutes. La plage par défaut est de 30 jours.",
   "reports.export.startedPdf": "Export PDF démarré",
   "reports.filters.from": "De",
   "reports.filters.instructions": "Choisissez un SACCO ou laissez vide pour le périmètre global (administrateurs système uniquement). La plage par défaut est les 30 derniers jours.",

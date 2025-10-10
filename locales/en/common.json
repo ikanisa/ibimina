@@ -165,7 +165,9 @@
   "reports.export.startedPdf": "PDF export started",
   "reports.export.startedCsv": "CSV export started",
   "reports.filters.saccoPlaceholder": "Filter by SACCO",
-  "reports.export.localeLabel": "Export locale"
+  "reports.export.localeLabel": "Export locale",
+  "reports.export.separatorLabel": "CSV separator",
+  "reports.export.brandingHelp": "PDF includes SACCO logo/color when available; CSV uses raw values. Date range defaults to last 30 days."
   ,
   "restricted.title": "Restricted",
   "restricted.subtitle": "Administrator permissions are required to manage global settings.",

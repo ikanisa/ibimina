@@ -26,6 +26,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedLocale, setSelectedLocale] = useState(locale);
+  const [csvSep, setCsvSep] = useState(locale === "fr" ? ";" : ",");
 
   const saccoLabel = useMemo(() => {
     if (filters.sacco) {
@@ -74,6 +75,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           end: filters.to || undefined,
           format,
           locale: selectedLocale,
+          separator: csvSep,
         }),
       }).catch((fetchError: unknown) => {
         const msg = fetchError instanceof Error ? fetchError.message : t("common.networkError", "Network error");
@@ -132,6 +134,20 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
               <option value="fr">Français</option>
             </select>
           </label>
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <span className="text-neutral-2">{t("reports.export.separatorLabel", "CSV separator")}</span>
+            <select
+              className="rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-neutral-0"
+              value={csvSep}
+              onChange={(e) => setCsvSep(e.target.value as "," | ";")}
+            >
+              <option value=",">Comma (,)</option>
+              <option value=";">Semicolon (;)</option>
+            </select>
+          </div>
+          <p className="mt-2 text-[11px] text-neutral-3">
+            {t("reports.export.brandingHelp", "PDF includes SACCO logo/color when available; CSV uses raw values. Date range defaults to last 30 days.")}
+          </p>
         </div>
         <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 p-3 text-xs text-neutral-2">
           <span>{ikiminaCount} {t("reports.export.eligibleSuffix", "ikimina eligible for export.")}</span>

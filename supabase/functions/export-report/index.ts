@@ -13,6 +13,7 @@ interface ExportRequest {
   end?: string;
   format?: "csv" | "pdf";
   locale?: "en" | "rw" | "fr";
+  separator?: "," | ";";
 }
 
 const parseDate = (value: string | undefined, fallback: Date) => {
@@ -61,6 +62,8 @@ Deno.serve(async (req) => {
             value === "csv" || value === "pdf" ? value : undefined;
           const readLocale = (value: unknown): "en" | "rw" | "fr" | undefined =>
             value === "en" || value === "rw" || value === "fr" ? value : undefined;
+          const readSep = (value: unknown): "," | ";" | undefined =>
+            value === "," || value === ";" ? value : undefined;
 
           params = {
             saccoId: readString(body.saccoId) ?? params.saccoId ?? readString(body.sacco_id),
@@ -69,6 +72,7 @@ Deno.serve(async (req) => {
             end: readString(body.end) ?? readString(body.to) ?? params.end,
             format: readFormat(body.format) ?? params.format ?? "pdf",
             locale: readLocale(body.locale) ?? params.locale,
+            separator: readSep(body.separator) ?? params.separator,
           };
         }
       }
@@ -130,6 +134,7 @@ Deno.serve(async (req) => {
 
     const numberLocale = locale === "en" ? "en-RW" : locale === "fr" ? "fr-RW" : "rw-RW";
     const formatCurrency = (amount: number) => new Intl.NumberFormat(numberLocale, { style: "currency", currency: "RWF", minimumFractionDigits: 0 }).format(amount);
+    const sep = (params.separator ?? ",") as "," | ";";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -201,12 +206,14 @@ Deno.serve(async (req) => {
     const lastDays = dailyTotals.slice(-14);
 
     if (params.format === "csv") {
-      let csv = labels[locale].csvHeader + "\n";
+      let header = labels[locale].csvHeader;
+      if (sep !== ",") header = header.replace(/,/g, sep);
+      let csv = header + "\n";
       for (const row of sortedTotals) {
         const share = grandTotal > 0 ? Math.round((row.amount / grandTotal) * 100) : 0;
-        csv += `${csvEscape(row.name)},${csvEscape(row.code)},${row.count},${row.amount},${share}%\n`;
+        csv += [csvEscape(row.name), csvEscape(row.code), String(row.count), String(row.amount), `${share}%`].join(sep) + "\n";
       }
-      csv += `${labels[locale].csvTotal},,${totalCount},${grandTotal},100%\n`;
+      csv += [labels[locale].csvTotal, "", String(totalCount), String(grandTotal), "100%"].join(sep) + "\n";
 
       return new Response(csv, {
         headers: {
@@ -291,14 +298,22 @@ Deno.serve(async (req) => {
       const barWidth = Math.max(6, Math.floor((chartWidth - (barGap * (lastDays.length - 1))) / lastDays.length));
       // Label
       page.drawText(labels[locale].dailyTotals, { x: chartX, y: cursorY, size: 10, font, color: rgb(0.35, 0.45, 0.5) });
-      const baseY = cursorY - 6;
+      const baseY = cursorY - 10;
+      // Adjust sparkline bar color for contrast if brand is too dark
+      const luminance = (c: { r: number; g: number; b: number }) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+      let barColor = titleColor;
+      const t = { r: (titleColor as any).r ?? 0, g: (titleColor as any).g ?? 0, b: (titleColor as any).b ?? 0 };
+      if (luminance(t) < 0.5) {
+        const mix = (v: number) => Math.min(1, v * 0.5 + 0.5);
+        barColor = rgb(mix(t.r), mix(t.g), mix(t.b));
+      }
       let x = chartX;
       for (const d of lastDays) {
         const h = Math.max(2, Math.round((d.amount / maxVal) * chartHeight));
-        page.drawRectangle({ x, y: baseY - h, width: barWidth, height: h, color: titleColor });
+        page.drawRectangle({ x, y: baseY - h, width: barWidth, height: h, color: barColor });
         x += barWidth + barGap;
       }
-      cursorY = baseY - chartHeight - 16;
+      cursorY = baseY - chartHeight - 12;
     }
 
     // Table header and layout helpers
