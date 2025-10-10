@@ -14,9 +14,6 @@
     "check:lighthouse": "npx --yes lighthouse http://localhost:3000 --view",
     "analyze:pwa": "lighthouse https://localhost:3000 --only-categories=pwa --preset=desktop || true",
     "verify:pwa": "node scripts/verify-pwa.mjs"
-    ,
-    "announce:slack": "node scripts/notify-slack.mjs --file docs/announcements/release-0.1.2-slack.md",
-    "announce:teams": "node scripts/notify-teams.mjs --file docs/announcements/release-0.1.2-email.md"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
