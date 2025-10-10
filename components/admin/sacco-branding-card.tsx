@@ -10,7 +10,7 @@ import { useTranslation } from "@/providers/i18n-provider";
 interface SaccoBrandingCardProps {
   sacco: Pick<
     Database["public"]["Tables"]["saccos"]["Row"],
-    "id" | "name" | "district" | "province" | "status" | "email" | "logo_url" | "category"
+    "id" | "name" | "district" | "province" | "status" | "email" | "logo_url" | "category" | "brand_color"
   >;
 }
 
@@ -19,6 +19,7 @@ const supabase = getSupabaseBrowserClient();
 export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
   const [pending, startTransition] = useTransition();
   const [logoUrl, setLogoUrl] = useState<string | null>(sacco.logo_url ?? null);
+  const [brandColor, setBrandColor] = useState<string>(sacco.brand_color ?? "#009fdc");
   const { success, error } = useToast();
   const { t } = useTranslation();
 
@@ -60,6 +61,29 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
   const handleRemoveLogo = () => {
     startTransition(async () => {
       await updateLogo(null);
+    });
+  };
+
+  const saveBrandColor = () => {
+    const value = brandColor.trim();
+    const valid = /^#?[0-9a-fA-F]{6}$/.test(value);
+    if (!valid) {
+      error(t("admin.branding.colorInvalid", "Enter a valid hex color (e.g., #00AACC)"));
+      return;
+    }
+    const hex = value.startsWith("#") ? value : `#${value}`;
+    startTransition(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (supabase as any)
+        .from("saccos")
+        .update({ brand_color: hex })
+        .eq("id", sacco.id);
+      if (updateError) {
+        error(updateError.message ?? t("common.operationFailed", "Operation failed"));
+        return;
+      }
+      success(t("admin.branding.colorUpdated", "Brand color updated"));
+      setBrandColor(hex);
     });
   };
 
@@ -106,6 +130,33 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
               }}
             />
           </label>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+        <label className="flex items-center gap-3 text-sm text-neutral-0">
+          <span
+            className="inline-block h-6 w-6 rounded"
+            style={{ backgroundColor: brandColor || "#009fdc", border: "1px solid rgba(255,255,255,0.2)" }}
+            aria-hidden
+          />
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.branding.brandColor", "Brand color")}</span>
+        </label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={brandColor}
+            onChange={(e) => setBrandColor(e.target.value)}
+            placeholder="#00AACC"
+            className="w-28 rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
+          />
+          <button
+            type="button"
+            onClick={saveBrandColor}
+            disabled={pending}
+            className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-0 disabled:opacity-60"
+          >
+            {t("common.save", "Save")}
+          </button>
         </div>
       </div>
       {logoUrl && (
