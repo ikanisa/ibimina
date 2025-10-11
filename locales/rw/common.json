@@ -464,6 +464,7 @@
   "reports.export.localeLabel": "Ururimi rwa raporo",
   "reports.export.separatorLabel": "Icyandurwaho cya CSV",
   "reports.export.brandingHelp": "PDF irimo logo/ibara bya SACCO niba bihari; CSV ikoreshwa uko imibare iteye. Igihe gishyirwa mburabuzi ku minsi 30 ishize.",
+  "reports.export.sampleCsv": "Kuramo CSV y'icyitegererezo",
   "reports.export.startedPdf": "Kohereza PDF byatangiye",
   "reports.filters.from": "Itangira",
   "reports.filters.instructions": "Hitamo SACCO cyangwa ureke ubusa kugira ngo ukoreshe urwego rwose (abashinzwe sisitemu gusa). Igihe gihita gishyirwaho iminsi 30 ishize.",

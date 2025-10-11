@@ -13,6 +13,7 @@ interface ExportRequest {
   end?: string;
   format?: "csv" | "pdf";
   locale?: "en" | "rw" | "fr";
+  limit?: number;
   separator?: "," | ";";
 }
 
@@ -64,6 +65,11 @@ Deno.serve(async (req) => {
             value === "en" || value === "rw" || value === "fr" ? value : undefined;
           const readSep = (value: unknown): "," | ";" | undefined =>
             value === "," || value === ";" ? value : undefined;
+          const readInt = (value: unknown): number | undefined => {
+            if (typeof value === "number" && Number.isFinite(value)) return Math.floor(value);
+            if (typeof value === "string" && /^\d+$/.test(value)) return parseInt(value, 10);
+            return undefined;
+          };
 
           params = {
             saccoId: readString(body.saccoId) ?? params.saccoId ?? readString(body.sacco_id),
@@ -73,6 +79,7 @@ Deno.serve(async (req) => {
             format: readFormat(body.format) ?? params.format ?? "pdf",
             locale: readLocale(body.locale) ?? params.locale,
             separator: readSep(body.separator) ?? params.separator,
+            limit: readInt(body.limit) ?? params.limit,
           };
         }
       }
@@ -192,6 +199,8 @@ Deno.serve(async (req) => {
     }
 
     const sortedTotals = Array.from(totalsByIkimina.values()).sort((a, b) => b.amount - a.amount);
+    const csvLimit = Math.max(1, Math.min(typeof params.limit === "number" ? Math.floor(params.limit) : Number.POSITIVE_INFINITY, 100));
+    const limitedForCsv = Number.isFinite(csvLimit) ? sortedTotals.slice(0, csvLimit) : sortedTotals;
 
     // Build daily totals sparkline data (last 14 days within the requested period)
     const dailyMap = new Map<string, number>();
@@ -209,7 +218,7 @@ Deno.serve(async (req) => {
       let header = labels[locale].csvHeader;
       if (sep !== ",") header = header.replace(/,/g, sep);
       let csv = header + "\n";
-      for (const row of sortedTotals) {
+      for (const row of limitedForCsv) {
         const share = grandTotal > 0 ? Math.round((row.amount / grandTotal) * 100) : 0;
         csv += [csvEscape(row.name), csvEscape(row.code), String(row.count), String(row.amount), `${share}%`].join(sep) + "\n";
       }
@@ -219,7 +228,7 @@ Deno.serve(async (req) => {
         headers: {
           ...corsHeaders,
           "Content-Type": "text/csv",
-          "Content-Disposition": `attachment; filename="ibimina-report-${toDateOnly(start)}-to-${toDateOnly(end)}.csv"`,
+          "Content-Disposition": `attachment; filename="ibimina-report-${toDateOnly(start)}-to-${toDateOnly(end)}${limitedForCsv.length < sortedTotals.length ? "-sample" : ""}.csv"`,
         },
       });
     }

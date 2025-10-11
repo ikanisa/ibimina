@@ -148,7 +148,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           )}
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-neutral-0">
-          <label className="flex items-center justify-between gap-3">
+          <label className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-neutral-2">{t("reports.export.localeLabel", "Export locale")}</span>
             <select
               className="rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-neutral-0"
@@ -160,7 +160,7 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
               <option value="fr">Français</option>
             </select>
           </label>
-          <div className="mt-2 flex items-center justify-between gap-3">
+          <div className="mt-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-neutral-2">{t("reports.export.separatorLabel", "CSV separator")}</span>
             <select
               className="rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-neutral-0"
@@ -202,6 +202,47 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
             className="interactive-scale rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 disabled:opacity-60"
           >
             {pending ? t("common.exporting", "Exporting…") : t("common.downloadCsv", "Download CSV")}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              // Quick sample CSV (5 rows)
+              startTransition(async () => {
+                const { data: sessionData } = await supabase.auth.getSession();
+                const token = sessionData.session?.access_token;
+                const response = await fetch("/functions/v1/export-report", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Accept: "text/csv",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                  },
+                  body: JSON.stringify({
+                    saccoId: filters.sacco?.id ?? undefined,
+                    start: filters.from || undefined,
+                    end: filters.to || undefined,
+                    format: "csv",
+                    locale: selectedLocale,
+                    separator: csvSep,
+                    limit: 5,
+                  }),
+                }).catch(() => null);
+                if (!response || !response.ok) return;
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = "ibimina-report-sample.csv";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+              });
+            }}
+            disabled={pending || !dateValidation.valid}
+            className="interactive-scale rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 disabled:opacity-60"
+          >
+            {t("reports.export.sampleCsv", "Download sample CSV")}
           </button>
         </div>
       </div>
