@@ -12,7 +12,16 @@ const requireEnv = (key: string) => {
   return value;
 };
 
-const dataKey = () => Buffer.from(requireEnv("KMS_DATA_KEY"), "base64");
+// Accept either KMS_DATA_KEY (preferred) or KMS_DATA_KEY_BASE64 (legacy)
+const resolveDataKeyB64 = () => process.env.KMS_DATA_KEY ?? process.env.KMS_DATA_KEY_BASE64 ?? "";
+
+const dataKey = () => {
+  const keyB64 = resolveDataKeyB64();
+  if (!keyB64) throw new Error("KMS_DATA_KEY (or KMS_DATA_KEY_BASE64) is not configured");
+  const buf = Buffer.from(keyB64, "base64");
+  if (buf.length !== 32) throw new Error("KMS_DATA_KEY must be a 32-byte base64 value");
+  return buf;
+};
 const backupPepper = () => requireEnv("BACKUP_PEPPER");
 
 const padLeft = (value: number, size: number) => value.toString().padStart(size, "0");
