@@ -6,13 +6,12 @@ ARG OPENAI_RESPONSES_MODEL
 
 FROM node:20-bookworm-slim AS deps
 WORKDIR /app
-ENV NODE_ENV=development
 COPY package.json package-lock.json* ./
 RUN npm ci
 
 FROM node:20-bookworm-slim AS builder
 WORKDIR /app
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ARG SUPABASE_SERVICE_ROLE_KEY
