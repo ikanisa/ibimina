@@ -42,17 +42,5 @@
       ]
     }
   ],
-  "protection": {
-    "publicRoutes": [
-      "/manifest.json",
-      "/service-worker.js",
-      "/favicon.ico",
-      "/robots.txt",
-      "/icons/(.*)",
-      "/_next/(.*)",
-      "/workbox-(.*)",
-      "/app-build-manifest.json"
-    ]
-  },
   "regions": ["fra1"]
 }
