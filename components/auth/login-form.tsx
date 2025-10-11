@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/providers/i18n-provider";
 // i18n migrated: prefer t() over BilingualText
@@ -26,6 +26,8 @@ export function LoginForm() {
   const { t } = useTranslation();
   const supabase = getSupabaseBrowserClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const mfaMode = searchParams.get("mfa");
 
   const [step, setStep] = useState<AuthStep>("credentials");
   const [email, setEmail] = useState("");
@@ -78,6 +80,42 @@ export function LoginForm() {
     setMfaMethod("totp");
     setRememberDevice(false);
   }, []);
+
+  useEffect(() => {
+    if (mfaMode !== "1") {
+      return;
+    }
+
+    let cancelled = false;
+
+    const bootstrapMfaChallenge = async () => {
+      try {
+        const response = await fetch("/api/mfa/status", { cache: "no-store" });
+        const contentType = response.headers.get("content-type") ?? "";
+        if (!response.ok || !contentType.includes("application/json")) {
+          return;
+        }
+
+        const status = (await response.json()) as MfaStatusResponse;
+        if (!cancelled && status.mfaEnabled && status.mfaRequired) {
+          setStep("challenge");
+          setMessage(t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app."));
+          setError(null);
+          setMfaToken("");
+          setMfaMethod("totp");
+          setRememberDevice(false);
+        }
+      } catch (mfaError) {
+        console.warn("Failed to bootstrap MFA challenge", mfaError);
+      }
+    };
+
+    bootstrapMfaChallenge();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mfaMode, t]);
 
   const handleCredentialsSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {

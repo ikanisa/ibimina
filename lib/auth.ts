@@ -1,7 +1,9 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { MFA_SESSION_COOKIE, sessionTtlSeconds, verifyMfaSessionToken } from "@/lib/mfa/session";
 
 export type ProfileRow = Database["public"]["Tables"]["users"]["Row"] & {
   saccos?: Pick<Database["public"]["Tables"]["saccos"]["Row"], "id" | "name" | "district" | "province" | "sector_code" | "category"> | null;
@@ -52,11 +54,23 @@ export async function requireUserAndProfile(): Promise<AuthContext> {
 }
 
 export async function redirectIfAuthenticated(destination = "/dashboard") {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user) {
-    redirect(destination);
+  const context = await getUserAndProfile();
+  if (!context) {
+    return;
   }
+
+  if (context.profile.mfa_enabled) {
+    const cookieJar = await cookies();
+    const sessionToken = cookieJar.get(MFA_SESSION_COOKIE)?.value ?? null;
+    const sessionPayload = sessionToken ? verifyMfaSessionToken(sessionToken) : null;
+    const lastSuccessRaw = context.profile.last_mfa_success_at ? Date.parse(context.profile.last_mfa_success_at) : Number.NaN;
+    const lastSuccessValid = Number.isFinite(lastSuccessRaw);
+    const profileSessionValid = lastSuccessValid && Date.now() - lastSuccessRaw <= sessionTtlSeconds() * 1000;
+
+    if ((!sessionPayload || sessionPayload.userId !== context.user.id) && !profileSessionValid) {
+      return;
+    }
+  }
+
+  redirect(destination);
 }

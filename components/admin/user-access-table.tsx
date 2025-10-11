@@ -78,7 +78,7 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
           return;
         }
         success(t("admin.users.resetSuccess", "2FA reset. Ask user to re-enroll at next sign-in."));
-      } catch (e) {
+      } catch {
         error(t("admin.users.resetFailed", "Failed to reset 2FA"));
       }
     });

@@ -46,8 +46,8 @@ const hotpAt = (secret: string, counter: number) => {
 export const currentStep = (now = Date.now()) => Math.floor(now / 1000 / PERIOD_SECONDS);
 
 export const verifyTotp = (secret: string, token: string, window = 1) => {
-  const sanitized = token.trim();
-  if (!/^[0-9]{6}$/u.test(sanitized)) {
+  const sanitized = token.replace(/[^0-9]/g, "");
+  if (sanitized.length !== DIGITS) {
     return { ok: false as const };
   }
 

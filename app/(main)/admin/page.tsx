@@ -17,6 +17,14 @@ import { resetMfaForAllEnabled } from "@/app/(main)/admin/actions";
 // import { BilingualText } from "@/components/common/bilingual-text";
 import type { Database } from "@/lib/supabase/types";
 import { Trans } from "@/components/common/trans";
+import type { PostgrestError } from "@supabase/supabase-js";
+
+function isMissingRelationError(error: PostgrestError | null | undefined) {
+  if (!error) return false;
+  if (error.code === "42P01") return true;
+  const fingerprint = [error.message, error.details, error.hint].filter(Boolean).join(" ");
+  return /(?:relation|table).+does not exist/i.test(fingerprint);
+}
 
 export default async function AdminPage() {
   const { profile } = await requireUserAndProfile();
@@ -46,25 +54,51 @@ export default async function AdminPage() {
     .order("created_at", { ascending: false })
     .limit(25);
 
-  const { data: notificationQueue } = await supabase
+  const { data: notificationQueue, error: notificationQueueError } = await supabase
     .from("notification_queue")
     .select("id, event, sacco_id, template_id, status, scheduled_for, created_at")
     .order("created_at", { ascending: false })
     .limit(20);
+
+  let notificationRowsRaw: unknown[] = notificationQueue ?? [];
+  if (notificationQueueError) {
+    if (isMissingRelationError(notificationQueueError)) {
+      console.warn("notification_queue table missing; returning empty results for admin queue view.");
+      notificationRowsRaw = [];
+    } else {
+      throw notificationQueueError;
+    }
+  }
 
   const { data: telemetryRows, error: telemetryError } = await supabase
     .from("system_metrics")
     .select("event, total, last_occurred, meta")
     .order("last_occurred", { ascending: false })
     .limit(20);
-  if (telemetryError) throw telemetryError;
+  let telemetryRowsRaw = telemetryRows ?? [];
+  if (telemetryError) {
+    if (isMissingRelationError(telemetryError)) {
+      console.warn("system_metrics table missing; returning empty telemetry metrics.");
+      telemetryRowsRaw = [];
+    } else {
+      throw telemetryError;
+    }
+  }
 
   const { data: auditRows, error: auditError } = await supabase
     .from("audit_logs")
     .select("id, action, entity, entity_id, diff_json, created_at, actor_id")
     .order("created_at", { ascending: false })
     .limit(30);
-  if (auditError) throw auditError;
+  let auditRowsRaw = auditRows ?? [];
+  if (auditError) {
+    if (isMissingRelationError(auditError)) {
+      console.warn("audit_logs table missing; returning empty audit trail.");
+      auditRowsRaw = [];
+    } else {
+      throw auditError;
+    }
+  }
 
   type UserRow = {
     id: string;
@@ -105,7 +139,7 @@ export default async function AdminPage() {
   };
 
   const saccoList = (saccos ?? []) as SaccoRow[];
-  const notificationRows = (notificationQueue ?? []) as NotificationRow[];
+  const notificationRows = notificationRowsRaw as NotificationRow[];
 
   const normalizedUsers = ((users ?? []) as UserRow[]).map((user) => ({
     id: user.id,
@@ -123,10 +157,17 @@ export default async function AdminPage() {
   if (notificationRows.length > 0) {
     const templateIds = Array.from(new Set(notificationRows.map((row) => row.template_id).filter((value): value is string => Boolean(value))));
     if (templateIds.length > 0) {
-      const { data: templateMeta } = await supabase
+      const { data: templateMeta, error: templateMetaError } = await supabase
         .from("sms_templates")
         .select("id, name")
         .in("id", templateIds);
+      if (templateMetaError) {
+        if (isMissingRelationError(templateMetaError)) {
+          console.warn("sms_templates table missing; template lookup fallback will use template ids.");
+        } else {
+          throw templateMetaError;
+        }
+      }
       (templateMeta ?? []).forEach((template) => {
         const typed = template as { id: string; name: string | null };
         templateLookup.set(typed.id, typed.name ?? typed.id);
@@ -134,14 +175,14 @@ export default async function AdminPage() {
     }
   }
 
-  const telemetryMetrics = ((telemetryRows ?? []) as TelemetryRow[]).map((metric) => ({
+  const telemetryMetrics = (telemetryRowsRaw as TelemetryRow[]).map((metric) => ({
     event: metric.event,
     total: Number(metric.total ?? 0),
     last_occurred: metric.last_occurred,
     meta: metric.meta ?? null,
   }));
 
-  const auditRaw = (auditRows ?? []) as AuditRow[];
+  const auditRaw = auditRowsRaw as AuditRow[];
   const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
   const actorLookup = new Map<string, string>();
   normalizedUsers.forEach((user) => {
@@ -158,10 +199,17 @@ export default async function AdminPage() {
 
   const missingActorIds = actorIds.filter((id) => !actorLookup.has(id));
   if (missingActorIds.length > 0) {
-    const { data: extraActors } = await supabase
+    const { data: extraActors, error: extraActorsError } = await supabase
       .from("users")
       .select("id, email")
       .in("id", missingActorIds);
+    if (extraActorsError) {
+      if (isMissingRelationError(extraActorsError)) {
+        console.warn("users table missing during actor lookup; audit trail will show raw ids.");
+      } else {
+        throw extraActorsError;
+      }
+    }
     (extraActors ?? []).forEach((actor) => {
       const typed = actor as { id: string; email: string | null };
       actorLookup.set(typed.id, typed.email ?? typed.id);

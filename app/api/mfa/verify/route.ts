@@ -121,15 +121,17 @@ export async function POST(request: Request) {
   const response = NextResponse.json({ success: true, method });
   const sessionToken = createMfaSessionToken(user.id, sessionTtlSeconds());
 
-  response.cookies.set({
-    name: MFA_SESSION_COOKIE,
-    value: sessionToken,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: sessionTtlSeconds(),
-  });
+  if (sessionToken) {
+    response.cookies.set({
+      name: MFA_SESSION_COOKIE,
+      value: sessionToken,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      path: "/",
+      maxAge: sessionTtlSeconds(),
+    });
+  }
 
   if (body.rememberDevice) {
     const deviceId = crypto.randomUUID();
@@ -148,15 +150,17 @@ export async function POST(request: Request) {
       }, { onConflict: "user_id,device_id" });
 
     const trustedToken = createTrustedDeviceToken(user.id, deviceId, trustedTtlSeconds());
-    response.cookies.set({
-      name: TRUSTED_DEVICE_COOKIE,
-      value: trustedToken,
-      httpOnly: true,
-      sameSite: "lax",
-      secure: true,
-      path: "/",
-      maxAge: trustedTtlSeconds(),
-    });
+    if (trustedToken) {
+      response.cookies.set({
+        name: TRUSTED_DEVICE_COOKIE,
+        value: trustedToken,
+        httpOnly: true,
+        sameSite: "lax",
+        secure: true,
+        path: "/",
+        maxAge: trustedTtlSeconds(),
+      });
+    }
   }
 
   await logAudit({

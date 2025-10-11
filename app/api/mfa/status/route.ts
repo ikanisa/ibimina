@@ -29,10 +29,14 @@ export async function GET() {
     });
   }
 
+  const lastSuccessAt = profile.last_mfa_success_at ? Date.parse(profile.last_mfa_success_at) : null;
+  const sessionWindowMs = sessionTtlSeconds() * 1000;
   const sessionToken = await readCookieToken(MFA_SESSION_COOKIE);
   const sessionPayload = sessionToken ? verifyMfaSessionToken(sessionToken) : null;
+  const sessionCookieValid = sessionPayload?.userId === user.id;
+  const profileSessionValid = lastSuccessAt !== null && Date.now() - lastSuccessAt <= sessionWindowMs;
 
-  if (sessionPayload && sessionPayload.userId === user.id) {
+  if (sessionCookieValid || profileSessionValid) {
     return NextResponse.json({
       mfaEnabled: true,
       mfaRequired: false,
@@ -114,25 +118,29 @@ export async function GET() {
     methods: profile.mfa_methods ?? ["TOTP"],
   });
 
-  successResponse.cookies.set({
-    name: MFA_SESSION_COOKIE,
-    value: renewedSession,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: sessionTtlSeconds(),
-  });
+  if (renewedSession) {
+    successResponse.cookies.set({
+      name: MFA_SESSION_COOKIE,
+      value: renewedSession,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      path: "/",
+      maxAge: sessionTtlSeconds(),
+    });
+  }
 
-  successResponse.cookies.set({
-    name: TRUSTED_DEVICE_COOKIE,
-    value: refreshedTrusted,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: trustedTtlSeconds(),
-  });
+  if (refreshedTrusted) {
+    successResponse.cookies.set({
+      name: TRUSTED_DEVICE_COOKIE,
+      value: refreshedTrusted,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      path: "/",
+      maxAge: trustedTtlSeconds(),
+    });
+  }
 
   return successResponse;
 }
