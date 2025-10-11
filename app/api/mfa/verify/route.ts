@@ -89,9 +89,14 @@ export async function POST(request: Request) {
         }
       }
     } catch (e) {
-      // Decryption can fail if KMS_DATA_KEY changed since enrollment
-      console.error("MFA verify: decrypt failed", (e as Error)?.message ?? e);
-      return NextResponse.json({ error: "configuration_error" }, { status: 500 });
+      const msg = (e as Error)?.message ?? String(e);
+      // Be explicit to aid ops: missing key vs decryption failure
+      if (msg.includes("not configured") || msg.includes("32-byte base64")) {
+        console.error("MFA verify: server key missing or invalid", msg);
+        return NextResponse.json({ error: "server_key_missing" }, { status: 500 });
+      }
+      console.error("MFA verify: decrypt failed", msg);
+      return NextResponse.json({ error: "decryption_failed" }, { status: 500 });
     }
   }
 
