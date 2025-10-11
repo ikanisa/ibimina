@@ -72,6 +72,33 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [data, setData] = useState<ReportPreviewData | null>(null);
+  const [brandColor, setBrandColor] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function loadBrand() {
+      if (!filters.sacco?.id) {
+        setBrandColor(null);
+        return;
+      }
+      const { data: row, error } = await supabase
+        .from("saccos")
+        .select("brand_color")
+        .eq("id", filters.sacco.id)
+        .single();
+      if (!active) return;
+      if (error) {
+        setBrandColor(null);
+        return;
+      }
+      const hex = (row as { brand_color?: string | null })?.brand_color ?? null;
+      setBrandColor(hex && /^#?[0-9a-fA-F]{6}$/.test(hex) ? (hex.startsWith('#') ? hex : `#${hex}`) : null);
+    }
+    void loadBrand();
+    return () => {
+      active = false;
+    };
+  }, [filters.sacco?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -283,8 +310,8 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
               return (
                 <div key={entry.date} className="flex flex-col items-center gap-2 text-[10px] text-neutral-3">
                   <div
-                    className="w-5 rounded-t-full bg-kigali"
-                    style={{ height: `${barHeight}%` }}
+                    className="w-5 rounded-t-full"
+                    style={{ height: `${barHeight}%`, backgroundColor: brandColor ?? "#0ea5e9" }}
                     aria-label={`${entry.date}: ${formatCurrency(entry.amount, data.currency)}`}
                   />
                   <span>{new Date(entry.date).toLocaleDateString("en-RW", { month: "short", day: "numeric" })}</span>

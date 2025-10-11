@@ -267,24 +267,51 @@ Deno.serve(async (req) => {
 
     const headerTitle = labels[locale].header(saccoName);
     let cursorY = height - 72;
+    // Helper to render header title with optional wrapping if too long
+    const drawHeaderTitle = async (xStart: number) => {
+      const maxWidth = 472 - (xStart - 48);
+      const width = bold.widthOfTextAtSize(headerTitle, 20);
+      if (width <= maxWidth) {
+        page.drawText(headerTitle, { x: xStart, y: height - 72, size: 20, font: bold, color: titleColor });
+        return;
+      }
+      // Attempt to split at em dash into two lines
+      const parts = headerTitle.split(' — ');
+      if (parts.length === 2) {
+        const [left, right] = parts;
+        const line1 = bold.widthOfTextAtSize(left, 20) <= maxWidth ? left : left.slice(0, Math.max(1, Math.floor(left.length * (maxWidth / bold.widthOfTextAtSize(left, 20))))) + '…';
+        const line2 = bold.widthOfTextAtSize(`— ${right}`, 16) <= maxWidth ? `— ${right}` : '— ' + right.slice(0, Math.max(1, Math.floor(right.length * (maxWidth / bold.widthOfTextAtSize(right, 16))))) + '…';
+        page.drawText(line1, { x: xStart, y: height - 68, size: 20, font: bold, color: titleColor });
+        page.drawText(line2, { x: xStart, y: height - 88, size: 16, font: bold, color: titleColor });
+        cursorY = height - 106;
+        return;
+      }
+      // Fallback truncate headerTitle
+      const factor = maxWidth / width;
+      const cut = Math.max(1, Math.floor(headerTitle.length * factor) - 1);
+      page.drawText(headerTitle.slice(0, cut) + '…', { x: xStart, y: height - 72, size: 20, font: bold, color: titleColor });
+    };
+
     if (logoBytes) {
       try {
         const isPng = logoBytes[0] === 0x89 && logoBytes[1] === 0x50; // crude check
         const img = isPng ? await pdf.embedPng(logoBytes) : await pdf.embedJpg(logoBytes);
         const scaled = img.scale(60 / img.height);
         page.drawImage(img, { x: 48, y: height - 72 - scaled.height + 8, width: scaled.width, height: scaled.height });
-        page.drawText(headerTitle, { x: 48 + scaled.width + 12, y: height - 72, size: 20, font: bold, color: titleColor });
+        await drawHeaderTitle(48 + scaled.width + 12);
       } catch {
-        page.drawText(headerTitle, { x: 48, y: height - 72, size: 20, font: bold, color: titleColor });
+        await drawHeaderTitle(48);
       }
     } else {
-      page.drawText(headerTitle, { x: 48, y: height - 72, size: 20, font: bold, color: titleColor });
+      await drawHeaderTitle(48);
     }
-    page.drawText(labels[locale].summary, { x: 48, y: height - 96, size: 12, font });
-    page.drawText(`${labels[locale].period}: ${toDateOnly(start)} → ${toDateOnly(end)}`, { x: 48, y: height - 114, size: 10, font });
-    page.drawText(`${labels[locale].totalPosted}: ${formatCurrency(grandTotal)}`, { x: 48, y: height - 132, size: 10, font });
+    // If wrapped, cursorY might be reduced
+    const summaryY = Math.min(cursorY - 16, height - 96);
+    page.drawText(labels[locale].summary, { x: 48, y: summaryY, size: 12, font });
+    page.drawText(`${labels[locale].period}: ${toDateOnly(start)} → ${toDateOnly(end)}`, { x: 48, y: summaryY - 18, size: 10, font });
+    page.drawText(`${labels[locale].totalPosted}: ${formatCurrency(grandTotal)}`, { x: 48, y: summaryY - 36, size: 10, font });
 
-    cursorY = height - 168;
+    cursorY = Math.min(summaryY - 40, height - 168);
     const rowHeight = 18;
 
     // Small sparkline chart (daily totals) above the table
