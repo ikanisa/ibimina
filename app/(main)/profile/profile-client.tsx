@@ -157,8 +157,14 @@ export function ProfileClient({ email }: ProfileClientProps) {
       });
 
       if (!response.ok) {
-        const { error: code } = await response.json();
-        error(code === "invalid_codes" ? "Authenticator codes were not accepted." : "Unable to confirm enrollment");
+        const { error: code } = await response.json().catch(() => ({ error: "unknown" }));
+        if (code === "invalid_codes") {
+          error("Authenticator codes were not accepted.");
+        } else if (code === "configuration_error") {
+          error("Authenticator configuration error. Contact support.");
+        } else {
+          error("Unable to confirm enrollment");
+        }
         return;
       }
 
@@ -185,7 +191,13 @@ export function ProfileClient({ email }: ProfileClientProps) {
 
       if (!response.ok) {
         const { error: code } = await response.json().catch(() => ({ error: "unknown" }));
-        error(code === "invalid_code" ? "Code was not accepted" : "Unable to disable two-factor");
+        if (code === "invalid_code") {
+          error("Code was not accepted");
+        } else if (code === "configuration_error") {
+          error("Authenticator configuration error. Contact support.");
+        } else {
+          error("Unable to disable two-factor");
+        }
         return;
       }
 

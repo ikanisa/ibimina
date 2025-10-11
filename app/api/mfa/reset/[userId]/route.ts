@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/lib/audit";
 
 type Params = {
@@ -18,7 +18,7 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json({ error: "user_required" }, { status: 400 });
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   const reason = (await request.json().catch(() => ({} as { reason?: string }))).reason ?? "manual_reset";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,7 +40,11 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 
-  await supabase.from("trusted_devices").delete().eq("user_id", userId);
+  const trustedResult = await supabase.from("trusted_devices").delete().eq("user_id", userId);
+  if (trustedResult.error) {
+    console.error("MFA reset: failed to delete trusted devices", trustedResult.error);
+    return NextResponse.json({ error: "update_failed" }, { status: 500 });
+  }
 
   await logAudit({
     action: "MFA_RESET",

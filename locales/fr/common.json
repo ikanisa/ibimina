@@ -194,6 +194,7 @@
   "auth.errors.invalidCodes": "Codes invalides",
   "auth.errors.noSession": "Aucune session",
   "auth.errors.rateLimit": "Trop de tentatives ; réessayez plus tard",
+  "auth.errors.config": "Problème de configuration de l’authentificateur. Contactez le support.",
   "auth.errors.signIn": "Échec de la connexion",
   "auth.errors.startEnroll": "Échec du démarrage de l’inscription",
   "auth.errors.status": "Statut de connexion inconnu",

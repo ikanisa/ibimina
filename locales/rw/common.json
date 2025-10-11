@@ -193,6 +193,7 @@
   "auth.errors.invalidCodes": "Amakode si yo",
   "auth.errors.noSession": "Nta session ibonetse",
   "auth.errors.rateLimit": "Wagerageje kenshi; ongera ugerageze nyuma",
+  "auth.errors.config": "Hari ikibazo cya configuration ya authenticator. Mwiyambaze itsinda ribafasha.",
   "auth.errors.signIn": "Kwinjira byanze",
   "auth.errors.startEnroll": "Gutangiza kwiyandikisha byanze",
   "auth.errors.status": "Imiterere y’ukwinjira itazwi",

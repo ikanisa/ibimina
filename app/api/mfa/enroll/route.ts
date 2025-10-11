@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createOtpAuthUri, encodePendingEnrollment, generateTotpSecret, previewSecret, decryptSensitiveString, verifyTotp, consumeBackupCode } from "@/lib/mfa";
+import {
+  createOtpAuthUri,
+  encodePendingEnrollment,
+  generateTotpSecret,
+  previewSecret,
+  decryptSensitiveString,
+  verifyTotp,
+  consumeBackupCode,
+} from "@/lib/mfa";
 import { logAudit } from "@/lib/audit";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
 
 export async function POST() {
@@ -29,7 +37,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "not_enabled" }, { status: 400 });
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   const { token, method } = await request.json().catch(() => ({ token: undefined, method: "totp" }));
 
   if (!token) {
@@ -66,7 +74,7 @@ export async function DELETE(request: Request) {
     } catch (e) {
       // If decryption fails (mismatched KMS_DATA_KEY), return invalid_code instead of 500
       console.error("MFA disable: decrypt failed", (e as Error)?.message ?? e);
-      verified = false;
+      return NextResponse.json({ error: "configuration_error" }, { status: 500 });
     }
   }
 
@@ -94,7 +102,11 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 
-  await supabase.from("trusted_devices").delete().eq("user_id", user.id);
+  const trustedResult = await supabase.from("trusted_devices").delete().eq("user_id", user.id);
+  if (trustedResult.error) {
+    console.error("MFA disable: failed to delete trusted devices", trustedResult.error);
+    return NextResponse.json({ error: "update_failed" }, { status: 500 });
+  }
 
   await logAudit({ action: "MFA_DISABLED", entity: "USER", entityId: user.id, diff: null });
 

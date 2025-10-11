@@ -11,7 +11,7 @@ import {
   trustedTtlSeconds,
 } from "@/lib/mfa/session";
 import { consumeBackupCode, decryptSensitiveString, verifyTotp } from "@/lib/mfa";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { deriveIpPrefix, hashDeviceFingerprint, hashUserAgent } from "@/lib/mfa/trusted-device";
 import { logAudit } from "@/lib/audit";
 import { enforceRateLimit } from "@/lib/rate-limit";
@@ -44,14 +44,17 @@ export async function POST(request: Request) {
     console.warn("Rate limit check failed", (rateError as Error)?.message ?? rateError);
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   const { data: rawRecord, error } = await supabase
     .from("users")
-    .select("mfa_secret_enc, mfa_backup_hashes, last_mfa_step")
+    .select("mfa_secret_enc, mfa_backup_hashes, last_mfa_step, last_mfa_success_at")
     .eq("id", user.id)
     .maybeSingle();
 
-  const record = rawRecord as Pick<Database["public"]["Tables"]["users"]["Row"], "mfa_secret_enc" | "mfa_backup_hashes" | "last_mfa_step"> | null;
+  const record = rawRecord as Pick<
+    Database["public"]["Tables"]["users"]["Row"],
+    "mfa_secret_enc" | "mfa_backup_hashes" | "last_mfa_step" | "last_mfa_success_at"
+  > | null;
 
   if (error || !record?.mfa_secret_enc) {
     console.error(error);
@@ -62,6 +65,7 @@ export async function POST(request: Request) {
   const token = body.token.trim();
   let success = false;
   let currentStep: number | null = null;
+  let resolvedStep: number | null = null;
   let updatedBackupHashes = record.mfa_backup_hashes ?? [];
 
   if (method === "backup") {
@@ -76,14 +80,18 @@ export async function POST(request: Request) {
       const verification = verifyTotp(secret, token, 1);
       success = verification.ok;
       currentStep = verification.ok ? verification.step! : null;
-      if (success && currentStep !== null && record.last_mfa_step !== null && currentStep <= record.last_mfa_step) {
-        success = false;
+      if (success && currentStep !== null) {
+        const lastStep = record.last_mfa_step ?? null;
+        if (lastStep !== null && currentStep < lastStep - 1) {
+          success = false;
+        } else {
+          resolvedStep = Math.max(currentStep, lastStep ?? currentStep);
+        }
       }
     } catch (e) {
       // Decryption can fail if KMS_DATA_KEY changed since enrollment
       console.error("MFA verify: decrypt failed", (e as Error)?.message ?? e);
-      success = false;
-      currentStep = null;
+      return NextResponse.json({ error: "configuration_error" }, { status: 500 });
     }
   }
 
@@ -106,11 +114,15 @@ export async function POST(request: Request) {
     updates.mfa_backup_hashes = updatedBackupHashes;
     updates.last_mfa_step = record.last_mfa_step ?? null;
   } else {
-    updates.last_mfa_step = currentStep;
+    updates.last_mfa_step = resolvedStep ?? currentStep;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase as any).from("users").update(updates).eq("id", user.id);
+  const updateResult = await (supabase as any).from("users").update(updates).eq("id", user.id);
+  if (updateResult.error) {
+    console.error("MFA verify: failed to persist state", updateResult.error);
+    return NextResponse.json({ error: "configuration_error" }, { status: 500 });
+  }
 
   const headerList = await headers();
   const userAgent = headerList.get("user-agent") ?? "";

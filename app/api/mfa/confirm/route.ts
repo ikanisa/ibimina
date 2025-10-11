@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
 import { decodePendingEnrollment, encryptSensitiveString, generateBackupCodes, verifyTotp } from "@/lib/mfa";
 import { logAudit } from "@/lib/audit";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
 
 const MAX_PENDING_AGE_MS = 10 * 60 * 1000;
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
   const encryptedSecret = encryptSensitiveString(payload.secret);
   const backupRecords = generateBackupCodes();
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
 
   const updatePayload: Database["public"]["Tables"]["users"]["Update"] = {
     mfa_enabled: true,

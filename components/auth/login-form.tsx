@@ -210,6 +210,8 @@ export function LoginForm() {
             setError(t("auth.errors.invalidCode", "Invalid code"));
           } else if (code === "rate_limit_exceeded") {
             setError(t("auth.errors.rateLimit", "Too many attempts. Try again later."));
+          } else if (code === "configuration_error") {
+            setError(t("auth.errors.config", "Authenticator configuration issue. Contact support."));
           } else {
             setError(t("auth.errors.verifyCode", "Unable to verify authentication code"));
           }

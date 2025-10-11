@@ -409,6 +409,7 @@
   "auth.errors.enterCode": "Enter the security code",
   "auth.errors.invalidCode": "Invalid code",
   "auth.errors.rateLimit": "Too many attempts. Try again later.",
+  "auth.errors.config": "Authenticator configuration issue. Contact support.",
   "auth.errors.verifyCode": "Unable to verify authentication code",
   "auth.errors.enterTwoCodes": "Enter two consecutive codes",
   "auth.errors.invalidCodes": "Authenticator codes were not accepted.",
