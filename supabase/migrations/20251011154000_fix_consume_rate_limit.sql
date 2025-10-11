@@ -1,4 +1,10 @@
-CREATE OR REPLACE FUNCTION public.consume_rate_limit(
+DROP FUNCTION IF EXISTS public.consume_rate_limit(
+  TEXT,
+  INTEGER,
+  INTEGER
+);
+
+CREATE FUNCTION public.consume_rate_limit(
   p_key TEXT,
   p_max_hits INTEGER,
   p_window_seconds INTEGER
