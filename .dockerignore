@@ -1,0 +1,13 @@
+.git
+.github
+.next
+.vercel
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.env
+.env.*
+out
+supabase/.env.production.example
+SACCO+.png
