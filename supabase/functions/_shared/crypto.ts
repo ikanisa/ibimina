@@ -25,16 +25,18 @@ const getKey = async () => {
     return cachedKey;
   }
 
-  const secret = Deno.env.get("FIELD_ENCRYPTION_KEY");
+  const secret =
+    Deno.env.get("KMS_DATA_KEY_BASE64") ??
+    Deno.env.get("FIELD_ENCRYPTION_KEY");
 
   if (!secret) {
-    throw new Error("FIELD_ENCRYPTION_KEY not configured");
+    throw new Error("KMS_DATA_KEY_BASE64 not configured");
   }
 
   const raw = fromBase64(secret.trim());
 
   if (raw.length !== 32) {
-    throw new Error("FIELD_ENCRYPTION_KEY must be a 32-byte base64 string");
+    throw new Error("KMS_DATA_KEY_BASE64 must be a 32-byte base64 string");
   }
 
   cachedKey = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);

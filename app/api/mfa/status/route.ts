@@ -25,6 +25,7 @@ export async function GET() {
       mfaEnabled: false,
       mfaRequired: requireMfa,
       trustedDevice: false,
+      passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
       methods: profile.mfa_methods ?? ["TOTP"],
     });
   }
@@ -41,6 +42,7 @@ export async function GET() {
       mfaEnabled: true,
       mfaRequired: false,
       trustedDevice: false,
+      passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
       methods: profile.mfa_methods ?? ["TOTP"],
     });
   }
@@ -53,6 +55,7 @@ export async function GET() {
       mfaEnabled: true,
       mfaRequired: true,
       trustedDevice: false,
+      passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
       methods: profile.mfa_methods ?? ["TOTP"],
     });
     failure.cookies.delete(MFA_SESSION_COOKIE);
@@ -82,6 +85,7 @@ export async function GET() {
       mfaEnabled: true,
       mfaRequired: true,
       trustedDevice: false,
+      passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
       methods: profile.mfa_methods ?? ["TOTP"],
     });
     failure.cookies.delete(MFA_SESSION_COOKIE);
@@ -95,6 +99,7 @@ export async function GET() {
       mfaEnabled: true,
       mfaRequired: true,
       trustedDevice: false,
+      passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
       methods: profile.mfa_methods ?? ["TOTP"],
     });
     failure.cookies.delete(MFA_SESSION_COOKIE);
@@ -115,6 +120,7 @@ export async function GET() {
     mfaEnabled: true,
     mfaRequired: false,
     trustedDevice: true,
+    passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
     methods: profile.mfa_methods ?? ["TOTP"],
   });
 

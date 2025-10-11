@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { browserSupportsWebAuthn, platformAuthenticatorIsAvailable, startAuthentication } from "@simplewebauthn/browser";
+import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/providers/i18n-provider";
@@ -20,6 +22,7 @@ interface MfaStatusResponse {
   mfaRequired: boolean;
   trustedDevice: boolean;
   methods: string[];
+  passkeyEnrolled: boolean;
 }
 
 export function LoginForm() {
@@ -43,6 +46,9 @@ export function LoginForm() {
   const [mfaToken, setMfaToken] = useState("");
   const [mfaMethod, setMfaMethod] = useState<"totp" | "backup">("totp");
   const [rememberDevice, setRememberDevice] = useState(false);
+  const [passkeySupported, setPasskeySupported] = useState(false);
+  const [passkeyEnrolled, setPasskeyEnrolled] = useState(false);
+  const [passkeyPending, setPasskeyPending] = useState(false);
   const qrCodeUrl = useMemo(
     () =>
       enrollment
@@ -68,6 +74,33 @@ export function LoginForm() {
     };
   }, [backupDownload]);
 
+  useEffect(() => {
+    let mounted = true;
+    if (!browserSupportsWebAuthn()) {
+      setPasskeySupported(false);
+      return () => {
+        mounted = false;
+      };
+    }
+
+    (async () => {
+      try {
+        const available = await platformAuthenticatorIsAvailable();
+        if (mounted) {
+          setPasskeySupported(Boolean(available));
+        }
+      } catch {
+        if (mounted) {
+          setPasskeySupported(false);
+        }
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const reset = useCallback(() => {
     setStep("credentials");
     setMessage(null);
@@ -79,6 +112,7 @@ export function LoginForm() {
     setMfaToken("");
     setMfaMethod("totp");
     setRememberDevice(false);
+    setPasskeyPending(false);
   }, []);
 
   useEffect(() => {
@@ -98,8 +132,13 @@ export function LoginForm() {
 
         const status = (await response.json()) as MfaStatusResponse;
         if (!cancelled && status.mfaEnabled && status.mfaRequired) {
+          setPasskeyEnrolled(Boolean(status.passkeyEnrolled));
           setStep("challenge");
-          setMessage(t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app."));
+          if (status.passkeyEnrolled && passkeySupported) {
+            setMessage(t("auth.challenge.passkeyPrompt", "Approve with your passkey or enter a 6-digit authenticator code."));
+          } else {
+            setMessage(t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app."));
+          }
           setError(null);
           setMfaToken("");
           setMfaMethod("totp");
@@ -115,7 +154,7 @@ export function LoginForm() {
     return () => {
       cancelled = true;
     };
-  }, [mfaMode, t]);
+  }, [mfaMode, passkeySupported, t]);
 
   const handleCredentialsSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -147,6 +186,7 @@ export function LoginForm() {
         }
 
         const status = (await statusResponse.json()) as MfaStatusResponse;
+        setPasskeyEnrolled(Boolean(status.passkeyEnrolled));
         if (!status.mfaRequired) {
           setMessage(t("auth.success.redirect", "Success! Redirecting to dashboard…"));
           router.refresh();
@@ -180,13 +220,17 @@ export function LoginForm() {
         }
 
         setStep("challenge");
-        setMessage(t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app."));
+        if (status.passkeyEnrolled && passkeySupported) {
+          setMessage(t("auth.challenge.passkeyPrompt", "Approve with your passkey or enter a 6-digit authenticator code."));
+        } else {
+          setMessage(t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app."));
+        }
         setError(null);
         setMfaToken("");
         setMfaMethod("totp");
       });
     },
-    [email, password, router, supabase, t],
+    [email, password, passkeySupported, router, supabase, t],
   );
 
   const handleMfaSubmit = useCallback(
@@ -227,6 +271,69 @@ export function LoginForm() {
     },
     [mfaMethod, mfaToken, rememberDevice, router, t],
   );
+
+  const handlePasskeyChallenge = useCallback(async () => {
+    if (!passkeySupported || !passkeyEnrolled || passkeyPending) {
+      return;
+    }
+
+    setPasskeyPending(true);
+    setError(null);
+
+    try {
+      const optionsResponse = await fetch("/api/mfa/passkeys/auth/options", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rememberDevice }),
+      });
+
+      if (!optionsResponse.ok) {
+        const { error: code } = await optionsResponse.json().catch(() => ({ error: "unknown" }));
+        if (code === "no_credentials") {
+          setError(t("auth.errors.noPasskeys", "Passkeys are not configured for this account."));
+        } else {
+          setError(t("auth.errors.passkeyOptions", "Unable to start passkey approval."));
+        }
+        setPasskeyPending(false);
+        return;
+      }
+
+      const { options, stateToken } = (await optionsResponse.json()) as {
+        options: PublicKeyCredentialRequestOptionsJSON;
+        stateToken: string;
+      };
+
+      const assertion = await startAuthentication({ optionsJSON: options });
+
+      const verifyResponse = await fetch("/api/mfa/passkeys/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response: assertion, stateToken }),
+      });
+
+      if (!verifyResponse.ok) {
+        const { error: code } = await verifyResponse.json().catch(() => ({ error: "verification_failed" }));
+        if (code === "rate_limit_exceeded") {
+          setError(t("auth.errors.rateLimit", "Too many attempts. Try again later."));
+        } else if (code === "verification_failed") {
+          setError(t("auth.errors.passkeyVerification", "Passkey approval was not accepted."));
+        } else {
+          setError(t("auth.errors.passkeyUnknown", "Unable to complete passkey approval."));
+        }
+        setPasskeyPending(false);
+        return;
+      }
+
+      setMessage(t("auth.success.redirect", "Success! Redirecting to dashboard…"));
+      router.refresh();
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Passkey challenge failed", error);
+      setError(t("auth.errors.passkeyUnknown", "Unable to complete passkey approval."));
+    } finally {
+      setPasskeyPending(false);
+    }
+  }, [passkeySupported, passkeyEnrolled, passkeyPending, rememberDevice, router, t]);
 
   const handleEnrollmentSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -390,7 +497,11 @@ export function LoginForm() {
       {step === "challenge" && (
         <>
           <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">
-            <p>{t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app.")}</p>
+            <p>
+              {passkeySupported && passkeyEnrolled
+                ? t("auth.challenge.passkeyPrompt", "Approve with your passkey or enter a 6-digit authenticator code.")
+                : t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app.")}
+            </p>
             <p className="text-[10px] text-neutral-3">{t("auth.challenge.rotate", "Codes rotate every 30 seconds.")}</p>
           </div>
           <div className="space-y-2 text-left">
@@ -414,6 +525,22 @@ export function LoginForm() {
               disabled={pending}
             />
           </div>
+          {passkeySupported && passkeyEnrolled && (
+            <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-neutral-0">{t("auth.challenge.passkeyTitle", "Prefer to use your passkey?")}</p>
+                <p className="text-[10px] text-neutral-3">{t("auth.challenge.passkeySubtitle", "Approve with your device's screen lock instead of entering a code.")}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handlePasskeyChallenge}
+                disabled={passkeyPending || pending}
+                className="inline-flex items-center justify-center rounded-full border border-white/20 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/40 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {passkeyPending ? t("auth.challenge.passkeyWaiting", "Waiting…") : t("auth.challenge.passkeyButton", "Use passkey")}
+              </button>
+            </div>
+          )}
           <div className="flex items-center justify-between text-xs text-neutral-2">
             <label className="inline-flex items-center gap-2">
               <input

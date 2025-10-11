@@ -6,6 +6,24 @@ verify_jwt = false
 [functions.ingest-sms]
 verify_jwt = false
 
+[functions.sms-inbox]
+verify_jwt = false
+
+[functions.sms-ai-parse]
+verify_jwt = true
+
+[functions.payments-apply]
+verify_jwt = true
+
+[functions.recon-exceptions]
+verify_jwt = true
+
+[functions.reports-export]
+verify_jwt = true
+
+[functions.admin-reset-mfa]
+verify_jwt = true
+
 [functions.invite-user]
 verify_jwt = true
 

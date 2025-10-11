@@ -12,8 +12,15 @@ type Payment = {
   txn_id: string;
 };
 
-const ensureAccount = async (supabase: AnyClient, ownerType: string, ownerId: string, currency = "RWF") => {
+export const ensureAccount = async (
+  supabase: AnyClient,
+  ownerType: string,
+  ownerId: string,
+  saccoId: string,
+  currency = "RWF",
+) => {
   const { data, error } = await supabase
+    .schema("app")
     .from("accounts")
     .select("id")
     .eq("owner_type", ownerType)
@@ -30,10 +37,12 @@ const ensureAccount = async (supabase: AnyClient, ownerType: string, ownerId: st
   }
 
   const { data: created, error: createError } = await supabase
+    .schema("app")
     .from("accounts")
     .insert({
       owner_type: ownerType,
       owner_id: ownerId,
+      sacco_id: saccoId,
       currency,
       status: "ACTIVE",
     })
@@ -52,10 +61,11 @@ export const postToLedger = async (supabase: AnyClient, payment: Payment) => {
     throw new Error("Payment missing ikimina");
   }
 
-  const clearingAccountId = await ensureAccount(supabase, "MOMO_CLEARING", payment.sacco_id);
-  const ikiminaAccountId = await ensureAccount(supabase, "IKIMINA", payment.ikimina_id);
+  const clearingAccountId = await ensureAccount(supabase, "MOMO_CLEARING", payment.sacco_id, payment.sacco_id);
+  const ikiminaAccountId = await ensureAccount(supabase, "IKIMINA", payment.ikimina_id, payment.sacco_id);
 
   const { data: existing, error: fetchError } = await supabase
+    .schema("app")
     .from("ledger_entries")
     .select("id")
     .eq("external_id", payment.id)
@@ -71,8 +81,10 @@ export const postToLedger = async (supabase: AnyClient, payment: Payment) => {
   }
 
   const { data: entry, error: insertError } = await supabase
+    .schema("app")
     .from("ledger_entries")
     .insert({
+      sacco_id: payment.sacco_id,
       debit_id: clearingAccountId,
       credit_id: ikiminaAccountId,
       amount: payment.amount,
@@ -92,10 +104,11 @@ export const postToLedger = async (supabase: AnyClient, payment: Payment) => {
 };
 
 export const settleLedger = async (supabase: AnyClient, payment: Payment) => {
-  const clearingAccountId = await ensureAccount(supabase, "MOMO_CLEARING", payment.sacco_id);
-  const settlementAccountId = await ensureAccount(supabase, "MOMO_SETTLEMENT", payment.sacco_id);
+  const clearingAccountId = await ensureAccount(supabase, "MOMO_CLEARING", payment.sacco_id, payment.sacco_id);
+  const settlementAccountId = await ensureAccount(supabase, "MOMO_SETTLEMENT", payment.sacco_id, payment.sacco_id);
 
   const { data: existing, error: fetchError } = await supabase
+    .schema("app")
     .from("ledger_entries")
     .select("id")
     .eq("external_id", payment.id)
@@ -111,8 +124,10 @@ export const settleLedger = async (supabase: AnyClient, payment: Payment) => {
   }
 
   const { data: entry, error: insertError } = await supabase
+    .schema("app")
     .from("ledger_entries")
     .insert({
+      sacco_id: payment.sacco_id,
       debit_id: settlementAccountId,
       credit_id: clearingAccountId,
       amount: payment.amount,
@@ -129,4 +144,16 @@ export const settleLedger = async (supabase: AnyClient, payment: Payment) => {
   }
 
   return entry.id as string;
+};
+
+export const getAccountBalance = async (supabase: AnyClient, accountId: string) => {
+  const { data, error } = await supabase.rpc("account_balance", {
+    account_id: accountId,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return Number(data ?? 0);
 };

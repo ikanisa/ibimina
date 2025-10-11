@@ -12,6 +12,8 @@ import {
   Trash2,
   RefreshCw,
 } from "lucide-react";
+import { startRegistration } from "@simplewebauthn/browser";
+import type { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/types";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/providers/i18n-provider";
@@ -31,11 +33,23 @@ type TrustedDevice = {
   ipPrefix: string | null;
 };
 
+type PasskeyRecord = {
+  id: string;
+  credentialId: string;
+  label: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+  deviceType: string | null;
+  backedUp: boolean;
+};
+
 type ProfileState = {
   mfaEnabled: boolean;
   enrolledAt: string | null;
   backupCount: number;
   trustedDevices: TrustedDevice[];
+  passkeyEnrolled: boolean;
+  passkeys: PasskeyRecord[];
   methods: string[];
 };
 
@@ -64,6 +78,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
   const [processingEnrollment, startProcessingEnrollment] = useTransition();
   const [processingDisable, startProcessingDisable] = useTransition();
   const [refreshing, startRefreshing] = useTransition();
+  const [registeringPasskey, setRegisteringPasskey] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     startRefreshing(async () => {
@@ -174,6 +189,97 @@ export function ProfileClient({ email }: ProfileClientProps) {
       await fetchProfile();
     });
   };
+
+  const registerPasskey = useCallback(async () => {
+    if (registeringPasskey) return;
+
+    if (!window.PublicKeyCredential) {
+      error(t("profile.passkeys.unsupported", "Passkeys are not supported in this browser."));
+      return;
+    }
+
+    const friendlyName = window
+      .prompt(t("profile.passkeys.namePrompt", "Give this passkey a label (optional)"), t("profile.passkeys.defaultName", "Work laptop"))
+      ?.trim();
+
+    try {
+      setRegisteringPasskey(true);
+
+      const optionsResponse = await fetch("/api/mfa/passkeys/register/options", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ friendlyName: friendlyName && friendlyName.length > 0 ? friendlyName : null }),
+      });
+
+      if (!optionsResponse.ok) {
+        const { error: code } = await optionsResponse.json().catch(() => ({ error: "unknown" }));
+        if (code === "invalid_payload") {
+          error(t("profile.passkeys.optionsInvalid", "Unable to start passkey registration."));
+        } else {
+          error(t("profile.passkeys.optionsFailed", "Could not prepare passkey registration."));
+        }
+        return;
+      }
+
+      const { options, stateToken } = (await optionsResponse.json()) as {
+        options: PublicKeyCredentialCreationOptionsJSON;
+        stateToken: string;
+      };
+
+      const credential = await startRegistration({ optionsJSON: options });
+
+      const verifyResponse = await fetch("/api/mfa/passkeys/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ response: credential, stateToken, friendlyName: friendlyName && friendlyName.length > 0 ? friendlyName : null }),
+      });
+
+      if (!verifyResponse.ok) {
+        const { error: code } = await verifyResponse.json().catch(() => ({ error: "unknown" }));
+        if (code === "registration_failed") {
+          error(t("profile.passkeys.registrationFailed", "Unable to verify the passkey."));
+        } else {
+          error(t("profile.passkeys.registrationUnknown", "Passkey registration did not complete."));
+        }
+        return;
+      }
+
+      success(t("profile.passkeys.registered", "Passkey added."));
+      await fetchProfile();
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "NotAllowedError") {
+        error(t("profile.passkeys.cancelled", "Passkey approval was cancelled."));
+      } else {
+        console.error("Passkey registration error", err);
+        error(t("profile.passkeys.registrationUnknown", "Passkey registration did not complete."));
+      }
+    } finally {
+      setRegisteringPasskey(false);
+    }
+  }, [error, fetchProfile, registeringPasskey, success, t]);
+
+  const removePasskey = useCallback(
+    async (credentialId: string) => {
+      if (!window.confirm(t("profile.passkeys.deleteConfirm", "Remove this passkey?"))) {
+        return;
+      }
+
+      const response = await fetch(`/api/mfa/passkeys/${credentialId}`, { method: "DELETE" });
+      if (!response.ok) {
+        const { error: code } = await response.json().catch(() => ({ error: "delete_failed" }));
+        if (code === "not_found") {
+          error(t("profile.passkeys.deleteMissing", "Passkey not found."));
+        } else {
+          error(t("profile.passkeys.deleteFailed", "Unable to remove passkey."));
+        }
+        return;
+      }
+
+      success(t("profile.passkeys.deleted", "Passkey removed."));
+      await fetchProfile();
+    },
+    [error, fetchProfile, success, t],
+  );
 
   const disableMfa = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -425,6 +531,61 @@ export function ProfileClient({ email }: ProfileClientProps) {
             </ul>
           </div>
         )}
+      </GlassCard>
+
+      <GlassCard
+        title={
+          <div className="flex items-center gap-2 text-lg font-semibold text-neutral-0">
+            <BadgeCheck className="h-5 w-5 text-rw-blue" />
+            <span>{t("profile.passkeys.title", "Passkeys")}</span>
+          </div>
+        }
+        subtitle={t("profile.passkeys.subtitle", "Use device-bound approvals instead of typing codes.")}
+      >
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={registerPasskey}
+            disabled={registeringPasskey}
+            className="interactive-scale inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {registeringPasskey ? t("profile.passkeys.registering", "Waiting for approval…") : t("profile.passkeys.add", "Add passkey")}
+          </button>
+
+          {profile.passkeys.length === 0 ? (
+            <p className="text-xs text-neutral-2">{t("profile.passkeys.empty", "No passkeys registered yet. Add one from a compatible device.")}</p>
+          ) : (
+            <div className="space-y-3">
+              {profile.passkeys.map((passkey) => (
+                <div key={passkey.id} className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center md:justify-between">
+                  <div className="space-y-1 text-xs text-neutral-2">
+                    <p className="font-semibold text-neutral-0">{passkey.label ?? t("profile.passkeys.unnamed", "Unnamed passkey")}</p>
+                    <p>
+                      {t("profile.passkeys.created", "Created")}: {new Date(passkey.createdAt).toLocaleString()}
+                    </p>
+                    <p>
+                      {t("profile.passkeys.lastUsed", "Last used")}: {passkey.lastUsedAt ? new Date(passkey.lastUsedAt).toLocaleString() : t("profile.passkeys.neverUsed", "Never used")}
+                    </p>
+                    <p>
+                      {t("profile.passkeys.deviceType", "Device type")}: {passkey.deviceType ?? t("common.unknown", "Unknown")}
+                    </p>
+                    <p>
+                      {t("profile.passkeys.backedUp", "Backed up")}: {passkey.backedUp ? t("common.yes", "Yes") : t("common.no", "No")}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removePasskey(passkey.id)}
+                    className="inline-flex w-max items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/30"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {t("profile.passkeys.remove", "Remove")}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </GlassCard>
 
       {profile.trustedDevices.length > 0 && (

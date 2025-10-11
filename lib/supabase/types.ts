@@ -616,6 +616,7 @@ export type Database = {
           mfa_backup_hashes: string[];
           mfa_enabled: boolean;
           mfa_enrolled_at: string | null;
+          mfa_passkey_enrolled: boolean;
           mfa_methods: string[];
           mfa_secret_enc: string | null;
           role: Database["public"]["Enums"]["app_role"];
@@ -632,6 +633,7 @@ export type Database = {
           mfa_backup_hashes?: string[];
           mfa_enabled?: boolean;
           mfa_enrolled_at?: string | null;
+          mfa_passkey_enrolled?: boolean;
           mfa_methods?: string[];
           mfa_secret_enc?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
@@ -648,6 +650,7 @@ export type Database = {
           mfa_backup_hashes?: string[];
           mfa_enabled?: boolean;
           mfa_enrolled_at?: string | null;
+          mfa_passkey_enrolled?: boolean;
           mfa_methods?: string[];
           mfa_secret_enc?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
@@ -698,6 +701,85 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "trusted_devices_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      mfa_recovery_codes: {
+        Row: {
+          codes: string[];
+          created_at: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          codes?: string[];
+          created_at?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          codes?: string[];
+          created_at?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mfa_recovery_codes_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      webauthn_credentials: {
+        Row: {
+          backed_up: boolean;
+          created_at: string;
+          credential_id: string;
+          credential_public_key: string;
+          device_type: string | null;
+          friendly_name: string | null;
+          id: string;
+          last_used_at: string | null;
+          sign_count: number;
+          transports: string[];
+          user_id: string;
+        };
+        Insert: {
+          backed_up?: boolean;
+          created_at?: string;
+          credential_id: string;
+          credential_public_key: string;
+          device_type?: string | null;
+          friendly_name?: string | null;
+          id?: string;
+          last_used_at?: string | null;
+          sign_count?: number;
+          transports?: string[];
+          user_id: string;
+        };
+        Update: {
+          backed_up?: boolean;
+          created_at?: string;
+          credential_id?: string;
+          credential_public_key?: string;
+          device_type?: string | null;
+          friendly_name?: string | null;
+          id?: string;
+          last_used_at?: string | null;
+          sign_count?: number;
+          transports?: string[];
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "webauthn_credentials_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "users";

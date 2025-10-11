@@ -57,6 +57,64 @@ supabase/                # Config, migrations, seed data
 - Dashboard, Ikimina, Recon, Reports, and Admin pages now query Supabase directly in server components.
 - See `docs/go-live-checklist.md` for the full Supabase bootstrap sequence (migrations, secrets, edge functions, GSM ingestion).
 
+## SACCO+ Supabase backend
+
+The SACCO+ runtime lives under `supabase/` and is documented in:
+
+- `docs/DB-SCHEMA.md` – entity model, columns, helper functions
+- `docs/RLS.md` – policy matrix covering SACCO staff vs system admins
+- `docs/API-EDGE.md` – Edge Function endpoints, auth model, rate limits
+
+### Local bootstrap
+
+```bash
+supabase start
+supabase db reset
+supabase functions serve sms-inbox --no-verify-jwt
+supabase functions serve payments-apply
+```
+
+Provision secrets once per project (service role, HMAC, AI, crypto keys, report signing):
+
+```bash
+supabase secrets set \
+  SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY \
+  OPENAI_API_KEY=$OPENAI_API_KEY \
+  HMAC_SHARED_SECRET=$HMAC_SHARED_SECRET \
+  KMS_DATA_KEY_BASE64=$KMS_DATA_KEY_BASE64 \
+  BACKUP_PEPPER=$BACKUP_PEPPER \
+  TRUSTED_COOKIE_SECRET=$TRUSTED_COOKIE_SECRET \
+  REPORT_SIGNING_KEY=$REPORT_SIGNING_KEY
+```
+
+- Passkeys + TOTP: set `MFA_RP_ID`, `MFA_ORIGIN`, and optional `MFA_RP_NAME` so WebAuthn challenges issue against the correct relying party. Staff can enroll hardware-backed passkeys alongside authenticator apps from **Profile → Security**.
+
+### Smoke cURL tests
+
+```bash
+# sms inbox (text/plain)
+SIG=$(printf "hello momo" | openssl dgst -sha256 -hmac "$HMAC_SHARED_SECRET" -hex | cut -d" " -f2)
+curl -i -X POST "$EDGE_URL/sms/inbox" \
+  -H "x-signature: $SIG" \
+  -H "content-type: text/plain" \
+  --data 'You have received RWF 20,000 from 0788... Ref NYA.GAS.TWIZ.001 TXN 12345 at 2025-10-01 12:00'
+
+# AI parse fallback
+curl -i -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+  -H "content-type: application/json" \
+  -d '{"smsInboxId":"<uuid>"}' \
+  "$EDGE_URL/sms/ai-parse"
+
+# payments apply (idempotent)
+curl -i -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+  -H "x-idempotency-key: demo-1" \
+  -H "content-type: application/json" \
+  -d '{"saccoId":"<uuid>","msisdn":"+250788...","amount":20000,"currency":"RWF","txnId":"12345","occurredAt":"2025-10-01T12:00:00Z","reference":"NYA.GAS.TWIZ.001"}' \
+  "$EDGE_URL/payments/apply"
+```
+
+After each deploy run `scripts/postdeploy-verify.sh` to apply cron job health checks, invoke smoke tests, and confirm secrets.
+
 ## Observability & Ops
 
 - `supabase/functions/metrics-exporter` exposes Prometheus gauges covering SMS/notification backlog, payments, and exporter health.

@@ -1,0 +1,30 @@
+import { NextResponse } from "next/server";
+import { requireUserAndProfile } from "@/lib/auth";
+import { createRegistrationOptions } from "@/lib/mfa/passkeys";
+import { logAudit } from "@/lib/audit";
+
+export async function POST(request: Request) {
+  const { user, profile } = await requireUserAndProfile();
+  const body = (await request.json().catch(() => ({}))) as { friendlyName?: string | null };
+  const friendlyName = body.friendlyName ?? null;
+
+  const { options, stateToken } = await createRegistrationOptions({
+    id: user.id,
+    email: user.email,
+    full_name: (user.user_metadata?.full_name as string | undefined) ?? undefined,
+  });
+
+  await logAudit({
+    action: "MFA_PASSKEY_ENROLLMENT_STARTED",
+    entity: "USER",
+    entityId: user.id,
+    diff: { friendlyName },
+  });
+
+  return NextResponse.json({
+    options,
+    stateToken,
+    friendlyName,
+    methods: profile.mfa_methods ?? ["TOTP"],
+  });
+}

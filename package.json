@@ -16,6 +16,9 @@
     "verify:pwa": "node scripts/verify-pwa.mjs"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^13.2.2",
+    "@simplewebauthn/server": "^13.2.2",
+    "@simplewebauthn/types": "^12.0.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.74.0",
     "@tanstack/react-table": "^8.21.3",
