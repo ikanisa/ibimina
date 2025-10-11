@@ -32,7 +32,7 @@ try {
   const withPWAInit = require("next-pwa");
   withPWA = withPWAInit({
     dest: "public",
-    disable: process.env.NODE_ENV === "development",
+    disable: process.env.NODE_ENV === "development" || process.env.DISABLE_PWA === "1",
     register: true,
     skipWaiting: true,
     sw: "service-worker.js",
