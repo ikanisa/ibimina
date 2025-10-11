@@ -5,6 +5,14 @@ import { AppProviders } from "@/providers/app-providers";
 export const metadata: Metadata = {
   title: "Ibimina Staff Console",
   description: "Staff-only platform for Umurenge SACCO Ibimina operations.",
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/icons/icon-192.png"],
+  },
   manifest: "/manifest.json",
 };
 
