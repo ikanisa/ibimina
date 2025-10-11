@@ -71,8 +71,27 @@ export const encryptSensitiveString = (value: string) => {
   return Buffer.concat([iv, tag, enc]).toString("base64");
 };
 
-export const decryptSensitiveString = (payload: string) => {
-  const blob = Buffer.from(payload, "base64");
+const normalizeEncryptedPayload = (payload: string | ArrayBuffer | ArrayBufferView) => {
+  if (typeof payload === "string") {
+    if (payload.startsWith("\\x")) {
+      return Buffer.from(payload.slice(2), "hex");
+    }
+    return Buffer.from(payload, "base64");
+  }
+
+  if (payload instanceof ArrayBuffer) {
+    return Buffer.from(payload);
+  }
+
+  if (ArrayBuffer.isView(payload)) {
+    return Buffer.from(payload.buffer, payload.byteOffset, payload.byteLength);
+  }
+
+  throw new Error("Unsupported encrypted payload type");
+};
+
+export const decryptSensitiveString = (payload: string | ArrayBuffer | ArrayBufferView) => {
+  const blob = normalizeEncryptedPayload(payload);
   const iv = blob.subarray(0, 12);
   const tag = blob.subarray(12, 28);
   const enc = blob.subarray(28);
