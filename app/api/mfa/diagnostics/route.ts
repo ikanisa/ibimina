@@ -1,0 +1,67 @@
+import { NextResponse } from "next/server";
+import { requireUserAndProfile } from "@/lib/auth";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+
+function isValidBase64Key(b64: string | undefined | null) {
+  if (!b64) return false;
+  try {
+    const buf = Buffer.from(b64, "base64");
+    return buf.length === 32;
+  } catch {
+    return false;
+  }
+}
+
+export async function GET(request: Request) {
+  const { user, profile } = await requireUserAndProfile();
+  const url = new URL(request.url);
+  const email = url.searchParams.get("email");
+
+  const isAdmin = profile.role === "SYSTEM_ADMIN";
+
+  const kmsKey = process.env.KMS_DATA_KEY ?? process.env.KMS_DATA_KEY_BASE64 ?? null;
+  const hasKmsKey = isValidBase64Key(kmsKey);
+
+  const supabase = createSupabaseAdminClient();
+  const targetEmail = isAdmin && email ? email : user.email ?? null;
+
+  if (!targetEmail) {
+    return NextResponse.json({ error: "no_email" }, { status: 400 });
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, email, mfa_enabled, mfa_secret_enc")
+    .eq("email", targetEmail)
+    .maybeSingle();
+
+  if (error) {
+    return NextResponse.json({ error: "db_error" }, { status: 500 });
+  }
+
+  if (!data) {
+    return NextResponse.json({ error: "user_not_found", email: targetEmail }, { status: 404 });
+  }
+
+  const diagnostic = {
+    env: {
+      hasKmsKey,
+      // expose whether fallback var exists (no secret values)
+      KMS_DATA_KEY_present: Boolean(process.env.KMS_DATA_KEY),
+      KMS_DATA_KEY_BASE64_present: Boolean(process.env.KMS_DATA_KEY_BASE64),
+    },
+    user: {
+      id: data.id,
+      email: data.email,
+      mfaEnabled: data.mfa_enabled,
+      mfaSecretPresent: Boolean(data.mfa_secret_enc),
+    },
+    auth: {
+      requesterId: user.id,
+      requesterIsAdmin: isAdmin,
+    },
+  };
+
+  return NextResponse.json(diagnostic);
+}
+
