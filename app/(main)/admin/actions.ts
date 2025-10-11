@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { logAudit } from "@/lib/audit";
 
 export type AdminActionResult = {
   status: "success" | "error";
@@ -225,4 +226,62 @@ export async function removeSacco({ id }: { id: string }): Promise<AdminActionRe
   if (error) return { status: "error", message: error.message ?? "Failed to delete SACCO" };
   await revalidatePath("/admin");
   return { status: "success", message: "SACCO deleted" };
+}
+
+export async function resetMfaForAllEnabled({
+  reason = "bulk_reset",
+}: {
+  reason?: string;
+}): Promise<AdminActionResult & { count: number }> {
+  const { profile, user } = await requireUserAndProfile();
+  if (profile.role !== "SYSTEM_ADMIN") {
+    return { status: "error", message: "Only system administrators can reset 2FA in bulk.", count: 0 };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: rows, error: selectError } = await supabase
+    .from("users")
+    .select("id")
+    .eq("mfa_enabled", true);
+
+  if (selectError) {
+    return { status: "error", message: selectError.message ?? "Failed to enumerate users", count: 0 };
+  }
+
+  const ids = (rows ?? []).map((r) => (r as { id: string }).id);
+  if (ids.length === 0) {
+    return { status: "success", message: "No users with 2FA enabled", count: 0 };
+  }
+
+  // Reset MFA flags for all matching users
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any)
+    .from("users")
+    .update({
+      mfa_enabled: false,
+      mfa_secret_enc: null,
+      mfa_backup_hashes: [],
+      mfa_enrolled_at: null,
+      last_mfa_step: null,
+      last_mfa_success_at: null,
+      failed_mfa_count: 0,
+    })
+    .in("id", ids);
+
+  if (updateError) {
+    return { status: "error", message: updateError.message ?? "Failed to reset 2FA", count: 0 };
+  }
+
+  // Clear trusted devices
+  await supabase.from("trusted_devices").delete().in("user_id", ids);
+
+  await logAudit({
+    action: "MFA_RESET_BULK",
+    entity: "USER",
+    entityId: "BULK",
+    diff: { actor: user.id, count: ids.length, reason },
+  });
+
+  await revalidatePath("/admin");
+  return { status: "success", message: "2FA reset for all enabled users", count: ids.length };
 }

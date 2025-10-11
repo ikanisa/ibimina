@@ -13,6 +13,7 @@ import { FeatureFlagsCard } from "@/components/admin/feature-flags-card";
 import { OutreachAutomationCard } from "@/components/admin/outreach-automation-card";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resetMfaForAllEnabled } from "@/app/(main)/admin/actions";
 // import { BilingualText } from "@/components/common/bilingual-text";
 import type { Database } from "@/lib/supabase/types";
 import { Trans } from "@/components/common/trans";
@@ -266,6 +267,21 @@ export default async function AdminPage() {
         title={<Trans i18nKey="admin.users.title" fallback="User access" />}
         subtitle={<span className="text-xs text-neutral-3">{`${users?.length ?? 0} `}<Trans i18nKey="admin.users.recentSuffix" fallback="recent staff records." /></span>}
       >
+        {/* Bulk 2FA reset action (SYSTEM_ADMIN only) */}
+        <form
+          action={async () => {
+            "use server";
+            await resetMfaForAllEnabled({ reason: "bulk_reset" });
+          }}
+          className="mb-3 flex items-center justify-end"
+        >
+          <button
+            type="submit"
+            className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-amber-200 hover:border-white/30"
+          >
+            <Trans i18nKey="admin.users.resetAll2fa" fallback="Reset 2FA for all enabled" />
+          </button>
+        </form>
         <UserAccessTable users={normalizedUsers} saccos={saccoOptions} />
       </GlassCard>
     </div>

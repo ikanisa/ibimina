@@ -59,9 +59,15 @@ export async function DELETE(request: Request) {
       updatedBackupHashes = next;
     }
   } else {
-    const secret = decryptSensitiveString(record.mfa_secret_enc);
-    const verification = verifyTotp(secret, token, 1);
-    verified = verification.ok;
+    try {
+      const secret = decryptSensitiveString(record.mfa_secret_enc);
+      const verification = verifyTotp(secret, token, 1);
+      verified = verification.ok;
+    } catch (e) {
+      // If decryption fails (mismatched KMS_DATA_KEY), return invalid_code instead of 500
+      console.error("MFA disable: decrypt failed", (e as Error)?.message ?? e);
+      verified = false;
+    }
   }
 
   if (!verified) {

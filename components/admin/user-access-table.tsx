@@ -60,6 +60,30 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
     });
   };
 
+  const handleMfaReset = (user: AdminUserRow) => {
+    startTransition(async () => {
+      try {
+        const response = await fetch(`/api/mfa/reset/${encodeURIComponent(user.id)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: "lost device" }),
+        });
+        if (!response.ok) {
+          const { error: code } = (await response.json().catch(() => ({ error: "unknown" })));
+          error(
+            code === "forbidden"
+              ? t("admin.users.resetForbidden", "Only administrators can reset 2FA")
+              : t("admin.users.resetFailed", "Failed to reset 2FA"),
+          );
+          return;
+        }
+        success(t("admin.users.resetSuccess", "2FA reset. Ask user to re-enroll at next sign-in."));
+      } catch (e) {
+        error(t("admin.users.resetFailed", "Failed to reset 2FA"));
+      }
+    });
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10">
       <table className="w-full border-collapse text-sm">
@@ -124,14 +148,24 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
               <td className="px-4 py-3 text-neutral-2">
                 <div className="flex flex-col gap-1 text-[11px]">
                   <span>{t("admin.users.mfaManaged", "Managed in profile")}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleMfaReminder(user)}
-                    disabled={pending}
-                    className="self-start rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-neutral-0 hover:border-white/30"
-                  >
-                    {t("admin.users.send2faReminder", "Send 2FA reminder")}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleMfaReminder(user)}
+                      disabled={pending}
+                      className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-neutral-0 hover:border-white/30"
+                    >
+                      {t("admin.users.send2faReminder", "Send 2FA reminder")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMfaReset(user)}
+                      disabled={pending}
+                      className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-amber-200 hover:border-white/30"
+                    >
+                      {t("admin.users.reset2fa", "Reset 2FA")}
+                    </button>
+                  </div>
                 </div>
               </td>
             </tr>

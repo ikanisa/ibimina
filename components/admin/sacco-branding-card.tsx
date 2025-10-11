@@ -7,11 +7,14 @@ import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
 
+type SaccoRow = Database["public"]["Tables"]["saccos"]["Row"];
+
 interface SaccoBrandingCardProps {
+  // `brand_color` might not exist in current schema; treat as optional
   sacco: Pick<
-    Database["public"]["Tables"]["saccos"]["Row"],
-    "id" | "name" | "district" | "province" | "status" | "email" | "logo_url" | "category" | "brand_color"
-  >;
+    SaccoRow,
+    "id" | "name" | "district" | "province" | "status" | "email" | "logo_url" | "category"
+  > & { brand_color?: string | null };
 }
 
 const supabase = getSupabaseBrowserClient();

@@ -40,7 +40,8 @@ export async function POST(request: Request) {
     if ((rateError as Error).message === "rate_limit_exceeded") {
       return NextResponse.json({ error: "rate_limit_exceeded" }, { status: 429 });
     }
-    throw rateError;
+    // Fail-open on infrastructure errors (e.g., missing RPC) to avoid 500s
+    console.warn("Rate limit check failed", (rateError as Error)?.message ?? rateError);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -70,12 +71,19 @@ export async function POST(request: Request) {
       success = true;
     }
   } else {
-    const secret = decryptSensitiveString(record.mfa_secret_enc);
-    const verification = verifyTotp(secret, token, 1);
-    success = verification.ok;
-    currentStep = verification.ok ? verification.step! : null;
-    if (success && currentStep !== null && record.last_mfa_step !== null && currentStep <= record.last_mfa_step) {
+    try {
+      const secret = decryptSensitiveString(record.mfa_secret_enc);
+      const verification = verifyTotp(secret, token, 1);
+      success = verification.ok;
+      currentStep = verification.ok ? verification.step! : null;
+      if (success && currentStep !== null && record.last_mfa_step !== null && currentStep <= record.last_mfa_step) {
+        success = false;
+      }
+    } catch (e) {
+      // Decryption can fail if KMS_DATA_KEY changed since enrollment
+      console.error("MFA verify: decrypt failed", (e as Error)?.message ?? e);
       success = false;
+      currentStep = null;
     }
   }
 
