@@ -7,6 +7,7 @@ import { ConfirmProvider } from "@/providers/confirm-provider";
 import { I18nProvider } from "@/providers/i18n-provider";
 import { PwaProvider } from "@/providers/pwa-provider";
 import { OfflineQueueProvider } from "@/providers/offline-queue-provider";
+import { SupabaseAuthListener } from "@/providers/supabase-auth-listener";
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -20,7 +21,10 @@ export function AppProviders({ children }: AppProvidersProps) {
           <OfflineQueueProvider>
             <ConfirmProvider>
               <PwaProvider>
-                <MotionProvider>{children}</MotionProvider>
+                <MotionProvider>
+                  <SupabaseAuthListener />
+                  {children}
+                </MotionProvider>
               </PwaProvider>
             </ConfirmProvider>
           </OfflineQueueProvider>
