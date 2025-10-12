@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     mfa_secret_enc: null,
     mfa_enrolled_at: null,
     mfa_backup_hashes: [],
-    mfa_methods: ["TOTP"],
+    mfa_methods: ["EMAIL"],
     failed_mfa_count: 0,
     last_mfa_step: null,
     last_mfa_success_at: null,
@@ -79,4 +79,3 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ success: true, userId: target.id });
 }
-

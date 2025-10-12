@@ -19,6 +19,11 @@ import type { Database } from "@/lib/supabase/types";
 export async function GET() {
   const { user, profile } = await requireUserAndProfile();
   const requireMfa = true;
+  const methodSet = new Set(profile.mfa_methods ?? []);
+  if (profile.mfa_passkey_enrolled) {
+    methodSet.add("PASSKEY");
+  }
+  const methodList = Array.from(methodSet);
 
   if (!profile.mfa_enabled) {
     return NextResponse.json({
@@ -26,7 +31,7 @@ export async function GET() {
       mfaRequired: requireMfa,
       trustedDevice: false,
       passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
-      methods: profile.mfa_methods ?? ["TOTP"],
+      methods: methodList,
     });
   }
 
@@ -43,7 +48,7 @@ export async function GET() {
       mfaRequired: false,
       trustedDevice: false,
       passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
-      methods: profile.mfa_methods ?? ["TOTP"],
+      methods: methodList,
     });
   }
 
@@ -56,7 +61,7 @@ export async function GET() {
       mfaRequired: true,
       trustedDevice: false,
       passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
-      methods: profile.mfa_methods ?? ["TOTP"],
+      methods: methodList,
     });
     failure.cookies.delete(MFA_SESSION_COOKIE);
     failure.cookies.delete(TRUSTED_DEVICE_COOKIE);
@@ -86,7 +91,7 @@ export async function GET() {
       mfaRequired: true,
       trustedDevice: false,
       passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
-      methods: profile.mfa_methods ?? ["TOTP"],
+      methods: methodList,
     });
     failure.cookies.delete(MFA_SESSION_COOKIE);
     failure.cookies.delete(TRUSTED_DEVICE_COOKIE);
@@ -100,7 +105,7 @@ export async function GET() {
       mfaRequired: true,
       trustedDevice: false,
       passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
-      methods: profile.mfa_methods ?? ["TOTP"],
+      methods: methodList,
     });
     failure.cookies.delete(MFA_SESSION_COOKIE);
     failure.cookies.delete(TRUSTED_DEVICE_COOKIE);
@@ -121,7 +126,7 @@ export async function GET() {
     mfaRequired: false,
     trustedDevice: true,
     passkeyEnrolled: profile.mfa_passkey_enrolled ?? false,
-    methods: profile.mfa_methods ?? ["TOTP"],
+    methods: methodList,
   });
 
   if (renewedSession) {

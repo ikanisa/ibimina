@@ -51,6 +51,33 @@ type ProfileState = {
   passkeyEnrolled: boolean;
   passkeys: PasskeyRecord[];
   methods: string[];
+  channelSummary: {
+    policy: {
+      primary: "PASSKEY" | "TOTP";
+      recovery: string[];
+      sessionSeconds: number;
+      trustedDeviceSeconds: number;
+    };
+    channels: Array<{
+      id: "PASSKEY" | "TOTP" | "EMAIL";
+      enrolled: boolean;
+      available: boolean;
+      passkeyCount?: number;
+      lastUsedAt?: string | null;
+      enrolledAt?: string | null;
+      backupCodesRemaining?: number;
+      destination?: string | null;
+      activeCodes?: number;
+      lastConsumedAt?: string | null;
+      lastIssuedAt?: string | null;
+    }>;
+  };
+  emailAudit: Array<{
+    id: string;
+    action: string;
+    createdAt: string | null;
+    diff: Record<string, unknown> | null;
+  }>;
 };
 
 type EnrollmentState = {
@@ -79,6 +106,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
   const [processingDisable, startProcessingDisable] = useTransition();
   const [refreshing, startRefreshing] = useTransition();
   const [registeringPasskey, setRegisteringPasskey] = useState(false);
+  const [updatingEmail, setUpdatingEmail] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     startRefreshing(async () => {
@@ -258,6 +286,36 @@ export function ProfileClient({ email }: ProfileClientProps) {
     }
   }, [error, fetchProfile, registeringPasskey, success, t]);
 
+  const updateEmailChannel = useCallback(
+    async (enable: boolean) => {
+      if (updatingEmail) return;
+      setUpdatingEmail(true);
+
+      try {
+        const response = await fetch("/api/mfa/email", { method: enable ? "POST" : "DELETE" });
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => ({}))) as { error?: string };
+          console.error("Email MFA toggle failed", payload.error);
+          if (enable) {
+            error(t("profile.channels.email.enableError", "Unable to enable email codes."));
+          } else {
+            error(t("profile.channels.email.disableError", "Unable to disable email codes."));
+          }
+          return;
+        }
+        if (enable) {
+          success(t("profile.channels.email.enabled", "Email codes enabled."));
+        } else {
+          success(t("profile.channels.email.disabled", "Email codes disabled."));
+        }
+        await fetchProfile();
+      } finally {
+        setUpdatingEmail(false);
+      }
+    },
+    [error, fetchProfile, success, t, updatingEmail],
+  );
+
   const removePasskey = useCallback(
     async (credentialId: string) => {
       if (!window.confirm(t("profile.passkeys.deleteConfirm", "Remove this passkey?"))) {
@@ -341,6 +399,166 @@ export function ProfileClient({ email }: ProfileClientProps) {
     );
   }
 
+  const totpChannel = profile.channelSummary.channels.find((channel) => channel.id === "TOTP");
+  const emailChannel = profile.channelSummary.channels.find((channel) => channel.id === "EMAIL");
+  const totpEnabled = Boolean(totpChannel?.enrolled);
+
+  const channelCopy = useMemo(
+    () => ({
+      PASSKEY: {
+        label: t("profile.channels.passkey.label", "Passkey approval"),
+        description: t("profile.channels.passkey.desc", "Use device-bound approvals from compatible laptops or phones."),
+      },
+      TOTP: {
+        label: t("profile.channels.totp.label", "Authenticator app"),
+        description: t("profile.channels.totp.desc", "6-digit codes from Google Authenticator or similar."),
+      },
+      EMAIL: {
+        label: t("profile.channels.email.label", "Email one-time code"),
+        description: t("profile.channels.email.desc", "Backup code delivered to your staff inbox when needed."),
+      },
+    }),
+    [t],
+  );
+
+  const formatTimestamp = useCallback(
+    (value: string | null) => {
+      if (!value) {
+        return t("profile.channels.never", "Never recorded");
+      }
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+      return date.toLocaleString();
+    },
+    [t],
+  );
+
+  const channelStatus = useCallback(
+    (channel: ProfileState["channelSummary"]["channels"][number]) => {
+      if (channel.enrolled) {
+        return {
+          label: t("profile.channels.status.enrolled", "Enrolled"),
+          tone: "text-emerald-300",
+        };
+      }
+      if (channel.available) {
+        return {
+          label: t("profile.channels.status.available", "Available"),
+          tone: "text-neutral-2",
+        };
+      }
+      return {
+        label: t("profile.channels.status.unavailable", "Unavailable"),
+        tone: "text-red-300",
+      };
+    },
+    [t],
+  );
+
+  const describeAuditAction = useCallback(
+    (action: string) => {
+      if (action === "MFA_EMAIL_CODE_SENT") {
+        return t("profile.channels.audit.sent", "Code sent");
+      }
+      if (action === "MFA_EMAIL_VERIFIED") {
+        return t("profile.channels.audit.verified", "Code verified");
+      }
+      if (action === "MFA_EMAIL_FAILED") {
+        return t("profile.channels.audit.failed", "Code failed");
+      }
+      return action;
+    },
+    [t],
+  );
+
+  const summariseDiff = useCallback((diff: Record<string, unknown> | null) => {
+    if (!diff) return null;
+    const entries = Object.entries(diff);
+    if (entries.length === 0) return null;
+    return entries
+      .map(([key, value]) => {
+        if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+          return `${key}: ${String(value)}`;
+        }
+        return `${key}: ${JSON.stringify(value)}`;
+      })
+      .join(", ");
+  }, []);
+
+  const renderChannelMeta = useCallback(
+    (channel: ProfileState["channelSummary"]["channels"][number]) => {
+      if (channel.id === "PASSKEY") {
+        return (
+          <div className="text-right text-[11px] text-neutral-3">
+            <p>{t("profile.channels.passkey.count", "{{count}} registered", { count: channel.passkeyCount ?? 0 })}</p>
+            <p>{t("profile.channels.passkey.lastUsed", "Last used: {{value}}", { value: formatTimestamp(channel.lastUsedAt ?? null) })}</p>
+          </div>
+        );
+      }
+
+      if (channel.id === "TOTP") {
+        if (!channel.enrolled) {
+          return (
+            <div className="text-right text-[11px] text-neutral-3">
+              <p>{t("profile.channels.totp.notEnabled", "Authenticator codes are currently disabled.")}</p>
+            </div>
+          );
+        }
+        return (
+          <div className="text-right text-[11px] text-neutral-3">
+            <p>{t("profile.channels.totp.enabled", "Enabled on {{value}}", { value: channel.enrolledAt ? formatTimestamp(channel.enrolledAt) : t("profile.channels.never", "Never recorded") })}</p>
+            <p>{t("profile.channels.totp.backups", "Backup codes: {{count}}", { count: channel.backupCodesRemaining ?? 0 })}</p>
+          </div>
+        );
+      }
+
+      if (!channel.available) {
+        return (
+          <div className="text-right text-[11px] text-neutral-3">
+            <p>{t("profile.channels.email.missing", "No email configured")}</p>
+          </div>
+        );
+      }
+
+      if (!channel.enrolled) {
+        return (
+          <div className="text-right text-[11px] text-neutral-3">
+            <p>{t("profile.channels.email.notEnabled", "Email codes are currently disabled.")}</p>
+          </div>
+        );
+      }
+
+      return (
+        <div className="text-right text-[11px] text-neutral-3">
+          <p>
+            {channel.destination
+              ? t("profile.channels.email.destination", "Delivered to {{email}}", { email: channel.destination })
+              : t("profile.channels.email.missing", "No email configured")}
+          </p>
+          <p>
+            {t("profile.channels.email.active", "Active codes: {{count}}", { count: channel.activeCodes ?? 0 })}
+          </p>
+          <p>
+            {t("profile.channels.email.lastIssued", "Last sent: {{value}}", {
+              value: channel.lastIssuedAt ? formatTimestamp(channel.lastIssuedAt) : t("profile.channels.never", "Never recorded"),
+            })}
+          </p>
+        </div>
+      );
+    },
+    [formatTimestamp, t],
+  );
+
+  const recoverySummaryRaw = profile.channelSummary.policy.recovery
+    .map((key) => channelCopy[key as "PASSKEY" | "TOTP" | "EMAIL"]?.label ?? key)
+    .filter(Boolean)
+    .join(", ");
+  const recoverySummary = recoverySummaryRaw.length > 0
+    ? recoverySummaryRaw
+    : t("profile.channels.recoveryNone", "No alternate channel enabled yet.");
+
   return (
     <div className="space-y-8">
       <GlassCard
@@ -407,8 +625,65 @@ export function ProfileClient({ email }: ProfileClientProps) {
             : t("profile.mfa.prompt", "Enable Google Authenticator or compatible app to protect your account.")
         }
       >
-        {!profile.mfaEnabled ? (
-          <div className="space-y-4">
+        <div className="space-y-6">
+          {profile.channelSummary && (
+            <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
+              <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                <p className="text-xs uppercase tracking-[0.3em] text-neutral-3">
+                  {t("profile.channels.policyTitle", "Authentication policy")}
+                </p>
+                <p className="text-[11px] text-neutral-2">
+                  {t("profile.channels.primary", "Primary: {{channel}}", {
+                    channel: channelCopy[profile.channelSummary.policy.primary].label,
+                  })}
+                </p>
+              </div>
+              <p className="text-[11px] text-neutral-3">
+                {t("profile.channels.recovery", "Recovery options: {{channels}}", { channels: recoverySummary })}
+              </p>
+              <div className="mt-3 space-y-3">
+                {profile.channelSummary.channels.map((channel) => {
+                  const status = channelStatus(channel);
+                  const meta = renderChannelMeta(channel);
+                  const showEmailAction = channel.id === "EMAIL" && channel.available;
+                  return (
+                    <div
+                      key={channel.id}
+                      className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/10 p-3 md:flex-row md:items-center md:justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-neutral-0">{channelCopy[channel.id].label}</p>
+                          <span className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${status.tone}`}>
+                            {status.label}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-neutral-3">{channelCopy[channel.id].description}</p>
+                      </div>
+                      <div className="flex flex-col gap-2 text-right md:items-end">
+                        {meta}
+                        {showEmailAction && (
+                          <button
+                            type="button"
+                            onClick={() => updateEmailChannel(!channel.enrolled)}
+                            disabled={updatingEmail}
+                            className="inline-flex items-center justify-center rounded-full border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-0 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {channel.enrolled
+                              ? t("profile.channels.email.disableAction", "Disable email codes")
+                              : t("profile.channels.email.enableAction", "Require email codes")}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {!totpEnabled ? (
+            <div className="space-y-4">
             {!enrollment ? (
               <button
                 type="button"
@@ -463,12 +738,12 @@ export function ProfileClient({ email }: ProfileClientProps) {
                 </form>
               </div>
             )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
-              <p className="font-semibold">{t("profile.mfa.enabledTitle", "Authenticator enabled")}</p>
-              <p className="text-xs text-neutral-2">{t("profile.mfa.enabledOn", "Enabled on")} {profile.enrolledAt ? new Date(profile.enrolledAt).toLocaleString() : t("common.unknown", "unknown")}</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
+                <p className="font-semibold">{t("profile.mfa.enabledTitle", "Authenticator enabled")}</p>
+                <p className="text-xs text-neutral-2">{t("profile.mfa.enabledOn", "Enabled on")} {profile.enrolledAt ? new Date(profile.enrolledAt).toLocaleString() : t("common.unknown", "unknown")}</p>
               <p className="text-xs text-neutral-2">{t("profile.mfa.backupRemaining", "Backup codes remaining:")} {profile.backupCount}</p>
             </div>
 
@@ -529,8 +804,33 @@ export function ProfileClient({ email }: ProfileClientProps) {
                 </li>
               ))}
             </ul>
-          </div>
-        )}
+            </div>
+          )}
+
+          {profile.emailAudit.length > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
+              <p className="font-semibold">
+                {t("profile.channels.audit.title", "Recent email code activity")}
+              </p>
+              <div className="mt-3 space-y-3">
+                {profile.emailAudit.map((entry) => {
+                  const diffSummary = summariseDiff(entry.diff);
+                  return (
+                    <div key={entry.id} className="rounded-xl border border-white/10 bg-white/10 p-3 text-[11px] text-neutral-2">
+                      <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                        <span className="font-semibold uppercase tracking-[0.2em] text-neutral-1">
+                          {describeAuditAction(entry.action)}
+                        </span>
+                        <span>{formatTimestamp(entry.createdAt)}</span>
+                      </div>
+                      {diffSummary && <p className="mt-1 text-neutral-3">{diffSummary}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </GlassCard>
 
       <GlassCard

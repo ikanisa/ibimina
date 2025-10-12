@@ -10,7 +10,7 @@ import {
   sessionTtlSeconds,
   trustedTtlSeconds,
 } from "@/lib/mfa/session";
-import { consumeBackupCode, decryptSensitiveString, verifyTotp } from "@/lib/mfa";
+import { consumeBackupCode, decryptSensitiveString, verifyTotp, verifyEmailOtp } from "@/lib/mfa";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { deriveIpPrefix, hashDeviceFingerprint, hashUserAgent } from "@/lib/mfa/trusted-device";
 import { logAudit } from "@/lib/audit";
@@ -19,7 +19,7 @@ import type { Database } from "@/lib/supabase/types";
 
 type Payload = {
   token: string;
-  method?: "totp" | "backup";
+  method?: "totp" | "backup" | "email";
   rememberDevice?: boolean;
 };
 
@@ -32,6 +32,11 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Payload | null;
   if (!body?.token) {
     return NextResponse.json({ error: "token_required" }, { status: 400 });
+  }
+
+  const preferredMethod = body.method ?? (profile.mfa_methods?.includes("EMAIL") ? "email" : "totp");
+  if (!["totp", "backup", "email"].includes(preferredMethod)) {
+    return NextResponse.json({ error: "invalid_method" }, { status: 400 });
   }
 
   try {
@@ -56,17 +61,31 @@ export async function POST(request: Request) {
     "mfa_secret_enc" | "mfa_backup_hashes" | "last_mfa_step" | "last_mfa_success_at"
   > | null;
 
-  if (error || !record?.mfa_secret_enc) {
+  if (error) {
     console.error(error);
     return NextResponse.json({ error: "mfa_not_configured" }, { status: 400 });
   }
 
-  const method = body.method ?? "totp";
+  const safeRecord: Pick<
+    Database["public"]["Tables"]["users"]["Row"],
+    "mfa_secret_enc" | "mfa_backup_hashes" | "last_mfa_step" | "last_mfa_success_at"
+  > = {
+    mfa_secret_enc: record?.mfa_secret_enc ?? null,
+    mfa_backup_hashes: record?.mfa_backup_hashes ?? [],
+    last_mfa_step: record?.last_mfa_step ?? null,
+    last_mfa_success_at: record?.last_mfa_success_at ?? null,
+  };
+
+  if ((preferredMethod === "totp" || preferredMethod === "backup") && !safeRecord.mfa_secret_enc) {
+    return NextResponse.json({ error: "mfa_not_configured" }, { status: 400 });
+  }
+
+  const method = preferredMethod as "totp" | "backup" | "email";
   const token = body.token.trim();
   let success = false;
   let currentStep: number | null = null;
   let resolvedStep: number | null = null;
-  let updatedBackupHashes = record.mfa_backup_hashes ?? [];
+  let updatedBackupHashes = safeRecord.mfa_backup_hashes ?? [];
 
   if (method === "backup") {
     const next = consumeBackupCode(token, updatedBackupHashes);
@@ -74,14 +93,21 @@ export async function POST(request: Request) {
       updatedBackupHashes = next;
       success = true;
     }
+  } else if (method === "email") {
+    const emailResult = await verifyEmailOtp(user.id, token);
+    if (emailResult.ok) {
+      success = true;
+    } else {
+      return NextResponse.json({ error: emailResult.reason }, { status: 401 });
+    }
   } else {
     try {
-      const secret = decryptSensitiveString(record.mfa_secret_enc);
+      const secret = decryptSensitiveString(safeRecord.mfa_secret_enc!);
       const verification = verifyTotp(secret, token, 1);
       success = verification.ok;
       currentStep = verification.ok ? verification.step! : null;
       if (success && currentStep !== null) {
-        const lastStep = record.last_mfa_step ?? null;
+        const lastStep = safeRecord.last_mfa_step ?? null;
         if (lastStep !== null && currentStep < lastStep - 1) {
           success = false;
         } else {
@@ -115,12 +141,24 @@ export async function POST(request: Request) {
     last_mfa_success_at: new Date().toISOString(),
   };
 
+  const methodSet = new Set(profile.mfa_methods ?? []);
+  if (method === "email") {
+    methodSet.add("EMAIL");
+  }
+  if (profile.mfa_passkey_enrolled) {
+    methodSet.add("PASSKEY");
+  }
+
   if (method === "backup") {
     updates.mfa_backup_hashes = updatedBackupHashes;
-    updates.last_mfa_step = record.last_mfa_step ?? null;
-  } else {
+    updates.last_mfa_step = safeRecord.last_mfa_step ?? null;
+    methodSet.add("TOTP");
+  } else if (method === "totp") {
     updates.last_mfa_step = resolvedStep ?? currentStep;
+    methodSet.add("TOTP");
   }
+
+  updates.mfa_methods = Array.from(methodSet);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateResult = await (supabase as any).from("users").update(updates).eq("id", user.id);

@@ -45,12 +45,15 @@ export async function POST(request: Request) {
   const backupRecords = generateBackupCodes();
   const supabase = createSupabaseAdminClient();
 
+  const methodSet = new Set(profile.mfa_methods ?? []);
+  methodSet.add("TOTP");
+
   const updatePayload: Database["public"]["Tables"]["users"]["Update"] = {
     mfa_enabled: true,
     mfa_secret_enc: encryptedSecret,
     mfa_enrolled_at: new Date().toISOString(),
     mfa_backup_hashes: backupRecords.map((record) => record.hash),
-    mfa_methods: ["TOTP"],
+    mfa_methods: Array.from(methodSet),
     failed_mfa_count: 0,
     last_mfa_step: null,
     last_mfa_success_at: null,
@@ -64,7 +67,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 
-  await logAudit({ action: "MFA_ENROLLED", entity: "USER", entityId: user.id, diff: { methods: ["TOTP"] } });
+  await logAudit({
+    action: "MFA_ENROLLED",
+    entity: "USER",
+    entityId: user.id,
+    diff: { methods: Array.from(methodSet) },
+  });
 
   return NextResponse.json({ backupCodes: backupRecords.map((record) => record.code) });
 }

@@ -843,4 +843,61 @@ export type Database = {
       [_ in never]: never;
     };
   };
+  app: {
+    Tables: {
+      mfa_email_codes: {
+        Row: {
+          id: string;
+          user_id: string;
+          code_hash: string;
+          salt: string;
+          expires_at: string;
+          attempt_count: number;
+          consumed_at: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          code_hash: string;
+          salt: string;
+          expires_at: string;
+          attempt_count?: number;
+          consumed_at?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          code_hash?: string;
+          salt?: string;
+          expires_at?: string;
+          attempt_count?: number;
+          consumed_at?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mfa_email_codes_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
 };

@@ -43,12 +43,15 @@ export function LoginForm() {
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const [mfaToken, setMfaToken] = useState("");
-  const [mfaMethod, setMfaMethod] = useState<"totp" | "backup">("totp");
-  const [rememberDevice, setRememberDevice] = useState(false);
-  const [passkeySupported, setPasskeySupported] = useState(false);
-  const [passkeyEnrolled, setPasskeyEnrolled] = useState(false);
-  const [passkeyPending, setPasskeyPending] = useState(false);
+const [mfaToken, setMfaToken] = useState("");
+const [mfaMethod, setMfaMethod] = useState<"totp" | "backup" | "email">("totp");
+const [rememberDevice, setRememberDevice] = useState(false);
+const [passkeySupported, setPasskeySupported] = useState(false);
+const [passkeyEnrolled, setPasskeyEnrolled] = useState(false);
+const [passkeyPending, setPasskeyPending] = useState(false);
+const [emailCountdown, setEmailCountdown] = useState(0);
+const [emailSending, setEmailSending] = useState(false);
+const [availableMethods, setAvailableMethods] = useState<string[]>([]);
   const qrCodeUrl = useMemo(
     () =>
       enrollment
@@ -113,7 +116,19 @@ export function LoginForm() {
     setMfaMethod("totp");
     setRememberDevice(false);
     setPasskeyPending(false);
+    setEmailCountdown(0);
+    setEmailSending(false);
   }, []);
+
+  useEffect(() => {
+    if (emailCountdown <= 0) {
+      return;
+    }
+    const timer = setInterval(() => {
+      setEmailCountdown((value) => (value > 0 ? value - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [emailCountdown]);
 
   useEffect(() => {
     if (mfaMode !== "1") {
@@ -136,6 +151,8 @@ export function LoginForm() {
           setStep("challenge");
           if (status.passkeyEnrolled && passkeySupported) {
             setMessage(t("auth.challenge.passkeyPrompt", "Approve with your passkey or enter a 6-digit authenticator code."));
+          } else if (status.methods?.includes?.("EMAIL")) {
+            setMessage(t("auth.challenge.emailPrompt", "Use your authenticator app or request a code by email."));
           } else {
             setMessage(t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app."));
           }
@@ -219,15 +236,30 @@ export function LoginForm() {
           return;
         }
 
+        const methods = status.methods ?? [];
+        setAvailableMethods(methods);
+        const hasTotp = methods.includes("TOTP");
+        const hasEmail = methods.includes("EMAIL");
+
         setStep("challenge");
         if (status.passkeyEnrolled && passkeySupported) {
-          setMessage(t("auth.challenge.passkeyPrompt", "Approve with your passkey or enter a 6-digit authenticator code."));
+          if (hasTotp && hasEmail) {
+            setMessage(t("auth.challenge.passkeyMulti", "Approve with your passkey or use the authenticator app/email code."));
+          } else if (!hasTotp && hasEmail) {
+            setMessage(t("auth.challenge.passkeyEmail", "Approve with your passkey or enter the code we emailed you."));
+          } else {
+            setMessage(t("auth.challenge.passkeyPrompt", "Approve with your passkey or enter a 6-digit authenticator code."));
+          }
+        } else if (hasTotp && hasEmail) {
+          setMessage(t("auth.challenge.emailPrompt", "Use your authenticator app or request a code by email."));
+        } else if (!hasTotp && hasEmail) {
+          setMessage(t("auth.challenge.emailOnly", "Enter the code we emailed you."));
         } else {
           setMessage(t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app."));
         }
         setError(null);
         setMfaToken("");
-        setMfaMethod("totp");
+        setMfaMethod((hasTotp ? "totp" : hasEmail ? "email" : "backup"));
       });
     },
     [email, password, passkeySupported, router, supabase, t],
@@ -251,11 +283,21 @@ export function LoginForm() {
         if (!response.ok) {
           const { error: code } = await response.json().catch(() => ({ error: "invalid_code" }));
           if (code === "invalid_code") {
-            setError(t("auth.errors.invalidCode", "Invalid code"));
+            setError(
+              mfaMethod === "email"
+                ? t("auth.email.invalid", "Email code not accepted.")
+                : t("auth.errors.invalidCode", "Invalid code"),
+            );
+          } else if (code === "no_active_code") {
+            setError(t("auth.email.expired", "No active email code. Request a new one."));
           } else if (code === "rate_limit_exceeded") {
             setError(t("auth.errors.rateLimit", "Too many attempts. Try again later."));
           } else if (code === "configuration_error") {
             setError(t("auth.errors.config", "Authenticator configuration issue. Contact support."));
+          } else if (code === "server_key_missing") {
+            setError(t("auth.errors.serverKeyMissing", "Security configuration missing. Contact support."));
+          } else if (code === "decryption_failed") {
+            setError(t("auth.errors.decryptionFailed", "Security configuration mismatch. Contact support."));
           } else {
             setError(t("auth.errors.verifyCode", "Unable to verify authentication code"));
           }
@@ -271,6 +313,39 @@ export function LoginForm() {
     },
     [mfaMethod, mfaToken, rememberDevice, router, t],
   );
+
+  const requestEmailCode = useCallback(async () => {
+    if (emailSending || emailCountdown > 0) {
+      return;
+    }
+    setEmailSending(true);
+    try {
+      const response = await fetch("/api/mfa/email/request", { method: "POST" });
+      if (response.status === 429) {
+        const payload = (await response.json().catch(() => ({}))) as { retryAt?: string; reason?: string };
+        const retryAt = payload.retryAt ? new Date(payload.retryAt) : null;
+        const delta = retryAt ? Math.ceil(Math.max(0, retryAt.getTime() - Date.now()) / 1000) : 60;
+        setEmailCountdown(delta);
+        if (payload.reason === "active_limit") {
+          setError(t("auth.email.activeLimit", "Too many active codes. Use an existing code or wait until it expires."));
+        } else {
+          setError(t("auth.email.rateLimited", "Check your inbox or try again shortly."));
+        }
+        return;
+      }
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        setError(payload.error ?? t("auth.errors.emailSend", "Unable to send email code"));
+        return;
+      }
+      setEmailCountdown(60);
+      setMfaMethod("email");
+      setMessage(t("auth.email.sent", "We sent a security code to your email."));
+      setError(null);
+    } finally {
+      setEmailSending(false);
+    }
+  }, [emailCountdown, emailSending, t]);
 
   const handlePasskeyChallenge = useCallback(async () => {
     if (!passkeySupported || !passkeyEnrolled || passkeyPending) {
@@ -500,12 +575,22 @@ export function LoginForm() {
             <p>
               {passkeySupported && passkeyEnrolled
                 ? t("auth.challenge.passkeyPrompt", "Approve with your passkey or enter a 6-digit authenticator code.")
-                : t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app.")}
+                : mfaMethod === "email"
+                  ? t("auth.email.challenge", "Enter the code we emailed you. Codes expire in 10 minutes.")
+                  : t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app.")}
             </p>
-            <p className="text-[10px] text-neutral-3">{t("auth.challenge.rotate", "Codes rotate every 30 seconds.")}</p>
+            {mfaMethod !== "email" && (
+              <p className="text-[10px] text-neutral-3">{t("auth.challenge.rotate", "Codes rotate every 30 seconds.")}</p>
+            )}
           </div>
           <div className="space-y-2 text-left">
-            <label htmlFor="mfa-token" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">{mfaMethod === "backup" ? t("auth.challenge.backupCode", "Backup code") : t("auth.challenge.authCode", "Authenticator code")}</label>
+            <label htmlFor="mfa-token" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
+              {mfaMethod === "backup"
+                ? t("auth.challenge.backupCode", "Backup code")
+                : mfaMethod === "email"
+                  ? t("auth.email.codeLabel", "Email code")
+                  : t("auth.challenge.authCode", "Authenticator code")}
+            </label>
             <input
               id="mfa-token"
               inputMode={mfaMethod === "backup" ? "text" : "numeric"}
@@ -518,12 +603,12 @@ export function LoginForm() {
                   mfaMethod === "backup"
                     ? event.target.value.replace(/\s+/g, "").toUpperCase()
                     : event.target.value.replace(/[^0-9]/g, "")
-                )
-              }
-              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-              placeholder={mfaMethod === "backup" ? "ABCD-EFGH" : "123456"}
-              disabled={pending}
-            />
+              )
+            }
+            className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
+            placeholder={mfaMethod === "backup" ? "ABCD-EFGH" : "123456"}
+            disabled={pending}
+          />
           </div>
           {passkeySupported && passkeyEnrolled && (
             <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2 sm:flex-row sm:items-center sm:justify-between">
@@ -541,7 +626,7 @@ export function LoginForm() {
               </button>
             </div>
           )}
-          <div className="flex items-center justify-between text-xs text-neutral-2">
+          <div className="flex flex-col gap-3 text-xs text-neutral-2 sm:flex-row sm:items-center sm:justify-between">
             <label className="inline-flex items-center gap-2">
               <input
                 type="checkbox"
@@ -551,16 +636,34 @@ export function LoginForm() {
               />
               {t("auth.challenge.trustDevice", "Trust this device for 30 days")}
             </label>
-            <button
-              type="button"
-              className="text-[11px] uppercase tracking-[0.3em] text-neutral-2 hover:text-neutral-0"
-              onClick={() => {
-                setMfaMethod(mfaMethod === "totp" ? "backup" : "totp");
-                setMfaToken("");
-              }}
-            >
-              {mfaMethod === "totp" ? t("auth.challenge.useBackup", "Use backup code") : t("auth.challenge.useAuthenticator", "Use authenticator")}
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                className="text-[11px] uppercase tracking-[0.3em] text-neutral-2 hover:text-neutral-0"
+                onClick={() => {
+                  setMfaMethod((prev) => (prev === "totp" ? "backup" : "totp"));
+                  setMfaToken("");
+                }}
+              >
+                {mfaMethod === "totp"
+                  ? t("auth.challenge.useBackup", "Use a backup code")
+                  : t("auth.challenge.useTotp", "Use authenticator app")}
+              </button>
+              {availableMethods.includes("EMAIL") && (
+                <button
+                  type="button"
+                  onClick={requestEmailCode}
+                  disabled={emailCountdown > 0 || emailSending}
+                  className="inline-flex items-center justify-center rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {emailCountdown > 0
+                    ? t("auth.email.resendIn", "Resend in {{seconds}}s", { seconds: emailCountdown })
+                    : emailSending
+                      ? t("auth.email.sending", "Sending…")
+                      : t("auth.email.sendCode", "Send email code")}
+                </button>
+              )}
+            </div>
           </div>
         </>
       )}

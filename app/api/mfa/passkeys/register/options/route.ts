@@ -21,10 +21,17 @@ export async function POST(request: Request) {
     diff: { friendlyName },
   });
 
+  const methodSet = new Set([...(profile.mfa_methods ?? ["EMAIL"])]);
+  methodSet.add("EMAIL");
+  methodSet.add("PASSKEY");
+  if (profile.mfa_enabled) {
+    methodSet.add("TOTP");
+  }
+
   return NextResponse.json({
     options,
     stateToken,
     friendlyName,
-    methods: profile.mfa_methods ?? ["TOTP"],
+    methods: Array.from(methodSet),
   });
 }

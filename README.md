@@ -84,7 +84,10 @@ supabase secrets set \
   KMS_DATA_KEY_BASE64=$KMS_DATA_KEY_BASE64 \
   BACKUP_PEPPER=$BACKUP_PEPPER \
   TRUSTED_COOKIE_SECRET=$TRUSTED_COOKIE_SECRET \
-  REPORT_SIGNING_KEY=$REPORT_SIGNING_KEY
+  REPORT_SIGNING_KEY=$REPORT_SIGNING_KEY \
+  EMAIL_OTP_PEPPER=$EMAIL_OTP_PEPPER \
+  RESEND_API_KEY=$RESEND_API_KEY \
+  MFA_EMAIL_FROM=$MFA_EMAIL_FROM
 ```
 
 - Passkeys + TOTP: set `MFA_RP_ID`, `MFA_ORIGIN`, and optional `MFA_RP_NAME` so WebAuthn challenges issue against the correct relying party. Staff can enroll hardware-backed passkeys alongside authenticator apps from **Profile → Security**.

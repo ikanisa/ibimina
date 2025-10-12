@@ -43,6 +43,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "user_not_found", email: targetEmail }, { status: 404 });
   }
 
+  const { data: emailCodes } = await supabase
+    .schema("app")
+    .from("mfa_email_codes")
+    .select("id")
+    .eq("user_id", data.id)
+    .is("consumed_at", null)
+    .gte("expires_at", new Date().toISOString());
+
   const diagnostic = {
     env: {
       hasKmsKey,
@@ -55,6 +63,7 @@ export async function GET(request: Request) {
       email: data.email,
       mfaEnabled: data.mfa_enabled,
       mfaSecretPresent: Boolean(data.mfa_secret_enc),
+      emailCodesActive: emailCodes?.length ?? 0,
     },
     auth: {
       requesterId: user.id,
@@ -64,4 +73,3 @@ export async function GET(request: Request) {
 
   return NextResponse.json(diagnostic);
 }
-

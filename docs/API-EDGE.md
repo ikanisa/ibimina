@@ -10,6 +10,7 @@ All functions live under `supabase/functions/` and deploy to `https://<project-r
 | `recon-exceptions` | `/recon/exceptions` | `GET`, `POST` | Staff/system-admin JWT | 40 mutations/min/user |
 | `reports-export` | `/reports/export` | `GET` | Staff/system-admin JWT | Default project limit |
 | `admin-reset-mfa` | `/admin/reset-mfa` | `POST` | System-admin JWT | 10 req/min/user |
+| `mfa-email` | `/mfa-email` | `POST` | Service-role (invoked server-side) | 120 req/min/project |
 
 ## Payloads
 
@@ -150,6 +151,23 @@ POST /admin/reset-mfa
 ```
 
 Resets trusted devices, revokes all MFA factors, marks `auth.users.mfa_enabled = false`, enqueues a notification, and logs an `MFA_RESET` audit entry.
+
+### `/mfa-email`
+
+Internal function invoked from Next.js API handlers. Payload:
+
+```json
+POST /mfa-email
+{
+  "email": "staff@sacco.rw",
+  "code": "123456",
+  "ttlMinutes": 10,
+  "expiresAt": "2025-10-20T12:34:56Z",
+  "locale": "en"
+}
+```
+
+Requires `RESEND_API_KEY` and `MFA_EMAIL_FROM` secrets. On success it returns `{ "success": true }` and increments the `mfa_email_sent` metric; failures increment `mfa_email_failure` and bubble `send_failed`, `invalid_payload`, or `internal_error`.
 
 ## Common behaviour
 

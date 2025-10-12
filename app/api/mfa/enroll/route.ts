@@ -46,11 +46,14 @@ export async function DELETE(request: Request) {
 
   const { data: rawRecord, error } = await supabase
     .from("users")
-    .select("mfa_secret_enc, mfa_backup_hashes")
+    .select("mfa_secret_enc, mfa_backup_hashes, mfa_methods, mfa_passkey_enrolled, mfa_enabled, mfa_enrolled_at")
     .eq("id", user.id)
     .maybeSingle();
 
-  const record = rawRecord as Pick<Database["public"]["Tables"]["users"]["Row"], "mfa_secret_enc" | "mfa_backup_hashes"> | null;
+  const record = rawRecord as Pick<
+    Database["public"]["Tables"]["users"]["Row"],
+    "mfa_secret_enc" | "mfa_backup_hashes" | "mfa_methods" | "mfa_passkey_enrolled" | "mfa_enabled" | "mfa_enrolled_at"
+  > | null;
 
   if (error || !record?.mfa_secret_enc) {
     console.error(error);
@@ -83,12 +86,17 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "invalid_code" }, { status: 401 });
   }
 
+  const remainingMethods = new Set(record.mfa_methods ?? profile.mfa_methods ?? []);
+  remainingMethods.delete("TOTP");
+  const remainingList = Array.from(remainingMethods);
+  const stillProtected = remainingList.length > 0;
+
   const updatePayload: Database["public"]["Tables"]["users"]["Update"] = {
-    mfa_enabled: false,
+    mfa_enabled: stillProtected,
     mfa_secret_enc: null,
-    mfa_enrolled_at: null,
+    mfa_enrolled_at: stillProtected ? record.mfa_enrolled_at ?? new Date().toISOString() : null,
     mfa_backup_hashes: [],
-    mfa_methods: ["TOTP"],
+    mfa_methods: remainingList,
     failed_mfa_count: 0,
     last_mfa_step: null,
     last_mfa_success_at: null,
@@ -108,7 +116,12 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 
-  await logAudit({ action: "MFA_DISABLED", entity: "USER", entityId: user.id, diff: null });
+  await logAudit({
+    action: stillProtected ? "MFA_METHOD_REMOVED" : "MFA_DISABLED",
+    entity: "USER",
+    entityId: user.id,
+    diff: { removed: "TOTP", remaining: remainingList },
+  });
 
   const response = NextResponse.json({ success: true });
   response.cookies.delete("ibimina_mfa");

@@ -24,6 +24,7 @@ All SACCO+ objects live in the dedicated `app` schema with operational helpers i
 | `app.audit_logs` | Immutable audit trail | `sacco_id`, `actor`, `action`, `entity`, `entity_id`, `diff` |
 | `app.user_profiles` | SACCO-scoped role binding | `user_id`, `sacco_id`, `role` (`SYSTEM_ADMIN`, `SACCO_MANAGER`, `SACCO_STAFF`) |
 | `app.devices_trusted` | Trusted device fingerprints | `user_id`, `device_hash`, `device_label`, `expires_at`, `metadata` |
+| `app.mfa_email_codes` | Time-boxed email OTPs (hashed) | `user_id`, `code_hash`, `salt`, `expires_at`, `consumed_at`, `attempt_count` |
 | `public.webauthn_credentials` | Passkey (WebAuthn) registrations | `user_id`, `credential_id`, `credential_public_key`, `sign_count`, `transports`, `device_type`, `friendly_name` |
 | `public.mfa_recovery_codes` | Backup codes (hashed) | `user_id`, `codes[]`, `updated_at` |
 | `ops.rate_limits` | Minute buckets for rate limiting | `bucket_key` (`ip:...`, `user:...`), `route`, `window_started`, `count` |
@@ -62,6 +63,8 @@ Jobs are managed through `cron.job`; re-running the migration upserts both entri
 | `OPENAI_API_KEY` | AI fallback in `/sms/ai-parse`. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Internal Edge Function Supabase client. |
 | `REPORT_SIGNING_KEY` | Optional HMAC signature on CSV exports. |
-| `BACKUP_PEPPER`, `TRUSTED_COOKIE_SECRET` | Device trust + MFA tooling (future features). |
+| `BACKUP_PEPPER` / `EMAIL_OTP_PEPPER` | Salt for backup/email MFA codes. |
+| `MFA_SESSION_SECRET`, `TRUSTED_COOKIE_SECRET` | MFA challenge + trusted-device cookie signing. |
+| `RESEND_API_KEY`, `MFA_EMAIL_FROM`, `MFA_EMAIL_LOCALE` | Email OTP dispatch via `mfa-email` function. |
 
 Keep secrets in Supabase via `supabase secrets set`; never commit them to the repo.

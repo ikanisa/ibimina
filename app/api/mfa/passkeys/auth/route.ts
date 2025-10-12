@@ -62,8 +62,12 @@ export async function POST(request: Request) {
   }
 
   const supabase = createSupabaseAdminClient();
-  const methods = new Set(profile.mfa_methods ?? []);
+  const methods = new Set(profile.mfa_methods ?? ["EMAIL"]);
+  methods.add("EMAIL");
   methods.add("PASSKEY");
+  if (profile.mfa_enabled) {
+    methods.add("TOTP");
+  }
 
   const updatePayload: Database["public"]["Tables"]["users"]["Update"] = {
     failed_mfa_count: 0,
