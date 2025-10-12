@@ -382,27 +382,6 @@ export function ProfileClient({ email }: ProfileClientProps) {
     await fetchProfile();
   };
 
-  const backupDownload = useMemo(() => {
-    if (!backupCodes || backupCodes.length === 0) return null;
-    const blob = new Blob([backupCodes.join("\n")], { type: "text/plain" });
-    return URL.createObjectURL(blob);
-  }, [backupCodes]);
-
-  const busy = updatingPassword || processingEnrollment || processingDisable || refreshing;
-
-  if (loading || !profile) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-neutral-2" aria-hidden />
-        <span className="sr-only">{t("profile.loading", "Loading profile")}</span>
-      </div>
-    );
-  }
-
-  const totpChannel = profile.channelSummary.channels.find((channel) => channel.id === "TOTP");
-  const emailChannel = profile.channelSummary.channels.find((channel) => channel.id === "EMAIL");
-  const totpEnabled = Boolean(totpChannel?.enrolled);
-
   const channelCopy = useMemo(
     () => ({
       PASSKEY: {
@@ -415,7 +394,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
       },
       EMAIL: {
         label: t("profile.channels.email.label", "Email one-time code"),
-        description: t("profile.channels.email.desc", "Backup code delivered to your staff inbox when needed."),
+        description: t("profile.channels.email.desc", "6-digit code delivered to your staff inbox for sign-in."),
       },
     }),
     [t],
@@ -551,6 +530,26 @@ export function ProfileClient({ email }: ProfileClientProps) {
     [formatTimestamp, t],
   );
 
+  const backupDownload = useMemo(() => {
+    if (!backupCodes || backupCodes.length === 0) return null;
+    const blob = new Blob([backupCodes.join("\n")], { type: "text/plain" });
+    return URL.createObjectURL(blob);
+  }, [backupCodes]);
+
+  const busy = updatingPassword || processingEnrollment || processingDisable || refreshing;
+
+  if (loading || !profile) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-neutral-2" aria-hidden />
+        <span className="sr-only">{t("profile.loading", "Loading profile")}</span>
+      </div>
+    );
+  }
+
+  const totpChannel = profile.channelSummary.channels.find((channel) => channel.id === "TOTP");
+  const totpEnabled = Boolean(totpChannel?.enrolled);
+
   const recoverySummaryRaw = profile.channelSummary.policy.recovery
     .map((key) => channelCopy[key as "PASSKEY" | "TOTP" | "EMAIL"]?.label ?? key)
     .filter(Boolean)
@@ -621,8 +620,8 @@ export function ProfileClient({ email }: ProfileClientProps) {
         }
         subtitle={
           profile.mfaEnabled
-            ? t("profile.mfa.enforced", "Authenticator app is required on every sign-in.")
-            : t("profile.mfa.prompt", "Enable Google Authenticator or compatible app to protect your account.")
+            ? t("profile.mfa.enforced", "Multi-factor verification is required on every sign-in. Use any active channel below.")
+            : t("profile.mfa.prompt", "Turn on an authenticator app or email codes to protect your account.")
         }
       >
         <div className="space-y-6">

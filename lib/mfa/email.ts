@@ -89,7 +89,7 @@ export const issueEmailOtp = async (userId: string, email: string) => {
   }));
 
   let rateLimited = false;
-  let reasons: RateLimitReason[] = [];
+  const reasons: RateLimitReason[] = [];
   const retryCandidates: Date[] = [];
 
   if (activeRows.length > 0) {
