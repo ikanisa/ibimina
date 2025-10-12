@@ -6,15 +6,28 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { ReportFilters, type ReportFiltersChange } from "@/components/reports/report-filters";
 import { ReportExportPanel } from "@/components/reports/report-export-panel";
 import { ReportPreview, type ReportPreviewSummary } from "@/components/reports/report-preview";
+import { ReportSubscriptionsCard } from "@/components/reports/report-subscriptions-card";
 import type { SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
 import { useTranslation } from "@/providers/i18n-provider";
+import type { ReportSubscription } from "./types";
 
 interface ReportsClientProps {
   initialSacco: SaccoSearchResult | null;
   ikiminaCount: number;
+  saccoOptions: SaccoSearchResult[];
+  subscriptions: ReportSubscription[];
+  isSystemAdmin: boolean;
+  profileSaccoId: string | null;
 }
 
-export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps) {
+export function ReportsClient({
+  initialSacco,
+  ikiminaCount,
+  saccoOptions,
+  subscriptions,
+  isSystemAdmin,
+  profileSaccoId,
+}: ReportsClientProps) {
   const { t } = useTranslation();
   const [filters, setFilters] = useState<ReportFiltersChange>({
     sacco: initialSacco,
@@ -89,6 +102,23 @@ export function ReportsClient({ initialSacco, ikiminaCount }: ReportsClientProps
           </div>
         </GlassCard>
       </div>
+
+      <GlassCard
+        title={<span>{t("reports.automations.title", "Scheduled exports")}</span>}
+        subtitle={
+          <span className="text-xs text-neutral-3">
+            {t("reports.automations.subtitle", "Deliver recurring reports to leadership.")}
+          </span>
+        }
+      >
+        <ReportSubscriptionsCard
+          filters={exportContext}
+          subscriptions={subscriptions}
+          saccoOptions={saccoOptions}
+          isSystemAdmin={isSystemAdmin}
+          defaultSaccoId={initialSacco?.id ?? profileSaccoId}
+        />
+      </GlassCard>
     </div>
   );
 }

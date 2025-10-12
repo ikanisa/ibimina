@@ -1,3 +1,4 @@
+import { cacheWithTags, CACHE_TAGS, REVALIDATION_SECONDS } from "@/lib/performance/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
@@ -57,7 +58,7 @@ interface DashboardSummaryParams {
   allowAll: boolean;
 }
 
-export async function getDashboardSummary({ saccoId, allowAll }: DashboardSummaryParams): Promise<DashboardSummary> {
+async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryParams): Promise<DashboardSummary> {
   const supabase = await createSupabaseServerClient();
 
   if (!allowAll && !saccoId) {
@@ -149,7 +150,6 @@ export async function getDashboardSummary({ saccoId, allowAll }: DashboardSummar
     });
   }
 
-  // Fallback: if no payments or metadata missing, fetch latest ikimina
   if (topGroupIds.length === 0 || groupMetaMap.size < topGroupIds.length) {
     let fallbackQuery = supabase
       .from("ibimina")
@@ -250,4 +250,17 @@ export async function getDashboardSummary({ saccoId, allowAll }: DashboardSummar
     topIkimina,
     missedContributors: overdueMembers,
   };
+}
+
+export async function getDashboardSummary(params: DashboardSummaryParams): Promise<DashboardSummary> {
+  const { saccoId, allowAll } = params;
+  const saccoTag = CACHE_TAGS.sacco(saccoId ?? null);
+  const cached = cacheWithTags(
+    () => computeDashboardSummary(params),
+    ["dashboard-summary", allowAll ? "all" : "scoped", saccoId ?? "none"],
+    [CACHE_TAGS.dashboardSummary, saccoTag],
+    allowAll ? REVALIDATION_SECONDS.minute : REVALIDATION_SECONDS.fiveMinutes
+  );
+
+  return cached();
 }

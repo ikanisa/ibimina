@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "path";
+import { HSTS_HEADER, SECURITY_HEADERS } from "./lib/security/headers";
 
 const remotePatterns = [
   {
@@ -48,6 +49,43 @@ const nextConfig: NextConfig = {
     remotePatterns,
     formats: ["image/avif", "image/webp"],
     unoptimized: true,
+  },
+  poweredByHeader: false,
+  async headers() {
+    const baseHeaders = [...SECURITY_HEADERS];
+    if (process.env.NODE_ENV === "production") {
+      baseHeaders.push(HSTS_HEADER);
+    }
+    const immutableAssetHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+    ];
+    const manifestHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
+    ];
+    const serviceWorkerHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+    ];
+    return [
+      {
+        source: "/icons/:path*",
+        headers: immutableAssetHeaders,
+      },
+      {
+        source: "/manifest.json",
+        headers: manifestHeaders,
+      },
+      {
+        source: "/service-worker.js",
+        headers: serviceWorkerHeaders,
+      },
+      {
+        source: "/:path*",
+        headers: baseHeaders,
+      },
+    ];
   },
 };
 

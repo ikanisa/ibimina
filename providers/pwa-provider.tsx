@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AddToHomeBanner } from "@/components/system/add-to-home-banner";
+import { InstallPrompt, type BeforeInstallPromptEvent } from "@/components/pwa/install-prompt";
 import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
 
 interface PwaProviderProps {
   children: React.ReactNode;
@@ -66,23 +61,6 @@ export function PwaProvider({ children }: PwaProviderProps) {
     };
   }, [success, t]);
 
-  const onInstall = async () => {
-    if (!deferredPrompt) {
-      setBannerVisible(false);
-      return;
-    }
-    try {
-      await deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === "accepted") {
-        success(t("toast.genericSuccess"));
-      }
-    } finally {
-      setDeferredPrompt(null);
-      setBannerVisible(false);
-    }
-  };
-
   const onDismiss = () => {
     setBannerVisible(false);
     setTimeout(() => setDeferredPrompt(null), 1000);
@@ -91,13 +69,14 @@ export function PwaProvider({ children }: PwaProviderProps) {
   return (
     <>
       {children}
-      <AddToHomeBanner
+      <InstallPrompt
         open={bannerVisible}
+        event={deferredPrompt}
         title={t("addToHome.title")}
         description={t("addToHome.description")}
         installLabel={t("addToHome.install")}
         dismissLabel={t("addToHome.dismiss")}
-        onInstall={onInstall}
+        onInstalled={() => success(t("toast.genericSuccess"))}
         onDismiss={onDismiss}
       />
     </>

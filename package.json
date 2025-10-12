@@ -13,7 +13,9 @@
     "fix:i18n": "node scripts/fix-i18n.mjs && node scripts/check-i18n.mjs",
     "check:lighthouse": "npx --yes lighthouse http://localhost:3000 --view",
     "analyze:pwa": "lighthouse https://localhost:3000 --only-categories=pwa --preset=desktop || true",
-    "verify:pwa": "node scripts/verify-pwa.mjs"
+    "verify:pwa": "node scripts/verify-pwa.mjs",
+    "test": "npm run test:rls",
+    "test:rls": "bash scripts/test-rls.sh"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.2.2",

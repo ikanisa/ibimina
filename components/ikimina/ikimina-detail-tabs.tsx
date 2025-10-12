@@ -7,9 +7,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import type { Database } from "@/lib/supabase/types";
 import { StatusChip } from "@/components/common/status-chip";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
 import { IkiminaSettingsEditor } from "@/components/ikimina/ikimina-settings-editor";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 
 const MEMBER_TABS = ["Overview", "Members", "Deposits", "Statements", "Settings"] as const;
 
@@ -224,21 +224,20 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2">
-        {MEMBER_TABS.map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => setTab(item)}
-            className={cn(
-              "interactive-scale rounded-full px-4 py-2 text-xs uppercase tracking-[0.3em]",
-              tab === item ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
-            )}
-          >
-            {t(TAB_KEYS[item], TAB_KEYS[item].split(".").pop() ?? item)}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        value={tab}
+        onValueChange={(next) => {
+          if (typeof next !== "string") return;
+          setTab(next as TabKey);
+        }}
+        options={MEMBER_TABS.map((item) => ({
+          value: item,
+          label: t(TAB_KEYS[item], TAB_KEYS[item].split(".").pop() ?? item),
+        }))}
+        columns={3}
+        className="md:grid-cols-5"
+        aria-label={t("ikimina.tabs.label", "Ikimina sections")}
+      />
 
       {tab === "Overview" && (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -285,21 +284,21 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
 
       {tab === "Deposits" && (
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {paymentStatuses.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setDepositFilter(option)}
-                className={cn(
-                  "rounded-full px-4 py-1 text-xs uppercase tracking-[0.25em]",
-                  depositFilter === option ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
-                )}
-              >
-                {t(`payments.filter.${option.toLowerCase()}`, PAYMENT_STATUS_LABELS[option as keyof typeof PAYMENT_STATUS_LABELS]?.primary ?? option)}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            value={depositFilter}
+            onValueChange={(next) => {
+              if (typeof next !== "string") return;
+              setDepositFilter(next as PaymentFilter);
+            }}
+            options={paymentStatuses.map((option) => ({
+              value: option,
+              label: t(
+                `payments.filter.${option.toLowerCase()}`,
+                PAYMENT_STATUS_LABELS[option as keyof typeof PAYMENT_STATUS_LABELS]?.primary ?? option,
+              ),
+            }))}
+            aria-label={t("ikimina.deposits.filter", "Filter deposits")}
+          />
           <VirtualTable
             data={filteredPayments}
             columns={paymentColumns}

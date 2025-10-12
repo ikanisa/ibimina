@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logError, logInfo } from "@/lib/observability/logger";
 
 export const enforceRateLimit = async (key: string, options?: { maxHits?: number; windowSeconds?: number }) => {
   const supabase = await createSupabaseServerClient();
@@ -10,10 +11,12 @@ export const enforceRateLimit = async (key: string, options?: { maxHits?: number
   });
 
   if (error) {
+    logError("rate_limit_rpc_failed", { key, error, maxHits: options?.maxHits, windowSeconds: options?.windowSeconds });
     throw error;
   }
 
   if (!data) {
+    logInfo("rate_limit_blocked", { key, maxHits: options?.maxHits ?? 5, windowSeconds: options?.windowSeconds ?? 300 });
     throw new Error("rate_limit_exceeded");
   }
 };
