@@ -9,7 +9,9 @@ export async function GET() {
   const { user, profile } = await requireUserAndProfile();
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: devices }, { data: userRowRaw }, { data: passkeyRows } ] = await Promise.all([
+  type AuditRow = { id: string; action: string; created_at: string | null; diff_json: Record<string, unknown> | null };
+
+  const [{ data: devices }, { data: userRowRaw }, { data: passkeyRows }] = await Promise.all([
     supabase
       .from("trusted_devices")
       .select("device_id, created_at, last_used_at, ip_prefix")
@@ -17,7 +19,7 @@ export async function GET() {
       .order("last_used_at", { ascending: false }),
     supabase
       .from("users")
-      .select("mfa_backup_hashes, mfa_enabled, mfa_enrolled_at, mfa_passkey_enrolled")
+      .select("mfa_backup_hashes, mfa_enabled, mfa_enrolled_at, mfa_passkey_enrolled, mfa_methods")
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -27,7 +29,10 @@ export async function GET() {
       .order("created_at", { ascending: false }),
   ]);
 
-  const userRow = userRowRaw as Pick<Database["public"]["Tables"]["users"]["Row"], "mfa_backup_hashes" | "mfa_enabled" | "mfa_enrolled_at" | "mfa_passkey_enrolled"> | null;
+  const userRow = userRowRaw as Pick<
+    Database["public"]["Tables"]["users"]["Row"],
+    "mfa_backup_hashes" | "mfa_enabled" | "mfa_enrolled_at" | "mfa_passkey_enrolled" | "mfa_methods"
+  > | null;
 
   const deviceRecords = (devices ?? []) as Array<
     Pick<Database["public"]["Tables"]["trusted_devices"]["Row"], "device_id" | "created_at" | "last_used_at" | "ip_prefix">
@@ -112,7 +117,7 @@ export async function GET() {
     })),
     methods: Array.from(methodSet),
     channelSummary,
-    emailAudit: (auditRows ?? []).map((row) => ({
+    emailAudit: (auditRows ?? ([] as AuditRow[])).map((row) => ({
       id: row.id,
       action: row.action,
       createdAt: row.created_at,

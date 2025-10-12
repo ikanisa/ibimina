@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- Remove deprecated SACCO metadata columns and refresh derived fields
 DROP INDEX IF EXISTS public.saccos_bnr_index_unique;
 ALTER TABLE public.saccos

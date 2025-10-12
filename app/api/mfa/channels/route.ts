@@ -8,6 +8,9 @@ export async function GET() {
   const supabase = createSupabaseAdminClient();
   const nowIso = new Date().toISOString();
 
+  type PasskeyRow = { last_used_at: string | null };
+  type EmailCodeRow = { created_at: string | null; consumed_at: string | null; expires_at: string };
+
   const [passkeysResult, emailCodesResult] = await Promise.all([
     supabase
       .from("webauthn_credentials")
@@ -31,11 +34,11 @@ export async function GET() {
     console.error("Failed to load email OTP records", emailCodesResult.error);
   }
 
-  const passkeys = (passkeysResult.data ?? []).map((record) => ({
+  const passkeys = (passkeysResult.data ?? ([] as PasskeyRow[])).map((record) => ({
     last_used_at: record.last_used_at ?? null,
   }));
 
-  const emailCodes = (emailCodesResult.data ?? []).map((record) => ({
+  const emailCodes = (emailCodesResult.data ?? ([] as EmailCodeRow[])).map((record) => ({
     created_at: record.created_at ?? null,
     consumed_at: record.consumed_at ?? null,
     expires_at: record.expires_at,

@@ -900,4 +900,142 @@ export type Database = {
       [_ in never]: never;
     };
   };
+  authx: {
+    Tables: {
+      user_mfa: {
+        Row: {
+          user_id: string;
+          preferred_factor: string;
+          enrollment: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          preferred_factor?: string;
+          enrollment?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          preferred_factor?: string;
+          enrollment?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_mfa_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      otp_issues: {
+        Row: {
+          id: string;
+          user_id: string;
+          channel: string;
+          code_hash: string | null;
+          legacy_code_id: string | null;
+          meta: Json | null;
+          expires_at: string;
+          used_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          channel: string;
+          code_hash?: string | null;
+          legacy_code_id?: string | null;
+          meta?: Json | null;
+          expires_at: string;
+          used_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          channel?: string;
+          code_hash?: string | null;
+          legacy_code_id?: string | null;
+          meta?: Json | null;
+          expires_at?: string;
+          used_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "otp_issues_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      audit: {
+        Row: {
+          id: string;
+          actor: string | null;
+          action: string;
+          detail: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor?: string | null;
+          action: string;
+          detail?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor?: string | null;
+          action?: string;
+          detail?: Json | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: {
+      webauthn_credentials: {
+        Row: {
+          id: string;
+          user_id: string;
+          credential_id: string;
+          public_key: string;
+          counter: number | null;
+          transports: string[] | null;
+          created_at: string | null;
+          last_used_at: string | null;
+        };
+      };
+      trusted_devices: {
+        Row: {
+          user_id: string;
+          device_id: string;
+          device_fingerprint_hash: string;
+          user_agent_hash: string;
+          ip_prefix: string | null;
+          created_at: string | null;
+          last_used_at: string | null;
+        };
+      };
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
 };

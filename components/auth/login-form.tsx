@@ -657,7 +657,7 @@ const [availableMethods, setAvailableMethods] = useState<string[]>([]);
                   className="inline-flex items-center justify-center rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {emailCountdown > 0
-                    ? t("auth.email.resendIn", "Resend in {{seconds}}s", { seconds: emailCountdown })
+                    ? t("auth.email.resendIn", "Resend in {{seconds}}s").replace("{{seconds}}", String(emailCountdown))
                     : emailSending
                       ? t("auth.email.sending", "Sending…")
                       : t("auth.email.sendCode", "Send email code")}
