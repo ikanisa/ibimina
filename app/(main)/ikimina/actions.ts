@@ -1,9 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireUserAndProfile } from "@/lib/auth";
 import type { Database } from "@/lib/supabase/types";
+import { CACHE_TAGS } from "@/lib/performance/cache";
+import { instrumentServerAction } from "@/lib/observability/server-action";
+import { logError, logInfo, logWarn, updateLogContext } from "@/lib/observability/logger";
 
 export type SettingsActionState = {
   status: "idle" | "success" | "error";
@@ -103,13 +106,14 @@ function validate(formData: FormData): { data?: ParsedForm; errors?: Record<stri
   };
 }
 
-export async function updateIkiminaSettings(
+async function updateIkiminaSettingsInternal(
   _prevState: SettingsActionState = INITIAL_STATE,
   formData: FormData
 ): Promise<SettingsActionState> {
   void _prevState;
   const validation = validate(formData);
   if (validation.errors) {
+    logWarn("ikimina_settings_validation_failed", { errors: Object.keys(validation.errors) });
     return { status: "error", message: "Please correct the highlighted fields", fieldErrors: validation.errors };
   }
 
@@ -119,6 +123,7 @@ export async function updateIkiminaSettings(
   }
 
   const { user, profile } = await requireUserAndProfile();
+  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
   const supabase = await createSupabaseServerClient();
 
   const { data: existing, error: fetchError } = await supabase
@@ -128,7 +133,7 @@ export async function updateIkiminaSettings(
     .maybeSingle();
 
   if (fetchError) {
-    console.error(fetchError);
+    logError("ikimina_settings_fetch_failed", { error: fetchError, ikiminaId: data.ikiminaId });
     return { status: "error", message: "Failed to load ikimina record" };
   }
 
@@ -136,10 +141,12 @@ export async function updateIkiminaSettings(
   const typedExisting = existing as IkiminaRow | null;
 
   if (!typedExisting) {
+    logWarn("ikimina_settings_missing_record", { ikiminaId: data.ikiminaId });
     return { status: "error", message: "Ikimina not found" };
   }
 
   if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== typedExisting.sacco_id) {
+    logWarn("ikimina_settings_permission_denied", { ikiminaId: data.ikiminaId, role: profile.role });
     return { status: "error", message: "You do not have permission to update this ikimina." };
   }
 
@@ -166,7 +173,7 @@ export async function updateIkiminaSettings(
     .eq("id", data.ikiminaId);
 
   if (updateError) {
-    console.error(updateError);
+    logError("ikimina_settings_update_failed", { error: updateError, ikiminaId: data.ikiminaId });
     return { status: "error", message: updateError.message ?? "Unable to update settings" };
   }
 
@@ -179,16 +186,29 @@ export async function updateIkiminaSettings(
     diff_json: settingsPayload,
   });
   if (auditError) {
-    console.warn("Failed to write audit log", auditError);
+    logWarn("ikimina_settings_audit_failed", { error: auditError, ikiminaId: data.ikiminaId });
   }
 
   await revalidatePath(`/ikimina/${data.ikiminaId}`);
   await revalidatePath(`/ikimina/${data.ikiminaId}/settings`);
+  await revalidateTag(CACHE_TAGS.ikiminaDirectory);
+  await revalidateTag(CACHE_TAGS.ikimina(data.ikiminaId));
+  await revalidateTag(CACHE_TAGS.sacco(typedExisting.sacco_id ?? null));
+  await revalidateTag(CACHE_TAGS.dashboardSummary);
+
+  logInfo("ikimina_settings_updated", {
+    ikiminaId: data.ikiminaId,
+    saccoId: typedExisting.sacco_id,
+    frequency: data.contributionFrequency,
+    smsReminders: data.smsReminders,
+  });
 
   return {
     status: "success",
     message: "Ikimina settings updated",
   };
 }
+
+export const updateIkiminaSettings = instrumentServerAction("ikimina.updateSettings", updateIkiminaSettingsInternal);
 
 export { INITIAL_STATE as IKIMINA_SETTINGS_INITIAL_STATE };

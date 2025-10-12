@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logError } from "@/lib/observability/logger";
 
 type AuditPayload = {
   action: string;
@@ -23,6 +24,6 @@ export const logAudit = async ({ action, entity, entityId, diff }: AuditPayload)
   });
 
   if (error) {
-    console.error("Failed to insert audit log", error);
+    logError("audit_log_write_failed", { action, entity, entityId, error });
   }
 };

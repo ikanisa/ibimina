@@ -11,6 +11,7 @@ import { OperationalTelemetry } from "@/components/admin/operational-telemetry";
 import { AuditLogTable } from "@/components/admin/audit-log-table";
 import { FeatureFlagsCard } from "@/components/admin/feature-flags-card";
 import { OutreachAutomationCard } from "@/components/admin/outreach-automation-card";
+import { MfaInsightsCard } from "@/components/admin/mfa-insights-card";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resetMfaForAllEnabled } from "@/app/(main)/admin/actions";
@@ -18,6 +19,7 @@ import { resetMfaForAllEnabled } from "@/app/(main)/admin/actions";
 import type { Database } from "@/lib/supabase/types";
 import { Trans } from "@/components/common/trans";
 import type { PostgrestError } from "@supabase/supabase-js";
+import { getMfaInsights } from "@/lib/mfa/insights";
 
 function isMissingRelationError(error: PostgrestError | null | undefined) {
   if (!error) return false;
@@ -226,6 +228,8 @@ export default async function AdminPage() {
     actorLabel: row.actor_id === ZERO_UUID || !row.actor_id ? "System" : actorLookup.get(row.actor_id) ?? row.actor_id,
   }));
 
+  const mfaInsights = await getMfaInsights();
+
   return (
     <div className="space-y-8">
       <GradientHeader
@@ -281,6 +285,13 @@ export default async function AdminPage() {
         subtitle={<Trans i18nKey="admin.flags.subtitle" fallback="Toggle automation and offline capabilities." className="text-xs text-neutral-3" />}
       >
         <FeatureFlagsCard />
+      </GlassCard>
+
+      <GlassCard
+        title={<Trans i18nKey="admin.security.title" fallback="Security adoption" />}
+        subtitle={<Trans i18nKey="admin.security.subtitle" fallback="Track MFA coverage and follow up on at-risk accounts." className="text-xs text-neutral-3" />}
+      >
+        <MfaInsightsCard insights={mfaInsights} />
       </GlassCard>
 
       <GlassCard

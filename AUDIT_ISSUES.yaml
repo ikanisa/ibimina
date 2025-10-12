@@ -1,0 +1,96 @@
+- id: SEC-001
+  area: security
+  title: "Missing global security headers (CSP, frame, referrer)"
+  files: ["next.config.ts", "middleware.ts"]
+  risk: critical
+  evidence: "next.config.ts lacks headers() export; no CSP or frame protections shipped."
+  fix: "Introduce middleware with CSP nonce helper, enforce HSTS, XFO=DENY, Referrer-Policy strict-origin-when-cross-origin."
+  effort: S
+- id: SEC-002
+  area: security
+  title: "MFA verify API leaks 500s and bypasses RLS"
+  files: ["app/api/mfa/verify/route.ts", "lib/audit.ts"]
+  risk: high
+  evidence: "Service-role Supabase updates public.users; decrypt failures return 500 and log secrets; audit insert uses anon client."
+  fix: "Return structured 4xx for invalid codes, wrap cryptography with replay guard, move writes behind service action queue."
+  effort: M
+- id: SEC-003
+  area: security
+  title: "Edge Functions allow unauthenticated ingress"
+  files: ["supabase/config.toml"]
+  risk: high
+  evidence: "parse-sms/ingest-sms/sms-inbox set verify_jwt=false, enabling anonymous POSTs."
+  fix: "Enforce JWT or signed HMAC header, log & rate-limit unauthenticated attempts."
+  effort: M
+- id: DATA-004
+  area: data
+  title: "Duplicate public/app schemas causing RLS drift"
+  files: ["supabase/migrations/20251007111647_0ad74d87-9b06-4a13-b252-8ecd3533e366.sql", "supabase/migrations/20251012120000_sacco_plus_schema.sql", "lib/supabase/types.ts"]
+  risk: critical
+  evidence: "Legacy public tables remain while UI queries them; generated types omit new columns in app schema."
+  fix: "Consolidate to app schema, regenerate types, drop legacy tables/policies post-migration."
+  effort: L
+- id: REL-005
+  area: reliability
+  title: "Rate limiter fails open when RPC unavailable"
+  files: ["lib/rate-limit.ts"]
+  risk: medium
+  evidence: "RPC invoked via anon client; catch logs warning and continues, so brute-force attempts bypass throttling."
+  fix: "Invoke via service-role with retry + circuit breaker, bubble structured errors to caller."
+  effort: M
+- id: REL-006
+  area: reliability
+  title: "Audit logging swallows failures"
+  files: ["lib/audit.ts"]
+  risk: medium
+  evidence: "Errors logged to console only; actor defaults to zero UUID, no alerting."
+  fix: "Propagate errors, send to observability pipeline, enforce actor attribution."
+  effort: S
+- id: PERF-007
+  area: performance
+  title: "next/image optimisations disabled"
+  files: ["next.config.ts"]
+  risk: medium
+  evidence: "images.unoptimized=true prevents CDN resizing and larger hero assets stay uncompressed."
+  fix: "Enable optimisation, audit remote patterns, serve Supabase storage via signed URLs with caching headers."
+  effort: S
+- id: PERF-008
+  area: performance
+  title: "Dashboard loads full payment history in memory"
+  files: ["lib/dashboard.ts"]
+  risk: high
+  evidence: "Client loops through month of payments to aggregate totals; no SQL aggregation or pagination."
+  fix: "Move aggregation into SQL/materialised views with summarised endpoints."
+  effort: M
+- id: PWA-009
+  area: pwa
+  title: "Manifest missing maskable icons & apple touch"
+  files: ["public/manifest.json", "public/icons"]
+  risk: high
+  evidence: "Only PNG icons without purpose maskable; install fails on Android adaptive icons."
+  fix: "Add 512/192 maskable icons, apple-touch assets, update manifest + HTML link tags."
+  effort: S
+- id: PWA-010
+  area: pwa
+  title: "Service worker caches incomplete app shell"
+  files: ["service-worker.js"]
+  risk: medium
+  evidence: "Caches only /, /dashboard, /recon; ignores _next assets; offline nav breaks."
+  fix: "Adopt workbox precaching, include route handlers for dynamic content, add versioning."
+  effort: M
+- id: A11Y-011
+  area: accessibility
+  title: "MFA flow lacks semantic forms and focus management"
+  files: ["app/(auth)/mfa/page.tsx"]
+  risk: medium
+  evidence: "Buttons trigger fetch without form semantics, no aria-live for errors, no focus trap on dialogs."
+  fix: "Wrap controls in form, add segmented control with labels, announce errors via live region, manage focus."
+  effort: M
+- id: OPS-012
+  area: operations
+  title: "CI missing Lighthouse budgets and preview deploys"
+  files: [".github/workflows/ci.yml", ".github/workflows/preview.yml"]
+  risk: medium
+  evidence: "CI stops at build; no Lighthouse/perf gating; preview workflow absent."
+  fix: "Add Lighthouse CI step with artifacts, create preview workflow using Vercel + Supabase branch DB."
+  effort: M

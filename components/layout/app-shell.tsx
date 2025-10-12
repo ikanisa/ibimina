@@ -32,6 +32,7 @@ const NAV_ITEMS = [
   { href: "/ikimina" as const, key: "nav.ikimina", icon: Workflow },
   { href: "/recon" as const, key: "nav.recon", icon: Inbox },
   { href: "/analytics" as const, key: "nav.analytics", icon: LineChart },
+  { href: "/ops" as const, key: "nav.ops", icon: Settings2 },
   { href: "/reports" as const, key: "nav.reports", icon: BarChartBig },
   { href: "/admin" as const, key: "nav.admin", icon: UsersRound },
 ];
@@ -78,6 +79,13 @@ const QUICK_ACTIONS = [
     secondary: "Kora raporo",
     description: "Export SACCO or ikimina statements.",
     secondaryDescription: "Sohora raporo za SACCO cyangwa ikimina.",
+  },
+  {
+    href: "/ops" as const,
+    primary: "Operations Center",
+    secondary: "Ikigo cy'imikorere",
+    description: "Review incidents, notifications, and MFA health.",
+    secondaryDescription: "Reba ibibazo, ubutumwa bwateguwe, n'imiterere ya MFA.",
   },
   {
     href: "/profile" as const,

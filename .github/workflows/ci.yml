@@ -1,21 +1,39 @@
 name: CI
 
 on:
-  pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
+  pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 6543:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      CI: "true"
+      RLS_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:6543/ibimina_test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
+
       - name: Restore Next.js cache
         uses: actions/cache@v4
         with:
@@ -23,18 +41,49 @@ jobs:
           key: ${{ runner.os }}-next-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-next-
+
       - name: Install dependencies
         run: npm ci
+
       - name: Lint
         run: npm run lint -- --max-warnings=0
+
       - name: Typecheck
         run: npm run typecheck
-      - name: i18n Check
+
+      - name: RLS policy tests
+        run: npm run test:rls
+
+      - name: Verify i18n keys
         run: npm run check:i18n
-      - name: i18n Glossary Consistency
+
+      - name: Verify i18n glossary consistency
         run: npm run check:i18n:consistency
+
       - name: Build
         run: npm run build
-      # Optional: enable later when smoke tests are added
-      # - name: E2E Smoke
-      #   run: npm run test:smoke
+
+      - name: Start preview server
+        run: |
+          mkdir -p .reports
+          npm run start -- --hostname 0.0.0.0 --port 3000 &
+          echo $! > .reports/server.pid
+
+      - name: Wait for preview
+        run: npx --yes wait-on http://127.0.0.1:3000
+
+      - name: Lighthouse (headless)
+        run: npx --yes lighthouse http://127.0.0.1:3000 --quiet --chrome-flags="--headless" --output=json --output-path=.reports/lighthouse.json
+
+      - name: Upload Lighthouse artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: .reports/lighthouse.json
+
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f .reports/server.pid ]; then
+            kill $(cat .reports/server.pid) || true
+          fi
