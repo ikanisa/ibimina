@@ -43,7 +43,7 @@ supabase secrets set \
   MFA_RP_NAME="SACCO+"
 ```
 
-Ensure the same values (or appropriate environment-specific variants) are present in Lovable Cloud / Vercel secrets so the Next.js runtime can decrypt MFA payloads.
+Ensure the same values (or appropriate environment-specific variants) are present in your production secret store (for example, Supabase and Vercel) so the Next.js runtime can decrypt MFA payloads.
 
 ## 2. Database Migrations
 
@@ -71,7 +71,7 @@ After secrets/migrations are in place:
 ```
 ./scripts/supabase-go-live.sh deploy-functions
 npm run build
-# Deploy via Lovable Cloud / Vercel
+# Deploy via Vercel or your chosen platform
 ```
 
 Deploy or update the following edge functions after secrets are in place:

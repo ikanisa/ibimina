@@ -396,7 +396,7 @@
   "ikimina.import.importing": "Importing…",
   "ikimina.import.confirmImport": "Confirm import",
   "ikimina.import.rowsNeedFixes": "row(s) need fixes before importing.",
-  "ikimina.import.payloadNote": "Payload is sent to the secure-import-members edge function. Ensure it is deployed in Lovable Cloud.",
+  "ikimina.import.payloadNote": "Payload is sent to the secure-import-members edge function. Ensure it is deployed and reachable.",
   "common.back": "Back"
   ,
   "auth.errors.signIn": "Unable to sign in",

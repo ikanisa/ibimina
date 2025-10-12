@@ -274,7 +274,7 @@
   "ikimina.import.dropHere": "Déposez une colonne ici",
   "ikimina.import.dropOrBrowse": "Déposez le CSV ici ou cliquez pour parcourir",
   "ikimina.import.importing": "Importation…",
-  "ikimina.import.payloadNote": "La charge utile est envoyée à la fonction edge secure-import-members. Assurez-vous qu'elle est déployée dans Lovable Cloud.",
+  "ikimina.import.payloadNote": "La charge utile est envoyée à la fonction edge secure-import-members. Assurez-vous qu'elle est déployée et accessible.",
   "ikimina.import.previousMapping": "Correspondance précédente détectée pour cet ensemble d'en-têtes. Champs appliqués automatiquement.",
   "ikimina.import.rowsNeedFixes": "ligne(s) doivent être corrigées avant l'import.",
   "ikimina.import.step": "Étape",

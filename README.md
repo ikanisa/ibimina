@@ -8,7 +8,7 @@ A staff-only Progressive Web App for Umurenge SACCO ibimina operations. The UI f
 - TypeScript + Tailwind design tokens (`styles/tokens.css`)
 - Framer Motion for page transitions
 - Supabase (`@supabase/ssr`) for auth and data
-- PWA manifest & service worker ready for Lovable Cloud deploys
+- PWA manifest & service worker ready for production deploys
 
 ## Getting started
 
@@ -35,7 +35,7 @@ The Umurenge SACCO master list is seeded by the latest SQL migration:
 supabase/migrations/20251008120000_enrich_saccos_with_umurenge_master.sql
 ```
 
-Run this migration inside Lovable Cloud’s SQL console (or through your preferred Supabase admin workflow) to apply the schema updates, semantic search function, and the 416 Umurenge SACCO records captured in `supabase/data/umurenge_saccos.json`.
+Run this migration via the Supabase SQL console (or through your preferred admin workflow) to apply the schema updates, semantic search function, and the 416 Umurenge SACCO records captured in `supabase/data/umurenge_saccos.json`.
 
 ## Project layout
 
@@ -52,7 +52,7 @@ supabase/                # Config, migrations, seed data
 
 ## Supabase integration
 
-- `lib/supabase/server.ts` exposes a server-side client that reads the session cookie (no project linking required in Lovable Cloud).
+- `lib/supabase/server.ts` exposes a server-side client that reads the session cookie (no project linking required).
 - `lib/auth.ts` centralises user/session lookups and guards the `(main)` route group.
 - Dashboard, Ikimina, Recon, Reports, and Admin pages now query Supabase directly in server components.
 - See `docs/go-live-checklist.md` for the full Supabase bootstrap sequence (migrations, secrets, edge functions, GSM ingestion).
@@ -164,6 +164,6 @@ curl -X POST \
 - `npm run fix:i18n` – backfill missing rw/fr keys from en (flat keys)
  
 
-Deployments continue through Lovable Cloud; push changes or publish from the Lovable dashboard when ready.
+Deployments run through your existing CI/CD pipeline (e.g., Vercel); push changes when you’re ready to release.
 
  

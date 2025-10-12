@@ -491,7 +491,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                       </div>
                     )}
                     <p className="text-[10px] text-neutral-2">
-                      {t("ikimina.import.payloadNote", "Payload is sent to the secure-import-members edge function. Ensure it is deployed in Lovable Cloud.")}
+                      {t("ikimina.import.payloadNote", "Payload is sent to the secure-import-members edge function. Ensure it is deployed and reachable.")}
                     </p>
                   </div>
                 </div>

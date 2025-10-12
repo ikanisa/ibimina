@@ -163,7 +163,7 @@ Use `scripts/supabase-go-live.sh` in your CI pipeline to unify migrations, secre
 
 - Database: use `supabase migration down --linked --to-version <timestamp>` to revert.
 - Edge functions: redeploy previous commit or disable via `supabase functions delete <name>`.
-- App: redeploy the last known-good build on Lovable Cloud.
+- App: redeploy the last known-good build via your deployment platform (e.g., Vercel).
 
 Keeping this checklist up to date ensures future environments can be stood up in minutes rather than hours.
 
