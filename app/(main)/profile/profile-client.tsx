@@ -91,6 +91,17 @@ export function ProfileClient({ email }: ProfileClientProps) {
   const router = useRouter();
   const { success, error, notify } = useToast();
   const { t } = useTranslation();
+  const formatMessage = useCallback(
+    (key: string, fallback: string, vars: Record<string, string | number | null>) => {
+      let template = t(key, fallback);
+      Object.entries(vars).forEach(([name, value]) => {
+        const replacement = value === null || value === undefined ? "" : String(value);
+        template = template.replace(`{{${name}}}`, replacement);
+      });
+      return template;
+    },
+    [t],
+  );
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileState | null>(null);
   const [password, setPassword] = useState("");
@@ -471,8 +482,8 @@ export function ProfileClient({ email }: ProfileClientProps) {
       if (channel.id === "PASSKEY") {
         return (
           <div className="text-right text-[11px] text-neutral-3">
-            <p>{t("profile.channels.passkey.count", "{{count}} registered", { count: channel.passkeyCount ?? 0 })}</p>
-            <p>{t("profile.channels.passkey.lastUsed", "Last used: {{value}}", { value: formatTimestamp(channel.lastUsedAt ?? null) })}</p>
+            <p>{formatMessage("profile.channels.passkey.count", "{{count}} registered", { count: channel.passkeyCount ?? 0 })}</p>
+            <p>{formatMessage("profile.channels.passkey.lastUsed", "Last used: {{value}}", { value: formatTimestamp(channel.lastUsedAt ?? null) })}</p>
           </div>
         );
       }
@@ -487,8 +498,8 @@ export function ProfileClient({ email }: ProfileClientProps) {
         }
         return (
           <div className="text-right text-[11px] text-neutral-3">
-            <p>{t("profile.channels.totp.enabled", "Enabled on {{value}}", { value: channel.enrolledAt ? formatTimestamp(channel.enrolledAt) : t("profile.channels.never", "Never recorded") })}</p>
-            <p>{t("profile.channels.totp.backups", "Backup codes: {{count}}", { count: channel.backupCodesRemaining ?? 0 })}</p>
+            <p>{formatMessage("profile.channels.totp.enabled", "Enabled on {{value}}", { value: channel.enrolledAt ? formatTimestamp(channel.enrolledAt) : t("profile.channels.never", "Never recorded") })}</p>
+            <p>{formatMessage("profile.channels.totp.backups", "Backup codes: {{count}}", { count: channel.backupCodesRemaining ?? 0 })}</p>
           </div>
         );
       }
@@ -513,21 +524,21 @@ export function ProfileClient({ email }: ProfileClientProps) {
         <div className="text-right text-[11px] text-neutral-3">
           <p>
             {channel.destination
-              ? t("profile.channels.email.destination", "Delivered to {{email}}", { email: channel.destination })
+              ? formatMessage("profile.channels.email.destination", "Delivered to {{email}}", { email: channel.destination })
               : t("profile.channels.email.missing", "No email configured")}
           </p>
           <p>
-            {t("profile.channels.email.active", "Active codes: {{count}}", { count: channel.activeCodes ?? 0 })}
+            {formatMessage("profile.channels.email.active", "Active codes: {{count}}", { count: channel.activeCodes ?? 0 })}
           </p>
           <p>
-            {t("profile.channels.email.lastIssued", "Last sent: {{value}}", {
+            {formatMessage("profile.channels.email.lastIssued", "Last sent: {{value}}", {
               value: channel.lastIssuedAt ? formatTimestamp(channel.lastIssuedAt) : t("profile.channels.never", "Never recorded"),
             })}
           </p>
         </div>
       );
     },
-    [formatTimestamp, t],
+    [formatMessage, formatTimestamp, t],
   );
 
   const backupDownload = useMemo(() => {
@@ -632,13 +643,13 @@ export function ProfileClient({ email }: ProfileClientProps) {
                   {t("profile.channels.policyTitle", "Authentication policy")}
                 </p>
                 <p className="text-[11px] text-neutral-2">
-                  {t("profile.channels.primary", "Primary: {{channel}}", {
+                  {formatMessage("profile.channels.primary", "Primary: {{channel}}", {
                     channel: channelCopy[profile.channelSummary.policy.primary].label,
                   })}
                 </p>
               </div>
               <p className="text-[11px] text-neutral-3">
-                {t("profile.channels.recovery", "Recovery options: {{channels}}", { channels: recoverySummary })}
+                {formatMessage("profile.channels.recovery", "Recovery options: {{channels}}", { channels: recoverySummary })}
               </p>
               <div className="mt-3 space-y-3">
                 {profile.channelSummary.channels.map((channel) => {

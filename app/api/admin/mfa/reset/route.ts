@@ -23,6 +23,13 @@ export async function POST(request: Request) {
   const supabase = createSupabaseAdminClient();
 
   // Locate target user by id or email
+  type TargetRow = {
+    id: string;
+    email: string | null;
+    mfa_enabled: boolean | null;
+    mfa_secret_enc: string | null;
+  };
+
   const query = supabase
     .from("users")
     .select("id, email, mfa_enabled, mfa_secret_enc")
@@ -36,7 +43,7 @@ export async function POST(request: Request) {
     ? await supabase.from("users").select("id, email, mfa_enabled, mfa_secret_enc").eq("email", body.email).limit(1)
     : { data: null };
 
-  const target = (foundById ?? foundByEmail)?.[0] ?? null;
+  const target = ((foundById ?? foundByEmail)?.[0] as TargetRow | undefined) ?? null;
   if (!target) {
     return NextResponse.json({ error: "user_not_found" }, { status: 404 });
   }

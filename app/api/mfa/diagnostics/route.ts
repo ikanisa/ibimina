@@ -29,6 +29,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "no_email" }, { status: 400 });
   }
 
+  type UserRow = {
+    id: string;
+    email: string | null;
+    mfa_enabled: boolean | null;
+    mfa_secret_enc: string | null;
+  };
+
   const { data, error } = await supabase
     .from("users")
     .select("id, email, mfa_enabled, mfa_secret_enc")
@@ -39,7 +46,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
-  if (!data) {
+  const userRow = data as UserRow | null;
+
+  if (!userRow) {
     return NextResponse.json({ error: "user_not_found", email: targetEmail }, { status: 404 });
   }
 
@@ -47,7 +56,7 @@ export async function GET(request: Request) {
     .schema("app")
     .from("mfa_email_codes")
     .select("id")
-    .eq("user_id", data.id)
+    .eq("user_id", userRow.id)
     .is("consumed_at", null)
     .gte("expires_at", new Date().toISOString());
 
@@ -59,10 +68,10 @@ export async function GET(request: Request) {
       KMS_DATA_KEY_BASE64_present: Boolean(process.env.KMS_DATA_KEY_BASE64),
     },
     user: {
-      id: data.id,
-      email: data.email,
-      mfaEnabled: data.mfa_enabled,
-      mfaSecretPresent: Boolean(data.mfa_secret_enc),
+      id: userRow.id,
+      email: userRow.email,
+      mfaEnabled: userRow.mfa_enabled,
+      mfaSecretPresent: Boolean(userRow.mfa_secret_enc),
       emailCodesActive: emailCodes?.length ?? 0,
     },
     auth: {
