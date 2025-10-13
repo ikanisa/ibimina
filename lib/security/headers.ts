@@ -77,7 +77,7 @@ export function createNonce(size = 16): string {
 
 export function createContentSecurityPolicy({ nonce, isDev }: CspOptions): string {
   const directives: DirectiveMap = JSON.parse(JSON.stringify(baseDirectives));
-  directives["script-src"] = ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'"];
+  directives["script-src"] = ["'self'", `'nonce-${nonce}'`, "'unsafe-inline'"];
   if (isDev) {
     directives["script-src"].push("'unsafe-eval'");
     directives["connect-src"].push("ws://localhost:3000", "ws://127.0.0.1:3000");
