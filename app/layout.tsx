@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppProviders } from "@/providers/app-providers";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Ibimina Staff Console",
@@ -22,15 +23,18 @@ export const viewport: Viewport = {
   themeColor: "#0b1020",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerList = await headers();
+  const nonce = headerList.get("x-csp-nonce") ?? undefined;
+
   return (
     <html lang="rw" className="bg-nyungwe" suppressHydrationWarning>
       <body className="antialiased bg-nyungwe text-neutral-0">
-        <AppProviders>{children}</AppProviders>
+        <AppProviders nonce={nonce}>{children}</AppProviders>
       </body>
     </html>
   );
