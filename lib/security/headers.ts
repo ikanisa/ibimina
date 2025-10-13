@@ -36,8 +36,9 @@ export const SECURITY_HEADERS = staticSecurityHeaders;
 export const HSTS_HEADER = hstsHeader;
 
 export type CspOptions = {
-  nonce: string;
+  nonce?: string;
   isDev?: boolean;
+  allowUnsafeInlineFallback?: boolean;
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -75,9 +76,21 @@ export function createNonce(size = 16): string {
   return Math.random().toString(36).slice(2);
 }
 
-export function createContentSecurityPolicy({ nonce, isDev }: CspOptions): string {
+export function createContentSecurityPolicy({
+  nonce,
+  isDev,
+  allowUnsafeInlineFallback,
+}: CspOptions): string {
   const directives: DirectiveMap = JSON.parse(JSON.stringify(baseDirectives));
-  directives["script-src"] = ["'self'", `'nonce-${nonce}'`, "'unsafe-inline'"];
+  const scriptSrc: string[] = ["'self'"];
+
+  if (nonce && nonce.trim().length > 0) {
+    scriptSrc.push(`'nonce-${nonce}'`, "'strict-dynamic'");
+  } else if (allowUnsafeInlineFallback) {
+    scriptSrc.push("'unsafe-inline'");
+  }
+
+  directives["script-src"] = scriptSrc;
   if (isDev) {
     directives["script-src"].push("'unsafe-eval'");
     directives["connect-src"].push("ws://localhost:3000", "ws://127.0.0.1:3000");
