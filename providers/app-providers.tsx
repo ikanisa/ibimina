@@ -11,12 +11,13 @@ import { SupabaseAuthListener } from "@/providers/supabase-auth-listener";
 
 interface AppProvidersProps {
   children: React.ReactNode;
+  nonce?: string;
 }
 
-export function AppProviders({ children }: AppProvidersProps) {
+export function AppProviders({ children, nonce }: AppProvidersProps) {
   return (
     <I18nProvider>
-      <ThemeProvider>
+      <ThemeProvider nonce={nonce}>
         <ToastProvider>
           <OfflineQueueProvider>
             <ConfirmProvider>
