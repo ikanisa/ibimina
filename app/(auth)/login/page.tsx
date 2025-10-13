@@ -2,14 +2,18 @@ import { redirect } from "next/navigation";
 import { redirectIfAuthenticated } from "@/lib/auth";
 import { LoginForm } from "@/components/auth/login-form";
 
+type SearchParams = { [key: string]: string | string[] | undefined };
+
 interface LoginPageProps {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: SearchParams | Promise<SearchParams>;
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   await redirectIfAuthenticated();
 
-  const mfaMode = typeof searchParams?.mfa === "string" ? searchParams?.mfa : Array.isArray(searchParams?.mfa) ? searchParams?.mfa[0] : undefined;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const rawMfaParam = resolvedSearchParams?.mfa;
+  const mfaMode = typeof rawMfaParam === "string" ? rawMfaParam : Array.isArray(rawMfaParam) ? rawMfaParam[0] : undefined;
   if (mfaMode === "1") {
     redirect("/mfa");
   }

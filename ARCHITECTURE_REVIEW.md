@@ -1,53 +1,49 @@
 # SACCO+ Architecture Review
 
 ## Overview
-The Ibimina Staff Console pairs a Next.js 15 App Router front end with Supabase (Postgres + Auth + Edge Functions). The current build emphasises client-side rendering for dashboards, MFA flows, and recon tools, while migrations attempt a move from legacy `public.*` tables to an `app.*` namespace for multi-tenant enforcement.【F:components/layout/app-shell.tsx†L1-L239】【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L199-L279】
+The Ibimina Staff Console runs on Next.js 15 App Router with Tailwind design tokens and Supabase providing Auth, Postgres, and Edge Functions. The codebase now includes a new AuthX factor facade (`app/api/authx/*`) alongside the legacy `/api/mfa/*` stack, resulting in duplicated security paths that must be unified for production readiness.【F:components/auth/login-form.tsx†L214-L279】【F:app/api/authx/challenge/verify/route.ts†L36-L100】 Migrations continue to push business data into the `app.*` schema with RLS helpers, while frontend queries still target `public.*` tables and views.【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L400-L612】【F:lib/dashboard.ts†L74-L190】
 
 ## Frontend Structure
-- **Routing**: App Router split into `(auth)` and `(main)` groups; `(main)` layout enforces MFA session cookie before rendering children.【F:app/(main)/layout.tsx†L9-L29】
-- **State & Providers**: `ProfileProvider` injects Supabase profile into the tree; translation provider handles bilingual labels.【F:app/(main)/layout.tsx†L24-L30】【F:components/layout/app-shell.tsx†L91-L239】
-- **UI Shell**: `AppShell` implements desktop nav, mobile bottom nav, quick actions dialog, but lacks `aria-current` and keyboard focus traps for the modal.【F:components/layout/app-shell.tsx†L158-L239】
-- **Styling**: Tailwind v4 with custom token file defining Rwanda-inspired glassmorphism palette and spacing primitives.【F:styles/tokens.css†L1-L84】
-- **Client Components**: MFA screen, dashboard quick actions, and Supabase data consumers rely heavily on client hooks and fetch, increasing hydration payloads.【F:app/(auth)/mfa/page.tsx†L39-L213】【F:lib/dashboard.ts†L73-L200】
+- **Routing**: App Router splits unauthenticated flows under `(auth)` and protected screens under `(main)`. The main layout checks the MFA session cookie before rendering children, redirecting to `/login?mfa=1` when stale.【F:app/(main)/layout.tsx†L1-L28】
+- **Providers**: `AppProviders` wraps I18n, theme, toast, offline queue, confirmation modals, PWA registration, and motion animation, ensuring providers run client-side.【F:providers/app-providers.tsx†L1-L32】
+- **MFA UI**: `app/(auth)/mfa/page.tsx` renders a segmented factor chooser with passkey/TOTP/email/WhatsApp/backup options, but it depends on the new AuthX endpoints and assumes per-factor state that the API does not yet persist (e.g., failure counters).【F:app/(auth)/mfa/page.tsx†L81-L213】
+- **Navigation shell**: `AppShell` renders desktop nav, mobile bottom nav, quick actions dialog, and global search. Quick actions rely on client-only state and currently lack focus management or `aria-current` annotations.【F:components/layout/app-shell.tsx†L166-L289】
+- **PWA glue**: The PWA provider registers `service-worker.js` in production and surfaces an install banner; the service worker itself remains a manually maintained asset with a minimal cache list.【F:providers/pwa-provider.tsx†L18-L52】【F:service-worker.js†L1-L58】
 
 ## Backend & API Boundaries
-- **Supabase Clients**: `lib/supabase/server.ts` creates SSR client using anon key (cookie-based), while `lib/supabase/admin.ts` exposes service-role client for API routes.【F:lib/supabase/server.ts†L1-L26】【F:lib/supabase/admin.ts†L1-L24】
-- **MFA APIs**: `/api/mfa/*` routes consume service-role client to read/write secrets and trusted devices, but currently operate directly on `public.users` bypassing new schema abstractions.【F:app/api/mfa/verify/route.ts†L52-L219】
-- **Rate Limiting**: `lib/rate-limit.ts` hits `ops.consume_rate_limit` RPC using anon client, failing open on RPC errors.【F:lib/rate-limit.ts†L1-L19】
-- **Audit Logging**: `lib/audit.ts` writes to `audit_logs` via anon client, logging to console on failure without retry or queue.【F:lib/audit.ts†L1-L24】
-- **Service Worker**: Custom SW caches a fixed shell, not integrated with Next.js asset pipeline; next-pwa wraps build process but `service-worker.js` remains manually maintained.【F:next.config.ts†L29-L51】【F:service-worker.js†L1-L58】
+- **Supabase clients**: `createSupabaseServerClient` uses the anon key with cookies for SSR, while `createSupabaseAdminClient` keeps the service-role key server-side. Admin client is used extensively for MFA secrets and OTP issuance.【F:lib/supabase/server.ts†L1-L26】【F:lib/supabase/admin.ts†L1-L21】
+- **Auth endpoints**: Legacy `/api/mfa/*` endpoints handle enrollment, verification, and passkeys with detailed state updates (`last_mfa_step`, `failed_mfa_count`, trusted device creation). AuthX endpoints expose initiate/verify/factor list APIs but currently omit rate limiting and replay protection.【F:app/api/mfa/verify/route.ts†L72-L228】【F:app/api/authx/challenge/verify/route.ts†L36-L100】
+- **OTP services**: Email OTP uses `supabase.functions.invoke('mfa-email')` with hashed storage and rate limits; WhatsApp OTP relies on Twilio but misses throttling/salting, storing deterministic hashes in `authx.otp_issues`.【F:lib/mfa/email.ts†L68-L200】【F:lib/authx/start.ts†L83-L122】
+- **Rate limiting & audit**: A shared `enforceRateLimit` RPC runs through the SSR client; audit logging writes to `audit_logs` using SSR client and logs errors when inserts fail (no retries).【F:lib/rate-limit.ts†L1-L19】【F:lib/audit.ts†L9-L21】
 
 ## Data Flow
-1. User authenticates via Supabase; `requireUserAndProfile` loads profile + sacco association from Supabase SSR client.【F:lib/auth.ts†L1-L53】
-2. Dashboard fetches payments/members via Supabase client, processing month-long arrays client-side to produce KPIs and lists.【F:lib/dashboard.ts†L73-L200】
-3. MFA verification uses admin client to decrypt TOTP secret, check backup/email codes, update `users` row, then write trusted device record and audit log.【F:app/api/mfa/verify/route.ts†L83-L224】
-4. Rate limits and audit logging rely on Supabase RPC/table writes via SSR client, meaning downtime or policy errors propagate to user operations silently.【F:lib/rate-limit.ts†L1-L19】【F:lib/audit.ts†L1-L24】
+1. Staff authenticate via Supabase; `requireUserAndProfile` fetches user profile and associated SACCO, then `(main)` layout validates MFA cookies before rendering protected routes.【F:lib/auth.ts†L1-L53】【F:app/(main)/layout.tsx†L1-L28】
+2. Dashboards fetch payments, ikimina, and members from `public` tables and views, aggregating results in Node to produce summary cards and tables.【F:lib/dashboard.ts†L74-L200】
+3. MFA verification depends on two stacks: the legacy route updates Supabase `users` fields, logs audit entries, and issues trusted-device cookies, while the AuthX route simply returns `{ok}` and sets cookies without updating user state or enforcing rate limits.【F:app/api/mfa/verify/route.ts†L72-L209】【F:lib/authx/verify.ts†L35-L166】
+4. Supabase Edge Functions handle imports, SMS ingestion, and scheduled jobs; several functions remain unauthenticated (`verify_jwt=false`), making network ingress reliant on external firewalling.【F:supabase/config.toml†L1-L22】
 
 ## Database & RLS
-- **Schemas**: `20251012120000_sacco_plus_schema.sql` introduces `app.*` tables, triggers, and RLS policies, but older `public.*` tables/policies remain in earlier migrations, causing duplication.【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L199-L279】【F:supabase/migrations/20251007111647_0ad74d87-9b06-4a13-b252-8ecd3533e366.sql†L24-L188】
-- **Policy Helpers**: Functions (`app.current_sacco`, `app.payment_sacco`) referenced in docs but not yet validated with automated tests; RLS docs describe expectations without verification harness.【F:docs/RLS.md†L1-L51】
-- **Types**: Generated `Database` types still mirror legacy public tables and omit columns like `sacco_id` on audit logs, reducing compile-time safety.【F:lib/supabase/types.ts†L9-L139】
-- **Rate Limit & Idempotency**: Ops schema hosts `rate_limits` and `idempotency` tables with helper functions, but client usage fails open and there are no migrations ensuring TTL cleanup is scheduled.【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L245-L279】【F:lib/rate-limit.ts†L1-L19】
+- **Schemas**: `app.*` schema hosts core SACCO tables with helper functions (`app.current_sacco`, `app.payment_sacco`) and policies. Legacy `public.*` tables persist for compatibility, but frontend still queries them directly, undermining policy consolidation.【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L400-L612】【F:lib/dashboard.ts†L74-L190】
+- **Policies**: RLS policies cover user profiles, ikimina, members, payments, recon, accounts, ledger, SMS inbox, imports, audit logs, trusted devices, and ops schemas. Only one SQL test validates sacco_staff access, leaving other policies untested in CI.【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L118】
+- **Trusted devices**: Policy allows owners/admins to manage device entries; legacy MFA route writes these records, but AuthX variant does not, risking stale trust lists.【F:app/api/mfa/verify/route.ts†L172-L206】【F:lib/authx/verify.ts†L109-L166】
 
 ## Security Posture
-- **Headers**: No CSP/frame/referrer headers configured; rely on default Next.js responses.【F:next.config.ts†L29-L51】
-- **Secrets**: Service-role key read from server env; risk arises when client bundles accidentally import admin helper (no guard). Need lint rule + bundler guard.
-- **MFA Storage**: Secrets encrypted with AES-256-GCM using environment-provided key and pepper; replay guard only ensures step monotonicity but lacks persistent storage for seen steps beyond last step field.【F:app/api/mfa/verify/route.ts†L103-L158】
-- **Edge Functions**: Several functions disable JWT verification, relying on external HMAC that is no longer checked, leaving ingestion endpoints exposed.【F:supabase/config.toml†L3-L46】
+- **CSP & headers**: Middleware sets CSP with per-request nonce and security headers; however, style-src still includes `'unsafe-inline'` for Tailwind, reducing strictness.【F:middleware.ts†L1-L36】【F:lib/security/headers.ts†L1-L66】
+- **Secrets**: Service-role key remains server-only; `.env.example` documents MFA secrets (KMS data key, peppers, trusted cookie secret) required for hardening.【F:.env.example†L1-L32】
+- **Auth gaps**: AuthX verification missing rate limiting/replay guard, WhatsApp OTP unthrottled, and multiple Edge Functions unauthenticated remain primary blockers.【F:app/api/authx/challenge/verify/route.ts†L49-L96】【F:lib/authx/start.ts†L83-L122】【F:supabase/config.toml†L1-L22】
 
 ## Performance & Scalability
-- **Image Pipeline**: `unoptimized: true` disables Next image optimisation, inflating payloads for hero art and avatars.【F:next.config.ts†L44-L51】
-- **Data Fetching**: No caching or incremental revalidation on dashboards; every request loads entire month from Postgres, which will not scale for busy SACCOs.【F:lib/dashboard.ts†L73-L189】
-- **PWA**: Service worker not caching `_next` assets; offline mode unreliable; install prompt absent.【F:service-worker.js†L1-L58】
+- **Dashboard**: In-memory aggregation and 500-row member fetches will not scale; shift to SQL aggregates/materialised views for month summaries and top ikimina lists.【F:lib/dashboard.ts†L74-L200】
+- **Images**: `next.config.ts` sets `unoptimized: true`, preventing CDN resizing. Performance budgets rely solely on Lighthouse step; no static asset pipeline configured.【F:next.config.ts†L45-L52】【F:.github/workflows/ci.yml†L31-L48】
+- **PWA**: Manual service worker caches minimal assets; offline navigation beyond `/dashboard` fails, and update strategy lacks versioning. Replace with workbox to scale across routes.【F:service-worker.js†L1-L58】
 
 ## Observability
-- **Logging**: Console logging only; no structured log shipping or alerting on audit/rate-limit failures.【F:lib/audit.ts†L1-L24】【F:lib/rate-limit.ts†L1-L19】
-- **Metrics**: Docs mention Prometheus exporter, but no code references in app; need to confirm instrumentation of API routes.【F:docs/go-live-checklist.md†L95-L137】
-- **CI**: Pipeline limited to lint/type/build; lacks Lighthouse/perf budgets and artifact retention.【F:.github/workflows/ci.yml†L1-L32】
+- **Logging**: Async-local logger supports structured logs, but audit log failures still only emit console errors; no integration with external logging/alerting system yet.【F:lib/observability/logger.ts†L1-L76】【F:lib/audit.ts†L9-L21】
+- **Metrics**: No in-app metrics instrumentation; Supabase functions mention `metrics-exporter` but it remains unauthenticated and not wired into dashboards.【F:supabase/config.toml†L17-L22】
+- **CI/CD**: CI runs lint/typecheck/build/RLS tests and Lighthouse but uses npm instead of pnpm; preview workflow deploys to Vercel when secrets exist. Need pnpm alignment and auth-focused e2e tests.【F:.github/workflows/ci.yml†L1-L52】【F:.github/workflows/preview.yml†L1-L42】
 
-## Security Headers Recommendation
-Implement `src/lib/security/headers.ts` to generate CSP with nonce, referencing allowed domains for Supabase, fonts, Lucide. Apply via Next.js `headers()` in `next.config.ts` or `middleware.ts` to enforce consistent policy across routes.【F:next.config.ts†L29-L54】
+## Security Header Recommendation
+Continue issuing CSP with nonce via middleware but remove `'unsafe-inline'` from `style-src` by migrating critical inline styles to hashed or stylesheet-based approaches; ensure Supabase domains remain whitelisted.【F:lib/security/headers.ts†L1-L66】
 
 ## Supabase RLS Recommendation
-Converge on `app.*` schema; generate supabase types, add SQL unit tests for each policy, and ensure UI queries call stored procedures or views that respect SACCO scoping. Remove legacy migrations or mark them to drop deprecated tables once data migrated.【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L199-L279】【F:lib/dashboard.ts†L73-L189】
-
+Standardise on `app.*` schema by introducing views that mirror legacy tables, regenerate Supabase types, and expand SQL tests to cover each policy (payments, recon, trusted devices, ops). Drop or deprecate legacy `public.*` tables once UI migrates.【F:lib/dashboard.ts†L74-L190】【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L118】

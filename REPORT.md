@@ -1,104 +1,106 @@
 # SACCO+ Production Readiness Audit — Ibimina Staff Console
 
-_Date: 2025-10-15_
+_Date: 2025-10-18_
 
 ## Executive Summary
 | Area | Status | Notes |
 | --- | --- | --- |
-| Security | 🔴 Critical gaps | No CSP/headers, duplicated `public` vs `app` schemas without automated policy tests, and MFA admin routes depend on the service-role key without replay protection hardening.【F:next.config.ts†L29-L54】【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L199-L279】【F:app/api/mfa/verify/route.ts†L26-L228】 |
-| Reliability | 🟠 Needs work | Critical flows (MFA, recon, imports) lack integration tests and depend on client-side Supabase RPC calls that can silently fail (rate limits, audit logging) without retries.【F:lib/rate-limit.ts†L1-L19】【F:lib/audit.ts†L1-L24】 |
-| Performance | 🟠 Needs work | Global `next/image` optimisations disabled and dashboard queries pull month-long payment sets into memory with no pagination or caching.【F:next.config.ts†L44-L51】【F:lib/dashboard.ts†L60-L200】 |
-| PWA | 🟠 Needs work | Manifest has no maskable icons, custom service worker ships a hard-coded shell and skips `_next` assets which breaks offline navigation beyond two routes.【F:public/manifest.json†L1-L15】【F:service-worker.js†L1-L58】 |
-| Accessibility | 🟠 Needs work | MFA screen renders button-driven flows without semantic form submission, no error associations, and lacks focus management for dialogs.【F:app/(auth)/mfa/page.tsx†L39-L213】【F:components/layout/app-shell.tsx†L135-L239】 |
-| UX | 🟠 Needs work | Navigation lacks current-item announcements, quick action dialog duplicates information without prioritisation, and there are no loading/empty skeletons for large tables.【F:components/layout/app-shell.tsx†L158-L239】【F:lib/dashboard.ts†L88-L200】 |
-| Data & RLS | 🔴 Critical gaps | Supabase migrations define both `public.*` and `app.*` tables; generated types lag behind and omit security-sensitive columns, risking drift and policy bypass.【F:supabase/migrations/20251007111647_0ad74d87-9b06-4a13-b252-8ecd3533e366.sql†L24-L188】【F:lib/supabase/types.ts†L9-L139】 |
-| Operations | 🟠 Needs work | CI lacks Lighthouse or preview deployment safeguards; multiple Edge Functions allow unauthenticated invocation by design without compensating telemetry.【F:.github/workflows/ci.yml†L1-L32】【F:supabase/config.toml†L3-L46】 |
+| Security | 🔴 Critical gaps | New `/api/authx/challenge/verify` flow ships without rate limiting, step replay protection, or failure counters, so TOTP and backup factors can be brute-forced or replayed; WhatsApp OTP issuance lacks throttling; several Supabase Edge Functions still allow unauthenticated ingress.【F:app/api/authx/challenge/verify/route.ts†L36-L100】【F:lib/authx/verify.ts†L35-L166】【F:lib/authx/start.ts†L83-L122】【F:supabase/config.toml†L1-L22】 |
+| Reliability | 🟠 Needs work | MFA now has two parallel stacks (`/api/mfa/*` and `/api/authx/*`) with diverging state updates; audits still swallow insert errors; only one SQL RLS test exists, so regressions will slip through CI.【F:components/auth/login-form.tsx†L214-L279】【F:app/api/mfa/verify/route.ts†L26-L228】【F:lib/audit.ts†L9-L21】【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L118】 |
+| Performance | 🟠 Needs work | `next.config.ts` keeps `images.unoptimized=true` and dashboards pull an entire month of payments into Node memory for aggregation, risking slow renders for busy SACCOs.【F:next.config.ts†L45-L52】【F:lib/dashboard.ts†L74-L190】 |
+| PWA | 🔴 Critical gaps | Service worker precaches only `/`, `/dashboard`, and `/recon`; `_next` assets and other routes fail offline; install prompt exists but cannot guarantee shell resilience.【F:service-worker.js†L1-L58】 |
+| Accessibility | 🟠 Needs work | Mobile quick-actions dialog lacks focus trapping/return, and Install banner exposes a non-modal `role="dialog"` without keyboard support; MFA page still omits programmatic focus for errors despite live regions.【F:components/layout/app-shell.tsx†L209-L278】【F:components/system/add-to-home-banner.tsx†L21-L46】【F:app/(auth)/mfa/page.tsx†L150-L213】 |
+| UX | 🟠 Needs work | Navigation buttons do not announce `aria-current`, quick actions duplicate navigation rather than contextual work queues; branded 404 now ships but offline fallback and skeleton states remain outstanding.【F:components/layout/app-shell.tsx†L166-L223】【F:app/not-found.tsx†L1-L86】 |
+| Data & RLS | 🟠 Needs work | Frontend queries still target `public.*` tables while migrations emphasise `app.*`; generated types lag behind; only one RLS SQL test covers SACCO scoping.【F:lib/dashboard.ts†L74-L190】【F:lib/supabase/types.ts†L1-L32】【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L118】 |
+| Operations | 🟠 Needs work | CI uses npm despite pnpm lock usage and lacks auth-focused tests; Lighthouse/preview exist but no artefact budget enforcement or Playwright coverage; logging still prints to console on audit failures.【F:.github/workflows/ci.yml†L1-L52】【F:package.json†L1-L32】【F:lib/audit.ts†L9-L21】 |
 
-## Top Risks
-1. **R1 – Schema drift between `public` and `app` namespaces**: Duplicate migrations mean UI queries the legacy `public` tables while policies move to `app`, creating inconsistent RLS coverage. Impact: High. Likelihood: High. Mitigation: Consolidate schema, regenerate types, add policy tests.【F:supabase/migrations/20251007111647_0ad74d87-9b06-4a13-b252-8ecd3533e366.sql†L24-L188】【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L199-L280】
-2. **R2 – Missing response security headers**: No CSP, frame, or referrer policies are set globally, leaving the console open to script injection and clickjacking. Impact: High. Likelihood: Medium. Mitigation: Introduce `headers()` middleware with CSP + nonce helper.【F:next.config.ts†L29-L54】
-3. **R3 – MFA verification failure modes leak 500s**: Cryptographic errors return `500` and log secrets, and admin Supabase client updates `public.users` outside RLS, making brute-force detection brittle. Impact: High. Likelihood: Medium. Mitigation: Harden handler with structured 4xx responses, replay guard, and server-only queue for audit writes.【F:app/api/mfa/verify/route.ts†L52-L168】
-4. **R4 – PWA offline shell incomplete**: Service worker caches only `/` `/dashboard` `/recon` and ignores `_next` assets, causing blank screens offline; no background sync or update strategy. Impact: Medium. Likelihood: High. Mitigation: Switch to workbox `staleWhileRevalidate`, include manifest + dynamic routes, test via Lighthouse.【F:service-worker.js†L1-L58】
-5. **R5 – Type generation outdated**: Supabase `Database` types omit `sacco_id` on audit logs and lack `trusted_devices`, so TypeScript can’t enforce access scope. Impact: Medium. Likelihood: High. Mitigation: Regenerate types from the live schema, add lint rule for `any` escapes.【F:lib/supabase/types.ts†L9-L139】
-6. **R6 – Edge Functions without JWT verification**: `parse-sms`, `ingest-sms`, and cron hooks bypass JWT checks, enabling anonymous ingestion unless HMAC is enforced downstream. Impact: High. Likelihood: Medium. Mitigation: Require JWT or signed webhook, add rate limits & telemetry.【F:supabase/config.toml†L3-L46】
-7. **R7 – Rate limit RPC uses anon key**: Enforcement calls Supabase RPC with the end-user cookie client, so downtime or auth failure silently disables throttling, undermining brute-force protections. Impact: Medium. Likelihood: Medium. Mitigation: Move to edge function/service-role invoker with circuit breakers.【F:lib/rate-limit.ts†L1-L19】
-8. **R8 – Dashboard fetches entire month in memory**: Full-month payment aggregation without pagination risks timeouts and runaway memory for high-volume SACCOs. Impact: Medium. Likelihood: High. Mitigation: Replace with SQL aggregates & materialized views.【F:lib/dashboard.ts†L60-L200】
-9. **R9 – MFA UI not mobile-first**: Factor selection lacks bottom sheet or accessible grouping, while trust checkbox defaults to true without explanation, causing UX confusion on phones. Impact: Medium. Likelihood: High. Mitigation: Introduce segmented control, explicit states, ARIA live regions.【F:app/(auth)/mfa/page.tsx†L39-L213】
-10. **R10 – CI/CD missing performance budget**: Pipeline stops at build; no Lighthouse or preview gating, so regressions ship unnoticed. Impact: Medium. Likelihood: High. Mitigation: Extend CI with Lighthouse artifact, add Vercel preview with Supabase branch DB.【F:.github/workflows/ci.yml†L1-L32】
+### Recent Improvements (Work Branch `work`)
+- **MFA legacy route parity** – `/api/mfa/verify` now delegates to a dedicated factor orchestrator with zod validation, replay-step cache, and structured audit logging, reducing 500s when Supabase fails and aligning responses with AuthX conventions.【F:app/api/mfa/verify/route.ts†L1-L209】【F:src/auth/factors/index.ts†L1-L78】【F:src/auth/limits.ts†L1-L71】
+- **Channel adapters hardened** – Email MFA adapter wraps issuance/verification in defensive logging and returns structured errors so UI can distinguish rate limits vs server faults during rollout.【F:src/auth/factors/email.ts†L1-L87】
+- **Staff experience guardrails** – A branded `app/not-found.tsx` now routes broken links to recovery actions and reiterates support contacts, preventing dead ends during regression testing.【F:app/not-found.tsx†L1-L86】
+- **Auth runbook bootstrap** – `docs/AUTH-SETUP.md` and PR scaffolds document env prerequisites and rollout sequencing for the multi-factor refactor to reduce tribal knowledge risk.【F:docs/AUTH-SETUP.md†L1-L44】【F:pr/auth-p0-fixes/README.md†L1-L18】
+
+## Top Risks (R1–R10)
+1. **R1 – MFA verify lacks rate limiting & replay guard**: `/api/authx/challenge/verify` trusts any number of attempts and `verifyTotp` never persists `last_mfa_step`, `failed_mfa_count`, or timestamps, enabling brute force and replay after compromise. Mitigation: add per-user/IP throttling, persist step counters, and align with legacy `/api/mfa/verify` protections.【F:app/api/authx/challenge/verify/route.ts†L49-L96】【F:lib/authx/verify.ts†L35-L52】
+2. **R2 – WhatsApp OTP flood risk**: `sendWhatsAppOtp` issues six-digit codes without rate limiting, reuse prevention, or salt per issuance—attackers can hammer the endpoint or replay hashes if DB leaks. Mitigation: add throttle, per-issuance salt, and audit trail before enabling channel.【F:lib/authx/start.ts†L83-L122】
+3. **R3 – Dual MFA stacks diverge**: Login still posts to `/api/mfa/*` while the new `/api/authx/*` APIs set different cookies and skip state updates, risking inconsistent devices and audit logs. Mitigation: consolidate to one factor framework with shared storage and tests.【F:components/auth/login-form.tsx†L214-L279】【F:app/api/authx/challenge/verify/route.ts†L36-L100】
+4. **R4 – Service worker caches partial shell**: Custom SW precaches only two routes and skips `_next` assets, so installs or offline launches fail post navigation. Mitigation: replace with workbox `StaleWhileRevalidate` for build assets + dynamic caching, add offline fallbacks, and test via Lighthouse.【F:service-worker.js†L1-L58】
+5. **R5 – Dashboard loads whole month in memory**: `lib/dashboard.ts` selects all monthly payments then aggregates in Node, leading to high latency and memory pressure on large SACCOs. Mitigation: move sums/counts into SQL views/materialised tables with pagination.【F:lib/dashboard.ts†L74-L190】
+6. **R6 – Edge Functions missing JWT guards**: `parse-sms`, `ingest-sms`, `sms-inbox`, and scheduled jobs still set `verify_jwt=false`, permitting anonymous calls. Mitigation: add HMAC/JWT verification and rate limits before production cutover.【F:supabase/config.toml†L1-L22】
+7. **R7 – Image optimisation disabled**: `images.unoptimized` prevents Next CDN resizing, inflating payloads on mobile. Mitigation: enable optimisation or document CDN strategy with proper caching headers.【F:next.config.ts†L45-L52】
+8. **R8 – RLS regression coverage thin**: Only `sacco_staff_access` test exists; no coverage for payments, recon, trusted devices, or ops tables despite complex policies. Mitigation: add SQL tests per policy and gate via CI.【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L118】
+9. **R9 – Quick actions dialog not accessible**: Mobile quick-actions overlay uses click-to-close and lacks focus trap or ESC support, creating keyboard and screen-reader traps. Mitigation: add focus management and ARIA labelling updates.【F:components/layout/app-shell.tsx†L238-L278】
+10. **R10 – Audit logging swallows insert failures**: `logAudit` catches and logs but never surfaces Supabase insert errors, so breaches could go unrecorded. Mitigation: persist retries, expose metrics, and fail closed for security-sensitive actions.【F:lib/audit.ts†L9-L21】
 
 ## Stack Map
-- **Frontend**: Next.js 15 App Router, client-heavy MFA + dashboards, Tailwind token CSS, lucide icons, sonner toasts.【F:components/layout/app-shell.tsx†L1-L239】【F:styles/tokens.css†L1-L84】
-- **Auth & Data**: Supabase SSR client for session-bound queries, admin client wraps service-role key, rate-limit RPC in `ops.consume_rate_limit` function.【F:lib/supabase/server.ts†L1-L26】【F:lib/supabase/admin.ts†L1-L24】【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L245-L279】
-- **MFA**: Custom API routes for passkeys/TOTP/email + trusted device cookies, yet UI still hits `/api/authx/*` proxies for multi-factor flows.【F:app/api/mfa/verify/route.ts†L26-L228】【F:app/(auth)/mfa/page.tsx†L81-L213】
-- **Backend**: Supabase migrations define SACCO entities, SMS ingestion, ledger, RLS policies, but there’s drift between `public` and `app` versions and unverified edge functions.【F:supabase/migrations/20251007111647_0ad74d87-9b06-4a13-b252-8ecd3533e366.sql†L24-L188】【F:supabase/config.toml†L3-L46】
+- **Frontend**: Next.js 15 App Router with Tailwind tokens, segmented MFA UI, lucide icons, offline providers, and manual SW registration.【F:app/(auth)/mfa/page.tsx†L81-L213】【F:components/layout/app-shell.tsx†L156-L289】【F:providers/pwa-provider.tsx†L11-L62】
+- **Auth**: Supabase SSR client for session detection, service-role admin client for MFA secrets, new AuthX endpoints for factor initiation/verification, and legacy `/api/mfa/*` endpoints still referenced by login.【F:lib/supabase/server.ts†L1-L26】【F:lib/supabase/admin.ts†L1-L21】【F:lib/authx/start.ts†L17-L122】【F:components/auth/login-form.tsx†L214-L279】
+- **Backend**: Supabase migrations emphasise `app.*` schema with RLS helpers while UI queries continue to hit `public.*` tables and views; rate limiting uses `ops.consume_rate_limit` RPC via anon SSR client.【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L400-L612】【F:lib/dashboard.ts†L74-L190】【F:lib/rate-limit.ts†L1-L19】
+- **Observability**: Custom logger wraps async-local context but audit logging still falls back to console-only warnings; no central metrics sink configured in app layer.【F:lib/observability/logger.ts†L1-L76】【F:lib/audit.ts†L9-L21】
 
 ## Findings by Category
 ### Security
-- Lack of CSP/X-Frame/X-Content-Type headers leaves UI exposed; `next.config.ts` only wires `next-pwa` and image config.【F:next.config.ts†L29-L51】
-- MFA verification relies on service-role Supabase client updating `public.users`, bypassing RLS and returning 500 on decrypt issues, enabling enumeration attacks.【F:app/api/mfa/verify/route.ts†L52-L168】
-- Edge Functions `parse-sms`, `ingest-sms`, `sms-inbox`, and scheduled jobs allow unauthenticated access; missing audit logs/telemetry per invocation.【F:supabase/config.toml†L3-L46】
-- Rate limiter uses anon session client so failure defaults to fail-open logging only a warning.【F:lib/rate-limit.ts†L1-L19】
+- AuthX verify path lacks rate-limiting, replay guard, or failure counters, unlike legacy MFA route that tracked `last_mfa_step`—making the new factor facade unsafe for production.【F:app/api/authx/challenge/verify/route.ts†L49-L96】【F:lib/authx/verify.ts†L35-L52】
+- WhatsApp OTP issuance stores deterministic hashes and allows unlimited requests, exposing spam and offline brute-force risk if DB leaked.【F:lib/authx/start.ts†L83-L122】
+- Several Supabase functions (`parse-sms`, `ingest-sms`, `sms-inbox`, `scheduled-reconciliation`, `metrics-exporter`) still disable JWT verification, so external actors can post arbitrary payloads.【F:supabase/config.toml†L1-L22】
+- Audit logging still swallows insert errors and defaults actors to the zero UUID, hindering incident response.【F:lib/audit.ts†L9-L21】
 
 ### Reliability
-- Audit logging swallows insert errors and defaults actor ID to zero UUID; no alerting when writes fail.【F:lib/audit.ts†L1-L24】
-- Dashboard data loader processes entire payment arrays on the application tier without fallbacks or caching, risking timeouts during month-end loads.【F:lib/dashboard.ts†L73-L200】
-- Service worker caches stale shell; no SW versioning strategy, which can strand clients on outdated assets after deploy.【F:service-worker.js†L1-L58】
+- Dual MFA APIs risk drift: legacy `/api/mfa/verify` updates `last_mfa_step`, resets failure counts, and trusts old cookie semantics, while AuthX variant does not—operators must maintain both until unification.【F:app/api/mfa/verify/route.ts†L72-L197】【F:lib/authx/verify.ts†L35-L166】
+- Only a single SQL test validates SACCO member visibility, leaving payments, recon, idempotency, and trusted device policies untested.【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L118】
+- Rate limiter still leverages SSR client; failures throw, but no circuit breaker or fallback is documented. Clarify behaviour for Postgres outages.【F:lib/rate-limit.ts†L1-L19】
 
 ### Performance
-- `next/image` optimisations disabled globally via `unoptimized: true`, preventing CDN resizing and WebP fallback efficiency.【F:next.config.ts†L44-L51】
-- Dashboard summarisation loops in JS instead of SQL; no indexes for aggregated queries on `payments` table in UI code path.【F:lib/dashboard.ts†L73-L200】
+- Monthly dashboard summary performs in-memory grouping/sorting of potentially thousands of payments and members with 500-row caps, which will stall on larger SACCOs; no caching at SQL layer.【F:lib/dashboard.ts†L74-L200】
+- Image optimisation disabled globally, pushing large hero assets to clients without CDN resizing.【F:next.config.ts†L45-L52】
 
 ### PWA & Mobile
-- Manifest lacks maskable icons/apple-touch entries; fails installability on Android adaptive icons.【F:public/manifest.json†L1-L15】
-- Service worker ignores `_next` assets and API caching, so offline nav to `/ikimina` or `/profile` fails immediately.【F:service-worker.js†L1-L58】
+- Manual service worker caches only `/`, `/dashboard`, `/recon`, manifest, and icons—no `_next` assets or fallback routes—breaking offline nav beyond first two pages.【F:service-worker.js†L1-L58】
+- Install prompt provider registers SW only in production and lacks failure telemetry; offline tests not automated.【F:providers/pwa-provider.tsx†L18-L52】
 
-### Accessibility
-- MFA flow uses custom buttons with no `<form>`/submit semantics and lacks error associations or `aria-live` region for message updates.【F:app/(auth)/mfa/page.tsx†L150-L213】
-- Mobile quick actions dialog toggled by floating button but lacks focus trap/return; closing relies on pointer click only.【F:components/layout/app-shell.tsx†L201-L239】
-
-### UX
-- Navigation items don’t surface active state to screen readers (`aria-current` missing), and bilingual quick actions repeat copy without progression status.【F:components/layout/app-shell.tsx†L158-L239】
-- Dashboard lacks skeleton loaders; blank spaces appear during Supabase fetch, degrading perceived performance.【F:lib/dashboard.ts†L73-L200】
+### Accessibility & UX
+- Quick actions modal lacks focus trapping and keyboard closing logic, and navigation buttons don’t expose active state to assistive tech (`aria-current`).【F:components/layout/app-shell.tsx†L166-L278】
+- Add-to-home banner labels a non-modal region as `role="dialog"` without focus control, risking announcements being skipped.【F:components/system/add-to-home-banner.tsx†L21-L46】
+- MFA UI uses live regions but still omits autofocus/error focus, making recovery flows slower on mobile keyboards.【F:app/(auth)/mfa/page.tsx†L150-L213】
+- Branded 404 now exists, but there is still no offline fallback or contextual empty-state guidance for module-specific errors.【F:app/not-found.tsx†L1-L86】
 
 ### Data & RLS
-- Two schema tracks (`public.*` and `app.*`) exist simultaneously; generated types only model legacy public tables so new policies or columns aren’t enforced in TypeScript.【F:supabase/migrations/20251007111647_0ad74d87-9b06-4a13-b252-8ecd3533e366.sql†L24-L188】【F:lib/supabase/types.ts†L9-L139】
-- No automated tests validate RLS rules; reliance on documentation in `docs/RLS.md` without executable checks.【F:docs/RLS.md†L1-L51】
+- Frontend continues querying `public.payments`, `public.ibimina`, and `public.ikimina_members_public` instead of the new `app.*` tables, risking policy bypass if legacy schema diverges.【F:lib/dashboard.ts†L74-L190】
+- Generated Supabase types cover only `public.*` schema, so TypeScript cannot enforce new columns or relationships in `app.*` policies.【F:lib/supabase/types.ts†L1-L32】
 
-### Operations
-- CI runs lint/typecheck/build but lacks Lighthouse or test gates, and no artifacts are uploaded for audit trail.【F:.github/workflows/ci.yml†L1-L32】
-- Preview deployments not automated; Supabase branch database creation/manual linking absent, and feature flags rely on documentation only.【F:docs/go-live-checklist.md†L95-L137】
+### Observability & Ops
+- Audit logger simply logs errors; no structured telemetry or alerting configured when writes fail.【F:lib/audit.ts†L9-L21】
+- CI pipeline uses npm despite pnpm lockfile, increasing install time and risking dependency drift; no auth-focused unit/e2e tests run.【F:.github/workflows/ci.yml†L1-L52】【F:package.json†L1-L32】
 
 ## PWA & Mobile-First Scorecard
 | Criterion | Status | Evidence |
 | --- | --- | --- |
-| Installability | 🟠 Maskable icon missing | Manifest only lists PNG icons without `purpose: "maskable"` or Apple touch icons.【F:public/manifest.json†L10-L15】 |
-| Offline shell | 🔴 Incomplete | Service worker caches only dashboard/recon routes and skips Next.js assets, so navigation fails offline.【F:service-worker.js†L1-L58】 |
-| Responsive navigation | 🟢 Present but improvable | Mobile bottom nav exists yet lacks `aria-current` and focus return controls.【F:components/layout/app-shell.tsx†L201-L239】 |
-| Performance budgets | 🔴 Missing | `next.config.ts` disables optimisation; no Lighthouse CI step yet.【F:next.config.ts†L44-L51】【F:.github/workflows/ci.yml†L1-L32】 |
-| MFA mobile flow | 🟠 Needs redesign | Factor chooser is desktop-centric with plain selects/inputs and no per-factor guidance.【F:app/(auth)/mfa/page.tsx†L150-L213】 |
+| Installability | 🟡 Prompt exists | Install prompt provider renders banner and registers SW in production but needs offline validation.【F:providers/pwa-provider.tsx†L18-L62】【F:components/pwa/install-prompt.tsx†L5-L52】 |
+| Offline shell | 🔴 Broken | Service worker only caches shell routes and skips `_next` assets, so navigation fails offline.【F:service-worker.js†L1-L58】 |
+| Responsive navigation | 🟠 Needs focus work | Bottom nav lacks `aria-current` and quick actions modal lacks keyboard support.【F:components/layout/app-shell.tsx†L166-L278】 |
+| Performance budgets | 🟡 Partial | CI runs Lighthouse but no thresholds enforced; Next image optimisations disabled.【F:.github/workflows/ci.yml†L31-L48】【F:next.config.ts†L45-L52】 |
+| MFA mobile flow | 🟠 Partial | Segmented control exists but no passkey fallback instructions or autofocus on error states.【F:app/(auth)/mfa/page.tsx†L102-L213】 |
 
-## UI/UX Heuristics (Nielsen)
-- **Visibility of system status**: MFA initiation shows success/error text but no spinner overlay or toast; dashboard lacks loading states when fetching Supabase data.【F:app/(auth)/mfa/page.tsx†L81-L213】【F:lib/dashboard.ts†L73-L200】
-- **User control & freedom**: Quick actions modal closes only via pointer click; no ESC handler or focus trap, hindering keyboard users.【F:components/layout/app-shell.tsx†L201-L239】
-- **Error prevention**: Trust device checkbox defaulted true without context increases accidental long-term trust on shared devices.【F:app/(auth)/mfa/page.tsx†L170-L188】
-- **Recognition vs recall**: Navigation icons lack labels for assistive tech; quick actions replicate navigation entries instead of contextual tasks.【F:components/layout/app-shell.tsx†L158-L239】
+## UI/UX Heuristics
+- **Visibility of system status**: Dashboard and recon views still lack skeletons while Supabase queries run, leaving blank space during fetch; MFA messages rely on text without spinners.【F:lib/dashboard.ts†L74-L200】【F:app/(auth)/mfa/page.tsx†L150-L213】
+- **User control & freedom**: Quick actions overlay closes only via click; ESC key and focus trap absent.【F:components/layout/app-shell.tsx†L238-L278】
+- **Consistency & standards**: Navigation lacks `aria-current`, and bilingual quick actions repeat text without hierarchy, making scanning difficult on mobile.【F:components/layout/app-shell.tsx†L166-L278】
+- **Error prevention**: No confirmation before trusting devices; remember-device defaults vary between flows, increasing shared-device risk.【F:components/auth/login-form.tsx†L248-L279】【F:app/(auth)/mfa/page.tsx†L168-L188】
 
 ## RLS & Multi-tenancy Evaluation
-- `supabase/migrations/20251012120000_sacco_plus_schema.sql` establishes `app.user_profiles` and policy helpers but UI still queries `public` views, creating inconsistent enforcement.【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L199-L279】【F:lib/dashboard.ts†L73-L189】
-- Legacy migration `20251007111647_...` continues to define RLS on `public.ibimina`, `public.members`, etc., risking policy divergence when only one schema is updated.【F:supabase/migrations/20251007111647_0ad74d87-9b06-4a13-b252-8ecd3533e366.sql†L24-L188】
-- No automated RLS regression tests exist; `docs/RLS.md` is descriptive only.【F:docs/RLS.md†L1-L51】
+- New `app.*` schema with helper functions is in place, but UI and types still target `public.*`, creating policy drift risk during migration.【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L400-L612】【F:lib/dashboard.ts†L74-L190】
+- Only one SQL test validates staff visibility; payments, recon, trusted devices, and ops tables lack regression coverage.【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L118】
 
 ## Observability & Ops
-- Audit logger suppresses errors and defaults actor IDs, so there is no guarantee failures are surfaced to operators.【F:lib/audit.ts†L9-L23】
-- Rate limiter lacks telemetry/log forwarding beyond console warnings, so SREs cannot distinguish fail-open events.【F:lib/rate-limit.ts†L3-L18】
-- CI pipeline lacks artifact retention and does not run Lighthouse/performance budgets.【F:.github/workflows/ci.yml†L1-L32】
+- Audit logging uses SSR client and falls back to console on failure; no alerting integration or retry queue.【F:lib/audit.ts†L9-L21】
+- Rate limiter exceptions bubble to callers but no fallback/resilience documented; add telemetry + circuit breaker guidance.【F:lib/rate-limit.ts†L1-L19】
+- CI builds with npm and lacks dedicated MFA/auth tests; align tooling with pnpm workflow and add Playwright coverage.【F:.github/workflows/ci.yml†L1-L52】【F:package.json†L1-L32】
 
 ## Recommendations
-- **Short term (P0)**: Add global security headers with CSP nonce helper; refactor MFA verify to return structured 4xx, enforce replay guard, and rely on server-side queue; regenerate Supabase types and align UI queries to canonical schema; expand CI with Lighthouse + artifacts.【F:next.config.ts†L29-L54】【F:app/api/mfa/verify/route.ts†L26-L228】【F:lib/supabase/types.ts†L9-L139】【F:.github/workflows/ci.yml†L1-L32】
-- **Medium term (P1)**: Redesign MFA UI with segmented factor chooser, accessible dialogs, and trust-device education; implement SQL-backed dashboard aggregates and skeleton states; deliver install prompt + dynamic SW caching with workbox.【F:app/(auth)/mfa/page.tsx†L39-L213】【F:lib/dashboard.ts†L73-L200】【F:service-worker.js†L1-L58】
-- **Long term (P2)**: Harden Edge Functions with JWT/HMAC verification, implement idempotent ledger operations, integrate analytics dashboards and operations runbooks into app, add Supabase branch automation in preview workflow.【F:supabase/config.toml†L3-L46】【F:docs/go-live-checklist.md†L95-L137】
+- **Short term (P0)**: Harden AuthX verify with rate limits, replay guard, failure counters, and trusted-device issuance parity; remove unauthenticated Supabase functions or enforce signed headers; migrate dashboard queries to `app.*` or wrap via views; add accessibility fixes for quick actions/modal and validate offline fallback alongside the new branded 404 page.【F:app/api/authx/challenge/verify/route.ts†L49-L96】【F:lib/authx/verify.ts†L35-L166】【F:supabase/config.toml†L1-L22】【F:components/layout/app-shell.tsx†L238-L278】【F:app/not-found.tsx†L1-L86】
+- **Medium term (P1)**: Consolidate MFA flows under AuthX facade with shared storage, unify UI to use new endpoints, instrument service worker via workbox, enable Next image optimisation, and expand RLS SQL tests for payments/recon/trusted devices.【F:components/auth/login-form.tsx†L214-L279】【F:service-worker.js†L1-L58】【F:lib/dashboard.ts†L74-L190】
+- **Long term (P2)**: Materialise dashboard aggregates in Supabase, introduce analytics widgets with caching, push structured logs to observability backend, and codify preview infra (Supabase branch DB + e2e tests).【F:lib/dashboard.ts†L74-L200】【F:lib/observability/logger.ts†L1-L76】【F:.github/workflows/preview.yml†L1-L42】
 
 ## Appendix
-- Tooling executed: `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm build` (captured in `.reports/build.log` and terminal logs).【6c35f5†L1-L7】【9fd272†L1-L4】【6eeaf0†L1-L4】【f17b18†L1-L19】
-- Attempted bundle analysis failed (package unavailable) — follow-up required.【cede29†L1-L6】
-- Build artefact summary logged under `.reports/build.log` for reference.【232486†L1-L20】
+- Tooling executed: `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm build` (captured in `.reports/build.log`).【f76b84†L1-L43】【962175†L1-L2】【66ab3a†L1-L3】【892a54†L1-L4】【a1517a†L1-L20】
+- Automated scans attempted: bundle analyser not published on npm (404), Lighthouse failed due to missing Chrome in CI image, axe-core CLI lacks bin—track follow-ups.【df97fe†L1-L6】【02ec78†L1-L22】【a0653d†L1-L5】

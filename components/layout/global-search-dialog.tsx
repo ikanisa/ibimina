@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpRight, Loader2, Search, X } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
@@ -10,6 +10,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { SaccoSearchCombobox, type SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
 import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
+import { cn } from "@/lib/utils";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -56,26 +57,46 @@ type PaymentResult = {
   memberName: string | null;
 };
 
+type Badge = {
+  label: string;
+  tone: "critical" | "info" | "success";
+};
+
 type NavTarget = {
   href: string;
   primary: string;
   secondary: string;
+  badge?: Badge;
 };
 
-type QuickActionTarget = {
+type QuickAction = {
   href: string;
   primary: string;
   secondary: string;
   description: string;
   secondaryDescription: string;
+  badge?: Badge;
 };
+
+type QuickActionGroup = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  actions: QuickAction[];
+};
+
+const BADGE_TONE_STYLES = {
+  critical: "border-red-500/40 bg-red-500/15 text-red-200",
+  info: "border-sky-500/40 bg-sky-500/15 text-sky-100",
+  success: "border-emerald-500/40 bg-emerald-500/15 text-emerald-200",
+} as const;
 
 interface GlobalSearchDialogProps {
   open: boolean;
   onClose: () => void;
   profile: ProfileRow;
   navItems: NavTarget[];
-  quickActions: QuickActionTarget[];
+  quickActions: QuickActionGroup[];
 }
 
 function formatRelativeDate(value: string, formatter: Intl.DateTimeFormat) {
@@ -146,6 +167,7 @@ export function GlobalSearchDialog({
   const [showRefreshBadge, setShowRefreshBadge] = useState(false);
   const refreshBadgeTimer = useRef<NodeJS.Timeout | null>(null);
   const lastRefreshToastAt = useRef<number>(0);
+  const focusRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -439,21 +461,46 @@ export function GlobalSearchDialog({
     );
   }, [navItems, query]);
 
-  const filteredActions = useMemo(() => {
+  const filteredQuickActionGroups = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return quickActions;
-    return quickActions.filter((action) => {
-      const haystack = [
-        action.primary,
-        action.secondary,
-        action.description,
-        action.secondaryDescription,
-      ]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(term);
-    });
+    if (!term) {
+      return quickActions;
+    }
+    return quickActions
+      .map((group) => ({
+        ...group,
+        actions: group.actions.filter((action) => {
+          const haystack = [
+            action.primary,
+            action.secondary,
+            action.description,
+            action.secondaryDescription,
+          ]
+            .join(" ")
+            .toLowerCase();
+          return haystack.includes(term);
+        }),
+      }))
+      .filter((group) => group.actions.length > 0);
   }, [quickActions, query]);
+
+  const flattenedQuickActions = useMemo(
+    () =>
+      filteredQuickActionGroups.flatMap((group) =>
+        group.actions.map((action) => ({ groupId: group.id, action })),
+      ),
+    [filteredQuickActionGroups],
+  );
+
+  const actionIndexByGroup = useMemo(() => {
+    const map = new Map<string, number>();
+    let offset = 0;
+    for (const group of filteredQuickActionGroups) {
+      map.set(group.id, offset);
+      offset += group.actions.length;
+    }
+    return map;
+  }, [filteredQuickActionGroups]);
 
   const filteredIkimina = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -504,6 +551,74 @@ export function GlobalSearchDialog({
       : payments;
     return source.slice(0, limit);
   }, [payments, query]);
+
+  const navOffset = 0;
+  const navCount = filteredNav.length;
+  const actionOffset = navOffset + navCount;
+  const ikiminaOffset = actionOffset + flattenedQuickActions.length;
+  const membersOffset = ikiminaOffset + filteredIkimina.length;
+  const paymentsOffset = membersOffset + filteredMembers.length;
+  const totalFocusCount = paymentsOffset + filteredPayments.length;
+
+  const focusItem = useCallback(
+    (index: number) => {
+      const element = focusRefs.current[index];
+      if (element) {
+        element.focus();
+      }
+    },
+    [],
+  );
+
+  const registerFocus = useCallback(
+    (index: number) => (element: HTMLAnchorElement | null) => {
+      focusRefs.current[index] = element;
+    },
+    [],
+  );
+
+  const handleResultKeyDown = useCallback(
+    (event: ReactKeyboardEvent, index: number) => {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        const next = Math.min(totalFocusCount - 1, index + 1);
+        if (next >= 0 && next < totalFocusCount) {
+          focusItem(next);
+        }
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        if (index === 0) {
+          inputRef.current?.focus();
+        } else {
+          focusItem(Math.max(0, index - 1));
+        }
+      }
+    },
+    [focusItem, totalFocusCount],
+  );
+
+  const handleInputKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "ArrowDown" && totalFocusCount > 0) {
+        event.preventDefault();
+        focusItem(0);
+      } else if (event.key === "ArrowUp" && totalFocusCount > 0) {
+        event.preventDefault();
+        focusItem(totalFocusCount - 1);
+      }
+    },
+    [focusItem, totalFocusCount],
+  );
+
+  useEffect(() => {
+    focusRefs.current = focusRefs.current.slice(0, totalFocusCount);
+  }, [totalFocusCount]);
+
+  useEffect(() => {
+    if (!open) {
+      focusRefs.current = [];
+    }
+  }, [open]);
 
   const currencyFormatter = useMemo(
     () =>
@@ -565,6 +680,7 @@ export function GlobalSearchDialog({
             ref={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={handleInputKeyDown}
             placeholder={t("search.console.placeholder", "Search ikimina, quick actions, or SACCO registry")}
             className="w-full rounded-2xl border border-white/10 bg-white/10 py-3 pl-11 pr-4 text-sm text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
           />
@@ -589,45 +705,91 @@ export function GlobalSearchDialog({
                 {filteredNav.length === 0 && (
                   <li className="text-xs text-neutral-2">{t("search.console.noSections", "No sections found.")}</li>
                 )}
-                {filteredNav.map((item) => (
-                  <li key={item.href}>
+                {filteredNav.map((item, idx) => {
+                  const globalIndex = navOffset + idx;
+                  return (
+                    <li key={item.href}>
                     <Link
                       href={item.href}
                       onClick={onClose}
+                      ref={registerFocus(globalIndex)}
+                      onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                      tabIndex={-1}
                       className="flex flex-col rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
                     >
-                      <span className="font-medium">{renderHighlighted(item.primary, query)}</span>
-                      <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-                        {item.secondary}
-                      </span>
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <span className="font-medium">{renderHighlighted(item.primary, query)}</span>
+                          <span className="block text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                            {item.secondary}
+                          </span>
+                        </div>
+                        {item.badge && (
+                          <span
+                            className={cn(
+                              "inline-flex h-min items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
+                              BADGE_TONE_STYLES[item.badge.tone],
+                            )}
+                          >
+                            {item.badge.label}
+                          </span>
+                        )}
+                      </div>
                     </Link>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </section>
 
             <section>
               <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">{t("search.console.quickActions", "Quick actions")}</header>
-              <ul className="space-y-2">
-                {filteredActions.length === 0 && (
-                  <li className="text-xs text-neutral-2">{t("search.console.tryAnother", "Try another phrase to find workflows.")}</li>
+              <div className="space-y-3">
+                {filteredQuickActionGroups.length === 0 && (
+                  <p className="text-xs text-neutral-2">{t("search.console.tryAnother", "Try another phrase to find workflows.")}</p>
                 )}
-                {filteredActions.map((action) => (
-                  <li key={action.primary}>
-                    <Link
-                      href={action.href}
-                      onClick={onClose}
-                      className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
-                    >
-                      <span className="font-medium">{renderHighlighted(action.primary, query)}</span>
-                      <span className="text-xs text-neutral-2">{action.description}</span>
-                      <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-                        {action.secondary} · {action.secondaryDescription}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+                {filteredQuickActionGroups.map((group) => {
+                  const baseIndex = actionIndexByGroup.get(group.id) ?? 0;
+                  return (
+                    <div key={group.id} className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-[0.35em] text-neutral-3">{group.title}</p>
+                      <ul className="space-y-2">
+                        {group.actions.map((action, idx) => {
+                          const globalIndex = actionOffset + baseIndex + idx;
+                          return (
+                            <li key={`${group.id}-${action.primary}`}>
+                              <Link
+                                href={action.href}
+                                onClick={onClose}
+                                ref={registerFocus(globalIndex)}
+                                onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                                tabIndex={-1}
+                                className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                              >
+                                <span className="font-medium">{renderHighlighted(action.primary, query)}</span>
+                                <span className="text-xs text-neutral-2">{action.description}</span>
+                                <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                                  {action.secondary} · {action.secondaryDescription}
+                                </span>
+                                {action.badge && (
+                                  <span
+                                    className={cn(
+                                      "mt-1 inline-flex w-max items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
+                                      BADGE_TONE_STYLES[action.badge.tone],
+                                    )}
+                                  >
+                                    {action.badge.label}
+                                  </span>
+                                )}
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
             </section>
           </aside>
 
@@ -658,13 +820,18 @@ export function GlobalSearchDialog({
                   </div>
                 ) : (
                   <ul className="divide-y divide-white/5 text-sm text-neutral-0">
-                    {filteredIkimina.map((item) => (
-                      <li key={item.id}>
-                        <Link
-                          href={`/ikimina/${item.id}`}
-                          onClick={onClose}
-                          className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
-                        >
+                    {filteredIkimina.map((item, idx) => {
+                      const globalIndex = ikiminaOffset + idx;
+                      return (
+                        <li key={item.id}>
+                          <Link
+                            href={`/ikimina/${item.id}`}
+                            onClick={onClose}
+                            ref={registerFocus(globalIndex)}
+                            onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                            tabIndex={-1}
+                            className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
+                          >
                           <div>
                             <p className="font-medium">{renderHighlighted(item.name, query)}</p>
                             <p className="text-xs text-neutral-2">
@@ -673,9 +840,10 @@ export function GlobalSearchDialog({
                             </p>
                           </div>
                           <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
-                        </Link>
-                      </li>
-                    ))}
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
@@ -699,13 +867,17 @@ export function GlobalSearchDialog({
                   </div>
                 ) : (
                   <ul className="divide-y divide-white/5 text-sm text-neutral-0">
-                    {filteredMembers.map((member) => {
+                    {filteredMembers.map((member, idx) => {
+                      const globalIndex = membersOffset + idx;
                       const memberHref = member.ikiminaId ? `/ikimina/${member.ikiminaId}` : "/ikimina";
                       return (
                         <li key={member.id}>
                           <Link
                             href={memberHref}
                             onClick={onClose}
+                            ref={registerFocus(globalIndex)}
+                            onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                            tabIndex={-1}
                             className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
                           >
                             <div>
@@ -758,13 +930,17 @@ export function GlobalSearchDialog({
                   </div>
                 ) : (
                   <ul className="divide-y divide-white/5 text-sm text-neutral-0">
-                    {filteredPayments.map((payment) => {
+                    {filteredPayments.map((payment, idx) => {
+                      const globalIndex = paymentsOffset + idx;
                       const paymentHref = payment.ikiminaId ? `/ikimina/${payment.ikiminaId}` : "/recon";
                       return (
                         <li key={payment.id}>
                           <Link
                             href={paymentHref}
                             onClick={onClose}
+                            ref={registerFocus(globalIndex)}
+                            onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                            tabIndex={-1}
                             className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
                           >
                             <div>
