@@ -8,7 +8,7 @@ The Ibimina Staff Console runs on Next.js 15 App Router with Tailwind design tok
 - **Providers**: `AppProviders` wraps I18n, theme, toast, offline queue, confirmation modals, PWA registration, and motion animation, ensuring providers run client-side.【F:providers/app-providers.tsx†L1-L32】
 - **MFA UI**: `app/(auth)/mfa/page.tsx` renders a segmented factor chooser with passkey/TOTP/email/WhatsApp/backup options, but it depends on the new AuthX endpoints and assumes per-factor state that the API does not yet persist (e.g., failure counters).【F:app/(auth)/mfa/page.tsx†L81-L213】
 - **Navigation shell**: `AppShell` renders desktop nav, mobile bottom nav, quick actions dialog, and global search. Quick actions rely on client-only state and currently lack focus management or `aria-current` annotations.【F:components/layout/app-shell.tsx†L166-L289】
-- **PWA glue**: The PWA provider registers `service-worker.js` in production and surfaces an install banner; the service worker itself remains a manually maintained asset with a minimal cache list.【F:providers/pwa-provider.tsx†L18-L52】【F:service-worker.js†L1-L58】
+- **PWA glue**: The PWA provider registers `service-worker.js` in production and surfaces an install banner; the worker now ships a stale-while-revalidate strategy with offline fallback routing but still relies on online Supabase calls for fresh data.【F:providers/pwa-provider.tsx†L18-L52】【F:service-worker.js†L1-L98】【F:app/offline/page.tsx†L1-L49】
 
 ## Backend & API Boundaries
 - **Supabase clients**: `createSupabaseServerClient` uses the anon key with cookies for SSR, while `createSupabaseAdminClient` keeps the service-role key server-side. Admin client is used extensively for MFA secrets and OTP issuance.【F:lib/supabase/server.ts†L1-L26】【F:lib/supabase/admin.ts†L1-L21】
@@ -34,13 +34,13 @@ The Ibimina Staff Console runs on Next.js 15 App Router with Tailwind design tok
 
 ## Performance & Scalability
 - **Dashboard**: In-memory aggregation and 500-row member fetches will not scale; shift to SQL aggregates/materialised views for month summaries and top ikimina lists.【F:lib/dashboard.ts†L74-L200】
-- **Images**: `next.config.ts` sets `unoptimized: true`, preventing CDN resizing. Performance budgets rely solely on Lighthouse step; no static asset pipeline configured.【F:next.config.ts†L45-L52】【F:.github/workflows/ci.yml†L31-L48】
-- **PWA**: Manual service worker caches minimal assets; offline navigation beyond `/dashboard` fails, and update strategy lacks versioning. Replace with workbox to scale across routes.【F:service-worker.js†L1-L58】
+- **Images**: Next image optimisation is enabled with AVIF/WebP formats and remote pattern safety; dashboards still render large SACCO logos directly from storage without responsive variants.【F:next.config.ts†L28-L94】【F:components/admin/sacco-branding-card.tsx†L1-L170】
+- **PWA**: Service worker precaches offline shell + icons and falls back to `/offline`, yet dynamic data/API hydration remains online-only. Add cached API responses and background sync for resilience.【F:service-worker.js†L1-L98】【F:app/offline/page.tsx†L1-L49】
 
 ## Observability
 - **Logging**: Async-local logger supports structured logs, but audit log failures still only emit console errors; no integration with external logging/alerting system yet.【F:lib/observability/logger.ts†L1-L76】【F:lib/audit.ts†L9-L21】
 - **Metrics**: No in-app metrics instrumentation; Supabase functions mention `metrics-exporter` but it remains unauthenticated and not wired into dashboards.【F:supabase/config.toml†L17-L22】
-- **CI/CD**: CI runs lint/typecheck/build/RLS tests and Lighthouse but uses npm instead of pnpm; preview workflow deploys to Vercel when secrets exist. Need pnpm alignment and auth-focused e2e tests.【F:.github/workflows/ci.yml†L1-L52】【F:.github/workflows/preview.yml†L1-L42】
+- **CI/CD**: CI now runs on pnpm with Lighthouse budgets, auth integration tests, and bundle analysis tooling; preview workflow still needs Supabase branch DB wiring and auth e2e gate.【F:.github/workflows/ci.yml†L1-L80】【F:scripts/analyze-bundle.mjs†L1-L28】【F:.github/workflows/preview.yml†L1-L42】
 
 ## Security Header Recommendation
 Continue issuing CSP with nonce via middleware but remove `'unsafe-inline'` from `style-src` by migrating critical inline styles to hashed or stylesheet-based approaches; ensure Supabase domains remain whitelisted.【F:lib/security/headers.ts†L1-L66】

@@ -11,6 +11,8 @@ export const CACHE_TAGS = {
   ikiminaDirectory: "ikimina:directory",
   sacco: (id: string | null) => (id ? `sacco:${id}` : "sacco:all"),
   ikimina: (id: string) => `ikimina:${id}`,
+  analyticsExecutive: (saccoId: string | null) =>
+    saccoId ? `analytics:executive:${saccoId}` : "analytics:executive:all",
 } as const;
 
 export function composeTags(...tags: Array<string | false | null | undefined>): string[] {

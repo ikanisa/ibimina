@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { browserSupportsWebAuthn, platformAuthenticatorIsAvailable, startAuthentication } from "@simplewebauthn/browser";
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
@@ -684,7 +684,7 @@ export function LoginForm() {
             <p className="text-sm text-neutral-0">{t("auth.enroll.intro", "Before continuing, add “SACCO+” to the Google Authenticator app.")}</p>
             {qrCodeUrl && (
               <div className="flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/10 p-4">
-                <Image
+                <OptimizedImage
                   src={qrCodeUrl}
                   alt={t("auth.enroll.qrAlt", "Scan this QR code with Google Authenticator to add SACCO+")}
                   width={220}

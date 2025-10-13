@@ -32,11 +32,11 @@
   effort: L
 - id: PWA-005
   area: pwa
-  title: "Service worker precaches only partial shell"
-  files: ["service-worker.js"]
-  risk: high
-  evidence: "Manual SW caches only /, /dashboard, /recon, manifest, and icons, skipping _next assets and dynamic routes." 
-  fix: "Replace with workbox precaching of build assets + runtime caching for authed routes and offline fallback." 
+  title: "Offline shell lacks dynamic data fallbacks"
+  files: ["service-worker.js", "app/offline/page.tsx"]
+  risk: medium
+  evidence: "SW now precaches offline shell + icons but dashboards still rely on live Supabase calls, leaving empty states when offline beyond cached lists."
+  fix: "Add background sync or cached API fallbacks for key dashboards and member lists; surface stale data messaging."
   effort: M
 - id: A11Y-006
   area: accessibility
@@ -56,12 +56,12 @@
   effort: M
 - id: PERF-008
   area: performance
-  title: "Next image optimisation disabled"
-  files: ["next.config.ts"]
+  title: "Analytics cache lacks invalidation"
+  files: ["lib/analytics.ts", "lib/performance/cache.ts"]
   risk: medium
-  evidence: "images.unoptimized=true prevents CDN resizing for hero assets." 
-  fix: "Enable optimisation or document CDN strategy with caching headers." 
-  effort: S
+  evidence: "Executive analytics caches Supabase queries for 15 minutes with no triggers to revalidate, delaying incident response after imports or escalations."
+  fix: "Trigger `revalidateTag` from Supabase triggers or expose manual cache bust endpoints and telemetry."
+  effort: M
 - id: DATA-009
   area: data
   title: "RLS test coverage limited to members"
@@ -72,11 +72,11 @@
   effort: M
 - id: OPS-010
   area: operations
-  title: "CI pipeline misaligned with pnpm and lacks auth e2e"
-  files: [".github/workflows/ci.yml", "package.json"]
+  title: "Observability + preview coverage still incomplete"
+  files: [".github/workflows/ci.yml", "scripts/analyze-bundle.mjs", "lib/audit.ts"]
   risk: medium
-  evidence: "Workflow runs npm ci despite pnpm lock and no Playwright/auth-focused checks."
-  fix: "Switch to pnpm install/cache, add MFA e2e + Lighthouse budgets as blocking gates."
+  evidence: "pnpm CI and Lighthouse budgets now run, but no structured log shipping or preview deployments exist; audit logger still swallows insert failures."
+  fix: "Wire preview workflow with Supabase branch DB, export structured logs to Logflare/Splunk, and gate CI on audit writer health."
   effort: M
 - id: QA-011
   area: testing

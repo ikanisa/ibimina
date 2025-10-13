@@ -13,7 +13,7 @@
 | Dashboard | KPI cards + top ikimina list + missed contributors; no skeletons during Supabase fetch.【F:lib/dashboard.ts†L74-L200】 | Loading skeletons, last-updated timestamp, quick filters, offline fallback. |
 | Ikimina & Recon | Not audited in depth; rely on same shell. | Virtualised tables, filter chips, error/empty states. |
 | Admin/Ops | Links exist but content unspecified. | Policy management UI, audit log viewer, branch DB status board. |
-| Error states | Branded 404 now live; offline fallback still missing. | Extend service worker shell and add contextual empty states per module.【F:app/not-found.tsx†L1-L86】【F:service-worker.js†L1-L58】 |
+| Error states | Branded 404 and offline fallback now live; dashboards still show blank states during fetch. | Extend cached API shell and add contextual empty states per module.【F:app/not-found.tsx†L1-L86】【F:app/offline/page.tsx†L1-L49】【F:lib/dashboard.ts†L74-L200】 |
 
 ## Heuristic Evaluation (Nielsen)
 - **Visibility of system status**: MFA shows inline text but no spinner or countdown; dashboard loads blank during data fetch with no skeleton or shimmer.【F:app/(auth)/mfa/page.tsx†L150-L213】【F:lib/dashboard.ts†L74-L200】
@@ -28,10 +28,10 @@
 - **Dialogs/Toasts**: Global search should announce result sections and return focus to trigger; toasts rely on Sonner defaults—confirm screen-reader announcements.【F:components/layout/global-search-dialog.tsx†L1-L120】
 
 ## PWA & Mobile Readiness
-- **Service worker**: Manual caching excludes `_next` assets and dynamic routes, so offline navigation breaks beyond initial shell.【F:service-worker.js†L1-L58】
+- **Service worker**: Stale-while-revalidate caching covers shell, manifest, and icons but dynamic data still requires live Supabase calls; add cached API strategy for dashboards.【F:service-worker.js†L1-L98】
 - **Install UX**: Install banner appears when criteria met, but lacks keyboard dismissal and analytics on conversions.【F:components/system/add-to-home-banner.tsx†L21-L46】
 - **Responsive layout**: Mobile nav uses bottom bar plus floating action button; ensure safe-area padding and focus order for accessibility.【F:components/layout/app-shell.tsx†L209-L278】
-- **Offline fallback**: No offline page or cached API strategy, so PWA promise currently unmet.【F:service-worker.js†L1-L58】
+- **Offline fallback**: `/offline` page exists with brand messaging, yet dashboards lack cached data or skeleton states when offline.【F:app/offline/page.tsx†L1-L49】【F:lib/dashboard.ts†L74-L200】
 
 ## Device Test Matrix (Priority)
 | Device | Browser | Priority | Focus |
@@ -47,5 +47,5 @@
 1. **Unify MFA experience**: Route login through AuthX APIs, add passkey/TOTP fallback messaging, autofocus on errors, and provide retry countdown for email/WhatsApp codes.【F:components/auth/login-form.tsx†L214-L279】【F:app/(auth)/mfa/page.tsx†L150-L213】
 2. **Accessible quick actions**: Convert modal to focus-trapped dialog with ESC support, highlight contextual tasks (recon queue, pending imports) instead of duplicating navigation.【F:components/layout/app-shell.tsx†L238-L278】
 3. **Skeletons & freshness**: Add shimmer placeholders and “Last updated” timestamps for dashboard widgets to reinforce data trust during fetch delays.【F:lib/dashboard.ts†L74-L200】
-4. **Offline UX**: Build offline fallback route, cache `_next` assets via workbox, and show toast when offline mode engaged.【F:service-worker.js†L1-L58】
+4. **Offline UX**: Expand offline fallback by caching `_next` assets and key API responses; surface toast/banner when operating on cached data to prompt sync when back online.【F:service-worker.js†L1-L98】【F:app/offline/page.tsx†L1-L49】
 5. **Global search semantics**: Group results by entity with headings, announce counts, and restore focus after closing to satisfy WCAG 2.4.3.【F:components/layout/global-search-dialog.tsx†L1-L120】

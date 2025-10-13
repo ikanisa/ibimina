@@ -20,11 +20,12 @@
 | CI alignment | Convert workflows to pnpm, add auth integration tests, persist Lighthouse budgets as failure gates, and upload artefacts for audits.【F:.github/workflows/ci.yml†L1-L52】【F:package.json†L1-L32】 | DevOps | CI runs pnpm install, fails when Lighthouse < 90 or MFA tests fail. |
 
 ## Phase P2 – Performance & Observability (Week 7–12)
+_Status: Image optimisation, analytics caching, and bundle analysis tooling are now live on `work`; SQL materialisation and observability streaming remain open._
 | Workstream | Tasks | Owner | Acceptance Tests |
 | --- | --- | --- | --- |
 | Dashboard SQL materialisation | Create Supabase views/materialised tables for monthly totals, top ikimina, and overdue contributors; swap frontend queries to `app.*` views; regenerate Supabase types.【F:lib/dashboard.ts†L74-L190】【F:lib/supabase/types.ts†L1-L32】 | Data eng | Summary API returns <150 ms p95; TypeScript types reference new views without `any`. |
-| Image & asset optimisation | Enable Next image optimisation, configure remote patterns for Supabase storage, and add caching headers for dashboards.【F:next.config.ts†L45-L52】 | FE lead | WebPageTest <1.5 MB first load on mid-tier mobile; layout shift minimal. |
-| Observability uplift | Ship structured logs to Logflare/Splunk, add alerting on audit/rate-limit failures, and document runbooks in operations docs.【F:lib/audit.ts†L9-L21】【F:lib/rate-limit.ts†L1-L19】 | SRE | Alerts fire during chaos drill; docs include runbook and dashboards. |
+| Image & asset optimisation | ✅ Enabled Next image optimisation, expanded remote patterns, added virtualised risk panels, and delivered bundle analysis script; still need to tune SACCO logo storage and dashboard skeleton loaders.【F:next.config.ts†L28-L94】【F:components/analytics/risk-signals-virtualized.tsx†L1-L85】【F:scripts/analyze-bundle.mjs†L1-L28】 | FE lead | WebPageTest <1.5 MB first load on mid-tier mobile; layout shift minimal. |
+| Observability uplift | Partial – bundle analyzer + pnpm CI live; still need structured log shipping, alert wiring, and runbooks.【F:scripts/analyze-bundle.mjs†L1-L28】【F:.github/workflows/ci.yml†L1-L80】【F:lib/audit.ts†L9-L21】 | SRE | Alerts fire during chaos drill; docs include runbook and dashboards. |
 | Preview infrastructure | Wire Supabase branch DB + seed script to preview workflow, run auth-focused e2e tests against preview URL.【F:.github/workflows/preview.yml†L1-L42】【F:scripts/test-rls.sh†L1-L16】 | DevOps | PR comment shows Vercel + Supabase URLs; Playwright suite passes on preview. |
 
 ## Timeline & Dependencies

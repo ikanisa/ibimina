@@ -15,6 +15,7 @@
     "analyze:pwa": "lighthouse https://localhost:3000 --only-categories=pwa --preset=desktop || true",
     "verify:pwa": "node scripts/verify-pwa.mjs",
     "assert:lighthouse": "node scripts/assert-lighthouse.mjs",
+    "analyze:bundle": "node scripts/analyze-bundle.mjs",
     "test": "pnpm run test:rls",
     "test:rls": "bash scripts/test-rls.sh",
     "test:auth": "tsx --test tests/integration/authx-security.test.ts"
@@ -41,6 +42,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^14.2.13",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.16",
