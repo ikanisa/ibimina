@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslation } from "@/providers/i18n-provider";
 import type { ExecutiveAnalyticsSnapshot, RiskLevel } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { RiskSignalsVirtualized } from "@/components/analytics/risk-signals-virtualized";
 
 const currency = new Intl.NumberFormat("en-RW", {
   style: "currency",
@@ -123,6 +124,10 @@ function RiskSignals({ analytics }: ExecutiveOverviewProps) {
     return (
       <p className="text-sm text-neutral-2">{t("analytics.risk.none", "All ikimina have contributed in the last month.")}</p>
     );
+  }
+
+  if (analytics.riskSignals.length > 6) {
+    return <RiskSignalsVirtualized signals={analytics.riskSignals} />;
   }
 
   return (

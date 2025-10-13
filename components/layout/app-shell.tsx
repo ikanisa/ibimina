@@ -37,64 +37,35 @@ const NAV_ITEMS = [
   { href: "/admin" as const, key: "nav.admin", icon: UsersRound },
 ];
 
-const QUICK_ACTIONS = [
-  {
-    href: "/ikimina" as const,
-    primary: "Create Ikimina",
-    secondary: "Tangira ikimina",
-    description: "Launch a new saving group.",
-    secondaryDescription: "Fungura itsinda rishya ry'ubwizigame.",
-  },
-  {
-    href: "/ikimina" as const,
-    primary: "Import Members",
-    secondary: "Injiza abanyamuryango",
-    description: "Bulk-upload roster to an ikimina.",
-    secondaryDescription: "Kuramo urutonde rw'abanyamuryango mu ikimina.",
-  },
-  {
-    href: "/recon" as const,
-    primary: "Import Statement",
-    secondary: "Shyiramo raporo ya MoMo",
-    description: "Drop MoMo statements for parsing.",
-    secondaryDescription: "Ohereza raporo za MoMo zisobanurwa.",
-  },
-  {
-    href: "/recon" as const,
-    primary: "Review Recon",
-    secondary: "Suzuma guhuzwa",
-    description: "Clear unassigned deposits.",
-    secondaryDescription: "Huza amafaranga ataritangirwa ibisobanuro.",
-  },
-  {
-    href: "/analytics" as const,
-    primary: "View Analytics",
-    secondary: "Reba isesengura",
-    description: "Track contribution trends and risk signals.",
-    secondaryDescription: "Kurikirana uko imisanzu ihagaze n'ibimenyetso byo kuburira.",
-  },
-  {
-    href: "/reports" as const,
-    primary: "Generate Report",
-    secondary: "Kora raporo",
-    description: "Export SACCO or ikimina statements.",
-    secondaryDescription: "Sohora raporo za SACCO cyangwa ikimina.",
-  },
-  {
-    href: "/ops" as const,
-    primary: "Operations Center",
-    secondary: "Ikigo cy'imikorere",
-    description: "Review incidents, notifications, and MFA health.",
-    secondaryDescription: "Reba ibibazo, ubutumwa bwateguwe, n'imiterere ya MFA.",
-  },
-  {
-    href: "/profile" as const,
-    primary: "Account Security",
-    secondary: "Umutekano w'uburenganzira",
-    description: "Update password and authenticator settings.",
-    secondaryDescription: "Hindura ijambobanga n'uburyo bwa 2FA.",
-  },
-];
+const BADGE_TONE_STYLES = {
+  critical: "border-red-500/40 bg-red-500/15 text-red-200",
+  info: "border-sky-500/40 bg-sky-500/15 text-sky-100",
+  success: "border-emerald-500/40 bg-emerald-500/15 text-emerald-200",
+} as const;
+
+const BADGE_DOT_STYLES = {
+  critical: "bg-red-400",
+  info: "bg-sky-400",
+  success: "bg-emerald-400",
+} as const;
+
+type QuickActionBadge = { label: string; tone: keyof typeof BADGE_TONE_STYLES };
+
+type QuickActionDefinition = {
+  href: string;
+  primary: string;
+  secondary: string;
+  description: string;
+  secondaryDescription: string;
+  badge?: QuickActionBadge;
+};
+
+type QuickActionGroupDefinition = {
+  id: string;
+  title: string;
+  subtitle: string;
+  actions: QuickActionDefinition[];
+};
 
 export function AppShell({ children, profile }: AppShellProps) {
   const pathname = usePathname();
@@ -103,6 +74,117 @@ export function AppShell({ children, profile }: AppShellProps) {
   const { t } = useTranslation();
 
   const saccoName = useMemo(() => profile.saccos?.name ?? t("sacco.all", "All SACCOs"), [profile.saccos?.name, t]);
+
+  const navBadges = useMemo(() => {
+    const badges: Record<string, { label: string; tone: keyof typeof BADGE_TONE_STYLES }> = {};
+    if ((profile.failed_mfa_count ?? 0) > 0) {
+      badges["/ops"] = {
+        label: t("nav.badges.alerts", String(profile.failed_mfa_count ?? 0)),
+        tone: "critical",
+      };
+    }
+    badges["/profile"] = profile.mfa_enabled
+      ? { label: t("nav.badges.secured", "Secured"), tone: "success" }
+      : { label: t("nav.badges.action", "Action"), tone: "critical" };
+    badges["/admin"] =
+      profile.role === "SYSTEM_ADMIN"
+        ? { label: t("nav.badges.superUser", "Admin"), tone: "info" }
+        : { label: t("nav.badges.limited", "Limited"), tone: "critical" };
+    return badges;
+  }, [profile.failed_mfa_count, profile.mfa_enabled, profile.role, t]);
+
+  const quickActionGroups = useMemo<QuickActionGroupDefinition[]>(() => {
+    const opsAlertBadge =
+      (profile.failed_mfa_count ?? 0) > 0
+        ? { label: t("dashboard.quick.alerts", String(profile.failed_mfa_count ?? 0)), tone: "critical" as const }
+        : undefined;
+    const securityBadge = profile.mfa_enabled
+      ? { label: t("dashboard.quick.secured", "Secured"), tone: "success" as const }
+      : { label: t("dashboard.quick.setup", "Setup"), tone: "critical" as const };
+
+    return [
+      {
+        id: "tasks",
+        title: t("dashboard.quick.group.tasks", "Tasks"),
+        subtitle: t("dashboard.quick.group.tasksSubtitle", "Core workflows"),
+        actions: [
+          {
+            href: "/ikimina" as const,
+            primary: "Create Ikimina",
+            secondary: "Tangira ikimina",
+            description: "Launch a new saving group.",
+            secondaryDescription: "Fungura itsinda rishya ry'ubwizigame.",
+          },
+          {
+            href: "/ikimina" as const,
+            primary: "Import Members",
+            secondary: "Injiza abanyamuryango",
+            description: "Bulk-upload roster to an ikimina.",
+            secondaryDescription: "Kuramo urutonde rw'abanyamuryango mu ikimina.",
+          },
+          {
+            href: "/recon" as const,
+            primary: "Import Statement",
+            secondary: "Shyiramo raporo ya MoMo",
+            description: "Drop MoMo statements for parsing.",
+            secondaryDescription: "Ohereza raporo za MoMo zisobanurwa.",
+          },
+          {
+            href: "/recon" as const,
+            primary: "Review Recon",
+            secondary: "Suzuma guhuzwa",
+            description: "Clear unassigned deposits.",
+            secondaryDescription: "Huza amafaranga ataritangirwa ibisobanuro.",
+            badge: opsAlertBadge,
+          },
+        ],
+      },
+      {
+        id: "insights",
+        title: t("dashboard.quick.group.insights", "Insights"),
+        subtitle: t("dashboard.quick.group.insightsSubtitle", "Data-driven decisions"),
+        actions: [
+          {
+            href: "/analytics" as const,
+            primary: "View Analytics",
+            secondary: "Reba isesengura",
+            description: "Track contribution trends and risk signals.",
+            secondaryDescription: "Kurikirana uko imisanzu ihagaze n'ibimenyetso byo kuburira.",
+          },
+          {
+            href: "/reports" as const,
+            primary: "Generate Report",
+            secondary: "Kora raporo",
+            description: "Export SACCO or ikimina statements.",
+            secondaryDescription: "Sohora raporo za SACCO cyangwa ikimina.",
+          },
+        ],
+      },
+      {
+        id: "operations",
+        title: t("dashboard.quick.group.operations", "Operations"),
+        subtitle: t("dashboard.quick.group.operationsSubtitle", "Stability & security"),
+        actions: [
+          {
+            href: "/ops" as const,
+            primary: "Operations Center",
+            secondary: "Ikigo cy'imikorere",
+            description: "Review incidents, notifications, and MFA health.",
+            secondaryDescription: "Reba ibibazo, ubutumwa bwateguwe, n'imiterere ya MFA.",
+            badge: opsAlertBadge,
+          },
+          {
+            href: "/profile" as const,
+            primary: "Account Security",
+            secondary: "Umutekano w'uburenganzira",
+            description: "Update password and authenticator settings.",
+            secondaryDescription: "Hindura ijambobanga n'uburyo bwa 2FA.",
+            badge: securityBadge,
+          },
+        ],
+      },
+    ];
+  }, [profile.failed_mfa_count, profile.mfa_enabled, t]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -122,20 +204,20 @@ export function AppShell({ children, profile }: AppShellProps) {
         href: item.href,
         primary: t(item.key),
         secondary: t(item.key),
+        badge: navBadges[item.href],
       })),
-    [t]
+    [navBadges, t],
   );
 
   const quickActionTargets = useMemo(
     () =>
-      QUICK_ACTIONS.map((action) => ({
-        href: action.href,
-        primary: action.primary,
-        secondary: action.secondary,
-        description: action.description,
-        secondaryDescription: action.secondaryDescription,
+      quickActionGroups.map((group) => ({
+        id: group.id,
+        title: group.title,
+        subtitle: group.subtitle,
+        actions: group.actions,
       })),
-    []
+    [quickActionGroups],
   );
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
@@ -164,7 +246,7 @@ export function AppShell({ children, profile }: AppShellProps) {
             </div>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-3">
               <nav className="hidden items-center gap-2 text-sm font-medium md:flex">
-                {navTargets.map(({ href, primary }, idx) => {
+                {navTargets.map(({ href, primary, badge }, idx) => {
                   const Icon = NAV_ITEMS[idx].icon;
                   return (
                     <Link
@@ -176,9 +258,19 @@ export function AppShell({ children, profile }: AppShellProps) {
                           ? "bg-white/20 text-neutral-0"
                           : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
                       )}
-                    >
-                      <Icon className="h-4 w-4" aria-hidden />
-                      <span className="leading-tight">{primary}</span>
+                      >
+                        <Icon className="h-4 w-4" aria-hidden />
+                        <span className="leading-tight">{primary}</span>
+                        {badge && (
+                          <span
+                            className={cn(
+                              "ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
+                              BADGE_TONE_STYLES[badge.tone],
+                            )}
+                          >
+                            {badge.label}
+                          </span>
+                        )}
                     </Link>
                   );
                 })}
@@ -207,19 +299,31 @@ export function AppShell({ children, profile }: AppShellProps) {
       <OfflineQueueIndicator />
 
       <nav className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-3xl border border-white/10 bg-ink/90 px-4 py-3 backdrop-blur md:hidden">
-        {NAV_ITEMS.map(({ href, key, icon: Icon }) => (
+        {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
+          const badge = navBadges[href];
+          return (
           <Link
             key={href}
             href={href}
             className={cn(
-              "interactive-scale flex flex-col items-center text-[11px] font-medium uppercase tracking-[0.2em]",
+              "interactive-scale relative flex flex-col items-center text-[11px] font-medium uppercase tracking-[0.2em]",
               isActive(href) ? "text-neutral-0" : "text-neutral-2"
             )}
           >
             <Icon className="h-5 w-5" />
+            {badge && (
+              <span
+                className={cn(
+                  "absolute right-3 top-1 h-2 w-2 rounded-full",
+                  BADGE_DOT_STYLES[badge.tone],
+                )}
+                aria-hidden
+              />
+            )}
             <span className="mt-1">{t(key)}</span>
           </Link>
-        ))}
+        );
+        })}
         <button
           type="button"
           onClick={() => setShowActions((v) => !v)}
@@ -252,22 +356,46 @@ export function AppShell({ children, profile }: AppShellProps) {
               <ListPlus className="h-4 w-4" />
               <span className="items-center gap-2 text-xs">{t("dashboard.quick.title", "Quick actions")}</span>
             </div>
-            <ul className="space-y-3">
-              {QUICK_ACTIONS.map((action) => (
-                <li key={action.primary}>
-                  <Link
-                    href={action.href}
-                    onClick={() => setShowActions(false)}
-                    className="interactive-scale block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-neutral-0 transition hover:bg-white/10"
-                  >
-                    <p className="font-medium text-sm">{action.primary}</p>
-                    <p className="text-xs text-neutral-2">{action.description}</p>
-                    <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">{action.secondary}</p>
-                    <p className="text-[11px] text-neutral-2">{action.secondaryDescription}</p>
-                  </Link>
-                </li>
+            <div className="space-y-4">
+              {quickActionGroups.map((group) => (
+                <section key={group.id} className="space-y-2">
+                  <header className="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-neutral-2">
+                    <span>{group.title}</span>
+                    <span className="text-[10px] text-neutral-3">{group.subtitle}</span>
+                  </header>
+                  <ul className="space-y-3">
+                    {group.actions.map((action) => (
+                      <li key={`${group.id}-${action.primary}`}>
+                        <Link
+                          href={action.href}
+                          onClick={() => setShowActions(false)}
+                          className="interactive-scale block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-neutral-0 transition hover:bg-white/10"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-medium">{action.primary}</p>
+                              <p className="text-xs text-neutral-2">{action.description}</p>
+                              <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">{action.secondary}</p>
+                              <p className="text-[11px] text-neutral-2">{action.secondaryDescription}</p>
+                            </div>
+                            {action.badge && (
+                              <span
+                                className={cn(
+                                  "inline-flex h-min items-center gap-1 rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.35em]",
+                                  BADGE_TONE_STYLES[action.badge.tone],
+                                )}
+                              >
+                                {action.badge.label}
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
             <button
               type="button"
               onClick={() => setShowActions(false)}

@@ -28,6 +28,7 @@ if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
 }
 
 let withPWA = (config: NextConfig) => config;
+let withBundleAnalyzer = (config: NextConfig) => config;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withPWAInit = require("next-pwa");
@@ -42,15 +43,33 @@ try {
   console.warn("next-pwa not available during local build; proceeding without service worker bundling.");
 }
 
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const withBundleAnalyzerInit = require("@next/bundle-analyzer");
+  withBundleAnalyzer = withBundleAnalyzerInit({
+    enabled: process.env.ANALYZE_BUNDLE === "1",
+    openAnalyzer: false,
+    analyzerMode: "static",
+  });
+} catch {
+  console.warn("@next/bundle-analyzer not available; skip bundle report generation.");
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname, "./"),
   images: {
     remotePatterns,
     formats: ["image/avif", "image/webp"],
-    unoptimized: true,
+    minimumCacheTTL: 3600,
+    deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
   },
   poweredByHeader: false,
+  modularizeImports: {
+    "lucide-react": {
+      transform: "lucide-react/dist/esm/icons/{{member}}",
+    },
+  },
   async headers() {
     const baseHeaders = [...SECURITY_HEADERS];
     if (process.env.NODE_ENV === "production") {
@@ -89,4 +108,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default withBundleAnalyzer(withPWA(nextConfig));

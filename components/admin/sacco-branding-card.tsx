@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import { useState, useTransition } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
@@ -104,7 +104,7 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
         </div>
         <div className="flex items-center gap-3">
           {logoUrl ? (
-            <Image
+            <OptimizedImage
               src={logoUrl}
               alt={`${sacco.name} logo`}
               width={64}

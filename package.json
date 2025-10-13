@@ -14,8 +14,11 @@
     "check:lighthouse": "npx --yes lighthouse http://localhost:3000 --view",
     "analyze:pwa": "lighthouse https://localhost:3000 --only-categories=pwa --preset=desktop || true",
     "verify:pwa": "node scripts/verify-pwa.mjs",
-    "test": "npm run test:rls",
-    "test:rls": "bash scripts/test-rls.sh"
+    "assert:lighthouse": "node scripts/assert-lighthouse.mjs",
+    "analyze:bundle": "node scripts/analyze-bundle.mjs",
+    "test": "pnpm run test:rls",
+    "test:rls": "bash scripts/test-rls.sh",
+    "test:auth": "tsx --test tests/integration/authx-security.test.ts"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.2.2",
@@ -26,19 +29,20 @@
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.12",
     "framer-motion": "^12.23.22",
+    "idb": "^7.1.1",
     "lucide-react": "^0.545.0",
     "next": "15.5.4",
     "next-pwa": "^5.6.0",
     "next-themes": "^0.4.6",
-    "idb": "^7.1.1",
     "papaparse": "^5.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "zod": "^3.23.8",
-    "sonner": "^2.0.7"
+    "sonner": "^2.0.7",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^14.2.13",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.16",
@@ -47,6 +51,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
+    "tsx": "^4.20.6",
     "typescript": "^5"
   },
   "engines": {

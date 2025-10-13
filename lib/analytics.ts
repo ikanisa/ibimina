@@ -1,3 +1,4 @@
+import { cacheWithTags, CACHE_TAGS, REVALIDATION_SECONDS } from "@/lib/performance/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
@@ -43,7 +44,7 @@ const toRiskLevel = (days: number): RiskLevel => {
   return "LOW";
 };
 
-export async function getExecutiveAnalytics(saccoId: string | null): Promise<ExecutiveAnalyticsSnapshot> {
+async function computeExecutiveAnalytics(saccoId: string | null): Promise<ExecutiveAnalyticsSnapshot> {
   const supabase = await createSupabaseServerClient();
   const today = new Date();
   const lookback = new Date(today);
@@ -198,13 +199,18 @@ export async function getExecutiveAnalytics(saccoId: string | null): Promise<Exe
   if (saccoId) {
     notificationQuery = notificationQuery.eq("sacco_id", saccoId);
   }
-  const { count: pendingNotifications } = await notificationQuery;
+  const [notificationCountResult, escalationMetricResult] = await Promise.all([
+    notificationQuery,
+    supabase
+      .from("system_metrics")
+      .select("event, total")
+      .eq("event", "recon_escalations")
+      .maybeSingle(),
+  ]);
 
-  const { data: escalationMetric } = await supabase
-    .from("system_metrics")
-    .select("event, total")
-    .eq("event", "recon_escalations")
-    .maybeSingle();
+  const pendingNotifications = notificationCountResult.count ?? 0;
+
+  const { data: escalationMetric } = escalationMetricResult;
 
   const escalationMetricRow = (escalationMetric ?? null) as { total: number | null } | null;
 
@@ -214,9 +220,20 @@ export async function getExecutiveAnalytics(saccoId: string | null): Promise<Exe
     riskSignals,
     automation: {
       pendingRecon,
-      pendingNotifications: pendingNotifications ?? 0,
+      pendingNotifications,
       escalations: escalationMetricRow ? Number(escalationMetricRow.total ?? 0) : 0,
     },
     forecastNext,
   };
+}
+
+export async function getExecutiveAnalytics(saccoId: string | null): Promise<ExecutiveAnalyticsSnapshot> {
+  const saccoKey = saccoId ?? "all";
+  const cached = cacheWithTags(
+    () => computeExecutiveAnalytics(saccoId),
+    ["analytics", "executive", saccoKey],
+    [CACHE_TAGS.analyticsExecutive(saccoId)],
+    REVALIDATION_SECONDS.fifteenMinutes,
+  );
+  return cached();
 }
