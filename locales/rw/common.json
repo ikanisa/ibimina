@@ -126,6 +126,7 @@
   "admin.outreach.window": "Igihe cyo kuzamura",
   "admin.outreach.runNow": "Kora ubu",
   "admin.outreach.runFailed": "Gukora scheduled reconciliation byanze",
+  "admin.outreach.runOk": "Imisanzu {{queued}} muri {{checked}} yashyizwe ku murongo wo gukurikirana.",
   "admin.templates.activate": "Koresha",
   "admin.templates.activated": "Inyandiko yakoreshejwe",
   "admin.templates.bodyLabel": "Ubutumwa",
