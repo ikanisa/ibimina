@@ -270,7 +270,7 @@
   "admin.outreach.description": "Escalate aged pending/unallocated payments to the notification queue for follow-up.",
   "admin.outreach.window": "Escalation window",
   "admin.outreach.runNow": "Run now",
-  "admin.outreach.runOk": "Queued N of M pending payments for escalation.",
+  "admin.outreach.runOk": "Queued {{queued}} of {{checked}} pending payments for escalation.",
   "admin.outreach.runFailed": "Failed to run scheduled reconciliation",
   "common.processing": "Processing…",
   "common.hours": "hours",

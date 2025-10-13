@@ -9,6 +9,7 @@ Further sections will be updated as the integration progresses.
 ## 2. PWA Assets & Config (2025-10-09)
 - Standardised `public/manifest.json` to reference PNG icons and the new Ibimina brand colour `#0b1020`.
 - Generated placeholder icons at 192×192 and 512×512 under `public/icons/`.
+- Replaced the legacy `/favicon.ico` expectation with App Router metadata that serves the SVG + PNG icon set directly, keeping the repo free of binary artefacts that break automated PR tooling.
 - Promoted the manifest + theme colour via `app/layout.tsx` metadata so the App Router emits `<link rel="manifest">` and `<meta name="theme-color">`.
 - Introduced `service-worker.js` (registered by `next-pwa`) and removed the legacy `public/sw.js` to avoid double registration.
 - Wrapped `next.config.ts` with `next-pwa` (dest `public`, skip waiting/register true) and disabled Next image optimisation to stay CDN-friendly on Vercel.

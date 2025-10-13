@@ -126,6 +126,7 @@
   "admin.outreach.window": "Fenêtre d’escalade",
   "admin.outreach.runNow": "Exécuter maintenant",
   "admin.outreach.runFailed": "Échec de l’exécution du rapprochement planifié",
+  "admin.outreach.runOk": "{{queued}} sur {{checked}} paiements en attente ajoutés à l’escalade.",
   "admin.templates.activate": "Activer",
   "admin.templates.activated": "Modèle activé",
   "admin.templates.bodyLabel": "Corps",

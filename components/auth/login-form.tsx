@@ -43,15 +43,15 @@ export function LoginForm() {
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
   const [pending, startTransition] = useTransition();
 
-const [mfaToken, setMfaToken] = useState("");
-const [mfaMethod, setMfaMethod] = useState<"totp" | "backup" | "email">("totp");
-const [rememberDevice, setRememberDevice] = useState(false);
-const [passkeySupported, setPasskeySupported] = useState(false);
-const [passkeyEnrolled, setPasskeyEnrolled] = useState(false);
-const [passkeyPending, setPasskeyPending] = useState(false);
-const [emailCountdown, setEmailCountdown] = useState(0);
-const [emailSending, setEmailSending] = useState(false);
-const [availableMethods, setAvailableMethods] = useState<string[]>([]);
+  const [mfaToken, setMfaToken] = useState("");
+  const [mfaMethod, setMfaMethod] = useState<"totp" | "backup" | "email">("totp");
+  const [rememberDevice, setRememberDevice] = useState(false);
+  const [passkeySupported, setPasskeySupported] = useState(false);
+  const [passkeyEnrolled, setPasskeyEnrolled] = useState(false);
+  const [passkeyPending, setPasskeyPending] = useState(false);
+  const [emailCountdown, setEmailCountdown] = useState(0);
+  const [emailSending, setEmailSending] = useState(false);
+  const [availableMethods, setAvailableMethods] = useState<string[]>([]);
   const qrCodeUrl = useMemo(
     () =>
       enrollment
@@ -147,18 +147,29 @@ const [availableMethods, setAvailableMethods] = useState<string[]>([]);
 
         const status = (await response.json()) as MfaStatusResponse;
         if (!cancelled && status.mfaEnabled && status.mfaRequired) {
+          const methods = status.methods ?? [];
+          const hasTotp = methods.includes("TOTP");
+          const hasEmail = methods.includes("EMAIL");
+          const hasWhatsapp = methods.includes("WHATSAPP");
+
+          if (hasWhatsapp) {
+            router.replace("/mfa");
+            return;
+          }
+
+          setAvailableMethods(methods);
           setPasskeyEnrolled(Boolean(status.passkeyEnrolled));
           setStep("challenge");
           if (status.passkeyEnrolled && passkeySupported) {
             setMessage(t("auth.challenge.passkeyPrompt", "Approve with your passkey or enter a 6-digit authenticator code."));
-          } else if (status.methods?.includes?.("EMAIL")) {
+          } else if (hasEmail) {
             setMessage(t("auth.challenge.emailPrompt", "Use your authenticator app or request a code by email."));
           } else {
             setMessage(t("auth.challenge.prompt", "Enter the 6-digit code from your authenticator app."));
           }
           setError(null);
           setMfaToken("");
-          setMfaMethod("totp");
+          setMfaMethod(hasTotp ? "totp" : hasEmail ? "email" : "backup");
           setRememberDevice(false);
         }
       } catch (mfaError) {
@@ -171,7 +182,7 @@ const [availableMethods, setAvailableMethods] = useState<string[]>([]);
     return () => {
       cancelled = true;
     };
-  }, [mfaMode, passkeySupported, t]);
+  }, [mfaMode, passkeySupported, router, t]);
 
   const handleCredentialsSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -203,7 +214,18 @@ const [availableMethods, setAvailableMethods] = useState<string[]>([]);
         }
 
         const status = (await statusResponse.json()) as MfaStatusResponse;
+        const methods = status.methods ?? [];
+        const hasTotp = methods.includes("TOTP");
+        const hasEmail = methods.includes("EMAIL");
+        const hasWhatsapp = methods.includes("WHATSAPP");
+        setAvailableMethods(methods);
         setPasskeyEnrolled(Boolean(status.passkeyEnrolled));
+
+        if (status.mfaEnabled && status.mfaRequired && hasWhatsapp) {
+          router.push("/mfa");
+          return;
+        }
+
         if (!status.mfaRequired) {
           setMessage(t("auth.success.redirect", "Success! Redirecting to dashboard…"));
           router.refresh();
@@ -235,11 +257,6 @@ const [availableMethods, setAvailableMethods] = useState<string[]>([]);
           setMfaMethod("totp");
           return;
         }
-
-        const methods = status.methods ?? [];
-        setAvailableMethods(methods);
-        const hasTotp = methods.includes("TOTP");
-        const hasEmail = methods.includes("EMAIL");
 
         setStep("challenge");
         if (status.passkeyEnrolled && passkeySupported) {

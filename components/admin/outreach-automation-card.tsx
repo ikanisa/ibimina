@@ -37,12 +37,16 @@ export function OutreachAutomationCard() {
         return;
       }
       const json = (await res.json()) as { queued?: number; checked?: number };
-      toast.success(
-        t(
-          "admin.outreach.runOk",
-          `Queued ${json.queued ?? 0} of ${json.checked ?? 0} pending payments for escalation.`,
-        ),
+      const queued = json.queued ?? 0;
+      const checked = json.checked ?? 0;
+      const template = t(
+        "admin.outreach.runOk",
+        "Queued {{queued}} of {{checked}} pending payments for escalation.",
       );
+      const message = template
+        .replace(/\{\{\s*queued\s*\}\}/g, String(queued))
+        .replace(/\{\{\s*checked\s*\}\}/g, String(checked));
+      toast.success(message);
     });
   };
 
