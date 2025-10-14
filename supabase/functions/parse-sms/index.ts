@@ -1,9 +1,19 @@
+import { validateHmacRequest } from "../_shared/auth.ts";
+
 // Deno edge function for parsing MoMo SMS messages using deterministic regex with OpenAI Structured Outputs fallback
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
+
+const decoder = new TextDecoder();
+
+const unauthorized = (reason: string, status = 401) =>
+  new Response(JSON.stringify({ success: false, error: reason }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
 interface SmsParseRequest {
   rawText: string;
@@ -287,7 +297,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { rawText, receivedAt, vendorMeta }: SmsParseRequest = await req.json();
+    const validation = await validateHmacRequest(req);
+
+    if (!validation.ok) {
+      console.warn("parse-sms.signature_invalid", { reason: validation.reason });
+      const status = validation.reason === "stale_timestamp" ? 408 : 401;
+      return unauthorized("invalid_signature", status);
+    }
+
+    const rawPayload = decoder.decode(validation.rawBody);
+    const contentType = req.headers.get("content-type") ?? "application/json";
+    let payload: SmsParseRequest;
+
+    if (contentType.includes("application/json")) {
+      try {
+        payload = JSON.parse(rawPayload) as SmsParseRequest;
+      } catch (error) {
+        console.warn("parse-sms.json_parse_failed", { error: String(error) });
+        return unauthorized("invalid_payload", 400);
+      }
+    } else {
+      payload = { rawText: rawPayload };
+    }
+
+    const { rawText, receivedAt, vendorMeta } = payload;
+
+    if (!rawText || rawText.trim().length === 0) {
+      return unauthorized("missing_body", 400);
+    }
 
     console.log("Parsing SMS", { receivedAt, length: rawText?.length ?? 0 });
 

@@ -12,9 +12,17 @@ done
 echo "[verify] running SACCO+ smoke checks against ${EDGE_URL}"
 
 # 1. sms/inbox signature test (noop payload)
-SIG=$(printf 'verification-ping' | openssl dgst -sha256 -hmac "$HMAC_SHARED_SECRET" -hex | cut -d" " -f2)
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+EDGE_PATH=$(node -e "const raw = process.env.EDGE_URL || ''; const url = new URL(raw.endsWith('/') ? raw : raw + '/'); process.stdout.write(url.pathname.replace(/\/$/, ''));")
+if [[ -z "$EDGE_PATH" ]]; then
+  CONTEXT="POST:/sms/inbox"
+else
+  CONTEXT="POST:${EDGE_PATH}/sms/inbox"
+fi
+SIG=$(printf "%s%s%s" "$TIMESTAMP" "$CONTEXT" "Verification ping" | openssl dgst -sha256 -hmac "$HMAC_SHARED_SECRET" -hex | cut -d" " -f2)
 curl -sf -X POST "${EDGE_URL}/sms/inbox" \
   -H "x-signature: ${SIG}" \
+  -H "x-timestamp: ${TIMESTAMP}" \
   -H "content-type: text/plain" \
   --data 'Verification ping' >/dev/null
 echo "[verify] sms/inbox ok"

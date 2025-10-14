@@ -7,6 +7,37 @@ import { initiateWhatsAppFactor, verifyWhatsAppFactor } from "./whatsapp";
 
 type UserRow = Database["public"]["Tables"]["users"]["Row"];
 
+type VerifyHandler = (input: FactorVerifyInput) => Promise<FactorSuccess | FactorFailure>;
+type InitiateHandler = (input: FactorInitiateInput) => Promise<FactorInitiateResult>;
+
+const verifyHandlerOverrides = new Map<Factor, VerifyHandler>();
+const initiateHandlerOverrides = new Map<Factor, InitiateHandler>();
+
+export function overrideVerifyHandlers(overrides: Partial<Record<Factor, VerifyHandler>>) {
+  for (const [factor, handler] of Object.entries(overrides) as Array<[Factor, VerifyHandler | undefined]>) {
+    if (handler) {
+      verifyHandlerOverrides.set(factor, handler);
+    } else {
+      verifyHandlerOverrides.delete(factor);
+    }
+  }
+}
+
+export function overrideInitiateHandlers(overrides: Partial<Record<Factor, InitiateHandler>>) {
+  for (const [factor, handler] of Object.entries(overrides) as Array<[Factor, InitiateHandler | undefined]>) {
+    if (handler) {
+      initiateHandlerOverrides.set(factor, handler);
+    } else {
+      initiateHandlerOverrides.delete(factor);
+    }
+  }
+}
+
+export function resetFactorOverrides() {
+  verifyHandlerOverrides.clear();
+  initiateHandlerOverrides.clear();
+}
+
 export type Factor = "totp" | "email" | "whatsapp" | "backup" | "passkey";
 
 export interface FactorState {
@@ -58,6 +89,11 @@ export type FactorInitiateResult =
 export const verifyFactor = async (
   input: FactorVerifyInput,
 ): Promise<FactorSuccess | FactorFailure> => {
+  const override = verifyHandlerOverrides.get(input.factor);
+  if (override) {
+    return override(input);
+  }
+
   switch (input.factor) {
     case "totp":
       return verifyTotpFactor(input);
@@ -77,6 +113,11 @@ export const verifyFactor = async (
 export const initiateFactor = async (
   input: FactorInitiateInput,
 ): Promise<FactorInitiateResult> => {
+  const override = initiateHandlerOverrides.get(input.factor);
+  if (override) {
+    return override(input);
+  }
+
   switch (input.factor) {
     case "email":
       return initiateEmailFactor(input);

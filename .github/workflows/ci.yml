@@ -51,11 +51,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
       - name: Lint
         run: pnpm run lint -- --max-warnings=0
 
       - name: Typecheck
         run: pnpm run typecheck
+
+      - name: Unit tests
+        run: pnpm run test:unit
 
       - name: Auth security tests
         run: pnpm run test:auth
@@ -71,6 +77,17 @@ jobs:
 
       - name: Build
         run: pnpm run build
+        env:
+          ANALYZE_BUNDLE: "1"
+
+      - name: Enforce bundle budgets
+        run: pnpm run assert:bundle
+
+      - name: Verify log drain alerting
+        run: pnpm run verify:log-drain
+
+      - name: Playwright smoke tests
+        run: pnpm run test:e2e
 
       - name: Start preview server
         run: |

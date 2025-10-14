@@ -4,9 +4,8 @@ import {
   errorResponse,
   getForwardedIp,
   jsonResponse,
-  requireEnv,
-  verifyHmacSignature,
 } from "../_shared/mod.ts";
+import { validateHmacRequest } from "../_shared/auth.ts";
 import { enforceIpRateLimit } from "../_shared/rate-limit.ts";
 import { parseWithRegex } from "../_shared/sms-parser.ts";
 import { encryptField, hashField, maskMsisdn } from "../_shared/crypto.ts";
@@ -34,7 +33,8 @@ const inferReceivedAt = (provided?: string) => {
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type, x-idempotency-key, x-signature",
+  "access-control-allow-headers":
+    "authorization, x-client-info, apikey, content-type, x-idempotency-key, x-signature, x-timestamp",
   "access-control-allow-methods": "POST,OPTIONS",
 };
 
@@ -59,13 +59,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const secret = requireEnv("HMAC_SHARED_SECRET");
-    const rawBody = new Uint8Array(await req.arrayBuffer());
-    const signature = req.headers.get("x-signature") ?? null;
+    const validation = await validateHmacRequest(req);
 
-    if (!verifyHmacSignature(secret, rawBody, signature)) {
-      return withCors(errorResponse("Invalid signature", 401));
+    if (!validation.ok) {
+      console.warn("sms-inbox.signature_invalid", { reason: validation.reason });
+      const status = validation.reason === "stale_timestamp" ? 408 : 401;
+      return withCors(errorResponse("Invalid signature", status));
     }
+
+    const rawBody = validation.rawBody;
 
     const supabase = createServiceClient();
     const clientIp = getForwardedIp(req.headers);

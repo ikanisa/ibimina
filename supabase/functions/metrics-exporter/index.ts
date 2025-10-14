@@ -1,8 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateHmacRequest } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
 
 const sanitizeLabel = (value: string) => value.replace(/[^a-zA-Z0-9_:/.-]/g, "_");
@@ -28,6 +29,21 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const validation = await validateHmacRequest(req, { toleranceSeconds: 60 });
+
+    if (!validation.ok) {
+      console.warn("metrics-exporter.signature_invalid", { reason: validation.reason });
+      const status = validation.reason === "stale_timestamp" ? 408 : 401;
+      return new Response("ibimina_health_up 0\n", {
+        status,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/plain; version=0.0.4; charset=utf-8",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 

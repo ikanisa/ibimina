@@ -3,32 +3,39 @@
   title: "AuthX MFA verify missing rate limiting and replay guard"
   files: ["app/api/authx/challenge/verify/route.ts", "lib/authx/verify.ts"]
   risk: critical
-  evidence: "AuthX verification loop lacks throttling and never persists last_mfa_step/failed_mfa_count, so attackers can brute-force or replay TOTP/backup codes." 
-  fix: "Add per-user/IP rate limits, persist step counters + failure counts, align with legacy /api/mfa/verify semantics, and emit structured errors." 
+  evidence: "AuthX verification loop lacks throttling and never persists last_mfa_step/failed_mfa_count, so attackers can brute-force or replay TOTP/backup codes."
+  fix: "Add per-user/IP rate limits, persist step counters + failure counts, align with legacy /api/mfa/verify semantics, and emit structured errors."
+  status: resolved
+  resolution: "/api/authx/challenge/verify now enforces per-user and per-IP throttles, audits failures, and keeps Supabase MFA counters in sync with legacy routes."
   effort: M
 - id: SEC-002
   area: security
   title: "WhatsApp OTP issuance unthrottled"
   files: ["lib/authx/start.ts"]
   risk: high
-  evidence: "sendWhatsAppOtp inserts codes without rate limits or salted hashes, enabling spam and offline brute force if DB leaked." 
-  fix: "Reuse email OTP throttling, add per-issuance salt, expire outstanding codes, and audit sends before enabling channel." 
+  evidence: "sendWhatsAppOtp inserts codes without rate limits or salted hashes, enabling spam and offline brute force if DB leaked."
+  fix: "Reuse email OTP throttling, add per-issuance salt, expire outstanding codes, and audit sends before enabling channel."
+  status: resolved
+  resolution: "WhatsApp MFA issuance now reuses the shared throttling helpers, salts hashes, persists audit rows, and surfaces retry windows to clients."
   effort: M
 - id: SEC-003
   area: security
   title: "Supabase Edge Functions expose unauthenticated ingress"
   files: ["supabase/config.toml"]
-  risk: high
-  evidence: "parse-sms, ingest-sms, sms-inbox, scheduled-reconciliation, metrics-exporter all set verify_jwt=false." 
-  fix: "Enforce JWT or shared HMAC per function, log rejected requests, and document signature rotation." 
+  risk: mitigated
+  status: resolved
+  evidence: "sms-inbox, ingest-sms, parse-sms, scheduled-reconciliation, and metrics-exporter now require timestamped HMAC signatures with replay guards and structured logging."
+  fix: "(Complete) Timestamped HMAC signatures guard high-risk edge functions; rotate HMAC_SHARED_SECRET alongside credential rollouts."
   effort: M
 - id: REL-004
   area: reliability
   title: "Dual MFA stacks risk inconsistent state"
   files: ["components/auth/login-form.tsx", "app/api/mfa/verify/route.ts", "app/api/authx/challenge/verify/route.ts"]
   risk: high
-  evidence: "Login posts to /api/mfa/* while AuthX endpoints skip failure counters and set different cookies, creating divergent MFA states." 
-  fix: "Unify flows behind AuthX facade, migrate UI to new endpoints, and remove legacy routes after parity tests." 
+  evidence: "Login posts to /api/mfa/* while AuthX endpoints skip failure counters and set different cookies, creating divergent MFA states."
+  fix: "Unify flows behind AuthX facade, migrate UI to new endpoints, and remove legacy routes after parity tests."
+  status: resolved
+  resolution: "Both MFA API paths now delegate to src/auth/factors with shared replay guards while the login form posts directly to the AuthX endpoint."
   effort: L
 - id: PWA-005
   area: pwa
@@ -37,22 +44,28 @@
   risk: medium
   evidence: "SW now precaches offline shell + icons but dashboards still rely on live Supabase calls, leaving empty states when offline beyond cached lists."
   fix: "Add background sync or cached API fallbacks for key dashboards and member lists; surface stale data messaging."
+  status: resolved
+  resolution: "The service worker now hashes credentials, caches JSON responses for dashboard APIs, and replays offline queue syncs while /offline provides a branded fallback."
   effort: M
 - id: A11Y-006
   area: accessibility
   title: "Quick actions dialog lacks focus trap"
   files: ["components/layout/app-shell.tsx"]
   risk: medium
-  evidence: "Overlay closes via click handlers without focus trap or ESC support, trapping keyboard users." 
-  fix: "Implement focus management, keyboard dismissal, and aria-current on nav items." 
+  evidence: "Overlay closes via click handlers without focus trap or ESC support, trapping keyboard users."
+  fix: "Implement focus management, keyboard dismissal, and aria-current on nav items."
+  status: resolved
+  resolution: "Quick actions now installs a roving tabindex focus trap, Escape listeners, aria-current markers, and keyboard shortcuts for accessible dismissal."
   effort: S
 - id: PERF-007
   area: performance
   title: "Dashboard aggregates computed in memory"
   files: ["lib/dashboard.ts"]
   risk: high
-  evidence: "Monthly summary pulls entire payment/member datasets into Node for aggregation, risking latency and memory issues." 
-  fix: "Move aggregation into SQL views/materialised tables with pagination." 
+  evidence: "Monthly summary pulls entire payment/member datasets into Node for aggregation, risking latency and memory issues."
+  fix: "Move aggregation into SQL views/materialised tables with pagination."
+  status: resolved
+  resolution: "`analytics_*` materialised views power dashboard totals and refresh via pg_cron, replacing the Node reducers with Supabase-backed aggregation."
   effort: M
 - id: PERF-008
   area: performance
@@ -61,14 +74,18 @@
   risk: medium
   evidence: "Executive analytics caches Supabase queries for 15 minutes with no triggers to revalidate, delaying incident response after imports or escalations."
   fix: "Trigger `revalidateTag` from Supabase triggers or expose manual cache bust endpoints and telemetry."
+  status: resolved
+  resolution: "Supabase trigger functions now post to `/api/cache/revalidate`, which revalidates dashboard and executive analytics tags immediately after data changes."
   effort: M
 - id: DATA-009
   area: data
   title: "RLS test coverage limited to members"
   files: ["supabase/tests/rls/sacco_staff_access.test.sql"]
   risk: medium
-  evidence: "Only member visibility tested; payments, recon, trusted devices, and ops tables untested." 
-  fix: "Add SQL tests for each policy using existing fixtures and gate via CI." 
+  evidence: "Only member visibility tested; payments, recon, trusted devices, and ops tables untested."
+  fix: "Add SQL tests for each policy using existing fixtures and gate via CI."
+  status: resolved
+  resolution: "Payments, reconciliation exceptions, and ops tables now have dedicated SQL tests that run in CI alongside the staff/trusted device suites."
   effort: M
 - id: OPS-010
   area: operations
@@ -77,6 +94,8 @@
   risk: medium
   evidence: "pnpm CI and Lighthouse budgets now run, but no structured log shipping or preview deployments exist; audit logger still swallows insert failures."
   fix: "Wire preview workflow with Supabase branch DB, export structured logs to Logflare/Splunk, and gate CI on audit writer health."
+  status: resolved
+  resolution: "`pnpm run verify:log-drain` runs in CI to assert drain delivery and the logger now sends throttled alerts to `LOG_DRAIN_ALERT_WEBHOOK` on failures."
   effort: M
 - id: QA-011
   area: testing
@@ -85,4 +104,6 @@
   risk: medium
   evidence: "New factor orchestrator powers /api/mfa/verify but has no unit tests and the Playwright MFA spec remains skipped, leaving regressions undetected."
   fix: "Add targeted unit tests for TOTP/email/backup adapters, wire replay guard integration tests, and enable Playwright MFA suite in CI."
+  status: resolved
+  resolution: "Node:test coverage stubs each adapter and the Playwright MFA spec calls `/api/__e2e/factors/verify` to validate totp, backup, and replay guards with the stub secrets."
   effort: M

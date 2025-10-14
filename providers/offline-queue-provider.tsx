@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { enqueueAction, listActions, removeAction, updateAction, type OfflineAction } from "@/lib/offline/queue";
+import { clearActions, enqueueAction, listActions, removeAction, updateAction, type OfflineAction } from "@/lib/offline/queue";
 import { notifyOfflineQueueUpdated, requestBackgroundSync, requestImmediateOfflineSync } from "@/lib/offline/sync";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useToast } from "@/providers/toast-provider";
@@ -215,6 +215,15 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
     [refresh],
   );
 
+  const clearAll = useCallback(async () => {
+    await clearActions();
+    await refresh();
+  }, [refresh]);
+
+  const setOnlineState = useCallback((value: boolean) => {
+    setIsOnline(value);
+  }, []);
+
   const value = useMemo<OfflineQueueContextValue>(
     () => ({
       isOnline,
@@ -228,6 +237,22 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
     [actions, clearAction, isOnline, processing, queueAction, retryFailed],
   );
 
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_E2E !== "1" || typeof window === "undefined") {
+      return;
+    }
+
+    window.__offlineQueueTest = {
+      queueAction,
+      clearAll,
+      setOnline: setOnlineState,
+    };
+
+    return () => {
+      delete window.__offlineQueueTest;
+    };
+  }, [clearAll, queueAction, setOnlineState]);
+
   return <OfflineQueueContext.Provider value={value}>{children}</OfflineQueueContext.Provider>;
 }
 
@@ -237,4 +262,14 @@ export function useOfflineQueue() {
     throw new Error("useOfflineQueue must be used within OfflineQueueProvider");
   }
   return context;
+}
+
+declare global {
+  interface Window {
+    __offlineQueueTest?: {
+      queueAction: (input: QueueInput) => Promise<OfflineAction>;
+      clearAll: () => Promise<void>;
+      setOnline: (value: boolean) => void;
+    };
+  }
 }

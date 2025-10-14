@@ -6,15 +6,21 @@ type SyncManager = {
 
 const textEncoder = new TextEncoder();
 
-async function hashString(value: string) {
+async function hashString(value: string): Promise<string | null> {
   if (!globalThis.crypto?.subtle) {
-    return value;
+    console.warn("offline.sync.hash_unavailable");
+    return null;
   }
 
-  const buffer = await globalThis.crypto.subtle.digest("SHA-256", textEncoder.encode(value));
-  return Array.from(new Uint8Array(buffer))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
+  try {
+    const buffer = await globalThis.crypto.subtle.digest("SHA-256", textEncoder.encode(value));
+    return Array.from(new Uint8Array(buffer))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  } catch (error) {
+    console.warn("offline.sync.hash_failed", error);
+    return null;
+  }
 }
 
 async function getRegistration(): Promise<ServiceWorkerRegistration | null> {
@@ -66,7 +72,17 @@ export async function updateAuthCacheScope(credential: string | null | undefined
     return;
   }
 
-  const hash = credential ? await hashString(credential) : "guest";
+  if (!credential) {
+    registration.active?.postMessage({ type: "AUTH_SCOPE_UPDATE", hash: "guest" });
+    return;
+  }
+
+  const hash = await hashString(credential);
+  if (!hash) {
+    registration.active?.postMessage({ type: "AUTH_CACHE_RESET" });
+    return;
+  }
+
   registration.active?.postMessage({ type: "AUTH_SCOPE_UPDATE", hash });
 }
 

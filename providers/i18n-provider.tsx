@@ -4,14 +4,18 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import enCommon from "@/locales/en/common.json";
 import rwCommon from "@/locales/rw/common.json";
 import frCommon from "@/locales/fr/common.json";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE_NAME,
+  type SupportedLocale,
+  isSupportedLocale,
+} from "@/lib/i18n/locales";
 
-const DICTIONARIES = {
+const DICTIONARIES: Record<SupportedLocale, Record<string, string>> = {
   en: enCommon as Record<string, string>,
   rw: rwCommon as Record<string, string>,
   fr: frCommon as Record<string, string>,
 };
-
-type SupportedLocale = keyof typeof DICTIONARIES;
 
 interface I18nContextValue {
   locale: SupportedLocale;
@@ -26,21 +30,52 @@ interface I18nProviderProps {
   defaultLocale?: SupportedLocale;
 }
 
-export function I18nProvider({ children, defaultLocale = "en" }: I18nProviderProps) {
+function persistLocaleCookie(locale: SupportedLocale) {
+  if (typeof document === "undefined") return;
+  const encoded = encodeURIComponent(locale);
+  const maxAgeSeconds = 60 * 60 * 24 * 365; // 1 year
+  document.cookie = `${LOCALE_COOKIE_NAME}=${encoded}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+}
+
+function readStoredLocale(): SupportedLocale | null {
+  if (typeof window === "undefined") return null;
+  const stored = window.localStorage.getItem(LOCALE_COOKIE_NAME);
+  if (isSupportedLocale(stored)) {
+    return stored;
+  }
+
+  const cookieMatch = document.cookie.match(new RegExp(`${LOCALE_COOKIE_NAME}=([^;]+)`));
+  if (cookieMatch?.[1]) {
+    const decoded = decodeURIComponent(cookieMatch[1]);
+    if (isSupportedLocale(decoded)) {
+      return decoded;
+    }
+  }
+
+  return null;
+}
+
+export function I18nProvider({ children, defaultLocale = DEFAULT_LOCALE }: I18nProviderProps) {
   const [locale, setLocaleState] = useState<SupportedLocale>(defaultLocale);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem("ibimina_locale") as SupportedLocale | null;
-    if (stored && stored in DICTIONARIES) {
+    const stored = readStoredLocale();
+    if (stored) {
       setLocaleState(stored);
+      return;
     }
-  }, []);
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LOCALE_COOKIE_NAME, defaultLocale);
+      persistLocaleCookie(defaultLocale);
+    }
+  }, [defaultLocale]);
 
   const setLocale = useCallback((next: SupportedLocale) => {
     setLocaleState(next);
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("ibimina_locale", next);
+      window.localStorage.setItem(LOCALE_COOKIE_NAME, next);
+      persistLocaleCookie(next);
     }
   }, []);
 

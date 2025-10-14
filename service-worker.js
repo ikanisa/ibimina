@@ -1,4 +1,9 @@
-const VERSION = "20250314";
+const rawBuildId = process.env.NEXT_PUBLIC_BUILD_ID;
+const sanitisedBuildId =
+  typeof rawBuildId === "string" && rawBuildId.length > 0
+    ? rawBuildId.replace(/[^A-Za-z0-9_-]/g, "")
+    : null;
+const VERSION = sanitisedBuildId ?? "development";
 const STATIC_CACHE = `ibimina-static-${VERSION}`;
 const NEXT_CACHE = `ibimina-next-${VERSION}`;
 const RUNTIME_CACHE = `ibimina-runtime-${VERSION}`;

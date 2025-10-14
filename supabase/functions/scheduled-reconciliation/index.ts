@@ -1,10 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { recordMetric } from "../_shared/metrics.ts";
+import { validateHmacRequest } from "../_shared/auth.ts";
 
 const APP_ORIGIN = Deno.env.get("APP_ORIGIN") ?? "*";
 const corsHeaders = {
   "Access-Control-Allow-Origin": APP_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
 
 const DEFAULT_LOOKBACK_HOURS = parseInt(Deno.env.get("RECON_AUTO_ESCALATE_HOURS") ?? "48", 10);
@@ -22,13 +23,33 @@ Deno.serve(async (req) => {
       throw new Error("Missing Supabase credentials");
     }
 
+    const validation = await validateHmacRequest(req, { toleranceSeconds: 900 });
+
+    if (!validation.ok) {
+      console.warn("scheduled-reconciliation.signature_invalid", { reason: validation.reason });
+      const status = validation.reason === "stale_timestamp" ? 408 : 401;
+      return new Response(JSON.stringify({ success: false, error: "invalid_signature" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status,
+      });
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey);
     let windowHours = Math.max(DEFAULT_LOOKBACK_HOURS, 1);
     // Optional override when invoked manually with a JSON body: { "hours": number }
     if (req.method !== "OPTIONS") {
       const contentType = req.headers.get("content-type") ?? "";
-      if (contentType.includes("application/json")) {
-        const payload = (await req.json().catch(() => null)) as { hours?: unknown } | null;
+      if (contentType.includes("application/json") && validation.rawBody.length > 0) {
+        let payload: { hours?: unknown } | null = null;
+        try {
+          payload = JSON.parse(new TextDecoder().decode(validation.rawBody)) as { hours?: unknown } | null;
+        } catch (error) {
+          console.warn("scheduled-reconciliation.json_parse_failed", { error: String(error) });
+          return new Response(JSON.stringify({ success: false, error: "invalid_payload" }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          });
+        }
         if (payload && typeof payload.hours === "number" && Number.isFinite(payload.hours)) {
           // Clamp between 1 hour and 14 days for safety
           const clamped = Math.max(1, Math.min(Math.floor(payload.hours), 14 * 24));

@@ -16,9 +16,14 @@
     "verify:pwa": "node scripts/verify-pwa.mjs",
     "assert:lighthouse": "node scripts/assert-lighthouse.mjs",
     "analyze:bundle": "node scripts/analyze-bundle.mjs",
+    "assert:bundle": "node scripts/assert-bundle-budgets.mjs",
     "test": "pnpm run test:rls",
     "test:rls": "bash scripts/test-rls.sh",
-    "test:auth": "tsx --test tests/integration/authx-security.test.ts"
+    "test:rls:docker": "bash scripts/test-rls-docker.sh",
+    "test:auth": "tsx --test tests/integration/authx-security.test.ts",
+    "test:unit": "tsx --test tests/unit/*.test.ts",
+    "verify:log-drain": "tsx scripts/verify-log-drain.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.2.2",
@@ -43,6 +48,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@next/bundle-analyzer": "^14.2.13",
+    "@playwright/test": "^1.49.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.16",

@@ -305,12 +305,14 @@ export function AppShell({ children, profile }: AppShellProps) {
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5" aria-hidden />
           <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("brand.org", "Umurenge SACCO")}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-2 md:text-[0.7rem]">
+                {t("brand.org", "Umurenge SACCO")}
+              </p>
               <span className="text-gradient text-2xl font-semibold leading-tight">{t("brand.consoleTitle", "Ibimina Staff Console")}</span>
               <span className="text-sm text-neutral-2">{saccoName}</span>
             </div>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-3">
-              <nav className="hidden items-center gap-2 text-sm font-medium md:flex">
+              <nav className="hidden items-center gap-2 text-sm font-semibold md:flex">
                 {navTargets.map(({ href, primary, badge }, idx) => {
                   const Icon = NAV_ITEMS[idx].icon;
                   return (
@@ -318,19 +320,19 @@ export function AppShell({ children, profile }: AppShellProps) {
                       key={href}
                       href={href}
                       className={cn(
-                        "interactive-scale flex items-center gap-2 rounded-full px-4 py-2 text-left text-xs uppercase tracking-[0.25em] transition",
+                        "interactive-scale flex items-center gap-2 rounded-full px-4 py-2 text-left text-sm tracking-[0.08em] transition md:text-[0.9rem]",
                         isActive(href)
                           ? "bg-white/20 text-neutral-0"
-                          : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
+                          : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0",
                       )}
                       aria-current={isActive(href) ? "page" : undefined}
                     >
-                        <Icon className="h-4 w-4" aria-hidden />
+                      <Icon className="h-4 w-4" aria-hidden />
                         <span className="leading-tight">{primary}</span>
                         {badge && (
                           <span
                             className={cn(
-                              "ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
+                              "ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium tracking-[0.12em]",
                               BADGE_TONE_STYLES[badge.tone],
                             )}
                           >
@@ -342,11 +344,11 @@ export function AppShell({ children, profile }: AppShellProps) {
                 })}
               </nav>
               <div className="flex items-center gap-3">
-                <LanguageSwitcher className="hidden text-[10px] md:flex" />
+                <LanguageSwitcher className="hidden text-[0.7rem] font-semibold md:flex" />
                 <button
                   type="button"
                   onClick={() => setShowGlobalSearch(true)}
-                  className="interactive-scale inline-flex items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/25 hover:text-neutral-0"
+                  className="interactive-scale inline-flex items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold tracking-[0.1em] text-neutral-0 transition hover:border-white/25 hover:text-neutral-0 md:text-xs md:uppercase md:tracking-[0.3em]"
                   aria-haspopup="dialog"
                   aria-expanded={showGlobalSearch}
                 >
@@ -364,37 +366,37 @@ export function AppShell({ children, profile }: AppShellProps) {
       </div>
       <OfflineQueueIndicator />
 
-      <nav className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-3xl border border-white/10 bg-ink/90 px-4 py-3 backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-3xl border border-white/10 bg-ink/90 px-4 py-3 text-sm backdrop-blur md:hidden">
         {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
           const badge = navBadges[href];
           return (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "interactive-scale relative flex flex-col items-center text-[11px] font-medium uppercase tracking-[0.2em]",
-              isActive(href) ? "text-neutral-0" : "text-neutral-2"
-            )}
-            aria-current={isActive(href) ? "page" : undefined}
-          >
-            <Icon className="h-5 w-5" />
-            {badge && (
-              <span
-                className={cn(
-                  "absolute right-3 top-1 h-2 w-2 rounded-full",
-                  BADGE_DOT_STYLES[badge.tone],
-                )}
-                aria-hidden
-              />
-            )}
-            <span className="mt-1">{t(key)}</span>
-          </Link>
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "interactive-scale relative flex flex-col items-center text-[0.8rem] font-semibold tracking-[0.05em]",
+                isActive(href) ? "text-neutral-0" : "text-neutral-2",
+              )}
+              aria-current={isActive(href) ? "page" : undefined}
+            >
+              <Icon className="h-5 w-5" />
+              {badge && (
+                <span
+                  className={cn(
+                    "absolute right-3 top-1 h-2 w-2 rounded-full",
+                    BADGE_DOT_STYLES[badge.tone],
+                  )}
+                  aria-hidden
+                />
+              )}
+              <span className="mt-1 leading-tight">{t(key)}</span>
+            </Link>
         );
         })}
         <button
           type="button"
           onClick={() => setShowActions((v) => !v)}
-          className="interactive-scale absolute left-1/2 top-0 flex -translate-y-1/2 -translate-x-1/2 items-center gap-2 rounded-full bg-kigali px-5 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
+          className="interactive-scale absolute left-1/2 top-0 flex -translate-y-1/2 -translate-x-1/2 items-center gap-2 rounded-full bg-kigali px-5 py-3 text-sm font-semibold tracking-[0.08em] text-ink shadow-glass"
           aria-expanded={showActions}
           aria-controls="quick-actions"
           ref={quickActionsTriggerRef}
@@ -402,7 +404,9 @@ export function AppShell({ children, profile }: AppShellProps) {
           <Plus className="h-4 w-4" />
           <span className="flex flex-col text-left leading-none">
             <span>{t("dashboard.quick.newPrimary", "New")}</span>
-            <span className="text-[9px] uppercase tracking-[0.3em] text-ink/70">{t("dashboard.quick.newSecondary", "New")}</span>
+            <span className="text-[0.65rem] font-medium tracking-[0.12em] text-ink/70">
+              {t("dashboard.quick.newSecondary", "New")}
+            </span>
           </span>
         </button>
       </nav>

@@ -5,6 +5,7 @@ import {
   SECURITY_HEADERS,
   createContentSecurityPolicy,
   createNonce,
+  createRequestId,
 } from "@/lib/security/headers";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -29,7 +30,7 @@ export function middleware(request: NextRequest) {
     response.headers.set(HSTS_HEADER.key, HSTS_HEADER.value);
   }
 
-  const requestId = requestHeaders.get("x-request-id") ?? (typeof crypto.randomUUID === "function" ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+  const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
   response.headers.set("X-Request-ID", requestId);
 
   return response;

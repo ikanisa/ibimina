@@ -1,22 +1,14 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/lib/supabase/types";
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-function assertEnv() {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    throw new Error("Supabase environment variables are not configured.");
-  }
-}
+import { requireSupabaseConfig } from "@/lib/supabase/config";
 
 export async function createSupabaseServerClient() {
-  assertEnv();
+  const { url, anonKey } = requireSupabaseConfig("createSupabaseServerClient");
 
   const cookieStore = await cookies();
 
-  return createServerClient<Database>(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+  return createServerClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

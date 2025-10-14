@@ -34,7 +34,7 @@
    ```
    supabase functions serve metrics-exporter --env-file supabase/.env.production
    ```
-   The endpoint exposes Prometheus-compatible text at `http://localhost:54321/functions/v1/metrics-exporter`.
+   The endpoint exposes Prometheus-compatible text at `http://localhost:54321/functions/v1/metrics-exporter`; include `x-timestamp` (UTC ISO) and `x-signature = HMAC_SHA256(HMAC_SHARED_SECRET, <ts>GET:/functions/v1/metrics-exporter)` headers when scraping.
 2. Bootstrap Prometheus + Grafana (ships with scrape/dashboards pre-wired):
    ```
    cd infra/metrics
