@@ -59,7 +59,7 @@ Jobs are managed through `cron.job`; re-running the migration upserts both entri
 | Secret | Usage |
 | --- | --- |
 | `KMS_DATA_KEY_BASE64` | AES-256-GCM key for encrypting PII columns (members, payments, sms inbox). |
-| `HMAC_SHARED_SECRET` | HMAC for `/sms/inbox` verification. |
+| `HMAC_SHARED_SECRET` | Shared secret for timestamped HMAC on `/sms/inbox`, `/ingest-sms`, `/parse-sms`, `/scheduled-reconciliation`, and `/metrics-exporter`. |
 | `OPENAI_API_KEY` | AI fallback in `/sms/ai-parse`. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Internal Edge Function Supabase client. |
 | `REPORT_SIGNING_KEY` | Optional HMAC signature on CSV exports. |

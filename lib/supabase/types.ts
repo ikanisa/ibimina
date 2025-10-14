@@ -789,6 +789,47 @@ export type Database = {
       };
     };
     Views: {
+      analytics_payment_rollups_mv: {
+        Row: {
+          sacco_id: string | null;
+          month_total: number | null;
+          week_total: number | null;
+          today_total: number | null;
+          unallocated_count: number | null;
+          latest_payment_at: string | null;
+          refreshed_at: string | null;
+        };
+      };
+      analytics_ikimina_monthly_mv: {
+        Row: {
+          ikimina_id: string;
+          sacco_id: string | null;
+          name: string | null;
+          code: string | null;
+          status: string | null;
+          updated_at: string | null;
+          month_total: number | null;
+          active_member_count: number | null;
+          contributing_members: number | null;
+          last_contribution_at: string | null;
+          refreshed_at: string | null;
+        };
+      };
+      analytics_member_last_payment_mv: {
+        Row: {
+          member_id: string;
+          sacco_id: string | null;
+          ikimina_id: string | null;
+          member_code: string | null;
+          full_name: string;
+          msisdn: string | null;
+          status: string | null;
+          ikimina_name: string | null;
+          last_payment_at: string | null;
+          days_since_last: number | null;
+          refreshed_at: string | null;
+        };
+      };
       ikimina_members_public: {
         Row: {
           id: string;

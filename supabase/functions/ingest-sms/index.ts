@@ -4,11 +4,15 @@ import { encryptField, hashField, maskMsisdn } from "../_shared/crypto.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
+import { validateHmacRequest } from "../_shared/auth.ts";
+import { parseWithOpenAI, parseWithRegex } from "../_shared/sms-parser.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-signature, x-timestamp',
 };
+
+const decoder = new TextDecoder();
 
 interface IngestRequest {
   rawText: string;
@@ -28,7 +32,36 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { rawText, receivedAt, vendorMeta, saccoId }: IngestRequest = await req.json();
+    const validation = await validateHmacRequest(req);
+
+    if (!validation.ok) {
+      console.warn('ingest-sms.signature_invalid', { reason: validation.reason });
+      const status = validation.reason === 'stale_timestamp' ? 408 : 401;
+      return new Response(JSON.stringify({ success: false, error: 'invalid_signature' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status,
+      });
+    }
+
+    let payload: IngestRequest;
+    try {
+      payload = JSON.parse(decoder.decode(validation.rawBody)) as IngestRequest;
+    } catch (error) {
+      console.warn('ingest-sms.json_parse_failed', { error: String(error) });
+      return new Response(JSON.stringify({ success: false, error: 'invalid_payload' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+
+    const { rawText, receivedAt, vendorMeta, saccoId } = payload;
+
+    if (!rawText || !receivedAt) {
+      return new Response(JSON.stringify({ success: false, error: 'missing_fields' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
 
     const allowed = await enforceRateLimit(supabase, `sms:${saccoId ?? 'global'}`, { maxHits: 200 });
 
@@ -61,38 +94,35 @@ Deno.serve(async (req) => {
 
     console.log('SMS stored:', smsRecord.id);
 
-    // Step 2: Parse SMS using parse-sms function
-    const parseResponse = await supabase.functions.invoke('parse-sms', {
-      body: { rawText, receivedAt, vendorMeta }
-    });
+    // Step 2: Parse SMS using regex + OpenAI fallback
+    let parsed = parseWithRegex(rawText, receivedAt);
+    let parseSource: 'REGEX' | 'AI' = 'REGEX';
+    let modelUsed: string | null = null;
 
-    if (parseResponse.error) {
-      console.error('Parse function error:', parseResponse.error);
-      
-      // Update SMS status to FAILED
-      await supabase
-        .from('sms_inbox')
-        .update({
-          status: 'FAILED',
-          error: parseResponse.error.message || 'Parse failed'
-        })
-        .eq('id', smsRecord.id);
-
-      throw parseResponse.error;
+    if (!parsed || parsed.confidence < 0.9) {
+      console.log('Regex parse low confidence, invoking OpenAI');
+      try {
+        const aiResult = await parseWithOpenAI(rawText, receivedAt);
+        parsed = aiResult.parsed;
+        parseSource = 'AI';
+        modelUsed = aiResult.model;
+      } catch (error) {
+        console.error('OpenAI parse failed:', error);
+        await supabase
+          .from('sms_inbox')
+          .update({ status: 'FAILED', error: 'Parse failed' })
+          .eq('id', smsRecord.id);
+        throw error;
+      }
     }
 
-    const { parsed, parseSource, modelUsed } = parseResponse.data as {
-      parsed: {
-        msisdn: string;
-        confidence: number;
-        reference?: string | null;
-        txn_id: string;
-        amount: number;
-        timestamp: string;
-      };
-      parseSource: 'REGEX' | 'AI';
-      modelUsed?: string | null;
-    };
+    if (!parsed) {
+      await supabase
+        .from('sms_inbox')
+        .update({ status: 'FAILED', error: 'Parse failed' })
+        .eq('id', smsRecord.id);
+      throw new Error('Unable to parse SMS payload');
+    }
 
     console.log('SMS parsed:', { parseSource, confidence: parsed.confidence, modelUsed });
 

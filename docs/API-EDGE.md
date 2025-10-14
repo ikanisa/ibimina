@@ -4,7 +4,9 @@ All functions live under `supabase/functions/` and deploy to `https://<project-r
 
 | Function | Route | Method(s) | Auth | Rate limit |
 | --- | --- | --- | --- | --- |
-| `sms-inbox` | `/sms/inbox` | `POST` | HMAC header `x-signature` (`HMAC_SHA256(HMAC_SHARED_SECRET, raw body)`) | 60 req/min/IP |
+| `sms-inbox` | `/sms/inbox` | `POST` | HMAC headers `x-signature` + `x-timestamp` (`HMAC_SHA256(secret, ts + method + path + body)`) | 60 req/min/IP |
+| `ingest-sms` | `/ingest-sms` | `POST` | HMAC headers `x-signature` + `x-timestamp` | 60 req/min/project |
+| `metrics-exporter` | `/metrics-exporter` | `GET` | HMAC headers `x-signature` + `x-timestamp` (60s skew) | 12 req/min/source |
 | `sms-ai-parse` | `/sms/ai-parse` | `POST` | Staff/system-admin JWT or service-role key | 20 req/min/user |
 | `payments-apply` | `/payments/apply` | `POST` | Staff/system-admin JWT (`x-idempotency-key` required) | 20 req/min/user |
 | `recon-exceptions` | `/recon/exceptions` | `GET`, `POST` | Staff/system-admin JWT | 40 mutations/min/user |
@@ -19,6 +21,7 @@ All functions live under `supabase/functions/` and deploy to `https://<project-r
 ```http
 POST /sms/inbox
 Content-Type: text/plain
+x-timestamp: 2025-10-01T12:00:00Z
 x-signature: <hex hmac>
 
 You have received RWF 20,000 from 0788...
@@ -36,6 +39,32 @@ Or JSON:
   }
 }
 ```
+
+Signatures use the formula `HMAC_SHA256(HMAC_SHARED_SECRET, <timestamp><method>:<path><raw body>)`. The `<path>` must include the `/functions/v1` prefix when invoking via the Supabase edge runtime. Reject requests where `x-timestamp` is older than five minutes to prevent replay.
+
+### `/ingest-sms`
+
+```http
+POST /ingest-sms
+Content-Type: application/json
+x-timestamp: 2025-10-09T07:21:12Z
+x-signature: <hex hmac>
+
+{"rawText":"15000 AIRTEL ...","receivedAt":"2025-10-09T07:21:12Z"}
+```
+
+The ingestion endpoint mirrors the `sms-inbox` signature scheme but is designed for authenticated infrastructure (modems, ETL runners). Invalid or replayed signatures return HTTP 401/408 with a JSON error payload.
+
+### `/metrics-exporter`
+
+```http
+GET /metrics-exporter
+x-timestamp: 2025-10-01T12:00:00Z
+x-signature: <hex hmac>
+```
+
+Prometheus scrapes must include the `x-timestamp` header (UTC ISO string) and `x-signature` calculated over `timestamp + "GET:/functions/v1/metrics-exporter"`. The exporter rejects signatures older than 60 seconds.
+
 
 **Response**
 

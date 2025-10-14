@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppProviders } from "@/providers/app-providers";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const metadata: Metadata = {
   title: "Ibimina Staff Console",
@@ -29,12 +30,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const headerList = await headers();
+  const cookieStore = await cookies();
   const nonce = headerList.get("x-csp-nonce") ?? undefined;
+  const locale = resolveRequestLocale({ headers: headerList, cookies: cookieStore });
 
   return (
-    <html lang="rw" className="bg-nyungwe" suppressHydrationWarning>
+    <html lang={locale} className="bg-nyungwe" suppressHydrationWarning>
       <body className="antialiased bg-nyungwe text-neutral-0">
-        <AppProviders nonce={nonce}>{children}</AppProviders>
+        <AppProviders nonce={nonce} locale={locale}>
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

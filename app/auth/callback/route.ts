@@ -3,24 +3,39 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import type { Session } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
+import { getSupabaseConfigStatus } from "@/lib/supabase/config";
 
 type AuthCallbackPayload = {
   event: string;
   session: Session | null;
 };
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+type LogDetails = Record<string, unknown>;
+
+function logError(event: string, details: LogDetails = {}) {
+  console.error(`auth.callback.${event}`, details);
+}
+
+function logWarn(event: string, details: LogDetails = {}) {
+  console.warn(`auth.callback.${event}`, details);
+}
 
 export async function POST(request: Request) {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  const config = getSupabaseConfigStatus();
+
+  if (!config.hasUrl || !config.hasAnonKey) {
+    logError("supabase_config_missing", {
+      hasUrl: config.hasUrl,
+      hasAnonKey: config.hasAnonKey,
+    });
+
     return NextResponse.json({ error: "supabase_not_configured" }, { status: 500 });
   }
 
   const requestCookies = await cookies();
   const response = NextResponse.json({ success: true });
 
-  const supabase = createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const supabase = createServerClient<Database>(config.url, config.anonKey, {
     cookies: {
       getAll() {
         return requestCookies.getAll();
@@ -33,21 +48,51 @@ export async function POST(request: Request) {
     },
   });
 
-  const payload = (await request.json().catch(() => null)) as AuthCallbackPayload | null;
+  let payload: AuthCallbackPayload | null = null;
+  try {
+    payload = (await request.json()) as AuthCallbackPayload;
+  } catch (error) {
+    logError("json_parse_failed", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
+  }
 
   if (!payload?.event) {
+    logWarn("missing_event", {
+      hasSession: Boolean(payload?.session),
+    });
     return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
   }
 
   if (payload.event === "SIGNED_OUT") {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      logError("signout_failed", {
+        message: error.message,
+        status: error.status,
+        name: error.name,
+      });
+      return NextResponse.json({ error: "signout_failed" }, { status: 500 });
+    }
+
     return response;
   }
 
   if (!payload.session) {
+    logWarn("missing_session", { event: payload.event });
     return NextResponse.json({ error: "missing_session" }, { status: 400 });
   }
 
-  await supabase.auth.setSession(payload.session);
+  const { error } = await supabase.auth.setSession(payload.session);
+  if (error) {
+    logError("set_session_failed", {
+      message: error.message,
+      status: error.status,
+      name: error.name,
+    });
+    return NextResponse.json({ error: "session_persist_failed" }, { status: 500 });
+  }
+
   return response;
 }

@@ -96,11 +96,16 @@ supabase secrets set \
 
 ```bash
 # sms inbox (text/plain)
-SIG=$(printf "hello momo" | openssl dgst -sha256 -hmac "$HMAC_SHARED_SECRET" -hex | cut -d" " -f2)
+TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+BODY='You have received RWF 20,000 from 0788... Ref NYA.GAS.TWIZ.001 TXN 12345 at 2025-10-01 12:00'
+# Adjust context if your EDGE_URL path differs (default Supabase deployments use /functions/v1)
+CONTEXT="POST:/functions/v1/sms/inbox"
+SIG=$(printf "%s%s%s" "$TS" "$CONTEXT" "$BODY" | openssl dgst -sha256 -hmac "$HMAC_SHARED_SECRET" -hex | cut -d" " -f2)
 curl -i -X POST "$EDGE_URL/sms/inbox" \
   -H "x-signature: $SIG" \
+  -H "x-timestamp: $TS" \
   -H "content-type: text/plain" \
-  --data 'You have received RWF 20,000 from 0788... Ref NYA.GAS.TWIZ.001 TXN 12345 at 2025-10-01 12:00'
+  --data "$BODY"
 
 # AI parse fallback
 curl -i -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
@@ -129,15 +134,16 @@ After each deploy run `scripts/postdeploy-verify.sh` to apply cron job health ch
 Edge functions no longer expect a third-party SMS webhook. The GSM modem reader can forward messages straight to Supabase by either inserting directly into `public.sms_inbox` with a service-role key or by invoking the `ingest-sms` edge function with the standard Supabase `Authorization: Bearer <service_role_key>` header:
 
 ```
+TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+INGEST_CONTEXT="POST:/functions/v1/ingest-sms"
+PAYLOAD='{"rawText":"15000 AIRTEL 2505221230 REF.KIG/NYARUGENGE.G2.M001","receivedAt":"2025-10-09T07:21:12Z","vendorMeta":{"modemPort":"usb0"}}'
+INGEST_SIG=$(printf "%s%s%s" "$TS" "$INGEST_CONTEXT" "$PAYLOAD" | openssl dgst -sha256 -hmac "$HMAC_SHARED_SECRET" -hex | cut -d" " -f2)
 curl -X POST \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+  -H "x-signature: $INGEST_SIG" \
+  -H "x-timestamp: $TS" \
   https://<project-ref>.supabase.co/functions/v1/ingest-sms \
-  -d '{
-        "rawText": "15000 AIRTEL 2505221230 REF.KIG/NYARUGENGE.G2.M001",
-        "receivedAt": "2025-10-09T07:21:12Z",
-        "vendorMeta": {"modemPort": "usb0"}
-      }'
+  -d "$PAYLOAD"
 ```
 
 `ingest-sms` still runs parsing, deduplication, ledger posting, and auditing, but no longer checks `SMS_SHARED_SECRET`. Adjust rate limits if needed with `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW_SECONDS` secrets.

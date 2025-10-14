@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 import path from "path";
 import { HSTS_HEADER, SECURITY_HEADERS } from "./lib/security/headers";
 
+const resolvedBuildId =
+  process.env.NEXT_PUBLIC_BUILD_ID ??
+  process.env.VERCEL_GIT_COMMIT_SHA ??
+  `local-${Date.now().toString(36)}`;
+
 const remotePatterns = [
   {
     protocol: "https",
@@ -50,6 +55,10 @@ try {
     enabled: process.env.ANALYZE_BUNDLE === "1",
     openAnalyzer: false,
     analyzerMode: "static",
+    reportFilename: "client.html",
+    generateStatsFile: true,
+    statsFilename: "bundle-stats.json",
+    defaultSizes: "gzip",
   });
 } catch {
   console.warn("@next/bundle-analyzer not available; skip bundle report generation.");
@@ -58,6 +67,9 @@ try {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname, "./"),
+  env: {
+    NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
+  },
   images: {
     remotePatterns,
     formats: ["image/avif", "image/webp"],

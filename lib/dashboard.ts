@@ -2,12 +2,7 @@ import { cacheWithTags, CACHE_TAGS, REVALIDATION_SECONDS } from "@/lib/performan
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
-const ACTIVE_PAYMENT_STATUSES = new Set(["POSTED", "SETTLED"]);
 const DAYS_THRESHOLD = 30;
-
-type PaymentRow = Pick<Database["public"]["Tables"]["payments"]["Row"], "amount" | "status" | "occurred_at" | "ikimina_id" | "member_id">;
-type IkiminaRow = Pick<Database["public"]["Tables"]["ibimina"]["Row"], "id" | "name" | "code" | "status" | "updated_at">;
-type MemberRow = Pick<Database["public"]["Views"]["ikimina_members_public"]["Row"], "id" | "full_name" | "msisdn" | "member_code" | "ikimina_id" | "status">;
 
 export interface DashboardSummary {
   totals: {
@@ -49,195 +44,178 @@ export const EMPTY_DASHBOARD_SUMMARY: DashboardSummary = {
   missedContributors: [],
 };
 
-function toISOString(date: Date) {
-  return date.toISOString();
-}
-
 interface DashboardSummaryParams {
   saccoId: string | null;
   allowAll: boolean;
 }
 
+type PaymentRollupRow = Database["public"]["Views"]["analytics_payment_rollups_mv"]["Row"];
+type IkiminaMonthlyRow = Database["public"]["Views"]["analytics_ikimina_monthly_mv"]["Row"];
+type MemberLastPaymentRow = Database["public"]["Views"]["analytics_member_last_payment_mv"]["Row"];
+
 async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryParams): Promise<DashboardSummary> {
-  const supabase = await createSupabaseServerClient();
+  if (process.env.AUTH_E2E_STUB === "1") {
+    return {
+      totals: {
+        today: 580000,
+        week: 3425000,
+        month: 12750000,
+        unallocated: 3,
+      },
+      activeIkimina: 18,
+      topIkimina: [
+        {
+          id: "stub-ikimina-1",
+          name: "Imbere Heza",
+          code: "IMB-001",
+          status: "ACTIVE",
+          updated_at: new Date().toISOString(),
+          month_total: 4900000,
+          member_count: 52,
+        },
+        {
+          id: "stub-ikimina-2",
+          name: "Abishyizehamwe",
+          code: "ABI-014",
+          status: "ACTIVE",
+          updated_at: new Date().toISOString(),
+          month_total: 3180000,
+          member_count: 47,
+        },
+      ],
+      missedContributors: [
+        {
+          id: "member-1",
+          full_name: "Mukamana Chantal",
+          msisdn: "+250788123456",
+          member_code: "MC-221",
+          ikimina_id: "stub-ikimina-1",
+          ikimina_name: "Imbere Heza",
+          days_since: 16,
+        },
+      ],
+    } satisfies DashboardSummary;
+  }
 
   if (!allowAll && !saccoId) {
     return EMPTY_DASHBOARD_SUMMARY;
   }
 
-  const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startOfWeek = new Date(startOfToday);
-  startOfWeek.setDate(startOfToday.getDate() - 7);
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const supabase = await createSupabaseServerClient();
 
-  let paymentsQuery = supabase
-    .from("payments")
-    .select("amount, status, occurred_at, ikimina_id, member_id")
-    .gte("occurred_at", toISOString(startOfMonth));
+  const resolveRollup = async (): Promise<PaymentRollupRow | null> => {
+    if (allowAll) {
+      const { data, error } = await supabase
+        .from("analytics_payment_rollups_mv")
+        .select("sacco_id, month_total, week_total, today_total, unallocated_count")
+        .is("sacco_id", null)
+        .maybeSingle();
+      if (error) {
+        throw error;
+      }
+      return data ?? null;
+    }
 
-  if (!allowAll) {
-    paymentsQuery = paymentsQuery.eq("sacco_id", saccoId as string);
-  }
+    if (!saccoId) {
+      return null;
+    }
 
-  const { data: payments, error: paymentsError } = await paymentsQuery;
+    const { data, error } = await supabase
+      .from("analytics_payment_rollups_mv")
+      .select("sacco_id, month_total, week_total, today_total, unallocated_count")
+      .eq("sacco_id", saccoId)
+      .maybeSingle();
+    if (error) {
+      throw error;
+    }
 
-  if (paymentsError) {
-    throw paymentsError;
-  }
+    if (data) {
+      return data;
+    }
 
-  const totals = {
-    today: 0,
-    week: 0,
-    month: 0,
-    unallocated: 0,
+    const { data: fallback } = await supabase
+      .from("analytics_payment_rollups_mv")
+      .select("sacco_id, month_total, week_total, today_total, unallocated_count")
+      .is("sacco_id", null)
+      .maybeSingle();
+    return (fallback as PaymentRollupRow | null) ?? null;
   };
 
-  const groupTotals = new Map<string, { amount: number; members: Set<string> }>();
-  const memberLastPayment = new Map<string, Date>();
+  const rollup = await resolveRollup();
 
-  for (const payment of (payments as PaymentRow[] | null) ?? []) {
-    const occurred = new Date(payment.occurred_at);
-    if (ACTIVE_PAYMENT_STATUSES.has(payment.status)) {
-      totals.month += payment.amount;
-      if (occurred >= startOfWeek) {
-        totals.week += payment.amount;
-      }
-      if (occurred >= startOfToday) {
-        totals.today += payment.amount;
-      }
-    }
+  const totals = {
+    today: Number(rollup?.today_total ?? 0),
+    week: Number(rollup?.week_total ?? 0),
+    month: Number(rollup?.month_total ?? 0),
+    unallocated: Number(rollup?.unallocated_count ?? 0),
+  } satisfies DashboardSummary["totals"];
 
-    if (payment.status === "UNALLOCATED") {
-      totals.unallocated += 1;
-    }
+  let ikiminaQuery = supabase
+    .from("analytics_ikimina_monthly_mv")
+    .select(
+      "ikimina_id, sacco_id, name, code, status, updated_at, month_total, active_member_count, contributing_members, last_contribution_at",
+    )
+    .order("month_total", { ascending: false })
+    .limit(5);
 
-    if (payment.ikimina_id) {
-      const current = groupTotals.get(payment.ikimina_id) ?? { amount: 0, members: new Set<string>() };
-      current.amount += ACTIVE_PAYMENT_STATUSES.has(payment.status) ? payment.amount : 0;
-      if (payment.member_id) {
-        current.members.add(payment.member_id);
-      }
-      groupTotals.set(payment.ikimina_id, current);
-    }
-
-    if (payment.member_id) {
-      const existing = memberLastPayment.get(payment.member_id);
-      if (!existing || existing < occurred) {
-        memberLastPayment.set(payment.member_id, occurred);
-      }
-    }
+  if (!allowAll && saccoId) {
+    ikiminaQuery = ikiminaQuery.eq("sacco_id", saccoId);
   }
 
-  const groupIdsFromPayments = Array.from(groupTotals.keys());
-
-  const topGroupEntries = groupIdsFromPayments
-    .map((id) => [id, groupTotals.get(id)!] as const)
-    .sort((a, b) => b[1].amount - a[1].amount);
-
-  const topGroupIds = topGroupEntries.slice(0, 5).map(([id]) => id);
-  const groupMetaMap = new Map<string, IkiminaRow>();
-
-  if (topGroupIds.length > 0) {
-    const { data: topGroupsMeta } = await supabase
-      .from("ibimina")
-      .select("id, name, code, status, updated_at")
-      .in("id", topGroupIds);
-
-    (topGroupsMeta ?? []).forEach((group) => {
-      const typed = group as IkiminaRow;
-      groupMetaMap.set(typed.id, typed);
-    });
+  const { data: ikiminaRows, error: ikiminaError } = await ikiminaQuery;
+  if (ikiminaError) {
+    throw ikiminaError;
   }
 
-  if (topGroupIds.length === 0 || groupMetaMap.size < topGroupIds.length) {
-    let fallbackQuery = supabase
-      .from("ibimina")
-      .select("id, name, code, status, updated_at")
-      .order("updated_at", { ascending: false })
-      .limit(5);
+  const topIkimina = ((ikiminaRows ?? []) as IkiminaMonthlyRow[]).map((row) => ({
+    id: row.ikimina_id as string,
+    name: (row.name as string) ?? "Unknown",
+    code: (row.code as string) ?? "—",
+    status: (row.status as string) ?? "UNKNOWN",
+    updated_at: (row.updated_at as string | null) ?? null,
+    month_total: Number(row.month_total ?? 0),
+    member_count: Number(row.active_member_count ?? row.contributing_members ?? 0),
+  }));
 
-    if (!allowAll) {
-      fallbackQuery = fallbackQuery.eq("sacco_id", saccoId as string);
-    }
+  let overdueQuery = supabase
+    .from("analytics_member_last_payment_mv")
+    .select("member_id, full_name, msisdn, member_code, ikimina_id, ikimina_name, days_since_last, status")
+    .eq("status", "ACTIVE")
+    .order("days_since_last", { ascending: false })
+    .limit(12);
 
-    const { data: fallbackGroups } = await fallbackQuery;
-    (fallbackGroups ?? []).forEach((group) => {
-      const typed = group as IkiminaRow;
-      if (!groupMetaMap.has(typed.id)) {
-        groupMetaMap.set(typed.id, typed);
-        if (!groupTotals.has(typed.id)) {
-          groupTotals.set(typed.id, { amount: 0, members: new Set<string>() });
-          topGroupEntries.push([typed.id, groupTotals.get(typed.id)!]);
-        }
-      }
-    });
+  if (!allowAll && saccoId) {
+    overdueQuery = overdueQuery.eq("sacco_id", saccoId);
   }
 
-  const groupIdsForMembers = topGroupEntries.slice(0, 5).map(([id]) => id);
-
-  let membersForGroups: MemberRow[] = [];
-  if (groupIdsForMembers.length > 0) {
-    const { data: memberRows } = await supabase
-      .from("ikimina_members_public")
-      .select("id, full_name, msisdn, member_code, ikimina_id, status")
-      .eq("status", "ACTIVE")
-      .in("ikimina_id", groupIdsForMembers)
-      .limit(500);
-    if (memberRows) {
-      membersForGroups = memberRows as MemberRow[];
-    }
+  const { data: overdueRows, error: overdueError } = await overdueQuery;
+  if (overdueError) {
+    throw overdueError;
   }
 
-  const memberCounts = new Map<string, number>();
-  for (const member of membersForGroups) {
-    memberCounts.set(member.ikimina_id ?? "", (memberCounts.get(member.ikimina_id ?? "") ?? 0) + 1);
-  }
-
-  const topIkimina = topGroupEntries
-    .slice(0, 5)
-    .map(([id, info]) => {
-      const meta = groupMetaMap.get(id);
+  const missedContributors = ((overdueRows ?? []) as MemberLastPaymentRow[])
+    .map((row) => {
+      const rawDays = row.days_since_last;
+      const daysSince = rawDays == null ? null : Number(rawDays);
       return {
-        id,
-        name: meta?.name ?? "Unknown",
-        code: meta?.code ?? "—",
-        status: meta?.status ?? "UNKNOWN",
-        updated_at: meta?.updated_at ?? null,
-        month_total: info.amount,
-        member_count: memberCounts.get(id) ?? info.members.size,
-      };
-    });
-
-  const overdueMembers = membersForGroups
-    .map((member) => {
-      const lastPayment = memberLastPayment.get(member.id) ?? null;
-      const daysSince = lastPayment ? Math.ceil((now.getTime() - lastPayment.getTime()) / (1000 * 60 * 60 * 24)) : null;
-      const ikiminaMeta = groupMetaMap.get(member.ikimina_id ?? "");
-      return {
-        id: member.id,
-        full_name: member.full_name,
-        msisdn: member.msisdn,
-        member_code: member.member_code,
-        ikimina_id: member.ikimina_id ?? null,
-        ikimina_name: ikiminaMeta?.name ?? null,
+        id: row.member_id,
+        full_name: row.full_name,
+        msisdn: row.msisdn,
+        member_code: row.member_code,
+        ikimina_id: row.ikimina_id,
+        ikimina_name: row.ikimina_name,
         days_since: daysSince,
       };
     })
-    .filter((item) => item.days_since === null || item.days_since > DAYS_THRESHOLD)
-    .sort((a, b) => {
-      const daysA = a.days_since ?? Number.POSITIVE_INFINITY;
-      const daysB = b.days_since ?? Number.POSITIVE_INFINITY;
-      return daysB - daysA;
-    })
+    .filter((entry) => entry.days_since === null || Number.isFinite(entry.days_since))
+    .filter((entry) => entry.days_since === null || entry.days_since > DAYS_THRESHOLD)
     .slice(0, 6);
 
   let activeIkiminaCount = 0;
-  let countQuery = supabase.from("ibimina").select("id", { count: "exact", head: true });
-  if (saccoId) {
+  let countQuery = supabase.from("ibimina").select("id", { count: "exact", head: true }).eq("status", "ACTIVE");
+  if (!allowAll && saccoId) {
     countQuery = countQuery.eq("sacco_id", saccoId);
   }
-  countQuery = countQuery.eq("status", "ACTIVE");
   const { count, error: countError } = await countQuery;
   if (countError) {
     throw countError;
@@ -248,8 +226,8 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
     totals,
     activeIkimina: activeIkiminaCount,
     topIkimina,
-    missedContributors: overdueMembers,
-  };
+    missedContributors,
+  } satisfies DashboardSummary;
 }
 
 export async function getDashboardSummary(params: DashboardSummaryParams): Promise<DashboardSummary> {

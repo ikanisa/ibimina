@@ -20,7 +20,7 @@ The Ibimina Staff Console runs on Next.js 15 App Router with Tailwind design tok
 1. Staff authenticate via Supabase; `requireUserAndProfile` fetches user profile and associated SACCO, then `(main)` layout validates MFA cookies before rendering protected routes.【F:lib/auth.ts†L1-L53】【F:app/(main)/layout.tsx†L1-L28】
 2. Dashboards fetch payments, ikimina, and members from `public` tables and views, aggregating results in Node to produce summary cards and tables.【F:lib/dashboard.ts†L74-L200】
 3. MFA verification depends on two stacks: the legacy route updates Supabase `users` fields, logs audit entries, and issues trusted-device cookies, while the AuthX route simply returns `{ok}` and sets cookies without updating user state or enforcing rate limits.【F:app/api/mfa/verify/route.ts†L72-L209】【F:lib/authx/verify.ts†L35-L166】
-4. Supabase Edge Functions handle imports, SMS ingestion, and scheduled jobs; several functions remain unauthenticated (`verify_jwt=false`), making network ingress reliant on external firewalling.【F:supabase/config.toml†L1-L22】
+4. Supabase Edge Functions handle imports, SMS ingestion, and scheduled jobs; HMAC-signed guards on `sms-inbox`, `ingest-sms`, `parse-sms`, `scheduled-reconciliation`, and `metrics-exporter` now enforce timestamped signatures to block unsigned ingress even though Supabase runs them with `verify_jwt=false`.【F:supabase/functions/sms-inbox/index.ts†L1-L200】【F:supabase/functions/ingest-sms/index.ts†L1-L220】【F:supabase/functions/scheduled-reconciliation/index.ts†L1-L200】【F:supabase/functions/metrics-exporter/index.ts†L1-L140】
 
 ## Database & RLS
 - **Schemas**: `app.*` schema hosts core SACCO tables with helper functions (`app.current_sacco`, `app.payment_sacco`) and policies. Legacy `public.*` tables persist for compatibility, but frontend still queries them directly, undermining policy consolidation.【F:supabase/migrations/20251012120000_sacco_plus_schema.sql†L400-L612】【F:lib/dashboard.ts†L74-L190】
@@ -30,7 +30,7 @@ The Ibimina Staff Console runs on Next.js 15 App Router with Tailwind design tok
 ## Security Posture
 - **CSP & headers**: Middleware sets CSP with per-request nonce and security headers; however, style-src still includes `'unsafe-inline'` for Tailwind, reducing strictness.【F:middleware.ts†L1-L36】【F:lib/security/headers.ts†L1-L66】
 - **Secrets**: Service-role key remains server-only; `.env.example` documents MFA secrets (KMS data key, peppers, trusted cookie secret) required for hardening.【F:.env.example†L1-L32】
-- **Auth gaps**: AuthX verification missing rate limiting/replay guard, WhatsApp OTP unthrottled, and multiple Edge Functions unauthenticated remain primary blockers.【F:app/api/authx/challenge/verify/route.ts†L49-L96】【F:lib/authx/start.ts†L83-L122】【F:supabase/config.toml†L1-L22】
+- **Auth gaps**: AuthX verification missing rate limiting/replay guard and WhatsApp OTP salting were previously critical gaps; rate limits, replay guards, and OTP throttling are now in place, shifting focus to consolidating MFA stacks and migrating dashboard queries to the hardened schema.【F:app/api/authx/challenge/verify/route.ts†L36-L200】【F:lib/authx/start.ts†L83-L170】
 
 ## Performance & Scalability
 - **Dashboard**: In-memory aggregation and 500-row member fetches will not scale; shift to SQL aggregates/materialised views for month summaries and top ikimina lists.【F:lib/dashboard.ts†L74-L200】
@@ -39,7 +39,7 @@ The Ibimina Staff Console runs on Next.js 15 App Router with Tailwind design tok
 
 ## Observability
 - **Logging**: Async-local logger supports structured logs, but audit log failures still only emit console errors; no integration with external logging/alerting system yet.【F:lib/observability/logger.ts†L1-L76】【F:lib/audit.ts†L9-L21】
-- **Metrics**: No in-app metrics instrumentation; Supabase functions mention `metrics-exporter` but it remains unauthenticated and not wired into dashboards.【F:supabase/config.toml†L17-L22】
+- **Metrics**: Prometheus-compatible metrics ship via the `metrics-exporter` edge function, which now requires timestamped HMAC signatures; wiring dashboards and alerting to the scrape target remains a follow-up.【F:supabase/functions/metrics-exporter/index.ts†L1-L140】【F:infra/metrics/prometheus.yml†L1-L40】
 - **CI/CD**: CI now runs on pnpm with Lighthouse budgets, auth integration tests, and bundle analysis tooling; preview workflow still needs Supabase branch DB wiring and auth e2e gate.【F:.github/workflows/ci.yml†L1-L80】【F:scripts/analyze-bundle.mjs†L1-L28】【F:.github/workflows/preview.yml†L1-L42】
 
 ## Security Header Recommendation
