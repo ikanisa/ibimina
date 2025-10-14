@@ -1,16 +1,14 @@
+import crypto from "node:crypto";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSessionUser } from "@/lib/authx/session";
 import { audit } from "@/lib/authx/audit";
-import { consumeBackup } from "@/lib/authx/backup";
-import {
-  issueSessionCookies,
-  verifyEmailOtp,
-  verifyPasskey,
-  verifyTotp,
-  verifyWhatsAppOtp,
-  type PasskeyVerificationPayload,
-} from "@/lib/authx/verify";
+import { issueSessionCookies, verifyPasskey, type PasskeyVerificationPayload } from "@/lib/authx/verify";
+import { getUserAndProfile } from "@/lib/auth";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/lib/supabase/types";
+import { applyRateLimit } from "@/src/auth/limits";
+import { verifyFactor, type Factor, type FactorSuccess } from "@/src/auth/factors";
 
 const bodySchema = z.object({
   factor: z.enum(["passkey", "totp", "email", "whatsapp", "backup"]),
@@ -34,9 +32,16 @@ const parsePasskeyPayload = (value: string | undefined): PasskeyVerificationPayl
 };
 
 export async function POST(request: Request) {
-  const user = await getSessionUser();
-  if (!user) {
+  const context = await getUserAndProfile();
+  if (!context) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  const { user, profile } = context;
+
+  if (!profile.mfa_enabled) {
+    await audit(user.id, "MFA_VERIFY_NOT_ENABLED", {});
+    return NextResponse.json({ error: "mfa_not_enabled" }, { status: 400 });
   }
 
   let data: z.infer<typeof bodySchema>;
@@ -46,10 +51,86 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
   }
 
+  const headerList = await headers();
+  const requestId = headerList.get("x-request-id") ?? headerList.get("x-correlation-id");
+  const forwarded =
+    request.headers.get("x-forwarded-for") ??
+    request.headers.get("x-real-ip") ??
+    request.headers.get("cf-connecting-ip") ??
+    null;
+  const ip = forwarded?.split(",")[0]?.trim() ?? null;
+  const hashedIp = ip ? crypto.createHash("sha256").update(ip).digest("hex") : null;
+
+  const supabase = createSupabaseAdminClient();
+
+  const { data: rawRecord, error } = await supabase
+    .from("users")
+    .select(
+      "mfa_secret_enc, mfa_backup_hashes, last_mfa_step, failed_mfa_count, last_mfa_success_at, mfa_methods, mfa_passkey_enrolled",
+    )
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("authx.verify.load_failed", { error, userId: user.id, requestId });
+    return NextResponse.json({ error: "configuration_error" }, { status: 500 });
+  }
+
+  type UserRow = Pick<
+    Database["public"]["Tables"]["users"]["Row"],
+    | "mfa_secret_enc"
+    | "mfa_backup_hashes"
+    | "last_mfa_step"
+    | "failed_mfa_count"
+    | "last_mfa_success_at"
+    | "mfa_methods"
+    | "mfa_passkey_enrolled"
+  >;
+
+  const record = (rawRecord ?? null) as UserRow | null;
+
+  const safeRecord: UserRow = {
+    mfa_secret_enc: record?.mfa_secret_enc ?? null,
+    mfa_backup_hashes: record?.mfa_backup_hashes ?? [],
+    last_mfa_step: record?.last_mfa_step ?? null,
+    failed_mfa_count: record?.failed_mfa_count ?? profile.failed_mfa_count ?? 0,
+    last_mfa_success_at: record?.last_mfa_success_at ?? null,
+    mfa_methods: record?.mfa_methods ?? profile.mfa_methods ?? [],
+    mfa_passkey_enrolled: record?.mfa_passkey_enrolled ?? profile.mfa_passkey_enrolled ?? false,
+  };
+
+  const respondRateLimited = async (
+    scope: "user" | "ip",
+    details: { retryAt?: Date | null; hashedIp?: string | null },
+  ) => {
+    const retryIso = details.retryAt?.toISOString() ?? null;
+    await audit(user.id, "MFA_RATE_LIMITED", {
+      scope,
+      retryAt: retryIso,
+      hashedIp: details.hashedIp ?? null,
+      requestId: requestId ?? null,
+    });
+    return NextResponse.json(
+      { error: "rate_limited", scope, retryAt: retryIso, requestId: requestId ?? undefined },
+      { status: 429 },
+    );
+  };
+
+  const userRateLimit = await applyRateLimit(`authx-mfa:${user.id}`, { maxHits: 5, windowSeconds: 300 });
+  if (!userRateLimit.ok) {
+    return respondRateLimited("user", { retryAt: userRateLimit.retryAt ?? null });
+  }
+
+  if (hashedIp) {
+    const ipRateLimit = await applyRateLimit(`authx-mfa-ip:${hashedIp}`, { maxHits: 10, windowSeconds: 300 });
+    if (!ipRateLimit.ok) {
+      return respondRateLimited("ip", { retryAt: ipRateLimit.retryAt ?? null, hashedIp });
+    }
+  }
+
   try {
-    let verified = false;
-    let usedBackup = false;
     let rememberDevice = data.trustDevice ?? false;
+    let verification: FactorSuccess | null = null;
 
     if (data.factor === "passkey") {
       const payload = parsePasskeyPayload(data.token);
@@ -57,43 +138,115 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
       }
       const result = await verifyPasskey({ id: user.id }, payload);
-      verified = result.ok;
-      rememberDevice = result.ok ? result.rememberDevice ?? rememberDevice : rememberDevice;
-    } else if (data.factor === "totp") {
-      if (!data.token) {
+      if (!result.ok) {
+        await audit(user.id, "MFA_FAILED", { factor: data.factor, reason: "passkey_rejected" });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any)
+          .from("users")
+          .update({ failed_mfa_count: (safeRecord.failed_mfa_count ?? 0) + 1 })
+          .eq("id", user.id);
+        return NextResponse.json({ error: "invalid_or_expired" }, { status: 401 });
+      }
+
+      rememberDevice = result.rememberDevice ?? rememberDevice;
+      verification = {
+        ok: true,
+        status: 200,
+        factor: "passkey",
+        auditAction: "MFA_SUCCESS",
+        auditDiff: { factor: "passkey" },
+      };
+    } else {
+      const factor = data.factor as Factor;
+      if (!data.token && factor !== "passkey") {
         return NextResponse.json({ error: "token_required" }, { status: 400 });
       }
-      const result = await verifyTotp({ id: user.id }, data.token);
-      verified = result.ok;
-    } else if (data.factor === "email") {
-      if (!data.token) {
-        return NextResponse.json({ error: "token_required" }, { status: 400 });
+
+      const result = await verifyFactor({
+        factor,
+        token: data.token,
+        userId: user.id,
+        email: user.email,
+        state: {
+          totpSecret: safeRecord.mfa_secret_enc ?? null,
+          lastStep: safeRecord.last_mfa_step ?? null,
+          backupHashes: safeRecord.mfa_backup_hashes ?? [],
+        },
+        rememberDevice: rememberDevice,
+      });
+
+      if (!result.ok) {
+        if (result.status === 429) {
+          await audit(user.id, "MFA_RATE_LIMITED", { factor, requestId: requestId ?? null });
+        } else {
+          await audit(user.id, "MFA_FAILED", { factor, code: result.code ?? null });
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any)
+          .from("users")
+          .update({ failed_mfa_count: (safeRecord.failed_mfa_count ?? 0) + 1 })
+          .eq("id", user.id);
+
+        return NextResponse.json(
+          {
+            error: result.error,
+            code: result.code,
+            ...(result.payload ?? {}),
+          },
+          { status: result.status },
+        );
       }
-      const result = await verifyEmailOtp({ id: user.id }, data.token);
-      verified = result.ok;
-    } else if (data.factor === "whatsapp") {
-      if (!data.token) {
-        return NextResponse.json({ error: "token_required" }, { status: 400 });
-      }
-      const result = await verifyWhatsAppOtp({ id: user.id }, data.token);
-      verified = result.ok;
-    } else if (data.factor === "backup") {
-      if (!data.token) {
-        return NextResponse.json({ error: "token_required" }, { status: 400 });
-      }
-      usedBackup = await consumeBackup(user.id, data.token);
-      verified = usedBackup;
+
+      verification = result;
     }
 
-    if (!verified) {
-      await audit(user.id, "MFA_FAILED", { factor: data.factor });
-      return NextResponse.json({ error: "invalid_or_expired" }, { status: 401 });
+    if (!verification) {
+      return NextResponse.json({ error: "verification_failed" }, { status: 500 });
     }
 
-    await audit(user.id, usedBackup ? "MFA_BACKUP_SUCCESS" : "MFA_SUCCESS", { factor: data.factor });
+    const updates: Database["public"]["Tables"]["users"]["Update"] = {
+      failed_mfa_count: 0,
+      last_mfa_success_at: new Date().toISOString(),
+    };
+
+    const methods = new Set(safeRecord.mfa_methods ?? []);
+    if (verification.factor === "email") {
+      methods.add("EMAIL");
+    }
+    if (verification.factor === "passkey" || safeRecord.mfa_passkey_enrolled) {
+      methods.add("PASSKEY");
+    }
+    if (verification.factor === "totp" || verification.factor === "backup") {
+      methods.add("TOTP");
+    }
+
+    if (verification.factor === "backup") {
+      updates.mfa_backup_hashes = verification.nextBackupHashes ?? safeRecord.mfa_backup_hashes ?? [];
+      updates.last_mfa_step = safeRecord.last_mfa_step ?? null;
+    } else if (verification.factor === "totp") {
+      updates.last_mfa_step = verification.nextLastStep ?? verification.step ?? safeRecord.last_mfa_step ?? null;
+    }
+
+    updates.mfa_methods = Array.from(methods);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateResult = await (supabase as any).from("users").update(updates).eq("id", user.id);
+    if (updateResult.error) {
+      console.error("authx.verify.persist_failed", { error: updateResult.error, userId: user.id, requestId });
+      return NextResponse.json({ error: "configuration_error" }, { status: 500 });
+    }
+
+    await audit(user.id, verification.auditAction, {
+      factor: verification.factor,
+      usedBackup: verification.usedBackup ?? false,
+      requestId: requestId ?? null,
+      diff: verification.auditDiff ?? null,
+    });
+
     await issueSessionCookies(user.id, rememberDevice);
 
-    return NextResponse.json({ ok: true, factor: data.factor, usedBackup });
+    return NextResponse.json({ ok: true, factor: verification.factor, usedBackup: verification.usedBackup ?? false });
   } catch (error) {
     console.error("authx.challenge.verify", error);
     return NextResponse.json({ error: "failed" }, { status: 500 });

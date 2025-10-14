@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { hashOneTimeCode, verifyOneTimeCode, randomDigits } from "@/src/auth/util/crypto";
+import { hashOneTimeCode, verifyOneTimeCode, randomDigits, hashRateLimitKey } from "@/src/auth/util/crypto";
 import { preventTotpReplay } from "@/src/auth/limits";
 
 describe("auth security primitives", () => {
@@ -20,6 +20,17 @@ describe("auth security primitives", () => {
     assert.ok(hashed.includes("$"));
     assert.ok(verifyOneTimeCode(code, hashed));
     assert.ok(!verifyOneTimeCode("654321", hashed));
+  });
+
+  it("derives deterministic rate-limit keys without leaking identifiers", () => {
+    process.env.RATE_LIMIT_SECRET = "limit-secret";
+    const first = hashRateLimitKey("authx", "user-123");
+    const second = hashRateLimitKey("authx", "user-123");
+    const third = hashRateLimitKey("authx", "user-456");
+
+    assert.equal(first, second);
+    assert.notEqual(first, third);
+    assert.equal(first.includes("user-123"), false);
   });
 
   it("prevents TOTP replay within the same step", () => {

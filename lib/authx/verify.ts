@@ -1,8 +1,6 @@
 import crypto from "node:crypto";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/types";
 import { verifyAuthentication } from "@/lib/mfa/passkeys";
-import { decryptSensitiveString, verifyTotp as verifyTotpToken } from "@/lib/mfa/crypto";
-import { verifyEmailOtp as legacyVerifyEmailOtp } from "@/lib/mfa/email";
 import {
   MFA_SESSION_COOKIE,
   TRUSTED_DEVICE_COOKIE,
@@ -15,7 +13,6 @@ import { deriveIpPrefix, hashDeviceFingerprint, hashUserAgent } from "@/lib/mfa/
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
 import { headers, cookies } from "next/headers";
-import { sha256Hex } from "@/lib/authx/crypto";
 
 export type PasskeyVerificationPayload = {
   response: AuthenticationResponseJSON;
@@ -30,80 +27,6 @@ export const verifyPasskey = async (user: { id: string }, payload: PasskeyVerifi
     console.error("authx.verifyPasskey", error);
     return { ok: false as const };
   }
-};
-
-export const verifyTotp = async (user: { id: string }, token: string) => {
-  const supabase = createSupabaseAdminClient();
-  type UserRow = { mfa_secret_enc: string | null };
-  const { data, error } = await supabase.from("users").select("mfa_secret_enc").eq("id", user.id).maybeSingle();
-  const userRow = data as UserRow | null;
-  if (error || !userRow?.mfa_secret_enc) {
-    return { ok: false as const };
-  }
-
-  try {
-    const secret = decryptSensitiveString(userRow.mfa_secret_enc);
-    const result = verifyTotpToken(secret, token, 1);
-    return { ok: result.ok } as const;
-  } catch (err) {
-    console.error("authx.verifyTotp", err);
-    return { ok: false as const };
-  }
-};
-
-export const verifyEmailOtp = async (user: { id: string }, token: string) => {
-  const result = await legacyVerifyEmailOtp(user.id, token);
-  if (!result.ok) {
-    return { ok: false as const };
-  }
-
-  const supabase = createSupabaseAdminClient();
-  const { data } = await supabase
-    .schema("authx")
-    .from("otp_issues")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("channel", "email")
-    .is("used_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (data) {
-    await supabase.schema("authx").from("otp_issues").update({ used_at: new Date().toISOString() }).eq("id", data.id);
-  }
-
-  return { ok: true as const };
-};
-
-export const verifyWhatsAppOtp = async (user: { id: string }, token: string) => {
-  if (!token) {
-    return { ok: false as const };
-  }
-
-  const supabase = createSupabaseAdminClient();
-  const hash = sha256Hex(`${process.env.BACKUP_PEPPER ?? ""}${token}`);
-  const nowIso = new Date().toISOString();
-
-  const { data, error } = await supabase
-    .schema("authx")
-    .from("otp_issues")
-    .select("id, expires_at, used_at")
-    .eq("user_id", user.id)
-    .eq("channel", "whatsapp")
-    .eq("code_hash", hash)
-    .maybeSingle();
-
-  if (error || !data) {
-    return { ok: false as const };
-  }
-
-  if (data.used_at || new Date(data.expires_at) < new Date()) {
-    return { ok: false as const };
-  }
-
-  await supabase.schema("authx").from("otp_issues").update({ used_at: nowIso }).eq("id", data.id);
-  return { ok: true as const };
 };
 
 export const issueSessionCookies = async (userId: string, rememberDevice: boolean) => {

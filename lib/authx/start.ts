@@ -1,8 +1,20 @@
 import { issueEmailOtp } from "@/lib/mfa/email";
 import { createAuthenticationOptions } from "@/lib/mfa/passkeys";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { randDigits, sha256Hex } from "@/lib/authx/crypto";
+import { randDigits } from "@/lib/authx/crypto";
 import { listUserFactors } from "@/lib/authx/factors";
+import { hashOneTimeCode, hashRateLimitKey } from "@/src/auth/util/crypto";
+
+const safeHash = (...parts: Parameters<typeof hashRateLimitKey>) => {
+  try {
+    return hashRateLimitKey(...parts);
+  } catch (error) {
+    console.warn("rate_limit_hash_unavailable", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+};
 
 export const startPasskeyChallenge = async (user: { id: string }) => {
   const { options, stateToken } = await createAuthenticationOptions({ id: user.id });
@@ -80,6 +92,9 @@ const sendTwilioWhatsapp = async (to: string, body: string) => {
   }
 };
 
+const WHATSAPP_RATE_LIMIT_SECONDS = 60;
+const WHATSAPP_MAX_ACTIVE = 3;
+
 export const sendWhatsAppOtp = async (user: { id: string }) => {
   const supabase = createSupabaseAdminClient();
   const { enrolled } = await listUserFactors(user.id);
@@ -102,8 +117,76 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
     return { channel: "whatsapp", sent: false, error: "missing_msisdn" } as const;
   }
 
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const { data: activeRowsRaw, error: activeError } = await supabase
+    .schema("authx")
+    .from("otp_issues")
+    .select("id, created_at, expires_at")
+    .eq("user_id", user.id)
+    .eq("channel", "whatsapp")
+    .is("used_at", null)
+    .gte("expires_at", nowIso)
+    .order("created_at", { ascending: false });
+
+  if (activeError) {
+    console.error("whatsapp_otp_active_fetch_failed", {
+      userId: user.id,
+      message: activeError.message,
+    });
+    return { channel: "whatsapp", sent: false, error: "issue_failed" } as const;
+  }
+
+  const activeRows = (activeRowsRaw ?? []).map((row) => ({
+    created_at: row.created_at ?? nowIso,
+    expires_at: row.expires_at,
+  }));
+
+  let rateLimited = false;
+  const retryCandidates: Date[] = [];
+
+  if (activeRows.length > 0) {
+    const mostRecent = new Date(activeRows[0].created_at);
+    if (now.getTime() - mostRecent.getTime() < WHATSAPP_RATE_LIMIT_SECONDS * 1000) {
+      rateLimited = true;
+      const retryAt = new Date(mostRecent);
+      retryAt.setSeconds(retryAt.getSeconds() + WHATSAPP_RATE_LIMIT_SECONDS);
+      retryCandidates.push(retryAt);
+    }
+  }
+
+  if (activeRows.length >= WHATSAPP_MAX_ACTIVE) {
+    rateLimited = true;
+    const earliestExpiry = activeRows
+      .map((row) => new Date(row.expires_at))
+      .reduce((earliest, candidate) => (candidate < earliest ? candidate : earliest));
+    retryCandidates.push(earliestExpiry);
+  }
+
+  if (rateLimited) {
+    const seed = retryCandidates[0] ?? new Date(now.getTime() + WHATSAPP_RATE_LIMIT_SECONDS * 1000);
+    const retryAt = retryCandidates.reduce(
+      (latest, candidate) => (candidate > latest ? candidate : latest),
+      seed,
+    );
+    await supabase
+      .schema("authx")
+      .from("audit")
+      .insert({
+        actor: user.id,
+        action: "MFA_WHATSAPP_RATE_LIMITED",
+        detail: { retryAt: retryAt.toISOString(), hashed: safeHash("whatsapp", user.id) },
+      });
+    return {
+      channel: "whatsapp",
+      sent: false,
+      error: "rate_limited",
+      retryAt: retryAt.toISOString(),
+    } as const;
+  }
+
   const code = randDigits(6);
-  const hash = sha256Hex(`${process.env.BACKUP_PEPPER ?? ""}${code}`);
+  const hash = hashOneTimeCode(code);
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
   await supabase

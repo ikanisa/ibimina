@@ -1,4 +1,5 @@
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { hashRateLimitKey } from "./util/crypto";
 
 const memoryLimits = new Map<string, { hits: number; resetAt: number }>();
 const replayCache = new Map<string, number>();
@@ -27,9 +28,10 @@ interface RateLimitOptions {
 export const applyRateLimit = async (key: string, options?: RateLimitOptions) => {
   const maxHits = options?.maxHits ?? 5;
   const windowSeconds = options?.windowSeconds ?? 300;
+  const hashedKey = hashRateLimitKey("rl", key);
 
   try {
-    await enforceRateLimit(key, { maxHits, windowSeconds });
+    await enforceRateLimit(hashedKey, { maxHits, windowSeconds });
     return { ok: true as const };
   } catch (error) {
     if (error instanceof Error && error.message === "rate_limit_exceeded") {
@@ -40,10 +42,10 @@ export const applyRateLimit = async (key: string, options?: RateLimitOptions) =>
     }
 
     cleanup();
-    const existing = memoryLimits.get(key);
+    const existing = memoryLimits.get(hashedKey);
     const current = now();
     if (!existing || existing.resetAt <= current) {
-      memoryLimits.set(key, { hits: 1, resetAt: current + windowSeconds * 1000 });
+      memoryLimits.set(hashedKey, { hits: 1, resetAt: current + windowSeconds * 1000 });
       return { ok: true as const };
     }
 
@@ -55,14 +57,14 @@ export const applyRateLimit = async (key: string, options?: RateLimitOptions) =>
     }
 
     existing.hits += 1;
-    memoryLimits.set(key, existing);
+    memoryLimits.set(hashedKey, existing);
     return { ok: true as const };
   }
 };
 
 export const preventTotpReplay = (userId: string, step: number) => {
   cleanup();
-  const key = `${userId}:${step}`;
+  const key = hashRateLimitKey("totp-step", userId, step);
   const current = now();
   const expiresAt = current + 60_000;
   const existing = replayCache.get(key);

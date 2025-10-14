@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { enqueueAction, listActions, removeAction, updateAction, type OfflineAction } from "@/lib/offline/queue";
+import { notifyOfflineQueueUpdated, requestBackgroundSync, requestImmediateOfflineSync } from "@/lib/offline/sync";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useToast } from "@/providers/toast-provider";
 import type { Database } from "@/lib/supabase/types";
@@ -38,6 +39,7 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
   const [isOnline, setIsOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
   const [actions, setActions] = useState<OfflineAction[]>([]);
   const [processing, setProcessing] = useState(false);
+  const lastBroadcastCount = useRef(0);
 
   const refresh = useCallback(async () => {
     const all = await safeListActions();
@@ -152,18 +154,49 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
   }, [handlers, isOnline, processing, refresh, toast]);
 
   useEffect(() => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
+      return;
+    }
+
+    const handleMessage = (event: MessageEvent) => {
+      const { data } = event;
+      if (!data || typeof data !== "object") {
+        return;
+      }
+
+      if (data.type === "OFFLINE_QUEUE_PROCESS") {
+        void processQueue();
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", handleMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", handleMessage);
+  }, [processQueue]);
+
+  useEffect(() => {
     if (isOnline) {
       void processQueue();
     }
   }, [isOnline, processQueue]);
+
+  useEffect(() => {
+    const pending = actions.filter((action) => action.status !== "syncing").length;
+    if (pending !== lastBroadcastCount.current) {
+      lastBroadcastCount.current = pending;
+      void notifyOfflineQueueUpdated(pending);
+    }
+  }, [actions]);
 
   const queueAction = useCallback(
     async (input: QueueInput) => {
       const record = await enqueueAction(input);
       await refresh();
       toast.info(`${input.summary.primary} · ${input.summary.secondary}`);
+      void requestBackgroundSync();
       if (isOnline) {
         void processQueue();
+      } else {
+        void requestImmediateOfflineSync("queued-offline");
       }
       return record;
     },

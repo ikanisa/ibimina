@@ -1,6 +1,14 @@
 import crypto from "node:crypto";
 import { decryptSensitiveString, encryptSensitiveString } from "@/lib/mfa/crypto";
 
+const rateLimitSecret = () => {
+  const secret = process.env.RATE_LIMIT_SECRET ?? process.env.BACKUP_PEPPER;
+  if (!secret) {
+    throw new Error("RATE_LIMIT_SECRET (or BACKUP_PEPPER) is not configured");
+  }
+  return secret;
+};
+
 const requireEnv = (key: string) => {
   const value = process.env[key];
   if (!value) {
@@ -49,4 +57,16 @@ export const hashOneTimeCode = (code: string, salt?: string) => {
 export const verifyOneTimeCode = (code: string, stored: string) => {
   const [salt] = stored.split("$");
   return hashOneTimeCode(code, salt) === stored;
+};
+
+export const hashRateLimitKey = (...parts: Array<string | number | null | undefined>) => {
+  const secret = rateLimitSecret();
+  const normalized = parts.map((part) => {
+    if (part === null || part === undefined) {
+      return "<null>";
+    }
+    return String(part);
+  });
+  const payload = normalized.join("|");
+  return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 };
