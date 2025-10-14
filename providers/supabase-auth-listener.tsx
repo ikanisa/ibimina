@@ -7,10 +7,17 @@ import { resetAuthCache } from "@/lib/offline/sync";
 export function SupabaseAuthListener() {
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       // Keep server-side auth state in sync for RSC/API calls.
-      // Ignore events without a session payload to avoid unnecessary network traffic.
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "PASSWORD_RECOVERY") {
+      const shouldSyncSession =
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "PASSWORD_RECOVERY" ||
+        event === "MFA_CHALLENGE_VERIFIED";
+
+      if (shouldSyncSession) {
         void fetch("/auth/callback", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -28,7 +35,7 @@ export function SupabaseAuthListener() {
         });
       }
 
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "MFA_CHALLENGE_VERIFIED") {
         void resetAuthCache();
       }
     });
