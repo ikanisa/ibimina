@@ -3,15 +3,11 @@ const STATIC_CACHE = `ibimina-static-${VERSION}`;
 const NEXT_CACHE = `ibimina-next-${VERSION}`;
 const RUNTIME_CACHE = `ibimina-runtime-${VERSION}`;
 const AUTH_CACHE = `ibimina-auth-${VERSION}`;
+const AUTH_SCOPE_CACHE = "ibimina-auth-scope";
 const OFFLINE_URL = "/offline";
 const BG_SYNC_TAG = "ibimina-offline-sync";
 
-const PRECACHE_URLS = [
-  OFFLINE_URL,
-  "/manifest.json",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-];
+const PRECACHE_URLS = [OFFLINE_URL, "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -29,7 +25,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => ![STATIC_CACHE, NEXT_CACHE, RUNTIME_CACHE, AUTH_CACHE].includes(key))
+            .filter((key) => ![STATIC_CACHE, NEXT_CACHE, RUNTIME_CACHE, AUTH_CACHE, AUTH_SCOPE_CACHE].includes(key))
             .map((key) => caches.delete(key)),
         ),
       )
@@ -64,21 +60,64 @@ const networkFirst = async (event) => {
   } catch {
     const cache = await caches.open(RUNTIME_CACHE);
     const cached = await cache.match(event.request);
-    if (cached) {
-      return cached;
-    }
+    if (cached) return cached;
+
     const offline = await caches.match(OFFLINE_URL);
     return offline ?? Response.error();
   }
 };
 
 const textEncoder = new TextEncoder();
-
 const hashString = async (value) => {
   const buffer = await crypto.subtle.digest("SHA-256", textEncoder.encode(value));
   return Array.from(new Uint8Array(buffer))
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
+};
+
+/** ---------- Auth-scope persistence (codex) + credential hashing (main) ---------- */
+const AUTH_SCOPE_KEY = new Request("/__auth-scope__");
+let cachedAuthScope = "guest";
+
+const restoreAuthScope = async () => {
+  try {
+    const cache = await caches.open(AUTH_SCOPE_CACHE);
+    const stored = await cache.match(AUTH_SCOPE_KEY);
+    if (stored) {
+      const hash = await stored.text();
+      if (hash) cachedAuthScope = hash;
+    }
+  } catch (error) {
+    console.warn("service-worker.auth_scope.restore_failed", error);
+  }
+};
+const initialAuthScopeRestore = restoreAuthScope();
+let authScopeReady = initialAuthScopeRestore;
+
+const persistAuthScope = (scope) => {
+  const nextScope = scope || "guest";
+  const persist = (async () => {
+    await initialAuthScopeRestore.catch(() => {});
+    cachedAuthScope = nextScope;
+    try {
+      const cache = await caches.open(AUTH_SCOPE_CACHE);
+      if (!cachedAuthScope || cachedAuthScope === "guest") {
+        await cache.delete(AUTH_SCOPE_KEY);
+        return;
+      }
+      await cache.put(AUTH_SCOPE_KEY, new Response(cachedAuthScope, { headers: { "Content-Type": "text/plain" } }));
+    } catch (error) {
+      console.warn("service-worker.auth_scope.persist_failed", error);
+    }
+  })();
+  authScopeReady = persist;
+  return persist;
+};
+
+const clearAuthCache = async () => {
+  const cache = await caches.open(AUTH_CACHE);
+  const requests = await cache.keys();
+  await Promise.all(requests.map((request) => cache.delete(request)));
 };
 
 const decodeCookieValue = (value) => {
@@ -89,18 +128,32 @@ const decodeCookieValue = (value) => {
   }
 };
 
+/**
+ * Compute an auth-scoped cache key:
+ * 1) If Authorization header present -> hash it
+ * 2) Else if sb-refresh-token or sb-access-token cookie present -> hash it
+ * 3) Else fall back to persisted auth-scope (guest / last hash)
+ */
 const getAuthScopedCacheKey = async (request) => {
   const authorizationHeader = request.headers.get("Authorization");
-  const cookieHeader = request.headers.get("Cookie") ?? "";
+  if (authorizationHeader) {
+    const hash = await hashString(authorizationHeader);
+    return `${request.url}::${hash}`;
+  }
 
+  const cookieHeader = request.headers.get("Cookie") ?? "";
   const refreshTokenMatch = cookieHeader.match(/(?:^|;\s*)sb-refresh-token=([^;]+)/);
   const accessTokenMatch = cookieHeader.match(/(?:^|;\s*)sb-access-token=([^;]+)/);
+  const credentialSource = refreshTokenMatch?.[1] ?? accessTokenMatch?.[1] ?? null;
 
-  const credentialSource = refreshTokenMatch?.[1] ?? authorizationHeader ?? accessTokenMatch?.[1] ?? "guest";
-  const credential = decodeCookieValue(credentialSource);
-  const hash = await hashString(credential);
+  if (credentialSource) {
+    const credential = decodeCookieValue(credentialSource);
+    const hash = await hashString(credential);
+    return `${request.url}::${hash}`;
+  }
 
-  return `${request.url}::${hash}`;
+  await authScopeReady.catch(() => {});
+  return `${request.url}::${cachedAuthScope}`;
 };
 
 const networkWithJsonCache = async (request) => {
@@ -114,9 +167,8 @@ const networkWithJsonCache = async (request) => {
     return response;
   } catch {
     const cached = await cache.match(cacheKey);
-    if (cached) {
-      return cached;
-    }
+    if (cached) return cached;
+
     return new Response(JSON.stringify({ offline: true }), {
       status: 503,
       headers: { "Content-Type": "application/json" },
@@ -124,15 +176,14 @@ const networkWithJsonCache = async (request) => {
   }
 };
 
+/** ---------- Messaging & Background Sync ---------- */
 const broadcastMessage = async (data) => {
   const clients = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
   await Promise.all(clients.map((client) => client.postMessage(data)));
 };
 
 const registerBackgroundSync = async () => {
-  if (!self.registration.sync) {
-    return false;
-  }
+  if (!self.registration.sync) return false;
   try {
     await self.registration.sync.register(BG_SYNC_TAG);
     return true;
@@ -144,15 +195,10 @@ const registerBackgroundSync = async () => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== "GET") {
-    return;
-  }
+  if (request.method !== "GET") return;
 
   const url = new URL(request.url);
-
-  if (url.origin !== self.location.origin) {
-    return;
-  }
+  if (url.origin !== self.location.origin) return;
 
   if (url.pathname.startsWith("/_next/static") || url.pathname.startsWith("/_next/image")) {
     event.respondWith(staleWhileRevalidate(request, NEXT_CACHE));
@@ -176,9 +222,7 @@ self.addEventListener("fetch", (event) => {
 
 self.addEventListener("message", (event) => {
   const { data } = event;
-  if (!data) {
-    return;
-  }
+  if (!data) return;
 
   if (data.type === "SKIP_WAITING") {
     self.skipWaiting();
@@ -191,7 +235,6 @@ self.addEventListener("message", (event) => {
         if (!registered) {
           return broadcastMessage({ type: "OFFLINE_QUEUE_PROCESS", reason: "fallback" });
         }
-        return undefined;
       }),
     );
     return;
@@ -207,12 +250,14 @@ self.addEventListener("message", (event) => {
     return;
   }
 
+  // From app: update persisted auth scope with a prepared hash (or null to clear)
+  if (data.type === "AUTH_SCOPE_UPDATE" && typeof data.hash === "string") {
+    event.waitUntil(persistAuthScope(data.hash));
+    return;
+  }
+
   if (data.type === "AUTH_CACHE_RESET") {
-    event.waitUntil(
-      caches.open(AUTH_CACHE).then((cache) =>
-        cache.keys().then((requests) => Promise.all(requests.map((request) => cache.delete(request)))),
-      ),
-    );
+    event.waitUntil(Promise.all([clearAuthCache(), persistAuthScope("guest")]));
     return;
   }
 });

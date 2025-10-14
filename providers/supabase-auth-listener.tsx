@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { resetAuthCache } from "@/lib/offline/sync";
+import { resetAuthCache, updateAuthCacheScope } from "@/lib/offline/sync";
 
 export function SupabaseAuthListener() {
   useEffect(() => {
@@ -35,6 +35,16 @@ export function SupabaseAuthListener() {
         });
       }
 
+      // Update the offline cache's auth scope (from codex branch)
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+        const credential = session?.access_token ?? session?.refresh_token ?? null;
+        void updateAuthCacheScope(credential);
+      }
+      if (event === "SIGNED_OUT") {
+        void updateAuthCacheScope(null);
+      }
+
+      // Bust high-priority caches when auth boundary changes (from main)
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "MFA_CHALLENGE_VERIFIED") {
         void resetAuthCache();
       }
