@@ -86,7 +86,7 @@ const AUTH_SCOPE_KEY = new Request("/__auth-scope__");
 
 let cachedAuthScope = "guest";
 
-let authScopeReady = (async () => {
+const restoreAuthScope = async () => {
   try {
     const cache = await caches.open(AUTH_SCOPE_CACHE);
     const stored = await cache.match(AUTH_SCOPE_KEY);
@@ -99,11 +99,17 @@ let authScopeReady = (async () => {
   } catch (error) {
     console.warn("service-worker.auth_scope.restore_failed", error);
   }
-})();
+};
+
+const initialAuthScopeRestore = restoreAuthScope();
+
+let authScopeReady = initialAuthScopeRestore;
 
 const persistAuthScope = (scope) => {
-  cachedAuthScope = scope || "guest";
-  authScopeReady = (async () => {
+  const nextScope = scope || "guest";
+  const persist = (async () => {
+    await initialAuthScopeRestore.catch(() => {});
+    cachedAuthScope = nextScope;
     try {
       const cache = await caches.open(AUTH_SCOPE_CACHE);
       if (!cachedAuthScope || cachedAuthScope === "guest") {
@@ -118,7 +124,8 @@ const persistAuthScope = (scope) => {
       console.warn("service-worker.auth_scope.persist_failed", error);
     }
   })();
-  return authScopeReady;
+  authScopeReady = persist;
+  return persist;
 };
 
 const clearAuthCache = async () => {
