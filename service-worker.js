@@ -81,16 +81,17 @@ const hashString = async (value) => {
     .join("");
 };
 
+let cachedAuthScope = "guest";
+
 const getAuthScopedCacheKey = async (request) => {
   const authorizationHeader = request.headers.get("Authorization");
-  const cookieHeader = request.headers.get("Cookie") ?? "";
-  const cookieMatch = cookieHeader.match(/(?:^|;\s*)sb-access-token=([^;]+)/) ??
-    cookieHeader.match(/(?:^|;\s*)sb-refresh-token=([^;]+)/);
 
-  const credential = authorizationHeader ?? cookieMatch?.[1] ?? "guest";
-  const hash = await hashString(credential);
+  if (authorizationHeader) {
+    const hash = await hashString(authorizationHeader);
+    return `${request.url}::${hash}`;
+  }
 
-  return `${request.url}::${hash}`;
+  return `${request.url}::${cachedAuthScope}`;
 };
 
 const networkWithJsonCache = async (request) => {
@@ -194,6 +195,11 @@ self.addEventListener("message", (event) => {
 
   if (data.type === "OFFLINE_QUEUE_PROCESS") {
     event.waitUntil(broadcastMessage({ type: "OFFLINE_QUEUE_PROCESS", reason: data.reason ?? "manual" }));
+    return;
+  }
+
+  if (data.type === "AUTH_SCOPE_UPDATE" && typeof data.hash === "string") {
+    cachedAuthScope = data.hash || "guest";
     return;
   }
 

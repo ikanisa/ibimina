@@ -4,6 +4,19 @@ type SyncManager = {
   register: (tag: string) => Promise<void>;
 };
 
+const textEncoder = new TextEncoder();
+
+async function hashString(value: string) {
+  if (!globalThis.crypto?.subtle) {
+    return value;
+  }
+
+  const buffer = await globalThis.crypto.subtle.digest("SHA-256", textEncoder.encode(value));
+  return Array.from(new Uint8Array(buffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 async function getRegistration(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
     return null;
@@ -45,6 +58,16 @@ export async function notifyOfflineQueueUpdated(count: number) {
 export async function requestImmediateOfflineSync(reason: string) {
   const registration = await getRegistration();
   registration?.active?.postMessage({ type: "OFFLINE_QUEUE_PROCESS", reason });
+}
+
+export async function updateAuthCacheScope(credential: string | null | undefined) {
+  const registration = await getRegistration();
+  if (!registration) {
+    return;
+  }
+
+  const hash = credential ? await hashString(credential) : "guest";
+  registration.active?.postMessage({ type: "AUTH_SCOPE_UPDATE", hash });
 }
 
 export async function resetAuthCache() {
