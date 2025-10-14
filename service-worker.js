@@ -81,13 +81,23 @@ const hashString = async (value) => {
     .join("");
 };
 
+const decodeCookieValue = (value) => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
 const getAuthScopedCacheKey = async (request) => {
   const authorizationHeader = request.headers.get("Authorization");
   const cookieHeader = request.headers.get("Cookie") ?? "";
-  const cookieMatch = cookieHeader.match(/(?:^|;\s*)sb-access-token=([^;]+)/) ??
-    cookieHeader.match(/(?:^|;\s*)sb-refresh-token=([^;]+)/);
 
-  const credential = authorizationHeader ?? cookieMatch?.[1] ?? "guest";
+  const refreshTokenMatch = cookieHeader.match(/(?:^|;\s*)sb-refresh-token=([^;]+)/);
+  const accessTokenMatch = cookieHeader.match(/(?:^|;\s*)sb-access-token=([^;]+)/);
+
+  const credentialSource = refreshTokenMatch?.[1] ?? authorizationHeader ?? accessTokenMatch?.[1] ?? "guest";
+  const credential = decodeCookieValue(credentialSource);
   const hash = await hashString(credential);
 
   return `${request.url}::${hash}`;
