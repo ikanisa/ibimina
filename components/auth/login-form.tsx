@@ -64,14 +64,15 @@ export function LoginForm() {
   }, [email, step]);
 
   useEffect(() => {
-    if (!mfa?.expiresAt) {
+    const expiresAt = mfa?.expiresAt;
+    if (expiresAt == null) {
       setSecondsRemaining(null);
       return undefined;
     }
 
     const compute = () => {
       const now = Math.round(Date.now() / 1000);
-      setSecondsRemaining(Math.max(0, mfa.expiresAt - now));
+      setSecondsRemaining(Math.max(0, expiresAt - now));
     };
 
     compute();
@@ -312,7 +313,8 @@ export function LoginForm() {
     if (secondsRemaining <= 0) {
       return t("auth.mfa.expired", "Code expired. Request a new one.");
     }
-    return t("auth.mfa.countdown", "Code expires in {{seconds}}s", { seconds: secondsRemaining });
+    const template = t("auth.mfa.countdown", "Code expires in {{seconds}}s");
+    return template.replace(/\{\{\s*seconds\s*\}\}/g, secondsRemaining.toString());
   }, [secondsRemaining, t]);
 
   return (
