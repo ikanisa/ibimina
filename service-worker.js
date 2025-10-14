@@ -72,16 +72,38 @@ const networkFirst = async (event) => {
   }
 };
 
+const textEncoder = new TextEncoder();
+
+const hashString = async (value) => {
+  const buffer = await crypto.subtle.digest("SHA-256", textEncoder.encode(value));
+  return Array.from(new Uint8Array(buffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
+
+const getAuthScopedCacheKey = async (request) => {
+  const authorizationHeader = request.headers.get("Authorization");
+  const cookieHeader = request.headers.get("Cookie") ?? "";
+  const cookieMatch = cookieHeader.match(/(?:^|;\s*)sb-access-token=([^;]+)/) ??
+    cookieHeader.match(/(?:^|;\s*)sb-refresh-token=([^;]+)/);
+
+  const credential = authorizationHeader ?? cookieMatch?.[1] ?? "guest";
+  const hash = await hashString(credential);
+
+  return `${request.url}::${hash}`;
+};
+
 const networkWithJsonCache = async (request) => {
   const cache = await caches.open(AUTH_CACHE);
+  const cacheKey = await getAuthScopedCacheKey(request);
   try {
     const response = await fetch(request.clone());
     if (response && response.ok) {
-      await cache.put(request, response.clone());
+      await cache.put(cacheKey, response.clone());
     }
     return response;
   } catch {
-    const cached = await cache.match(request);
+    const cached = await cache.match(cacheKey);
     if (cached) {
       return cached;
     }
@@ -172,6 +194,15 @@ self.addEventListener("message", (event) => {
 
   if (data.type === "OFFLINE_QUEUE_PROCESS") {
     event.waitUntil(broadcastMessage({ type: "OFFLINE_QUEUE_PROCESS", reason: data.reason ?? "manual" }));
+    return;
+  }
+
+  if (data.type === "AUTH_CACHE_RESET") {
+    event.waitUntil(
+      caches.open(AUTH_CACHE).then((cache) =>
+        cache.keys().then((requests) => Promise.all(requests.map((request) => cache.delete(request)))),
+      ),
+    );
     return;
   }
 });
