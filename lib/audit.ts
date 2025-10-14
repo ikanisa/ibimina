@@ -1,6 +1,23 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/observability/logger";
 
+let createClient = createSupabaseServerClient;
+let emitError = logError;
+
+/**
+ * Overrides the Supabase client factory used by {@link logAudit}. Primarily for tests.
+ */
+export function configureAuditClientFactory(factory?: typeof createSupabaseServerClient) {
+  createClient = factory ?? createSupabaseServerClient;
+}
+
+/**
+ * Overrides the logger used when audit writes fail. Primarily for tests.
+ */
+export function configureAuditErrorLogger(loggerFn?: typeof logError) {
+  emitError = loggerFn ?? logError;
+}
+
 type AuditPayload = {
   action: string;
   entity: string;
@@ -9,7 +26,7 @@ type AuditPayload = {
 };
 
 export const logAudit = async ({ action, entity, entityId, diff }: AuditPayload) => {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -24,6 +41,6 @@ export const logAudit = async ({ action, entity, entityId, diff }: AuditPayload)
   });
 
   if (error) {
-    logError("audit_log_write_failed", { action, entity, entityId, error });
+    emitError("audit_log_write_failed", { action, entity, entityId, error });
   }
 };
