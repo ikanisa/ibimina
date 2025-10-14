@@ -56,6 +56,10 @@ export function LoginForm() {
 
     if (step === "credentials") {
       if (email.trim().length > 0) {
+        const activeElement = typeof document !== "undefined" ? document.activeElement : null;
+        if (activeElement === emailInputRef.current) {
+          return;
+        }
         passwordInputRef.current?.focus();
       } else {
         emailInputRef.current?.focus();
