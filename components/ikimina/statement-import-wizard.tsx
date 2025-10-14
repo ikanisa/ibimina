@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useToast } from "@/providers/toast-provider";
 import { useConfirmDialog } from "@/providers/confirm-provider";
 import {
@@ -66,7 +65,14 @@ const createInitialStatementMasks = (variant: StatementWizardVariant) =>
     ? { ...DEFAULT_STATEMENT_MASKS, occurredAt: "day-first" }
     : { ...DEFAULT_STATEMENT_MASKS };
 
-const supabase = getSupabaseBrowserClient();
+type ImportResult = {
+  inserted: number;
+  duplicates: number;
+  posted: number;
+  unallocated: number;
+  clientDuplicates?: number;
+  rowCount?: number;
+};
 
 export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic", canImport = true, disabledReason }: StatementImportWizardProps) {
   const { t } = useTranslation();
@@ -85,7 +91,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
   useEffect(() => {
     setMasks(createInitialStatementMasks(variant));
   }, [variant]);
-  const [result, setResult] = useState<{ inserted: number; duplicates: number; posted: number; unallocated: number } | null>(null);
+  const [result, setResult] = useState<ImportResult | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -295,58 +301,80 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
     setMessage(null);
     setError(null);
 
-    const rowsFromSms: CsvRow[] = [];
+    try {
+      const response = await fetch("/api/imports/sms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          saccoId,
+          entries: trimmed.map((rawText) => ({ rawText })),
+        }),
+      });
 
-    for (const line of trimmed) {
-      try {
-        const { data, error: invokeError } = await supabase.functions.invoke("parse-sms", {
-          body: {
-            rawText: line,
-          },
-        });
-        if (invokeError || !data?.parsed) {
-          throw new Error(invokeError?.message ?? "Unable to parse SMS");
-        }
-        const parsed = data.parsed as {
-          msisdn: string;
-          amount: number;
-          txn_id: string;
-          timestamp: string;
-          reference?: string | null;
-        };
+      const payload = (await response.json()) as {
+        success?: boolean;
+        error?: string;
+        results?: Array<{
+          parsed: {
+            txnId: string;
+            occurredAt: string;
+            msisdn: string;
+            amount: number;
+            reference?: string | null;
+          } | null;
+        }>;
+        summary?: { errors?: number };
+      };
 
-        rowsFromSms.push({
-          occurredAt: parsed.timestamp,
-          txnId: parsed.txn_id,
-          msisdn: parsed.msisdn,
-          amount: String(parsed.amount),
-          reference: parsed.reference ?? "",
-        });
-      } catch (smsError) {
-        console.error("Failed to parse SMS", line, smsError);
-        setSmsError(toBilingual("Unable to parse one or more SMS messages.", "Gusesengura SMS byanze"));
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.error ?? "Unable to parse SMS messages");
+      }
+
+      const parsedResults = (payload.results ?? []).filter((item) => item.parsed);
+
+      if (parsedResults.length === 0) {
+        setSmsError(toBilingual("No SMS messages were parsed.", "Nta SMS yasobanutse"));
         setSmsParsing(false);
         return;
       }
-    }
 
-    if (rowsFromSms.length === 0) {
-      setSmsError(toBilingual("No SMS messages were parsed.", "Nta SMS yasobanutse"));
+      const rowsFromSms: CsvRow[] = parsedResults.map((item) => ({
+        occurredAt: item.parsed!.occurredAt,
+        txnId: item.parsed!.txnId,
+        msisdn: item.parsed!.msisdn,
+        amount: String(item.parsed!.amount),
+        reference: item.parsed!.reference ?? "",
+      }));
+
+      setHeaders(["occurredAt", "txnId", "msisdn", "amount", "reference"]);
+      setRows(rowsFromSms);
+      setMapping({
+        occurredAt: "occurredAt",
+        txnId: "txnId",
+        msisdn: "msisdn",
+        amount: "amount",
+        reference: "reference",
+      });
+      setMasks(createInitialStatementMasks(variant));
+      setStep(2);
+
+      if (payload.summary?.errors && payload.summary.errors > 0) {
+        setSmsError(
+          toBilingual(
+            `${payload.summary.errors} message(s) could not be parsed.`,
+            `${payload.summary.errors} ubutumwa ntibwashoboye gusesengurwa.`,
+          ),
+        );
+      } else {
+        setSmsError(null);
+      }
+    } catch (smsError) {
+      console.error("Failed to parse SMS batch", smsError);
+      setSmsError(toBilingual("Unable to parse one or more SMS messages.", "Gusesengura SMS byanze"));
       setSmsParsing(false);
       return;
     }
 
-    setHeaders(["occurredAt", "txnId", "msisdn", "amount", "reference"]);
-    setRows(rowsFromSms);
-    setMapping({
-      occurredAt: "occurredAt",
-      txnId: "txnId",
-      msisdn: "msisdn",
-      amount: "amount",
-      reference: "reference",
-    });
-    setMasks(createInitialStatementMasks(variant));
-    setStep(2);
     setSmsParsing(false);
   };
 
@@ -384,26 +412,31 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
           } satisfies StatementRow;
         });
 
-        const { data, error } = await supabase.functions.invoke("import-statement", {
-          body: {
+        const response = await fetch("/api/imports/statement", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             saccoId,
             ikiminaId,
             rows: payload,
-          },
+          }),
         });
 
-        if (error) {
-          throw new Error(error.message ?? "Import failed");
+        const resultPayload = (await response.json()) as (ImportResult & { success?: boolean; error?: string }) | null;
+
+        if (!response.ok || !resultPayload?.success) {
+          throw new Error(resultPayload?.error ?? "Import failed");
         }
 
-        setResult(data ?? null);
-        const inserted = data?.inserted ?? payload.length;
-        const posted = data?.posted ?? 0;
-        const unallocated = data?.unallocated ?? 0;
+        setResult(resultPayload);
+        const inserted = resultPayload.inserted ?? payload.length;
+        const posted = resultPayload.posted ?? 0;
+        const unallocated = resultPayload.unallocated ?? 0;
+        const duplicates = resultPayload.duplicates ?? 0;
         setMessage(
           toBilingual(
-            `Imported ${inserted} of ${processedRows.length} row(s) · ${posted} posted · ${unallocated} unallocated.`,
-            `Byinjije imirongo ${inserted} muri ${processedRows.length} · ${posted} byemejwe · ${unallocated} bitaragabanywa.`
+            `Imported ${inserted} of ${processedRows.length} row(s) · ${posted} posted · ${unallocated} unallocated · ${duplicates} duplicates.`,
+            `Byinjije imirongo ${inserted} muri ${processedRows.length} · ${posted} byemejwe · ${unallocated} bitaragabanywa · ${duplicates} byisubiyemo.`
           )
         );
         notifySuccess("Statement import complete", "Kwinjiza raporo byarangiye");
