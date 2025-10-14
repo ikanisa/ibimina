@@ -46,3 +46,8 @@ export async function requestImmediateOfflineSync(reason: string) {
   const registration = await getRegistration();
   registration?.active?.postMessage({ type: "OFFLINE_QUEUE_PROCESS", reason });
 }
+
+export async function resetAuthCache() {
+  const registration = await getRegistration();
+  registration?.active?.postMessage({ type: "AUTH_CACHE_RESET" });
+}

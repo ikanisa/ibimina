@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { resetAuthCache } from "@/lib/offline/sync";
 
 export function SupabaseAuthListener() {
   useEffect(() => {
@@ -25,6 +26,10 @@ export function SupabaseAuthListener() {
           credentials: "same-origin",
           body: JSON.stringify({ event, session: null }),
         });
+      }
+
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        void resetAuthCache();
       }
     });
 
