@@ -3,6 +3,7 @@ const STATIC_CACHE = `ibimina-static-${VERSION}`;
 const NEXT_CACHE = `ibimina-next-${VERSION}`;
 const RUNTIME_CACHE = `ibimina-runtime-${VERSION}`;
 const AUTH_CACHE = `ibimina-auth-${VERSION}`;
+const AUTH_SCOPE_CACHE = "ibimina-auth-scope";
 const OFFLINE_URL = "/offline";
 const BG_SYNC_TAG = "ibimina-offline-sync";
 
@@ -29,7 +30,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => ![STATIC_CACHE, NEXT_CACHE, RUNTIME_CACHE, AUTH_CACHE].includes(key))
+            .filter((key) => ![STATIC_CACHE, NEXT_CACHE, RUNTIME_CACHE, AUTH_CACHE, AUTH_SCOPE_CACHE].includes(key))
             .map((key) => caches.delete(key)),
         ),
       )
@@ -81,7 +82,50 @@ const hashString = async (value) => {
     .join("");
 };
 
+const AUTH_SCOPE_KEY = new Request("/__auth-scope__");
+
 let cachedAuthScope = "guest";
+
+let authScopeReady = (async () => {
+  try {
+    const cache = await caches.open(AUTH_SCOPE_CACHE);
+    const stored = await cache.match(AUTH_SCOPE_KEY);
+    if (stored) {
+      const hash = await stored.text();
+      if (hash) {
+        cachedAuthScope = hash;
+      }
+    }
+  } catch (error) {
+    console.warn("service-worker.auth_scope.restore_failed", error);
+  }
+})();
+
+const persistAuthScope = (scope) => {
+  cachedAuthScope = scope || "guest";
+  authScopeReady = (async () => {
+    try {
+      const cache = await caches.open(AUTH_SCOPE_CACHE);
+      if (!cachedAuthScope || cachedAuthScope === "guest") {
+        await cache.delete(AUTH_SCOPE_KEY);
+        return;
+      }
+      await cache.put(
+        AUTH_SCOPE_KEY,
+        new Response(cachedAuthScope, { headers: { "Content-Type": "text/plain" } }),
+      );
+    } catch (error) {
+      console.warn("service-worker.auth_scope.persist_failed", error);
+    }
+  })();
+  return authScopeReady;
+};
+
+const clearAuthCache = async () => {
+  const cache = await caches.open(AUTH_CACHE);
+  const requests = await cache.keys();
+  await Promise.all(requests.map((request) => cache.delete(request)));
+};
 
 const getAuthScopedCacheKey = async (request) => {
   const authorizationHeader = request.headers.get("Authorization");
@@ -90,6 +134,8 @@ const getAuthScopedCacheKey = async (request) => {
     const hash = await hashString(authorizationHeader);
     return `${request.url}::${hash}`;
   }
+
+  await authScopeReady.catch(() => {});
 
   return `${request.url}::${cachedAuthScope}`;
 };
@@ -199,16 +245,12 @@ self.addEventListener("message", (event) => {
   }
 
   if (data.type === "AUTH_SCOPE_UPDATE" && typeof data.hash === "string") {
-    cachedAuthScope = data.hash || "guest";
+    event.waitUntil(persistAuthScope(data.hash));
     return;
   }
 
   if (data.type === "AUTH_CACHE_RESET") {
-    event.waitUntil(
-      caches.open(AUTH_CACHE).then((cache) =>
-        cache.keys().then((requests) => Promise.all(requests.map((request) => cache.delete(request)))),
-      ),
-    );
+    event.waitUntil(Promise.all([clearAuthCache(), persistAuthScope("guest")]));
     return;
   }
 });
