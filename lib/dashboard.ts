@@ -233,10 +233,11 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
 export async function getDashboardSummary(params: DashboardSummaryParams): Promise<DashboardSummary> {
   const { saccoId, allowAll } = params;
   const saccoTag = CACHE_TAGS.sacco(saccoId ?? null);
+  const analyticsTag = CACHE_TAGS.analyticsExecutive(saccoId ?? null);
   const cached = cacheWithTags(
     () => computeDashboardSummary(params),
     ["dashboard-summary", allowAll ? "all" : "scoped", saccoId ?? "none"],
-    [CACHE_TAGS.dashboardSummary, saccoTag],
+    [CACHE_TAGS.dashboardSummary, saccoTag, analyticsTag],
     allowAll ? REVALIDATION_SECONDS.minute : REVALIDATION_SECONDS.fiveMinutes
   );
 
