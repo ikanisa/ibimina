@@ -268,6 +268,7 @@ export type Database = {
           currency: string
           id: string
           ikimina_id: string | null
+          metadata: Json
           member_id: string | null
           msisdn: string
           msisdn_encrypted: string | null
@@ -278,6 +279,8 @@ export type Database = {
           sacco_id: string
           source_id: string | null
           status: string
+          updated_at: string
+          user_id: string | null
           txn_id: string
         }
         Insert: {
@@ -289,6 +292,7 @@ export type Database = {
           currency?: string
           id?: string
           ikimina_id?: string | null
+          metadata?: Json
           member_id?: string | null
           msisdn: string
           msisdn_encrypted?: string | null
@@ -299,6 +303,8 @@ export type Database = {
           sacco_id: string
           source_id?: string | null
           status?: string
+          updated_at?: string
+          user_id?: string | null
           txn_id: string
         }
         Update: {
@@ -310,6 +316,7 @@ export type Database = {
           currency?: string
           id?: string
           ikimina_id?: string | null
+          metadata?: Json
           member_id?: string | null
           msisdn?: string
           msisdn_encrypted?: string | null
@@ -320,6 +327,8 @@ export type Database = {
           sacco_id?: string
           source_id?: string | null
           status?: string
+          updated_at?: string
+          user_id?: string | null
           txn_id?: string
         }
         Relationships: [
@@ -566,6 +575,234 @@ export type Database = {
           },
         ]
       }
+      group_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          group_id: string
+          id: string
+          invitee_msisdn: string | null
+          invitee_user_id: string | null
+          status: Database["public"]["Enums"]["invite_status"]
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          group_id: string
+          id?: string
+          invitee_msisdn?: string | null
+          invitee_user_id?: string | null
+          status?: Database["public"]["Enums"]["invite_status"]
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          invitee_msisdn?: string | null
+          invitee_user_id?: string | null
+          status?: Database["public"]["Enums"]["invite_status"]
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invites_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "ikimina"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      join_requests: {
+        Row: {
+          created_at: string | null
+          decided_at: string | null
+          decided_by: string | null
+          group_id: string
+          id: string
+          note: string | null
+          sacco_id: string
+          status: Database["public"]["Enums"]["join_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          group_id: string
+          id?: string
+          note?: string | null
+          sacco_id: string
+          status?: Database["public"]["Enums"]["join_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          group_id?: string
+          id?: string
+          note?: string | null
+          sacco_id?: string
+          status?: Database["public"]["Enums"]["join_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "join_requests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "ikimina"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "join_requests_sacco_id_fkey"
+            columns: ["sacco_id"]
+            isOneToOne: false
+            referencedRelation: "saccos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members: {
+        Row: {
+          full_name: string | null
+          id: string
+          ikimina_id: string
+          joined_at: string
+          member_code: string | null
+          msisdn: string | null
+          national_id: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          full_name?: string | null
+          id?: string
+          ikimina_id: string
+          joined_at?: string
+          member_code?: string | null
+          msisdn?: string | null
+          national_id?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          full_name?: string | null
+          id?: string
+          ikimina_id?: string
+          joined_at?: string
+          member_code?: string | null
+          msisdn?: string | null
+          national_id?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_ikimina_id_fkey"
+            columns: ["ikimina_id"]
+            isOneToOne: false
+            referencedRelation: "ikimina"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      members_app_profiles: {
+        Row: {
+          created_at: string
+          id_files: Json | null
+          id_number: string | null
+          id_type: "NID" | "DL" | "PASSPORT" | null
+          lang: string | null
+          momo_msisdn: string
+          ocr_json: Json | null
+          updated_at: string
+          user_id: string
+          whatsapp_msisdn: string
+        }
+        Insert: {
+          created_at?: string
+          id_files?: Json | null
+          id_number?: string | null
+          id_type?: "NID" | "DL" | "PASSPORT" | null
+          lang?: string | null
+          momo_msisdn: string
+          ocr_json?: Json | null
+          updated_at?: string
+          user_id: string
+          whatsapp_msisdn: string
+        }
+        Update: {
+          created_at?: string
+          id_files?: Json | null
+          id_number?: string | null
+          id_type?: "NID" | "DL" | "PASSPORT" | null
+          lang?: string | null
+          momo_msisdn?: string
+          ocr_json?: Json | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_msisdn?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json
+          read_at: string | null
+          type: Database["public"]["Enums"]["notify_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload: Json
+          read_at?: string | null
+          type: Database["public"]["Enums"]["notify_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          read_at?: string | null
+          type?: Database["public"]["Enums"]["notify_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_saccos: {
+        Row: {
+          created_at: string | null
+          sacco_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          sacco_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          sacco_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_saccos_sacco_id_fkey"
+            columns: ["sacco_id"]
+            isOneToOne: false
+            referencedRelation: "saccos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       ikimina_members_public: {
@@ -595,9 +832,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      search_saccos_trgm: {
+        Args: { q: string }
+        Returns: Array<{
+          id: string
+          name: string
+          district: string
+          sector_code: string
+          similarity: number
+        }>
+      }
+      sum_group_deposits: {
+        Args: { gid: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "SYSTEM_ADMIN" | "SACCO_MANAGER" | "SACCO_STAFF" | "SACCO_VIEWER"
+      invite_status: "sent" | "accepted" | "expired"
+      join_status: "pending" | "approved" | "rejected"
+      notify_type: "new_member" | "payment_confirmed" | "invite_accepted"
+      payment_status: "pending" | "completed" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
