@@ -64,9 +64,9 @@ export async function POST(request: Request) {
   }
 
   if (existing) {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from("members_app_profiles")
-      .update(updatePayload)
+      .update(updatePayload as never)
       .eq("user_id", user.id);
 
     if (error) {
@@ -83,9 +83,9 @@ export async function POST(request: Request) {
       created_at: now,
       updated_at: now,
     };
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from("members_app_profiles")
-      .insert(insertPayload);
+      .insert(insertPayload as never);
 
     if (error) {
       console.error("Failed to create profile", error);

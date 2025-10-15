@@ -35,9 +35,9 @@ export async function POST(request: Request) {
     sacco_id: saccoId,
   };
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("user_saccos")
-    .upsert(insertPayload, { onConflict: "user_id,sacco_id" });
+    .upsert(insertPayload as never, { onConflict: "user_id,sacco_id" });
 
   if (error) {
     console.error("Failed to add SACCO", error);
