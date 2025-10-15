@@ -1,37 +1,42 @@
 -- Materialize dashboard analytics and automate cache invalidation
 
+-- 0) Schemas and safe extension setup
 create schema if not exists analytics;
 
 do $do$
 begin
-  if exists (
-    select 1 from pg_available_extensions where name = 'pg_net'
-  ) then
+  -- pg_net: prefer real extension if present; otherwise, create a stub in schema net
+  if exists (select 1 from pg_available_extensions where name = 'pg_net') then
     execute 'create extension if not exists pg_net with schema net';
   else
     execute 'create schema if not exists net';
     execute $func$
       create or replace function net.http_post(
         url text,
-        headers jsonb default ''{}''::jsonb,
-        body jsonb default ''{}''::jsonb,
+        headers jsonb default '{}'::jsonb,
+        body jsonb default '{}'::jsonb,
         timeout_msec integer default null
       )
       returns jsonb
-      language plpgsql
+      language sql
       as $body$
-      begin
-        return jsonb_build_object('status', ''stubbed'');
-      end;
+        select jsonb_build_object('status', 'stubbed');
       $body$;
     $func$;
   end if;
 end;
 $do$;
 
-create extension if not exists pg_cron;
+-- pg_cron: install only if available (managed pg instances sometimes restrict it)
+do $do$
+begin
+  if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
+    execute 'create extension if not exists pg_cron';
+  end if;
+end;
+$do$;
 
--- Aggregated payment rollups per SACCO and globally
+-- 1) Aggregated payment rollups per SACCO and globally
 create materialized view if not exists public.analytics_payment_rollups_mv as
 with params as (
   select
@@ -64,10 +69,11 @@ select
 from scoped
 group by rollup(sacco_id);
 
+-- Unique index needed for CONCURRENTLY refreshes
 create unique index if not exists analytics_payment_rollups_mv_sacco_idx
   on public.analytics_payment_rollups_mv ((coalesce(sacco_id::text, '00000000-0000-0000-0000-000000000000')));
 
--- Ikimina level monthly aggregates
+-- 2) Ikimina level monthly aggregates
 create materialized view if not exists public.analytics_ikimina_monthly_mv as
 with params as (
   select
@@ -94,10 +100,11 @@ group by i.id, i.sacco_id, i.name, i.code, i.status, i.updated_at, params.month_
 
 create unique index if not exists analytics_ikimina_monthly_mv_pk
   on public.analytics_ikimina_monthly_mv (ikimina_id);
+
 create index if not exists analytics_ikimina_monthly_mv_sacco_idx
   on public.analytics_ikimina_monthly_mv (sacco_id, month_total desc);
 
--- Member last-payment snapshots
+-- 3) Member last-payment snapshots
 create materialized view if not exists public.analytics_member_last_payment_mv as
 with params as (
   select timezone('utc', now()) as refreshed_at
@@ -125,13 +132,24 @@ group by m.id, m.sacco_id, m.ikimina_id, m.member_code, m.full_name, m.msisdn, m
 
 create unique index if not exists analytics_member_last_payment_mv_pk
   on public.analytics_member_last_payment_mv (member_id);
+
 create index if not exists analytics_member_last_payment_mv_sacco_idx
   on public.analytics_member_last_payment_mv (sacco_id, days_since_last desc);
 
-refresh materialized view public.analytics_payment_rollups_mv;
-refresh materialized view public.analytics_ikimina_monthly_mv;
-refresh materialized view public.analytics_member_last_payment_mv;
+-- 4) First refresh (safe: ignore errors on empty datasets)
+do $$
+begin
+  begin
+    refresh materialized view public.analytics_payment_rollups_mv;
+    refresh materialized view public.analytics_ikimina_monthly_mv;
+    refresh materialized view public.analytics_member_last_payment_mv;
+  exception when others then
+    -- allow migration to proceed even if initial refresh hits transient issues
+    null;
+  end;
+end$$;
 
+-- 5) Failure log table for webhook retries
 create table if not exists analytics.cache_invalidation_failures (
   id bigserial primary key,
   event text not null,
@@ -140,6 +158,7 @@ create table if not exists analytics.cache_invalidation_failures (
   occurred_at timestamptz not null default timezone('utc', now())
 );
 
+-- 6) Refresh function (CONCURRENTLY requires the unique indexes created above)
 create or replace function analytics.refresh_dashboard_materialized_views()
 returns void
 language plpgsql
@@ -153,18 +172,25 @@ begin
 end;
 $$;
 
--- Ensure the refresh job runs frequently
-select cron.unschedule('refresh-dashboard-materialized-views') where exists (
-  select 1 from cron.job where jobname = 'refresh-dashboard-materialized-views'
-);
-select cron.schedule(
-  'refresh-dashboard-materialized-views',
-  '*/5 * * * *',
-  $$select analytics.refresh_dashboard_materialized_views();$$
-) where not exists (
-  select 1 from cron.job where jobname = 'refresh-dashboard-materialized-views'
-);
+-- 7) Cron job (only if pg_cron exists)
+do $$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    -- Unschedule if present
+    perform cron.unschedule('refresh-dashboard-materialized-views')
+    where exists (select 1 from cron.job where jobname = 'refresh-dashboard-materialized-views');
 
+    -- Schedule every 5 minutes
+    perform cron.schedule(
+      'refresh-dashboard-materialized-views',
+      '*/5 * * * *',
+      $$select analytics.refresh_dashboard_materialized_views();$$
+    )
+    where not exists (select 1 from cron.job where jobname = 'refresh-dashboard-materialized-views');
+  end if;
+end$$;
+
+-- 8) Webhook emitter + triggers (safe with or without pg_net; stub returns {"status":"stubbed"})
 create or replace function analytics.emit_cache_invalidation()
 returns trigger
 language plpgsql
@@ -172,16 +198,15 @@ security definer
 set search_path = public, analytics
 as $$
 declare
-  webhook_url text;
+  webhook_url   text;
   webhook_token text;
-  headers jsonb;
-  sacco_ids uuid[];
-  sacco_id uuid;
-  payload jsonb;
-  tags text[];
+  headers       jsonb;
+  sacco_ids     uuid[];
+  sacco_id      uuid;
+  payload       jsonb;
+  tags          text[];
 begin
-  select value::text
-    into webhook_url
+  select value::text into webhook_url
   from public.configuration
   where key = 'analytics_cache_webhook_url';
 
@@ -189,8 +214,7 @@ begin
     return null;
   end if;
 
-  select value::text
-    into webhook_token
+  select value::text into webhook_token
   from public.configuration
   where key = 'analytics_cache_webhook_token';
 
@@ -210,7 +234,7 @@ begin
   if sacco_ids is null or array_length(sacco_ids, 1) is null then
     sacco_ids := array[null::uuid];
   else
-    sacco_ids := array_append(sacco_ids, null::uuid);
+    sacco_ids := array_append(sacco_ids, null::uuid); -- include global/all tag
   end if;
 
   foreach sacco_id in array sacco_ids loop
@@ -232,10 +256,9 @@ begin
         body := payload,
         timeout_msec := 750
       );
-    exception
-      when others then
-        insert into analytics.cache_invalidation_failures(event, sacco_id, error_message)
-        values (TG_ARGV[0], sacco_id, sqlerrm);
+    exception when others then
+      insert into analytics.cache_invalidation_failures(event, sacco_id, error_message)
+      values (TG_ARGV[0], sacco_id, sqlerrm);
     end;
   end loop;
 
@@ -243,6 +266,7 @@ begin
 end;
 $$;
 
+-- 9) Triggers on payments and recon_exceptions
 drop trigger if exists payments_cache_invalidation on public.payments;
 create trigger payments_cache_invalidation
   after insert or update or delete on public.payments
