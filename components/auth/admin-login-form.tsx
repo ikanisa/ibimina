@@ -8,14 +8,13 @@ import { useTranslation } from "@/providers/i18n-provider";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 
 type Step = "credentials" | "mfa";
-
 type TotpFactor = Factor<"totp", "verified">;
-
 type ProfileRow = { role: string | null };
 
 interface MfaState {
   factor: TotpFactor;
   challengeId: string;
+  /** unix seconds, or null if unknown */
   expiresAt: number | null;
 }
 
@@ -59,24 +58,20 @@ export default function AdminLoginForm() {
 
   const startMfaChallenge = useCallback(async () => {
     const { data: factorsData, error: listError } = await supabase.auth.mfa.listFactors();
-    if (listError) {
-      throw new Error("list_factors_failed");
-    }
+    if (listError) throw new Error("list_factors_failed");
 
     const totpFactors = (factorsData?.totp ?? []) as TotpFactor[];
     const factor = totpFactors.find((item) => item.status === "verified");
-    if (!factor) {
-      throw new Error("no_totp_factor");
-    }
+    if (!factor) throw new Error("no_totp_factor");
 
     const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
       factorId: factor.id,
     });
-
     if (challengeError || !challengeData) {
       throw new Error(challengeError?.message || "challenge_failed");
     }
 
+    // Normalize challenge payload field names
     const typedChallenge = challengeData as {
       id: string;
       expires_at?: number | string | null;
@@ -88,6 +83,7 @@ export default function AdminLoginForm() {
       typeof typedChallenge.expires_at !== "undefined"
         ? typedChallenge.expires_at
         : typedChallenge.expiresAt;
+
     if (typeof expiresRaw === "number") {
       expiresAt = expiresRaw;
     } else if (typeof expiresRaw === "string") {
@@ -122,7 +118,8 @@ export default function AdminLoginForm() {
         });
 
         if (signInError) {
-          if ((signInError as AuthError).status === 400 || (signInError as AuthError).status === 401) {
+          const status = (signInError as AuthError).status;
+          if (status === 400 || status === 401) {
             setError(t("auth.errors.invalidCredentials", "Email or password was incorrect."));
           } else {
             setError(signInError.message || t("auth.errors.generic", "Something went wrong. Try again."));
@@ -130,6 +127,7 @@ export default function AdminLoginForm() {
           return;
         }
 
+        // If session is already issued, verify admin role; otherwise proceed to MFA
         if (data.session) {
           const userId = data.session.user.id;
           const { data: profileData, error: profileError } = await supabase
@@ -139,7 +137,6 @@ export default function AdminLoginForm() {
             .maybeSingle();
 
           const profile = (profileData ?? null) as ProfileRow | null;
-
           if (profileError || !profile) {
             setError(t("auth.errors.generic", "Something went wrong. Try again."));
             await supabase.auth.signOut();
@@ -160,6 +157,7 @@ export default function AdminLoginForm() {
           return;
         }
 
+        // No session yet → start MFA flow
         await startMfaChallenge();
       } catch (unknownError) {
         console.error("Sign in failed", unknownError);
@@ -195,10 +193,13 @@ export default function AdminLoginForm() {
         });
 
         if (verifyError) {
-          if ((verifyError as AuthError).status === 400 || (verifyError as AuthError).status === 422) {
+          const status = (verifyError as AuthError).status;
+          if (status === 400 || status === 422) {
             setError(t("auth.errors.invalidCode", "That code was not accepted. Try again."));
           } else {
-            setError(verifyError.message || t("auth.errors.generic", "Unable to verify the authenticator code."));
+            setError(
+              verifyError.message || t("auth.errors.generic", "Unable to verify the authenticator code."),
+            );
           }
           return;
         }
@@ -216,7 +217,6 @@ export default function AdminLoginForm() {
           .maybeSingle();
 
         const profile = (profileData ?? null) as ProfileRow | null;
-
         if (profileError || !profile) {
           setError(t("auth.errors.generic", "Something went wrong. Try again."));
           await supabase.auth.signOut();
@@ -245,9 +245,7 @@ export default function AdminLoginForm() {
   );
 
   const handleResend = useCallback(async () => {
-    if (!mfa?.factor || resendPending) {
-      return;
-    }
+    if (!mfa?.factor || resendPending) return;
 
     setResendPending(true);
     setError(null);
@@ -264,9 +262,7 @@ export default function AdminLoginForm() {
   }, [mfa?.factor, resendPending, startMfaChallenge, t]);
 
   const handleSwitchAccount = useCallback(async () => {
-    if (switchingAccount) {
-      return;
-    }
+    if (switchingAccount) return;
 
     setSwitchingAccount(true);
     setError(null);
@@ -299,6 +295,7 @@ export default function AdminLoginForm() {
             : t("adminAuth.mfa.title", "Finish signing in with your authenticator app.")}
         </p>
       </div>
+
       {error && (
         <p
           role="alert"
@@ -313,12 +310,10 @@ export default function AdminLoginForm() {
           {message}
         </p>
       )}
+
       {step === "credentials" ? (
         <div className="space-y-2 text-left">
-          <label
-            htmlFor="admin-email"
-            className="block text-xs uppercase tracking-[0.3em] text-neutral-2"
-          >
+          <label htmlFor="admin-email" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
             {t("adminAuth.email.label", "Email")}
           </label>
           <input
@@ -334,6 +329,7 @@ export default function AdminLoginForm() {
             disabled={disableInputs}
             required
           />
+
           <label
             htmlFor="admin-password"
             className="block text-xs uppercase tracking-[0.3em] text-neutral-2"
@@ -356,10 +352,7 @@ export default function AdminLoginForm() {
         </div>
       ) : (
         <div className="space-y-2 text-left">
-          <label
-            htmlFor="admin-code"
-            className="block text-xs uppercase tracking-[0.3em] text-neutral-2"
-          >
+          <label htmlFor="admin-code" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
             {t("adminAuth.code.label", "Authenticator code")}
           </label>
           <input
@@ -385,15 +378,14 @@ export default function AdminLoginForm() {
           </button>
         </div>
       )}
+
       <div className="flex flex-col gap-2">
         <button
           type="submit"
           className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-neutral-0 disabled:bg-neutral-700"
           disabled={disableInputs}
         >
-          {step === "credentials"
-            ? t("adminAuth.submit", "Sign in")
-            : t("adminAuth.verify", "Verify code")}
+          {step === "credentials" ? t("adminAuth.submit", "Sign in") : t("adminAuth.verify", "Verify code")}
         </button>
         <button
           type="button"
