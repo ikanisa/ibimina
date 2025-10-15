@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -11,8 +11,9 @@ interface RouteContext {
   params: { id: string };
 }
 
-export async function POST(request: Request, { params }: RouteContext) {
+export async function POST(request: NextRequest | Request, { params }: RouteContext) {
   const supabase = await createSupabaseServerClient();
+
   const {
     data: { user },
     error: authError,
@@ -27,7 +28,13 @@ export async function POST(request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const json = await request.json();
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
@@ -36,7 +43,11 @@ export async function POST(request: Request, { params }: RouteContext) {
   const groupId = params.id;
   const saccoId = parsed.data.saccoId;
 
-  const { data: group, error: groupError } = await supabase
+  // Load group and verify sacco match
+  const {
+    data: group,
+    error: groupError,
+  } = await supabase
     .from("ibimina")
     .select("sacco_id")
     .eq("id", groupId)
@@ -47,12 +58,11 @@ export async function POST(request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Unable to create request" }, { status: 500 });
   }
 
-  const groupRow = (group ?? null) as Pick<Database["public"]["Tables"]["ibimina"]["Row"], "sacco_id"> | null;
-
-  if (!groupRow || groupRow.sacco_id !== saccoId) {
+  if (!group || group.sacco_id !== saccoId) {
     return NextResponse.json({ error: "Group mismatch" }, { status: 400 });
   }
 
+  // Ensure the user is linked to the SACCO
   const { data: membership } = await supabase
     .from("user_saccos")
     .select("user_id")
@@ -64,6 +74,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "SACCO not linked" }, { status: 400 });
   }
 
+  // If a request already exists, return its status
   const { data: existing } = await supabase
     .from("join_requests")
     .select("id, status")
@@ -71,19 +82,18 @@ export async function POST(request: Request, { params }: RouteContext) {
     .eq("group_id", groupId)
     .maybeSingle();
 
-  const existingRow = (existing ?? null) as Pick<Database["public"]["Tables"]["join_requests"]["Row"], "id" | "status"> | null;
-
-  if (existingRow) {
-    return NextResponse.json({ ok: true, status: existingRow.status });
+  if (existing) {
+    return NextResponse.json({ ok: true, status: existing.status });
   }
 
+  // Create new join request
   const insertPayload: Database["public"]["Tables"]["join_requests"]["Insert"] = {
     user_id: user.id,
     group_id: groupId,
     sacco_id: saccoId,
   };
 
-  const { error } = await supabase.from("join_requests").insert(insertPayload as never);
+  const { error } = await supabase.from("join_requests").insert(insertPayload);
 
   if (error) {
     console.error("Failed to create join request", error);
