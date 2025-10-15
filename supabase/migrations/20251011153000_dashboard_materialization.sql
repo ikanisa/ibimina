@@ -13,23 +13,29 @@ begin
     execute $func$
       create or replace function net.http_post(
         url text,
-        headers jsonb default ''{}''::jsonb,
-        body jsonb default ''{}''::jsonb,
+        headers jsonb default '{}'::jsonb,
+        body jsonb default '{}'::jsonb,
         timeout_msec integer default null
       )
       returns jsonb
-      language plpgsql
+      language sql
       as $body$
-      begin
-        return jsonb_build_object('status', ''stubbed'');
-      end;
+        select jsonb_build_object('status', 'stubbed');
       $body$;
     $func$;
   end if;
 end;
 $do$;
 
-create extension if not exists pg_cron;
+do $do$
+begin
+  if exists (
+    select 1 from pg_available_extensions where name = 'pg_cron'
+  ) then
+    execute 'create extension if not exists pg_cron';
+  end if;
+end;
+$do$;
 
 -- Aggregated payment rollups per SACCO and globally
 create materialized view if not exists public.analytics_payment_rollups_mv as
