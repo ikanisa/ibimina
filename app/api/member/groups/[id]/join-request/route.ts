@@ -83,7 +83,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     sacco_id: saccoId,
   };
 
-  const { error } = await (supabase as any).from("join_requests").insert(insertPayload);
+  const { error } = await supabase.from("join_requests").insert(insertPayload);
 
   if (error) {
     console.error("Failed to create join request", error);
