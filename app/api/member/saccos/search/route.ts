@@ -1,16 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest | Request) {
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q")?.trim() ?? "";
+  const q = (searchParams.get("q") ?? "").trim();
 
   if (q.length < 2) {
     return NextResponse.json({ results: [] });
   }
 
   const supabase = createSupabaseAdminClient();
+
   const rpcArgs: Database["public"]["Functions"]["search_saccos"]["Args"] = {
     query: q,
     limit_count: 10,

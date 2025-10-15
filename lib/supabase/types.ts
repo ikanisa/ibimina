@@ -39,9 +39,10 @@ export type Database = {
           owner_type?: string;
           status?: string;
           updated_at?: string | null;
+        };
+        Relationships: [];
       };
-      Relationships: [];
-    };
+
       configuration: {
         Row: {
           description: string | null;
@@ -63,6 +64,7 @@ export type Database = {
         };
         Relationships: [];
       };
+
       audit_logs: {
         Row: {
           action: string;
@@ -93,6 +95,7 @@ export type Database = {
         };
         Relationships: [];
       };
+
       group_invites: {
         Row: {
           accepted_at: string | null;
@@ -141,6 +144,7 @@ export type Database = {
           }
         ];
       };
+
       ibimina: {
         Row: {
           created_at: string | null;
@@ -185,6 +189,7 @@ export type Database = {
           }
         ];
       };
+
       join_requests: {
         Row: {
           created_at: string | null;
@@ -243,6 +248,7 @@ export type Database = {
           }
         ];
       };
+
       ikimina_members: {
         Row: {
           created_at: string | null;
@@ -308,6 +314,7 @@ export type Database = {
           }
         ];
       };
+
       ledger_entries: {
         Row: {
           amount: number;
@@ -359,6 +366,7 @@ export type Database = {
           }
         ];
       };
+
       members_app_profiles: {
         Row: {
           created_at: string | null;
@@ -409,6 +417,7 @@ export type Database = {
           }
         ];
       };
+
       payments: {
         Row: {
           ai_version: string | null;
@@ -419,6 +428,7 @@ export type Database = {
           currency: string;
           id: string;
           ikimina_id: string | null;
+          metadata: Json;
           member_id: string | null;
           msisdn: string;
           msisdn_encrypted: string | null;
@@ -429,6 +439,8 @@ export type Database = {
           sacco_id: string;
           source_id: string | null;
           status: string;
+          updated_at: string;
+          user_id: string | null;
           txn_id: string;
         };
         Insert: {
@@ -440,6 +452,7 @@ export type Database = {
           currency?: string;
           id?: string;
           ikimina_id?: string | null;
+          metadata?: Json;
           member_id?: string | null;
           msisdn: string;
           msisdn_encrypted?: string | null;
@@ -450,6 +463,8 @@ export type Database = {
           sacco_id: string;
           source_id?: string | null;
           status?: string;
+          updated_at?: string;
+          user_id?: string | null;
           txn_id: string;
         };
         Update: {
@@ -461,6 +476,7 @@ export type Database = {
           currency?: string;
           id?: string;
           ikimina_id?: string | null;
+          metadata?: Json;
           member_id?: string | null;
           msisdn?: string;
           msisdn_encrypted?: string | null;
@@ -471,6 +487,8 @@ export type Database = {
           sacco_id?: string;
           source_id?: string | null;
           status?: string;
+          updated_at?: string;
+          user_id?: string | null;
           txn_id?: string;
         };
         Relationships: [
@@ -504,6 +522,7 @@ export type Database = {
           }
         ];
       };
+
       notifications: {
         Row: {
           created_at: string | null;
@@ -539,6 +558,7 @@ export type Database = {
           }
         ];
       };
+
       rate_limit_counters: {
         Row: {
           hits: number;
@@ -557,6 +577,7 @@ export type Database = {
         };
         Relationships: [];
       };
+
       saccos: {
         Row: {
           category: string;
@@ -608,6 +629,7 @@ export type Database = {
         };
         Relationships: [];
       };
+
       sms_templates: {
         Row: {
           body: string;
@@ -655,6 +677,7 @@ export type Database = {
           }
         ];
       };
+
       sms_inbox: {
         Row: {
           confidence: number | null;
@@ -717,6 +740,7 @@ export type Database = {
           }
         ];
       };
+
       user_saccos: {
         Row: {
           created_at: string | null;
@@ -750,6 +774,7 @@ export type Database = {
           }
         ];
       };
+
       notification_queue: {
         Row: {
           created_at: string | null;
@@ -808,6 +833,7 @@ export type Database = {
           }
         ];
       };
+
       system_metrics: {
         Row: {
           event: string;
@@ -829,6 +855,7 @@ export type Database = {
         };
         Relationships: [];
       };
+
       users: {
         Row: {
           created_at: string | null;
@@ -891,6 +918,7 @@ export type Database = {
           }
         ];
       };
+
       trusted_devices: {
         Row: {
           created_at: string;
@@ -932,6 +960,7 @@ export type Database = {
           }
         ];
       };
+
       mfa_recovery_codes: {
         Row: {
           codes: string[];
@@ -961,6 +990,7 @@ export type Database = {
           }
         ];
       };
+
       webauthn_credentials: {
         Row: {
           backed_up: boolean;
@@ -1012,6 +1042,7 @@ export type Database = {
         ];
       };
     };
+
     Views: {
       analytics_payment_rollups_mv: {
         Row: {
@@ -1069,6 +1100,7 @@ export type Database = {
         };
       };
     };
+
     Functions: {
       get_user_sacco: {
         Args: { _user_id: string };
@@ -1100,18 +1132,35 @@ export type Database = {
           similarity_score: number | null;
         }>;
       };
-    };
-      Enums: {
-        app_role: "SYSTEM_ADMIN" | "SACCO_MANAGER" | "SACCO_STAFF" | "SACCO_VIEWER";
-        group_invite_status: "sent" | "accepted" | "expired";
-        join_request_status: "pending" | "approved" | "rejected";
-        member_id_type: "NID" | "DL" | "PASSPORT";
-        notification_type: "new_member" | "payment_confirmed" | "invite_accepted";
+      search_saccos_trgm: {
+        Args: { q: string };
+        Returns: Array<{
+          id: string;
+          name: string;
+          district: string;
+          sector_code: string;
+          similarity: number;
+        }>;
       };
+      sum_group_deposits: {
+        Args: { gid: string };
+        Returns: Json;
+      };
+    };
+
+    Enums: {
+      app_role: "SYSTEM_ADMIN" | "SACCO_MANAGER" | "SACCO_STAFF" | "SACCO_VIEWER";
+      group_invite_status: "sent" | "accepted" | "expired";
+      join_request_status: "pending" | "approved" | "rejected";
+      member_id_type: "NID" | "DL" | "PASSPORT";
+      notification_type: "new_member" | "payment_confirmed" | "invite_accepted";
+    };
+
     CompositeTypes: {
       [_ in never]: never;
     };
   };
+
   app: {
     Tables: {
       mfa_email_codes: {
@@ -1169,6 +1218,7 @@ export type Database = {
       [_ in never]: never;
     };
   };
+
   authx: {
     Tables: {
       user_mfa: {
@@ -1203,6 +1253,7 @@ export type Database = {
           }
         ];
       };
+
       otp_issues: {
         Row: {
           id: string;
@@ -1247,6 +1298,7 @@ export type Database = {
           }
         ];
       };
+
       audit: {
         Row: {
           id: string;
@@ -1272,6 +1324,7 @@ export type Database = {
         Relationships: [];
       };
     };
+
     Views: {
       webauthn_credentials: {
         Row: {
@@ -1297,6 +1350,7 @@ export type Database = {
         };
       };
     };
+
     Functions: {
       [_ in never]: never;
     };
