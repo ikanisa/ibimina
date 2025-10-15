@@ -17,6 +17,8 @@
   "nav.ops": "Ops",
   "nav.reports": "Reports",
   "nav.admin": "Admin",
+  "nav.signOut": "Sign out",
+  "nav.signingOut": "Signing out…",
   "common.email": "Email",
   "common.sending": "Sending\u2026",
   "admin.invite.selectSacco": "Select a SACCO for this role",

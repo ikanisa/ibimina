@@ -402,6 +402,8 @@
   "nav.recon": "Rapprochement",
   "nav.ops": "Opérations",
   "nav.reports": "Rapports",
+  "nav.signOut": "Déconnexion",
+  "nav.signingOut": "Déconnexion en cours…",
   "payments.filter.all": "All",
   "payments.filter.pending": "Pending",
   "payments.filter.posted": "Posted",

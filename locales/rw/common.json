@@ -402,6 +402,8 @@
   "nav.recon": "Guhuza konti",
   "nav.ops": "Imikorere",
   "nav.reports": "Raporo",
+  "nav.signOut": "Sohoka",
+  "nav.signingOut": "Urimo gusohoka…",
   "payments.filter.all": "Byose",
   "payments.filter.pending": "Birategereje",
   "payments.filter.posted": "Byemejwe",
