@@ -21,6 +21,7 @@ import { useTranslation } from "@/providers/i18n-provider";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -343,8 +344,9 @@ export function AppShell({ children, profile }: AppShellProps) {
                   );
                 })}
               </nav>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <LanguageSwitcher className="hidden text-[0.7rem] font-semibold md:flex" />
+                <SignOutButton className="px-4 py-2 text-xs uppercase tracking-[0.3em] md:text-sm md:tracking-[0.1em]" />
                 <button
                   type="button"
                   onClick={() => setShowGlobalSearch(true)}
