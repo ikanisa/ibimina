@@ -41,9 +41,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
   }
 
+  const analyticsTags = parsed.saccoId
+    ? [CACHE_TAGS.analyticsExecutive(parsed.saccoId), CACHE_TAGS.analyticsExecutive(null)]
+    : [CACHE_TAGS.analyticsExecutive(null)];
+
   const tags = composeTags(
     CACHE_TAGS.dashboardSummary,
-    CACHE_TAGS.analyticsExecutive(parsed.saccoId ?? null),
+    ...analyticsTags,
     parsed.saccoId ? CACHE_TAGS.sacco(parsed.saccoId) : null,
     ...(parsed.tags ?? []),
   );
