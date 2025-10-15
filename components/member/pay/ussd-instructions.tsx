@@ -1,0 +1,105 @@
+"use client";
+
+import { useEffect, useState, useTransition } from "react";
+import { Copy, PhoneCall } from "lucide-react";
+
+interface UssdParams {
+  merchant: string;
+  reference: string;
+  telUri: string | null;
+}
+
+interface UssdInstructionsProps {
+  groupId: string | null;
+}
+
+export function UssdInstructions({ groupId }: UssdInstructionsProps) {
+  const [params, setParams] = useState<UssdParams | null>(null);
+  const [isLoading, startFetch] = useTransition();
+  const [copied, setCopied] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!groupId) {
+      setParams(null);
+      return;
+    }
+
+    startFetch(async () => {
+      const response = await fetch(`/api/member/pay/ussd-params?group_id=${groupId}`);
+      if (!response.ok) {
+        console.error("Failed to load USSD parameters");
+        return;
+      }
+      const data = (await response.json()) as UssdParams;
+      setParams(data);
+    });
+  }, [groupId]);
+
+  const copy = async (value: string) => {
+    await navigator.clipboard.writeText(value);
+    setCopied(value);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  if (!groupId) {
+    return <p className="text-sm text-white/70">Select a group to view USSD instructions.</p>;
+  }
+
+  if (isLoading && !params) {
+    return <p className="text-sm text-white/70">Preparing USSD instructions…</p>;
+  }
+
+  if (!params) {
+    return <p className="text-sm text-red-200">Unable to load USSD instructions.</p>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-3xl border border-white/20 bg-white/10 p-5 text-neutral-0">
+        <h3 className="text-lg font-semibold">Payment steps</h3>
+        <ol className="mt-3 space-y-2 text-sm text-white/80">
+          <li>1. Dial the code below on your phone.</li>
+          <li>2. Enter the merchant number.</li>
+          <li>3. Provide the reference exactly as shown.</li>
+        </ol>
+      </div>
+      <div className="space-y-3">
+        <CopyField label="Merchant" value={params.merchant} copy={copy} copied={copied === params.merchant} />
+        <CopyField label="Reference" value={params.reference} copy={copy} copied={copied === params.reference} />
+        {params.telUri ? (
+          <a
+            href={params.telUri}
+            className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/80 px-4 py-3 text-base font-semibold text-neutral-0 transition-all duration-interactive ease-interactive hover:bg-emerald-500"
+          >
+            <PhoneCall className="h-5 w-5" aria-hidden /> Launch USSD
+          </a>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+interface CopyFieldProps {
+  label: string;
+  value: string;
+  copy: (value: string) => Promise<void>;
+  copied: boolean;
+}
+
+function CopyField({ label, value, copy, copied }: CopyFieldProps) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-3xl border border-white/15 bg-white/8 px-4 py-3 text-neutral-0">
+      <div>
+        <p className="text-xs uppercase tracking-wide text-white/70">{label}</p>
+        <p className="text-lg font-semibold">{value}</p>
+      </div>
+      <button
+        onClick={() => copy(value)}
+        className="flex items-center gap-2 rounded-2xl bg-white/15 px-3 py-2 text-sm font-semibold text-neutral-0 transition-all duration-interactive ease-interactive hover:bg-white/25"
+      >
+        <Copy className="h-4 w-4" aria-hidden />
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
+  );
+}

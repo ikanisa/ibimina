@@ -39,9 +39,10 @@ export type Database = {
           owner_type?: string;
           status?: string;
           updated_at?: string | null;
+        };
+        Relationships: [];
       };
-      Relationships: [];
-    };
+
       configuration: {
         Row: {
           description: string | null;
@@ -63,6 +64,7 @@ export type Database = {
         };
         Relationships: [];
       };
+
       audit_logs: {
         Row: {
           action: string;
@@ -93,6 +95,56 @@ export type Database = {
         };
         Relationships: [];
       };
+
+      group_invites: {
+        Row: {
+          accepted_at: string | null;
+          created_at: string | null;
+          group_id: string;
+          id: string;
+          invitee_msisdn: string | null;
+          invitee_user_id: string | null;
+          status: Database["public"]["Enums"]["group_invite_status"];
+          token: string;
+        };
+        Insert: {
+          accepted_at?: string | null;
+          created_at?: string | null;
+          group_id: string;
+          id?: string;
+          invitee_msisdn?: string | null;
+          invitee_user_id?: string | null;
+          status?: Database["public"]["Enums"]["group_invite_status"];
+          token: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          created_at?: string | null;
+          group_id?: string;
+          id?: string;
+          invitee_msisdn?: string | null;
+          invitee_user_id?: string | null;
+          status?: Database["public"]["Enums"]["group_invite_status"];
+          token?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "group_invites_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "ibimina";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "group_invites_invitee_user_id_fkey";
+            columns: ["invitee_user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       ibimina: {
         Row: {
           created_at: string | null;
@@ -137,6 +189,66 @@ export type Database = {
           }
         ];
       };
+
+      join_requests: {
+        Row: {
+          created_at: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          group_id: string;
+          id: string;
+          note: string | null;
+          sacco_id: string;
+          status: Database["public"]["Enums"]["join_request_status"];
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          group_id: string;
+          id?: string;
+          note?: string | null;
+          sacco_id: string;
+          status?: Database["public"]["Enums"]["join_request_status"];
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          group_id?: string;
+          id?: string;
+          note?: string | null;
+          sacco_id?: string;
+          status?: Database["public"]["Enums"]["join_request_status"];
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "join_requests_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "ibimina";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "join_requests_sacco_id_fkey";
+            columns: ["sacco_id"];
+            isOneToOne: false;
+            referencedRelation: "saccos";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "join_requests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       ikimina_members: {
         Row: {
           created_at: string | null;
@@ -202,6 +314,7 @@ export type Database = {
           }
         ];
       };
+
       ledger_entries: {
         Row: {
           amount: number;
@@ -253,6 +366,58 @@ export type Database = {
           }
         ];
       };
+
+      members_app_profiles: {
+        Row: {
+          created_at: string | null;
+          id_files: Json | null;
+          id_number: string | null;
+          id_type: Database["public"]["Enums"]["member_id_type"] | null;
+          is_verified: boolean | null;
+          lang: string | null;
+          momo_msisdn: string;
+          ocr_json: Json | null;
+          updated_at: string | null;
+          user_id: string;
+          whatsapp_msisdn: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          id_files?: Json | null;
+          id_number?: string | null;
+          id_type?: Database["public"]["Enums"]["member_id_type"] | null;
+          is_verified?: boolean | null;
+          lang?: string | null;
+          momo_msisdn: string;
+          ocr_json?: Json | null;
+          updated_at?: string | null;
+          user_id: string;
+          whatsapp_msisdn: string;
+        };
+        Update: {
+          created_at?: string | null;
+          id_files?: Json | null;
+          id_number?: string | null;
+          id_type?: Database["public"]["Enums"]["member_id_type"] | null;
+          is_verified?: boolean | null;
+          lang?: string | null;
+          momo_msisdn?: string;
+          ocr_json?: Json | null;
+          updated_at?: string | null;
+          user_id?: string;
+          whatsapp_msisdn?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "members_app_profiles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       payments: {
         Row: {
           ai_version: string | null;
@@ -357,6 +522,43 @@ export type Database = {
           }
         ];
       };
+
+      notifications: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          payload: Json | null;
+          read_at: string | null;
+          type: Database["public"]["Enums"]["notification_type"];
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          payload?: Json | null;
+          read_at?: string | null;
+          type: Database["public"]["Enums"]["notification_type"];
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          payload?: Json | null;
+          read_at?: string | null;
+          type?: Database["public"]["Enums"]["notification_type"];
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       rate_limit_counters: {
         Row: {
           hits: number;
@@ -375,6 +577,7 @@ export type Database = {
         };
         Relationships: [];
       };
+
       saccos: {
         Row: {
           category: string;
@@ -426,6 +629,7 @@ export type Database = {
         };
         Relationships: [];
       };
+
       sms_templates: {
         Row: {
           body: string;
@@ -473,6 +677,7 @@ export type Database = {
           }
         ];
       };
+
       sms_inbox: {
         Row: {
           confidence: number | null;
@@ -531,10 +736,45 @@ export type Database = {
             columns: ["sacco_id"];
             isOneToOne: false;
             referencedRelation: "saccos";
-          referencedColumns: ["id"];
-        }
-      ];
+            referencedColumns: ["id"];
+          }
+        ];
       };
+
+      user_saccos: {
+        Row: {
+          created_at: string | null;
+          sacco_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          sacco_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          sacco_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_saccos_sacco_id_fkey";
+            columns: ["sacco_id"];
+            isOneToOne: false;
+            referencedRelation: "saccos";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_saccos_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+
       notification_queue: {
         Row: {
           created_at: string | null;
@@ -593,6 +833,7 @@ export type Database = {
           }
         ];
       };
+
       system_metrics: {
         Row: {
           event: string;
@@ -614,6 +855,7 @@ export type Database = {
         };
         Relationships: [];
       };
+
       users: {
         Row: {
           created_at: string | null;
@@ -676,6 +918,7 @@ export type Database = {
           }
         ];
       };
+
       trusted_devices: {
         Row: {
           created_at: string;
@@ -717,6 +960,7 @@ export type Database = {
           }
         ];
       };
+
       mfa_recovery_codes: {
         Row: {
           codes: string[];
@@ -746,6 +990,7 @@ export type Database = {
           }
         ];
       };
+
       webauthn_credentials: {
         Row: {
           backed_up: boolean;
@@ -796,235 +1041,8 @@ export type Database = {
           }
         ];
       };
-      group_invites: {
-        Row: {
-          accepted_at: string | null;
-          created_at: string | null;
-          group_id: string;
-          id: string;
-          invitee_msisdn: string | null;
-          invitee_user_id: string | null;
-          status: Database["public"]["Enums"]["invite_status"];
-          token: string;
-        };
-        Insert: {
-          accepted_at?: string | null;
-          created_at?: string | null;
-          group_id: string;
-          id?: string;
-          invitee_msisdn?: string | null;
-          invitee_user_id?: string | null;
-          status?: Database["public"]["Enums"]["invite_status"];
-          token: string;
-        };
-        Update: {
-          accepted_at?: string | null;
-          created_at?: string | null;
-          group_id?: string;
-          id?: string;
-          invitee_msisdn?: string | null;
-          invitee_user_id?: string | null;
-          status?: Database["public"]["Enums"]["invite_status"];
-          token?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "group_invites_group_id_fkey";
-            columns: ["group_id"];
-            isOneToOne: false;
-            referencedRelation: "ikimina";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
-      join_requests: {
-        Row: {
-          created_at: string | null;
-          decided_at: string | null;
-          decided_by: string | null;
-          group_id: string;
-          id: string;
-          note: string | null;
-          sacco_id: string;
-          status: Database["public"]["Enums"]["join_status"];
-          user_id: string;
-        };
-        Insert: {
-          created_at?: string | null;
-          decided_at?: string | null;
-          decided_by?: string | null;
-          group_id: string;
-          id?: string;
-          note?: string | null;
-          sacco_id: string;
-          status?: Database["public"]["Enums"]["join_status"];
-          user_id: string;
-        };
-        Update: {
-          created_at?: string | null;
-          decided_at?: string | null;
-          decided_by?: string | null;
-          group_id?: string;
-          id?: string;
-          note?: string | null;
-          sacco_id?: string;
-          status?: Database["public"]["Enums"]["join_status"];
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "join_requests_group_id_fkey";
-            columns: ["group_id"];
-            isOneToOne: false;
-            referencedRelation: "ikimina";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "join_requests_sacco_id_fkey";
-            columns: ["sacco_id"];
-            isOneToOne: false;
-            referencedRelation: "saccos";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
-      members: {
-        Row: {
-          full_name: string | null;
-          id: string;
-          ikimina_id: string;
-          joined_at: string;
-          member_code: string | null;
-          msisdn: string | null;
-          national_id: string | null;
-          status: string;
-          user_id: string | null;
-        };
-        Insert: {
-          full_name?: string | null;
-          id?: string;
-          ikimina_id: string;
-          joined_at?: string;
-          member_code?: string | null;
-          msisdn?: string | null;
-          national_id?: string | null;
-          status?: string;
-          user_id?: string | null;
-        };
-        Update: {
-          full_name?: string | null;
-          id?: string;
-          ikimina_id?: string;
-          joined_at?: string;
-          member_code?: string | null;
-          msisdn?: string | null;
-          national_id?: string | null;
-          status?: string;
-          user_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "members_ikimina_id_fkey";
-            columns: ["ikimina_id"];
-            isOneToOne: false;
-            referencedRelation: "ikimina";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
-      members_app_profiles: {
-        Row: {
-          created_at: string;
-          id_files: Json | null;
-          id_number: string | null;
-          id_type: "NID" | "DL" | "PASSPORT" | null;
-          lang: string | null;
-          momo_msisdn: string;
-          ocr_json: Json | null;
-          updated_at: string;
-          user_id: string;
-          whatsapp_msisdn: string;
-        };
-        Insert: {
-          created_at?: string;
-          id_files?: Json | null;
-          id_number?: string | null;
-          id_type?: "NID" | "DL" | "PASSPORT" | null;
-          lang?: string | null;
-          momo_msisdn: string;
-          ocr_json?: Json | null;
-          updated_at?: string;
-          user_id: string;
-          whatsapp_msisdn: string;
-        };
-        Update: {
-          created_at?: string;
-          id_files?: Json | null;
-          id_number?: string | null;
-          id_type?: "NID" | "DL" | "PASSPORT" | null;
-          lang?: string | null;
-          momo_msisdn?: string;
-          ocr_json?: Json | null;
-          updated_at?: string;
-          user_id?: string;
-          whatsapp_msisdn?: string;
-        };
-        Relationships: [];
-      };
-      notifications: {
-        Row: {
-          created_at: string;
-          id: string;
-          payload: Json;
-          read_at: string | null;
-          type: Database["public"]["Enums"]["notify_type"];
-          user_id: string;
-        };
-        Insert: {
-          created_at?: string;
-          id?: string;
-          payload: Json;
-          read_at?: string | null;
-          type: Database["public"]["Enums"]["notify_type"];
-          user_id: string;
-        };
-        Update: {
-          created_at?: string;
-          id?: string;
-          payload?: Json;
-          read_at?: string | null;
-          type?: Database["public"]["Enums"]["notify_type"];
-          user_id?: string;
-        };
-        Relationships: [];
-      };
-      user_saccos: {
-        Row: {
-          created_at: string | null;
-          sacco_id: string;
-          user_id: string;
-        };
-        Insert: {
-          created_at?: string | null;
-          sacco_id: string;
-          user_id: string;
-        };
-        Update: {
-          created_at?: string | null;
-          sacco_id?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "user_saccos_sacco_id_fkey";
-            columns: ["sacco_id"];
-            isOneToOne: false;
-            referencedRelation: "saccos";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
     };
+
     Views: {
       analytics_payment_rollups_mv: {
         Row: {
@@ -1082,6 +1100,7 @@ export type Database = {
         };
       };
     };
+
     Functions: {
       get_user_sacco: {
         Args: { _user_id: string };
@@ -1128,17 +1147,20 @@ export type Database = {
         Returns: Json;
       };
     };
+
     Enums: {
       app_role: "SYSTEM_ADMIN" | "SACCO_MANAGER" | "SACCO_STAFF" | "SACCO_VIEWER";
-      invite_status: "sent" | "accepted" | "expired";
-      join_status: "pending" | "approved" | "rejected";
-      notify_type: "new_member" | "payment_confirmed" | "invite_accepted";
-      payment_status: "pending" | "completed" | "failed";
+      group_invite_status: "sent" | "accepted" | "expired";
+      join_request_status: "pending" | "approved" | "rejected";
+      member_id_type: "NID" | "DL" | "PASSPORT";
+      notification_type: "new_member" | "payment_confirmed" | "invite_accepted";
     };
+
     CompositeTypes: {
       [_ in never]: never;
     };
   };
+
   app: {
     Tables: {
       mfa_email_codes: {
@@ -1196,6 +1218,7 @@ export type Database = {
       [_ in never]: never;
     };
   };
+
   authx: {
     Tables: {
       user_mfa: {
@@ -1230,6 +1253,7 @@ export type Database = {
           }
         ];
       };
+
       otp_issues: {
         Row: {
           id: string;
@@ -1274,6 +1298,7 @@ export type Database = {
           }
         ];
       };
+
       audit: {
         Row: {
           id: string;
@@ -1299,6 +1324,7 @@ export type Database = {
         Relationships: [];
       };
     };
+
     Views: {
       webauthn_credentials: {
         Row: {
@@ -1324,6 +1350,7 @@ export type Database = {
         };
       };
     };
+
     Functions: {
       [_ in never]: never;
     };
