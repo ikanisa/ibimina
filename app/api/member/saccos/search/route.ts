@@ -17,7 +17,7 @@ export async function GET(request: NextRequest | Request) {
     limit_count: 10,
   };
 
-  const { data, error } = await supabase.rpc("search_saccos", rpcArgs);
+  const { data, error } = await supabase.rpc("search_saccos", rpcArgs as never);
 
   if (error) {
     console.error("Failed to search SACCOs", error);

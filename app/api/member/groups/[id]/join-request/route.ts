@@ -58,7 +58,10 @@ export async function POST(request: NextRequest | Request, { params }: RouteCont
     return NextResponse.json({ error: "Unable to create request" }, { status: 500 });
   }
 
-  if (!group || group.sacco_id !== saccoId) {
+  type GroupRow = Pick<Database["public"]["Tables"]["ibimina"]["Row"], "sacco_id">;
+  const groupRecord = group as GroupRow | null;
+
+  if (!groupRecord || groupRecord.sacco_id !== saccoId) {
     return NextResponse.json({ error: "Group mismatch" }, { status: 400 });
   }
 
@@ -75,15 +78,26 @@ export async function POST(request: NextRequest | Request, { params }: RouteCont
   }
 
   // If a request already exists, return its status
-  const { data: existing } = await supabase
+  const {
+    data: existing,
+    error: existingError,
+  } = await supabase
     .from("join_requests")
     .select("id, status")
     .eq("user_id", user.id)
     .eq("group_id", groupId)
     .maybeSingle();
 
-  if (existing) {
-    return NextResponse.json({ ok: true, status: existing.status });
+  if (existingError) {
+    console.error("Failed to load existing join request", existingError);
+    return NextResponse.json({ error: "Unable to create request" }, { status: 500 });
+  }
+
+  type JoinRequestPreview = Pick<Database["public"]["Tables"]["join_requests"]["Row"], "id" | "status">;
+  const existingRequest = existing as JoinRequestPreview | null;
+
+  if (existingRequest) {
+    return NextResponse.json({ ok: true, status: existingRequest.status });
   }
 
   // Create new join request
@@ -93,7 +107,12 @@ export async function POST(request: NextRequest | Request, { params }: RouteCont
     sacco_id: saccoId,
   };
 
-  const { error } = await supabase.from("join_requests").insert(insertPayload);
+  const joinRequestsClient = supabase.from("join_requests");
+  const insertJoinRequest = joinRequestsClient.insert.bind(joinRequestsClient) as unknown as (
+    values: Database["public"]["Tables"]["join_requests"]["Insert"],
+  ) => Promise<{ error: unknown }>;
+
+  const { error } = await insertJoinRequest(insertPayload);
 
   if (error) {
     console.error("Failed to create join request", error);
