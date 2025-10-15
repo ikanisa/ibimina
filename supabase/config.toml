@@ -1,13 +1,13 @@
 project_id = "kwhttgewgsmymrzfbyyo"
 
 [functions.parse-sms]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ingest-sms]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sms-inbox]
-verify_jwt = false
+verify_jwt = true
 
 [functions.sms-ai-parse]
 verify_jwt = true
