@@ -34,7 +34,7 @@ describe("audit logger", () => {
       }),
     } satisfies Record<string, unknown>;
 
-    configureAuditClientFactory(async () => client as SupabaseClient);
+    configureAuditClientFactory(async () => client as unknown as SupabaseClient);
 
     await logAudit({ action: "TEST", entity: "member", entityId: "member-1", diff: { status: "ACTIVE" } });
 
@@ -61,7 +61,7 @@ describe("audit logger", () => {
       }),
     } satisfies Record<string, unknown>;
 
-    configureAuditClientFactory(async () => client as SupabaseClient);
+    configureAuditClientFactory(async () => client as unknown as SupabaseClient);
     configureAuditErrorLogger((event, payload) => {
       errors.push({ event, payload });
     });
