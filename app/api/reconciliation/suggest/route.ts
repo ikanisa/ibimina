@@ -8,7 +8,7 @@ interface SuggestionPayload {
   paymentId?: string;
 }
 
-type PaymentRow = Database["public"]["Tables"]["payments"]["Row"];
+type PaymentRow = Database["app"]["Tables"]["payments"]["Row"];
 type MemberViewRow = Database["public"]["Views"]["ikimina_members_public"]["Row"];
 
 function normalizeDigits(value: string | null | undefined) {
@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createSupabaseServerClient();
     const { data: payment, error: paymentError } = await supabase
+      .schema("app")
       .from("payments")
       .select("id, amount, msisdn, msisdn_masked, reference, ikimina_id, sacco_id, occurred_at, member_id, currency")
       .eq("id", paymentId)

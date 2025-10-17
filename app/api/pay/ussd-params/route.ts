@@ -22,6 +22,7 @@ export async function GET(req: Request) {
   }
 
   const { data: group, error: groupError } = await client
+    .schema("app")
     .from("ikimina")
     .select("id, name, sacco_id")
     .eq("id", groupId)
@@ -36,6 +37,7 @@ export async function GET(req: Request) {
   }
 
   const { data: sacco, error: saccoError } = await client
+    .schema("app")
     .from("saccos")
     .select("merchant_code, sector_code, district, name")
     .eq("id", group.sacco_id)
@@ -46,6 +48,7 @@ export async function GET(req: Request) {
   }
 
   const { data: member } = await client
+    .schema("app")
     .from("members")
     .select("member_code")
     .eq("ikimina_id", groupId)

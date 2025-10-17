@@ -10,8 +10,8 @@ type InsertPayload = {
   action: string;
   entity: string;
   entity_id: string;
-  diff_json: Record<string, unknown> | null;
-  actor_id: string;
+  diff: Record<string, unknown> | null;
+  actor: string;
 };
 
 describe("audit logger", () => {
@@ -40,24 +40,28 @@ describe("audit logger", () => {
 
     assert.equal(inserts.length, 1);
     const [entry] = inserts;
-    assert.equal(entry.table, "audit_logs");
+    assert.equal(entry.table, "app.audit_logs");
     assert.deepEqual(entry.payload, {
       action: "TEST",
       entity: "member",
       entity_id: "member-1",
-      diff_json: { status: "ACTIVE" },
-      actor_id: "actor-123",
+      diff: { status: "ACTIVE" },
+      actor: "actor-123",
     });
   });
 
   it("logs failures when Supabase rejects the insert", async () => {
+    const tables: string[] = [];
     const errors: Array<{ event: string; payload: Record<string, unknown> | undefined }> = [];
     const client = {
       auth: {
         getUser: async () => ({ data: { user: null } }),
       },
-      from: () => ({
-        insert: async () => ({ error: { message: "duplicate" } }),
+      from: (table: string) => ({
+        insert: async () => {
+          tables.push(table);
+          return { error: { message: "duplicate" } };
+        },
       }),
     } satisfies Record<string, unknown>;
 
@@ -73,5 +77,6 @@ describe("audit logger", () => {
     assert.equal(event, "audit_log_write_failed");
     assert.equal(payload?.entity, "payment");
     assert.equal(payload?.entityId, "pay-1");
+    assert.deepEqual(tables, ["app.audit_logs"]);
   });
 });

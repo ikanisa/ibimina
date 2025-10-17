@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
 
 const addSchema = z.object({ saccoId: z.string().uuid("Invalid SACCO id") });
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
+  // Member app tables are optional; treat as dynamic
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const legacyClient = supabase as any;
   const {
     data: { user },
     error: authError,
@@ -30,14 +32,14 @@ export async function POST(request: Request) {
 
   const { saccoId } = payload.data;
 
-  const insertPayload: Database["public"]["Tables"]["user_saccos"]["Insert"] = {
+  const insertPayload = {
     user_id: user.id,
     sacco_id: saccoId,
   };
 
-  const { error } = await supabase
+  const { error } = await legacyClient
     .from("user_saccos")
-    .upsert(insertPayload as never, { onConflict: "user_id,sacco_id" });
+    .upsert(insertPayload, { onConflict: "user_id,sacco_id" });
 
   if (error) {
     console.error("Failed to add SACCO", error);

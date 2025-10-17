@@ -27,9 +27,9 @@ export interface ExecutiveAnalyticsSnapshot {
 
 const monthLabel = new Intl.DateTimeFormat("en-RW", { month: "short", year: "numeric" });
 
-type PaymentRow = Pick<Database["public"]["Tables"]["payments"]["Row"], "amount" | "status" | "occurred_at" | "sacco_id" | "ikimina_id">;
-type SaccoRow = Pick<Database["public"]["Tables"]["saccos"]["Row"], "id" | "name">;
-type IkiminaMetaRow = Pick<Database["public"]["Tables"]["ibimina"]["Row"], "id" | "name" | "sacco_id"> & {
+type PaymentRow = Pick<Database["app"]["Tables"]["payments"]["Row"], "amount" | "status" | "occurred_at" | "sacco_id" | "ikimina_id">;
+type SaccoRow = Pick<Database["app"]["Tables"]["saccos"]["Row"], "id" | "name">;
+type IkiminaMetaRow = Pick<Database["app"]["Tables"]["ikimina"]["Row"], "id" | "name" | "sacco_id"> & {
   saccos?: { name: string | null } | null;
 };
 
@@ -51,6 +51,7 @@ async function computeExecutiveAnalytics(saccoId: string | null): Promise<Execut
   lookback.setMonth(today.getMonth() - 6);
 
   let paymentsQuery = supabase
+    .schema("app")
     .from("payments")
     .select("amount, status, occurred_at, sacco_id, ikimina_id")
     .gte("occurred_at", lookback.toISOString())
@@ -130,6 +131,7 @@ async function computeExecutiveAnalytics(saccoId: string | null): Promise<Execut
   let saccoLookup = new Map<string, string>();
   if (saccoIds.length > 0) {
     const { data: saccoRows } = await supabase
+      .schema("app")
       .from("saccos")
       .select("id, name")
       .in("id", saccoIds);
@@ -166,7 +168,8 @@ async function computeExecutiveAnalytics(saccoId: string | null): Promise<Execut
   >();
   if (riskIkiminaIds.length > 0) {
     const { data: riskMetaRows } = await supabase
-      .from("ibimina")
+      .schema("app")
+      .from("ikimina")
       .select("id, name, sacco_id, saccos(name)")
       .in("id", riskIkiminaIds);
     riskMetaLookup = new Map(

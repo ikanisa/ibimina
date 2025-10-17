@@ -2,10 +2,30 @@ import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
-export type MemberProfileRow = Database["public"]["Tables"]["members_app_profiles"]["Row"];
-export type MemberSaccoRow = Database["public"]["Tables"]["saccos"]["Row"];
-export type MemberGroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
-export type MemberJoinRequestRow = Database["public"]["Tables"]["join_requests"]["Row"];
+export interface MemberProfileRow {
+  user_id: string;
+  whatsapp_msisdn: string;
+  momo_msisdn: string;
+  id_type: string | null;
+  id_number: string | null;
+  id_files: Record<string, unknown> | null;
+  ocr_json: Record<string, unknown> | null;
+  lang: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export type MemberSaccoRow = Database["app"]["Tables"]["saccos"]["Row"];
+export type MemberGroupRow = Database["app"]["Tables"]["ikimina"]["Row"];
+export interface MemberJoinRequestRow {
+  id: string;
+  user_id: string;
+  sacco_id: string;
+  group_id: string;
+  status: string;
+  created_at: string | null;
+  note?: string | null;
+}
 export type MemberSaccoSummary = Pick<
   MemberSaccoRow,
   "id" | "name" | "district" | "sector_code" | "province" | "category"
@@ -20,6 +40,9 @@ interface MemberHomeData {
 
 export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
   const supabase = await createSupabaseServerClient();
+  // Member application tables are optional snapshots; fall back to untyped client access
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const legacyClient = supabase as any;
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -29,8 +52,9 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
   }
 
   const [{ data: profile, error: profileError }, { data: saccos, error: saccoError }] = await Promise.all([
-    supabase.from("members_app_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+    legacyClient.from("members_app_profiles").select("*").eq("user_id", user.id).maybeSingle(),
     supabase
+      .schema("app")
       .from("saccos")
       .select("id, name, district, sector_code, province, category, status")
       .order("name", { ascending: true }),
@@ -45,13 +69,14 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
     throw new Error("Unable to load SACCO list");
   }
 
-  const profileRow = (profile ?? null) as MemberProfileRow | null;
+  const profileRow = profile ? (profile as MemberProfileRow) : null;
   const saccoRows = (saccos ?? []) as MemberSaccoRow[];
 
   let groups: MemberGroupRow[] = [];
   if (saccoRows.length > 0) {
     const { data: groupRows, error: groupsError } = await supabase
-      .from("ibimina")
+      .schema("app")
+      .from("ikimina")
       .select("*")
       .in(
         "sacco_id",
@@ -67,7 +92,7 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
     groups = (groupRows ?? []) as MemberGroupRow[];
   }
 
-  const { data: joinRequests, error: joinError } = await supabase
+  const { data: joinRequests, error: joinError } = await legacyClient
     .from("join_requests")
     .select("*")
     .order("created_at", { ascending: false });
@@ -94,7 +119,8 @@ export async function getMemberGroupSummary(groupId: string): Promise<{
     data: group,
     error,
   } = await supabase
-    .from("ibimina")
+    .schema("app")
+    .from("ikimina")
     .select("*")
     .eq("id", groupId)
     .maybeSingle();
@@ -111,6 +137,7 @@ export async function getMemberGroupSummary(groupId: string): Promise<{
   }
 
   const { data: sacco, error: saccoError } = await supabase
+    .schema("app")
     .from("saccos")
     .select("id, name, district, sector_code, province, category")
     .eq("id", groupRow.sacco_id)

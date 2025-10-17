@@ -102,12 +102,13 @@ export const verifyWhatsAppFactor = async (
   }
 
   const supabase = createSupabaseAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- authx schema not in generated types.
+  const authx = (supabase as any).schema("authx");
   const nowIso = new Date().toISOString();
 
   let rows: OtpIssueRow[] | null = null;
   try {
-    const { data, error } = await supabase
-      .schema("authx")
+    const { data, error } = await authx
       .from("otp_issues")
       .select("id, code_hash, expires_at")
       .eq("user_id", input.userId)
@@ -159,8 +160,7 @@ export const verifyWhatsAppFactor = async (
   const usedAt = new Date().toISOString();
 
   try {
-    const { error } = await supabase
-      .schema("authx")
+    const { error } = await authx
       .from("otp_issues")
       .update({ used_at: usedAt })
       .eq("id", matched.id);

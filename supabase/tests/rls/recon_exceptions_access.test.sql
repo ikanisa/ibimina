@@ -14,34 +14,34 @@ set role service_role;
 
 insert into auth.users (id, email)
 values
-  ('91111111-1111-1111-1111-111111111111', 'alice@sacco.rw'),
-  ('92222222-2222-2222-2222-222222222222', 'ben@sacco.rw'),
-  ('93333333-3333-3333-3333-333333333333', 'admin@sacco.rw')
+  ('91111111-1111-1111-1111-111111111111', 'alice_recon@sacco.rw'),
+  ('92222222-2222-2222-2222-222222222222', 'ben_recon@sacco.rw'),
+  ('93333333-3333-3333-3333-333333333333', 'admin_recon@sacco.rw')
 ON CONFLICT (id) DO NOTHING;
 
-insert into public.saccos (id, name, district, sector_code, merchant_code)
+insert into app.saccos (id, name, district, sector_code, merchant_code)
 values
-  ('90111111-1111-1111-1111-111111111111', 'Kigali SACCO', 'Gasabo', '001', 'M001'),
-  ('90222222-2222-2222-2222-222222222222', 'Musanze SACCO', 'Muhoza', '002', 'M002')
+  ('69111111-1111-1111-1111-691111111111', 'Kigali SACCO', 'Gasabo', '001', 'M001'),
+  ('69222222-2222-2222-2222-692222222222', 'Musanze SACCO', 'Muhoza', '002', 'M002')
 ON CONFLICT (id) DO NOTHING;
 
 insert into public.users (id, email, role, sacco_id, mfa_enabled)
 values
-  ('91111111-1111-1111-1111-111111111111', 'alice@sacco.rw', 'SACCO_STAFF', '90111111-1111-1111-1111-111111111111', true),
-  ('92222222-2222-2222-2222-222222222222', 'ben@sacco.rw', 'SACCO_STAFF', '90222222-2222-2222-2222-222222222222', true),
-  ('93333333-3333-3333-3333-333333333333', 'admin@sacco.rw', 'SYSTEM_ADMIN', null, true)
+  ('91111111-1111-1111-1111-111111111111', 'alice_recon@sacco.rw', 'SACCO_STAFF', '69111111-1111-1111-1111-691111111111', true),
+  ('92222222-2222-2222-2222-222222222222', 'ben_recon@sacco.rw', 'SACCO_STAFF', '69222222-2222-2222-2222-692222222222', true),
+  ('93333333-3333-3333-3333-333333333333', 'admin_recon@sacco.rw', 'SYSTEM_ADMIN', null, true)
 ON CONFLICT (id) DO NOTHING;
 
 insert into public.payments (id, sacco_id, amount, status, occurred_at)
 values
-  ('a0111111-1111-1111-1111-111111111111', '90111111-1111-1111-1111-111111111111', 5000, 'UNALLOCATED', timezone('utc', now() - interval '3 day')),
-  ('a0222222-2222-2222-2222-222222222222', '90222222-2222-2222-2222-222222222222', 7000, 'UNALLOCATED', timezone('utc', now() - interval '2 day'))
+  ('a0111111-1111-1111-1111-111111111111', '69111111-1111-1111-1111-691111111111', 5000, 'UNALLOCATED', timezone('utc', now() - interval '3 day')),
+  ('a0222222-2222-2222-2222-222222222222', '69222222-2222-2222-2222-692222222222', 7000, 'UNALLOCATED', timezone('utc', now() - interval '2 day'))
 ON CONFLICT (id) DO NOTHING;
 
 insert into public.recon_exceptions (id, payment_id, sacco_id, status, reason)
 values
-  ('b0111111-1111-1111-1111-111111111111', 'a0111111-1111-1111-1111-111111111111', '90111111-1111-1111-1111-111111111111', 'OPEN', 'missing member'),
-  ('b0222222-2222-2222-2222-222222222222', 'a0222222-2222-2222-2222-222222222222', '90222222-2222-2222-2222-222222222222', 'OPEN', 'unmatched sacco')
+  ('b0111111-1111-1111-1111-111111111111', 'a0111111-1111-1111-1111-111111111111', '69111111-1111-1111-1111-691111111111', 'OPEN', 'missing member'),
+  ('b0222222-2222-2222-2222-222222222222', 'a0222222-2222-2222-2222-222222222222', '69222222-2222-2222-2222-692222222222', 'OPEN', 'unmatched sacco')
 ON CONFLICT (id) DO NOTHING;
 
 reset role;
@@ -65,7 +65,7 @@ begin
     raise exception 'staff expected to see 1 recon exception, found %', visible;
   end if;
 
-  select count(*) into foreign_scope from public.recon_exceptions where sacco_id <> '90111111-1111-1111-1111-111111111111';
+  select count(*) into foreign_scope from public.recon_exceptions where sacco_id <> '69111111-1111-1111-1111-691111111111';
   if foreign_scope <> 0 then
     raise exception 'staff should not see exceptions outside their SACCO (found %)', foreign_scope;
   end if;

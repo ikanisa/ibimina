@@ -14,16 +14,16 @@ set role service_role;
 
 insert into auth.users (id, email)
 values
-  ('a1111111-1111-1111-1111-111111111111', 'alice@sacco.rw'),
-  ('a2222222-2222-2222-2222-222222222222', 'ben@sacco.rw'),
-  ('a3333333-3333-3333-3333-333333333333', 'admin@sacco.rw')
+  ('a1111111-1111-1111-1111-111111111111', 'alice_ops@sacco.rw'),
+  ('a2222222-2222-2222-2222-222222222222', 'ben_ops@sacco.rw'),
+  ('a3333333-3333-3333-3333-333333333333', 'admin_ops@sacco.rw')
 ON CONFLICT (id) DO NOTHING;
 
 insert into public.users (id, email, role, sacco_id, mfa_enabled)
 values
-  ('a1111111-1111-1111-1111-111111111111', 'alice@sacco.rw', 'SACCO_STAFF', null, true),
-  ('a2222222-2222-2222-2222-222222222222', 'ben@sacco.rw', 'SACCO_STAFF', null, true),
-  ('a3333333-3333-3333-3333-333333333333', 'admin@sacco.rw', 'SYSTEM_ADMIN', null, true)
+  ('a1111111-1111-1111-1111-111111111111', 'alice_ops@sacco.rw', 'SACCO_STAFF', null, true),
+  ('a2222222-2222-2222-2222-222222222222', 'ben_ops@sacco.rw', 'SACCO_STAFF', null, true),
+  ('a3333333-3333-3333-3333-333333333333', 'admin_ops@sacco.rw', 'SYSTEM_ADMIN', null, true)
 ON CONFLICT (id) DO NOTHING;
 
 insert into ops.rate_limits (bucket_key, route, window_started, count)

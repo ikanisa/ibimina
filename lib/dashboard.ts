@@ -1,6 +1,5 @@
 import { cacheWithTags, CACHE_TAGS, REVALIDATION_SECONDS } from "@/lib/performance/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
 
 const DAYS_THRESHOLD = 30;
 
@@ -49,9 +48,37 @@ interface DashboardSummaryParams {
   allowAll: boolean;
 }
 
-type PaymentRollupRow = Database["public"]["Views"]["analytics_payment_rollups_mv"]["Row"];
-type IkiminaMonthlyRow = Database["public"]["Views"]["analytics_ikimina_monthly_mv"]["Row"];
-type MemberLastPaymentRow = Database["public"]["Views"]["analytics_member_last_payment_mv"]["Row"];
+type PaymentRollupRow = {
+  sacco_id: string | null;
+  month_total: number | null;
+  week_total: number | null;
+  today_total: number | null;
+  unallocated_count: number | null;
+};
+
+type IkiminaMonthlyRow = {
+  ikimina_id: string | null;
+  sacco_id: string | null;
+  name: string | null;
+  code: string | null;
+  status: string | null;
+  updated_at: string | null;
+  month_total: number | null;
+  active_member_count: number | null;
+  contributing_members: number | null;
+  last_contribution_at: string | null;
+};
+
+type MemberLastPaymentRow = {
+  member_id: string | null;
+  full_name: string | null;
+  msisdn: string | null;
+  member_code: string | null;
+  ikimina_id: string | null;
+  ikimina_name: string | null;
+  days_since_last: number | null;
+  status: string | null;
+};
 
 async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryParams): Promise<DashboardSummary> {
   if (process.env.AUTH_E2E_STUB === "1") {
@@ -102,10 +129,13 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
   }
 
   const supabase = await createSupabaseServerClient();
+  // analytics materialized views are registered via SQL and not in the generated types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const analyticsClient = supabase as any;
 
   const resolveRollup = async (): Promise<PaymentRollupRow | null> => {
     if (allowAll) {
-      const { data, error } = await supabase
+      const { data, error } = await analyticsClient
         .from("analytics_payment_rollups_mv")
         .select("sacco_id, month_total, week_total, today_total, unallocated_count")
         .is("sacco_id", null)
@@ -120,7 +150,7 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
       return null;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await analyticsClient
       .from("analytics_payment_rollups_mv")
       .select("sacco_id, month_total, week_total, today_total, unallocated_count")
       .eq("sacco_id", saccoId)
@@ -133,7 +163,7 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
       return data;
     }
 
-    const { data: fallback } = await supabase
+    const { data: fallback } = await analyticsClient
       .from("analytics_payment_rollups_mv")
       .select("sacco_id, month_total, week_total, today_total, unallocated_count")
       .is("sacco_id", null)
@@ -150,7 +180,7 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
     unallocated: Number(rollup?.unallocated_count ?? 0),
   } satisfies DashboardSummary["totals"];
 
-  let ikiminaQuery = supabase
+  let ikiminaQuery = analyticsClient
     .from("analytics_ikimina_monthly_mv")
     .select(
       "ikimina_id, sacco_id, name, code, status, updated_at, month_total, active_member_count, contributing_members, last_contribution_at",
@@ -177,7 +207,7 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
     member_count: Number(row.active_member_count ?? row.contributing_members ?? 0),
   }));
 
-  let overdueQuery = supabase
+  let overdueQuery = analyticsClient
     .from("analytics_member_last_payment_mv")
     .select("member_id, full_name, msisdn, member_code, ikimina_id, ikimina_name, days_since_last, status")
     .eq("status", "ACTIVE")
@@ -194,25 +224,22 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
   }
 
   const missedContributors = ((overdueRows ?? []) as MemberLastPaymentRow[])
-    .map((row) => {
-      const rawDays = row.days_since_last;
-      const daysSince = rawDays == null ? null : Number(rawDays);
-      return {
-        id: row.member_id,
-        full_name: row.full_name,
-        msisdn: row.msisdn,
-        member_code: row.member_code,
-        ikimina_id: row.ikimina_id,
-        ikimina_name: row.ikimina_name,
-        days_since: daysSince,
-      };
-    })
+    .filter((row) => typeof row.member_id === "string" && (row.member_id?.length ?? 0) > 0)
+    .map((row) => ({
+      id: row.member_id as string,
+      full_name: row.full_name ?? "Unknown member",
+      msisdn: row.msisdn ?? null,
+      member_code: row.member_code ?? null,
+      ikimina_id: row.ikimina_id ?? null,
+      ikimina_name: row.ikimina_name ?? null,
+      days_since: row.days_since_last == null ? null : Number(row.days_since_last),
+    } satisfies DashboardSummary["missedContributors"][number]))
     .filter((entry) => entry.days_since === null || Number.isFinite(entry.days_since))
     .filter((entry) => entry.days_since === null || entry.days_since > DAYS_THRESHOLD)
     .slice(0, 6);
 
   let activeIkiminaCount = 0;
-  let countQuery = supabase.from("ibimina").select("id", { count: "exact", head: true }).eq("status", "ACTIVE");
+  let countQuery = supabase.schema("app").from("ikimina").select("id", { count: "exact", head: true }).eq("status", "ACTIVE");
   if (!allowAll && saccoId) {
     countQuery = countQuery.eq("sacco_id", saccoId);
   }

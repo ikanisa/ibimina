@@ -17,7 +17,8 @@ export default async function DepositsPage({ params }: PageProps) {
   const supabase = await createSupabaseServerClient();
 
   const { data: group, error: groupError } = await supabase
-    .from("ibimina")
+    .schema("app")
+    .from("ikimina")
     .select("id, sacco_id, name")
     .eq("id", id)
     .maybeSingle();
@@ -30,12 +31,13 @@ export default async function DepositsPage({ params }: PageProps) {
     notFound();
   }
 
-  type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
+  type GroupRow = Database["app"]["Tables"]["ikimina"]["Row"];
   const resolvedGroup = group as GroupRow;
 
   if (!hasSaccoReadAccess(profile, resolvedGroup.sacco_id)) notFound();
 
   const { data: deposits, error: depositsError } = await supabase
+    .schema("app")
     .from("payments")
     .select("id, amount, currency, status, occurred_at, reference, msisdn")
     .eq("ikimina_id", id)

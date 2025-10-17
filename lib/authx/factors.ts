@@ -22,9 +22,11 @@ const parseEnrollment = (payload: unknown): Record<string, unknown> => {
 
 export const listUserFactors = async (userId: string): Promise<FactorSummary> => {
   const supabase = createSupabaseAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- authx schema not generated in Database types.
+  const authx = (supabase as any).schema("authx");
 
   const [{ data: mfaRow }, { data: userRow }, { count: passkeyCount }] = await Promise.all([
-    supabase.schema("authx").from("user_mfa").select("preferred_factor,enrollment").eq("user_id", userId).maybeSingle(),
+    authx.from("user_mfa").select("preferred_factor,enrollment").eq("user_id", userId).maybeSingle(),
     supabase
       .from("users")
       .select("mfa_secret_enc, mfa_backup_hashes, mfa_passkey_enrolled, mfa_enabled, email")

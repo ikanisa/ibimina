@@ -15,7 +15,8 @@ export default async function SettingsPage({ params }: PageProps) {
   const supabase = await createSupabaseServerClient();
 
   const { data: group, error } = await supabase
-    .from("ibimina")
+    .schema("app")
+    .from("ikimina")
     .select("id, sacco_id, name, settings_json")
     .eq("id", id)
     .maybeSingle();
@@ -28,14 +29,15 @@ export default async function SettingsPage({ params }: PageProps) {
     notFound();
   }
 
-  type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"];
+  type GroupRow = Database["app"]["Tables"]["ikimina"]["Row"];
   const resolvedGroup = group as GroupRow;
 
   if (!hasSaccoReadAccess(profile, resolvedGroup.sacco_id)) notFound();
 
   const { data: historyRows } = await supabase
+    .schema("app")
     .from("audit_logs")
-    .select("id, action, created_at, diff_json, actor_id")
+    .select("id, action, created_at, diff, actor")
     .eq("entity", "ibimina")
     .eq("entity_id", id)
     .order("created_at", { ascending: false })
@@ -45,11 +47,11 @@ export default async function SettingsPage({ params }: PageProps) {
     id: string;
     action: string;
     created_at: string | null;
-    diff_json: Record<string, unknown> | null;
-    actor_id: string | null;
+    diff: Record<string, unknown> | null;
+    actor: string | null;
   }>;
 
-  const actorIds = Array.from(new Set(typedHistory.map((row) => row.actor_id).filter((value): value is string => Boolean(value))));
+  const actorIds = Array.from(new Set(typedHistory.map((row) => row.actor).filter((value): value is string => Boolean(value))));
   let actorMap = new Map<string, string | null>();
   if (actorIds.length > 0) {
     const { data: actors } = await supabase
@@ -64,9 +66,9 @@ export default async function SettingsPage({ params }: PageProps) {
   const history = typedHistory.map((row) => ({
     id: row.id,
     action: row.action,
-    actorLabel: row.actor_id ? actorMap.get(row.actor_id) ?? row.actor_id : "System",
+    actorLabel: row.actor ? actorMap.get(row.actor) ?? row.actor : "System",
     createdAt: row.created_at ?? new Date().toISOString(),
-    diff: (row.diff_json as Record<string, unknown> | null) ?? null,
+    diff: (row.diff as Record<string, unknown> | null) ?? null,
   }));
 
   return (

@@ -12,7 +12,7 @@ import { Trans } from "@/components/common/trans";
 
 const EXCEPTION_STATUSES = ["UNALLOCATED", "PENDING", "REJECTED"] as const;
 
-const parseSmsJson = (value: Database["public"]["Tables"]["sms_inbox"]["Row"]["parsed_json"]): Record<string, unknown> | null => {
+const parseSmsJson = (value: Database["app"]["Tables"]["sms_inbox"]["Row"]["parsed_json"]): Record<string, unknown> | null => {
   if (!value) return null;
   if (typeof value === "object" && !Array.isArray(value)) {
     return value as Record<string, unknown>;
@@ -34,11 +34,12 @@ export default async function ReconciliationPage() {
   const { profile } = await requireUserAndProfile();
   const supabase = await createSupabaseServerClient();
 
-  type ExceptionRow = Database["public"]["Tables"]["payments"]["Row"] & {
-    source: Pick<Database["public"]["Tables"]["sms_inbox"]["Row"], "raw_text" | "parsed_json" | "msisdn" | "received_at"> | null;
+  type ExceptionRow = Database["app"]["Tables"]["payments"]["Row"] & {
+    source: Pick<Database["app"]["Tables"]["sms_inbox"]["Row"], "raw_text" | "parsed_json" | "msisdn" | "received_at"> | null;
   };
 
   let query = supabase
+    .schema("app")
     .from("payments")
     .select("id, sacco_id, ikimina_id, member_id, msisdn, reference, amount, occurred_at, status, source:sms_inbox(raw_text, parsed_json, msisdn, received_at)")
     .in("status", EXCEPTION_STATUSES)
@@ -55,9 +56,10 @@ export default async function ReconciliationPage() {
     throw error;
   }
 
-  type SmsRow = Pick<Database["public"]["Tables"]["sms_inbox"]["Row"], "id" | "raw_text" | "parsed_json" | "msisdn" | "received_at" | "status" | "confidence" | "error">;
+  type SmsRow = Pick<Database["app"]["Tables"]["sms_inbox"]["Row"], "id" | "raw_text" | "parsed_json" | "msisdn" | "received_at" | "status" | "confidence" | "error">;
 
   let smsQuery = supabase
+    .schema("app")
     .from("sms_inbox")
     .select("id, raw_text, parsed_json, msisdn, received_at, status, confidence, error")
     .order("received_at", { ascending: false })

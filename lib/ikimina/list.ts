@@ -24,7 +24,8 @@ async function fetchIkiminaDirectory({ saccoId, includeAll }: IkiminaDirectoryPa
 
   const supabase = await createSupabaseServerClient();
   const baseQuery = supabase
-    .from("ibimina")
+    .schema("app")
+    .from("ikimina")
     .select("id, name, code, status, type, sacco_id, created_at, updated_at, saccos(name)")
     .order("updated_at", { ascending: false })
     .limit(500);
@@ -35,7 +36,7 @@ async function fetchIkiminaDirectory({ saccoId, includeAll }: IkiminaDirectoryPa
     throw error;
   }
 
-  type IkiminaRow = Database["public"]["Tables"]["ibimina"]["Row"] & {
+  type IkiminaRow = Database["app"]["Tables"]["ikimina"]["Row"] & {
     saccos: { name: string | null } | null;
   };
 
@@ -62,6 +63,7 @@ async function fetchIkiminaDirectory({ saccoId, includeAll }: IkiminaDirectoryPa
       .group("ikimina_id");
 
     const paymentsPromise = supabase
+      .schema("app")
       .from("payments")
       .select("ikimina_id, amount, status, occurred_at")
       .in("ikimina_id", groupIds)
@@ -85,7 +87,7 @@ async function fetchIkiminaDirectory({ saccoId, includeAll }: IkiminaDirectoryPa
       memberCounts.set(row.ikimina_id, Number(row.count ?? 0));
     }
 
-    type PaymentRow = Pick<Database["public"]["Tables"]["payments"]["Row"], "ikimina_id" | "amount" | "status" | "occurred_at">;
+    type PaymentRow = Pick<Database["app"]["Tables"]["payments"]["Row"], "ikimina_id" | "amount" | "status" | "occurred_at">;
     for (const payment of (paymentResponse.data ?? []) as PaymentRow[]) {
       const groupId = payment.ikimina_id;
       if (!groupId) continue;

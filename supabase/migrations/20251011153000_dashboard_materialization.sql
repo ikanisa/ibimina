@@ -1,13 +1,13 @@
--- Materialize dashboard analytics and automate cache invalidation
-
 -- 0) Schemas and safe extension setup
 create schema if not exists analytics;
-
 do $do$
 begin
   -- pg_net: prefer real extension if present; otherwise, create a stub in schema net
-  if exists (select 1 from pg_available_extensions where name = 'pg_net') then
-    execute 'create extension if not exists pg_net with schema net';
+  if exists (select 1 from pg_extension where extname = 'pg_net') then
+    -- extension already installed; leave as-is
+    null;
+  elsif exists (select 1 from pg_available_extensions where name = 'pg_net') then
+    execute 'create extension pg_net';
   else
     execute 'create schema if not exists net';
     execute $func$
@@ -26,16 +26,15 @@ begin
   end if;
 end;
 $do$;
-
 -- pg_cron: install only if available (managed pg instances sometimes restrict it)
 do $do$
 begin
-  if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
+  if exists (select 1 from pg_available_extensions where name = 'pg_cron')
+     and current_database() = 'postgres' then
     execute 'create extension if not exists pg_cron';
   end if;
 end;
 $do$;
-
 -- 1) Aggregated payment rollups per SACCO and globally
 create materialized view if not exists public.analytics_payment_rollups_mv as
 with params as (
@@ -68,11 +67,9 @@ select
   max(refreshed_at) as refreshed_at
 from scoped
 group by rollup(sacco_id);
-
 -- Unique index needed for CONCURRENTLY refreshes
 create unique index if not exists analytics_payment_rollups_mv_sacco_idx
   on public.analytics_payment_rollups_mv ((coalesce(sacco_id::text, '00000000-0000-0000-0000-000000000000')));
-
 -- 2) Ikimina level monthly aggregates
 create materialized view if not exists public.analytics_ikimina_monthly_mv as
 with params as (
@@ -95,15 +92,12 @@ select
 from public.ibimina i
 cross join params
 left join public.payments p on p.ikimina_id = i.id
-left join public.members m on m.ikimina_id = i.id
+left join public.ikimina_members m on m.ikimina_id = i.id
 group by i.id, i.sacco_id, i.name, i.code, i.status, i.updated_at, params.month_start;
-
 create unique index if not exists analytics_ikimina_monthly_mv_pk
   on public.analytics_ikimina_monthly_mv (ikimina_id);
-
 create index if not exists analytics_ikimina_monthly_mv_sacco_idx
   on public.analytics_ikimina_monthly_mv (sacco_id, month_total desc);
-
 -- 3) Member last-payment snapshots
 create materialized view if not exists public.analytics_member_last_payment_mv as
 with params as (
@@ -111,7 +105,7 @@ with params as (
 )
 select
   m.id as member_id,
-  m.sacco_id,
+  i.sacco_id,
   m.ikimina_id,
   m.member_code,
   m.full_name,
@@ -124,18 +118,15 @@ select
     999
   )::int as days_since_last,
   max(params.refreshed_at) as refreshed_at
-from public.members m
+from public.ikimina_members m
 left join public.ibimina i on i.id = m.ikimina_id
 left join public.payments p on p.member_id = m.id
 cross join params
-group by m.id, m.sacco_id, m.ikimina_id, m.member_code, m.full_name, m.msisdn, m.status, i.name;
-
+group by m.id, i.sacco_id, m.ikimina_id, m.member_code, m.full_name, m.msisdn, m.status, i.name;
 create unique index if not exists analytics_member_last_payment_mv_pk
   on public.analytics_member_last_payment_mv (member_id);
-
 create index if not exists analytics_member_last_payment_mv_sacco_idx
   on public.analytics_member_last_payment_mv (sacco_id, days_since_last desc);
-
 -- 4) First refresh (safe: ignore errors on empty datasets)
 do $$
 begin
@@ -148,7 +139,6 @@ begin
     null;
   end;
 end$$;
-
 -- 5) Failure log table for webhook retries
 create table if not exists analytics.cache_invalidation_failures (
   id bigserial primary key,
@@ -157,7 +147,6 @@ create table if not exists analytics.cache_invalidation_failures (
   error_message text not null,
   occurred_at timestamptz not null default timezone('utc', now())
 );
-
 -- 6) Refresh function (CONCURRENTLY requires the unique indexes created above)
 create or replace function analytics.refresh_dashboard_materialized_views()
 returns void
@@ -171,7 +160,6 @@ begin
   refresh materialized view concurrently public.analytics_member_last_payment_mv;
 end;
 $$;
-
 -- 7) Cron job (only if pg_cron exists)
 do $$
 begin
@@ -184,12 +172,11 @@ begin
     perform cron.schedule(
       'refresh-dashboard-materialized-views',
       '*/5 * * * *',
-      $$select analytics.refresh_dashboard_materialized_views();$$
+      'select analytics.refresh_dashboard_materialized_views();'
     )
     where not exists (select 1 from cron.job where jobname = 'refresh-dashboard-materialized-views');
   end if;
 end$$;
-
 -- 8) Webhook emitter + triggers (safe with or without pg_net; stub returns {"status":"stubbed"})
 create or replace function analytics.emit_cache_invalidation()
 returns trigger
@@ -223,13 +210,20 @@ begin
     headers := headers || jsonb_build_object('authorization', 'Bearer ' || webhook_token);
   end if;
 
-  select coalesce(array_agg(distinct sacco_id), array[]::uuid[])
-    into sacco_ids
-  from (
-    select sacco_id from new_rows
-    union
-    select sacco_id from old_rows
-  ) scoped;
+  if TG_OP = 'INSERT' then
+    execute 'select array_agg(distinct sacco_id) from new_rows' into sacco_ids;
+  elsif TG_OP = 'DELETE' then
+    execute 'select array_agg(distinct sacco_id) from old_rows' into sacco_ids;
+  else
+    execute '
+      select array_agg(distinct sacco_id)
+      from (
+        select sacco_id from new_rows
+        union
+        select sacco_id from old_rows
+      ) scoped
+    ' into sacco_ids;
+  end if;
 
   if sacco_ids is null or array_length(sacco_ids, 1) is null then
     sacco_ids := array[null::uuid];
@@ -265,16 +259,45 @@ begin
   return null;
 end;
 $$;
-
 -- 9) Triggers on payments and recon_exceptions
 drop trigger if exists payments_cache_invalidation on public.payments;
-create trigger payments_cache_invalidation
-  after insert or update or delete on public.payments
+drop trigger if exists payments_cache_invalidation_insert on public.payments;
+drop trigger if exists payments_cache_invalidation_update on public.payments;
+drop trigger if exists payments_cache_invalidation_delete on public.payments;
+create trigger payments_cache_invalidation_insert
+  after insert on public.payments
+  referencing new table as new_rows
+  for each statement execute function analytics.emit_cache_invalidation('payments_changed');
+create trigger payments_cache_invalidation_update
+  after update on public.payments
   referencing new table as new_rows old table as old_rows
   for each statement execute function analytics.emit_cache_invalidation('payments_changed');
+create trigger payments_cache_invalidation_delete
+  after delete on public.payments
+  referencing old table as old_rows
+  for each statement execute function analytics.emit_cache_invalidation('payments_changed');
+do $$
+begin
+  if to_regclass('public.recon_exceptions') is not null then
+    drop trigger if exists recon_cache_invalidation on public.recon_exceptions;
+    drop trigger if exists recon_cache_invalidation_insert on public.recon_exceptions;
+    drop trigger if exists recon_cache_invalidation_update on public.recon_exceptions;
+    drop trigger if exists recon_cache_invalidation_delete on public.recon_exceptions;
 
-drop trigger if exists recon_cache_invalidation on public.recon_exceptions;
-create trigger recon_cache_invalidation
-  after insert or update or delete on public.recon_exceptions
-  referencing new table as new_rows old table as old_rows
-  for each statement execute function analytics.emit_cache_invalidation('recon_exceptions_changed');
+    create trigger recon_cache_invalidation_insert
+      after insert on public.recon_exceptions
+      referencing new table as new_rows
+      for each statement execute function analytics.emit_cache_invalidation('recon_exceptions_changed');
+
+    create trigger recon_cache_invalidation_update
+      after update on public.recon_exceptions
+      referencing new table as new_rows old table as old_rows
+      for each statement execute function analytics.emit_cache_invalidation('recon_exceptions_changed');
+
+    create trigger recon_cache_invalidation_delete
+      after delete on public.recon_exceptions
+      referencing old table as old_rows
+      for each statement execute function analytics.emit_cache_invalidation('recon_exceptions_changed');
+  end if;
+end;
+$$;

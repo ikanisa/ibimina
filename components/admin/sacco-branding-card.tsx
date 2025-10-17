@@ -7,7 +7,7 @@ import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
 
-type SaccoRow = Database["public"]["Tables"]["saccos"]["Row"];
+type SaccoRow = Database["app"]["Tables"]["saccos"]["Row"];
 
 interface SaccoBrandingCardProps {
   // `brand_color` might not exist in current schema; treat as optional
@@ -32,6 +32,7 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
   const updateLogo = async (logoUrl: string | null) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error: updateError } = await (supabase as any)
+      .schema("app")
       .from("saccos")
       .update({ logo_url: logoUrl })
       .eq("id", sacco.id);
@@ -78,6 +79,7 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
     startTransition(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: updateError } = await (supabase as any)
+        .schema("app")
         .from("saccos")
         .update({ brand_color: hex })
         .eq("id", sacco.id);

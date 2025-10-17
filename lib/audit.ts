@@ -25,6 +25,8 @@ type AuditPayload = {
   diff?: Record<string, unknown> | null;
 };
 
+const AUDIT_FALLBACK_ACTOR = "00000000-0000-0000-0000-000000000000";
+
 export const logAudit = async ({ action, entity, entityId, diff }: AuditPayload) => {
   const supabase = await createClient();
   const {
@@ -32,12 +34,12 @@ export const logAudit = async ({ action, entity, entityId, diff }: AuditPayload)
   } = await supabase.auth.getUser();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any).from("audit_logs").insert({
+  const { error } = await (supabase as any).from("app.audit_logs").insert({
     action,
     entity,
     entity_id: entityId,
-    diff_json: diff ?? null,
-    actor_id: user?.id ?? "00000000-0000-0000-0000-000000000000",
+    diff: diff ?? null,
+    actor: user?.id ?? AUDIT_FALLBACK_ACTOR,
   });
 
   if (error) {

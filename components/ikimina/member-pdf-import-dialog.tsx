@@ -31,7 +31,7 @@ interface AiMemberRecord {
   member_code: string | null;
 }
 
-type MemberInsert = Partial<Database["public"]["Tables"]["ikimina_members"]["Insert"]>;
+type MemberInsert = Partial<Database["app"]["Tables"]["members"]["Insert"]>;
 
 type ProcessedMemberRow = ProcessedRow<MemberInsert> & { index: number };
 

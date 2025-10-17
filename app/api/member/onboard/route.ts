@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
 
 const onboardSchema = z.object({
   whatsapp_msisdn: z.string().min(5, "WhatsApp number is required"),
@@ -20,6 +19,9 @@ const onboardSchema = z.object({
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
+  // Member app tables are optional; use untyped client to accommodate missing local schema
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const legacyClient = supabase as any;
   const {
     data: { user },
     error: authError,
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
   const data = payload.data;
   const now = new Date().toISOString();
 
-  const updatePayload: Database["public"]["Tables"]["members_app_profiles"]["Update"] = {
+  const updatePayload = {
     whatsapp_msisdn: data.whatsapp_msisdn,
     momo_msisdn: data.momo_msisdn,
     ocr_json: data.ocr_json ?? null,
@@ -52,7 +54,7 @@ export async function POST(request: Request) {
     updated_at: now,
   };
 
-  const { data: existing, error: existingError } = await supabase
+  const { data: existing, error: existingError } = await legacyClient
     .from("members_app_profiles")
     .select("user_id")
     .eq("user_id", user.id)
@@ -64,9 +66,9 @@ export async function POST(request: Request) {
   }
 
   if (existing) {
-    const { error } = await supabase
+    const { error } = await legacyClient
       .from("members_app_profiles")
-      .update(updatePayload as never)
+      .update(updatePayload)
       .eq("user_id", user.id);
 
     if (error) {
@@ -74,7 +76,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unable to update profile" }, { status: 500 });
     }
   } else {
-    const insertPayload: Database["public"]["Tables"]["members_app_profiles"]["Insert"] = {
+    const insertPayload = {
       user_id: user.id,
       whatsapp_msisdn: data.whatsapp_msisdn,
       momo_msisdn: data.momo_msisdn,
@@ -83,9 +85,9 @@ export async function POST(request: Request) {
       created_at: now,
       updated_at: now,
     };
-    const { error } = await supabase
+    const { error } = await legacyClient
       .from("members_app_profiles")
-      .insert(insertPayload as never);
+      .insert(insertPayload);
 
     if (error) {
       console.error("Failed to create profile", error);

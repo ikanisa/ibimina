@@ -127,7 +127,8 @@ async function updateIkiminaSettingsInternal(
   const supabase = await createSupabaseServerClient();
 
   const { data: existing, error: fetchError } = await supabase
-    .from("ibimina")
+    .schema("app")
+    .from("ikimina")
     .select("id, sacco_id")
     .eq("id", data.ikiminaId)
     .maybeSingle();
@@ -137,7 +138,7 @@ async function updateIkiminaSettingsInternal(
     return { status: "error", message: "Failed to load ikimina record" };
   }
 
-  type IkiminaRow = Database["public"]["Tables"]["ibimina"]["Row"];
+  type IkiminaRow = Database["app"]["Tables"]["ikimina"]["Row"];
   const typedExisting = existing as IkiminaRow | null;
 
   if (!typedExisting) {
@@ -168,7 +169,8 @@ async function updateIkiminaSettingsInternal(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
-    .from("ibimina")
+    .schema("app")
+    .from("ikimina")
     .update({ settings_json: settingsPayload })
     .eq("id", data.ikiminaId);
 
@@ -178,12 +180,12 @@ async function updateIkiminaSettingsInternal(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error: auditError } = await (supabase as any).from("audit_logs").insert({
-    actor_id: user.id,
+  const { error: auditError } = await (supabase as any).schema("app").from("audit_logs").insert({
+    actor: user.id,
     action: "IKIMINA_SETTINGS_UPDATE",
     entity: "ibimina",
     entity_id: data.ikiminaId,
-    diff_json: settingsPayload,
+    diff: settingsPayload,
   });
   if (auditError) {
     logWarn("ikimina_settings_audit_failed", { error: auditError, ikiminaId: data.ikiminaId });

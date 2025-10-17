@@ -3,6 +3,7 @@ create extension if not exists "uuid-ossp";
 create extension if not exists "pgcrypto";
 
 create schema if not exists auth;
+create schema if not exists ops;
 
 create table if not exists auth.users (
   instance_id uuid default '00000000-0000-0000-0000-000000000000',
@@ -49,6 +50,15 @@ end;
 $$;
 
 grant usage on schema auth to authenticated, service_role, anon;
+grant select, insert, update, delete on all tables in schema auth to service_role;
+
+grant usage on schema public to service_role, authenticated, anon;
+grant select, insert, update, delete on all tables in schema public to service_role;
+alter default privileges in schema public grant select, insert, update, delete on tables to service_role;
+
+grant usage on schema ops to service_role, app_authenticator;
+grant select, insert, update, delete on all tables in schema ops to service_role;
+alter default privileges in schema ops grant select, insert, update, delete on tables to service_role;
 
 do $$
 begin
@@ -57,3 +67,7 @@ begin
   end if;
 end;
 $$;
+
+grant app_authenticator to postgres;
+grant usage on schema public to app_authenticator;
+alter default privileges in schema public grant select on tables to app_authenticator;

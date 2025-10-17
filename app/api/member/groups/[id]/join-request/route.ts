@@ -13,6 +13,8 @@ interface RouteContext {
 
 export async function POST(request: NextRequest | Request, { params }: RouteContext) {
   const supabase = await createSupabaseServerClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Member app tables are optional snapshots not present in local schema
+  const legacyClient = supabase as any;
 
   const {
     data: { user },
@@ -47,8 +49,9 @@ export async function POST(request: NextRequest | Request, { params }: RouteCont
   const {
     data: group,
     error: groupError,
-  } = await supabase
-    .from("ibimina")
+  } = await legacyClient
+    .schema("app")
+    .from("ikimina")
     .select("sacco_id")
     .eq("id", groupId)
     .maybeSingle();
@@ -58,7 +61,7 @@ export async function POST(request: NextRequest | Request, { params }: RouteCont
     return NextResponse.json({ error: "Unable to create request" }, { status: 500 });
   }
 
-  type GroupRow = Pick<Database["public"]["Tables"]["ibimina"]["Row"], "sacco_id">;
+  type GroupRow = Pick<Database["app"]["Tables"]["ikimina"]["Row"], "sacco_id">;
   const groupRecord = group as GroupRow | null;
 
   if (!groupRecord || groupRecord.sacco_id !== saccoId) {
@@ -66,7 +69,7 @@ export async function POST(request: NextRequest | Request, { params }: RouteCont
   }
 
   // Ensure the user is linked to the SACCO
-  const { data: membership } = await supabase
+  const { data: membership } = await legacyClient
     .from("user_saccos")
     .select("user_id")
     .eq("user_id", user.id)
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest | Request, { params }: RouteCont
   const {
     data: existing,
     error: existingError,
-  } = await supabase
+  } = await legacyClient
     .from("join_requests")
     .select("id, status")
     .eq("user_id", user.id)
@@ -93,26 +96,22 @@ export async function POST(request: NextRequest | Request, { params }: RouteCont
     return NextResponse.json({ error: "Unable to create request" }, { status: 500 });
   }
 
-  type JoinRequestPreview = Pick<Database["public"]["Tables"]["join_requests"]["Row"], "id" | "status">;
-  const existingRequest = existing as JoinRequestPreview | null;
+  const existingRequest = existing as { id: string; status: string } | null;
 
   if (existingRequest) {
     return NextResponse.json({ ok: true, status: existingRequest.status });
   }
 
   // Create new join request
-  const insertPayload: Database["public"]["Tables"]["join_requests"]["Insert"] = {
+  const insertPayload = {
     user_id: user.id,
     group_id: groupId,
     sacco_id: saccoId,
   };
 
-  const joinRequestsClient = supabase.from("join_requests");
-  const insertJoinRequest = joinRequestsClient.insert.bind(joinRequestsClient) as unknown as (
-    values: Database["public"]["Tables"]["join_requests"]["Insert"],
-  ) => Promise<{ error: unknown }>;
-
-  const { error } = await insertJoinRequest(insertPayload);
+  const { error } = await legacyClient
+    .from("join_requests")
+    .insert(insertPayload);
 
   if (error) {
     console.error("Failed to create join request", error);

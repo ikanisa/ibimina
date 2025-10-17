@@ -14,21 +14,21 @@ set role service_role;
 
 insert into auth.users (id, email)
 values
-  ('71111111-1111-1111-1111-111111111111', 'alice@sacco.rw'),
-  ('72222222-2222-2222-2222-222222222222', 'ben@sacco.rw'),
-  ('73333333-3333-3333-3333-333333333333', 'admin@sacco.rw')
+  ('71111111-1111-1111-1111-111111111111', 'alice_trusted@sacco.rw'),
+  ('72222222-2222-2222-2222-222222222222', 'ben_trusted@sacco.rw'),
+  ('73333333-3333-3333-3333-333333333333', 'admin_trusted@sacco.rw')
 ON CONFLICT (id) DO NOTHING;
 
-insert into public.saccos (id, name, district, sector_code, merchant_code)
+insert into app.saccos (id, name, district, sector_code, merchant_code)
 values
-  ('70111111-1111-1111-1111-111111111111', 'Nyamirambo SACCO', 'Nyarugenge', 'NYA', 'NYA001'),
-  ('70222222-2222-2222-2222-222222222222', 'Rubavu SACCO', 'Rubavu', 'RUB', 'RUB002');
+  ('47111111-1111-1111-1111-471111111111', 'Nyamirambo SACCO', 'Nyarugenge', 'NYA', 'NYA001'),
+  ('47222222-2222-2222-2222-472222222222', 'Rubavu SACCO', 'Rubavu', 'RUB', 'RUB002');
 
 insert into public.users (id, email, role, sacco_id, mfa_enabled)
 values
-  ('71111111-1111-1111-1111-111111111111', 'alice@sacco.rw', 'SACCO_STAFF', '70111111-1111-1111-1111-111111111111', true),
-  ('72222222-2222-2222-2222-222222222222', 'ben@sacco.rw', 'SACCO_STAFF', '70222222-2222-2222-2222-222222222222', true),
-  ('73333333-3333-3333-3333-333333333333', 'admin@sacco.rw', 'SYSTEM_ADMIN', null, true)
+  ('71111111-1111-1111-1111-111111111111', 'alice_trusted@sacco.rw', 'SACCO_STAFF', '47111111-1111-1111-1111-471111111111', true),
+  ('72222222-2222-2222-2222-222222222222', 'ben_trusted@sacco.rw', 'SACCO_STAFF', '47222222-2222-2222-2222-472222222222', true),
+  ('73333333-3333-3333-3333-333333333333', 'admin_trusted@sacco.rw', 'SYSTEM_ADMIN', null, true)
 ON CONFLICT (id) DO NOTHING;
 
 insert into public.trusted_devices (user_id, device_id, device_fingerprint_hash, user_agent_hash, ip_prefix)

@@ -20,3 +20,5 @@ for migration in $(ls "$ROOT_DIR"/supabase/migrations/*.sql | sort); do
   psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$migration" >/dev/null \
     || { echo "Failed applying $migration" >&2; exit 1; }
 done
+
+psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$ROOT_DIR/supabase/tests/rls/e2e_friendly_seed.sql" >/dev/null

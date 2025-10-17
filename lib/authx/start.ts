@@ -27,6 +27,8 @@ export const sendEmailOtp = async (user: { id: string; email: string | null }) =
   }
 
   const supabase = createSupabaseAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- authx schema is unmanaged by generated types.
+  const authx = (supabase as any).schema("authx");
   const result = await issueEmailOtp(user.id, user.email);
   if (result.status !== "issued") {
     return { channel: "email", sent: false, error: "rate_limited" } as const;
@@ -43,8 +45,7 @@ export const sendEmailOtp = async (user: { id: string; email: string | null }) =
     .maybeSingle();
 
   if (latest) {
-    await supabase
-      .schema("authx")
+    await authx
       .from("otp_issues")
       .insert({ user_id: user.id, channel: "email", legacy_code_id: latest.id, expires_at: latest.expires_at });
   }
@@ -97,14 +98,15 @@ const WHATSAPP_MAX_ACTIVE = 3;
 
 export const sendWhatsAppOtp = async (user: { id: string }) => {
   const supabase = createSupabaseAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- authx schema is unmanaged by generated types.
+  const authx = (supabase as any).schema("authx");
   const { enrolled } = await listUserFactors(user.id);
 
   if (!enrolled.whatsapp) {
     return { channel: "whatsapp", sent: false, error: "not_enrolled" } as const;
   }
 
-  const { data: mfaRow } = await supabase
-    .schema("authx")
+  const { data: mfaRow } = await authx
     .from("user_mfa")
     .select("enrollment")
     .eq("user_id", user.id)
@@ -119,8 +121,7 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
 
   const now = new Date();
   const nowIso = now.toISOString();
-  const { data: activeRowsRaw, error: activeError } = await supabase
-    .schema("authx")
+  const { data: activeRowsRaw, error: activeError } = await authx
     .from("otp_issues")
     .select("id, created_at, expires_at")
     .eq("user_id", user.id)
@@ -137,7 +138,7 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
     return { channel: "whatsapp", sent: false, error: "issue_failed" } as const;
   }
 
-  const activeRows = (activeRowsRaw ?? []).map((row) => ({
+  const activeRows = (activeRowsRaw ?? []).map((row: { created_at?: string | null; expires_at: string | null }) => ({
     created_at: row.created_at ?? nowIso,
     expires_at: row.expires_at,
   }));
@@ -157,9 +158,11 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
 
   if (activeRows.length >= WHATSAPP_MAX_ACTIVE) {
     rateLimited = true;
-    const earliestExpiry = activeRows
-      .map((row) => new Date(row.expires_at))
-      .reduce((earliest, candidate) => (candidate < earliest ? candidate : earliest));
+    const expiryDates = activeRows.map((row: { expires_at: string | null }) => new Date(row.expires_at ?? nowIso));
+    const earliestExpiry = expiryDates.reduce(
+      (earliest: Date, candidate: Date) => (candidate < earliest ? candidate : earliest),
+      expiryDates[0],
+    );
     retryCandidates.push(earliestExpiry);
   }
 
@@ -169,8 +172,7 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
       (latest, candidate) => (candidate > latest ? candidate : latest),
       seed,
     );
-    await supabase
-      .schema("authx")
+    await authx
       .from("audit")
       .insert({
         actor: user.id,
@@ -189,8 +191,7 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
   const hash = hashOneTimeCode(code);
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-  await supabase
-    .schema("authx")
+  await authx
     .from("otp_issues")
     .insert({
       user_id: user.id,

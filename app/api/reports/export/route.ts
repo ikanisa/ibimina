@@ -33,8 +33,8 @@ const CSV_HEADER = [
   "running_balance",
 ] as const;
 
-type PaymentRow = Database["public"]["Tables"]["payments"]["Row"];
-type IkiminaRow = Pick<Database["public"]["Tables"]["ibimina"]["Row"], "id" | "code" | "name" | "sacco_id">;
+type PaymentRow = Database["app"]["Tables"]["payments"]["Row"];
+type IkiminaRow = Pick<Database["app"]["Tables"]["ikimina"]["Row"], "id" | "code" | "name" | "sacco_id">;
 type MemberRow = Pick<Database["public"]["Views"]["ikimina_members_public"]["Row"], "id" | "member_code" | "full_name">;
 
 function parseDate(value: string | undefined, fallback: Date, mode: "start" | "end"): Date {
@@ -96,7 +96,8 @@ export async function GET(request: NextRequest) {
     let ikiminaRecord: IkiminaRow | null = null;
     if (ikiminaId) {
       const { data: group, error } = await supabase
-        .from("ibimina")
+        .schema("app")
+        .from("ikimina")
         .select("id, code, name, sacco_id")
         .eq("id", ikiminaId)
         .maybeSingle();
@@ -138,10 +139,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "startDate must be before endDate" }, { status: 400 });
     }
 
+    const resolvedSaccoId = saccoScope as string;
+
     let paymentsQuery = supabase
+      .schema("app")
       .from("payments")
       .select("id, sacco_id, ikimina_id, member_id, occurred_at, status, amount, currency, reference")
-      .eq("sacco_id", saccoScope)
+      .eq("sacco_id", resolvedSaccoId)
       .gte("occurred_at", windowStart.toISOString())
       .lte("occurred_at", windowEnd.toISOString())
       .order("occurred_at", { ascending: true })
@@ -194,6 +198,9 @@ export async function GET(request: NextRequest) {
 
     const memberMap = new Map<string, MemberRow>();
     for (const member of (membersRes.data ?? []) as MemberRow[]) {
+      if (!member.id) {
+        continue;
+      }
       memberMap.set(member.id, member);
     }
 
@@ -231,7 +238,7 @@ export async function GET(request: NextRequest) {
 
     const headers = new Headers({
       "content-type": "text/csv; charset=utf-8",
-      "content-disposition": `attachment; filename=report-${saccoScope}.csv`,
+      "content-disposition": `attachment; filename=report-${resolvedSaccoId}.csv`,
       "cache-control": "no-store",
       "x-report-row-count": String(payments.length),
     });

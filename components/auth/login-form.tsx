@@ -1,9 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { AuthError, Factor } from "@supabase/supabase-js";
+import type { Factor } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  resendTotpChallenge,
+  signInWithPassword,
+  signOut,
+  verifyTotpCode,
+  type SignInSuccess,
+} from "@/lib/auth/client";
 import { useTranslation } from "@/providers/i18n-provider";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 
@@ -19,10 +25,9 @@ type MfaState = {
   expiresAt: number | null;
 };
 
-const ERROR_FALLBACK = "auth.errors.generic";
+const GENERIC_ERROR = "auth.errors.generic";
 
 export function LoginForm() {
-  const supabase = getSupabaseBrowserClient();
   const router = useRouter();
   const { t } = useTranslation();
 
@@ -35,12 +40,13 @@ export function LoginForm() {
   const [switchingAccount, setSwitchingAccount] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mfa, setMfa] = useState<MfaState | null>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
+
   const errorRef = useRef<HTMLParagraphElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const codeInputRef = useRef<HTMLInputElement>(null);
-  const [mfa, setMfa] = useState<MfaState | null>(null);
-  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
 
   useEffect(() => {
     if (error && errorRef.current) {
@@ -56,10 +62,6 @@ export function LoginForm() {
 
     if (step === "credentials") {
       if (email.trim().length > 0) {
-        const activeElement = typeof document !== "undefined" ? document.activeElement : null;
-        if (activeElement === emailInputRef.current) {
-          return;
-        }
         passwordInputRef.current?.focus();
       } else {
         emailInputRef.current?.focus();
@@ -69,7 +71,7 @@ export function LoginForm() {
 
   useEffect(() => {
     const expiresAt = mfa?.expiresAt;
-    if (expiresAt == null) {
+    if (!expiresAt) {
       setSecondsRemaining(null);
       return undefined;
     }
@@ -80,144 +82,76 @@ export function LoginForm() {
     };
 
     compute();
-    const handle = window.setInterval(compute, 1000);
-    return () => window.clearInterval(handle);
+    const interval = window.setInterval(compute, 1000);
+    return () => window.clearInterval(interval);
   }, [mfa?.expiresAt]);
 
-  const formatAuthError = useCallback(
-    (authError: AuthError) => {
-      if (authError.status === 400 || authError.status === 401) {
-        return t("auth.errors.invalidCredentials", "Email or password was incorrect.");
-      }
-      if (authError.status === 403) {
-        return authError.message;
-      }
-      return authError.message || t(ERROR_FALLBACK, "Something went wrong. Try again.");
-    },
-    [t],
-  );
+  const parsedSeconds = useMemo(() => secondsRemaining ?? 0, [secondsRemaining]);
 
-  const resetState = useCallback(
-    (options?: { clearCredentials?: boolean }) => {
-      setStep("credentials");
-      setCode("");
-      setMfa(null);
-      setSecondsRemaining(null);
-      setMessage(null);
-      setError(null);
-      setFormPending(false);
-      setResendPending(false);
+  const resetAll = useCallback((options?: { clearCredentials?: boolean }) => {
+    setStep("credentials");
+    setFormPending(false);
+    setResendPending(false);
+    setError(null);
+    setMessage(null);
+    setCode("");
+    setMfa(null);
+    setSecondsRemaining(null);
 
-      if (options?.clearCredentials) {
-        setEmail("");
-        setPassword("");
-      }
-    },
-    [],
-  );
+    if (options?.clearCredentials) {
+      setEmail("");
+      setPassword("");
+    }
+  }, []);
 
-  const startMfaChallenge = useCallback(
-    async (factorOverride?: TotpFactor | null) => {
-      const fetchFactor = async () => {
-        if (factorOverride) {
-          return factorOverride;
-        }
-
-        const { data, error: listError } = await supabase.auth.mfa.listFactors();
-        if (listError) {
-          throw new Error(listError.message || "list_factors_failed");
-        }
-
-        const totpFactors = (data?.totp ?? []) as TotpFactor[];
-        const verified = totpFactors.find((item) => item.status === "verified");
-        if (!verified) {
-          throw new Error("no_totp_factor");
-        }
-        return verified;
-      };
-
-      const factor = await fetchFactor();
-      const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
-        factorId: factor.id,
-      });
-
-      if (challengeError || !challengeData) {
-        throw new Error(challengeError?.message || "challenge_failed");
-      }
-
-      let expiresAt: number | null = null;
-      const { expires_at: expiresAtRaw } = challengeData;
-      if (typeof expiresAtRaw === "number") {
-        expiresAt = expiresAtRaw;
-      } else if (typeof expiresAtRaw === "string") {
-        const parsed = Date.parse(expiresAtRaw);
-        expiresAt = Number.isNaN(parsed) ? null : Math.round(parsed / 1000);
-      }
-
-      setMfa({
-        factor,
-        challengeId: challengeData.id,
-        expiresAt,
-      });
-      setStep("mfa");
-      setCode("");
-      setMessage(
-        t(
-          "auth.mfa.prompt",
-          "Enter the 6-digit code from your authenticator app to finish signing in.",
-        ),
-      );
-      setError(null);
-    },
-    [supabase, t],
-  );
+  const transitionToMfa = useCallback((payload: Extract<SignInSuccess, { status: "mfa_required" }>) => {
+    setMfa({
+      factor: payload.factor,
+      challengeId: payload.challengeId,
+      expiresAt: payload.expiresAt,
+    });
+    setStep("mfa");
+    setCode("");
+    setMessage(
+      t(
+        "auth.mfa.prompt",
+        "Enter the 6-digit code from your authenticator app to finish signing in.",
+      ),
+    );
+    setError(null);
+  }, [t]);
 
   const handleCredentialsSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       setFormPending(true);
-      setMessage(null);
       setError(null);
+      setMessage(null);
 
       try {
-        const normalizedEmail = email.trim();
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email: normalizedEmail,
-          password,
-        });
+        const result = await signInWithPassword(email, password);
 
-        if (signInError) {
-          setError(formatAuthError(signInError));
+        if (result.status === "error") {
+          setError(result.message || t(GENERIC_ERROR, "Something went wrong. Try again."));
           return;
         }
 
-        if (data.session) {
+        if (result.status === "authenticated") {
           setMessage(t("auth.success.redirect", "Success! Redirecting to dashboard…"));
           router.refresh();
           router.push("/dashboard");
           return;
         }
 
-        try {
-          await startMfaChallenge();
-        } catch (challengeError) {
-          const reason = challengeError instanceof Error ? challengeError.message : "challenge_failed";
-          if (reason === "no_totp_factor") {
-            setError(t("auth.mfa.missing", "No verified authenticator was found for this account."));
-          } else {
-            setError(t("auth.mfa.startFailed", "We couldn't start multi-factor authentication."));
-          }
-          await supabase.auth.signOut();
-          resetState();
-        }
-      } catch (unknownError) {
-        console.error("Sign-in failed", unknownError);
-        setError(t(ERROR_FALLBACK, "Something went wrong. Try again."));
+        transitionToMfa(result);
+      } catch (cause) {
+        console.error("[auth] credentials submit failed", cause);
+        setError(t(GENERIC_ERROR, "Something went wrong. Try again."));
       } finally {
         setFormPending(false);
       }
     },
-    [email, formatAuthError, password, resetState, router, startMfaChallenge, supabase, t],
+    [email, password, router, t, transitionToMfa],
   );
 
   const handleMfaSubmit = useCallback(
@@ -228,8 +162,10 @@ export function LoginForm() {
         return;
       }
 
-      if (code.length < 6) {
-        setError(t("auth.errors.enterCode", "Enter the 6-digit code from your authenticator."));
+      const sanitized = code.replace(otpPattern, "");
+      if (sanitized.length !== 6) {
+        setError(t("auth.mfa.invalidCode", "Codes must be 6 digits."));
+        codeInputRef.current?.focus();
         return;
       }
 
@@ -238,39 +174,33 @@ export function LoginForm() {
       setMessage(null);
 
       try {
-        const { error: verifyError } = await supabase.auth.mfa.verify({
-          factorId: mfa.factor.id,
+        const result = await verifyTotpCode({
+          factor: mfa.factor,
           challengeId: mfa.challengeId,
-          code,
+          code: sanitized,
         });
 
-        if (verifyError) {
-          if (verifyError.status === 400 || verifyError.status === 422) {
-            setError(t("auth.mfa.invalidCode", "That code was not accepted. Try again."));
-          } else {
-            setError(verifyError.message || t("auth.mfa.verifyFailed", "Unable to verify the authenticator code."));
-          }
-          return;
-        }
+       if (result.status === "error") {
+         setError(result.message || t("auth.mfa.verifyFailed", "Unable to verify the authenticator code."));
+         return;
+       }
 
         setMessage(t("auth.success.redirect", "Success! Redirecting to dashboard…"));
-        setMfa(null);
-        setSecondsRemaining(null);
-        setCode("");
+        resetAll();
         router.refresh();
         router.push("/dashboard");
-      } catch (unknownError) {
-        console.error("MFA verification failed", unknownError);
-        setError(t("auth.mfa.verifyFailed", "Unable to verify the authenticator code."));
+      } catch (cause) {
+        console.error("[auth] verify mfa failed", cause);
+        setError(t(GENERIC_ERROR, "Something went wrong. Try again."));
       } finally {
         setFormPending(false);
       }
     },
-    [code, mfa, router, supabase, t],
+    [code, mfa, resetAll, router, t],
   );
 
   const handleResend = useCallback(async () => {
-    if (!mfa?.factor || resendPending) {
+    if (!mfa) {
       return;
     }
 
@@ -278,171 +208,184 @@ export function LoginForm() {
     setError(null);
 
     try {
-      await startMfaChallenge(mfa.factor);
-      setMessage(t("auth.mfa.codeResent", "We've sent a new code to your authenticator."));
-    } catch (challengeError) {
-      console.error("MFA challenge restart failed", challengeError);
-      setError(t("auth.mfa.startFailed", "We couldn't start multi-factor authentication."));
+      const refreshed = await resendTotpChallenge(mfa.factor);
+
+      if (refreshed.status === "ok") {
+        setMfa({
+          factor: refreshed.factor,
+          challengeId: refreshed.challengeId,
+          expiresAt: refreshed.expiresAt,
+        });
+        setMessage(
+          t(
+            "auth.mfa.resendSuccess",
+            "A new code was issued. Enter it to finish signing in.",
+          ),
+        );
+      } else {
+        setError(refreshed.message ?? t(GENERIC_ERROR, "Something went wrong. Try again."));
+      }
+    } catch (cause) {
+      console.error("[auth] resend mfa failed", cause);
+      setError(t(GENERIC_ERROR, "Something went wrong. Try again."));
     } finally {
       setResendPending(false);
     }
-  }, [mfa?.factor, resendPending, startMfaChallenge, t]);
+  }, [mfa, t]);
 
-  const handleSwitchAccount = useCallback(async () => {
-    if (switchingAccount) {
-      return;
-    }
-
+  const switchAccount = useCallback(async () => {
     setSwitchingAccount(true);
-    setError(null);
-    setMessage(null);
-
+    resetAll({ clearCredentials: true });
     try {
-      await supabase.auth.signOut();
-    } catch (signOutError) {
-      console.error("Failed to sign out before switching accounts", signOutError);
+      await signOut();
     } finally {
-      resetState({ clearCredentials: true });
-      setSwitchingAccount(false);
+      router.push("/login");
     }
-  }, [resetState, supabase, switchingAccount]);
+  }, [resetAll, router]);
 
-  const submitHandler = step === "credentials" ? handleCredentialsSubmit : handleMfaSubmit;
-  const disableInputs = formPending || resendPending || switchingAccount;
-
-  const countdownLabel = useMemo(() => {
-    if (secondsRemaining == null) {
-      return null;
+  const secondsLabel = useMemo(() => {
+    if (!secondsRemaining || secondsRemaining <= 0) {
+      return t("auth.mfa.expiresSoon", "Code expiring soon");
     }
-    if (secondsRemaining <= 0) {
-      return t("auth.mfa.expired", "Code expired. Request a new one.");
-    }
-    const template = t("auth.mfa.countdown", "Code expires in {{seconds}}s");
-    return template.replace(/\{\{\s*seconds\s*\}\}/g, secondsRemaining.toString());
-  }, [secondsRemaining, t]);
+    const template = t("auth.mfa.codeExpiresIn", "Code expires in {{seconds}}s");
+    return template.replace("{{seconds}}", String(parsedSeconds));
+  }, [parsedSeconds, secondsRemaining, t]);
 
   return (
-    <form onSubmit={submitHandler} className="space-y-6">
-      <div className="flex flex-col items-center gap-3 text-neutral-0">
-        <OptimizedImage src="/window.svg" alt="SACCO+" width={48} height={48} priority />
-        <h2 className="text-xl font-semibold">{t("auth.title", "Sign in to SACCO+")}</h2>
-        <p className="text-sm text-neutral-2">
-          {step === "credentials"
-            ? t("auth.subtitle", "Use your staff email and password to continue.")
-            : t("auth.mfa.subtitle", "Finish signing in with your authenticator app.")}
+    <div className="mx-auto flex w-full max-w-md flex-col gap-8" data-testid="login-form">
+      <header className="flex flex-col items-center gap-4 text-center">
+        <OptimizedImage
+          src="/logo.svg"
+          width={80}
+          height={80}
+          alt={t("auth.logoAlt", "SACCO+ logo")}
+          priority
+        />
+        <h1 className="text-2xl font-semibold">{t("auth.welcomeBack", "Welcome back")}</h1>
+        <p className="text-muted-foreground">
+          {t("auth.subtitle", "Sign in to manage sacco operations and member activity.")}
         </p>
-      </div>
+      </header>
+
+      {message && (
+        <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success" role="status">
+          {message}
+        </p>
+      )}
 
       {error && (
         <p
           ref={errorRef}
           role="alert"
           tabIndex={-1}
-          className="rounded-xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+          className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
         >
           {error}
         </p>
       )}
 
-      {message && !error && (
-        <p className="rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
-          {message}
-        </p>
-      )}
-
       {step === "credentials" ? (
-        <div className="space-y-4">
-          <div className="space-y-2 text-left">
-            <label htmlFor="email" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-              {t("auth.email.label", "Email")}
-            </label>
+        <form className="flex flex-col gap-4" onSubmit={handleCredentialsSubmit}>
+          <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="email">
+            {t("auth.emailLabel", "Work email")}
             <input
               id="email"
+              ref={emailInputRef}
               type="email"
-              required
               autoComplete="email"
+              required
+              disabled={formPending}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              ref={emailInputRef}
-              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-              placeholder={t("auth.email.placeholder", "staff@sacco.rw")}
-              disabled={disableInputs}
+              className="rounded border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
-          </div>
+          </label>
 
-          <div className="space-y-2 text-left">
-            <label htmlFor="password" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-              {t("auth.password.label", "Password")}
-            </label>
+          <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="password">
+            {t("auth.passwordLabel", "Password")}
             <input
               id="password"
+              ref={passwordInputRef}
               type="password"
-              required
               autoComplete="current-password"
+              required
+              disabled={formPending}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              ref={passwordInputRef}
-              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-              placeholder="••••••••"
-              disabled={disableInputs}
+              className="rounded border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
-          </div>
-        </div>
+          </label>
+
+          <button
+            type="submit"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={formPending || email.trim().length === 0 || password.length === 0}
+          >
+            {formPending
+              ? t("auth.signingIn", "Signing in…")
+              : t("auth.signIn", "Sign in")}
+          </button>
+        </form>
       ) : (
-        <div className="space-y-4">
-          <div className="space-y-2 text-left">
-            <label htmlFor="mfa-code" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-              {t("auth.mfa.codeLabel", "Authenticator code")}
-            </label>
+        <form className="flex flex-col gap-4" onSubmit={handleMfaSubmit}>
+          <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="code">
+            {secondsRemaining && secondsRemaining > 0 ? secondsLabel : t("auth.mfa.enterCode", "Enter your 6-digit code")}
             <input
-              id="mfa-code"
+              id="code"
+              ref={codeInputRef}
+              type="text"
               inputMode="numeric"
+              pattern="[0-9]*"
               autoComplete="one-time-code"
-              maxLength={6}
+              required
+              disabled={formPending}
               value={code}
               onChange={(event) => setCode(event.target.value.replace(otpPattern, ""))}
-              ref={codeInputRef}
-              className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-              placeholder="123456"
-              disabled={disableInputs}
+              maxLength={6}
+              className="rounded border border-input bg-background px-3 py-2 text-center text-lg tracking-[6px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
+          </label>
+
+          <div className="flex items-center justify-between text-sm">
+            <button
+              type="button"
+              disabled={resendPending || formPending}
+              onClick={handleResend}
+              className="text-primary underline-offset-2 hover:underline disabled:opacity-60"
+            >
+              {resendPending ? t("auth.mfa.resending", "Sending…") : t("auth.mfa.resend", "Resend code")}
+            </button>
+            <button
+              type="button"
+              onClick={() => resetAll()}
+              className="text-muted-foreground underline-offset-2 hover:underline"
+            >
+              {t("auth.mfa.useDifferentAccount", "Use a different account")}
+            </button>
           </div>
 
-          <div className="flex flex-col gap-2 text-xs text-neutral-2">
-            {countdownLabel ? <span>{countdownLabel}</span> : null}
-            <button
-              type="button"
-              onClick={handleResend}
-              className="w-max text-left font-semibold text-rw-blue transition hover:text-rw-blue/80 disabled:text-neutral-4"
-              disabled={disableInputs}
-            >
-              {t("auth.mfa.resend", "Resend code")}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                void handleSwitchAccount();
-              }}
-              className="w-max text-left text-neutral-3 underline-offset-4 hover:underline disabled:text-neutral-4"
-              disabled={disableInputs}
-            >
-              {t("auth.mfa.switchAccount", "Use a different account")}
-            </button>
-          </div>
-        </div>
+          <button
+            type="submit"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={formPending || code.length !== 6}
+          >
+            {formPending
+              ? t("auth.mfa.verifying", "Verifying…")
+              : t("auth.mfa.verify", "Verify & continue")}
+          </button>
+        </form>
       )}
 
       <button
-        type="submit"
-        className="w-full rounded-xl bg-rw-blue px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:bg-rw-blue/60"
-        disabled={disableInputs}
+        type="button"
+        onClick={switchAccount}
+        disabled={switchingAccount}
+        className="text-xs text-muted-foreground underline-offset-2 hover:underline disabled:opacity-60"
       >
-        {formPending
-          ? t("auth.submitting", "Working…")
-          : step === "credentials"
-            ? t("auth.signIn", "Sign in")
-            : t("auth.mfa.verify", "Verify and continue")}
+        {switchingAccount
+          ? t("auth.switchingAccounts", "Switching accounts…")
+          : t("auth.notYou", "Not you? Switch account")}
       </button>
-    </form>
+    </div>
   );
 }

@@ -15,7 +15,8 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
   const supabase = await createSupabaseServerClient();
 
   const { data: group, error } = await supabase
-    .from("ibimina")
+    .schema("app")
+    .from("ikimina")
     .select("id, name, code, status, type, sacco_id, settings_json, saccos(name, district, province)")
     .eq("id", id)
     .maybeSingle();
@@ -23,7 +24,7 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
   if (error) throw error;
   if (!group) notFound();
 
-  type GroupRow = Database["public"]["Tables"]["ibimina"]["Row"] & {
+  type GroupRow = Database["app"]["Tables"]["ikimina"]["Row"] & {
     saccos: { name: string | null; district: string | null; province: string | null } | null;
   };
 
@@ -38,6 +39,7 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
       .eq("ikimina_id", id)
       .order("joined_at", { ascending: false }),
     supabase
+      .schema("app")
       .from("payments")
       .select("*")
       .eq("ikimina_id", id)
@@ -54,7 +56,7 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
   if (membersCountRes.error) throw membersCountRes.error;
 
   type MemberRow = Database["public"]["Views"]["ikimina_members_public"]["Row"];
-  type PaymentRow = Database["public"]["Tables"]["payments"]["Row"];
+  type PaymentRow = Database["app"]["Tables"]["payments"]["Row"];
 
   const payments = (paymentsRes.data ?? []) as PaymentRow[];
   const members = (membersRes.data ?? []) as MemberRow[];
@@ -112,8 +114,9 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
   const recentTotal = postedPayments.reduce((acc, payment) => acc + payment.amount, 0);
 
   const { data: historyRows } = await supabase
+    .schema("app")
     .from("audit_logs")
-    .select("id, action, created_at, diff_json, actor_id")
+    .select("id, action, created_at, diff, actor")
     .eq("entity", "ibimina")
     .eq("entity_id", id)
     .order("created_at", { ascending: false })
@@ -123,11 +126,11 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
     id: string;
     action: string;
     created_at: string | null;
-    diff_json: Record<string, unknown> | null;
-    actor_id: string | null;
+    diff: Record<string, unknown> | null;
+    actor: string | null;
   }>;
 
-  const actorIds = Array.from(new Set(typedHistory.map((row) => row.actor_id).filter((value): value is string => Boolean(value))));
+  const actorIds = Array.from(new Set(typedHistory.map((row) => row.actor).filter((value): value is string => Boolean(value))));
   let actorMap = new Map<string, string | null>();
   if (actorIds.length > 0) {
     const { data: actors } = await supabase
@@ -142,9 +145,9 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
   const history = typedHistory.map((row) => ({
     id: row.id,
     action: row.action,
-    actorLabel: row.actor_id ? actorMap.get(row.actor_id) ?? row.actor_id : "System",
+    actorLabel: row.actor ? actorMap.get(row.actor) ?? row.actor : "System",
     createdAt: row.created_at ?? new Date().toISOString(),
-    diff: (row.diff_json as Record<string, unknown> | null) ?? null,
+    diff: (row.diff as Record<string, unknown> | null) ?? null,
   }));
 
   return (

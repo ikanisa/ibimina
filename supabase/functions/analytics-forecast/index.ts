@@ -160,6 +160,7 @@ Deno.serve(async (req) => {
       saccoIds = [payload.saccoId];
     } else if (payload?.district) {
       const { data: saccoRows } = await supabase
+        .schema("app")
         .from("saccos")
         .select("id")
         .eq("district", payload.district);
@@ -167,6 +168,7 @@ Deno.serve(async (req) => {
     }
 
     let paymentsQuery = supabase
+      .schema("app")
       .from("payments")
       .select("sacco_id, ikimina_id, amount, occurred_at, status")
       .gte("occurred_at", startIso);
@@ -248,7 +250,8 @@ Deno.serve(async (req) => {
     const trendScore = clamp(((weekOverWeek * 0.6 + monthOverMonth * 0.4) * 100) - volatility * 25, -100, 100);
 
     let ikiminaQuery = supabase
-      .from("ibimina")
+      .schema("app")
+      .from("ikimina")
       .select("id, sacco_id, name, code, settings_json");
     if (saccoIds?.length) {
       ikiminaQuery = ikiminaQuery.in("sacco_id", saccoIds);

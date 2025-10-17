@@ -10,7 +10,8 @@ export default async function ReportsPage() {
   const supabase = await createSupabaseServerClient();
 
   const ikiminaQuery = supabase
-    .from("ibimina")
+    .schema("app")
+    .from("ikimina")
     .select("id, name")
     .order("name", { ascending: true })
     .limit(50);
@@ -20,23 +21,31 @@ export default async function ReportsPage() {
       ? await ikiminaQuery
       : await ikiminaQuery.eq("sacco_id", profile.sacco_id ?? "");
 
-  const saccos =
-    profile.role === "SYSTEM_ADMIN"
-      ? ((await supabase
-          .from("saccos")
-          .select("id, name, district, province, category")
-          .order("name", { ascending: true })).data as SaccoSearchResult[] | null ?? [])
-      : profile.saccos
-      ? [
-          {
-            id: profile.saccos.id,
-            name: profile.saccos.name,
-            district: profile.saccos.district ?? "",
-            province: profile.saccos.province ?? "",
-            category: profile.saccos.category ?? "",
-          } satisfies SaccoSearchResult,
-        ]
-      : ([] as SaccoSearchResult[]);
+  const saccos = profile.role === "SYSTEM_ADMIN"
+    ? (((await supabase
+        .schema("app")
+        .from("saccos")
+        .select("id, name, district, province, category")
+        .order("name", { ascending: true })).data ?? [])
+        .filter((row) => typeof row.id === "string" && (row.id?.length ?? 0) > 0)
+        .map((row) => ({
+          id: String(row.id),
+          name: row.name ?? "",
+          district: row.district ?? "",
+          province: row.province ?? "",
+          category: row.category ?? "",
+        })))
+    : profile.saccos && typeof profile.saccos.id === "string"
+    ? [
+        {
+          id: profile.saccos.id,
+          name: profile.saccos.name ?? "",
+          district: profile.saccos.district ?? "",
+          province: profile.saccos.province ?? "",
+          category: profile.saccos.category ?? "",
+        } satisfies SaccoSearchResult,
+      ]
+    : ([] as SaccoSearchResult[]);
 
   const initialSacco: SaccoSearchResult | null = saccos.length === 1 ? saccos[0]! : null;
 

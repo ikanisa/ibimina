@@ -14,41 +14,41 @@ set role service_role;
 
 insert into auth.users (id, email)
 values
-  ('81111111-1111-1111-1111-111111111111', 'alice@sacco.rw'),
-  ('82222222-2222-2222-2222-222222222222', 'ben@sacco.rw'),
-  ('83333333-3333-3333-3333-333333333333', 'admin@sacco.rw')
+  ('81111111-1111-1111-1111-111111111111', 'alice_payments@sacco.rw'),
+  ('82222222-2222-2222-2222-222222222222', 'ben_payments@sacco.rw'),
+  ('83333333-3333-3333-3333-333333333333', 'admin_payments@sacco.rw')
 ON CONFLICT (id) DO NOTHING;
 
-insert into public.saccos (id, name, district, sector_code, merchant_code)
+insert into app.saccos (id, name, district, sector_code, merchant_code)
 values
-  ('80111111-1111-1111-1111-111111111111', 'Kigali SACCO', 'Gasabo', '001', 'M001'),
-  ('80222222-2222-2222-2222-222222222222', 'Musanze SACCO', 'Muhoza', '002', 'M002')
+  ('58111111-aaaa-1111-1111-581111111111', 'Kigali SACCO', 'Gasabo', '001', 'M001'),
+  ('58222222-bbbb-2222-2222-582222222222', 'Musanze SACCO', 'Muhoza', '002', 'M002')
 ON CONFLICT (id) DO NOTHING;
 
 insert into public.users (id, email, role, sacco_id, mfa_enabled)
 values
-  ('81111111-1111-1111-1111-111111111111', 'alice@sacco.rw', 'SACCO_STAFF', '80111111-1111-1111-1111-111111111111', true),
-  ('82222222-2222-2222-2222-222222222222', 'ben@sacco.rw', 'SACCO_STAFF', '80222222-2222-2222-2222-222222222222', true),
-  ('83333333-3333-3333-3333-333333333333', 'admin@sacco.rw', 'SYSTEM_ADMIN', null, true)
+  ('81111111-aaaa-1111-1111-811111111111', 'alice_payments@sacco.rw', 'SACCO_STAFF', '58111111-aaaa-1111-1111-581111111111', true),
+  ('82222222-bbbb-2222-2222-822222222222', 'ben_payments@sacco.rw', 'SACCO_STAFF', '58222222-bbbb-2222-2222-582222222222', true),
+  ('83333333-cccc-3333-3333-833333333333', 'admin_payments@sacco.rw', 'SYSTEM_ADMIN', null, true)
 ON CONFLICT (id) DO NOTHING;
 
-insert into public.ibimina (id, sacco_id, code, name)
+insert into app.ikimina (id, sacco_id, code, name)
 values
-  ('801aaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '80111111-1111-1111-1111-111111111111', 'IK-A', 'Ikimina A'),
-  ('802bbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '80222222-2222-2222-2222-222222222222', 'IK-B', 'Ikimina B')
+  ('581aaaaa-aaaa-aaaa-aaaa-58aaaaaaaaaa', '58111111-aaaa-1111-1111-581111111111', 'IK-A', 'Ikimina A'),
+  ('582bbbbb-bbbb-bbbb-bbbb-58bbbbbbbbbb', '58222222-bbbb-2222-2222-582222222222', 'IK-B', 'Ikimina B')
 ON CONFLICT (id) DO NOTHING;
 
-insert into public.members (id, sacco_id, ikimina_id, member_code, full_name)
+insert into app.members (id, sacco_id, ikimina_id, member_code, full_name)
 values
-  ('801cccc-cccc-cccc-cccc-cccccccccccc', '80111111-1111-1111-1111-111111111111', '801aaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'MEM-A', 'Alice Member'),
-  ('802dddd-dddd-dddd-dddd-dddddddddddd', '80222222-2222-2222-2222-222222222222', '802bbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'MEM-B', 'Ben Member')
+  ('581cccc-cccc-cccc-cccc-58cccccccccc', '58111111-aaaa-1111-1111-581111111111', '581aaaaa-aaaa-aaaa-aaaa-58aaaaaaaaaa', 'MEM-A', 'Alice Member'),
+  ('582dddd-dddd-dddd-dddd-58dddddddddd', '58222222-bbbb-2222-2222-582222222222', '582bbbbb-bbbb-bbbb-bbbb-58bbbbbbbbbb', 'MEM-B', 'Ben Member')
 ON CONFLICT (id) DO NOTHING;
 
 insert into public.payments (id, sacco_id, ikimina_id, member_id, amount, status, occurred_at)
 values
-  ('90111111-1111-1111-1111-111111111111', '80111111-1111-1111-1111-111111111111', '801aaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '801cccc-cccc-cccc-cccc-cccccccccccc', 10000, 'POSTED', timezone('utc', now() - interval '1 day')),
-  ('90222222-2222-2222-2222-222222222222', '80222222-2222-2222-2222-222222222222', '802bbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '802dddd-dddd-dddd-dddd-dddddddddddd', 25000, 'POSTED', timezone('utc', now() - interval '2 day')),
-  ('90333333-3333-3333-3333-333333333333', '80222222-2222-2222-2222-222222222222', null, null, 5000, 'UNALLOCATED', timezone('utc', now()))
+  ('90111111-1111-1111-1111-111111111111', '58111111-aaaa-1111-1111-581111111111', '581aaaaa-aaaa-aaaa-aaaa-58aaaaaaaaaa', '581cccc-cccc-cccc-cccc-58cccccccccc', 10000, 'POSTED', timezone('utc', now() - interval '1 day')),
+  ('90222222-2222-2222-2222-222222222222', '58222222-bbbb-2222-2222-582222222222', '582bbbbb-bbbb-bbbb-bbbb-58bbbbbbbbbb', '582dddd-dddd-dddd-dddd-58dddddddddd', 25000, 'POSTED', timezone('utc', now() - interval '2 day')),
+  ('90333333-3333-3333-3333-333333333333', '58222222-bbbb-2222-2222-582222222222', null, null, 5000, 'UNALLOCATED', timezone('utc', now()))
 ON CONFLICT (id) DO NOTHING;
 
 reset role;
@@ -72,7 +72,7 @@ begin
     raise exception 'expected 1 payment for Kigali staff, found %', visible_count;
   end if;
 
-  select count(*) into foreign_payments from public.payments where sacco_id <> '80111111-1111-1111-1111-111111111111';
+  select count(*) into foreign_payments from public.payments where sacco_id <> '58111111-1111-1111-1111-581111111111';
   if foreign_payments <> 0 then
     raise exception 'staff unexpectedly saw payments outside their SACCO (count %)', foreign_payments;
   end if;

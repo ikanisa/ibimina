@@ -51,6 +51,7 @@ Deno.serve(async (req) => {
       saccoIds = [payload.saccoId];
     } else if (payload.district) {
       const { data: saccoRows } = await supabase
+        .schema("app")
         .from("saccos")
         .select("id")
         .eq("district", payload.district);
@@ -59,6 +60,7 @@ Deno.serve(async (req) => {
     }
 
     let paymentsQuery = supabase
+      .schema("app")
       .from("payments")
       .select("id, sacco_id, ikimina_id, amount, occurred_at, status")
       .gte("occurred_at", start.toISOString())
@@ -124,18 +126,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { data: ibiminaRows, error: ibiminaError } = await supabase
-      .from("ibimina")
+    const { data: ikiminaRows, error: ikiminaError } = await supabase
+      .schema("app")
+      .from("ikimina")
       .select("id, name, code, status, sacco_id");
 
-    if (ibiminaError) {
-      throw ibiminaError;
+    if (ikiminaError) {
+      throw ikiminaError;
     }
 
-    const activeIbimina = (ibiminaRows ?? []).filter((row) => row.status === "ACTIVE").length;
+    const activeIbimina = (ikiminaRows ?? []).filter((row) => row.status === "ACTIVE").length;
 
     const { data: membersRows } = await supabase
-      .from("ikimina_members")
+      .schema("app")
+      .from("members")
       .select("id, status");
 
     const activeMembers = (membersRows ?? []).filter((row) => row.status === "ACTIVE").length;
@@ -144,7 +148,7 @@ Deno.serve(async (req) => {
 
     for (const payment of paymentsData ?? []) {
       if (!payment.ikimina_id || !activeStatuses.has(payment.status)) continue;
-      const match = (ibiminaRows ?? []).find((row) => row.id === payment.ikimina_id);
+      const match = (ikiminaRows ?? []).find((row) => row.id === payment.ikimina_id);
       if (!match) continue;
       const key = payment.ikimina_id;
       const current = totalsByIkimina.get(key) ?? { amount: 0, name: match.name, code: match.code };
@@ -158,8 +162,9 @@ Deno.serve(async (req) => {
       .slice(0, 5);
 
     let recentQuery = supabase
+      .schema("app")
       .from("payments")
-      .select("id, txn_id, reference, amount, occurred_at, status, ikimina:ibimina(name)")
+      .select("id, txn_id, reference, amount, occurred_at, status, ikimina:ikimina(name)")
       .order("occurred_at", { ascending: false })
       .limit(10);
 

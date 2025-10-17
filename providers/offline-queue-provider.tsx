@@ -65,7 +65,7 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
     };
   }, []);
 
-  type PaymentStatus = Database["public"]["Tables"]["payments"]["Row"]["status"];
+  type PaymentStatus = Database["app"]["Tables"]["payments"]["Row"]["status"];
 
   type QueueHandler = (action: OfflineAction) => Promise<void>;
 
@@ -76,9 +76,9 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
         if (!ids?.length || !status) {
           throw new Error("Invalid payload for status update");
         }
-        const updatePayload = { status } satisfies Partial<Database["public"]["Tables"]["payments"]["Row"]>;
+        const updatePayload = { status } satisfies Partial<Database["app"]["Tables"]["payments"]["Row"]>;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any).from("payments").update(updatePayload).in("id", ids);
+        const { error } = await (supabase as any).schema("app").from("payments").update(updatePayload).in("id", ids);
         if (error) {
           throw new Error(error.message ?? "Failed to update payment status");
         }
@@ -93,13 +93,13 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
           throw new Error("Invalid payload for ikimina assignment");
         }
 
-        const updatePayload: Partial<Database["public"]["Tables"]["payments"]["Row"]> = { ikimina_id: ikiminaId };
+        const updatePayload: Partial<Database["app"]["Tables"]["payments"]["Row"]> = { ikimina_id: ikiminaId };
         if (memberId !== undefined) {
           updatePayload.member_id = memberId;
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any).from("payments").update(updatePayload).in("id", ids);
+        const { error } = await (supabase as any).schema("app").from("payments").update(updatePayload).in("id", ids);
         if (error) {
           throw new Error(error.message ?? "Failed to assign ikimina");
         }

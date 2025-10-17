@@ -5,7 +5,14 @@
 -- 1. Extensions and schemas ---------------------------------------------------
 create extension if not exists pgcrypto;
 create extension if not exists pg_trgm;
-create extension if not exists pg_cron;
+do $$
+begin
+  if current_database() = 'postgres'
+     and exists (select 1 from pg_available_extensions where name = 'pg_cron') then
+    execute 'create extension if not exists pg_cron';
+  end if;
+end;
+$$;
 
 create schema if not exists app;
 create schema if not exists ops;
@@ -669,12 +676,15 @@ do $$
 declare
   nightly_id int;
 begin
-  select jobid into nightly_id from cron.job where jobname = '00-nightly-recon';
-  if nightly_id is null then
-    select cron.schedule('00-nightly-recon', '0 2 * * *', 'call ops.sp_nightly_recon();') into nightly_id;
-  else
-    perform cron.unschedule('00-nightly-recon');
-    select cron.schedule('00-nightly-recon', '0 2 * * *', 'call ops.sp_nightly_recon();') into nightly_id;
+  if current_database() = 'postgres'
+     and exists (select 1 from pg_extension where extname = 'pg_cron') then
+    select jobid into nightly_id from cron.job where jobname = '00-nightly-recon';
+    if nightly_id is null then
+      select cron.schedule('00-nightly-recon', '0 2 * * *', 'call ops.sp_nightly_recon();') into nightly_id;
+    else
+      perform cron.unschedule('00-nightly-recon');
+      select cron.schedule('00-nightly-recon', '0 2 * * *', 'call ops.sp_nightly_recon();') into nightly_id;
+    end if;
   end if;
 end;
 $$;
@@ -683,12 +693,15 @@ do $$
 declare
   monthly_id int;
 begin
-  select jobid into monthly_id from cron.job where jobname = '01-monthly-close';
-  if monthly_id is null then
-    select cron.schedule('01-monthly-close', '10 2 1 * *', 'call ops.sp_monthly_close();') into monthly_id;
-  else
-    perform cron.unschedule('01-monthly-close');
-    select cron.schedule('01-monthly-close', '10 2 1 * *', 'call ops.sp_monthly_close();') into monthly_id;
+  if current_database() = 'postgres'
+     and exists (select 1 from pg_extension where extname = 'pg_cron') then
+    select jobid into monthly_id from cron.job where jobname = '01-monthly-close';
+    if monthly_id is null then
+      select cron.schedule('01-monthly-close', '10 2 1 * *', 'call ops.sp_monthly_close();') into monthly_id;
+    else
+      perform cron.unschedule('01-monthly-close');
+      select cron.schedule('01-monthly-close', '10 2 1 * *', 'call ops.sp_monthly_close();') into monthly_id;
+    end if;
   end if;
 end;
 $$;

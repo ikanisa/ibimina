@@ -31,6 +31,7 @@ export async function GET(req: Request) {
   const pattern = `%${sanitized.replace(/[%_]/g, "\\$&")}%`;
 
   const { data: fallbackData, error: fallbackError } = await client
+    .schema("app")
     .from("saccos")
     .select("id, name, district, sector_code")
     .or(`name.ilike.${pattern},sector_code.ilike.${pattern}`)

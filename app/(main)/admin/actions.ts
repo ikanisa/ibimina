@@ -221,8 +221,8 @@ async function upsertSaccoInternal({
   sacco,
 }: {
   mode: "create" | "update";
-  sacco: Database["public"]["Tables"]["saccos"]["Insert"] | (Database["public"]["Tables"]["saccos"]["Update"] & { id: string });
-}): Promise<AdminActionResult & { sacco?: Database["public"]["Tables"]["saccos"]["Row"] }> {
+  sacco: Database["app"]["Tables"]["saccos"]["Insert"] | (Database["app"]["Tables"]["saccos"]["Update"] & { id: string });
+}): Promise<AdminActionResult & { sacco?: Database["app"]["Tables"]["saccos"]["Row"] }> {
   const { profile, user } = await requireUserAndProfile();
   updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
   if (profile.role !== "SYSTEM_ADMIN") {
@@ -230,25 +230,27 @@ async function upsertSaccoInternal({
     return { status: "error", message: "Only system administrators can modify SACCO registry." };
   }
   const supabase = await createSupabaseServerClient();
-  let result: Database["public"]["Tables"]["saccos"]["Row"] | null = null;
+  let result: Database["app"]["Tables"]["saccos"]["Row"] | null = null;
 
   if (mode === "create") {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
+      .schema("app")
       .from("saccos")
-      .insert(sacco as Database["public"]["Tables"]["saccos"]["Insert"])
+      .insert(sacco as Database["app"]["Tables"]["saccos"]["Insert"])
       .select("*")
       .single();
     if (error) {
       logError("admin_sacco_create_failed", { error });
       return { status: "error", message: error.message ?? "Failed to create SACCO" };
     }
-    result = data as Database["public"]["Tables"]["saccos"]["Row"];
+    result = data as Database["app"]["Tables"]["saccos"]["Row"];
   } else {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
+      .schema("app")
       .from("saccos")
-      .update(sacco as Database["public"]["Tables"]["saccos"]["Update"])
+      .update(sacco as Database["app"]["Tables"]["saccos"]["Update"])
       .eq("id", (sacco as unknown as { id: string }).id)
       .select("*")
       .single();
@@ -256,7 +258,7 @@ async function upsertSaccoInternal({
       logError("admin_sacco_update_failed", { error, saccoId: (sacco as { id: string }).id });
       return { status: "error", message: error.message ?? "Failed to update SACCO" };
     }
-    result = data as Database["public"]["Tables"]["saccos"]["Row"];
+    result = data as Database["app"]["Tables"]["saccos"]["Row"];
   }
 
   const saccoId = result?.id ?? null;
@@ -279,7 +281,7 @@ async function removeSaccoInternal({ id }: { id: string }): Promise<AdminActionR
     return { status: "error", message: "Only system administrators can delete SACCOs." };
   }
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("saccos").delete().eq("id", id);
+  const { error } = await supabase.schema("app").from("saccos").delete().eq("id", id);
   if (error) {
     logError("admin_sacco_delete_failed", { saccoId: id, error });
     return { status: "error", message: error.message ?? "Failed to delete SACCO" };

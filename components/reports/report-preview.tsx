@@ -82,6 +82,7 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
         return;
       }
       const { data: row, error } = await supabase
+        .schema("app")
         .from("saccos")
         .select("brand_color")
         .eq("id", filters.sacco.id)
@@ -132,8 +133,9 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
       const endIso = toDateEnd(endDate).toISOString();
 
       let query = supabase
+        .schema("app")
         .from("payments")
-        .select("id, sacco_id, amount, currency, status, occurred_at, ikimina_id, group:ibimina(id, name, code)")
+        .select("id, sacco_id, amount, currency, status, occurred_at, ikimina_id, group:ikimina(id, name, code)")
         .gte("occurred_at", startIso)
         .lte("occurred_at", endIso)
         .order("occurred_at", { ascending: false })

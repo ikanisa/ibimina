@@ -51,9 +51,9 @@ interface OperationsSnapshotParams {
 }
 
 type NotificationRow = Pick<Database["public"]["Tables"]["notification_queue"]["Row"], "id" | "status" | "scheduled_for" | "created_at">;
-type PaymentRow = Pick<Database["public"]["Tables"]["payments"]["Row"], "id" | "status" | "occurred_at" | "sacco_id">;
-type AuditRow = Pick<Database["public"]["Tables"]["audit_logs"]["Row"], "id" | "action" | "entity" | "entity_id" | "created_at" | "diff_json">;
-type AuditTimestampRow = Pick<Database["public"]["Tables"]["audit_logs"]["Row"], "created_at">;
+type PaymentRow = Pick<Database["app"]["Tables"]["payments"]["Row"], "id" | "status" | "occurred_at" | "sacco_id">;
+type AuditRow = Pick<Database["app"]["Tables"]["audit_logs"]["Row"], "id" | "action" | "entity" | "entity_id" | "created_at" | "diff">;
+type AuditTimestampRow = Pick<Database["app"]["Tables"]["audit_logs"]["Row"], "created_at">;
 type UserRow = Pick<Database["public"]["Tables"]["users"]["Row"], "id" | "sacco_id" | "last_mfa_success_at">;
 
 const INCIDENT_ACTIONS = [
@@ -91,6 +91,7 @@ export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParam
 
   const reconSince = new Date(Date.now() - TREND_WINDOW_HOURS * HOUR_IN_MS).toISOString();
   let reconQuery = supabase
+    .schema("app")
     .from("payments")
     .select("id, status, occurred_at, sacco_id", { count: "exact" })
     .in("status", RECON_STATUSES)
@@ -129,8 +130,9 @@ export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParam
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
 
   const incidentQuery = supabase
+    .schema("app")
     .from("audit_logs")
-    .select("id, action, entity, entity_id, created_at, diff_json")
+    .select("id, action, entity, entity_id, created_at, diff")
     .in("action", INCIDENT_ACTIONS)
     .order("created_at", { ascending: false })
     .limit(12);
@@ -139,14 +141,15 @@ export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParam
   const incidents = (incidentRows ?? []).map((row) => ({
     id: row.id,
     action: row.action,
-    entity: row.entity,
-    entityId: row.entity_id,
+    entity: row.entity ?? "UNKNOWN",
+    entityId: row.entity_id ?? "UNKNOWN",
     occurredAt: row.created_at ?? null,
-    diff: (row.diff_json as Record<string, unknown> | null) ?? null,
+    diff: (row.diff as Record<string, unknown> | null) ?? null,
   }));
 
   const mfaAuditSince = new Date(Date.now() - TREND_WINDOW_DAYS * DAY_IN_MS).toISOString();
   const { data: mfaAuditRows } = await supabase
+    .schema("app")
     .from("audit_logs")
     .select("created_at")
     .eq("action", "MFA_SUCCESS")

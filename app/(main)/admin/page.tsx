@@ -46,6 +46,7 @@ export default async function AdminPage() {
 
   const supabase = await createSupabaseServerClient();
   const { data: saccos } = await supabase
+    .schema("app")
     .from("saccos")
     .select("id, name, district, province, sector, status, email, category, logo_url, sector_code")
     .order("name", { ascending: true });
@@ -88,8 +89,9 @@ export default async function AdminPage() {
   }
 
   const { data: auditRows, error: auditError } = await supabase
+    .schema("app")
     .from("audit_logs")
-    .select("id, action, entity, entity_id, diff_json, created_at, actor_id")
+    .select("id, action, entity, entity_id, diff, created_at, actor")
     .order("created_at", { ascending: false })
     .limit(30);
   let auditRowsRaw = auditRows ?? [];
@@ -111,7 +113,7 @@ export default async function AdminPage() {
     saccos: { name: string | null } | null;
   };
 
-  type SaccoRow = Database["public"]["Tables"]["saccos"]["Row"];
+  type SaccoRow = Database["app"]["Tables"]["saccos"]["Row"];
 
   type NotificationRow = {
     id: string;
@@ -135,9 +137,9 @@ export default async function AdminPage() {
     action: string;
     entity: string;
     entity_id: string | null;
-    diff_json: Record<string, unknown> | null;
+    diff: Record<string, unknown> | null;
     created_at: string | null;
-    actor_id: string | null;
+    actor: string | null;
   };
 
   const saccoList = (saccos ?? []) as SaccoRow[];
@@ -194,7 +196,7 @@ export default async function AdminPage() {
   const actorIds = Array.from(
     new Set(
       auditRaw
-        .map((row) => row.actor_id)
+    .map((row) => row.actor)
         .filter((value): value is string => Boolean(value) && value !== ZERO_UUID),
     ),
   );
@@ -223,9 +225,9 @@ export default async function AdminPage() {
     action: row.action,
     entity: row.entity,
     entityId: row.entity_id,
-    diff: row.diff_json ?? null,
+    diff: row.diff ?? null,
     createdAt: row.created_at ?? new Date().toISOString(),
-    actorLabel: row.actor_id === ZERO_UUID || !row.actor_id ? "System" : actorLookup.get(row.actor_id) ?? row.actor_id,
+    actorLabel: row.actor === ZERO_UUID || !row.actor ? "System" : actorLookup.get(row.actor) ?? row.actor,
   }));
 
   const mfaInsights = await getMfaInsights();

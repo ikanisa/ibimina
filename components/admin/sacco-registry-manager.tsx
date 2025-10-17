@@ -1,20 +1,47 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
 import { upsertSacco, removeSacco } from "@/app/(main)/admin/actions";
 
 
-type SaccoRow = Pick<
-  Database["public"]["Tables"]["saccos"]["Row"],
+import type { Database } from "@/lib/supabase/types";
+
+type RawSaccoRow = Pick<
+  Database["app"]["Tables"]["saccos"]["Row"],
   "id" | "name" | "district" | "province" | "sector" | "status" | "email" | "category" | "logo_url" | "sector_code"
 >;
 
+type SaccoRow = {
+  id: string;
+  name: string;
+  district: string;
+  province: string;
+  sector: string;
+  status: string;
+  email: string | null;
+  category: string;
+  logo_url: string | null;
+  sector_code: string;
+};
+
+const normalizeSacco = (row: RawSaccoRow): SaccoRow => ({
+  id: row.id,
+  name: row.name,
+  district: row.district ?? "",
+  province: row.province ?? "",
+  sector: row.sector ?? "",
+  status: row.status ?? "ACTIVE",
+  email: row.email ?? null,
+  category: row.category ?? DEFAULT_CATEGORY,
+  logo_url: row.logo_url ?? null,
+  sector_code: row.sector_code ?? "",
+});
+
 type SaccoRegistryManagerProps = {
-  initialSaccos: SaccoRow[];
+  initialSaccos: RawSaccoRow[];
 };
 
 type SaccoFormState = SaccoRow;
@@ -40,7 +67,7 @@ const DEFAULT_CATEGORY = "Deposit-Taking Microfinance Cooperative (UMURENGE SACC
 
 export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProps) {
   const { t } = useTranslation();
-  const [saccos, setSaccos] = useState<SaccoRow[]>(initialSaccos);
+  const [saccos, setSaccos] = useState<SaccoRow[]>(() => initialSaccos.map(normalizeSacco));
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<SaccoFormState | null>(null);
   const [mode, setMode] = useState<"edit" | "create">("edit");
@@ -54,7 +81,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
     if (!search.trim()) return saccos;
     const lowered = search.toLowerCase();
     return saccos.filter((sacco) =>
-      `${sacco.name} ${sacco.district} ${sacco.province} ${sacco.category}`.toLowerCase().includes(lowered)
+      `${sacco.name} ${sacco.district} ${sacco.province} ${sacco.category ?? ""}`.toLowerCase().includes(lowered)
     );
   }, [saccos, search]);
 
@@ -69,7 +96,10 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
       category: sacco.category || DEFAULT_CATEGORY,
       email: sacco.email ?? "",
       logo_url: sacco.logo_url ?? null,
-      sector_code: buildSectorCode(sacco.district, sacco.sector),
+      district: sacco.district ?? "",
+      province: sacco.province ?? "",
+      sector: sacco.sector ?? "",
+      sector_code: buildSectorCode(sacco.district ?? "", sacco.sector ?? ""),
     });
     setMode("edit");
   };
@@ -91,7 +121,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
   };
 
   const handleChange = <K extends keyof SaccoFormState>(key: K, value: SaccoFormState[K]) => {
-    setEditing((current) => (current ? { ...current, [key]: value } : current));
+    setEditing((current) => (current ? { ...current, [key]: value ?? "" } : current));
   };
 
   const validateForm = (state: SaccoFormState | null) => {
@@ -123,19 +153,22 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
         status: editing.status,
         email: editing.email?.trim() ? editing.email.trim() : null,
         logo_url: editing.logo_url ?? null,
-      } as Database["public"]["Tables"]["saccos"]["Insert"];
+      } as Database["app"]["Tables"]["saccos"]["Insert"];
 
       const result = await upsertSacco({
         mode: mode === "create" ? "create" : "update",
         // id is present in update mode
-        sacco: mode === "create" ? basePayload : ({ ...basePayload, id: editing.id } as unknown as Database["public"]["Tables"]["saccos"]["Update"] & { id: string }),
+        sacco: mode === "create"
+          ? basePayload
+          : ({ ...basePayload, id: editing.id } as unknown as Database["app"]["Tables"]["saccos"]["Update"] & { id: string }),
       });
       if (result.status === "error") {
         notifyError(result.message ?? t("common.operationFailed", "Operation failed"));
         return;
       }
       if (result.sacco) {
-        setSaccos((prev) => (mode === "create" ? [...prev, result.sacco as SaccoRow] : prev.map((s) => (s.id === editing.id ? (result.sacco as SaccoRow) : s))));
+        const normalized = normalizeSacco(result.sacco as RawSaccoRow);
+        setSaccos((prev) => (mode === "create" ? [...prev, normalized] : prev.map((s) => (s.id === editing.id ? normalized : s))));
       }
       notifySuccess(mode === "create" ? t("admin.registry.created", "SACCO created") : t("admin.registry.updated", "SACCO updated"));
       resetForm();

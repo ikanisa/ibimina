@@ -19,7 +19,7 @@ type MemberRow = Pick<
   Database["public"]["Views"]["ikimina_members_public"]["Row"],
   "id" | "ikimina_id" | "full_name" | "member_code" | "msisdn" | "status" | "joined_at"
 >;
-type PaymentRow = Database["public"]["Tables"]["payments"]["Row"];
+type PaymentRow = Database["app"]["Tables"]["payments"]["Row"];
 
 type StatementSummary = {
   label: string;

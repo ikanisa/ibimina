@@ -93,7 +93,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
     }
   }, [signature]);
 
-  type MemberInsert = Partial<Database["public"]["Tables"]["ikimina_members"]["Insert"]>;
+  type MemberInsert = Partial<Database["app"]["Tables"]["members"]["Insert"]>;
 
   const processedRows = useMemo<Array<ProcessedRow<MemberInsert> & { index: number }>>(() => {
     if (rows.length === 0 || !mappingComplete) {

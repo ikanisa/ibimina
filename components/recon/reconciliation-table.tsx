@@ -12,8 +12,8 @@ import { useOfflineQueue } from "@/providers/offline-queue-provider";
 
 const supabase = getSupabaseBrowserClient();
 
-export type ReconciliationRow = Database["public"]["Tables"]["payments"]["Row"] & {
-  source: Pick<Database["public"]["Tables"]["sms_inbox"]["Row"], "raw_text" | "parsed_json" | "msisdn" | "received_at"> | null;
+export type ReconciliationRow = Database["app"]["Tables"]["payments"]["Row"] & {
+  source: Pick<Database["app"]["Tables"]["sms_inbox"]["Row"], "raw_text" | "parsed_json" | "msisdn" | "received_at"> | null;
 };
 
 interface ReconciliationTableProps {
@@ -22,7 +22,7 @@ interface ReconciliationTableProps {
   canWrite: boolean;
 }
 
-const STATUS_OPTIONS: Database["public"]["Tables"]["payments"]["Row"]["status"][] = [
+const STATUS_OPTIONS: Database["app"]["Tables"]["payments"]["Row"]["status"][] = [
   "UNALLOCATED",
   "PENDING",
   "POSTED",
@@ -47,7 +47,7 @@ const STATUS_BILINGUAL: Record<string, { primary: string; secondary: string }> =
   REJECTED: { primary: "rejected", secondary: "byanzwe" },
 };
 
-const getStatusLabel = (status: Database["public"]["Tables"]["payments"]["Row"]["status"]) =>
+const getStatusLabel = (status: Database["app"]["Tables"]["payments"]["Row"]["status"]) =>
   STATUS_BILINGUAL[status] ?? { primary: status.toLowerCase(), secondary: status.toLowerCase() };
 
 type MemberResult = {
@@ -316,7 +316,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     setSelectedIds(displayRows.map((row) => row.id));
   };
 
-  const handleBulkStatus = (status: Database["public"]["Tables"]["payments"]["Row"]["status"]) => {
+  const handleBulkStatus = (status: Database["app"]["Tables"]["payments"]["Row"]["status"]) => {
     if (!canWrite || !selectedIds.length) return;
 
     if (!offlineQueue.isOnline) {
@@ -340,6 +340,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       setBulkError(null);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
+        .schema("app")
         .from("payments")
         .update({ status })
         .in("id", selectedIds);
@@ -383,6 +384,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       setBulkError(null);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
+        .schema("app")
         .from("payments")
         .update({ ikimina_id: trimmed })
         .in("id", selectedIds);
@@ -449,6 +451,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase as any)
+          .schema("app")
           .from("payments")
           .update({ ikimina_id: resolvedGroup.id })
           .in("id", selectedIds);
@@ -499,6 +502,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       setActionError(null);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
+        .schema("app")
         .from("payments")
         .update({ status: newStatus })
         .eq("id", selected.id);
@@ -533,6 +537,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       setActionError(null);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
+        .schema("app")
         .from("payments")
         .update({ ikimina_id: ikiminaId, member_id: memberId })
         .eq("id", selected.id);

@@ -26,7 +26,8 @@ function assertPdfFile(file: File | null): asserts file is File {
 async function ensureIkiminaAccess(ikiminaId: string, saccoId: string | null) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
-    .from("ibimina")
+    .schema("app")
+    .from("ikimina")
     .select("id, sacco_id")
     .eq("id", ikiminaId)
     .maybeSingle();
@@ -41,7 +42,7 @@ async function ensureIkiminaAccess(ikiminaId: string, saccoId: string | null) {
     throw notFoundError;
   }
 
-  const record = data as Pick<Database["public"]["Tables"]["ibimina"]["Row"], "id" | "sacco_id">;
+  const record = data as Pick<Database["app"]["Tables"]["ikimina"]["Row"], "id" | "sacco_id">;
 
   if (saccoId && record.sacco_id && saccoId !== record.sacco_id) {
     const forbidden = new Error("You do not have access to this ikimina");

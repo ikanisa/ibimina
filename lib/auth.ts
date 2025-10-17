@@ -1,8 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
+import { fetchUserAndProfile } from "@/lib/auth/service";
+import type { AuthContext, ProfileRow } from "@/lib/auth/service";
+
+export type { AuthContext, ProfileRow } from "@/lib/auth/service";
 
 const STUB_COOKIE_NAME = "stub-auth";
 
@@ -63,48 +65,11 @@ async function getStubContext(): Promise<AuthContext | null> {
   return { user: stubUser, profile: stubProfile };
 }
 
-export type ProfileRow = Database["public"]["Tables"]["users"]["Row"] & {
-  saccos?: Pick<Database["public"]["Tables"]["saccos"]["Row"], "id" | "name" | "district" | "province" | "sector_code" | "category"> | null;
-};
-
-export interface AuthContext {
-  user: User;
-  profile: ProfileRow;
-}
-
 export async function getUserAndProfile(): Promise<AuthContext | null> {
   if (isE2EStubEnabled()) {
     return getStubContext();
   }
-
-  const supabase = await createSupabaseServerClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
-  const { data: profile, error } = await supabase
-    .from("users")
-    .select(
-      "id, email, role, sacco_id, created_at, updated_at, mfa_enabled, mfa_enrolled_at, mfa_passkey_enrolled, mfa_methods, mfa_backup_hashes, failed_mfa_count, last_mfa_success_at, last_mfa_step, saccos(id, name, district, province, sector_code, category)"
-    )
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Failed to load profile", error);
-    throw new Error("Unable to load staff profile");
-  }
-
-  if (!profile) {
-    throw new Error("Profile not found");
-  }
-
-  return { user, profile };
+  return fetchUserAndProfile();
 }
 
 export async function requireUserAndProfile(): Promise<AuthContext> {

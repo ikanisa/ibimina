@@ -1,33 +1,43 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { AuthError, Factor } from "@supabase/supabase-js";
+import type { Factor } from "@supabase/supabase-js";
+import {
+  resendTotpChallenge,
+  signInWithPassword,
+  signOut,
+  verifyTotpCode,
+  type SignInSuccess,
+} from "@/lib/auth/client";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/providers/i18n-provider";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 
 type Step = "credentials" | "mfa";
-type TotpFactor = Factor<"totp", "verified">;
-type ProfileRow = { role: string | null };
 
-interface MfaState {
+type TotpFactor = Factor<"totp", "verified">;
+
+type MfaState = {
   factor: TotpFactor;
   challengeId: string;
-  /** unix seconds, or null if unknown */
   expiresAt: number | null;
-}
+};
+
+const ADMIN_ROLE = "SYSTEM_ADMIN";
+const GENERIC_ERROR = "auth.errors.generic";
 
 export default function AdminLoginForm() {
-  const supabase = getSupabaseBrowserClient();
   const router = useRouter();
   const { t } = useTranslation();
+  const supabase = getSupabaseBrowserClient();
 
   const [step, setStep] = useState<Step>("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [mfa, setMfa] = useState<MfaState | null>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
   const [formPending, setFormPending] = useState(false);
   const [resendPending, setResendPending] = useState(false);
   const [switchingAccount, setSwitchingAccount] = useState(false);
@@ -37,72 +47,98 @@ export default function AdminLoginForm() {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const codeInputRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
 
-  const resetState = useCallback(
-    (options?: { clearCredentials?: boolean }) => {
-      setStep("credentials");
-      setCode("");
-      setMfa(null);
-      setMessage(null);
-      setError(null);
-      setFormPending(false);
-      setResendPending(false);
-      setSwitchingAccount(false);
-      if (options?.clearCredentials) {
-        setEmail("");
-        setPassword("");
-      }
-    },
-    [],
-  );
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [error]);
 
-  const startMfaChallenge = useCallback(async () => {
-    const { data: factorsData, error: listError } = await supabase.auth.mfa.listFactors();
-    if (listError) throw new Error("list_factors_failed");
-
-    const totpFactors = (factorsData?.totp ?? []) as TotpFactor[];
-    const factor = totpFactors.find((item) => item.status === "verified");
-    if (!factor) throw new Error("no_totp_factor");
-
-    const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
-      factorId: factor.id,
-    });
-    if (challengeError || !challengeData) {
-      throw new Error(challengeError?.message || "challenge_failed");
+  useEffect(() => {
+    if (step === "mfa") {
+      codeInputRef.current?.focus();
+      return;
     }
 
-    // Normalize challenge payload field names
-    const typedChallenge = challengeData as {
-      id: string;
-      expires_at?: number | string | null;
-      expiresAt?: number | string | null;
+    if (email.trim().length > 0) {
+      passwordInputRef.current?.focus();
+    } else {
+      emailInputRef.current?.focus();
+    }
+  }, [email, step]);
+
+  useEffect(() => {
+    const expiresAt = mfa?.expiresAt;
+    if (!expiresAt) {
+      setSecondsRemaining(null);
+      return undefined;
+    }
+
+    const compute = () => {
+      const now = Math.round(Date.now() / 1000);
+      setSecondsRemaining(Math.max(0, expiresAt - now));
     };
 
-    let expiresAt: number | null = null;
-    const expiresRaw =
-      typeof typedChallenge.expires_at !== "undefined"
-        ? typedChallenge.expires_at
-        : typedChallenge.expiresAt;
+    compute();
+    const interval = window.setInterval(compute, 1000);
+    return () => window.clearInterval(interval);
+  }, [mfa?.expiresAt]);
 
-    if (typeof expiresRaw === "number") {
-      expiresAt = expiresRaw;
-    } else if (typeof expiresRaw === "string") {
-      const parsed = Date.parse(expiresRaw);
-      expiresAt = Number.isNaN(parsed) ? null : Math.round(parsed / 1000);
+  const parsedSeconds = useMemo(() => secondsRemaining ?? 0, [secondsRemaining]);
+
+  const resetAll = useCallback((options?: { clearCredentials?: boolean }) => {
+    setStep("credentials");
+    setFormPending(false);
+    setResendPending(false);
+    setError(null);
+    setMessage(null);
+    setCode("");
+    setMfa(null);
+    setSecondsRemaining(null);
+
+    if (options?.clearCredentials) {
+      setEmail("");
+      setPassword("");
+    }
+  }, []);
+
+  const ensureAdminRole = useCallback(async () => {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getUser();
+    if (sessionError || !sessionData.user) {
+      return { ok: false, reason: "session" as const };
     }
 
-    setMfa({ factor, challengeId: typedChallenge.id, expiresAt });
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", sessionData.user.id)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      return { ok: false, reason: "profile" as const };
+    }
+
+    if (profile.role !== ADMIN_ROLE) {
+      return { ok: false, reason: "not_admin" as const };
+    }
+
+    return { ok: true as const };
+  }, [supabase]);
+
+  const transitionToMfa = useCallback((payload: Extract<SignInSuccess, { status: "mfa_required" }>) => {
+    setMfa({
+      factor: payload.factor,
+      challengeId: payload.challengeId,
+      expiresAt: payload.expiresAt,
+    });
     setStep("mfa");
     setCode("");
     setMessage(
-      t(
-        "adminAuth.mfa.prompt",
-        "Enter the 6-digit code from your authenticator app to finish signing in.",
-      ),
+      t("adminAuth.mfa.prompt", "Enter the 6-digit code from your authenticator app."),
     );
     setError(null);
-    codeInputRef.current?.focus();
-  }, [supabase, t]);
+  }, [t]);
 
   const handleCredentialsSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -112,42 +148,19 @@ export default function AdminLoginForm() {
       setMessage(null);
 
       try {
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
+        const result = await signInWithPassword(email, password);
 
-        if (signInError) {
-          const status = (signInError as AuthError).status;
-          if (status === 400 || status === 401) {
-            setError(t("auth.errors.invalidCredentials", "Email or password was incorrect."));
-          } else {
-            setError(signInError.message || t("auth.errors.generic", "Something went wrong. Try again."));
-          }
+        if (result.status === "error") {
+          setError(result.message || t(GENERIC_ERROR, "Something went wrong. Try again."));
           return;
         }
 
-        // If session is already issued, verify admin role; otherwise proceed to MFA
-        if (data.session) {
-          const userId = data.session.user.id;
-          const { data: profileData, error: profileError } = await supabase
-            .from("users")
-            .select("role")
-            .eq("id", userId)
-            .maybeSingle();
-
-          const profile = (profileData ?? null) as ProfileRow | null;
-          if (profileError || !profile) {
-            setError(t("auth.errors.generic", "Something went wrong. Try again."));
-            await supabase.auth.signOut();
-            resetState();
-            return;
-          }
-
-          if (profile.role !== "SYSTEM_ADMIN") {
+        if (result.status === "authenticated") {
+          const adminCheck = await ensureAdminRole();
+          if (!adminCheck.ok) {
             setError(t("adminAuth.errors.notAdmin", "You do not have administrative privileges."));
-            await supabase.auth.signOut();
-            resetState({ clearCredentials: false });
+            await signOut();
+            resetAll({ clearCredentials: false });
             return;
           }
 
@@ -157,16 +170,15 @@ export default function AdminLoginForm() {
           return;
         }
 
-        // No session yet → start MFA flow
-        await startMfaChallenge();
-      } catch (unknownError) {
-        console.error("Sign in failed", unknownError);
-        setError(t("auth.errors.generic", "Something went wrong. Try again."));
+        transitionToMfa(result);
+      } catch (cause) {
+        console.error("[admin-auth] credentials submit failed", cause);
+        setError(t(GENERIC_ERROR, "Something went wrong. Try again."));
       } finally {
         setFormPending(false);
       }
     },
-    [email, password, resetState, router, startMfaChallenge, supabase, t],
+    [email, ensureAdminRole, password, resetAll, router, t, transitionToMfa],
   );
 
   const handleMfaSubmit = useCallback(
@@ -176,8 +188,11 @@ export default function AdminLoginForm() {
         setError(t("adminAuth.mfa.missing", "No verified authenticator was found for this account."));
         return;
       }
-      if (code.length < 6) {
-        setError(t("auth.errors.enterCode", "Enter the 6-digit code from your authenticator."));
+
+      const sanitizedCode = code.replace(/[^0-9]/g, "");
+      if (sanitizedCode.length !== 6) {
+        setError(t("auth.mfa.invalidCode", "Codes must be 6 digits."));
+        codeInputRef.current?.focus();
         return;
       }
 
@@ -186,216 +201,223 @@ export default function AdminLoginForm() {
       setMessage(null);
 
       try {
-        const { data: verifyData, error: verifyError } = await supabase.auth.mfa.verify({
-          factorId: mfa.factor.id,
+        const result = await verifyTotpCode({
+          factor: mfa.factor,
           challengeId: mfa.challengeId,
-          code,
+          code: sanitizedCode,
         });
 
-        if (verifyError) {
-          const status = (verifyError as AuthError).status;
-          if (status === 400 || status === 422) {
-            setError(t("auth.errors.invalidCode", "That code was not accepted. Try again."));
-          } else {
-            setError(
-              verifyError.message || t("auth.errors.generic", "Unable to verify the authenticator code."),
-            );
-          }
+        if (result.status === "error") {
+          setError(result.message || t(GENERIC_ERROR, "Something went wrong. Try again."));
           return;
         }
 
-        const userId = verifyData?.user?.id;
-        if (!userId) {
-          setError(t("auth.errors.generic", "Something went wrong. Try again."));
-          return;
-        }
-
-        const { data: profileData, error: profileError } = await supabase
-          .from("users")
-          .select("role")
-          .eq("id", userId)
-          .maybeSingle();
-
-        const profile = (profileData ?? null) as ProfileRow | null;
-        if (profileError || !profile) {
-          setError(t("auth.errors.generic", "Something went wrong. Try again."));
-          await supabase.auth.signOut();
-          resetState();
-          return;
-        }
-
-        if (profile.role !== "SYSTEM_ADMIN") {
+        const adminCheck = await ensureAdminRole();
+        if (!adminCheck.ok) {
           setError(t("adminAuth.errors.notAdmin", "You do not have administrative privileges."));
-          await supabase.auth.signOut();
-          resetState({ clearCredentials: false });
+          await signOut();
+          resetAll({ clearCredentials: true });
           return;
         }
 
         setMessage(t("adminAuth.success.redirect", "Success! Redirecting to admin dashboard…"));
+        resetAll();
         router.refresh();
         router.push("/admin");
-      } catch (unknownError) {
-        console.error("MFA verification failed", unknownError);
-        setError(t("auth.errors.generic", "Unable to verify the authenticator code."));
+      } catch (cause) {
+        console.error("[admin-auth] verify mfa failed", cause);
+        setError(t(GENERIC_ERROR, "Something went wrong. Try again."));
       } finally {
         setFormPending(false);
       }
     },
-    [code, mfa, resetState, router, supabase, t],
+    [code, ensureAdminRole, mfa, resetAll, router, t],
   );
 
   const handleResend = useCallback(async () => {
-    if (!mfa?.factor || resendPending) return;
+    if (!mfa) {
+      return;
+    }
 
     setResendPending(true);
     setError(null);
 
     try {
-      await startMfaChallenge();
-      setMessage(t("adminAuth.mfa.codeResent", "We've sent a new code to your authenticator."));
-    } catch (challengeError) {
-      console.error("MFA challenge restart failed", challengeError);
-      setError(t("auth.errors.generic", "We couldn't start multi-factor authentication."));
+      const refreshed = await resendTotpChallenge(mfa.factor);
+      if (refreshed.status === "ok") {
+        setMfa({
+          factor: refreshed.factor,
+          challengeId: refreshed.challengeId,
+          expiresAt: refreshed.expiresAt,
+        });
+        setMessage(
+          t(
+            "adminAuth.mfa.resendSuccess",
+            "A new code was issued. Enter it to finish signing in.",
+          ),
+        );
+      } else {
+        setError(refreshed.message ?? t(GENERIC_ERROR, "Something went wrong. Try again."));
+      }
+    } catch (cause) {
+      console.error("[admin-auth] resend mfa failed", cause);
+      setError(t(GENERIC_ERROR, "Something went wrong. Try again."));
     } finally {
       setResendPending(false);
     }
-  }, [mfa?.factor, resendPending, startMfaChallenge, t]);
+  }, [mfa, t]);
 
-  const handleSwitchAccount = useCallback(async () => {
-    if (switchingAccount) return;
-
+  const switchAccount = useCallback(async () => {
     setSwitchingAccount(true);
-    setError(null);
-    setMessage(null);
-
+    resetAll({ clearCredentials: true });
     try {
-      await supabase.auth.signOut();
-    } catch (signOutError) {
-      console.error("Failed to sign out before switching accounts", signOutError);
+      await signOut();
     } finally {
-      resetState({ clearCredentials: true });
-      setSwitchingAccount(false);
-      emailInputRef.current?.focus();
+      router.push("/admin/login");
     }
-  }, [resetState, supabase, switchingAccount]);
+  }, [resetAll, router]);
 
-  const submitHandler = step === "credentials" ? handleCredentialsSubmit : handleMfaSubmit;
-  const disableInputs = formPending || resendPending || switchingAccount;
+  const secondsLabel = useMemo(() => {
+    if (!secondsRemaining || secondsRemaining <= 0) {
+      return t("auth.mfa.expiresSoon", "Code expiring soon");
+    }
+    const template = t("auth.mfa.codeExpiresIn", "Code expires in {{seconds}}s");
+    return template.replace("{{seconds}}", String(parsedSeconds));
+  }, [parsedSeconds, secondsRemaining, t]);
 
   return (
-    <form onSubmit={submitHandler} className="space-y-6">
-      <div className="flex flex-col items-center gap-3 text-neutral-0">
-        <OptimizedImage src="/logo-window.svg" alt="SACCO" width={48} height={48} priority />
-        <h2 className="text-sm font-semibold">
-          {t("adminAuth.title", "Sign in as administrator")}
-        </h2>
-        <p className="text-xs text-neutral-2">
-          {step === "credentials"
-            ? t("adminAuth.subtitle", "Use your administrator email and password to continue.")
-            : t("adminAuth.mfa.title", "Finish signing in with your authenticator app.")}
+    <div className="mx-auto flex w-full max-w-md flex-col gap-8" data-testid="admin-login-form">
+      <header className="flex flex-col items-center gap-4 text-center">
+        <OptimizedImage src="/logo.svg" width={80} height={80} alt="SACCO+" priority />
+        <h1 className="text-2xl font-semibold">{t("adminAuth.title", "Admin sign in")}</h1>
+        <p className="text-muted-foreground">
+          {t("adminAuth.subtitle", "Access operations dashboards and manage system configuration.")}
         </p>
-      </div>
+      </header>
 
-      {error && (
-        <p
-          role="alert"
-          tabIndex={-1}
-          className="rounded-xl border border-red-400/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"
-        >
-          {error}
-        </p>
-      )}
-      {message && !error && (
-        <p className="rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+      {message && (
+        <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success" role="status">
           {message}
         </p>
       )}
 
-      {step === "credentials" ? (
-        <div className="space-y-2 text-left">
-          <label htmlFor="admin-email" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-            {t("adminAuth.email.label", "Email")}
-          </label>
-          <input
-            id="admin-email"
-            name="email"
-            type="email"
-            ref={emailInputRef}
-            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-0 placeholder-neutral-500"
-            placeholder={t("adminAuth.email.placeholder", "you@example.com")}
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            disabled={disableInputs}
-            required
-          />
-
-          <label
-            htmlFor="admin-password"
-            className="block text-xs uppercase tracking-[0.3em] text-neutral-2"
-          >
-            {t("adminAuth.password.label", "Password")}
-          </label>
-          <input
-            id="admin-password"
-            name="password"
-            type="password"
-            ref={passwordInputRef}
-            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-0 placeholder-neutral-500"
-            placeholder={t("adminAuth.password.placeholder", "••••••••")}
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            disabled={disableInputs}
-            required
-          />
-        </div>
-      ) : (
-        <div className="space-y-2 text-left">
-          <label htmlFor="admin-code" className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
-            {t("adminAuth.code.label", "Authenticator code")}
-          </label>
-          <input
-            id="admin-code"
-            name="code"
-            type="text"
-            ref={codeInputRef}
-            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-0 placeholder-neutral-500"
-            placeholder="· · · · · ·"
-            autoComplete="one-time-code"
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-            disabled={disableInputs}
-            required
-          />
-          <button
-            type="button"
-            className="text-sm text-neutral-3 underline"
-            onClick={handleResend}
-            disabled={disableInputs}
-          >
-            {t("adminAuth.mfa.resend", "Resend code")}
-          </button>
-        </div>
+      {error && (
+        <p
+          ref={errorRef}
+          role="alert"
+          tabIndex={-1}
+          className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          {error}
+        </p>
       )}
 
-      <div className="flex flex-col gap-2">
-        <button
-          type="submit"
-          className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-neutral-0 disabled:bg-neutral-700"
-          disabled={disableInputs}
-        >
-          {step === "credentials" ? t("adminAuth.submit", "Sign in") : t("adminAuth.verify", "Verify code")}
-        </button>
-        <button
-          type="button"
-          className="rounded-lg bg-neutral-800 px-4 py-2 text-sm font-semibold text-neutral-0"
-          onClick={handleSwitchAccount}
-          disabled={disableInputs}
-        >
-          {t("adminAuth.switchAccount", "Switch account")}
-        </button>
-      </div>
-    </form>
+      {step === "credentials" ? (
+        <form className="flex flex-col gap-4" onSubmit={handleCredentialsSubmit}>
+          <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="admin-email">
+            {t("auth.emailLabel", "Work email")}
+            <input
+              id="admin-email"
+              ref={emailInputRef}
+              type="email"
+              autoComplete="email"
+              required
+              disabled={formPending}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="rounded border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="admin-password">
+            {t("auth.passwordLabel", "Password")}
+            <input
+              id="admin-password"
+              ref={passwordInputRef}
+              type="password"
+              autoComplete="current-password"
+              required
+              disabled={formPending}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="rounded border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={formPending || email.trim().length === 0 || password.length === 0}
+          >
+            {formPending
+              ? t("auth.signingIn", "Signing in…")
+              : t("auth.signIn", "Sign in")}
+          </button>
+        </form>
+      ) : (
+        <form className="flex flex-col gap-4" onSubmit={handleMfaSubmit}>
+          <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="admin-code">
+            {secondsRemaining && secondsRemaining > 0
+              ? secondsLabel
+              : t("adminAuth.mfa.enterCode", "Enter your 6-digit code")}
+            <input
+              id="admin-code"
+              ref={codeInputRef}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="one-time-code"
+              required
+              disabled={formPending}
+              maxLength={6}
+              value={code}
+              onChange={(event) => setCode(event.target.value.replace(/[^0-9]/g, ""))}
+              className="rounded border border-input bg-background px-3 py-2 text-center text-lg tracking-[6px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
+
+          <div className="flex items-center justify-between text-sm">
+            <button
+              type="button"
+              disabled={resendPending || formPending}
+              onClick={handleResend}
+              className="text-primary underline-offset-2 hover:underline disabled:opacity-60"
+            >
+              {resendPending
+                ? t("auth.mfa.resending", "Sending…")
+                : t("auth.mfa.resend", "Resend code")}
+            </button>
+            <button
+              type="button"
+              onClick={() => resetAll()}
+              className="text-muted-foreground underline-offset-2 hover:underline"
+            >
+              {t("auth.mfa.useDifferentAccount", "Use a different account")}
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={formPending || code.length !== 6}
+          >
+            {formPending
+              ? t("auth.mfa.verifying", "Verifying…")
+              : t("auth.mfa.verify", "Verify & continue")}
+          </button>
+        </form>
+      )}
+
+      <button
+        type="button"
+        onClick={switchAccount}
+        disabled={switchingAccount}
+        className="text-xs text-muted-foreground underline-offset-2 hover:underline disabled:opacity-60"
+      >
+        {switchingAccount
+          ? t("auth.switchingAccounts", "Switching accounts…")
+          : t("auth.notYou", "Not you? Switch account")}
+      </button>
+    </div>
   );
 }

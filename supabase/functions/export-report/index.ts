@@ -161,11 +161,16 @@ Deno.serve(async (req) => {
     if (params.saccoId) {
       saccoIds = [params.saccoId];
     } else if (params.district) {
-      const { data: saccoRows } = await supabase.from("saccos").select("id").eq("district", params.district);
+      const { data: saccoRows } = await supabase
+        .schema("app")
+        .from("saccos")
+        .select("id")
+        .eq("district", params.district);
       saccoIds = (saccoRows ?? []).map((row) => row.id as string);
     }
 
     let paymentsQuery = supabase
+      .schema("app")
       .from("payments")
       .select("id, sacco_id, ikimina_id, amount, occurred_at, status")
       .gte("occurred_at", start.toISOString())
@@ -181,7 +186,10 @@ Deno.serve(async (req) => {
       throw paymentsError;
     }
 
-    const { data: ibiminaRows } = await supabase.from("ibimina").select("id, name, code, sacco_id");
+    const { data: ibiminaRows } = await supabase
+      .schema("app")
+      .from("ikimina")
+      .select("id, name, code, sacco_id");
 
     const totalsByIkimina = new Map<string, { name: string; code: string; amount: number; count: number }>();
     let grandTotal = 0;
@@ -246,6 +254,7 @@ Deno.serve(async (req) => {
     let logoBytes: Uint8Array | null = null;
     if (params.saccoId) {
       const { data: saccoRow } = await supabase
+        .schema("app")
         .from("saccos")
         .select("name, logo_url, brand_color")
         .eq("id", params.saccoId)
