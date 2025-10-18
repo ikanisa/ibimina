@@ -7,8 +7,7 @@ import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
 import { queueNotification, createSmsTemplate, setSmsTemplateActive, deleteSmsTemplate } from "@/app/(main)/admin/actions";
 
-  const supabase = getSupabaseBrowserClient();
-
+const supabase = getSupabaseBrowserClient();
 
 const TOKEN_LIBRARY = [
   { token: "{member_name}", primary: "Member name", secondary: "Izina ry'umunyamuryango" },

@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, supabaseSrv } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { logAudit } from "@/lib/audit";
 import { CACHE_TAGS } from "@/lib/performance/cache";
@@ -30,7 +30,7 @@ async function updateUserAccessInternal({
     return { status: "error", message: "Only system administrators can modify user access." };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = supabaseSrv();
   const updatePayload: Database["public"]["Tables"]["users"]["Update"] = {
     role,
     sacco_id: saccoId,
@@ -69,7 +69,7 @@ async function queueNotificationInternal({
     return { status: "error", message: "Only system administrators can queue notifications." };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = supabaseSrv();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from("notification_queue").insert({
     event,
@@ -101,7 +101,7 @@ async function queueMfaReminderInternal({
     return { status: "error", message: "Only system administrators can send reminders." };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = supabaseSrv();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from("notification_queue").insert({
     event: "MFA_REMINDER",
@@ -143,7 +143,7 @@ async function createSmsTemplateInternal({
     return { status: "error", message: "Template name and body are required." };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = supabaseSrv();
   const payload: Database["public"]["Tables"]["sms_templates"]["Insert"] = {
     sacco_id: saccoId,
     name: name.trim(),
@@ -181,7 +181,7 @@ async function setSmsTemplateActiveInternal({
     logWarn("admin_template_toggle_denied", { templateId, actorRole: profile.role });
     return { status: "error", message: "Only system administrators can update templates." };
   }
-  const supabase = await createSupabaseServerClient();
+  const supabase = supabaseSrv();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
     .from("sms_templates")
@@ -362,6 +362,157 @@ export const queueNotification = instrumentServerAction("admin.queueNotification
 export const queueMfaReminder = instrumentServerAction("admin.queueMfaReminder", queueMfaReminderInternal);
 export const createSmsTemplate = instrumentServerAction("admin.createSmsTemplate", createSmsTemplateInternal);
 export const setSmsTemplateActive = instrumentServerAction("admin.setSmsTemplateActive", setSmsTemplateActiveInternal);
+async function updateTenantSettingsInternal({
+  saccoId,
+  settings,
+}: {
+  saccoId: string;
+  settings: {
+    rules: string;
+    feePolicy: string;
+    kycThresholds: { enhanced: number; freeze: number };
+    integrations: { webhook: boolean; edgeReconciliation: boolean; notifications: boolean };
+  };
+}): Promise<AdminActionResult & { metadata?: Record<string, unknown> }> {
+  const { profile, user } = await requireUserAndProfile();
+  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
+
+  if (profile.role !== "SYSTEM_ADMIN") {
+    logWarn("admin_settings_update_denied", { saccoId, actorRole: profile.role });
+    return { status: "error", message: "Only system administrators can update tenant settings." };
+  }
+
+  const supabase = supabaseSrv();
+
+  const { data: row, error: selectError } = await supabase
+    .schema("app")
+    .from("saccos")
+    .select("id, metadata")
+    .eq("id", saccoId)
+    .maybeSingle();
+
+  if (selectError) {
+    logError("admin_settings_load_failed", { saccoId, error: selectError });
+    return { status: "error", message: selectError.message ?? "Failed to load existing settings" };
+  }
+
+  const previousMetadata = (row?.metadata as Record<string, unknown> | null) ?? {};
+  const nextMetadata = {
+    ...previousMetadata,
+    admin_settings: {
+      ...(previousMetadata.admin_settings as Record<string, unknown> | undefined),
+      rules: settings.rules,
+      feePolicy: settings.feePolicy,
+      kycThresholds: settings.kycThresholds,
+      integrations: settings.integrations,
+      updated_at: new Date().toISOString(),
+      updated_by: user.id,
+    },
+  } satisfies Record<string, unknown>;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: updateResult, error: updateError } = await (supabase as any)
+    .schema("app")
+    .from("saccos")
+    .update({ metadata: nextMetadata })
+    .eq("id", saccoId)
+    .select("metadata")
+    .single();
+
+  if (updateError) {
+    logError("admin_settings_update_failed", { saccoId, error: updateError });
+    return { status: "error", message: updateError.message ?? "Failed to update tenant settings" };
+  }
+
+  await logAudit({
+    action: "TENANT_SETTINGS_UPDATED",
+    entity: "SACCO",
+    entityId: saccoId,
+    diff: {
+      rules: settings.rules,
+      feePolicy: settings.feePolicy,
+      kycThresholds: settings.kycThresholds,
+      integrations: settings.integrations,
+    },
+  });
+
+  await revalidatePath("/admin/settings");
+  await revalidateTag(CACHE_TAGS.sacco(saccoId));
+
+  logInfo("admin_settings_update_success", { saccoId });
+  return { status: "success", message: "Settings updated", metadata: updateResult?.metadata ?? nextMetadata };
+}
+
+async function resolveOcrReviewInternal({
+  memberUserId,
+  decision,
+  note,
+}: {
+  memberUserId: string;
+  decision: "accept" | "rescan";
+  note?: string;
+}): Promise<AdminActionResult> {
+  const { profile, user } = await requireUserAndProfile();
+  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
+
+  const allowedRoles: Array<Database["public"]["Enums"]["app_role"]> = ["SYSTEM_ADMIN", "SACCO_MANAGER"];
+  if (!allowedRoles.includes(profile.role)) {
+    logWarn("admin_ocr_review_denied", { memberUserId, actorRole: profile.role });
+    return { status: "error", message: "Insufficient permissions for OCR review." };
+  }
+
+  const supabase = supabaseSrv();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const legacyClient = supabase as any;
+  const { data: profileRow, error: loadError } = await legacyClient
+    .from("members_app_profiles")
+    .select("ocr_json, is_verified")
+    .eq("user_id", memberUserId)
+    .maybeSingle();
+
+  if (loadError) {
+    logError("admin_ocr_review_load_failed", { memberUserId, error: loadError });
+    return { status: "error", message: loadError.message ?? "Failed to load OCR payload" };
+  }
+
+  const existingOcr = (profileRow?.ocr_json as Record<string, unknown> | null) ?? {};
+  const reviewedAt = new Date().toISOString();
+  const nextOcr = {
+    ...existingOcr,
+    status: decision === "accept" ? "accepted" : "needs_rescan",
+    reviewed_at: reviewedAt,
+    reviewer: user.id,
+    note: note ?? null,
+  } satisfies Record<string, unknown>;
+
+  const updatePayload = {
+    is_verified: decision === "accept",
+    ocr_json: nextOcr,
+  };
+
+  const { error: updateError } = await legacyClient
+    .from("members_app_profiles")
+    .update(updatePayload)
+    .eq("user_id", memberUserId);
+
+  if (updateError) {
+    logError("admin_ocr_review_update_failed", { memberUserId, decision, error: updateError });
+    return { status: "error", message: updateError.message ?? "Failed to update OCR review" };
+  }
+
+  await logAudit({
+    action: decision === "accept" ? "OCR_ACCEPTED" : "OCR_RESCAN_REQUESTED",
+    entity: "MEMBER_PROFILE",
+    entityId: memberUserId,
+    diff: { decision, note: note ?? null },
+  });
+
+  await revalidatePath("/admin/ocr");
+  logInfo("admin_ocr_review_success", { memberUserId, decision });
+  return { status: "success", message: decision === "accept" ? "Document approved" : "Rescan requested" };
+}
+
 export const deleteSmsTemplate = instrumentServerAction("admin.deleteSmsTemplate", deleteSmsTemplateInternal);
 export const upsertSacco = instrumentServerAction("admin.upsertSacco", upsertSaccoInternal);
 export const removeSacco = instrumentServerAction("admin.removeSacco", removeSaccoInternal);
@@ -369,3 +520,5 @@ export const resetMfaForAllEnabled = instrumentServerAction(
   "admin.resetMfaForAllEnabled",
   resetMfaForAllEnabledInternal,
 );
+export const updateTenantSettings = instrumentServerAction("admin.updateTenantSettings", updateTenantSettingsInternal);
+export const resolveOcrReview = instrumentServerAction("admin.resolveOcrReview", resolveOcrReviewInternal);

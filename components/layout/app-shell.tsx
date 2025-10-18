@@ -70,6 +70,14 @@ type QuickActionGroupDefinition = {
 
 export function AppShell({ children, profile }: AppShellProps) {
   const pathname = usePathname();
+  const isAdminPanel = pathname?.startsWith("/admin");
+  if (isAdminPanel) {
+    return <>{children}</>;
+  }
+  return <DefaultAppShell profile={profile}>{children}</DefaultAppShell>;
+}
+
+function DefaultAppShell({ children, profile }: AppShellProps) {
   const [showActions, setShowActions] = useState(false);
   const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
