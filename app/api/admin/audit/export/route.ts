@@ -1,0 +1,126 @@
+import { NextResponse } from "next/server";
+
+import { requireUserAndProfile } from "@/lib/auth";
+import { supabaseSrv } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
+
+export const runtime = "nodejs";
+
+export async function GET(req: Request) {
+  const { profile } = await requireUserAndProfile();
+  const allowedRoles: Array<Database["public"]["Enums"]["app_role"]> = [
+    "SYSTEM_ADMIN",
+    "SACCO_MANAGER",
+  ];
+
+  if (!allowedRoles.includes(profile.role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const url = new URL(req.url);
+  const action = url.searchParams.get("action")?.trim() ?? "";
+  const entity = url.searchParams.get("entity")?.trim() ?? "";
+  const actorSearch = url.searchParams.get("actor")?.trim() ?? "";
+  const from = url.searchParams.get("from")?.trim() ?? "";
+  const to = url.searchParams.get("to")?.trim() ?? "";
+  const overrideSacco = url.searchParams.get("saccoId")?.trim() ?? "";
+
+  const supabase = supabaseSrv();
+  const actorIds: string[] = [];
+
+  if (actorSearch.length > 0) {
+    const { data: actorRows, error: actorError } = await supabase
+      .from("users")
+      .select("id")
+      .ilike("email", `%${actorSearch}%`)
+      .limit(100);
+    if (actorError) {
+      return NextResponse.json({ error: actorError.message }, { status: 500 });
+    }
+    actorIds.push(...(actorRows ?? []).map((row) => String(row.id)));
+    if (actorIds.length === 0) {
+      return new NextResponse("id,action,entity,entity_id,actor,created_at,diff\n", {
+        headers: csvHeaders(),
+      });
+    }
+  }
+
+  let query = supabase
+    .schema("app")
+    .from("audit_logs")
+    .select("id, action, entity, entity_id, diff, created_at, actor, sacco_id")
+    .order("created_at", { ascending: false })
+    .limit(1000);
+
+  const saccoScope =
+    profile.role === "SYSTEM_ADMIN"
+      ? overrideSacco || null
+      : profile.sacco_id ?? (overrideSacco || null);
+
+  if (saccoScope) {
+    query = query.eq("sacco_id", saccoScope);
+  }
+
+  if (action) {
+    query = query.ilike("action", `%${action}%`);
+  }
+  if (entity) {
+    query = query.ilike("entity", `%${entity}%`);
+  }
+  if (actorIds.length > 0) {
+    query = query.in("actor", actorIds);
+  } else if (actorSearch.length > 0) {
+    query = query.eq("actor", actorSearch);
+  }
+  if (from) {
+    const fromIso = new Date(`${from}T00:00:00Z`).toISOString();
+    query = query.gte("created_at", fromIso);
+  }
+  if (to) {
+    const toIso = new Date(`${to}T23:59:59.999Z`).toISOString();
+    query = query.lte("created_at", toIso);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const rows = data ?? [];
+  const csvLines = [
+    "id,action,entity,entity_id,actor,created_at,diff",
+    ...rows.map((row) =>
+      [
+        csvValue(row.id),
+        csvValue(row.action),
+        csvValue(row.entity),
+        csvValue(row.entity_id),
+        csvValue(row.actor),
+        csvValue(row.created_at),
+        csvValue(row.diff ? JSON.stringify(row.diff) : null),
+      ].join(","),
+    ),
+  ];
+
+  const body = csvLines.join("\n");
+  return new NextResponse(body, { headers: csvHeaders() });
+}
+
+export function csvHeaders(): HeadersInit {
+  return {
+    "Content-Type": "text/csv; charset=utf-8",
+    "Content-Disposition": `attachment; filename="audit-export-${Date.now()}.csv"`,
+  };
+}
+
+export function csvValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  const raw = String(value).replace(/"/g, '""');
+  if (raw.includes(",") || raw.includes("\n") || raw.includes("\r") || raw.includes('"')) {
+    return `"${raw}"`;
+  }
+  return raw;
+}

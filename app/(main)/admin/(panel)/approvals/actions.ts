@@ -1,0 +1,245 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { randomBytes } from "node:crypto";
+import { requireUserAndProfile } from "@/lib/auth";
+import { supabaseSrv } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
+import { instrumentServerAction } from "@/lib/observability/server-action";
+import { logError, logWarn } from "@/lib/observability/logger";
+
+export type ApprovalActionResult = {
+  status: "success" | "error";
+  message?: string;
+};
+
+async function decideJoinRequestInternal({
+  requestId,
+  decision,
+  reason,
+}: {
+  requestId: string;
+  decision: "approved" | "rejected";
+  reason?: string;
+}): Promise<ApprovalActionResult> {
+  const { profile, user } = await requireUserAndProfile();
+  const supabase = supabaseSrv();
+
+  const { data: request, error } = await supabase
+    .schema("app")
+    .from("join_requests")
+    .select("id, status, sacco_id, group_id, user_id, note")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (error) {
+    logError("admin.joinRequest.fetchFailed", { requestId, error });
+    return { status: "error", message: error.message ?? "Failed to load join request" };
+  }
+
+  if (!request) {
+    return { status: "error", message: "Join request not found" };
+  }
+
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id !== request.sacco_id) {
+    logWarn("admin.joinRequest.unauthorized", { requestId, actor: profile.id, saccoId: profile.sacco_id });
+    return { status: "error", message: "You are not allowed to manage this join request." };
+  }
+
+  const nextStatus = decision === "approved" ? "approved" : "rejected";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any)
+    .schema("app")
+    .from("join_requests")
+    .update({
+      status: nextStatus,
+      decided_at: new Date().toISOString(),
+      decided_by: user.id,
+      note: reason ?? request.note ?? null,
+    })
+    .eq("id", requestId);
+
+  if (updateError) {
+    logError("admin.joinRequest.updateFailed", { requestId, decision, updateError });
+    return { status: "error", message: updateError.message ?? "Failed to update join request" };
+  }
+
+  await logAudit({
+    action: decision === "approved" ? "join_request_approved" : "join_request_rejected",
+    entity: "join_request",
+    entityId: requestId,
+    diff: { decision, reason: reason ?? null },
+  });
+
+  revalidatePath("/admin/approvals");
+  revalidatePath("/admin/overview");
+
+  return { status: "success" };
+}
+
+async function resendInviteInternal({ inviteId }: { inviteId: string }): Promise<ApprovalActionResult> {
+  const { profile } = await requireUserAndProfile();
+  const supabase = supabaseSrv();
+
+  const { data: invite, error } = await supabase
+    .from("group_invites")
+    .select("id, group_id, status, group:ikimina(sacco_id)")
+    .eq("id", inviteId)
+    .maybeSingle();
+
+  if (error) {
+    logError("admin.invite.fetchFailed", { inviteId, error });
+    return { status: "error", message: error.message ?? "Failed to load invite" };
+  }
+
+  if (!invite) {
+    return { status: "error", message: "Invite not found" };
+  }
+
+  const saccoId = invite.group?.sacco_id ?? null;
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id !== saccoId) {
+    logWarn("admin.invite.unauthorized", { inviteId, actor: profile.id, saccoId });
+    return { status: "error", message: "You are not allowed to resend this invite." };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any)
+    .from("group_invites")
+    .update({
+      status: "sent",
+      created_at: new Date().toISOString(),
+    })
+    .eq("id", inviteId);
+
+  if (updateError) {
+    logError("admin.invite.resendFailed", { inviteId, updateError });
+    return { status: "error", message: updateError.message ?? "Failed to resend invite" };
+  }
+
+  await logAudit({
+    action: "group_invite_resent",
+    entity: "group_invite",
+    entityId: inviteId,
+    diff: null,
+  });
+
+  revalidatePath("/admin/approvals");
+  return { status: "success" };
+}
+
+async function revokeInviteInternal({ inviteId }: { inviteId: string }): Promise<ApprovalActionResult> {
+  const { profile } = await requireUserAndProfile();
+  const supabase = supabaseSrv();
+
+  const { data: invite, error } = await supabase
+    .from("group_invites")
+    .select("id, group_id, status, group:ikimina(sacco_id)")
+    .eq("id", inviteId)
+    .maybeSingle();
+
+  if (error) {
+    logError("admin.invite.fetchFailed", { inviteId, error });
+    return { status: "error", message: error.message ?? "Failed to load invite" };
+  }
+
+  if (!invite) {
+    return { status: "error", message: "Invite not found" };
+  }
+
+  const saccoId = invite.group?.sacco_id ?? null;
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id !== saccoId) {
+    logWarn("admin.invite.unauthorized", { inviteId, actor: profile.id, saccoId });
+    return { status: "error", message: "You are not allowed to revoke this invite." };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any)
+    .from("group_invites")
+    .update({ status: "expired" })
+    .eq("id", inviteId);
+
+  if (updateError) {
+    logError("admin.invite.revokeFailed", { inviteId, updateError });
+    return { status: "error", message: updateError.message ?? "Failed to revoke invite" };
+  }
+
+  await logAudit({
+    action: "group_invite_revoked",
+    entity: "group_invite",
+    entityId: inviteId,
+    diff: null,
+  });
+
+  revalidatePath("/admin/approvals");
+  return { status: "success" };
+}
+
+async function sendInviteInternal({
+  groupId,
+  msisdn,
+}: {
+  groupId: string;
+  msisdn: string;
+}): Promise<ApprovalActionResult> {
+  const { profile } = await requireUserAndProfile();
+  const supabase = supabaseSrv();
+
+  const { data: group, error } = await supabase
+    .schema("app")
+    .from("ikimina")
+    .select("id, sacco_id")
+    .eq("id", groupId)
+    .maybeSingle();
+
+  if (error) {
+    logError("admin.invite.groupLookupFailed", { groupId, error });
+    return { status: "error", message: error.message ?? "Failed to load group" };
+  }
+
+  if (!group) {
+    return { status: "error", message: "Group not found" };
+  }
+
+  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id !== group.sacco_id) {
+    logWarn("admin.invite.createUnauthorized", { groupId, actor: profile.id, saccoId: group.sacco_id });
+    return { status: "error", message: "You are not allowed to invite to this group." };
+  }
+
+  const normalizedMsisdn = msisdn.trim();
+  if (!normalizedMsisdn) {
+    return { status: "error", message: "Recipient MSISDN is required" };
+  }
+
+  const token = randomBytes(24).toString("hex");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: insertError, data } = await (supabase as any)
+    .from("group_invites")
+    .insert({
+      group_id: groupId,
+      invitee_msisdn: normalizedMsisdn,
+      status: "sent",
+      token,
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (insertError) {
+    logError("admin.invite.createFailed", { groupId, insertError });
+    return { status: "error", message: insertError.message ?? "Failed to create invite" };
+  }
+
+  await logAudit({
+    action: "group_invite_created",
+    entity: "group_invite",
+    entityId: data?.id ?? "unknown",
+    diff: { groupId, msisdn: normalizedMsisdn },
+  });
+
+  revalidatePath("/admin/approvals");
+  return { status: "success" };
+}
+
+export const decideJoinRequest = instrumentServerAction("admin.approvals.decideJoinRequest", decideJoinRequestInternal);
+export const resendInvite = instrumentServerAction("admin.approvals.resendInvite", resendInviteInternal);
+export const revokeInvite = instrumentServerAction("admin.approvals.revokeInvite", revokeInviteInternal);
+export const sendInvite = instrumentServerAction("admin.approvals.sendInvite", sendInviteInternal);
