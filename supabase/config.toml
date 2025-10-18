@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.metrics-exporter]
 verify_jwt = false
+
+[functions.generate-mfa-code]
+verify_jwt = false
