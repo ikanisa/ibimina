@@ -19,7 +19,13 @@ BEGIN
       raw_user_meta_data,
       is_super_admin,
       created_at,
-      updated_at
+      updated_at,
+      confirmation_token,
+      email_change_token_current,
+      email_change_token_new,
+      recovery_token,
+      phone_change_token,
+      reauthentication_token
     ) VALUES (
       '00000000-0000-0000-0000-000000000000',
       admin_id,
@@ -31,13 +37,25 @@ BEGIN
       '{}'::jsonb,
       false,
       now(),
-      now()
+      now(),
+      '',
+      '',
+      '',
+      '',
+      '',
+      ''
     );
   ELSE
     UPDATE auth.users
     SET
       encrypted_password = new_password_hash,
-      updated_at = now()
+      updated_at = now(),
+      confirmation_token = coalesce(confirmation_token, ''),
+      email_change_token_current = coalesce(email_change_token_current, ''),
+      email_change_token_new = coalesce(email_change_token_new, ''),
+      recovery_token = coalesce(recovery_token, ''),
+      phone_change_token = coalesce(phone_change_token, ''),
+      reauthentication_token = coalesce(reauthentication_token, '')
     WHERE id = admin_id;
   END IF;
 

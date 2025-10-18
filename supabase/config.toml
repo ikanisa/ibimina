@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.generate-mfa-code]
 verify_jwt = false
+
+[functions.debug-auth-users]
+verify_jwt = false

@@ -3,16 +3,22 @@
 begin;
 
 -- Ensure merchant_code and metadata from legacy records persist in app.saccos
-update app.saccos s
-set merchant_code = src.merchant_code,
-    metadata = coalesce(src.metadata, '{}'::jsonb),
-    updated_at = timezone('UTC', now())
-from public.saccos src
-where s.id = src.id
-  and (
-    (src.merchant_code is not null and src.merchant_code <> s.merchant_code)
-    or (src.metadata is not null and src.metadata <> s.metadata)
-  );
+DO $$
+BEGIN
+  IF to_regclass('public.saccos') IS NOT NULL THEN
+    UPDATE app.saccos s
+    SET merchant_code = src.merchant_code,
+        metadata = coalesce(src.metadata, '{}'::jsonb),
+        updated_at = timezone('UTC', now())
+    FROM public.saccos src
+    WHERE s.id = src.id
+      AND (
+        (src.merchant_code IS NOT NULL AND src.merchant_code <> s.merchant_code)
+        OR (src.metadata IS NOT NULL AND src.metadata <> s.metadata)
+      );
+  END IF;
+END;
+$$;
 
 -- Back-fill sacco relationships on app.accounts when the legacy table exposes them
 do $$
