@@ -23,9 +23,14 @@ Set the required environment variables:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=public-anon-key
 SUPABASE_SERVICE_ROLE_KEY=service-role-key
+ADMIN_DEFAULT_EMAIL=info@ikanisa.com
+ADMIN_DEFAULT_PASSWORD=MoMo!!0099
+ADMIN_DEFAULT_NAME="System Admin"
 ```
 
 Copy `.env.example` to `.env` (for the Next.js app) and populate Supabase secrets separately using `supabase secrets set --env-file supabase/.env.production` during deployment.
+
+`ADMIN_DEFAULT_EMAIL`, `ADMIN_DEFAULT_PASSWORD`, and `ADMIN_DEFAULT_NAME` keep the bootstrap admin in sync across Supabase edge functions, SQL migrations, and smoke tests—override them before provisioning to change the privileged bootstrap account.
 
 ## Running Supabase migrations
 
@@ -158,6 +163,8 @@ curl -X POST \
 ## Scripts
 
 - `npm run dev` – start the dev server on port 3000
+- `pnpm test:rls` – run the Supabase row-level security regression suite (requires Postgres on `localhost:6543`)
+- `pnpm test:rls:docker` – spin up the disposable Postgres container and execute the RLS suite end-to-end
 - `npm run build` – production build with PWA bundling
 - `npm run start` – serve the built app on port 3000 (127.0.0.1)
 - `npm run lint` – lint the project

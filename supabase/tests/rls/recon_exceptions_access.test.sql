@@ -1,121 +1,223 @@
 -- RLS coverage for reconciliation exceptions
-grant usage on schema public to app_authenticator;
-grant select, insert, update, delete on all tables in schema public to app_authenticator;
 
-do $$
-begin
-  if not exists (select 1 from pg_roles where rolname = 'service_role') then
-    create role service_role;
-  end if;
-end;
-$$;
+grant usage on schema app to app_authenticator;
+grant select, update on table app.recon_exceptions to app_authenticator;
 
-set role service_role;
+set role postgres;
+
+delete from app.recon_exceptions
+where id in (
+  'b0111111-1111-4111-9111-dddddddddddd',
+  'b0222222-2222-4222-9222-eeeeeeeeeeee'
+);
+
+delete from public.payments
+where id in (
+  'a0111111-1111-4111-9111-dddddddddddd',
+  'a0222222-2222-4222-9222-eeeeeeeeeeee'
+);
+
+delete from public.users
+where id in (
+  '91111111-1111-4111-9111-dddddddddddd',
+  '92222222-2222-4222-9222-eeeeeeeeeeee',
+  '93333333-3333-4333-9333-ffffffffffff'
+);
+
+delete from auth.users
+where id in (
+  '91111111-1111-4111-9111-dddddddddddd',
+  '92222222-2222-4222-9222-eeeeeeeeeeee',
+  '93333333-3333-4333-9333-ffffffffffff'
+);
+
+delete from app.saccos
+where id in (
+  '69111111-1111-4111-9111-dddddddddddd',
+  '69222222-2222-4222-9222-eeeeeeeeeeee'
+);
 
 insert into auth.users (id, email)
 values
-  ('91111111-1111-1111-1111-111111111111', 'alice_recon@sacco.rw'),
-  ('92222222-2222-2222-2222-222222222222', 'ben_recon@sacco.rw'),
-  ('93333333-3333-3333-3333-333333333333', 'admin_recon@sacco.rw')
-ON CONFLICT (id) DO NOTHING;
-
-insert into app.saccos (id, name, district, sector_code, merchant_code)
-values
-  ('69111111-1111-1111-1111-691111111111', 'Kigali SACCO', 'Gasabo', '001', 'M001'),
-  ('69222222-2222-2222-2222-692222222222', 'Musanze SACCO', 'Muhoza', '002', 'M002')
-ON CONFLICT (id) DO NOTHING;
+  ('91111111-1111-4111-9111-dddddddddddd', 'alice_recon@sacco.rw'),
+  ('92222222-2222-4222-9222-eeeeeeeeeeee', 'ben_recon@sacco.rw'),
+  ('93333333-3333-4333-9333-ffffffffffff', 'admin_recon@sacco.rw')
+on conflict do nothing;
 
 insert into public.users (id, email, role, sacco_id, mfa_enabled)
 values
-  ('91111111-1111-1111-1111-111111111111', 'alice_recon@sacco.rw', 'SACCO_STAFF', '69111111-1111-1111-1111-691111111111', true),
-  ('92222222-2222-2222-2222-222222222222', 'ben_recon@sacco.rw', 'SACCO_STAFF', '69222222-2222-2222-2222-692222222222', true),
-  ('93333333-3333-3333-3333-333333333333', 'admin_recon@sacco.rw', 'SYSTEM_ADMIN', null, true)
-ON CONFLICT (id) DO NOTHING;
+  ('91111111-1111-4111-9111-dddddddddddd', 'alice_recon@sacco.rw', 'SACCO_STAFF', null, false),
+  ('92222222-2222-4222-9222-eeeeeeeeeeee', 'ben_recon@sacco.rw', 'SACCO_STAFF', null, false),
+  ('93333333-3333-4333-9333-ffffffffffff', 'admin_recon@sacco.rw', 'SYSTEM_ADMIN', null, false)
+on conflict (id) do update
+  set email = excluded.email,
+      role = excluded.role,
+      sacco_id = excluded.sacco_id,
+      mfa_enabled = excluded.mfa_enabled;
 
-insert into public.payments (id, sacco_id, amount, status, occurred_at)
+insert into app.saccos (id, name, district, sector_code, merchant_code)
 values
-  ('a0111111-1111-1111-1111-111111111111', '69111111-1111-1111-1111-691111111111', 5000, 'UNALLOCATED', timezone('utc', now() - interval '3 day')),
-  ('a0222222-2222-2222-2222-222222222222', '69222222-2222-2222-2222-692222222222', 7000, 'UNALLOCATED', timezone('utc', now() - interval '2 day'))
-ON CONFLICT (id) DO NOTHING;
+  ('69111111-1111-4111-9111-dddddddddddd', 'Kigali SACCO', 'Gasabo', 'KGL', 'M100'),
+  ('69222222-2222-4222-9222-eeeeeeeeeeee', 'Musanze SACCO', 'Muhoza', 'MSZ', 'M200')
+on conflict (id) do update
+  set name = excluded.name,
+      district = excluded.district,
+      sector_code = excluded.sector_code,
+      merchant_code = excluded.merchant_code;
 
-insert into public.recon_exceptions (id, payment_id, sacco_id, status, reason)
+insert into app.user_profiles (user_id, sacco_id, role)
 values
-  ('b0111111-1111-1111-1111-111111111111', 'a0111111-1111-1111-1111-111111111111', '69111111-1111-1111-1111-691111111111', 'OPEN', 'missing member'),
-  ('b0222222-2222-2222-2222-222222222222', 'a0222222-2222-2222-2222-222222222222', '69222222-2222-2222-2222-692222222222', 'OPEN', 'unmatched sacco')
-ON CONFLICT (id) DO NOTHING;
+  ('91111111-1111-4111-9111-dddddddddddd', '69111111-1111-4111-9111-dddddddddddd', 'SACCO_STAFF'),
+  ('92222222-2222-4222-9222-eeeeeeeeeeee', '69222222-2222-4222-9222-eeeeeeeeeeee', 'SACCO_STAFF'),
+  ('93333333-3333-4333-9333-ffffffffffff', null, 'SYSTEM_ADMIN')
+on conflict (user_id) do update
+  set sacco_id = excluded.sacco_id,
+      role = excluded.role;
 
+insert into public.payments (
+  id,
+  sacco_id,
+  amount,
+  status,
+  occurred_at,
+  msisdn,
+  msisdn_encrypted,
+  msisdn_hash,
+  msisdn_masked,
+  channel,
+  txn_id,
+  reference
+)
+values
+  (
+    'a0111111-1111-4111-9111-dddddddddddd',
+    '69111111-1111-4111-9111-dddddddddddd',
+    5000,
+    'UNALLOCATED',
+    timezone('utc', now() - interval '3 day'),
+    '+250788000011',
+    'enc-11',
+    'hash-11',
+    '***0011',
+    'SMS',
+    'RECON-TXN-001',
+    'RECON-REF-001'
+  ),
+  (
+    'a0222222-2222-4222-9222-eeeeeeeeeeee',
+    '69222222-2222-4222-9222-eeeeeeeeeeee',
+    7000,
+    'UNALLOCATED',
+    timezone('utc', now() - interval '2 day'),
+    '+250788000022',
+    'enc-22',
+    'hash-22',
+    '***0022',
+    'SMS',
+    'RECON-TXN-002',
+    'RECON-REF-002'
+  )
+on conflict (id) do update
+  set sacco_id = excluded.sacco_id,
+      amount = excluded.amount,
+      status = excluded.status,
+      occurred_at = excluded.occurred_at,
+      msisdn = excluded.msisdn,
+      msisdn_encrypted = excluded.msisdn_encrypted,
+      msisdn_hash = excluded.msisdn_hash,
+      msisdn_masked = excluded.msisdn_masked,
+      channel = excluded.channel,
+      txn_id = excluded.txn_id,
+      reference = excluded.reference;
+
+insert into app.recon_exceptions (id, payment_id, status, reason)
+values
+  ('b0111111-1111-4111-9111-dddddddddddd', 'a0111111-1111-4111-9111-dddddddddddd', 'OPEN', 'missing member'),
+  ('b0222222-2222-4222-9222-eeeeeeeeeeee', 'a0222222-2222-4222-9222-eeeeeeeeeeee', 'OPEN', 'unmatched sacco')
+on conflict (id) do update
+  set payment_id = excluded.payment_id,
+      status = excluded.status,
+      reason = excluded.reason;
+
+set row_security = off;
 reset role;
 
--- SACCO staff should only see exceptions within their SACCO
 set role app_authenticator;
-select set_config('request.jwt.claim.sub', '91111111-1111-1111-1111-111111111111', true);
+set row_security = on;
+select set_config('request.jwt.claim.sub', '91111111-1111-4111-9111-dddddddddddd', false);
 select set_config(
   'request.jwt.claims',
-  json_build_object('sub', '91111111-1111-1111-1111-111111111111', 'app_metadata', json_build_object('role', 'SACCO_STAFF'))::text,
-  true
+  json_build_object('sub', '91111111-1111-4111-9111-dddddddddddd', 'app_metadata', json_build_object('role', 'SACCO_STAFF'))::text,
+  false
 );
+select set_config('request.jwt.claim.role', 'authenticated', false);
 
 do $$
 declare
   visible integer;
   foreign_scope integer;
 begin
-  select count(*) into visible from public.recon_exceptions;
+  select count(*) into visible from app.recon_exceptions;
   if visible <> 1 then
     raise exception 'staff expected to see 1 recon exception, found %', visible;
   end if;
 
-  select count(*) into foreign_scope from public.recon_exceptions where sacco_id <> '69111111-1111-1111-1111-691111111111';
+  select count(*) into foreign_scope
+  from app.recon_exceptions re
+  join app.payments p on p.id = re.payment_id
+  where p.sacco_id <> '69111111-1111-4111-9111-dddddddddddd';
+
   if foreign_scope <> 0 then
     raise exception 'staff should not see exceptions outside their SACCO (found %)', foreign_scope;
   end if;
 end;
 $$;
 
--- Attempt to update an exception from another SACCO should fail
-\echo 'Expect cross-SACCO update to fail'
+\echo 'Expect cross-SACCO update to change zero rows'
 do $$
 declare
-  allowed boolean := true;
+  updated integer;
 begin
-  begin
-    update public.recon_exceptions set status = 'RESOLVED'
-    where id = 'b0222222-2222-2222-2222-222222222222';
-  exception
-    when others then
-      allowed := false;
-  end;
+  update app.recon_exceptions
+  set status = 'RESOLVED'
+  where id = 'b0222222-2222-4222-9222-eeeeeeeeeeee';
+  get diagnostics updated = row_count;
 
-  if allowed then
-    raise exception 'staff unexpectedly updated recon exception in another SACCO';
+  if updated <> 0 then
+    raise exception 'staff unexpectedly updated recon exception in another SACCO (% rows)', updated;
   end if;
 end;
 $$;
 
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);
+select set_config('request.jwt.claim.role', '', false);
+set row_security = off;
 reset role;
-select set_config('request.jwt.claim.sub', '', true);
-select set_config('request.jwt.claims', '', true);
 
--- Admin should see all exceptions
 set role app_authenticator;
-select set_config('request.jwt.claim.sub', '93333333-3333-3333-3333-333333333333', true);
+set row_security = on;
+select set_config('request.jwt.claim.sub', '93333333-3333-4333-9333-ffffffffffff', false);
 select set_config(
   'request.jwt.claims',
-  json_build_object('sub', '93333333-3333-3333-3333-333333333333', 'app_metadata', json_build_object('role', 'SYSTEM_ADMIN'))::text,
-  true
+  json_build_object('sub', '93333333-3333-4333-9333-ffffffffffff', 'app_metadata', json_build_object('role', 'SYSTEM_ADMIN'))::text,
+  false
 );
+select set_config('request.jwt.claim.role', 'authenticated', false);
 
 do $$
 declare
   total integer;
 begin
-  select count(*) into total from public.recon_exceptions;
+  select count(*) into total from app.recon_exceptions;
   if total < 2 then
-    raise exception 'system admin should see all recon exceptions (expected 2+, found %)', total;
+    raise exception 'system admin should see all recon exceptions (expected ≥2, found %)', total;
   end if;
 end;
 $$;
 
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);
+select set_config('request.jwt.claim.role', '', false);
+set row_security = off;
 reset role;
-select set_config('request.jwt.claim.sub', '', true);
-select set_config('request.jwt.claims', '', true);

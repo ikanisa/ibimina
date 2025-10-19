@@ -1,6 +1,23 @@
 -- Align app schema with legacy public tables and seed existing data
 
 begin;
+do $$
+declare
+  rel_name text;
+begin
+  foreach rel_name in array ARRAY['accounts', 'ledger_entries', 'payments', 'sms_inbox', 'saccos', 'ibimina', 'ikimina_members'] loop
+    if exists (
+      select 1
+      from pg_class c
+      where c.relname = rel_name
+        and c.relnamespace = 'public'::regnamespace
+        and c.relkind in ('v', 'm')
+    ) then
+      execute format('drop view if exists public.%I cascade', rel_name);
+    end if;
+  end loop;
+end;
+$$;
 -- Allow merchant_code to be null so we can migrate legacy rows without values
 alter table if exists app.saccos
   alter column merchant_code drop not null;
@@ -203,49 +220,55 @@ select
   coalesce(created_at, timezone('UTC', now()))
 from public.sms_inbox
 on conflict (id) do nothing;
-insert into app.payments (
-  id,
-  channel,
-  sacco_id,
-  ikimina_id,
-  member_id,
-  msisdn,
-  msisdn_encrypted,
-  msisdn_hash,
-  msisdn_masked,
-  amount,
-  currency,
-  txn_id,
-  reference,
-  occurred_at,
-  status,
-  source_id,
-  ai_version,
-  confidence,
-  created_at
-)
-select
-  id,
-  channel,
-  sacco_id,
-  ikimina_id,
-  member_id,
-  msisdn,
-  msisdn_encrypted,
-  msisdn_hash,
-  msisdn_masked,
-  amount,
-  currency,
-  txn_id,
-  reference,
-  occurred_at,
-  status,
-  source_id,
-  ai_version,
-  confidence,
-  coalesce(created_at, timezone('UTC', now()))
-from public.payments
-on conflict (id) do nothing;
+do $$
+begin
+  if to_regclass('public.payments') is not null then
+    insert into app.payments (
+      id,
+      channel,
+      sacco_id,
+      ikimina_id,
+      member_id,
+      msisdn,
+      msisdn_encrypted,
+      msisdn_hash,
+      msisdn_masked,
+      amount,
+      currency,
+      txn_id,
+      reference,
+      occurred_at,
+      status,
+      source_id,
+      ai_version,
+      confidence,
+      created_at
+    )
+    select
+      id,
+      channel,
+      sacco_id,
+      ikimina_id,
+      member_id,
+      msisdn,
+      msisdn_encrypted,
+      msisdn_hash,
+      msisdn_masked,
+      amount,
+      currency,
+      txn_id,
+      reference,
+      occurred_at,
+      status,
+      source_id,
+      ai_version,
+      confidence,
+      coalesce(created_at, timezone('UTC', now()))
+    from public.payments
+    on conflict (id) do nothing;
+  end if;
+end;
+$$;
 insert into app.accounts (
   id,
   sacco_id,
@@ -269,31 +292,37 @@ select
   coalesce(updated_at, timezone('UTC', now()))
 from public.accounts
 on conflict (id) do nothing;
-insert into app.ledger_entries (
-  id,
-  sacco_id,
-  debit_id,
-  credit_id,
-  amount,
-  currency,
-  value_date,
-  external_id,
-  memo,
-  created_at
-)
-select
-  id,
-  null,
-  debit_id,
-  credit_id,
-  amount,
-  currency,
-  coalesce(value_date, timezone('UTC', now())),
-  external_id,
-  memo,
-  coalesce(created_at, timezone('UTC', now()))
-from public.ledger_entries
-on conflict (id) do nothing;
+do $$
+begin
+  if to_regclass('public.ledger_entries') is not null then
+    insert into app.ledger_entries (
+      id,
+      sacco_id,
+      debit_id,
+      credit_id,
+      amount,
+      currency,
+      value_date,
+      external_id,
+      memo,
+      created_at
+    )
+    select
+      id,
+      null,
+      debit_id,
+      credit_id,
+      amount,
+      currency,
+      coalesce(value_date, timezone('UTC', now())),
+      external_id,
+      memo,
+      coalesce(created_at, timezone('UTC', now()))
+    from public.ledger_entries
+    on conflict (id) do nothing;
+  end if;
+end;
+$$;
 do $$
 declare
   has_sacco boolean;

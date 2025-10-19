@@ -162,7 +162,12 @@ const extractJsonOutput = (payload: any): OpenAIJsonOutput | null => {
 
 export const parseWithOpenAI = async (rawText: string, receivedAt?: string): Promise<OpenAIResult> => {
   const apiKey = requireEnv("OPENAI_API_KEY");
-  const model = Deno.env.get("OPENAI_RESPONSES_MODEL") ?? "gpt-4.1-mini";
+  const model =
+    Deno.env.get("OPENAI_RESPONSES_MODEL") ??
+    Deno.env.get("AGENT_MODEL") ??
+    Deno.env.get("OPENAI_AGENT_MODEL") ??
+    Deno.env.get("OPENAI_PLANNER_MODEL") ??
+    "gpt-5";
 
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",

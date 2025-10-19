@@ -1,49 +1,114 @@
--- Grants to mimic Supabase authenticated role behaviour
-grant usage on schema app to app_authenticator;
-grant select, insert, update, delete on all tables in schema app to app_authenticator;
+-- RLS coverage for member visibility across SACCOs
 
--- Seed canonical SACCO fixture data
-insert into app.saccos (id, name, district, sector_code, merchant_code)
-values
-  ('31111111-1111-1111-1111-311111111111', 'Kigali SACCO', 'Gasabo', '001', 'M001'),
-  ('32222222-2222-2222-2222-322222222222', 'Musanze SACCO', 'Muhoza', '002', 'M002');
+set role postgres;
 
-insert into app.ikimina (id, sacco_id, code, name)
-values
-  ('33111111-1111-1111-1111-331111111111', '31111111-1111-1111-1111-311111111111', 'IK-A', 'Kigali Growth'),
-  ('33222222-2222-2222-2222-332222222222', '32222222-2222-2222-2222-322222222222', 'IK-B', 'Musanze Progress');
+delete from app.members
+where id in (
+  '35111111-1111-4111-9111-aaaaaaaaaaaa',
+  '35222222-2222-4222-9222-bbbbbbbbbbbb',
+  '35333333-3333-4333-9333-cccccccccccc'
+);
+delete from app.members
+where member_code in ('M-A1', 'M-B1', 'M-A2');
 
-insert into app.members (id, ikimina_id, sacco_id, member_code, full_name, msisdn)
-values
-  ('35111111-1111-1111-1111-351111111111', '33111111-1111-1111-1111-331111111111', '31111111-1111-1111-1111-311111111111', 'M-A1', 'Aline Umuhoza', '250788000001'),
-  ('35222222-2222-2222-2222-352222222222', '33222222-2222-2222-2222-332222222222', '32222222-2222-2222-2222-322222222222', 'M-B1', 'Beni Kamanzi', '250788000002');
+delete from app.payments
+where sacco_id in (
+  '31111111-1111-4111-9111-aaaaaaaaaaaa',
+  '32222222-2222-4222-9222-bbbbbbbbbbbb'
+)
+   or ikimina_id in (
+     '33111111-1111-4111-9111-aaaaaaaaaaaa',
+     '33222222-2222-4222-9222-bbbbbbbbbbbb',
+     '59111111-aaaa-4aaa-9aaa-aaaaaaaaaaaa',
+     '59222222-bbbb-4bbb-9bbb-bbbbbbbbbbbb'
+   );
+
+delete from app.ikimina
+where id in (
+  '33111111-1111-4111-9111-aaaaaaaaaaaa',
+  '33222222-2222-4222-9222-bbbbbbbbbbbb'
+);
+delete from app.ikimina
+where code in ('TEST-IK-A', 'TEST-IK-B');
+
+delete from app.saccos
+where id in (
+  '31111111-1111-4111-9111-aaaaaaaaaaaa',
+  '32222222-2222-4222-9222-bbbbbbbbbbbb'
+);
+
+delete from app.user_profiles
+where user_id in (
+  'aaaaaaaa-aaaa-4aaa-9aaa-aaaaaaaaaaaa',
+  'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb',
+  'cccccccc-cccc-4ccc-9ccc-cccccccccccc'
+);
+
+delete from auth.users
+where id in (
+  'aaaaaaaa-aaaa-4aaa-9aaa-aaaaaaaaaaaa',
+  'bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb',
+  'cccccccc-cccc-4ccc-9ccc-cccccccccccc'
+);
 
 insert into auth.users (id, email, raw_app_meta_data)
 values
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'alice_staff@sacco.rw', jsonb_build_object('role', 'SACCO_STAFF')),
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'ben_staff@sacco.rw', jsonb_build_object('role', 'SACCO_STAFF')),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'admin_staff@sacco.rw', jsonb_build_object('role', 'SYSTEM_ADMIN'));
+  ('aaaaaaaa-aaaa-4aaa-9aaa-aaaaaaaaaaaa', 'alice_staff@sacco.rw', jsonb_build_object('role', 'SACCO_STAFF')),
+  ('bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb', 'ben_staff@sacco.rw', jsonb_build_object('role', 'SACCO_STAFF')),
+  ('cccccccc-cccc-4ccc-9ccc-cccccccccccc', 'admin_staff@sacco.rw', jsonb_build_object('role', 'SYSTEM_ADMIN'))
+on conflict do nothing;
 
-update app.user_profiles
-set sacco_id = '31111111-1111-1111-1111-311111111111', role = 'SACCO_STAFF'
-where user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+insert into app.saccos (id, name, district, sector_code, merchant_code)
+values
+  ('31111111-1111-4111-9111-aaaaaaaaaaaa', 'Kigali SACCO', 'Gasabo', 'KGL', 'SM001'),
+  ('32222222-2222-4222-9222-bbbbbbbbbbbb', 'Musanze SACCO', 'Muhoza', 'MSZ', 'SM002')
+on conflict (id) do update
+  set name = excluded.name,
+      district = excluded.district,
+      sector_code = excluded.sector_code,
+      merchant_code = excluded.merchant_code;
 
-update app.user_profiles
-set sacco_id = '32222222-2222-2222-2222-322222222222', role = 'SACCO_STAFF'
-where user_id = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+insert into app.user_profiles (user_id, sacco_id, role)
+values
+  ('aaaaaaaa-aaaa-4aaa-9aaa-aaaaaaaaaaaa', '31111111-1111-4111-9111-aaaaaaaaaaaa', 'SACCO_STAFF'),
+  ('bbbbbbbb-bbbb-4bbb-9bbb-bbbbbbbbbbbb', '32222222-2222-4222-9222-bbbbbbbbbbbb', 'SACCO_STAFF'),
+  ('cccccccc-cccc-4ccc-9ccc-cccccccccccc', null, 'SYSTEM_ADMIN')
+on conflict (user_id) do update
+  set sacco_id = excluded.sacco_id,
+      role = excluded.role;
 
-update app.user_profiles
-set role = 'SYSTEM_ADMIN'
-where user_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+insert into app.ikimina (id, sacco_id, code, name)
+values
+  ('33111111-1111-4111-9111-aaaaaaaaaaaa', '31111111-1111-4111-9111-aaaaaaaaaaaa', 'TEST-IK-A', 'Kigali Growth'),
+  ('33222222-2222-4222-9222-bbbbbbbbbbbb', '32222222-2222-4222-9222-bbbbbbbbbbbb', 'TEST-IK-B', 'Musanze Progress')
+on conflict (id) do update
+  set sacco_id = excluded.sacco_id,
+      code = excluded.code,
+      name = excluded.name;
 
--- Staff A visibility check
+insert into app.members (id, ikimina_id, sacco_id, member_code, full_name, msisdn)
+values
+  ('35111111-1111-4111-9111-aaaaaaaaaaaa', '33111111-1111-4111-9111-aaaaaaaaaaaa', '31111111-1111-4111-9111-aaaaaaaaaaaa', 'M-A1', 'Aline Umuhoza', '+250788000001'),
+  ('35222222-2222-4222-9222-bbbbbbbbbbbb', '33222222-2222-4222-9222-bbbbbbbbbbbb', '32222222-2222-4222-9222-bbbbbbbbbbbb', 'M-B1', 'Beni Kamanzi', '+250788000002')
+on conflict (id) do update
+  set ikimina_id = excluded.ikimina_id,
+      sacco_id = excluded.sacco_id,
+      member_code = excluded.member_code,
+      full_name = excluded.full_name,
+      msisdn = excluded.msisdn;
+
+set row_security = off;
+reset role;
+
 set role app_authenticator;
-select set_config('request.jwt.claim.sub', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', true);
+set row_security = on;
+select set_config('request.jwt.claim.sub', 'aaaaaaaa-aaaa-4aaa-9aaa-aaaaaaaaaaaa', false);
 select set_config(
   'request.jwt.claims',
-  json_build_object('sub', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'app_metadata', json_build_object('role', 'SACCO_STAFF'))::text,
-  true
+  json_build_object('sub', 'aaaaaaaa-aaaa-4aaa-9aaa-aaaaaaaaaaaa', 'app_metadata', json_build_object('role', 'SACCO_STAFF'))::text,
+  false
 );
+select set_config('request.jwt.claim.role', 'authenticated', false);
 
 do $$
 declare
@@ -55,10 +120,9 @@ begin
     raise exception 'expected 1 member visible to SACCO A staff, got %', member_total;
   end if;
 
-  select count(*)
-  into outside_scope
+  select count(*) into outside_scope
   from app.members
-  where sacco_id <> '31111111-1111-1111-1111-311111111111';
+  where sacco_id <> '31111111-1111-4111-9111-aaaaaaaaaaaa';
 
   if outside_scope <> 0 then
     raise exception 'staff should not see members outside their SACCO (found %)', outside_scope;
@@ -66,11 +130,15 @@ begin
 end;
 $$;
 
--- Staff A can add member to their SACCO
 insert into app.members (ikimina_id, sacco_id, member_code, full_name, msisdn)
-values ('33111111-1111-1111-1111-331111111111', '31111111-1111-1111-1111-311111111111', 'M-A2', 'Chantal Iradukunda', '250788000010');
+values (
+  '33111111-1111-4111-9111-aaaaaaaaaaaa',
+  '31111111-1111-4111-9111-aaaaaaaaaaaa',
+  'M-A2',
+  'Chantal Iradukunda',
+  '+250788000010'
+);
 
--- Staff A blocked from inserting into SACCO B
 \echo 'Expect insert into foreign SACCO to fail'
 do $$
 declare
@@ -78,11 +146,16 @@ declare
 begin
   begin
     insert into app.members (ikimina_id, sacco_id, member_code, full_name, msisdn)
-    values ('44444444-4444-4444-4444-444444444444', '22222222-2222-2222-2222-222222222222', 'M-B2', 'Invalid Attempt', '250788000011');
+    values (
+      '33222222-2222-4222-9222-bbbbbbbbbbbb',
+      '32222222-2222-4222-9222-bbbbbbbbbbbb',
+      'M-B2',
+      'Invalid Attempt',
+      '+250788000011'
+    );
   exception
     when others then
       allowed := false;
-      perform null;
   end;
 
   if allowed then
@@ -91,19 +164,21 @@ begin
 end;
 $$;
 
--- Reset impersonation
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);
+select set_config('request.jwt.claim.role', '', false);
+set row_security = off;
 reset role;
-select set_config('request.jwt.claim.sub', '', true);
-select set_config('request.jwt.claims', '', true);
 
--- Admin visibility check
 set role app_authenticator;
-select set_config('request.jwt.claim.sub', 'cccccccc-cccc-cccc-cccc-cccccccccccc', true);
+set row_security = on;
+select set_config('request.jwt.claim.sub', 'cccccccc-cccc-4ccc-9ccc-cccccccccccc', false);
 select set_config(
   'request.jwt.claims',
-  json_build_object('sub', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'app_metadata', json_build_object('role', 'SYSTEM_ADMIN'))::text,
-  true
+  json_build_object('sub', 'cccccccc-cccc-4ccc-9ccc-cccccccccccc', 'app_metadata', json_build_object('role', 'SYSTEM_ADMIN'))::text,
+  false
 );
+select set_config('request.jwt.claim.role', 'authenticated', false);
 
 do $$
 declare
@@ -116,6 +191,8 @@ begin
 end;
 $$;
 
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);
+select set_config('request.jwt.claim.role', '', false);
+set row_security = off;
 reset role;
-select set_config('request.jwt.claim.sub', '', true);
-select set_config('request.jwt.claims', '', true);

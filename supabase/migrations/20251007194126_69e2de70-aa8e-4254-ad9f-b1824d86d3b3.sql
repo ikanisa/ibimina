@@ -3,6 +3,8 @@
 
 -- Remove any incorrectly created admin users from the bad migration
 DO $$
+DECLARE
+  admin_email text := coalesce(nullif(current_setting('app.admin_default_email', true), ''), 'info@ikanisa.com');
 BEGIN
   IF EXISTS (
     SELECT 1
@@ -11,9 +13,9 @@ BEGIN
       AND table_name = 'users'
       AND column_name = 'email_change'
   ) THEN
-    DELETE FROM auth.users WHERE email = 'info@ikanisa.com' AND email_change IS NULL;
+    DELETE FROM auth.users WHERE email = admin_email AND email_change IS NULL;
   ELSE
-    DELETE FROM auth.users WHERE email = 'info@ikanisa.com';
+    DELETE FROM auth.users WHERE email = admin_email;
   END IF;
 END;
 $$;

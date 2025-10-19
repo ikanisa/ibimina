@@ -210,6 +210,8 @@ $function$
 
 set check_function_bodies = off;
 
+create schema if not exists app_helpers;
+
 CREATE OR REPLACE FUNCTION app_helpers.slugify(input text)
  RETURNS text
  LANGUAGE sql
@@ -293,7 +295,13 @@ $procedure$
 ;
 
 
-create extension if not exists "pg_net" with schema "public" version '0.19.5';
+do $pg_net$
+begin
+  if exists (select 1 from pg_available_extensions where name = 'pg_net') then
+    execute 'create extension if not exists pg_net with schema public';
+  end if;
+end;
+$pg_net$;
 
 create type "public"."invite_status" as enum ('sent', 'accepted', 'expired');
 
@@ -1115,8 +1123,13 @@ alter table "public"."orders" drop constraint "orders_tenant_id_fkey";
 
 alter table "public"."tenants" drop constraint "tenants_region_check";
 
+drop table if exists "public"."ledger_entries";
 drop view if exists "public"."ledger_entries";
 
+drop materialized view if exists public.analytics_payment_rollups_mv;
+drop materialized view if exists public.analytics_ikimina_monthly_mv;
+drop materialized view if exists public.analytics_member_last_payment_mv;
+drop table if exists "public"."payments";
 drop view if exists "public"."payments";
 
 alter table "public"."agent_events" drop constraint "agent_events_pkey";
@@ -1406,7 +1419,7 @@ BEGIN
     NEW.id,
     NEW.email,
     CASE 
-      WHEN NEW.email = 'info@ikanisa.com' THEN 'SYSTEM_ADMIN'::app_role
+      WHEN NEW.email = coalesce(nullif(current_setting('app.admin_default_email', true), ''), 'info@ikanisa.com') THEN 'SYSTEM_ADMIN'::app_role
       ELSE 'SACCO_STAFF'::app_role
     END
   );
@@ -1710,6 +1723,3 @@ using ((user_id = auth.uid()));
 
 
 CREATE TRIGGER trg_members_app_profiles_touch BEFORE UPDATE ON public.members_app_profiles FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
-
-
-

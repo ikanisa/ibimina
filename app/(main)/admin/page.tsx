@@ -231,13 +231,14 @@ export default async function AdminPage() {
   }));
 
   const mfaInsights = await getMfaInsights();
+  const adminBadgeLabel = process.env.ADMIN_DEFAULT_NAME?.trim() || "System Admin";
 
   return (
     <div className="space-y-8">
       <GradientHeader
         title={<Trans i18nKey="admin.header.title" fallback="Administration" />}
         subtitle={<Trans i18nKey="admin.header.subtitle" fallback="Manage SACCO data, staff access, and templates." className="text-xs text-ink/70" />}
-        badge={<StatusChip tone="neutral">System Admin</StatusChip>}
+        badge={<StatusChip tone="neutral">{adminBadgeLabel}</StatusChip>}
       />
 
       <GlassCard

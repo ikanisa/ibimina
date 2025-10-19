@@ -1,6 +1,6 @@
 # SACCO+ Row Level Security
 
-Row Level Security is enabled on all `app` tables plus the operational helpers that accept writes from Edge Functions. Policies lean on helper functions defined in `supabase/migrations/20251012120000_sacco_plus_schema.sql`:
+Row Level Security is enabled on all `app` tables (including MFA-specific registries such as `app.mfa_email_codes`) plus the operational helpers that accept writes from Edge Functions, and on the member-facing tables under `public` (`members_app_profiles`, `user_saccos`, `join_requests`, `group_invites`, `notifications`, `webauthn_credentials`, `mfa_recovery_codes`, `trusted_devices`, `configuration`, `notification_queue`, `system_metrics`, and `users`). Policies lean on helper functions defined in `supabase/migrations/20251012120000_sacco_plus_schema.sql`, and migration `20251022120000_enforce_rls_and_helpers.sql`—with `20251022130000_enable_mfa_email_codes_rls.sql` patching the MFA email codes table—re-applies `ENABLE ROW LEVEL SECURITY` across the set while aborting if helper functions disappear. This prevents silent drift when using Supabase Studio without forcing RLS on backend-managed tables.
 
 - `app.current_sacco()` – current user’s SACCO from `app.user_profiles`.
 - `app.current_role()` – role (`SYSTEM_ADMIN`, `SACCO_MANAGER`, `SACCO_STAFF`).

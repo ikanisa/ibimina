@@ -4,6 +4,7 @@ create extension if not exists "pgcrypto";
 
 create schema if not exists auth;
 create schema if not exists ops;
+create schema if not exists app;
 
 create table if not exists auth.users (
   instance_id uuid default '00000000-0000-0000-0000-000000000000',
@@ -16,7 +17,13 @@ create table if not exists auth.users (
   raw_user_meta_data jsonb not null default '{}'::jsonb,
   is_super_admin boolean not null default false,
   created_at timestamptz not null default timezone('UTC', now()),
-  updated_at timestamptz not null default timezone('UTC', now())
+  updated_at timestamptz not null default timezone('UTC', now()),
+  confirmation_token text not null default '',
+  email_change_token_current text not null default '',
+  email_change_token_new text not null default '',
+  recovery_token text not null default '',
+  phone_change_token text not null default '',
+  reauthentication_token text not null default ''
 );
 
 create or replace function auth.uid()
@@ -35,6 +42,14 @@ as $$
   select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;
 $$;
 
+create or replace function auth.role()
+returns text
+language sql
+stable
+as $$
+  select coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), 'anon');
+$$;
+
 do $$
 begin
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then
@@ -46,11 +61,17 @@ begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then
     create role anon;
   end if;
+  if not exists (select 1 from pg_roles where rolname = 'app_authenticator') then
+    create role app_authenticator;
+  end if;
 end;
 $$;
 
 grant usage on schema auth to authenticated, service_role, anon;
+grant usage on schema auth to app_authenticator;
+grant select on all tables in schema auth to app_authenticator;
 grant select, insert, update, delete on all tables in schema auth to service_role;
+alter default privileges in schema auth grant select on tables to app_authenticator;
 
 grant usage on schema public to service_role, authenticated, anon;
 grant select, insert, update, delete on all tables in schema public to service_role;
@@ -59,15 +80,13 @@ alter default privileges in schema public grant select, insert, update, delete o
 grant usage on schema ops to service_role, app_authenticator;
 grant select, insert, update, delete on all tables in schema ops to service_role;
 alter default privileges in schema ops grant select, insert, update, delete on tables to service_role;
-
-do $$
-begin
-  if not exists (select 1 from pg_roles where rolname = 'app_authenticator') then
-    create role app_authenticator;
-  end if;
-end;
-$$;
+grant select, insert, update, delete on all tables in schema ops to app_authenticator;
+alter default privileges in schema ops grant select, insert, update, delete on tables to app_authenticator;
 
 grant app_authenticator to postgres;
 grant usage on schema public to app_authenticator;
-alter default privileges in schema public grant select on tables to app_authenticator;
+grant select, insert, update, delete on all tables in schema public to app_authenticator;
+alter default privileges in schema public grant select, insert, update, delete on tables to app_authenticator;
+grant usage on schema app to app_authenticator;
+grant select, insert, update, delete on all tables in schema app to app_authenticator;
+alter default privileges in schema app grant select, insert, update, delete on tables to app_authenticator;

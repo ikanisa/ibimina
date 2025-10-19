@@ -103,5 +103,5 @@ variable "openai_api_key" {
 variable "openai_responses_model" {
   type        = string
   description = "OpenAI Responses API model used for structured SMS parsing"
-  default     = "gpt-4.1-mini"
+  default     = "gpt-5"
 }

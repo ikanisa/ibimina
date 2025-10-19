@@ -167,7 +167,13 @@ const networkWithJsonCache = async (request) => {
   try {
     const response = await fetch(request.clone());
     if (response && response.ok) {
-      await cache.put(cacheKey, response.clone());
+      // Only persist responses that explicitly opt-in to offline caching.
+      const cacheControl = response.headers.get("Cache-Control")?.toLowerCase() ?? "";
+      const isExplicitlyPublic =
+        cacheControl.includes("public") && !cacheControl.includes("no-store") && !cacheControl.includes("private");
+      if (isExplicitlyPublic) {
+        await cache.put(cacheKey, response.clone());
+      }
     }
     return response;
   } catch {

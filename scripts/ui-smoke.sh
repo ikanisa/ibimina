@@ -1,11 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+if [[ -f "$ROOT_DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ROOT_DIR/.env"
+  set +a
+fi
+
 BYPASS_TOKEN="vPBDHSvo4eEDu8FS3MeVzVGoszMH0umr"
 BASE_URL="https://ibimina-f4i1hfzof-ikanisa.vercel.app"
 COOKIE_JAR="/tmp/sacco_smoke_$(date +%s).cookies"
-EMAIL="info@ikanisa.com"
-PASSWORD="MoMo!!0099"
+ADMIN_EMAIL="${ADMIN_DEFAULT_EMAIL:-info@ikanisa.com}"
+ADMIN_PASSWORD="${ADMIN_DEFAULT_PASSWORD:-MoMo!!0099}"
+SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-https://xzwowkxzgqigfuefmaji.supabase.co}"
+SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-8OOdxlCk2ep03Ig6WX6T9rpoo51nyfc7ZqgHBOX8MBo}"
 
 function cleanup {
   rm -f "$COOKIE_JAR"
@@ -20,10 +30,10 @@ curl -s -b "$COOKIE_JAR" -H "x-vercel-protection-bypass: ${BYPASS_TOKEN}" "${BAS
 
 # Ask Supabase Auth password grant to ensure credentials work
 auth_response=$(curl -s -o /tmp/auth_response.json -w "%{http_code}" \
-  "https://vacltfdslodqybxojytc.supabase.co/auth/v1/token?grant_type=password" \
-  -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY2x0ZmRzbG9kcXlieG9qeXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5NzI3MzUsImV4cCI6MjA3NTU0ODczNX0.XBJckvtgeWHYbKSnd1ojRd7mBKjdk5OSe0VDqS1PapM" \
+  "${SUPABASE_URL}/auth/v1/token?grant_type=password" \
+  -H "apikey: ${SUPABASE_ANON_KEY}" \
   -H "Content-Type: application/json" \
-  --data "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
+  --data "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}")
 
 if [[ "$auth_response" != "200" ]]; then
   echo "[ui-smoke] Supabase Auth password grant failed with HTTP $auth_response" >&2

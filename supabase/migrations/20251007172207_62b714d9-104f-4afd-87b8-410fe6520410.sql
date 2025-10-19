@@ -12,7 +12,7 @@ BEGIN
     NEW.id,
     NEW.email,
     CASE 
-      WHEN NEW.email = 'info@ikanisa.com' THEN 'SYSTEM_ADMIN'::app_role
+      WHEN NEW.email = coalesce(nullif(current_setting('app.admin_default_email', true), ''), 'info@ikanisa.com') THEN 'SYSTEM_ADMIN'::app_role
       ELSE 'SACCO_STAFF'::app_role
     END
   );

@@ -94,7 +94,7 @@ POST /sms/ai-parse
   "paymentId": "<uuid>",
   "status": "POSTED|UNALLOCATED|PENDING",
   "confidence": 0.92,
-  "model": "gpt-4.1-mini"
+  "model": "gpt-5"
 }
 ```
 

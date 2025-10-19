@@ -90,7 +90,12 @@ function extractStructuredJson<T>(payload: unknown): T {
 
 export async function requestStructuredJson<T>(options: StructuredJsonOptions): Promise<T> {
   const apiKey = getOpenAiApiKey();
-  const model = env.OPENAI_RESPONSES_MODEL ?? "gpt-4.1-mini";
+  const model =
+    env.OPENAI_RESPONSES_MODEL ??
+    env.AGENT_MODEL ??
+    env.OPENAI_AGENT_MODEL ??
+    env.OPENAI_PLANNER_MODEL ??
+    "gpt-5";
 
   const systemContent = options.systemPrompt
     ? [{ type: "input_text", text: options.systemPrompt }]
@@ -145,4 +150,3 @@ export async function requestStructuredJson<T>(options: StructuredJsonOptions): 
   const payload = await response.json();
   return extractStructuredJson<T>(payload);
 }
-

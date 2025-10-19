@@ -60,7 +60,7 @@ export async function POST(req: Request) {
   } catch (error) {
     return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
-  const model = process.env.OPENAI_OCR_MODEL ?? "gpt-4.1-mini";
+  const model = process.env.OPENAI_OCR_MODEL ?? "gpt-5";
 
   const base64 = Buffer.from(bytes).toString("base64");
 

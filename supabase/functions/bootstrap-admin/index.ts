@@ -13,6 +13,12 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const adminEmailRaw = (Deno.env.get("ADMIN_DEFAULT_EMAIL") ?? "").trim();
+    const adminPasswordRaw = Deno.env.get("ADMIN_DEFAULT_PASSWORD") ?? "";
+    const adminNameRaw = (Deno.env.get("ADMIN_DEFAULT_NAME") ?? "").trim();
+    const adminEmail = adminEmailRaw.length > 0 ? adminEmailRaw : "info@ikanisa.com";
+    const adminPassword = adminPasswordRaw.length > 0 ? adminPasswordRaw : "MoMo!!0099";
+    const adminName = adminNameRaw.length > 0 ? adminNameRaw : "System Admin";
 
     if (!supabaseUrl || !serviceRoleKey) {
       throw new Error("Missing Supabase credentials");
@@ -24,10 +30,27 @@ Deno.serve(async (req) => {
     const { data: existing } = await supabase
       .from("users")
       .select("id")
-      .eq("email", "info@ikanisa.com")
+      .eq("email", adminEmail)
       .single();
 
     if (existing) {
+      const existingId = (existing as { id: string }).id;
+      try {
+        const { data: existingUser, error: existingUserError } = await supabase.auth.admin.getUserById(existingId);
+        if (existingUserError) {
+          console.warn("[bootstrap-admin] unable to load existing admin user", existingUserError);
+        } else {
+          const currentMeta = (existingUser?.user?.user_metadata ?? {}) as Record<string, unknown>;
+          const currentName = typeof currentMeta.full_name === "string" ? currentMeta.full_name.trim() : "";
+          if (!currentName) {
+            await supabase.auth.admin.updateUserById(existingId, {
+              user_metadata: { ...currentMeta, full_name: adminName },
+            });
+          }
+        }
+      } catch (updateError) {
+        console.warn("[bootstrap-admin] failed to sync admin metadata", updateError);
+      }
       return new Response(
         JSON.stringify({ message: "Admin user already exists" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -36,9 +59,10 @@ Deno.serve(async (req) => {
 
     // Create the admin user
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: "info@ikanisa.com",
-      password: "MoMo!!0099",
+      email: adminEmail,
+      password: adminPassword,
       email_confirm: true,
+      user_metadata: { full_name: adminName },
     });
 
     if (authError || !authData.user) {

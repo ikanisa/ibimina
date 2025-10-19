@@ -1,10 +1,24 @@
 -- Ensure the primary system admin account exists with the expected credentials
 DO $$
 DECLARE
+  admin_email text := coalesce(
+    nullif(current_setting('app.admin_default_email', true), ''),
+    'info@ikanisa.com'
+  );
+  admin_password text := coalesce(
+    nullif(current_setting('app.admin_default_password', true), ''),
+    'MoMo!!0099'
+  );
+  admin_name text := coalesce(
+    nullif(current_setting('app.admin_default_name', true), ''),
+    'System Admin'
+  );
   admin_id uuid;
-  new_password_hash text := '$2b$10$Kp2OO179kzGCO/hFRjJk.OcbXRRMxc.pOaWegF79nQcZanVpITOFe';
+  new_password_hash text;
+  admin_metadata jsonb := jsonb_build_object('full_name', admin_name);
 BEGIN
-  SELECT id INTO admin_id FROM auth.users WHERE email = 'info@ikanisa.com';
+  new_password_hash := crypt(admin_password, gen_salt('bf', 10));
+  SELECT id INTO admin_id FROM auth.users WHERE email = admin_email;
 
   IF admin_id IS NULL THEN
     admin_id := gen_random_uuid();
@@ -31,10 +45,10 @@ BEGIN
       admin_id,
       'authenticated',
       'authenticated',
-      'info@ikanisa.com',
+      admin_email,
       new_password_hash,
       jsonb_build_object('provider', 'email', 'providers', ARRAY['email']),
-      '{}'::jsonb,
+      admin_metadata,
       false,
       now(),
       now(),
@@ -49,6 +63,7 @@ BEGIN
     UPDATE auth.users
     SET
       encrypted_password = new_password_hash,
+      raw_user_meta_data = coalesce(raw_user_meta_data, '{}'::jsonb) || admin_metadata,
       updated_at = now(),
       confirmation_token = coalesce(confirmation_token, ''),
       email_change_token_current = coalesce(email_change_token_current, ''),
@@ -61,7 +76,7 @@ BEGIN
 
   IF to_regclass('public.users') IS NOT NULL THEN
     INSERT INTO public.users (id, email, role, created_at, updated_at)
-    VALUES (admin_id, 'info@ikanisa.com', 'SYSTEM_ADMIN', now(), now())
+    VALUES (admin_id, admin_email, 'SYSTEM_ADMIN', now(), now())
     ON CONFLICT (id) DO UPDATE
       SET email = EXCLUDED.email,
           role = 'SYSTEM_ADMIN',

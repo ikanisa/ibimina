@@ -182,7 +182,12 @@ async function parseWithOpenAI(rawText: string, receivedAt?: string) {
     throw new Error("OPENAI_API_KEY not configured");
   }
 
-  const model = Deno.env.get("OPENAI_RESPONSES_MODEL") ?? "gpt-4.1-mini";
+  const model =
+    Deno.env.get("OPENAI_RESPONSES_MODEL") ??
+    Deno.env.get("AGENT_MODEL") ??
+    Deno.env.get("OPENAI_AGENT_MODEL") ??
+    Deno.env.get("OPENAI_PLANNER_MODEL") ??
+    "gpt-5";
 
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",

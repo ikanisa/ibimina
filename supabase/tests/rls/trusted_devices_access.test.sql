@@ -1,94 +1,169 @@
 -- RLS coverage for trusted_devices registry
-grant usage on schema public to app_authenticator;
-grant select, insert, update, delete on all tables in schema public to app_authenticator;
 
-do $$
-begin
-  if not exists (select 1 from pg_roles where rolname = 'service_role') then
-    create role service_role;
-  end if;
-end;
-$$;
+set role postgres;
 
-set role service_role;
+delete from public.trusted_devices
+where user_id in (
+  '71111111-1111-4111-9111-aaaaaaaaaaaa',
+  '72222222-2222-4222-9222-bbbbbbbbbbbb'
+);
+
+delete from public.users
+where id in (
+  '71111111-1111-4111-9111-aaaaaaaaaaaa',
+  '72222222-2222-4222-9222-bbbbbbbbbbbb',
+  '73333333-3333-4333-9333-cccccccccccc'
+);
+
+delete from auth.users
+where id in (
+  '71111111-1111-4111-9111-aaaaaaaaaaaa',
+  '72222222-2222-4222-9222-bbbbbbbbbbbb',
+  '73333333-3333-4333-9333-cccccccccccc'
+);
+
+delete from app.saccos
+where id in (
+  '47111111-1111-4111-9111-aaaaaaaaaaaa',
+  '47222222-2222-4222-9222-bbbbbbbbbbbb'
+);
 
 insert into auth.users (id, email)
 values
-  ('71111111-1111-1111-1111-111111111111', 'alice_trusted@sacco.rw'),
-  ('72222222-2222-2222-2222-222222222222', 'ben_trusted@sacco.rw'),
-  ('73333333-3333-3333-3333-333333333333', 'admin_trusted@sacco.rw')
-ON CONFLICT (id) DO NOTHING;
-
-insert into app.saccos (id, name, district, sector_code, merchant_code)
-values
-  ('47111111-1111-1111-1111-471111111111', 'Nyamirambo SACCO', 'Nyarugenge', 'NYA', 'NYA001'),
-  ('47222222-2222-2222-2222-472222222222', 'Rubavu SACCO', 'Rubavu', 'RUB', 'RUB002');
+  ('71111111-1111-4111-9111-aaaaaaaaaaaa', 'alice_trusted@sacco.rw'),
+  ('72222222-2222-4222-9222-bbbbbbbbbbbb', 'ben_trusted@sacco.rw'),
+  ('73333333-3333-4333-9333-cccccccccccc', 'admin_trusted@sacco.rw')
+on conflict do nothing;
 
 insert into public.users (id, email, role, sacco_id, mfa_enabled)
 values
-  ('71111111-1111-1111-1111-111111111111', 'alice_trusted@sacco.rw', 'SACCO_STAFF', '47111111-1111-1111-1111-471111111111', true),
-  ('72222222-2222-2222-2222-222222222222', 'ben_trusted@sacco.rw', 'SACCO_STAFF', '47222222-2222-2222-2222-472222222222', true),
-  ('73333333-3333-3333-3333-333333333333', 'admin_trusted@sacco.rw', 'SYSTEM_ADMIN', null, true)
-ON CONFLICT (id) DO NOTHING;
+  ('71111111-1111-4111-9111-aaaaaaaaaaaa', 'alice_trusted@sacco.rw', 'SACCO_STAFF', null, false),
+  ('72222222-2222-4222-9222-bbbbbbbbbbbb', 'ben_trusted@sacco.rw', 'SACCO_STAFF', null, false),
+  ('73333333-3333-4333-9333-cccccccccccc', 'admin_trusted@sacco.rw', 'SYSTEM_ADMIN', null, false)
+on conflict (id) do update
+  set email = excluded.email,
+      role = excluded.role,
+      sacco_id = excluded.sacco_id,
+      mfa_enabled = excluded.mfa_enabled;
 
-insert into public.trusted_devices (user_id, device_id, device_fingerprint_hash, user_agent_hash, ip_prefix)
+insert into app.saccos (id, name, district, sector_code, merchant_code)
 values
-  ('71111111-1111-1111-1111-111111111111', 'device-a', 'hash-a', 'ua-a', '10.1.2'),
-  ('72222222-2222-2222-2222-222222222222', 'device-b', 'hash-b', 'ua-b', '10.2.3')
-ON CONFLICT DO NOTHING;
+  ('47111111-1111-4111-9111-aaaaaaaaaaaa', 'Nyamirambo SACCO', 'Nyarugenge', 'NYA', 'NYA001'),
+  ('47222222-2222-4222-9222-bbbbbbbbbbbb', 'Rubavu SACCO', 'Rubavu', 'RUB', 'RUB002')
+on conflict (id) do update
+  set name = excluded.name,
+      district = excluded.district,
+      sector_code = excluded.sector_code,
+      merchant_code = excluded.merchant_code;
 
+set row_security = off;
 reset role;
 
--- Staff from SACCO A should only see their own trusted device
 set role app_authenticator;
-select set_config('request.jwt.claim.sub', '71111111-1111-1111-1111-111111111111', true);
+set row_security = on;
+select set_config('request.jwt.claim.sub', '71111111-1111-4111-9111-aaaaaaaaaaaa', false);
 select set_config(
   'request.jwt.claims',
-  json_build_object('sub', '71111111-1111-1111-1111-111111111111', 'app_metadata', json_build_object('role', 'SACCO_STAFF'))::text,
-  true
+  json_build_object('sub', '71111111-1111-4111-9111-aaaaaaaaaaaa', 'app_metadata', json_build_object('role', 'SACCO_STAFF'))::text,
+  false
 );
+select set_config('request.jwt.claim.role', 'authenticated', false);
+
+insert into public.trusted_devices (user_id, device_id, device_fingerprint_hash, user_agent_hash, ip_prefix)
+values (
+  auth.uid(),
+  'device-a',
+  'hash-a',
+  'ua-a',
+  '10.1.2'
+)
+on conflict do nothing;
+
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);
+select set_config('request.jwt.claim.role', '', false);
+set row_security = off;
+reset role;
+
+set role app_authenticator;
+set row_security = on;
+select set_config('request.jwt.claim.sub', '72222222-2222-4222-9222-bbbbbbbbbbbb', false);
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '72222222-2222-4222-9222-bbbbbbbbbbbb', 'app_metadata', json_build_object('role', 'SACCO_STAFF'))::text,
+  false
+);
+select set_config('request.jwt.claim.role', 'authenticated', false);
+
+insert into public.trusted_devices (user_id, device_id, device_fingerprint_hash, user_agent_hash, ip_prefix)
+values (
+  auth.uid(),
+  'device-b',
+  'hash-b',
+  'ua-b',
+  '10.2.3'
+)
+on conflict do nothing;
+
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);
+select set_config('request.jwt.claim.role', '', false);
+set row_security = off;
+reset role;
+
+set role app_authenticator;
+set row_security = on;
+select set_config('request.jwt.claim.sub', '71111111-1111-4111-9111-aaaaaaaaaaaa', false);
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '71111111-1111-4111-9111-aaaaaaaaaaaa', 'app_metadata', json_build_object('role', 'SACCO_STAFF'))::text,
+  false
+);
+select set_config('request.jwt.claim.role', 'authenticated', false);
 
 do $$
 declare
   visible_count integer;
   owner uuid;
 begin
-  select count(*), max(user_id) into visible_count, owner from public.trusted_devices;
-  if visible_count <> 1 or owner <> '71111111-1111-1111-1111-111111111111' then
+  select count(*) into visible_count from public.trusted_devices;
+  select user_id into owner from public.trusted_devices limit 1;
+  if visible_count <> 1 or owner <> '71111111-1111-4111-9111-aaaaaaaaaaaa' then
     raise exception 'SACCO staff must only see their own trusted devices (count %, owner %)', visible_count, owner;
   end if;
 end;
 $$;
 
+
 do $$
 declare
-  foreign_delete_allowed boolean := true;
+  removed integer;
 begin
-  begin
-    delete from public.trusted_devices where user_id = '72222222-2222-2222-2222-222222222222';
-  exception
-    when others then
-      foreign_delete_allowed := false;
-  end;
+  delete from public.trusted_devices
+  where user_id = '72222222-2222-4222-9222-bbbbbbbbbbbb';
+  get diagnostics removed = row_count;
 
-  if foreign_delete_allowed then
-    raise exception 'SACCO staff should not delete trusted devices owned by another user';
+  if removed <> 0 then
+    raise exception 'staff should not delete trusted devices owned by another user (% rows)', removed;
   end if;
 end;
 $$;
 
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);
+select set_config('request.jwt.claim.role', '', false);
+set row_security = off;
 reset role;
-select set_config('request.jwt.claim.sub', '', true);
-select set_config('request.jwt.claims', '', true);
 
--- System admin should see all trusted devices
 set role app_authenticator;
-select set_config('request.jwt.claim.sub', '73333333-3333-3333-3333-333333333333', true);
+set row_security = on;
+select set_config('request.jwt.claim.sub', '73333333-3333-4333-9333-cccccccccccc', false);
 select set_config(
   'request.jwt.claims',
-  json_build_object('sub', '73333333-3333-3333-3333-333333333333', 'app_metadata', json_build_object('role', 'SYSTEM_ADMIN'))::text,
-  true
+  json_build_object('sub', '73333333-3333-4333-9333-cccccccccccc', 'app_metadata', json_build_object('role', 'SYSTEM_ADMIN'))::text,
+  false
 );
+select set_config('request.jwt.claim.role', 'authenticated', false);
 
 do $$
 declare
@@ -101,6 +176,15 @@ begin
 end;
 $$;
 
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);
+select set_config('request.jwt.claim.role', '', false);
+set row_security = off;
 reset role;
-select set_config('request.jwt.claim.sub', '', true);
-select set_config('request.jwt.claims', '', true);
+
+
+
+
+
+
+
