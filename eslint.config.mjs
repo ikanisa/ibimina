@@ -20,6 +20,7 @@ const eslintConfig = [
       "public/**",
       "next-env.d.ts",
       ".tmp/**",
+      ".vercel/**",
       "legacy/**",
       "legacy-src/**",
       "legacy-public/**",
