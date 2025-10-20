@@ -7,6 +7,7 @@ const baseDirectives: DirectiveMap = {
   "base-uri": ["'self'"],
   "form-action": ["'self'"],
   "frame-ancestors": ["'none'"],
+  "frame-src": ["'self'", "https://vercel.live"],
   "img-src": ["'self'", "data:", "blob:", "https://images.unsplash.com", "https://api.qrserver.com"],
   "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
   "font-src": ["'self'", "https://fonts.gstatic.com"],
