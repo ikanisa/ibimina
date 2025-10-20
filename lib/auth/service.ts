@@ -100,7 +100,7 @@ export async function fetchUserAndProfile(): Promise<AuthContext | null> {
       "[auth] failed to load profile",
       userRowError ?? userProfileError
     );
-    throw new Error("Unable to load staff profile");
+    return null;
   }
 
   if (!userRow) {
