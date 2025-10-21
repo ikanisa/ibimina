@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireUserAndProfile } from "@/lib/auth";
+import { guardAdminAction } from "@/lib/admin/guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/lib/audit";
 
@@ -8,17 +8,27 @@ type Params = {
 };
 
 export async function POST(request: Request, { params }: Params) {
-  const { user: actor, profile } = await requireUserAndProfile();
-  if (profile.role !== "SYSTEM_ADMIN") {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  const guard = await guardAdminAction<NextResponse>(
+    {
+      action: "admin_mfa_reset_user",
+      reason: "Only system administrators can reset MFA for other users.",
+      logEvent: "admin_mfa_reset_user_denied",
+      clientFactory: createSupabaseAdminClient,
+    },
+    () => NextResponse.json({ error: "forbidden" }, { status: 403 }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
   }
+
+  const { supabase, user: actor } = guard.context;
 
   const { userId } = await params;
   if (!userId) {
     return NextResponse.json({ error: "user_required" }, { status: 400 });
   }
 
-  const supabase = createSupabaseAdminClient();
   const reason = (await request.json().catch(() => ({} as { reason?: string }))).reason ?? "manual_reset";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
