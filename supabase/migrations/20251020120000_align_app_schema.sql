@@ -1,6 +1,19 @@
 -- Align app schema with legacy public tables and seed existing data
 
 begin;
+
+do $$
+begin
+  if exists (
+    select 1
+    from pg_views
+    where schemaname = 'public'
+      and viewname in ('ledger_entries', 'payments')
+  ) then
+    execute 'drop view if exists public.ledger_entries cascade';
+    execute 'drop view if exists public.payments cascade';
+  end if;
+end$$;
 -- Allow merchant_code to be null so we can migrate legacy rows without values
 alter table if exists app.saccos
   alter column merchant_code drop not null;

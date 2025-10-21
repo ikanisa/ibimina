@@ -1,5 +1,7 @@
 set check_function_bodies = off;
 
+create schema if not exists app_helpers;
+
 CREATE OR REPLACE FUNCTION analytics.emit_cache_invalidation()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -1115,9 +1117,29 @@ alter table "public"."orders" drop constraint "orders_tenant_id_fkey";
 
 alter table "public"."tenants" drop constraint "tenants_region_check";
 
-drop view if exists "public"."ledger_entries";
+do $$
+begin
+  if exists (
+    select 1
+    from pg_views
+    where schemaname = 'public'
+      and viewname = 'ledger_entries'
+  ) then
+    execute 'drop view public.ledger_entries';
+  end if;
+end$$;
 
-drop view if exists "public"."payments";
+do $$
+begin
+  if exists (
+    select 1
+    from pg_views
+    where schemaname = 'public'
+      and viewname = 'payments'
+  ) then
+    execute 'drop view public.payments';
+  end if;
+end$$;
 
 alter table "public"."agent_events" drop constraint "agent_events_pkey";
 
@@ -1447,39 +1469,39 @@ END;
 $function$
 ;
 
-create or replace view "public"."ledger_entries" as  SELECT id,
-    sacco_id,
-    debit_id,
-    credit_id,
-    amount,
-    currency,
-    value_date,
-    external_id,
-    memo,
-    created_at
-   FROM app.ledger_entries;
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.tables
+    where table_schema = 'public'
+      and table_name = 'ledger_entries'
+  ) then
+    -- table still present; skip view creation here (later migrations replace it)
+    return;
+  end if;
+  execute 'create or replace view public.ledger_entries as
+    select id, sacco_id, debit_id, credit_id, amount, currency, value_date, external_id, memo, created_at
+    from app.ledger_entries';
+end$$;
 
-
-create or replace view "public"."payments" as  SELECT id,
-    channel,
-    sacco_id,
-    ikimina_id,
-    member_id,
-    msisdn,
-    msisdn_encrypted,
-    msisdn_hash,
-    msisdn_masked,
-    amount,
-    currency,
-    txn_id,
-    reference,
-    occurred_at,
-    status,
-    source_id,
-    ai_version,
-    confidence,
-    created_at
-   FROM app.payments;
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.tables
+    where table_schema = 'public'
+      and table_name = 'payments'
+  ) then
+    -- table still present; later migrations convert it to a view
+    return;
+  end if;
+  execute 'create or replace view public.payments as
+    select id, channel, sacco_id, ikimina_id, member_id, msisdn, msisdn_encrypted, msisdn_hash,
+           msisdn_masked, amount, currency, txn_id, reference, occurred_at, status, source_id,
+           ai_version, confidence, created_at
+    from app.payments';
+end$$;
 
 
 CREATE OR REPLACE FUNCTION public.search_saccos(query text, limit_count integer DEFAULT 20, district_filter text DEFAULT NULL::text, province_filter text DEFAULT NULL::text)
@@ -1710,6 +1732,3 @@ using ((user_id = auth.uid()));
 
 
 CREATE TRIGGER trg_members_app_profiles_touch BEFORE UPDATE ON public.members_app_profiles FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
-
-
-

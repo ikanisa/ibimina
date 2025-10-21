@@ -4,18 +4,48 @@ begin;
 
 -- Ensure merchant_code and metadata from legacy records persist in app.saccos
 DO $$
+DECLARE
+  has_merchant boolean;
+  has_metadata boolean;
 BEGIN
-  IF to_regclass('public.saccos') IS NOT NULL THEN
+  IF to_regclass('public.saccos') IS NULL THEN
+    RETURN;
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'saccos'
+      AND column_name = 'merchant_code'
+  ) INTO has_merchant;
+
+  SELECT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'saccos'
+      AND column_name = 'metadata'
+  ) INTO has_metadata;
+
+  IF has_merchant THEN
     UPDATE app.saccos s
     SET merchant_code = src.merchant_code,
-        metadata = coalesce(src.metadata, '{}'::jsonb),
         updated_at = timezone('UTC', now())
     FROM public.saccos src
     WHERE s.id = src.id
-      AND (
-        (src.merchant_code IS NOT NULL AND src.merchant_code <> s.merchant_code)
-        OR (src.metadata IS NOT NULL AND src.metadata <> s.metadata)
-      );
+      AND src.merchant_code IS NOT NULL
+      AND src.merchant_code <> s.merchant_code;
+  END IF;
+
+  IF has_metadata THEN
+    UPDATE app.saccos s
+    SET metadata = coalesce(src.metadata, '{}'::jsonb),
+        updated_at = timezone('UTC', now())
+    FROM public.saccos src
+    WHERE s.id = src.id
+      AND src.metadata IS NOT NULL
+      AND src.metadata <> s.metadata;
   END IF;
 END;
 $$;
