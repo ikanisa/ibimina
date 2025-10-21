@@ -54,9 +54,8 @@ export default async function OcrPage({ searchParams }: OcrPageProps) {
   const userIds = pendingProfiles.map((row) => row.user_id);
   const { data: memberRows, error: memberError } = userIds.length
     ? await supabase
-        .schema("app")
         .from("members")
-        .select("user_id, sacco_id, status")
+        .select("user_id, ikimina_id, status")
         .in("user_id", userIds)
     : { data: [], error: null };
 
@@ -64,10 +63,47 @@ export default async function OcrPage({ searchParams }: OcrPageProps) {
     throw memberError;
   }
 
+  const memberRecords = (memberRows ?? []) as Array<{
+    user_id: string | null;
+    ikimina_id: string | null;
+    status: string | null;
+  }>;
+
+  const ikiminaIds = new Set<string>(
+    memberRecords
+      .map((row) => (typeof row.ikimina_id === "string" ? row.ikimina_id : null))
+      .filter((id): id is string => Boolean(id)),
+  );
+
+  const { data: ikiminaRows, error: ikiminaError } = ikiminaIds.size
+    ? await supabase
+        .from("ibimina")
+        .select("id, sacco_id")
+        .in("id", Array.from(ikiminaIds))
+    : { data: [], error: null };
+
+  if (ikiminaError && !isMissingRelationError(ikiminaError)) {
+    throw ikiminaError;
+  }
+
+  const ikiminaMap = new Map<string, string | null>(
+    ((ikiminaRows ?? []) as Array<{ id: string | null; sacco_id: string | null }>)
+      .filter((row) => typeof row.id === "string")
+      .map((row) => [row.id as string, row.sacco_id ?? null]),
+  );
+
   const membershipMap = new Map<string, MemberRow>();
-  for (const row of (memberRows ?? []) as MemberRow[]) {
+  for (const row of memberRecords) {
+    if (!row.user_id) {
+      continue;
+    }
+    const saccoId = row.ikimina_id ? ikiminaMap.get(row.ikimina_id) ?? null : null;
     if (!membershipMap.has(row.user_id)) {
-      membershipMap.set(row.user_id, row);
+      membershipMap.set(row.user_id, {
+        user_id: row.user_id,
+        sacco_id: saccoId,
+        status: row.status ?? null,
+      });
     }
   }
 

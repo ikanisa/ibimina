@@ -6,8 +6,9 @@ import type { Database } from "@/lib/supabase/types";
 import { logAudit } from "@/lib/audit";
 import { CACHE_TAGS } from "@/lib/performance/cache";
 import { instrumentServerAction } from "@/lib/observability/server-action";
-import { logError, logInfo, logWarn } from "@/lib/observability/logger";
+import { logError, logInfo, logWarn, updateLogContext } from "@/lib/observability/logger";
 import { guardAdminAction } from "@/lib/admin/guard";
+import { requireUserAndProfile } from "@/lib/auth";
 
 export type AdminActionResult = {
   status: "success" | "error";

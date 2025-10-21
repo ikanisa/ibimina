@@ -114,7 +114,7 @@ async function resendInviteInternal({ inviteId }: { inviteId: string }): Promise
 
   const { data: invite, error } = await supabase
     .from("group_invites")
-    .select("id, group_id, status, group:ikimina(sacco_id)")
+    .select("id, group_id, status, group:ibimina(sacco_id)")
     .eq("id", inviteId)
     .maybeSingle();
 
@@ -178,7 +178,7 @@ async function revokeInviteInternal({ inviteId }: { inviteId: string }): Promise
 
   const { data: invite, error } = await supabase
     .from("group_invites")
-    .select("id, group_id, status, group:ikimina(sacco_id)")
+    .select("id, group_id, status, group:ibimina(sacco_id)")
     .eq("id", inviteId)
     .maybeSingle();
 

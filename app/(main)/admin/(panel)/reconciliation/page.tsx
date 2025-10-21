@@ -2,7 +2,7 @@ import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { StatementImportWizard } from "@/components/ikimina/statement-import-wizard";
-import { ReconciliationTable } from "@/components/recon/reconciliation-table";
+import { ReconciliationTable, type ReconciliationRow } from "@/components/recon/reconciliation-table";
 import { SmsInboxPanel } from "@/components/recon/sms-inbox-panel";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
@@ -41,7 +41,12 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
   const supabase = await createSupabaseServerClient();
 
   type PaymentRow = Database["app"]["Tables"]["payments"]["Row"] & {
-    source: { raw_text: string | null; parsed_json: unknown; msisdn: string | null; received_at: string | null } | null;
+    source: {
+      raw_text: string | null;
+      parsed_json: Database["app"]["Tables"]["sms_inbox"]["Row"]["parsed_json"];
+      msisdn: string | null;
+      received_at: string | null;
+    } | null;
   };
 
   let paymentsQuery = supabase
@@ -62,7 +67,17 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
     throw paymentsError;
   }
 
-  const exceptionRows = (payments ?? []) as PaymentRow[];
+  const exceptionRows: ReconciliationRow[] = ((payments ?? []) as PaymentRow[]).map((row) => ({
+    ...row,
+    source: row.source
+      ? {
+          raw_text: row.source.raw_text ?? "",
+          parsed_json: row.source.parsed_json,
+          msisdn: row.source.msisdn,
+          received_at: row.source.received_at ?? "",
+        }
+      : null,
+  }));
 
   let smsQuery = supabase
     .schema("app")

@@ -152,7 +152,7 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
             className="text-xs text-neutral-3"
           />
         }
-        headerAction={<AuditExportButton filters={filters} saccoId={scope.saccoId ?? null} includeAll={scope.includeAll} />}
+        actions={<AuditExportButton filters={filters} saccoId={scope.saccoId ?? null} includeAll={scope.includeAll} />}
       >
         <AuditLogTable rows={entries} />
       </GlassCard>

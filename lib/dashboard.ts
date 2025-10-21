@@ -129,9 +129,7 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
   }
 
   const supabase = await createSupabaseServerClient();
-  // analytics materialized views are registered via SQL and not in the generated types
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const analyticsClient = supabase as any;
+  const analyticsClient = supabase;
 
   const resolveRollup = async (): Promise<PaymentRollupRow | null> => {
     if (allowAll) {

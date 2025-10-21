@@ -3,13 +3,14 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { NotificationQueueTable } from "@/components/admin/notification-queue-table";
 import { OperationalTelemetry } from "@/components/admin/operational-telemetry";
-import { AuditLogTable } from "@/components/admin/audit-log-table";
+import { AuditLogTable, type AuditLogEntry } from "@/components/admin/audit-log-table";
 import { FeatureFlagsCard } from "@/components/admin/feature-flags-card";
 import { MfaInsightsCard } from "@/components/admin/mfa-insights-card";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { resolveTenantScope } from "@/lib/admin/scope";
+import { getMfaInsights } from "@/lib/mfa/insights";
 import { Trans } from "@/components/common/trans";
 
 interface OverviewPageProps {
@@ -65,7 +66,7 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
 
   const invitesQuery = supabase
     .from("group_invites")
-    .select("id, group:ikimina(sacco_id)")
+    .select("id, group:ibimina(sacco_id)")
     .eq("status", "sent")
     .limit(500);
 
@@ -104,7 +105,7 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
   const safeCount = (result: { count: number | null; error: unknown }) => {
     const { count, error } = result;
     if (!error) return count ?? 0;
-    if (isMissingRelationError(error as { code: string; message: string; details: string | null; hint: string | null })) return 0;
+    if (isMissingRelationError(error)) return 0;
     throw error;
   };
 
@@ -124,6 +125,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
   const supabase = await createSupabaseServerClient();
 
   const metricsPromise = loadMetrics(scope);
+  const mfaInsightsPromise = scope.includeAll ? getMfaInsights() : Promise.resolve(null);
 
   let notificationQuery = supabase
     .from("notification_queue")
@@ -150,10 +152,11 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
     auditQuery = auditQuery.eq("sacco_id", scope.saccoId);
   }
 
-  const [notificationResponse, telemetryResponse, auditResponse] = await Promise.all([
+  const [notificationResponse, telemetryResponse, auditResponse, mfaInsights] = await Promise.all([
     notificationQuery,
     telemetryQuery,
     auditQuery,
+    mfaInsightsPromise,
   ]);
 
   const metrics = await metricsPromise;
@@ -195,6 +198,44 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
     actor: string | null;
   };
 
+  const telemetryMetrics = ((telemetryResponse.data ?? []) as TelemetryRow[]).map((row) => ({
+    event: row.event,
+    total: Number(row.total ?? 0),
+    last_occurred: row.last_occurred,
+    meta: row.meta,
+  }));
+
+  const auditRows = (auditResponse.data ?? []) as AuditRow[];
+  const actorIds = Array.from(
+    new Set(
+      auditRows
+        .map((row) => row.actor)
+        .filter((value): value is string => Boolean(value && value.length > 0)),
+    ),
+  );
+
+  let actorLookup = new Map<string, string>();
+  if (actorIds.length > 0) {
+    const { data: actorData, error: actorError } = await supabase
+      .from("users")
+      .select("id, email")
+      .in("id", actorIds);
+    if (actorError && !isMissingRelationError(actorError)) {
+      throw actorError;
+    }
+    actorLookup = new Map((actorData ?? []).map((row) => [String(row.id), row.email ?? ""]));
+  }
+
+  const auditEntries: AuditLogEntry[] = auditRows.map((row) => ({
+    id: row.id,
+    action: row.action,
+    entity: row.entity,
+    entityId: row.entity_id,
+    diff: row.diff,
+    actorLabel: row.actor ? actorLookup.get(row.actor) ?? row.actor : "—",
+    createdAt: row.created_at ?? new Date().toISOString(),
+  }));
+
   return (
     <div className="space-y-8">
       <GradientHeader
@@ -228,7 +269,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
           title={<Trans i18nKey="admin.overview.telemetry.title" fallback="Operational telemetry" />}
           subtitle={<Trans i18nKey="admin.overview.telemetry.subtitle" fallback="Recent platform events and signals." className="text-xs text-neutral-3" />}
         >
-          <OperationalTelemetry rows={(telemetryResponse.data ?? []) as TelemetryRow[]} />
+          <OperationalTelemetry metrics={telemetryMetrics} />
         </GlassCard>
 
         <GlassCard
@@ -244,10 +285,10 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
           title={<Trans i18nKey="admin.overview.audit.title" fallback="Audit timeline" />}
           subtitle={<Trans i18nKey="admin.overview.audit.subtitle" fallback="Latest platform actions" className="text-xs text-neutral-3" />}
         >
-          <AuditLogTable rows={(auditResponse.data ?? []) as AuditRow[]} />
+          <AuditLogTable rows={auditEntries} />
         </GlassCard>
         <div className="space-y-8">
-          <MfaInsightsCard saccoId={scope.includeAll ? null : scope.saccoId} />
+          {scope.includeAll && mfaInsights ? <MfaInsightsCard insights={mfaInsights} /> : null}
           <FeatureFlagsCard />
         </div>
       </div>

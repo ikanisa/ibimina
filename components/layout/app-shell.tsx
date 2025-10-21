@@ -78,6 +78,7 @@ export function AppShell({ children, profile }: AppShellProps) {
 }
 
 function DefaultAppShell({ children, profile }: AppShellProps) {
+  const pathname = usePathname();
   const [showActions, setShowActions] = useState(false);
   const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);

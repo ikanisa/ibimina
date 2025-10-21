@@ -20,7 +20,7 @@ const DICTIONARIES: Record<SupportedLocale, Record<string, string>> = {
 interface I18nContextValue {
   locale: SupportedLocale;
   setLocale: (locale: SupportedLocale) => void;
-  t: (key: string, fallback?: string) => string;
+  t: (key: string, fallback?: string, replacements?: Record<string, string | number>) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -82,10 +82,20 @@ export function I18nProvider({ children, defaultLocale = DEFAULT_LOCALE }: I18nP
   const dictionary = useMemo(() => DICTIONARIES[locale], [locale]);
 
   const translate = useCallback(
-    (key: string, fallback?: string) => {
-      if (dictionary[key]) return dictionary[key];
-      if (locale !== "en" && DICTIONARIES.en[key]) return DICTIONARIES.en[key];
-      return fallback ?? key;
+    (key: string, fallback?: string, replacements?: Record<string, string | number>) => {
+      let value = dictionary[key];
+      if (!value && locale !== "en") {
+        value = DICTIONARIES.en[key];
+      }
+      if (!value) {
+        value = fallback ?? key;
+      }
+      if (replacements) {
+        for (const [token, raw] of Object.entries(replacements)) {
+          value = value.replace(new RegExp(`{{${token}}}`, "g"), String(raw));
+        }
+      }
+      return value;
     },
     [dictionary, locale],
   );

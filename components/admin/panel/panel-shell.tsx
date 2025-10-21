@@ -85,6 +85,7 @@ export function AdminPanelShell({
           tenantOptions={tenantOptions}
           alertsCount={alertsCount}
           onToggleNav={() => setMobileOpen((value) => !value)}
+          navItems={navItems}
         />
         <div className="flex flex-1">
           <aside className="hidden w-64 flex-shrink-0 border-r border-white/5 bg-white/5 backdrop-blur lg:block">

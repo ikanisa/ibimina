@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Bell, Menu, Search } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
@@ -8,17 +8,33 @@ import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { TenantSwitcher } from "@/components/admin/panel/tenant-switcher";
-import type { TenantOption } from "@/components/admin/panel/types";
+import type { PanelNavItem, TenantOption } from "@/components/admin/panel/types";
 
 interface AdminPanelTopBarProps {
   profile: ProfileRow;
   tenantOptions: TenantOption[];
   alertsCount: number;
   onToggleNav: () => void;
+  navItems: PanelNavItem[];
 }
 
-export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggleNav }: AdminPanelTopBarProps) {
+export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggleNav, navItems }: AdminPanelTopBarProps) {
   const [showSearch, setShowSearch] = useState(false);
+  const navTargets = useMemo(
+    () =>
+      navItems.map((item) => ({
+        href: item.href,
+        primary: item.label,
+        secondary: "",
+        badge: item.badge
+          ? {
+              label: item.badge.label,
+              tone: item.badge.tone === "warning" ? "critical" : (item.badge.tone as "critical" | "info" | "success"),
+            }
+          : undefined,
+      })),
+    [navItems],
+  );
 
   return (
     <header className="fixed inset-x-0 top-0 z-30 border-b border-white/5 bg-neutral-950/70 backdrop-blur">
@@ -65,7 +81,13 @@ export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggle
           </div>
         </div>
       </div>
-      <GlobalSearchDialog open={showSearch} onOpenChange={setShowSearch} />
+      <GlobalSearchDialog
+        open={showSearch}
+        onClose={() => setShowSearch(false)}
+        profile={profile}
+        navItems={navTargets}
+        quickActions={[]}
+      />
     </header>
   );
 }

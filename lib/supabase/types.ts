@@ -924,7 +924,22 @@ export type Database = {
           status?: Database["public"]["Enums"]["group_invite_status"] | null
           token?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "group_invites_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "ibimina"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_invites_invitee_user_id_fkey"
+            columns: ["invitee_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ikimina: {
         Row: {
@@ -993,7 +1008,36 @@ export type Database = {
           status?: Database["public"]["Enums"]["join_request_status"] | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "join_requests_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "join_requests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "ibimina"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "join_requests_sacco_id_fkey"
+            columns: ["sacco_id"]
+            isOneToOne: false
+            referencedRelation: "saccos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "join_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       members: {
         Row: {
@@ -1115,8 +1159,10 @@ export type Database = {
           created_at: string
           event: string
           id: string
+          sacco_id: string | null
           payload: Json
           payment_id: string | null
+          template_id: string | null
           processed_at: string | null
           scheduled_for: string
           status: string
@@ -1125,8 +1171,10 @@ export type Database = {
           created_at?: string
           event: string
           id?: string
+          sacco_id?: string | null
           payload: Json
           payment_id?: string | null
+          template_id?: string | null
           processed_at?: string | null
           scheduled_for?: string
           status?: string
@@ -1135,13 +1183,30 @@ export type Database = {
           created_at?: string
           event?: string
           id?: string
+          sacco_id?: string | null
           payload?: Json
           payment_id?: string | null
+          template_id?: string | null
           processed_at?: string | null
           scheduled_for?: string
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notification_queue_sacco_id_fkey"
+            columns: ["sacco_id"]
+            isOneToOne: false
+            referencedRelation: "saccos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_queue_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "sms_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -1429,6 +1494,50 @@ export type Database = {
       }
     }
     Views: {
+      analytics_ikimina_monthly_mv: {
+        Row: {
+          active_member_count: number | null
+          code: string | null
+          contributing_members: number | null
+          ikimina_id: string | null
+          last_contribution_at: string | null
+          month_total: number | null
+          name: string | null
+          sacco_id: string | null
+          status: string | null
+          updated_at: string | null
+          refreshed_at: string | null
+        }
+        Relationships: []
+      }
+      analytics_member_last_payment_mv: {
+        Row: {
+          days_since_last: number | null
+          full_name: string | null
+          ikimina_id: string | null
+          ikimina_name: string | null
+          last_payment_at: string | null
+          member_code: string | null
+          member_id: string | null
+          msisdn: string | null
+          sacco_id: string | null
+          status: string | null
+          refreshed_at: string | null
+        }
+        Relationships: []
+      }
+      analytics_payment_rollups_mv: {
+        Row: {
+          latest_payment_at: string | null
+          month_total: number | null
+          refreshed_at: string | null
+          sacco_id: string | null
+          today_total: number | null
+          unallocated_count: number | null
+          week_total: number | null
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           balance: number | null

@@ -9,9 +9,10 @@ import { cn } from "@/lib/utils";
 
 interface SignOutButtonProps {
   className?: string;
+  variant?: "default" | "ghost";
 }
 
-export function SignOutButton({ className }: SignOutButtonProps) {
+export function SignOutButton({ className, variant = "default" }: SignOutButtonProps) {
   const supabase = getSupabaseBrowserClient();
   const router = useRouter();
   const { t } = useTranslation();
@@ -56,7 +57,10 @@ export function SignOutButton({ className }: SignOutButtonProps) {
         void handleSignOut();
       }}
       className={cn(
-        "interactive-scale inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold tracking-[0.1em] text-neutral-0 transition hover:border-white/25 hover:text-neutral-0 disabled:cursor-not-allowed disabled:opacity-70",
+        "interactive-scale inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold tracking-[0.1em] transition disabled:cursor-not-allowed disabled:opacity-70",
+        variant === "ghost"
+          ? "border border-transparent text-neutral-3 hover:text-neutral-0"
+          : "border border-white/10 text-neutral-0 hover:border-white/25 hover:text-neutral-0",
         className,
       )}
       disabled={pending}

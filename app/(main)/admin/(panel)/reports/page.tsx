@@ -63,7 +63,9 @@ export default async function ReportsAdminPage({ searchParams }: ReportsAdminPag
   }
 
   const { data: subscriptionRows } = await subscriptionQuery;
-  const subscriptions: ReportSubscription[] = (subscriptionRows ?? []).map(mapSubscriptionRow);
+  const subscriptions: ReportSubscription[] = (subscriptionRows ?? []).map((row) =>
+    mapSubscriptionRow(row as Parameters<typeof mapSubscriptionRow>[0]),
+  );
 
   return (
     <ReportsClient

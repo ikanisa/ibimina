@@ -38,7 +38,10 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
   }
 
   const saccos = (saccoRows ?? []) as Array<
-    Pick<Database["app"]["Tables"]["saccos"]["Row"], "id" | "name" | "district" | "province" | "category" | "status" | "email" | "sector_code">
+    Pick<
+      Database["app"]["Tables"]["saccos"]["Row"],
+      "id" | "name" | "district" | "province" | "category" | "status" | "email" | "sector_code" | "sector" | "logo_url"
+    >
   >;
 
   const saccoOptions: SaccoSearchResult[] = saccos.map((row) => ({

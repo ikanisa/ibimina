@@ -31,7 +31,7 @@ export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps
 
   let inviteQuery = supabase
     .from("group_invites")
-    .select("id, created_at, status, invitee_msisdn, group_id, group:ikimina(name, sacco_id)")
+    .select("id, created_at, status, invitee_msisdn, group_id, group:ibimina(name, sacco_id)")
     .eq("status", "sent")
     .order("created_at", { ascending: false })
     .limit(50);

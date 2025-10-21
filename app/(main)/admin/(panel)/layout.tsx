@@ -80,7 +80,7 @@ async function getAlertSummary(profile: Awaited<ReturnType<typeof requireUserAnd
 
   const inviteQuery = supabase
     .from("group_invites")
-    .select("id, group:ikimina(sacco_id)")
+    .select("id, group:ibimina(sacco_id)")
     .eq("status", "sent");
 
   let paymentsQuery = supabase

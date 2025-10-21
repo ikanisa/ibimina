@@ -1,8 +1,16 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 
-export function isMissingRelationError(error: PostgrestError | null | undefined): boolean {
-  if (!error) return false;
-  if (error.code === "42P01") return true;
-  const fingerprint = [error.message, error.details, error.hint].filter(Boolean).join(" ");
+type PostgrestShape = {
+  code?: string;
+  message?: string;
+  details?: string | null;
+  hint?: string | null;
+};
+
+export function isMissingRelationError(error: unknown): error is PostgrestError {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as PostgrestShape;
+  if (candidate.code === "42P01") return true;
+  const fingerprint = [candidate.message, candidate.details, candidate.hint].filter(Boolean).join(" ");
   return /(?:relation|table).+does not exist/i.test(fingerprint);
 }
