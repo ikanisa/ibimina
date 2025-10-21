@@ -71,7 +71,6 @@ async function getAlertSummary(profile: Awaited<ReturnType<typeof requireUserAnd
   const scope = profile.role === "SYSTEM_ADMIN" ? null : profile.sacco_id ?? null;
 
   let joinQuery = supabase
-    .schema("app")
     .from("join_requests")
     .select("id", { head: true, count: "exact" })
     .eq("status", "pending");
@@ -80,7 +79,6 @@ async function getAlertSummary(profile: Awaited<ReturnType<typeof requireUserAnd
   }
 
   const inviteQuery = supabase
-    .schema("app")
     .from("group_invites")
     .select("id, group:ikimina(sacco_id)")
     .eq("status", "sent");
