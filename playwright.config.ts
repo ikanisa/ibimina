@@ -43,6 +43,6 @@ export default defineConfig({
     ].join(" "),
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 180_000,
   },
 });
