@@ -11,6 +11,8 @@ import { getDashboardSummary } from "@/lib/dashboard";
 import { Trans } from "@/components/common/trans";
 import { TopIkiminaTable } from "@/components/dashboard/top-ikimina-table";
 
+export const runtime = "nodejs";
+
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-RW", { style: "currency", currency: "RWF", maximumFractionDigits: 0 }).format(amount);
 }
@@ -54,7 +56,13 @@ export default async function DashboardPage() {
     );
   }
 
-  const summary = await getDashboardSummary({ saccoId: profile.sacco_id, allowAll: isSystemAdmin });
+  let summary: Awaited<ReturnType<typeof getDashboardSummary>>;
+  try {
+    summary = await getDashboardSummary({ saccoId: profile.sacco_id, allowAll: isSystemAdmin });
+  } catch (error) {
+    console.error("[DashboardPage] failed to load summary", error);
+    throw error;
+  }
 
   const kpis = [
     { label: "Today's Deposits", value: formatCurrency(summary.totals.today), accent: "blue" as const },
