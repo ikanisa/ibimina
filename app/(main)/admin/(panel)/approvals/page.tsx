@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resolveTenantScope } from "@/lib/admin/scope";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { Trans } from "@/components/common/trans";
+import type { Database } from "@/lib/supabase/types";
 
 interface ApprovalsPageProps {
   searchParams?: Record<string, string | string[] | undefined>;
@@ -18,7 +19,6 @@ export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps
   const supabase = await createSupabaseServerClient();
 
   let joinQuery = supabase
-    .schema("app")
     .from("join_requests")
     .select("id, created_at, status, note, sacco_id, user_id, group_id")
     .eq("status", "pending")
@@ -49,15 +49,12 @@ export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps
     throw inviteError;
   }
 
-  const joinRowsData = (joinRows ?? []) as Array<{
-    id: string;
-    created_at: string | null;
-    status: string | null;
-    note: string | null;
-    sacco_id: string | null;
-    user_id: string | null;
-    group_id: string;
-  }>;
+  type JoinRequestRow = Pick<
+    Database["public"]["Tables"]["join_requests"]["Row"],
+    "id" | "created_at" | "status" | "note" | "sacco_id" | "user_id" | "group_id"
+  >;
+
+  const joinRowsData = (joinRows ?? []) as JoinRequestRow[];
 
   const groupIds = Array.from(new Set(joinRowsData.map((row) => row.group_id)));
   const userIds = Array.from(new Set(joinRowsData.map((row) => row.user_id).filter(Boolean))) as string[];

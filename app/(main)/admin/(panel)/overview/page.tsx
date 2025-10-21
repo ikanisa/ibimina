@@ -54,19 +54,16 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
 
   const approvalsQuery = scope.includeAll
     ? supabase
-        .schema("app")
         .from("join_requests")
         .select("id", { head: true, count: "exact" })
         .eq("status", "pending")
     : supabase
-        .schema("app")
         .from("join_requests")
         .select("id", { head: true, count: "exact" })
         .eq("status", "pending")
         .eq("sacco_id", scope.saccoId ?? "");
 
   const invitesQuery = supabase
-    .schema("app")
     .from("group_invites")
     .select("id, group:ikimina(sacco_id)")
     .eq("status", "sent")

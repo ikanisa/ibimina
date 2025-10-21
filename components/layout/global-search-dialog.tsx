@@ -12,7 +12,25 @@ import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
 
-const supabase = getSupabaseBrowserClient();
+let cachedSupabaseClient: ReturnType<typeof getSupabaseBrowserClient> | null = null;
+let supabaseClientInitError: Error | null = null;
+
+function resolveSupabaseClient() {
+  if (cachedSupabaseClient || supabaseClientInitError) {
+    return cachedSupabaseClient;
+  }
+
+  try {
+    cachedSupabaseClient = getSupabaseBrowserClient();
+  } catch (error) {
+    const resolvedError = error instanceof Error ? error : new Error(String(error));
+    supabaseClientInitError = resolvedError;
+    console.error("global-search.supabase.init_failed", { message: resolvedError.message });
+    cachedSupabaseClient = null;
+  }
+
+  return cachedSupabaseClient;
+}
 
 
 type SearchCacheEntry = {
@@ -149,6 +167,7 @@ export function GlobalSearchDialog({
 }: GlobalSearchDialogProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const supabase = useMemo(() => resolveSupabaseClient(), []);
   const [query, setQuery] = useState("");
   const [ikimina, setIkimina] = useState<IkiminaResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -187,6 +206,35 @@ export function GlobalSearchDialog({
     const cacheKey = `${profile.role}-${profile.sacco_id ?? "all"}`;
     const cached = SEARCH_CACHE.get(cacheKey);
     const cacheFresh = cached ? Date.now() - cached.timestamp < CACHE_TTL_MS : false;
+
+    if (!supabase) {
+      const unavailableMessage = t(
+        "search.console.supabaseUnavailable",
+        "Search is unavailable because Supabase is not configured.",
+      );
+      setIkimina([]);
+      setMembers([]);
+      setPayments([]);
+      setError(unavailableMessage);
+      setMembersError(unavailableMessage);
+      setPaymentsError(unavailableMessage);
+      setLoading(false);
+      setMembersLoading(false);
+      setPaymentsLoading(false);
+      setLastSyncedAt(new Date());
+      SEARCH_CACHE.set(cacheKey, {
+        ikimina: [],
+        members: [],
+        payments: [],
+        error: unavailableMessage,
+        membersError: unavailableMessage,
+        paymentsError: unavailableMessage,
+        timestamp: Date.now(),
+      });
+      return () => {
+        active = false;
+      };
+    }
 
     if (cached) {
       setIkimina(cached.ikimina);
@@ -430,7 +478,7 @@ export function GlobalSearchDialog({
     return () => {
       active = false;
     };
-  }, [open, profile.role, profile.sacco_id, toast, t]);
+  }, [open, profile.role, profile.sacco_id, supabase, toast, t]);
 
   useEffect(() => {
     if (!open) return;

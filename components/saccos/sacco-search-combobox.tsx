@@ -22,7 +22,25 @@ interface SaccoSearchComboboxProps {
   className?: string;
 }
 
-const supabase = getSupabaseBrowserClient();
+let cachedSupabaseClient: ReturnType<typeof getSupabaseBrowserClient> | null = null;
+let supabaseClientInitError: Error | null = null;
+
+function resolveSupabaseClient() {
+  if (cachedSupabaseClient || supabaseClientInitError) {
+    return cachedSupabaseClient;
+  }
+
+  try {
+    cachedSupabaseClient = getSupabaseBrowserClient();
+  } catch (error) {
+    const resolvedError = error instanceof Error ? error : new Error(String(error));
+    supabaseClientInitError = resolvedError;
+    console.error("sacco-search.supabase.init_failed", { message: resolvedError.message });
+    cachedSupabaseClient = null;
+  }
+
+  return cachedSupabaseClient;
+}
 
 export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, className }: SaccoSearchComboboxProps) {
   const { t } = useTranslation();
@@ -30,9 +48,23 @@ export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, cl
   const [results, setResults] = useState<SaccoSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = useMemo(() => resolveSupabaseClient(), []);
 
   useEffect(() => {
     let active = true;
+    if (!supabase) {
+      if (query.trim()) {
+        setError(t("sacco.search.disabled", "Search is unavailable right now."));
+      } else {
+        setError(null);
+      }
+      setLoading(false);
+      setResults([]);
+      return () => {
+        active = false;
+      };
+    }
+
     const handle = setTimeout(async () => {
       if (!query.trim()) {
         setResults([]);
@@ -69,7 +101,7 @@ export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, cl
       active = false;
       clearTimeout(handle);
     };
-  }, [query, t]);
+  }, [query, supabase, t]);
 
   const selectedLabel = useMemo(() => {
     if (!value) return placeholder;

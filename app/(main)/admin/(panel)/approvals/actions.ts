@@ -46,7 +46,6 @@ async function decideJoinRequestInternal({
   const { supabase, profile, user } = guard.context;
 
   const { data: request, error } = await supabase
-    .schema("app")
     .from("join_requests")
     .select("id, status, sacco_id, group_id, user_id, note")
     .eq("id", requestId)
@@ -67,9 +66,7 @@ async function decideJoinRequestInternal({
   }
 
   const nextStatus = decision === "approved" ? "approved" : "rejected";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error: updateError } = await (supabase as any)
-    .schema("app")
+  const { error: updateError } = await supabase
     .from("join_requests")
     .update({
       status: nextStatus,
