@@ -602,3 +602,217 @@ export const resetMfaForAllEnabled = instrumentServerAction(
 );
 export const updateTenantSettings = instrumentServerAction("admin.updateTenantSettings", updateTenantSettingsInternal);
 export const resolveOcrReview = instrumentServerAction("admin.resolveOcrReview", resolveOcrReviewInternal);
+
+// ---------- Financial institution management ----------
+
+type FinancialInstitutionPayload = {
+  id?: string;
+  name: string;
+  kind: Database["app"]["Enums"]["financial_institution_kind"];
+  district: string;
+  saccoId?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+async function upsertFinancialInstitutionInternal(payload: FinancialInstitutionPayload): Promise<
+  AdminActionResult & { record?: Database["app"]["Tables"]["financial_institutions"]["Row"] }
+> {
+  const { profile, user } = await requireUserAndProfile();
+  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
+
+  if (profile.role !== "SYSTEM_ADMIN") {
+    logWarn("admin_financial_institution_denied", { actorRole: profile.role });
+    return { status: "error", message: "Only system administrators can manage financial institutions." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const table = supabase.schema("app").from("financial_institutions");
+  const basePayload: Database["app"]["Tables"]["financial_institutions"]["Insert"] = {
+    name: payload.name.trim(),
+    kind: payload.kind,
+    district: payload.district.trim().toUpperCase(),
+    sacco_id: payload.saccoId ?? null,
+    metadata: (payload.metadata ?? {}) as Database["app"]["Tables"]["financial_institutions"]["Row"]["metadata"],
+  };
+
+  let result;
+  if (payload.id) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    result = await (table as any)
+      .update(basePayload)
+      .eq("id", payload.id)
+      .select("*")
+      .maybeSingle();
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    result = await (table as any)
+      .insert(basePayload)
+      .select("*")
+      .single();
+  }
+
+  if (result.error) {
+    logError("admin_financial_institution_upsert_failed", { error: result.error, payload });
+    return { status: "error", message: result.error.message ?? "Failed to save institution" };
+  }
+
+  const institutionId = (result.data as { id?: string } | null)?.id ?? "UNKNOWN";
+
+  await logAudit({
+    action: payload.id ? "FINANCIAL_INSTITUTION_UPDATED" : "FINANCIAL_INSTITUTION_CREATED",
+    entity: "financial_institutions",
+    entityId: institutionId,
+    diff: { name: payload.name, kind: payload.kind, district: payload.district, saccoId: payload.saccoId ?? null },
+  });
+
+  await revalidatePath("/admin");
+  return {
+    status: "success",
+    message: payload.id ? "Institution updated" : "Institution created",
+    record: result.data ?? undefined,
+  };
+}
+
+async function deleteFinancialInstitutionInternal({ id }: { id: string }): Promise<AdminActionResult> {
+  const { profile, user } = await requireUserAndProfile();
+  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
+
+  if (profile.role !== "SYSTEM_ADMIN") {
+    logWarn("admin_financial_institution_delete_denied", { actorRole: profile.role });
+    return { status: "error", message: "Only system administrators can manage financial institutions." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.schema("app").from("financial_institutions").delete().eq("id", id);
+
+  if (error) {
+    logError("admin_financial_institution_delete_failed", { error, id });
+    return { status: "error", message: error.message ?? "Failed to delete institution" };
+  }
+
+  await logAudit({
+    action: "FINANCIAL_INSTITUTION_DELETED",
+    entity: "financial_institutions",
+    entityId: id,
+    diff: null,
+  });
+
+  await revalidatePath("/admin");
+  return { status: "success", message: "Institution removed" };
+}
+
+export const upsertFinancialInstitution = instrumentServerAction(
+  "admin.upsertFinancialInstitution",
+  upsertFinancialInstitutionInternal,
+);
+export const deleteFinancialInstitution = instrumentServerAction(
+  "admin.deleteFinancialInstitution",
+  deleteFinancialInstitutionInternal,
+);
+
+// ---------- MoMo code management ----------
+
+type MomoCodePayload = {
+  id?: string;
+  provider: string;
+  district: string;
+  code: string;
+  accountName?: string | null;
+  description?: string | null;
+};
+
+async function upsertMomoCodeInternal(payload: MomoCodePayload): Promise<
+  AdminActionResult & { record?: Database["app"]["Tables"]["momo_codes"]["Row"] }
+> {
+  const { profile, user } = await requireUserAndProfile();
+  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
+
+  if (profile.role !== "SYSTEM_ADMIN") {
+    logWarn("admin_momo_code_denied", { actorRole: profile.role });
+    return { status: "error", message: "Only system administrators can manage MoMo codes." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const table = supabase.schema("app").from("momo_codes");
+  const basePayload: Database["app"]["Tables"]["momo_codes"]["Insert"] = {
+    provider: (payload.provider ?? "").trim().toUpperCase(),
+    district: (payload.district ?? "").trim().toUpperCase(),
+    code: (payload.code ?? "").trim(),
+    account_name: payload.accountName?.trim() || null,
+    description: payload.description?.trim() || null,
+  };
+
+  let result;
+  if (payload.id) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    result = await (table as any)
+      .update(basePayload)
+      .eq("id", payload.id)
+      .select("*")
+      .maybeSingle();
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    result = await (table as any)
+      .insert(basePayload)
+      .select("*")
+      .single();
+  }
+
+  if (result.error) {
+    logError("admin_momo_code_upsert_failed", { error: result.error, payload });
+    return { status: "error", message: result.error.message ?? "Failed to save MoMo code" };
+  }
+
+  const momoCodeId = (result.data as { id?: string } | null)?.id ?? "UNKNOWN";
+
+  await logAudit({
+    action: payload.id ? "MOMO_CODE_UPDATED" : "MOMO_CODE_CREATED",
+    entity: "momo_codes",
+    entityId: momoCodeId,
+    diff: {
+      provider: payload.provider,
+      district: payload.district,
+      code: payload.code,
+      accountName: payload.accountName ?? null,
+      description: payload.description ?? null,
+    },
+  });
+
+  await revalidatePath("/admin");
+  return {
+    status: "success",
+    message: payload.id ? "MoMo code updated" : "MoMo code created",
+    record: result.data ?? undefined,
+  };
+}
+
+async function deleteMomoCodeInternal({ id }: { id: string }): Promise<AdminActionResult> {
+  const { profile, user } = await requireUserAndProfile();
+  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
+
+  if (profile.role !== "SYSTEM_ADMIN") {
+    logWarn("admin_momo_code_delete_denied", { actorRole: profile.role });
+    return { status: "error", message: "Only system administrators can manage MoMo codes." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.schema("app").from("momo_codes").delete().eq("id", id);
+
+  if (error) {
+    logError("admin_momo_code_delete_failed", { error, id });
+    return { status: "error", message: error.message ?? "Failed to delete MoMo code" };
+  }
+
+  await logAudit({
+    action: "MOMO_CODE_DELETED",
+    entity: "momo_codes",
+    entityId: id,
+    diff: null,
+  });
+
+  await revalidatePath("/admin");
+  return { status: "success", message: "MoMo code removed" };
+}
+
+export const upsertMomoCode = instrumentServerAction("admin.upsertMomoCode", upsertMomoCodeInternal);
+export const deleteMomoCode = instrumentServerAction("admin.deleteMomoCode", deleteMomoCodeInternal);

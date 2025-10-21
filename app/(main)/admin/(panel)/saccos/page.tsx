@@ -2,10 +2,15 @@ import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { SaccoRegistryManager } from "@/components/admin/sacco-registry-manager";
+import { FinancialInstitutionManager } from "@/components/admin/financial-institution-manager";
+import { MomoCodeTable } from "@/components/admin/momo-code-table";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { resolveTenantScope } from "@/lib/admin/scope";
+import { isMissingRelationError } from "@/lib/supabase/errors";
 import { Trans } from "@/components/common/trans";
+import type { Database } from "@/lib/supabase/types";
+import type { SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
 
 interface SaccosPageProps {
   searchParams?: Record<string, string | string[] | undefined>;
@@ -32,7 +37,78 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
     throw error;
   }
 
-  const saccos = saccoRows ?? [];
+  const saccos = (saccoRows ?? []) as Array<
+    Pick<Database["app"]["Tables"]["saccos"]["Row"], "id" | "name" | "district" | "province" | "category" | "status" | "email" | "sector_code">
+  >;
+
+  const saccoOptions: SaccoSearchResult[] = saccos.map((row) => ({
+    id: row.id,
+    name: row.name ?? "Unnamed SACCO",
+    district: row.district ?? "",
+    province: row.province ?? "",
+    category: row.category ?? "",
+  }));
+
+  let financialInstitutions: Database["app"]["Tables"]["financial_institutions"]["Row"][] = [];
+  let momoCodes: Database["app"]["Tables"]["momo_codes"]["Row"][] = [];
+  let districtMomoMap: Record<
+    string,
+    { code: string; provider: string; account_name: string | null }
+  > = {};
+  let districtOptions: string[] = [];
+  let providerOptions: string[] = [];
+
+  if (profile.role === "SYSTEM_ADMIN") {
+    const [institutionsResponse, momoCodesResponse] = await Promise.all([
+      supabase
+        .schema("app")
+        .from("financial_institutions")
+        .select("id, name, kind, district, sacco_id, metadata, created_at, updated_at")
+        .order("name", { ascending: true }),
+      supabase
+        .schema("app")
+        .from("momo_codes")
+        .select("id, provider, district, code, account_name, description, metadata, created_at, updated_at")
+        .order("district", { ascending: true }),
+    ]);
+
+    if (institutionsResponse.error && !isMissingRelationError(institutionsResponse.error)) {
+      throw institutionsResponse.error;
+    }
+    if (momoCodesResponse.error && !isMissingRelationError(momoCodesResponse.error)) {
+      throw momoCodesResponse.error;
+    }
+
+    financialInstitutions = (institutionsResponse.data ?? []) as Database["app"]["Tables"]["financial_institutions"]["Row"][];
+    momoCodes = (momoCodesResponse.data ?? []) as Database["app"]["Tables"]["momo_codes"]["Row"][];
+
+    districtMomoMap = momoCodes.reduce<Record<string, { code: string; provider: string; account_name: string | null }>>(
+      (acc, code) => {
+        const key = (code.district ?? "").toUpperCase();
+        if (!key) return acc;
+        acc[key] = {
+          code: code.code,
+          provider: code.provider,
+          account_name: code.account_name,
+        };
+        return acc;
+      },
+      {},
+    );
+
+    const districtSet = new Set<string>();
+    saccos.forEach((row) => {
+      if (row.district) districtSet.add(row.district.toUpperCase());
+    });
+    financialInstitutions.forEach((row) => {
+      if (row.district) districtSet.add(row.district.toUpperCase());
+    });
+    momoCodes.forEach((row) => {
+      if (row.district) districtSet.add(row.district.toUpperCase());
+    });
+    districtOptions = Array.from(districtSet).sort((a, b) => a.localeCompare(b));
+    providerOptions = Array.from(new Set(momoCodes.map((row) => row.provider ?? ""))).filter(Boolean).sort();
+  }
 
   return (
     <div className="space-y-8">
@@ -49,12 +125,54 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
       />
 
       {profile.role === "SYSTEM_ADMIN" ? (
-        <GlassCard
-          title={<Trans i18nKey="admin.saccos.registry" fallback="Registry" />}
-          subtitle={<Trans i18nKey="admin.saccos.registrySubtitle" fallback="Create, edit, or deactivate SACCO tenants." className="text-xs text-neutral-3" />}
-        >
-          <SaccoRegistryManager initialSaccos={saccos} />
-        </GlassCard>
+        <>
+          <GlassCard
+            title={<Trans i18nKey="admin.saccos.registry" fallback="Registry" />}
+            subtitle={
+              <Trans
+                i18nKey="admin.saccos.registrySubtitle"
+                fallback="Create, edit, or deactivate SACCO tenants."
+                className="text-xs text-neutral-3"
+              />
+            }
+          >
+            <SaccoRegistryManager initialSaccos={saccos} districtMomoMap={districtMomoMap} />
+          </GlassCard>
+
+          <GlassCard
+            title={<Trans i18nKey="admin.financialInstitutions.title" fallback="Financial institutions" />}
+            subtitle={
+              <Trans
+                i18nKey="admin.financialInstitutions.subtitle"
+                fallback="Catalogue partner financial institutions and link them to SACCO tenants."
+                className="text-xs text-neutral-3"
+              />
+            }
+          >
+            <FinancialInstitutionManager
+              initialInstitutions={financialInstitutions}
+              saccoOptions={saccoOptions}
+              districtOptions={districtOptions}
+            />
+          </GlassCard>
+
+          <GlassCard
+            title={<Trans i18nKey="admin.momoCodes.title" fallback="MoMo codes" />}
+            subtitle={
+              <Trans
+                i18nKey="admin.momoCodes.subtitle"
+                fallback="Manage mobile money merchant codes by district to automate USSD instructions."
+                className="text-xs text-neutral-3"
+              />
+            }
+          >
+            <MomoCodeTable
+              initialCodes={momoCodes}
+              providerOptions={providerOptions}
+              districtOptions={districtOptions}
+            />
+          </GlassCard>
+        </>
       ) : (
         <GlassCard
           title={<Trans i18nKey="admin.saccos.readonly" fallback="Tenant details" />}

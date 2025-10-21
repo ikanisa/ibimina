@@ -17,6 +17,41 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const digitAlphabet = "0123456789";
+
+const bufferToBase64 = (buffer: ArrayBuffer) =>
+  btoa(String.fromCharCode(...new Uint8Array(buffer)));
+
+const generateDigits = (length: number) => {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  let result = "";
+  for (let i = 0; i < length; i += 1) {
+    result += digitAlphabet[bytes[i] % digitAlphabet.length];
+  }
+  return result;
+};
+
+const generateSalt = () => {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return bufferToBase64(bytes.buffer);
+};
+
+const loadPepper = () => {
+  const value = Deno.env.get("EMAIL_OTP_PEPPER") ?? Deno.env.get("BACKUP_PEPPER");
+  if (!value) {
+    throw new Error("EMAIL_OTP_PEPPER (or BACKUP_PEPPER) is not configured");
+  }
+  return value;
+};
+
+const deriveDigest = async (code: string, salt: string, pepper: string) => {
+  const data = new TextEncoder().encode(`${pepper}${salt}${code}`);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return bufferToBase64(digest);
+};
+
 serve(async (req) => {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);
@@ -45,12 +80,24 @@ serve(async (req) => {
   const ttlSeconds = normalizeTtlSeconds(payload.ttl_seconds);
   const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
   const code = generateDigits(6);
+  let pepper: string;
 
-  const { error } = await supabase.from("mfa_codes").insert({
+  try {
+    pepper = loadPepper();
+  } catch (error) {
+    console.error("generate-mfa-code: missing pepper configuration", error);
+    return jsonResponse({ error: "Server misconfigured" }, 500);
+  }
+
+  const salt = generateSalt();
+  const codeHash = await deriveDigest(code, salt, pepper);
+
+  const { error } = await supabase.schema("app").from("mfa_email_codes").insert({
     user_id: userId,
-    code,
+    code_hash: codeHash,
+    salt,
     expires_at: expiresAt.toISOString(),
-    channel: typeof payload.channel === "string" ? payload.channel : "generic",
+    attempt_count: 0,
   });
 
   if (error) {
@@ -79,13 +126,6 @@ function normalizeTtlSeconds(raw: unknown): number {
   const num = typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN;
   if (!Number.isFinite(num)) return fallback;
   return Math.min(Math.max(Math.trunc(num), 60), 900);
-}
-
-function generateDigits(length: number): string {
-  const max = 10 ** length;
-  const buf = new Uint32Array(1);
-  crypto.getRandomValues(buf);
-  return (buf[0] % max).toString().padStart(length, "0");
 }
 
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {

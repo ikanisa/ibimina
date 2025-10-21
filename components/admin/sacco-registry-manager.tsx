@@ -40,8 +40,15 @@ const normalizeSacco = (row: RawSaccoRow): SaccoRow => ({
   sector_code: row.sector_code ?? "",
 });
 
+type DistrictMomoInfo = {
+  code: string;
+  provider: string;
+  account_name: string | null;
+};
+
 type SaccoRegistryManagerProps = {
   initialSaccos: RawSaccoRow[];
+  districtMomoMap?: Record<string, DistrictMomoInfo>;
 };
 
 type SaccoFormState = SaccoRow;
@@ -65,7 +72,7 @@ function buildSectorCode(district: string, sector: string) {
 
 const DEFAULT_CATEGORY = "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)";
 
-export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProps) {
+export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: SaccoRegistryManagerProps) {
   const { t } = useTranslation();
   const [saccos, setSaccos] = useState<SaccoRow[]>(() => initialSaccos.map(normalizeSacco));
   const [search, setSearch] = useState("");
@@ -224,6 +231,9 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
               <th className="px-4 py-3">
                 {t("table.status", "Status")}
               </th>
+              <th className="px-4 py-3">
+                {t("admin.registry.momoCode", "MoMo code")}
+              </th>
               <th className="px-4 py-3 text-right">
                 {t("table.actions", "Actions")}
               </th>
@@ -242,6 +252,14 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
                   )}>
                     {sacco.status}
                   </span>
+                </td>
+                <td className="px-4 py-3 text-xs text-neutral-2">
+                  {(() => {
+                    const districtKey = sacco.district?.toUpperCase() ?? "";
+                    const info = districtMomoMap[districtKey];
+                    if (!info) return t("common.notSet", "Not set");
+                    return `${info.code}${info.provider ? ` · ${info.provider}` : ""}`;
+                  })()}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-2">
@@ -265,7 +283,7 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-neutral-2">
+                <td colSpan={6} className="px-4 py-6 text-center text-neutral-2">
                   {t("admin.registry.none", "No SACCOs match this search.")}
                 </td>
               </tr>
@@ -366,6 +384,31 @@ export function SaccoRegistryManager({ initialSaccos }: SaccoRegistryManagerProp
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
               />
             </label>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-neutral-2">
+            {(() => {
+              const info = districtMomoMap[editing.district?.toUpperCase() ?? ""];
+              if (!info) {
+                return (
+                  <p>
+                    {t(
+                      "admin.registry.momoInfoMissing",
+                      "No MoMo code configured for this district. Update the MoMo codes table to surface it here.",
+                    )}
+                  </p>
+                );
+              }
+
+              return (
+                <p>
+                  <span className="font-semibold text-neutral-0">{info.code}</span>
+                  {" "}
+                  {info.provider && <span>· {info.provider}</span>}
+                  {info.account_name && <span className="ml-2">({info.account_name})</span>}
+                </p>
+              );
+            })()}
           </div>
 
           <div className="mt-4 flex items-center justify-end gap-3">

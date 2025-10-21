@@ -7,7 +7,10 @@ export async function GET(request: NextRequest | Request) {
   const q = (searchParams.get("q") ?? "").trim();
 
   if (q.length < 2) {
-    return NextResponse.json({ results: [] });
+    return NextResponse.json(
+      { results: [] },
+      { headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=120" } },
+    );
   }
 
   const supabase = createSupabaseAdminClient();
@@ -21,7 +24,13 @@ export async function GET(request: NextRequest | Request) {
 
   if (error) {
     console.error("Failed to search SACCOs", error);
-    return NextResponse.json({ results: [] }, { status: 500 });
+    return NextResponse.json(
+      { results: [] },
+      {
+        status: 500,
+        headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=60" },
+      },
+    );
   }
 
   const rows = (data ?? []) as Database["public"]["Functions"]["search_saccos"]["Returns"];
@@ -33,5 +42,10 @@ export async function GET(request: NextRequest | Request) {
     sector_code: row.sector,
   }));
 
-  return NextResponse.json({ results });
+  return NextResponse.json(
+    { results },
+    {
+      headers: { "Cache-Control": "public, max-age=300, stale-while-revalidate=600" },
+    },
+  );
 }

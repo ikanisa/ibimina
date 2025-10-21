@@ -51,37 +51,51 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
     return { profile: null, saccos: [], groups: [], joinRequests: [] };
   }
 
-  const [{ data: profile, error: profileError }, { data: saccos, error: saccoError }] = await Promise.all([
+  const [
+    { data: profile, error: profileError },
+    { data: linkedSaccos, error: linkedError },
+  ] = await Promise.all([
     legacyClient.from("members_app_profiles").select("*").eq("user_id", user.id).maybeSingle(),
-    supabase
-      .schema("app")
-      .from("saccos")
-      .select("id, name, district, sector_code, province, category, status")
-      .order("name", { ascending: true }),
+    legacyClient.from("user_saccos").select("sacco_id, created_at").eq("user_id", user.id),
   ]);
 
   if (profileError) {
     console.error("Failed to load member profile", profileError);
     throw new Error("Unable to load member profile");
   }
-  if (saccoError) {
-    console.error("Failed to load member SACCOs", saccoError);
+  if (linkedError) {
+    console.error("Failed to load linked SACCOs", linkedError);
     throw new Error("Unable to load SACCO list");
   }
 
   const profileRow = profile ? (profile as MemberProfileRow) : null;
-  const saccoRows = (saccos ?? []) as MemberSaccoRow[];
+  const linked = Array.isArray(linkedSaccos) ? (linkedSaccos as Array<{ sacco_id: string }>) : [];
+  const saccoIds = linked.map((entry) => entry.sacco_id).filter(Boolean);
+
+  let saccoRows: MemberSaccoRow[] = [];
+  if (saccoIds.length > 0) {
+    const { data: saccos, error: saccoError } = await supabase
+      .schema("app")
+      .from("saccos")
+      .select("id, name, district, sector_code, province, category, status")
+      .in("id", saccoIds)
+      .order("name", { ascending: true });
+
+    if (saccoError) {
+      console.error("Failed to load member SACCOs", saccoError);
+      throw new Error("Unable to load SACCO list");
+    }
+
+    saccoRows = (saccos ?? []) as MemberSaccoRow[];
+  }
 
   let groups: MemberGroupRow[] = [];
-  if (saccoRows.length > 0) {
+  if (saccoIds.length > 0) {
     const { data: groupRows, error: groupsError } = await supabase
       .schema("app")
       .from("ikimina")
       .select("*")
-      .in(
-        "sacco_id",
-        saccoRows.map((s) => s.id)
-      )
+      .in("sacco_id", saccoIds)
       .order("name", { ascending: true });
 
     if (groupsError) {
@@ -95,6 +109,7 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
   const { data: joinRequests, error: joinError } = await legacyClient
     .from("join_requests")
     .select("*")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   if (joinError) {

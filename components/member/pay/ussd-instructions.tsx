@@ -7,6 +7,8 @@ interface UssdParams {
   merchant: string;
   reference: string;
   telUri: string | null;
+  provider?: string | null;
+  account_name?: string | null;
 }
 
 interface UssdInstructionsProps {
@@ -62,6 +64,16 @@ export function UssdInstructions({ groupId }: UssdInstructionsProps) {
           <li>2. Enter the merchant number.</li>
           <li>3. Provide the reference exactly as shown.</li>
         </ol>
+      </div>
+      <div className="space-y-1 rounded-3xl border border-white/15 bg-white/8 px-4 py-3 text-sm text-white/80">
+        <p>
+          <span className="font-semibold text-neutral-0">Provider:</span> {params.provider ?? "MTN"}
+        </p>
+        {params.account_name ? (
+          <p>
+            <span className="font-semibold text-neutral-0">Account name:</span> {params.account_name}
+          </p>
+        ) : null}
       </div>
       <div className="space-y-3">
         <CopyField label="Merchant" value={params.merchant} copy={copy} copied={copied === params.merchant} />

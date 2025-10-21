@@ -49,16 +49,54 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unable to load SACCO" }, { status: 500 });
   }
 
-  const saccoRow = (sacco ?? null) as Pick<Database["app"]["Tables"]["saccos"]["Row"], "name" | "district" | "sector_code"> | null;
+  const saccoRow = (sacco ?? null) as Pick<
+    Database["app"]["Tables"]["saccos"]["Row"],
+    "name" | "district" | "sector_code"
+  > | null;
 
-  const merchant = saccoRow?.sector_code ?? "182000";
-  const district = saccoRow?.district?.toUpperCase().replace(/\s+/g, "-") ?? "DISTRICT";
+  const districtRaw = saccoRow?.district ?? null;
+  const districtKey = districtRaw?.trim().toUpperCase() ?? null;
+
+  let merchant = saccoRow?.sector_code ?? "182000";
+  let provider = "MTN";
+  let accountName = saccoRow?.name ?? null;
+
+  if (districtKey) {
+    const { data: momoCode, error: momoError } = await supabase
+      .schema("app")
+      .from("momo_codes")
+      .select("code, provider, account_name")
+      .eq("provider", provider)
+      .eq("district", districtKey)
+      .maybeSingle();
+
+    if (momoError && momoError.code !== "PGRST116") {
+      console.error("Failed to load MoMo code", momoError);
+    }
+
+    if (momoCode?.code) {
+      merchant = momoCode.code;
+      provider = momoCode.provider ?? provider;
+      accountName = momoCode.account_name ?? accountName;
+    }
+  }
+
+  const districtSlug = districtKey?.replace(/\s+/g, "-") ?? "DISTRICT";
   const saccoSlug = saccoRow?.name?.split(" ")[0]?.toUpperCase() ?? "SACCO";
-  const reference = `${district}.${saccoSlug}.${groupRow.code}`;
+  const reference = `${districtSlug}.${saccoSlug}.${groupRow.code}`;
 
-  return NextResponse.json({
-    merchant,
-    reference,
-    telUri: "tel:*182#",
-  });
+  return NextResponse.json(
+    {
+      merchant,
+      provider,
+      account_name: accountName,
+      reference,
+      telUri: "tel:*182#",
+    },
+    {
+      headers: {
+        "Cache-Control": "public, max-age=120, stale-while-revalidate=300",
+      },
+    },
+  );
 }

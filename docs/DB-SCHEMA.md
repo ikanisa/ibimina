@@ -23,6 +23,8 @@ All SACCO+ objects live in the dedicated `app` schema with operational helpers i
 | `app.import_files` | Statement / SMS imports | `sacco_id`, `type`, `filename`, `uploaded_by`, `status`, `error` |
 | `app.audit_logs` | Immutable audit trail | `sacco_id`, `actor`, `action`, `entity`, `entity_id`, `diff` |
 | `app.user_profiles` | SACCO-scoped role binding | `user_id`, `sacco_id`, `role` (`SYSTEM_ADMIN`, `SACCO_MANAGER`, `SACCO_STAFF`) |
+| `app.financial_institutions` | Registry of SACCOs, microfinance, insurers | `name`, `kind`, `district`, `sacco_id`, `metadata` |
+| `app.momo_codes` | District-level MoMo merchant codes | `provider`, `district`, `code`, `account_name`, `description` |
 | `app.devices_trusted` | Trusted device fingerprints | `user_id`, `device_hash`, `device_label`, `expires_at`, `metadata` |
 | `app.mfa_email_codes` | Time-boxed email OTPs (hashed) | `user_id`, `code_hash`, `salt`, `expires_at`, `consumed_at`, `attempt_count` |
 | `public.webauthn_credentials` | Passkey (WebAuthn) registrations | `user_id`, `credential_id`, `credential_public_key`, `sign_count`, `transports`, `device_type`, `friendly_name` |

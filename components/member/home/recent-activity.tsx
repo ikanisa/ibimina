@@ -38,27 +38,28 @@ function renderRelativeTime(timestamp: string | null): string {
     return "just now";
   }
 
-  const now = Date.now();
   const createdAt = new Date(timestamp).getTime();
-  const diffMs = createdAt - now;
-  const diffMinutes = Math.round(diffMs / (1000 * 60));
+  if (Number.isNaN(createdAt)) {
+    return "just now";
+  }
 
   const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+  const diffMinutes = Math.round((Date.now() - createdAt) / (1000 * 60));
 
   if (Math.abs(diffMinutes) < 60) {
-    return rtf.format(Math.round(diffMinutes), "minute");
+    return rtf.format(-diffMinutes, "minute");
   }
 
   const diffHours = Math.round(diffMinutes / 60);
   if (Math.abs(diffHours) < 24) {
-    return rtf.format(diffHours, "hour");
+    return rtf.format(-diffHours, "hour");
   }
 
   const diffDays = Math.round(diffHours / 24);
   if (Math.abs(diffDays) < 30) {
-    return rtf.format(diffDays, "day");
+    return rtf.format(-diffDays, "day");
   }
 
   const diffMonths = Math.round(diffDays / 30);
-  return rtf.format(diffMonths, "month");
+  return rtf.format(-diffMonths, "month");
 }

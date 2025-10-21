@@ -3,8 +3,8 @@ import { supabaseSrv } from "@/lib/supabase/server";
 
 export async function GET() {
   const srv = supabaseSrv();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Extend Supabase types to cover client app tables.
-  const client = srv as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Member app tables live in public schema without generated types.
+  const legacyClient = srv as any;
   const {
     data: { user },
     error: authError,
@@ -14,11 +14,11 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
-  const { data, error } = await client
-    .from("payments")
-    .select("id, amount, currency, occurred_at, status, ikimina_id")
+  const { data, error } = await legacyClient
+    .from("join_requests")
+    .select("id, group_id, sacco_id, status, created_at, note")
     .eq("user_id", user.id)
-    .order("occurred_at", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(10);
 
   if (error) {
@@ -29,5 +29,12 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ activity: data ?? [] });
+  return NextResponse.json(
+    { activity: data ?? [] },
+    {
+      headers: {
+        "Cache-Control": "public, max-age=60, stale-while-revalidate=180",
+      },
+    },
+  );
 }

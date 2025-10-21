@@ -132,6 +132,47 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_institutions: {
+        Row: {
+          created_at: string
+          district: string
+          id: string
+          kind: Database["app"]["Enums"]["financial_institution_kind"]
+          metadata: Json
+          name: string
+          sacco_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          district: string
+          id?: string
+          kind: Database["app"]["Enums"]["financial_institution_kind"]
+          metadata?: Json
+          name: string
+          sacco_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          district?: string
+          id?: string
+          kind?: Database["app"]["Enums"]["financial_institution_kind"]
+          metadata?: Json
+          name?: string
+          sacco_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_institutions_sacco_id_fkey"
+            columns: ["sacco_id"]
+            isOneToOne: true
+            referencedRelation: "saccos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ikimina: {
         Row: {
           code: string
@@ -383,6 +424,42 @@ export type Database = {
           id?: string
           salt?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      momo_codes: {
+        Row: {
+          account_name: string | null
+          code: string
+          created_at: string
+          description: string | null
+          district: string
+          id: string
+          metadata: Json
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          district: string
+          id?: string
+          metadata?: Json
+          provider?: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          district?: string
+          id?: string
+          metadata?: Json
+          provider?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -767,7 +844,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      financial_institution_kind: "SACCO" | "MICROFINANCE" | "INSURANCE" | "OTHER"
     }
     CompositeTypes: {
       [_ in never]: never
