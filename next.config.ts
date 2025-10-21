@@ -1,13 +1,14 @@
 import type { NextConfig } from "next";
 import path from "path";
 import { HSTS_HEADER, SECURITY_HEADERS } from "./lib/security/headers";
+import { env } from "./src/env.server";
 
 const resolvedBuildId =
-  process.env.NEXT_PUBLIC_BUILD_ID ??
-  process.env.VERCEL_GIT_COMMIT_SHA ??
+  env.NEXT_PUBLIC_BUILD_ID ??
+  env.VERCEL_GIT_COMMIT_SHA ??
   `local-${Date.now().toString(36)}`;
 
-const remotePatterns = [
+const remotePatterns: Array<{ protocol: "https"; hostname: string; pathname?: string }> = [
   {
     protocol: "https",
     hostname: "images.unsplash.com",
@@ -19,27 +20,26 @@ const remotePatterns = [
   },
 ];
 
-if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  try {
-    const { hostname } = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
-    remotePatterns.push({
-      protocol: "https",
-      hostname,
-      pathname: "/storage/v1/object/public/**",
-    });
-  } catch (error) {
-    console.warn("Invalid NEXT_PUBLIC_SUPABASE_URL", error);
-  }
+try {
+  const { hostname } = new URL(env.NEXT_PUBLIC_SUPABASE_URL);
+  remotePatterns.push({
+    protocol: "https",
+    hostname,
+    pathname: "/storage/v1/object/public/**",
+  });
+} catch (error) {
+  console.warn("Invalid NEXT_PUBLIC_SUPABASE_URL", error);
 }
 
 let withPWA = (config: NextConfig) => config;
 let withBundleAnalyzer = (config: NextConfig) => config;
+
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withPWAInit = require("next-pwa");
   withPWA = withPWAInit({
     dest: "public",
-    disable: process.env.NODE_ENV === "development" || process.env.DISABLE_PWA === "1",
+    disable: env.NODE_ENV === "development" || env.DISABLE_PWA === "1",
     register: true,
     skipWaiting: true,
     sw: "service-worker.js",
@@ -52,7 +52,7 @@ try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withBundleAnalyzerInit = require("@next/bundle-analyzer");
   withBundleAnalyzer = withBundleAnalyzerInit({
-    enabled: process.env.ANALYZE_BUNDLE === "1",
+    enabled: env.ANALYZE_BUNDLE === "1",
     openAnalyzer: false,
     analyzerMode: "static",
     reportFilename: "client.html",
@@ -65,6 +65,7 @@ try {
 }
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname, "./"),
   env: {
@@ -84,7 +85,7 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     const baseHeaders = [...SECURITY_HEADERS];
-    if (process.env.NODE_ENV === "production") {
+    if (env.NODE_ENV === "production") {
       baseHeaders.push(HSTS_HEADER);
     }
     const immutableAssetHeaders = [
