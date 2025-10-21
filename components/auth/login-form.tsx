@@ -55,16 +55,30 @@ export function LoginForm() {
   }, [error]);
 
   useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const activeElement = document.activeElement;
+
     if (step === "mfa") {
-      codeInputRef.current?.focus();
+      if (activeElement !== codeInputRef.current) {
+        codeInputRef.current?.focus();
+      }
       return;
     }
 
     if (step === "credentials") {
-      if (email.trim().length > 0) {
-        passwordInputRef.current?.focus();
-      } else {
-        emailInputRef.current?.focus();
+      const emailField = emailInputRef.current;
+      const passwordField = passwordInputRef.current;
+      const hasEmail = email.trim().length > 0;
+
+      if (hasEmail) {
+        if (activeElement !== emailField && activeElement !== passwordField) {
+          passwordField?.focus();
+        }
+      } else if (activeElement !== emailField) {
+        emailField?.focus();
       }
     }
   }, [email, step]);
