@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+
 import { logAudit } from "@/lib/audit";
+import { guardAdminAction } from "@/lib/admin/guard";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type ResetPayload = {
   userId?: string;
@@ -10,17 +11,25 @@ type ResetPayload = {
 };
 
 export async function POST(request: Request) {
-  const { user, profile } = await requireUserAndProfile();
-  if (profile.role !== "SYSTEM_ADMIN") {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  const guard = await guardAdminAction(
+    {
+      action: "admin_mfa_reset",
+      reason: "Only system administrators can reset MFA.",
+      logEvent: "admin_mfa_reset_denied",
+      clientFactory: createSupabaseAdminClient,
+    },
+    () => NextResponse.json({ error: "forbidden" }, { status: 403 }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
   }
 
+  const { supabase, user } = guard.context;
   const body = (await request.json().catch(() => null)) as ResetPayload | null;
   if (!body || (!body.userId && !body.email) || !body.reason) {
     return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
   }
-
-  const supabase = createSupabaseAdminClient();
 
   // Locate target user by id or email
   type TargetRow = {

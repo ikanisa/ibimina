@@ -1,21 +1,31 @@
 import { NextResponse } from "next/server";
 
-import { requireUserAndProfile } from "@/lib/auth";
-import { supabaseSrv } from "@/lib/supabase/server";
+import { guardAdminAction } from "@/lib/admin/guard";
 import type { Database } from "@/lib/supabase/types";
 
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
-  const { profile } = await requireUserAndProfile();
   const allowedRoles: Array<Database["public"]["Enums"]["app_role"]> = [
     "SYSTEM_ADMIN",
     "SACCO_MANAGER",
   ];
 
-  if (!allowedRoles.includes(profile.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const guard = await guardAdminAction(
+    {
+      action: "admin_audit_export",
+      reason: "Only system administrators or SACCO managers can export audit logs.",
+      logEvent: "admin_audit_export_denied",
+      allowedRoles,
+    },
+    () => NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
   }
+
+  const { profile, supabase } = guard.context;
 
   const url = new URL(req.url);
   const action = url.searchParams.get("action")?.trim() ?? "";
@@ -25,7 +35,6 @@ export async function GET(req: Request) {
   const to = url.searchParams.get("to")?.trim() ?? "";
   const overrideSacco = url.searchParams.get("saccoId")?.trim() ?? "";
 
-  const supabase = supabaseSrv();
   const actorIds: string[] = [];
 
   if (actorSearch.length > 0) {

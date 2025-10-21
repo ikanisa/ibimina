@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { randomBytes } from "node:crypto";
-import { requireUserAndProfile } from "@/lib/auth";
-import { supabaseSrv } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
+import type { Database } from "@/lib/supabase/types";
+import { guardAdminAction } from "@/lib/admin/guard";
 import { instrumentServerAction } from "@/lib/observability/server-action";
 import { logError, logWarn } from "@/lib/observability/logger";
 
@@ -12,6 +12,12 @@ export type ApprovalActionResult = {
   status: "success" | "error";
   message?: string;
 };
+
+const SACCO_SCOPED_ROLES: Array<Database["public"]["Enums"]["app_role"]> = [
+  "SYSTEM_ADMIN",
+  "SACCO_MANAGER",
+  "SACCO_STAFF",
+];
 
 async function decideJoinRequestInternal({
   requestId,
@@ -22,8 +28,22 @@ async function decideJoinRequestInternal({
   decision: "approved" | "rejected";
   reason?: string;
 }): Promise<ApprovalActionResult> {
-  const { profile, user } = await requireUserAndProfile();
-  const supabase = supabaseSrv();
+  const guard = await guardAdminAction<ApprovalActionResult>(
+    {
+      action: "admin_join_request_decide",
+      reason: "You are not allowed to manage this join request.",
+      logEvent: "admin_join_request_decide_denied",
+      metadata: { requestId, decision },
+      allowedRoles: SACCO_SCOPED_ROLES,
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
+  }
+
+  const { supabase, profile, user } = guard.context;
 
   const { data: request, error } = await supabase
     .schema("app")
@@ -78,8 +98,22 @@ async function decideJoinRequestInternal({
 }
 
 async function resendInviteInternal({ inviteId }: { inviteId: string }): Promise<ApprovalActionResult> {
-  const { profile } = await requireUserAndProfile();
-  const supabase = supabaseSrv();
+  const guard = await guardAdminAction<ApprovalActionResult>(
+    {
+      action: "admin_group_invite_resend",
+      reason: "You are not allowed to resend this invite.",
+      logEvent: "admin_group_invite_resend_denied",
+      metadata: { inviteId },
+      allowedRoles: SACCO_SCOPED_ROLES,
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
+  }
+
+  const { supabase, profile } = guard.context;
 
   const { data: invite, error } = await supabase
     .from("group_invites")
@@ -128,8 +162,22 @@ async function resendInviteInternal({ inviteId }: { inviteId: string }): Promise
 }
 
 async function revokeInviteInternal({ inviteId }: { inviteId: string }): Promise<ApprovalActionResult> {
-  const { profile } = await requireUserAndProfile();
-  const supabase = supabaseSrv();
+  const guard = await guardAdminAction<ApprovalActionResult>(
+    {
+      action: "admin_group_invite_revoke",
+      reason: "You are not allowed to revoke this invite.",
+      logEvent: "admin_group_invite_revoke_denied",
+      metadata: { inviteId },
+      allowedRoles: SACCO_SCOPED_ROLES,
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
+  }
+
+  const { supabase, profile } = guard.context;
 
   const { data: invite, error } = await supabase
     .from("group_invites")
@@ -181,8 +229,22 @@ async function sendInviteInternal({
   groupId: string;
   msisdn: string;
 }): Promise<ApprovalActionResult> {
-  const { profile } = await requireUserAndProfile();
-  const supabase = supabaseSrv();
+  const guard = await guardAdminAction<ApprovalActionResult>(
+    {
+      action: "admin_group_invite_send",
+      reason: "You are not allowed to invite to this group.",
+      logEvent: "admin_group_invite_send_denied",
+      metadata: { groupId },
+      allowedRoles: SACCO_SCOPED_ROLES,
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
+  }
+
+  const { supabase, profile } = guard.context;
 
   const { data: group, error } = await supabase
     .schema("app")

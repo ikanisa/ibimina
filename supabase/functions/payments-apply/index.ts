@@ -1,10 +1,5 @@
 import { z } from "zod";
-import {
-  createServiceClient,
-  errorResponse,
-  jsonResponse,
-  parseJwt,
-} from "../_shared/mod.ts";
+import { createServiceClient, parseJwt } from "../_shared/mod.ts";
 import { enforceIdentityRateLimit } from "../_shared/rate-limit.ts";
 import { resolveReference } from "../_shared/payments.ts";
 import { encryptField, hashField, maskMsisdn } from "../_shared/crypto.ts";
@@ -16,6 +11,7 @@ import {
 } from "../_shared/idempotency.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
+import { errorCorsResponse, jsonCorsResponse, preflightResponse } from "../_shared/http.ts";
 
 const requestSchema = z.object({
   saccoId: z.string().uuid(),
@@ -62,23 +58,17 @@ const computeBalances = async (
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: {
-        "access-control-allow-origin": "*",
-        "access-control-allow-headers": "authorization, x-client-info, apikey, content-type, x-idempotency-key",
-        "access-control-allow-methods": "POST,OPTIONS",
-      },
-    });
+    return preflightResponse({ "access-control-allow-methods": "POST,OPTIONS" });
   }
 
   if (req.method !== "POST") {
-    return errorResponse("Method not allowed", 405);
+    return errorCorsResponse("Method not allowed", 405);
   }
 
   try {
     const idempotencyKey = req.headers.get("x-idempotency-key");
     if (!idempotencyKey) {
-      return errorResponse("Missing x-idempotency-key header", 422);
+      return errorCorsResponse("Missing x-idempotency-key header", 422);
     }
 
     const payload = requestSchema.parse(await req.json());
@@ -97,7 +87,7 @@ Deno.serve(async (req) => {
       });
 
       if (!allowed) {
-        return errorResponse("Rate limit exceeded", 429);
+        return errorCorsResponse("Rate limit exceeded", 429);
       }
 
       const profile = await loadProfile(supabase, auth.userId);
@@ -106,11 +96,11 @@ Deno.serve(async (req) => {
 
       if (actingRole !== "SYSTEM_ADMIN") {
         if (!profile?.sacco_id) {
-          return errorResponse("Profile missing SACCO assignment", 403);
+          return errorCorsResponse("Profile missing SACCO assignment", 403);
         }
 
         if (profile.sacco_id !== payload.saccoId) {
-          return errorResponse("Forbidden", 403);
+          return errorCorsResponse("Forbidden", 403);
         }
       }
     }
@@ -124,7 +114,7 @@ Deno.serve(async (req) => {
 
     const cached = await getIdempotentResponse<Record<string, unknown>>(supabase, identityKey, idempotencyKey);
     if (cached && cached.request_hash === requestHash) {
-      return jsonResponse({
+      return jsonCorsResponse({
         ...cached.response,
         idempotent: true,
       });
@@ -214,7 +204,7 @@ Deno.serve(async (req) => {
       status: payment.status,
     });
 
-    return jsonResponse({
+    return jsonCorsResponse({
       ...responsePayload,
       idempotent: false,
     });
@@ -222,6 +212,6 @@ Deno.serve(async (req) => {
     console.error("payments-apply error", error);
     const status = error instanceof z.ZodError ? 400 : 500;
     const message = error instanceof z.ZodError ? "Invalid payload" : "Unhandled error";
-    return errorResponse(message, status);
+    return errorCorsResponse(message, status);
   }
 });

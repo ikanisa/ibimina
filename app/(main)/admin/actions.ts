@@ -1,13 +1,13 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient, supabaseSrv } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { logAudit } from "@/lib/audit";
 import { CACHE_TAGS } from "@/lib/performance/cache";
 import { instrumentServerAction } from "@/lib/observability/server-action";
-import { logError, logInfo, logWarn, updateLogContext } from "@/lib/observability/logger";
+import { logError, logInfo, logWarn } from "@/lib/observability/logger";
+import { guardAdminAction } from "@/lib/admin/guard";
 
 export type AdminActionResult = {
   status: "success" | "error";
@@ -23,14 +23,21 @@ async function updateUserAccessInternal({
   role: Database["public"]["Enums"]["app_role"];
   saccoId: string | null;
 }): Promise<AdminActionResult> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_update_access_denied", { targetUserId: userId, actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can modify user access." };
+  const guard = await guardAdminAction<AdminActionResult>(
+    {
+      action: "admin_update_access",
+      reason: "Only system administrators can modify user access.",
+      logEvent: "admin_update_access_denied",
+      metadata: { targetUserId: userId },
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
   }
 
-  const supabase = supabaseSrv();
+  const { supabase } = guard.context;
   const updatePayload: Database["public"]["Tables"]["users"]["Update"] = {
     role,
     sacco_id: saccoId,
@@ -62,14 +69,21 @@ async function queueNotificationInternal({
   templateId: string;
   event?: string;
 }): Promise<AdminActionResult> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_queue_notification_denied", { saccoId, actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can queue notifications." };
+  const guard = await guardAdminAction<AdminActionResult>(
+    {
+      action: "admin_queue_notification",
+      reason: "Only system administrators can queue notifications.",
+      logEvent: "admin_queue_notification_denied",
+      metadata: { saccoId, templateId, event },
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
   }
 
-  const supabase = supabaseSrv();
+  const { supabase, user } = guard.context;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from("notification_queue").insert({
     event,
@@ -94,14 +108,21 @@ async function queueMfaReminderInternal({
   userId: string;
   email: string;
 }): Promise<AdminActionResult> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_queue_mfa_reminder_denied", { targetUserId: userId, actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can send reminders." };
+  const guard = await guardAdminAction<AdminActionResult>(
+    {
+      action: "admin_queue_mfa_reminder",
+      reason: "Only system administrators can send reminders.",
+      logEvent: "admin_queue_mfa_reminder_denied",
+      metadata: { targetUserId: userId },
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
   }
 
-  const supabase = supabaseSrv();
+  const { supabase, user } = guard.context;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from("notification_queue").insert({
     event: "MFA_REMINDER",
@@ -131,19 +152,26 @@ async function createSmsTemplateInternal({
   description?: string | null;
   tokens?: string[];
 }): Promise<AdminActionResult & { template?: Database["public"]["Tables"]["sms_templates"]["Row"] }> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_template_create_denied", { saccoId, actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can create templates." };
+  const guard = await guardAdminAction<AdminActionResult & { template?: Database["public"]["Tables"]["sms_templates"]["Row"] }>(
+    {
+      action: "admin_template_create",
+      reason: "Only system administrators can create templates.",
+      logEvent: "admin_template_create_denied",
+      metadata: { saccoId },
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
   }
+
+  const { supabase } = guard.context;
 
   if (!name.trim() || !body.trim()) {
     logWarn("admin_template_create_invalid_payload", { saccoId, hasName: Boolean(name.trim()), hasBody: Boolean(body.trim()) });
     return { status: "error", message: "Template name and body are required." };
   }
-
-  const supabase = supabaseSrv();
   const payload: Database["public"]["Tables"]["sms_templates"]["Insert"] = {
     sacco_id: saccoId,
     name: name.trim(),
@@ -175,13 +203,20 @@ async function setSmsTemplateActiveInternal({
   templateId: string;
   isActive: boolean;
 }): Promise<AdminActionResult> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_template_toggle_denied", { templateId, actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can update templates." };
+  const guard = await guardAdminAction<AdminActionResult>(
+    {
+      action: "admin_template_toggle",
+      reason: "Only system administrators can update templates.",
+      logEvent: "admin_template_toggle_denied",
+      metadata: { templateId, isActive },
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
   }
-  const supabase = supabaseSrv();
+  const { supabase } = guard.context;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
     .from("sms_templates")
@@ -199,13 +234,20 @@ async function setSmsTemplateActiveInternal({
 async function deleteSmsTemplateInternal({
   templateId,
 }: { templateId: string }): Promise<AdminActionResult> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_template_delete_denied", { templateId, actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can delete templates." };
+  const guard = await guardAdminAction<AdminActionResult>(
+    {
+      action: "admin_template_delete",
+      reason: "Only system administrators can delete templates.",
+      logEvent: "admin_template_delete_denied",
+      metadata: { templateId },
+      clientFactory: () => createSupabaseServerClient(),
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+  if (guard.denied) {
+    return guard.result;
   }
-  const supabase = await createSupabaseServerClient();
+  const { supabase } = guard.context;
   const { error } = await supabase.from("sms_templates").delete().eq("id", templateId);
   if (error) {
     logError("admin_template_delete_failed", { templateId, error });
@@ -223,13 +265,20 @@ async function upsertSaccoInternal({
   mode: "create" | "update";
   sacco: Database["app"]["Tables"]["saccos"]["Insert"] | (Database["app"]["Tables"]["saccos"]["Update"] & { id: string });
 }): Promise<AdminActionResult & { sacco?: Database["app"]["Tables"]["saccos"]["Row"] }> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_sacco_upsert_denied", { mode, actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can modify SACCO registry." };
+  const guard = await guardAdminAction<AdminActionResult & { sacco?: Database["app"]["Tables"]["saccos"]["Row"] }>(
+    {
+      action: "admin_sacco_upsert",
+      reason: "Only system administrators can modify SACCO registry.",
+      logEvent: "admin_sacco_upsert_denied",
+      metadata: { mode },
+      clientFactory: () => createSupabaseServerClient(),
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+  if (guard.denied) {
+    return guard.result;
   }
-  const supabase = await createSupabaseServerClient();
+  const { supabase } = guard.context;
   let result: Database["app"]["Tables"]["saccos"]["Row"] | null = null;
 
   if (mode === "create") {
@@ -274,13 +323,20 @@ async function upsertSaccoInternal({
 }
 
 async function removeSaccoInternal({ id }: { id: string }): Promise<AdminActionResult> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_sacco_delete_denied", { saccoId: id, actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can delete SACCOs." };
+  const guard = await guardAdminAction<AdminActionResult>(
+    {
+      action: "admin_sacco_delete",
+      reason: "Only system administrators can delete SACCOs.",
+      logEvent: "admin_sacco_delete_denied",
+      metadata: { saccoId: id },
+      clientFactory: () => createSupabaseServerClient(),
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+  if (guard.denied) {
+    return guard.result;
   }
-  const supabase = await createSupabaseServerClient();
+  const { supabase } = guard.context;
   const { error } = await supabase.schema("app").from("saccos").delete().eq("id", id);
   if (error) {
     logError("admin_sacco_delete_failed", { saccoId: id, error });
@@ -299,14 +355,26 @@ async function resetMfaForAllEnabledInternal({
 }: {
   reason?: string;
 }): Promise<AdminActionResult & { count: number }> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_mfa_bulk_reset_denied", { actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can reset 2FA in bulk.", count: 0 };
+  const guard = await guardAdminAction<AdminActionResult & { count: number }>(
+    {
+      action: "admin_mfa_bulk_reset",
+      reason: "Only system administrators can reset 2FA in bulk.",
+      logEvent: "admin_mfa_bulk_reset_denied",
+      fallbackResult: { count: 0 },
+      clientFactory: () => createSupabaseServerClient(),
+    },
+    (error) => ({
+      status: "error",
+      message: error.message,
+      count: Number(((error.extras as { count?: unknown } | undefined)?.count ?? 0)),
+    }),
+  );
+
+  if (guard.denied) {
+    return guard.result;
   }
 
-  const supabase = await createSupabaseServerClient();
+  const { supabase, user } = guard.context;
   const { data: rows, error: selectError } = await supabase
     .from("users")
     .select("id")
@@ -374,15 +442,21 @@ async function updateTenantSettingsInternal({
     integrations: { webhook: boolean; edgeReconciliation: boolean; notifications: boolean };
   };
 }): Promise<AdminActionResult & { metadata?: Record<string, unknown> }> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
+  const guard = await guardAdminAction<AdminActionResult & { metadata?: Record<string, unknown> }>(
+    {
+      action: "admin_settings_update",
+      reason: "Only system administrators can update tenant settings.",
+      logEvent: "admin_settings_update_denied",
+      metadata: { saccoId },
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
 
-  if (profile.role !== "SYSTEM_ADMIN") {
-    logWarn("admin_settings_update_denied", { saccoId, actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can update tenant settings." };
+  if (guard.denied) {
+    return guard.result;
   }
 
-  const supabase = supabaseSrv();
+  const { supabase, user } = guard.context;
 
   const { data: row, error: selectError } = await supabase
     .schema("app")
@@ -452,16 +526,22 @@ async function resolveOcrReviewInternal({
   decision: "accept" | "rescan";
   note?: string;
 }): Promise<AdminActionResult> {
-  const { profile, user } = await requireUserAndProfile();
-  updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
+  const guard = await guardAdminAction<AdminActionResult>(
+    {
+      action: "admin_ocr_review",
+      reason: "Insufficient permissions for OCR review.",
+      logEvent: "admin_ocr_review_denied",
+      metadata: { memberUserId, decision },
+      allowedRoles: ["SYSTEM_ADMIN", "SACCO_MANAGER"],
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
 
-  const allowedRoles: Array<Database["public"]["Enums"]["app_role"]> = ["SYSTEM_ADMIN", "SACCO_MANAGER"];
-  if (!allowedRoles.includes(profile.role)) {
-    logWarn("admin_ocr_review_denied", { memberUserId, actorRole: profile.role });
-    return { status: "error", message: "Insufficient permissions for OCR review." };
+  if (guard.denied) {
+    return guard.result;
   }
 
-  const supabase = supabaseSrv();
+  const { supabase, user } = guard.context;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const legacyClient = supabase as any;

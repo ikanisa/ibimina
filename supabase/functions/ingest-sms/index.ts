@@ -6,11 +6,7 @@ import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
 import { validateHmacRequest } from "../_shared/auth.ts";
 import { parseWithOpenAI, parseWithRegex } from "../_shared/sms-parser.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-signature, x-timestamp',
-};
+import { errorCorsResponse, jsonCorsResponse, preflightResponse } from "../_shared/http.ts";
 
 const decoder = new TextDecoder();
 
@@ -24,7 +20,7 @@ interface IngestRequest {
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return preflightResponse();
   }
 
   try {
@@ -37,10 +33,7 @@ Deno.serve(async (req) => {
     if (!validation.ok) {
       console.warn('ingest-sms.signature_invalid', { reason: validation.reason });
       const status = validation.reason === 'stale_timestamp' ? 408 : 401;
-      return new Response(JSON.stringify({ success: false, error: 'invalid_signature' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status,
-      });
+      return jsonCorsResponse({ success: false, error: 'invalid_signature' }, { status });
     }
 
     let payload: IngestRequest;
@@ -48,28 +41,19 @@ Deno.serve(async (req) => {
       payload = JSON.parse(decoder.decode(validation.rawBody)) as IngestRequest;
     } catch (error) {
       console.warn('ingest-sms.json_parse_failed', { error: String(error) });
-      return new Response(JSON.stringify({ success: false, error: 'invalid_payload' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      });
+      return jsonCorsResponse({ success: false, error: 'invalid_payload' }, { status: 400 });
     }
 
     const { rawText, receivedAt, vendorMeta, saccoId } = payload;
 
     if (!rawText || !receivedAt) {
-      return new Response(JSON.stringify({ success: false, error: 'missing_fields' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      });
+      return jsonCorsResponse({ success: false, error: 'missing_fields' }, { status: 400 });
     }
 
     const allowed = await enforceRateLimit(supabase, `sms:${saccoId ?? 'global'}`, { maxHits: 200 });
 
     if (!allowed) {
-      return new Response(JSON.stringify({ success: false, error: 'Rate limit exceeded' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 429,
-      });
+      return errorCorsResponse('Rate limit exceeded', 429);
     }
 
     console.log('Ingesting SMS:', { length: rawText.length, receivedAt, saccoId });
@@ -168,18 +152,12 @@ Deno.serve(async (req) => {
         saccoId: mappedSaccoId || saccoId,
       });
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          smsId: smsRecord.id,
-          paymentId: duplicate.id,
-          status: 'DUPLICATE',
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        },
-      );
+      return jsonCorsResponse({
+        success: true,
+        smsId: smsRecord.id,
+        paymentId: duplicate.id,
+        status: 'DUPLICATE',
+      });
     }
 
     if (parsed.reference) {
@@ -295,32 +273,20 @@ Deno.serve(async (req) => {
       .update({ status: 'APPLIED' })
       .eq('id', smsRecord.id);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        smsId: smsRecord.id,
-        paymentId: payment.id,
-        status: paymentStatus,
-        parsed,
-        parseSource
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
+    return jsonCorsResponse({
+      success: true,
+      smsId: smsRecord.id,
+      paymentId: payment.id,
+      status: paymentStatus,
+      parsed,
+      parseSource,
+    });
   } catch (error) {
     console.error('Ingestion error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: errorMessage
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    return jsonCorsResponse({
+      success: false,
+      error: errorMessage,
+    }, { status: 500 });
   }
 });
