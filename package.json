@@ -23,7 +23,8 @@
     "test:auth": "tsx --test tests/integration/authx-security.test.ts",
     "test:unit": "tsx --test tests/unit/*.test.ts",
     "verify:log-drain": "tsx scripts/verify-log-drain.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "preflight:vercel": "node scripts/vercel-preflight.mjs"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.2.2",
