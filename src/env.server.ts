@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { z } from "zod";
-import requiredEnvConfig from "@/config/required-env.json" assert { type: "json" };
+import requiredEnvConfig from "../config/required-env.json" assert { type: "json" };
 
 const rawEnv = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
