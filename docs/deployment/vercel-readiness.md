@@ -1,8 +1,8 @@
-# Vercel Readiness Checklist
+# Self-Hosted Deployment Readiness Checklist
 
 ## 1. Stack Detection (2025-10-09)
 - Detected **Next.js (App Router)** because `next.config.ts` is present and the `app/` directory is used for routing.
-- Existing PWA support is partial (custom `public/sw.js` and manifest referencing only SVG icons). We will harmonise these with Vercel + `next-pwa` requirements in later steps.
+- Existing PWA support is partial (custom `public/sw.js` and manifest referencing only SVG icons). We will harmonise these with `next-pwa` requirements in later steps so the stack runs cleanly behind a self-hosted reverse proxy.
 
 Further sections will be updated as the integration progresses.
 
@@ -12,10 +12,10 @@ Further sections will be updated as the integration progresses.
 - Replaced the legacy `/favicon.ico` expectation with App Router metadata that serves the SVG + PNG icon set directly, keeping the repo free of binary artefacts that break automated PR tooling.
 - Promoted the manifest + theme colour via `app/layout.tsx` metadata so the App Router emits `<link rel="manifest">` and `<meta name="theme-color">`.
 - Introduced `service-worker.js` (registered by `next-pwa`) and removed the legacy `public/sw.js` to avoid double registration.
-- Wrapped `next.config.ts` with `next-pwa` (dest `public`, skip waiting/register true) and disabled Next image optimisation to stay CDN-friendly on Vercel.
+- Wrapped `next.config.ts` with `next-pwa` (dest `public`, skip waiting/register true) and disabled Next image optimisation to stay CDN-friendly when fronted by a reverse proxy or CDN of your choice.
 
 ## 3. Tooling & Deployment Config (2025-10-09)
-- Added `vercel.json` with cache-control and security headers plus default region `fra1` (override via `VERCEL_REGION`).
+- Documented the desired cache-control and security headers that should be applied by whichever reverse proxy or CDN fronts the app. TODO: port the previous `vercel.json` rules into your chosen ingress configuration (e.g., Nginx, Traefik, or a CDN ruleset).
 - Created `.env.example` and updated `.gitignore` to keep it tracked while ignoring real secrets.
 - Expanded `package.json` scripts (`dev`/`start` on port 3000, `analyze:pwa`, `verify:pwa`) and set the Node engine to `>=18.18.0`.
 - Introduced `scripts/verify-pwa.mjs` to lint manifest/head/service-worker, run `npm run build`, launch the app, and probe `/api/health`.

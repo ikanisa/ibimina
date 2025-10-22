@@ -144,7 +144,7 @@ Use `scripts/supabase-go-live.sh` in your CI pipeline to unify migrations, secre
 - Supabase Studio → Logs → Edge Functions offers real-time inspection.
 - Consider setting up alerts on `notification_queue` backlog or metrics recorded by `_shared/metrics.ts`.
 - Configure the application log drain by setting `LOG_DRAIN_URL`, `LOG_DRAIN_TOKEN`, `LOG_DRAIN_SOURCE`, and the alert webhook/token pair. Run `pnpm run verify:log-drain` to assert forwarding + alerting before tailing the external drain during an audit log write.【F:lib/observability/logger.ts†L71-L170】【F:scripts/verify-log-drain.ts†L1-L132】
-- In Supabase, set `analytics_cache_webhook_url` and `analytics_cache_webhook_token` in the `configuration` table (service-role insert). Point the URL to the deployed `/api/cache/revalidate` endpoint and ensure the same bearer token is configured via `ANALYTICS_CACHE_TOKEN` in Vercel.【F:supabase/migrations/20251011153000_dashboard_materialization.sql†L174-L223】【F:app/api/cache/revalidate/route.ts†L1-L70】
+- In Supabase, set `analytics_cache_webhook_url` and `analytics_cache_webhook_token` in the `configuration` table (service-role insert). Point the URL to the deployed `/api/cache/revalidate` endpoint and ensure the same bearer token is configured via the `ANALYTICS_CACHE_TOKEN` environment variable in your runtime.【F:supabase/migrations/20251011153000_dashboard_materialization.sql†L174-L223】【F:app/api/cache/revalidate/route.ts†L1-L70】
 
 ## 12. Metrics exporter & dashboards
 
@@ -165,7 +165,7 @@ Use `scripts/supabase-go-live.sh` in your CI pipeline to unify migrations, secre
 
 - Database: use `supabase migration down --linked --to-version <timestamp>` to revert.
 - Edge functions: redeploy previous commit or disable via `supabase functions delete <name>`.
-- App: redeploy the last known-good build via your deployment platform (e.g., Vercel).
+- App: redeploy the last known-good build via your deployment platform (e.g., your container host or orchestrator).
 
 Keeping this checklist up to date ensures future environments can be stood up in minutes rather than hours.
 
