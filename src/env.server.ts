@@ -4,6 +4,9 @@ import requiredEnvConfig from "../config/required-env.json" assert { type: "json
 
 const rawEnv = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
+  APP_ENV: process.env.APP_ENV ?? process.env.NODE_ENV ?? "development",
+  APP_REGION: process.env.APP_REGION,
+  GIT_COMMIT_SHA: process.env.GIT_COMMIT_SHA,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
@@ -48,10 +51,6 @@ const rawEnv = {
   TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM ?? "whatsapp:+14155238886",
   SITE_URL: process.env.SITE_URL,
   EDGE_URL: process.env.EDGE_URL,
-  VERCEL_ENV: process.env.VERCEL_ENV,
-  VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
-  VERCEL_URL: process.env.VERCEL_URL,
-  VERCEL_REGION: process.env.VERCEL_REGION,
   DISABLE_PWA: process.env.DISABLE_PWA,
   ANALYZE_BUNDLE: process.env.ANALYZE_BUNDLE,
   AUTH_E2E_STUB: process.env.AUTH_E2E_STUB,
@@ -80,6 +79,11 @@ const positiveNumberString = z
 const schema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]),
+    APP_ENV: z
+      .enum(["development", "test", "preview", "staging", "production"])
+      .default("development"),
+    APP_REGION: optionalString,
+    GIT_COMMIT_SHA: optionalString,
     NEXT_PUBLIC_SUPABASE_URL: z
       .string({ required_error: "NEXT_PUBLIC_SUPABASE_URL is required" })
       .trim()
@@ -148,10 +152,6 @@ const schema = z
     TWILIO_WHATSAPP_FROM: z.string().trim().min(1),
     SITE_URL: optionalString,
     EDGE_URL: optionalString,
-    VERCEL_ENV: optionalString,
-    VERCEL_GIT_COMMIT_SHA: optionalString,
-    VERCEL_URL: optionalString,
-    VERCEL_REGION: optionalString,
     DISABLE_PWA: optionalString,
     ANALYZE_BUNDLE: optionalString,
     AUTH_E2E_STUB: optionalString,

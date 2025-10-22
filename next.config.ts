@@ -5,7 +5,7 @@ import { env } from "./src/env.server";
 
 const resolvedBuildId =
   env.NEXT_PUBLIC_BUILD_ID ??
-  env.VERCEL_GIT_COMMIT_SHA ??
+  env.GIT_COMMIT_SHA ??
   `local-${Date.now().toString(36)}`;
 
 const remotePatterns: Array<{ protocol: "https"; hostname: string; pathname?: string }> = [
