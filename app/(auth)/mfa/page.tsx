@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { startAuthentication } from "@simplewebauthn/browser";
+import type { AuthenticationResponseJSON } from "@simplewebauthn/types";
 import {
   initiateAuthxFactor,
   listAuthxFactors,
@@ -118,8 +119,9 @@ export default function SmartMFA() {
           return;
         }
 
+        let assertion: AuthenticationResponseJSON;
         try {
-          await startAuthentication({ optionsJSON: initiation.options });
+          assertion = await startAuthentication({ optionsJSON: initiation.options });
         } catch (cause) {
           console.error(cause);
           setError("Passkey challenge was cancelled");
@@ -130,7 +132,10 @@ export default function SmartMFA() {
 
         const verification = await verifyAuthxFactor({
           factor: "passkey",
-          token: initiation.stateToken,
+          passkeyPayload: {
+            response: assertion,
+            stateToken: initiation.stateToken,
+          },
           trustDevice,
         });
 
