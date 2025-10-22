@@ -1,10 +1,20 @@
 import { consumeBackupCode } from "@/lib/mfa";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
+type SupabaseAdminClient = ReturnType<typeof createSupabaseAdminClient>;
+
+let adminClientOverride: SupabaseAdminClient | null = null;
+
+export const __setSupabaseAdminClientForTests = (client: SupabaseAdminClient | null) => {
+  adminClientOverride = client;
+};
+
+const resolveAdminClient = () => adminClientOverride ?? createSupabaseAdminClient();
+
 export const consumeBackup = async (userId: string, code: string) => {
   if (!code) return false;
 
-  const supabase = createSupabaseAdminClient();
+  const supabase = resolveAdminClient();
   type UserRow = { mfa_backup_hashes: string[] | null };
 
   const { data, error } = await supabase
