@@ -15,6 +15,7 @@ Populate the following secrets (see `.env.example` for defaults):
 | `MFA_RP_ID` / `MFA_ORIGIN` / `MFA_RP_NAME` | WebAuthn relying party settings.【F:.env.example†L17-L19】【F:lib/mfa/passkeys.ts†L15-L57】 |
 | `MAIL_FROM` / `SMTP_*` or Resend API key | Email OTP sender configuration; required for `/api/mfa/email/request`.【F:.env.example†L21-L27】【F:lib/mfa/email.ts†L32-L95】 |
 | `TWILIO_*` or Meta WABA keys | WhatsApp OTP provider; do not enable channel in production until throttling complete.【F:.env.example†L29-L36】【F:lib/authx/start.ts†L53-L120】 |
+| `NEXT_PUBLIC_WHATSAPP_MFA` | Set to `1`/`true` to expose WhatsApp factor in UI once safeguards are live; defaults to hidden.【F:app/(auth)/mfa/page.tsx†L10-L115】 |
 
 For previews on Vercel, inject secrets via `vercel env` and Supabase project settings. Ensure `MFA_SESSION_SECRET` and `TRUSTED_COOKIE_SECRET` differ per environment.
 

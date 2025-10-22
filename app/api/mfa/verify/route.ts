@@ -4,16 +4,8 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUserAndProfile } from "@/lib/auth";
-import {
-  MFA_SESSION_COOKIE,
-  TRUSTED_DEVICE_COOKIE,
-  createMfaSessionToken,
-  createTrustedDeviceToken,
-  sessionTtlSeconds,
-  trustedTtlSeconds,
-} from "@/lib/mfa/session";
+import { issueSessionCookies } from "@/lib/authx/verify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { deriveIpPrefix, hashDeviceFingerprint, hashUserAgent } from "@/lib/mfa/trusted-device";
 import { logAudit } from "@/lib/audit";
 import type { Database } from "@/lib/supabase/types";
 import { logError, logInfo, logWarn, updateLogContext, withLogContext } from "@/lib/observability/logger";
@@ -205,55 +197,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "configuration_error" }, { status: 500 });
       }
 
-      const userAgent = headerList.get("user-agent") ?? "";
-      const ip = ipAddress ?? headerList.get("x-forwarded-for") ?? headerList.get("x-real-ip") ?? null;
-      const userAgentHash = hashUserAgent(userAgent);
-      const ipPrefix = deriveIpPrefix(ip);
-
-      const response = NextResponse.json({ success: true, method: verification.factor });
-      const sessionToken = createMfaSessionToken(user.id, sessionTtlSeconds());
-
-      if (sessionToken) {
-        response.cookies.set({
-          name: MFA_SESSION_COOKIE,
-          value: sessionToken,
-          httpOnly: true,
-          sameSite: "lax",
-          secure: true,
-          path: "/",
-          maxAge: sessionTtlSeconds(),
-        });
-      }
-
-      if (parsed.data.rememberDevice) {
-        const deviceId = crypto.randomUUID();
-        const fingerprint = hashDeviceFingerprint(user.id, userAgentHash, ipPrefix);
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase as any)
-          .from("trusted_devices")
-          .upsert({
-            user_id: user.id,
-            device_id: deviceId,
-            device_fingerprint_hash: fingerprint,
-            user_agent_hash: userAgentHash,
-            ip_prefix: ipPrefix,
-            last_used_at: new Date().toISOString(),
-          }, { onConflict: "user_id,device_id" });
-
-        const trustedToken = createTrustedDeviceToken(user.id, deviceId, trustedTtlSeconds());
-        if (trustedToken) {
-          response.cookies.set({
-            name: TRUSTED_DEVICE_COOKIE,
-            value: trustedToken,
-            httpOnly: true,
-            sameSite: "lax",
-            secure: true,
-            path: "/",
-            maxAge: trustedTtlSeconds(),
-          });
-        }
-      }
+      await issueSessionCookies(user.id, Boolean(parsed.data.rememberDevice));
 
       await logAudit({
         action: verification.usedBackup ? "MFA_BACKUP_SUCCESS" : verification.auditAction,
@@ -267,7 +211,7 @@ export async function POST(request: Request) {
         trustedDevice: Boolean(parsed.data.rememberDevice),
       });
 
-      return response;
+      return NextResponse.json({ success: true, method: verification.factor });
     },
   );
 }

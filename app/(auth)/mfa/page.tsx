@@ -3,15 +3,13 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
-import {
-  Fingerprint,
-  KeyRound,
-  MailCheck,
-  MessageCircle,
-  ShieldCheck,
-} from "lucide-react";
+import { Fingerprint, KeyRound, MailCheck, MessageCircle, ShieldCheck } from "lucide-react";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Button } from "@/components/ui/button";
+
+const WHATSAPP_MFA_ENABLED =
+  (process.env.NEXT_PUBLIC_WHATSAPP_MFA ?? "").toLowerCase() === "true" ||
+  process.env.NEXT_PUBLIC_WHATSAPP_MFA === "1";
 
 type FactorsResponse = {
   preferred: string;
@@ -99,7 +97,15 @@ export default function SmartMFA() {
   const availableFactors = useMemo(() => {
     if (!factors) return [];
     return Object.entries(factors.enrolled)
-      .filter(([, enrolled]) => enrolled)
+      .filter(([key, enrolled]) => {
+        if (!enrolled) {
+          return false;
+        }
+        if (!WHATSAPP_MFA_ENABLED && key === "whatsapp") {
+          return false;
+        }
+        return true;
+      })
       .map(([key]) => key);
   }, [factors]);
 
@@ -200,8 +206,15 @@ export default function SmartMFA() {
         <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">Step-up authentication</p>
         <h1 className="text-2xl font-semibold text-neutral-0">SACCO+ · Smart MFA</h1>
         <p className="text-sm text-neutral-400">
-          Choose an available factor to satisfy step-up authentication. Passkeys, authenticator apps, email, WhatsApp and backup codes are supported.
+          {WHATSAPP_MFA_ENABLED
+            ? "Choose an available factor to satisfy step-up authentication. Passkeys, authenticator apps, email, WhatsApp and backup codes are supported."
+            : "Choose an available factor to satisfy step-up authentication. Passkeys, authenticator apps, email and backup codes are supported while we finish hardening WhatsApp delivery."}
         </p>
+        {!WHATSAPP_MFA_ENABLED && factors?.enrolled.whatsapp ? (
+          <div className="rounded-lg border border-amber-400/60 bg-amber-500/10 p-3 text-sm text-amber-100">
+            WhatsApp MFA codes are temporarily disabled while we complete throttling and audit safeguards. Please use another factor for now.
+          </div>
+        ) : null}
       </header>
 
       <form onSubmit={onSubmit} className="space-y-5" aria-busy={isBusy}>
