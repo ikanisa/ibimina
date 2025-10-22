@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSessionUser } from "@/lib/authx/session";
 import { startPasskeyChallenge, sendEmailOtp, sendWhatsAppOtp } from "@/lib/authx/start";
@@ -8,7 +8,7 @@ const bodySchema = z.object({
   rememberDevice: z.boolean().optional(),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });

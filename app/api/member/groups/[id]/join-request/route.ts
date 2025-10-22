@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -11,7 +11,7 @@ interface RouteContext {
   params: { id: string };
 }
 
-export async function POST(request: NextRequest | Request, { params }: RouteContext) {
+export async function POST(request: NextRequest, { params }: RouteContext) {
   const supabase = await createSupabaseServerClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Member app tables are optional snapshots not present in local schema
   const legacyClient = supabase as any;
