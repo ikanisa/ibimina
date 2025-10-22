@@ -1,3 +1,5 @@
+import { getRuntimeConfig } from "@/src/lib/runtime-config";
+
 type DirectiveMap = Record<string, string[]>;
 
 const runtimeCrypto = globalThis.crypto;
@@ -128,7 +130,8 @@ export function createContentSecurityPolicy({ nonce, isDev }: CspOptions): strin
   directives["img-src"].push("https://avatars.githubusercontent.com");
 
   // Allow Vercel preview toolbar (vercel.live) only on preview deployments
-  if (process.env.VERCEL_ENV === "preview") {
+  const { environment } = getRuntimeConfig();
+  if (environment === "preview") {
     directives["frame-src"].push("https://vercel.live");
     directives["connect-src"].push("https://vercel.live");
   }
