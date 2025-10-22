@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -17,7 +17,7 @@ const onboardSchema = z.object({
     .optional(),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
   // Member app tables are optional; use untyped client to accommodate missing local schema
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

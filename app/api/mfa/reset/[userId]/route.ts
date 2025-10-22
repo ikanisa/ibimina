@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { guardAdminAction } from "@/lib/admin/guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { logAudit } from "@/lib/audit";
@@ -7,7 +7,7 @@ type Params = {
   params: Promise<{ userId: string }>;
 };
 
-export async function POST(request: Request, { params }: Params) {
+export async function POST(request: NextRequest, { params }: Params) {
   const guard = await guardAdminAction<NextResponse>(
     {
       action: "admin_mfa_reset_user",

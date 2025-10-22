@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
 import { issueSessionCookies, verifyPasskey, type PasskeyVerificationPayload } from "@/lib/authx/verify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -9,7 +9,7 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 
 type Payload = PasskeyVerificationPayload;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const { user, profile } = await requireUserAndProfile();
   const body = (await request.json().catch(() => null)) as Payload | null;
 

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseSrv } from "@/lib/supabase/server";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const srv = supabaseSrv();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Extend Supabase types to cover client app tables.
   const client = srv as any;
@@ -14,8 +14,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
-  const { searchParams } = new URL(req.url);
-  const q = (searchParams.get("q") || "").trim();
+  const q = (req.nextUrl.searchParams.get("q") || "").trim();
 
   if (!q) {
     return NextResponse.json({ results: [] });

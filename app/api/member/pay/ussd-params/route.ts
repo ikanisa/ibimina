@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const groupId = searchParams.get("group_id");
+export async function GET(request: NextRequest) {
+  const groupId = request.nextUrl.searchParams.get("group_id");
 
   if (!groupId) {
     return NextResponse.json({ error: "Missing group id" }, { status: 400 });
