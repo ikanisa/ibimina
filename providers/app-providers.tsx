@@ -9,6 +9,7 @@ import { PwaProvider } from "@/providers/pwa-provider";
 import { OfflineQueueProvider } from "@/providers/offline-queue-provider";
 import { SupabaseAuthListener } from "@/providers/supabase-auth-listener";
 import { DEFAULT_LOCALE, type SupportedLocale } from "@/lib/i18n/locales";
+import { Analytics } from "@/src/lib/analytics";
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -25,6 +26,7 @@ export function AppProviders({ children, nonce, locale = DEFAULT_LOCALE }: AppPr
             <ConfirmProvider>
               <PwaProvider>
                 <MotionProvider>
+                  <Analytics />
                   <SupabaseAuthListener />
                   {children}
                 </MotionProvider>

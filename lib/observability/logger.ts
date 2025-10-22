@@ -1,5 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
+import { getRuntimeConfig } from "@/src/lib/runtime-config";
+
 interface LogContext {
   requestId?: string;
   userId?: string | null;
@@ -81,7 +83,7 @@ function write(level: LogLevel, event: string, payload: LogPayload) {
     userId: context.userId ?? null,
     saccoId: context.saccoId ?? null,
     source: context.source ?? null,
-    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
+    environment: getRuntimeConfig().environment,
     payload: payload ? normalize(payload) : undefined,
   };
 
