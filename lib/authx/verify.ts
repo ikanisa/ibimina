@@ -22,7 +22,15 @@ export type PasskeyVerificationPayload = {
 export const verifyPasskey = async (user: { id: string }, payload: PasskeyVerificationPayload) => {
   try {
     const result = await verifyAuthentication({ id: user.id }, payload.response, payload.stateToken);
-    return { ok: true as const, rememberDevice: result.rememberDevice };
+    const { rememberDevice, credential } = result;
+    const supabase = createSupabaseAdminClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
+      .from("webauthn_credentials")
+      .update({ last_used_at: new Date().toISOString() })
+      .eq("id", credential.id)
+      .eq("user_id", user.id);
+    return { ok: true as const, rememberDevice };
   } catch (error) {
     console.error("authx.verifyPasskey", error);
     return { ok: false as const };
