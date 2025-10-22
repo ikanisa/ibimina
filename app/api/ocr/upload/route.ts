@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { supabaseSrv } from "@/lib/supabase/server";
@@ -7,7 +7,7 @@ import { OCRUploadReq } from "@/lib/validators";
 
 export const runtime = "nodejs";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const srv = supabaseSrv();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Extend Supabase types to cover client app tables.
   const db = srv as any;

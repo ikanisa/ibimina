@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import type { RegistrationResponseJSON } from "@simplewebauthn/types";
 import { requireUserAndProfile } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
@@ -10,7 +10,7 @@ type Payload = {
   friendlyName?: string | null;
 };
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const { user } = await requireUserAndProfile();
   const body = (await request.json().catch(() => null)) as Payload | null;
 

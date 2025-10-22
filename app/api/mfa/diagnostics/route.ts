@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -12,10 +12,9 @@ function isValidBase64Key(b64: string | undefined | null) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { user, profile } = await requireUserAndProfile();
-  const url = new URL(request.url);
-  const email = url.searchParams.get("email");
+  const email = request.nextUrl.searchParams.get("email");
 
   const isAdmin = profile.role === "SYSTEM_ADMIN";
 
