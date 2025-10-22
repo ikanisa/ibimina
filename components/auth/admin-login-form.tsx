@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Factor } from "@supabase/supabase-js";
 import {
   resendTotpChallenge,
   signInWithPassword,
@@ -16,11 +15,7 @@ import { OptimizedImage } from "@/components/ui/optimized-image";
 
 type Step = "credentials" | "mfa";
 
-type TotpFactor = Factor<"totp", "verified">;
-
 type MfaState = {
-  factor: TotpFactor;
-  challengeId: string;
   expiresAt: number | null;
 };
 
@@ -127,11 +122,7 @@ export default function AdminLoginForm() {
   }, [supabase]);
 
   const transitionToMfa = useCallback((payload: Extract<SignInSuccess, { status: "mfa_required" }>) => {
-    setMfa({
-      factor: payload.factor,
-      challengeId: payload.challengeId,
-      expiresAt: payload.expiresAt,
-    });
+    setMfa({ expiresAt: payload.expiresAt });
     setStep("mfa");
     setCode("");
     setMessage(
@@ -201,11 +192,7 @@ export default function AdminLoginForm() {
       setMessage(null);
 
       try {
-        const result = await verifyTotpCode({
-          factor: mfa.factor,
-          challengeId: mfa.challengeId,
-          code: sanitizedCode,
-        });
+        const result = await verifyTotpCode({ code: sanitizedCode });
 
         if (result.status === "error") {
           setError(result.message || t(GENERIC_ERROR, "Something went wrong. Try again."));
@@ -243,11 +230,9 @@ export default function AdminLoginForm() {
     setError(null);
 
     try {
-      const refreshed = await resendTotpChallenge(mfa.factor);
+      const refreshed = await resendTotpChallenge();
       if (refreshed.status === "ok") {
         setMfa({
-          factor: refreshed.factor,
-          challengeId: refreshed.challengeId,
           expiresAt: refreshed.expiresAt,
         });
         setMessage(

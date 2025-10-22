@@ -1,10 +1,7 @@
 "use client";
 
-import type { Factor } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { mapAuthError } from "@/lib/auth/errors";
-
-type TotpFactor = Factor<"totp", "verified">;
 
 export type SignInSuccess =
   | {
@@ -12,8 +9,6 @@ export type SignInSuccess =
     }
   | {
       status: "mfa_required";
-      factor: TotpFactor;
-      challengeId: string;
       expiresAt: number | null;
     };
 
@@ -42,17 +37,12 @@ export async function signInWithPassword(email: string, password: string): Promi
     return { status: "authenticated" };
   }
 
-  const mfaDetails = await startTotpChallenge(supabase);
-  if (mfaDetails.status === "error") {
-    return mfaDetails;
+  const challenge = await initiateTotpChallenge();
+  if (challenge.status === "error") {
+    return challenge;
   }
 
-  return {
-    status: "mfa_required",
-    factor: mfaDetails.factor,
-    challengeId: mfaDetails.challengeId,
-    expiresAt: mfaDetails.expiresAt,
-  };
+  return { status: "mfa_required", expiresAt: challenge.expiresAt };
 }
 
 export async function signOut() {
@@ -60,59 +50,30 @@ export async function signOut() {
   await supabase.auth.signOut();
 }
 
-type TotpChallenge =
-  | {
-      status: "ok";
-      factor: TotpFactor;
-      challengeId: string;
-      expiresAt: number | null;
-    }
-  | {
-      status: "error";
-      message: string;
-    };
+type TotpChallenge = { status: "ok"; expiresAt: number | null } | { status: "error"; message: string };
 
-async function startTotpChallenge(
-  supabase = getSupabaseBrowserClient(),
-  factorOverride?: TotpFactor | null,
-): Promise<TotpChallenge> {
-  const fetchFactor = async () => {
-    if (factorOverride) {
-      return factorOverride;
-    }
-
-    const { data, error } = await supabase.auth.mfa.listFactors();
-    if (error) {
-      throw new Error(error.message || "list_factors_failed");
-    }
-
-    const factors = (data?.totp ?? []) as TotpFactor[];
-    const verified = factors.find((factor) => factor.status === "verified");
-    if (!verified) {
-      throw new Error("no_totp_factor");
-    }
-
-    return verified;
-  };
-
+async function initiateTotpChallenge(): Promise<TotpChallenge> {
   try {
-    const factor = await fetchFactor();
-    const { data, error } = await supabase.auth.mfa.challenge({
-      factorId: factor.id,
+    const response = await fetch("/api/authx/challenge/initiate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ factor: "totp" }),
     });
 
-    if (error || !data) {
-      throw new Error(error?.message || "challenge_failed");
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      return {
+        status: "error",
+        message: payload?.error ?? "Unable to initiate an MFA challenge. Try again.",
+      };
     }
 
     return {
       status: "ok",
-      factor,
-      challengeId: data.id,
-      expiresAt: parseExpiresAt(data.expires_at),
+      expiresAt: Math.round(Date.now() / 1000) + 60,
     };
   } catch (cause) {
-    console.error("[auth] startTotpChallenge failed", cause);
+    console.error("[auth] initiateTotpChallenge failed", cause);
     return {
       status: "error",
       message: "We couldn't send an MFA challenge. Try again in a moment.",
@@ -120,45 +81,34 @@ async function startTotpChallenge(
   }
 }
 
-export async function resendTotpChallenge(factor: TotpFactor) {
-  return startTotpChallenge(getSupabaseBrowserClient(), factor);
+export async function resendTotpChallenge() {
+  return initiateTotpChallenge();
 }
 
-export async function verifyTotpCode(args: {
-  factor: TotpFactor;
-  challengeId: string;
-  code: string;
-}): Promise<{ status: "authenticated" } | { status: "error"; message: string }> {
-  const supabase = getSupabaseBrowserClient();
+export async function verifyTotpCode(args: { code: string }): Promise<{ status: "authenticated" } | { status: "error"; message: string }> {
   const sanitizedCode = args.code.replace(/[^0-9]/g, "");
 
-  const { data, error } = await supabase.auth.mfa.verify({
-    factorId: args.factor.id,
-    challengeId: args.challengeId,
-    code: sanitizedCode,
-  });
+  try {
+    const response = await fetch("/api/authx/challenge/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ factor: "totp", token: sanitizedCode, trustDevice: true }),
+    });
 
-  if (error || !data) {
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      return {
+        status: "error",
+        message: payload?.error ?? "Unable to verify the authenticator code.",
+      };
+    }
+
+    return { status: "authenticated" };
+  } catch (cause) {
+    console.error("[auth] verifyTotpCode failed", cause);
     return {
       status: "error",
-      message: mapAuthError(error),
+      message: "Unable to verify the authenticator code.",
     };
   }
-
-  return { status: "authenticated" };
-}
-
-function parseExpiresAt(expiresAtRaw: unknown) {
-  if (typeof expiresAtRaw === "number") {
-    return expiresAtRaw;
-  }
-
-  if (typeof expiresAtRaw === "string") {
-    const parsed = Date.parse(expiresAtRaw);
-    if (!Number.isNaN(parsed)) {
-      return Math.round(parsed / 1000);
-    }
-  }
-
-  return null;
 }

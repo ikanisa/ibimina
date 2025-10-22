@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Factor } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import {
   resendTotpChallenge,
@@ -17,11 +16,7 @@ const otpPattern = /[^0-9]/g;
 
 type Step = "credentials" | "mfa";
 
-type TotpFactor = Factor<"totp", "verified">;
-
 type MfaState = {
-  factor: TotpFactor;
-  challengeId: string;
   expiresAt: number | null;
 };
 
@@ -120,8 +115,6 @@ export function LoginForm() {
 
   const transitionToMfa = useCallback((payload: Extract<SignInSuccess, { status: "mfa_required" }>) => {
     setMfa({
-      factor: payload.factor,
-      challengeId: payload.challengeId,
       expiresAt: payload.expiresAt,
     });
     setStep("mfa");
@@ -188,11 +181,7 @@ export function LoginForm() {
       setMessage(null);
 
       try {
-        const result = await verifyTotpCode({
-          factor: mfa.factor,
-          challengeId: mfa.challengeId,
-          code: sanitized,
-        });
+        const result = await verifyTotpCode({ code: sanitized });
 
        if (result.status === "error") {
          setError(result.message || t("auth.mfa.verifyFailed", "Unable to verify the authenticator code."));
@@ -222,12 +211,10 @@ export function LoginForm() {
     setError(null);
 
     try {
-      const refreshed = await resendTotpChallenge(mfa.factor);
+      const refreshed = await resendTotpChallenge();
 
       if (refreshed.status === "ok") {
         setMfa({
-          factor: refreshed.factor,
-          challengeId: refreshed.challengeId,
           expiresAt: refreshed.expiresAt,
         });
         setMessage(
