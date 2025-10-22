@@ -16,7 +16,7 @@ Populate the following secrets (see `.env.example` for defaults):
 | `MAIL_FROM` / `SMTP_*` or Resend API key | Email OTP sender configuration; required for `/api/mfa/email/request`.【F:.env.example†L21-L27】【F:lib/mfa/email.ts†L32-L95】 |
 | `TWILIO_*` or Meta WABA keys | WhatsApp OTP provider; do not enable channel in production until throttling complete.【F:.env.example†L29-L36】【F:lib/authx/start.ts†L53-L120】 |
 
-For previews on Vercel, inject secrets via `vercel env` and Supabase project settings. Ensure `MFA_SESSION_SECRET` and `TRUSTED_COOKIE_SECRET` differ per environment.
+For preview deployments, inject secrets via your chosen deployment CLI or secret store (e.g., Doppler, 1Password, or container orchestrator secrets). Ensure `MFA_SESSION_SECRET` and `TRUSTED_COOKIE_SECRET` differ per environment.
 
 ## 2. Database Preparation
 1. Apply Supabase migrations (`supabase db push` or run `scripts/db-reset.sh` for local Postgres).【F:scripts/db-reset.sh†L1-L18】
@@ -35,8 +35,8 @@ For previews on Vercel, inject secrets via `vercel env` and Supabase project set
 4. Execute `pnpm test` (after adding MFA unit tests) and `pnpm test:rls` for policy validation.【F:scripts/test-rls.sh†L1-L16】
 
 ## 5. Preview Deployments
-- Configure GitHub secrets (`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`) and Supabase branch database. Preview workflow (`.github/workflows/preview.yml`) builds via Vercel CLI; extend to provision branch DB and seed fixtures before Playwright tests.【F:.github/workflows/preview.yml†L1-L42】
-- Inject environment secrets into preview via `vercel env pull` step and Supabase branch password store.
+- Configure GitHub secrets for your deployment target (e.g., container registry credentials, platform API tokens) and Supabase branch database. The preview workflow (`.github/workflows/preview.yml`) builds via the configured deployment CLI; extend to provision branch DB and seed fixtures before Playwright tests.【F:.github/workflows/preview.yml†L1-L42】
+- Inject environment secrets into previews via your deployment CLI's secret management step and the Supabase branch password store.
 
 ## 6. Production Checklist
 - AuthX verify parity tests green (TOTP/passkey/email/backup/trusted device).
