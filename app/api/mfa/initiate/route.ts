@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUserAndProfile } from "@/lib/auth";
 import { initiateFactor, type Factor } from "@/src/auth/factors";
@@ -11,7 +11,7 @@ const schema = z.object({
   factor: z.enum(["totp", "email", "backup", "whatsapp", "passkey"]),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const { user, profile } = await requireUserAndProfile();
 
   if (!profile.mfa_enabled) {

@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUserAndProfile } from "@/lib/auth";
 import { issueSessionCookies } from "@/lib/authx/verify";
@@ -17,7 +17,7 @@ const payloadSchema = z.object({
   rememberDevice: z.boolean().optional(),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const { user, profile } = await requireUserAndProfile();
   const headerList = await headers();
   const requestId = headerList.get("x-request-id") ?? headerList.get("x-correlation-id") ?? undefined;

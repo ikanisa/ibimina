@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
 import { deletePasskeyCredential } from "@/lib/mfa/passkeys";
 import { logAudit } from "@/lib/audit";
@@ -7,7 +7,7 @@ interface Params {
   credentialId: string;
 }
 
-export async function DELETE(_request: Request, context: { params: Params }) {
+export async function DELETE(_request: NextRequest, context: { params: Params }) {
   const { user } = await requireUserAndProfile();
   const credentialId = context.params?.credentialId;
 

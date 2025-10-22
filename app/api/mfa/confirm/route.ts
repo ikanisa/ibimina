@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
 import { decodePendingEnrollment, encryptSensitiveString, generateBackupCodes, verifyTotp } from "@/lib/mfa";
 import { logAudit } from "@/lib/audit";
@@ -7,7 +7,7 @@ import type { Database } from "@/lib/supabase/types";
 
 const MAX_PENDING_AGE_MS = 10 * 60 * 1000;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const { user, profile } = await requireUserAndProfile();
   if (profile.mfa_enabled) {
     return NextResponse.json({ error: "already_enabled" }, { status: 400 });

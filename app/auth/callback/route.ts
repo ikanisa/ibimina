@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import type { Session } from "@supabase/supabase-js";
@@ -20,7 +20,7 @@ function logWarn(event: string, details: LogDetails = {}) {
   console.warn(`auth.callback.${event}`, details);
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const config = getSupabaseConfigStatus();
 
   if (!config.hasUrl || !config.hasAnonKey) {

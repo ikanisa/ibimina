@@ -1,3 +1,5 @@
+import { getRuntimeConfig } from "@/src/lib/runtime-config";
+
 type DirectiveMap = Record<string, string[]>;
 
 const runtimeCrypto = globalThis.crypto;

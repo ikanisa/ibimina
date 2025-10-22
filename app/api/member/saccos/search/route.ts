@@ -1,10 +1,9 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
 
-export async function GET(request: NextRequest | Request) {
-  const { searchParams } = new URL(request.url);
-  const q = (searchParams.get("q") ?? "").trim();
+export async function GET(request: NextRequest) {
+  const q = (request.nextUrl.searchParams.get("q") ?? "").trim();
 
   if (q.length < 2) {
     return NextResponse.json(

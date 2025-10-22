@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { guardAdminAction } from "@/lib/admin/guard";
 import type { Database } from "@/lib/supabase/types";
 
 export const runtime = "nodejs";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const allowedRoles: Array<Database["public"]["Enums"]["app_role"]> = [
     "SYSTEM_ADMIN",
     "SACCO_MANAGER",
@@ -27,13 +27,13 @@ export async function GET(req: Request) {
 
   const { profile, supabase } = guard.context;
 
-  const url = new URL(req.url);
-  const action = url.searchParams.get("action")?.trim() ?? "";
-  const entity = url.searchParams.get("entity")?.trim() ?? "";
-  const actorSearch = url.searchParams.get("actor")?.trim() ?? "";
-  const from = url.searchParams.get("from")?.trim() ?? "";
-  const to = url.searchParams.get("to")?.trim() ?? "";
-  const overrideSacco = url.searchParams.get("saccoId")?.trim() ?? "";
+  const searchParams = req.nextUrl.searchParams;
+  const action = searchParams.get("action")?.trim() ?? "";
+  const entity = searchParams.get("entity")?.trim() ?? "";
+  const actorSearch = searchParams.get("actor")?.trim() ?? "";
+  const from = searchParams.get("from")?.trim() ?? "";
+  const to = searchParams.get("to")?.trim() ?? "";
+  const overrideSacco = searchParams.get("saccoId")?.trim() ?? "";
 
   const actorIds: string[] = [];
 

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
 import {
   createOtpAuthUri,
@@ -31,7 +31,7 @@ export async function POST() {
   return NextResponse.json({ otpauth, secret, secretPreview: previewSecret(secret, 6), pendingToken });
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   const { user, profile } = await requireUserAndProfile();
   if (!profile.mfa_enabled) {
     return NextResponse.json({ error: "not_enabled" }, { status: 400 });

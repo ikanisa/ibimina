@@ -73,6 +73,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns,
+    unoptimized: true,
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 3600,
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],

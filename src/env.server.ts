@@ -65,6 +65,54 @@ const rawEnv = {
   CI: process.env.CI,
 };
 
+const isStubbedEnvironment = process.env.AUTH_E2E_STUB === "1";
+
+const stubbedDefaults = Object.freeze({
+  NEXT_PUBLIC_SUPABASE_URL: "https://stub.supabase.local",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "stub-anon-key",
+  SUPABASE_SERVICE_ROLE_KEY: "stub-service-role-key",
+  BACKUP_PEPPER: "stub-backup-pepper",
+  MFA_SESSION_SECRET: "stub-mfa-session-secret",
+  TRUSTED_COOKIE_SECRET: "stub-trusted-cookie-secret",
+  HMAC_SHARED_SECRET: "stub-hmac-shared-secret",
+  OPENAI_API_KEY: "stub-openai-api-key",
+  KMS_DATA_KEY_BASE64: "ZGV2LWttcy1kYXRhLWtleS0zMi1ieXRlcyEhISEhISE=",
+} as const);
+
+if (isStubbedEnvironment) {
+  const withFallback = (value: string | undefined, fallback: string) => {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+    return fallback;
+  };
+
+  const assignFallback = <Key extends keyof typeof stubbedDefaults>(key: Key) => {
+    const nextValue = withFallback(rawEnv[key], stubbedDefaults[key]);
+    rawEnv[key] = nextValue;
+    process.env[key] = nextValue;
+  };
+
+  assignFallback("NEXT_PUBLIC_SUPABASE_URL");
+  assignFallback("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  assignFallback("SUPABASE_SERVICE_ROLE_KEY");
+  assignFallback("BACKUP_PEPPER");
+  assignFallback("MFA_SESSION_SECRET");
+  assignFallback("TRUSTED_COOKIE_SECRET");
+  assignFallback("HMAC_SHARED_SECRET");
+  assignFallback("OPENAI_API_KEY");
+
+  const hasKmsDataKey = Boolean(rawEnv.KMS_DATA_KEY && rawEnv.KMS_DATA_KEY.trim().length > 0);
+  const hasKmsDataKeyBase64 = Boolean(
+    rawEnv.KMS_DATA_KEY_BASE64 && rawEnv.KMS_DATA_KEY_BASE64.trim().length > 0,
+  );
+
+  if (!hasKmsDataKey && !hasKmsDataKeyBase64) {
+    rawEnv.KMS_DATA_KEY_BASE64 = stubbedDefaults.KMS_DATA_KEY_BASE64;
+    process.env.KMS_DATA_KEY_BASE64 = stubbedDefaults.KMS_DATA_KEY_BASE64;
+  }
+}
+
 const optionalString = z
   .string()
   .trim()

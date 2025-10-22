@@ -6,7 +6,7 @@ A staff-only Progressive Web App for Umurenge SACCO ibimina operations. The UI f
 
 - `main` is the deployment-ready default branch and now tracks the latest reviewed `work` refactor.
 - `work` remains the integration branch for active feature development; open pull requests should continue to target `work` until they are ready to be promoted.
-- After validation, merge `work` into `main` (fast-forward preferred) so Vercel builds and environments stay aligned with the most recent authenticated flows.
+- After validation, merge `work` into `main` (fast-forward preferred) so production containers and local staging environments stay aligned with the most recent authenticated flows.
 
 ## Tech stack
 
@@ -180,6 +180,6 @@ curl -X POST \
 - `npm run fix:i18n` – backfill missing rw/fr keys from en (flat keys)
  
 
-Deployments run through your existing CI/CD pipeline (e.g., Vercel); push changes when you’re ready to release.
+Deployments run through your self-hosted CI/CD pipeline; push changes when you’re ready to release to your local or on-prem infrastructure.
 
  

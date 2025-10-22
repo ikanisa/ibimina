@@ -1,7 +1,7 @@
 # Ibimina Production Go-Live Audit
 
 ## Executive summary
-- **Overall readiness**: security, UX, and observability gaps identified in Phases P0–P3 have been closed, leaving a focused backlog of performance, data, and QA work before a Vercel go-live. Runtime configuration and infrastructure automation are documented, and environment validation now fails closed when secrets are missing.
+- **Overall readiness**: security, UX, and observability gaps identified in Phases P0–P3 have been closed, leaving a focused backlog of performance, data, and QA work before a production go-live. Runtime configuration and infrastructure automation are documented, and environment validation now fails closed when secrets are missing.
 - **Strengths**: layered providers centralise theming, offline, PWA, and Supabase session syncing, giving the React tree a predictable runtime context for both RSC and client features.【F:providers/app-providers.tsx†L1-L35】 Server middleware enforces a robust security header set and propagates CSP nonces through to the layout, keeping inline scripts compliant with a strict policy.【F:app/layout.tsx†L1-L38】【F:middleware.ts†L1-L41】 Operational scripts exist for RLS regression testing and Supabase migrations, and the service worker already differentiates immutable caches, API requests, and auth-scoped background sync.【F:scripts/test-rls.sh†L1-L16】【F:scripts/db-reset.sh†L1-L19】【F:service-worker.js†L1-L221】
 - **Key gaps**: dashboard and analytics caches now refresh automatically from Supabase materialised views; focus shifts to validating refresh frequency under production load and expanding analytics drill-down coverage before launch. Log drain alerting and MFA automation are enforced in CI, closing the previous operational blockers.【F:lib/dashboard.ts†L1-L206】【F:supabase/migrations/20251011153000_dashboard_materialization.sql†L1-L173】【F:app/api/cache/revalidate/route.ts†L1-L70】【F:tests/e2e/auth.mfa.spec.ts†L1-L93】
 
@@ -11,12 +11,12 @@
 - **Cryptographically strong nonces**: `createNonce` now requires secure randomness via `crypto.getRandomValues` or `crypto.randomUUID`, guaranteeing CSP entropy across Node, Edge, and browser runtimes with exhaustive unit coverage.【F:lib/security/headers.ts†L63-L109】
 - **Deterministic request IDs**: Middleware emits secure UUIDs whenever clients omit `x-request-id`, ensuring traceability for structured logging and downstream drains without relying on low-entropy fallbacks.【F:middleware.ts†L1-L45】
 - **Offline auth scope hashing**: Auth scope updates abort if hashing fails, so legacy browsers never persist raw Supabase credentials; background sync resets caches instead of risking credential leakage.【F:lib/offline/sync.ts†L1-L94】【F:service-worker.js†L107-L205】
-- **Service worker versioning**: Cache namespaces incorporate the injected build identifier, automatically invalidating stale bundles during each Vercel deployment without manual version bumps.【F:service-worker.js†L1-L76】【F:next.config.ts†L1-L74】
+- **Service worker versioning**: Cache namespaces incorporate the injected build identifier, automatically invalidating stale bundles during each production deployment without manual version bumps.【F:service-worker.js†L1-L76】【F:next.config.ts†L1-L74】
 
 ### Backend & Supabase integration
 - **Session callback health**: `/auth/callback` emits structured logs, validates payloads, and fails closed when Supabase credentials are absent, avoiding silent cookie hydration failures during cold starts.【F:app/auth/callback/route.ts†L1-L88】【F:lib/supabase/config.ts†L1-L70】
 - **Database test harness**: Docker Compose-driven RLS tests mirror CI defaults, eliminating bespoke Postgres setup and letting preview environments reuse the same fixtures.【F:infra/docker/docker-compose.rls.yml†L1-L24】【F:scripts/test-rls-docker.sh†L1-L21】
-- **Runtime config surfacing**: Supabase client factories log detailed misconfiguration context before throwing, guiding operators toward missing Vercel secrets or environment drift.【F:lib/supabase/config.ts†L1-L70】【F:lib/supabase/server.ts†L1-L33】
+- **Runtime config surfacing**: Supabase client factories log detailed misconfiguration context before throwing, guiding operators toward missing environment secrets or configuration drift.【F:lib/supabase/config.ts†L1-L70】【F:lib/supabase/server.ts†L1-L33】
 
 ### Frontend & UX
 - **Locale alignment**: Server-side negotiation keeps `<html lang>` and the initial `I18nProvider` language in sync so assistive technology reads the correct locale on first paint.【F:app/layout.tsx†L1-L60】【F:lib/i18n/resolve-locale.ts†L1-L53】
@@ -63,7 +63,7 @@
 
 ## Phase 1 implementation updates
 - **Locale negotiation** now reads the persisted cookie and `Accept-Language` header to align `<html lang>` with the initial `I18nProvider` value, preventing assistive-technology mismatches during server rendering.【F:app/layout.tsx†L1-L45】【F:providers/app-providers.tsx†L1-L32】【F:providers/i18n-provider.tsx†L1-L84】【F:lib/i18n/resolve-locale.ts†L1-L45】
-- **Service worker cache busting** derives cache keys from the build identifier exposed via `NEXT_PUBLIC_BUILD_ID`, eliminating manual version bumps ahead of Vercel deployments.【F:service-worker.js†L1-L15】【F:next.config.ts†L1-L109】
+- **Service worker cache busting** derives cache keys from the build identifier exposed via `NEXT_PUBLIC_BUILD_ID`, eliminating manual version bumps ahead of production deployments.【F:service-worker.js†L1-L15】【F:next.config.ts†L1-L109】
 - **RLS regression automation** ships a Docker Compose harness and wrapper script so developers and CI can launch the Postgres fixture container with `pnpm test:rls:docker`, matching the GitHub Actions setup.【F:infra/docker/docker-compose.rls.yml†L1-L24】【F:scripts/test-rls-docker.sh†L1-L19】【F:package.json†L11-L24】
 
 ## Phase 2 implementation updates
