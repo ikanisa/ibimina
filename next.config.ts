@@ -43,6 +43,7 @@ try {
     register: true,
     skipWaiting: true,
     sw: "service-worker.js",
+    buildExcludes: [/\/_next\/app-build-manifest\.json$/],
   });
 } catch {
   console.warn("next-pwa not available during local build; proceeding without service worker bundling.");
