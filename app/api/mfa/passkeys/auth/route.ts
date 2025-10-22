@@ -1,28 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import crypto from "node:crypto";
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import type { AuthenticationResponseJSON } from "@simplewebauthn/types";
 import { requireUserAndProfile } from "@/lib/auth";
-import {
-  MFA_SESSION_COOKIE,
-  TRUSTED_DEVICE_COOKIE,
-  createMfaSessionToken,
-  createTrustedDeviceToken,
-  sessionTtlSeconds,
-  trustedTtlSeconds,
-} from "@/lib/mfa/session";
-import { verifyAuthentication } from "@/lib/mfa/passkeys";
+import { issueSessionCookies, verifyPasskey, type PasskeyVerificationPayload } from "@/lib/authx/verify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
-import { deriveIpPrefix, hashDeviceFingerprint, hashUserAgent } from "@/lib/mfa/trusted-device";
 import { logAudit } from "@/lib/audit";
 import { enforceRateLimit } from "@/lib/rate-limit";
 
-type Payload = {
-  response: AuthenticationResponseJSON;
-  stateToken: string;
-};
+type Payload = PasskeyVerificationPayload;
 
 export async function POST(request: Request) {
   const { user, profile } = await requireUserAndProfile();
@@ -42,18 +27,24 @@ export async function POST(request: Request) {
   }
 
   let rememberDevice = false;
+  let credential: { credential_id: string; device_type: string | null } | null = null;
 
   try {
-    const verification = await verifyAuthentication(user, body.response, body.stateToken);
-    rememberDevice = verification.rememberDevice;
+    const result = await verifyPasskey({ id: user.id }, body);
+    if (!result.ok) {
+      await logAudit({ action: "MFA_PASSKEY_FAILED", entity: "USER", entityId: user.id, diff: null });
+      return NextResponse.json({ error: "verification_failed" }, { status: 401 });
+    }
+
+    rememberDevice = result.rememberDevice ?? false;
+    credential = result.credential;
     await logAudit({
       action: "MFA_PASSKEY_SUCCESS",
       entity: "USER",
       entityId: user.id,
-      diff: {
-        credentialId: verification.credential.credential_id,
-        deviceType: verification.credential.device_type,
-      },
+      diff: credential
+        ? { credentialId: credential.credential_id, deviceType: credential.device_type }
+        : { credentialId: null, deviceType: null },
     });
   } catch (error) {
     console.error("Passkey verification failed", error);
@@ -90,60 +81,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "configuration_error" }, { status: 500 });
   }
 
-  const headerList = await headers();
-  const userAgent = headerList.get("user-agent") ?? "";
-  const ip = headerList.get("x-forwarded-for") ?? headerList.get("x-real-ip") ?? null;
-  const userAgentHash = hashUserAgent(userAgent);
-  const ipPrefix = deriveIpPrefix(ip);
+  await issueSessionCookies(user.id, rememberDevice);
 
-  const response = NextResponse.json({ success: true, method: "passkey" });
-  const sessionToken = createMfaSessionToken(user.id, sessionTtlSeconds());
-
-  if (sessionToken) {
-    response.cookies.set({
-      name: MFA_SESSION_COOKIE,
-      value: sessionToken,
-      httpOnly: true,
-      sameSite: "lax",
-      secure: true,
-      path: "/",
-      maxAge: sessionTtlSeconds(),
-    });
-  }
-
-  if (rememberDevice) {
-    const deviceId = crypto.randomUUID();
-    const fingerprint = hashDeviceFingerprint(user.id, userAgentHash, ipPrefix);
-
-    const trustedInsert: Database["public"]["Tables"]["trusted_devices"]["Insert"] = {
-      user_id: user.id,
-      device_id: deviceId,
-      device_fingerprint_hash: fingerprint,
-      user_agent_hash: userAgentHash,
-      ip_prefix: ipPrefix,
-      last_used_at: new Date().toISOString(),
-    };
-
-    const trustedResult = await (supabase as any)
-      .from("trusted_devices")
-      .upsert(trustedInsert, { onConflict: "user_id,device_id" });
-    if (!trustedResult.error) {
-      const trustedToken = createTrustedDeviceToken(user.id, deviceId, trustedTtlSeconds());
-      if (trustedToken) {
-        response.cookies.set({
-          name: TRUSTED_DEVICE_COOKIE,
-          value: trustedToken,
-          httpOnly: true,
-          sameSite: "lax",
-          secure: true,
-          path: "/",
-          maxAge: trustedTtlSeconds(),
-        });
-      }
-    }
-  }
-
-  return response;
+  return NextResponse.json({ success: true, method: "passkey" });
 }
 
 /* eslint-enable @typescript-eslint/no-explicit-any */
