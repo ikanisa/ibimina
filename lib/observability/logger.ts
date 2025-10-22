@@ -30,6 +30,10 @@ const storage = new AsyncLocalStorage<LogContext>();
 const DEFAULT_ALERT_COOLDOWN_MS = 5 * 60 * 1000;
 let lastLogDrainAlertAt: number | null = null;
 
+function getEnvironmentLabel(): string {
+  return process.env.APP_ENV ?? process.env.NODE_ENV ?? "development";
+}
+
 function normalize(value: unknown): unknown {
   if (value instanceof Error) {
     return {
@@ -83,7 +87,7 @@ function write(level: LogLevel, event: string, payload: LogPayload) {
     userId: context.userId ?? null,
     saccoId: context.saccoId ?? null,
     source: context.source ?? null,
-    environment: getRuntimeConfig().environment,
+    environment: getEnvironmentLabel(),
     payload: payload ? normalize(payload) : undefined,
   };
 

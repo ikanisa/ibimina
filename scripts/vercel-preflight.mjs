@@ -51,7 +51,8 @@ try {
 const environmentArg = process.argv.find((arg) => arg.startsWith("--environment="));
 const environment = environmentArg ? environmentArg.split("=")[1] ?? "preview" : "preview";
 const buildFlag = environment === "production" ? " --prod" : "";
-const tokenFlag = process.env.VERCEL_TOKEN ? ` --token=${process.env.VERCEL_TOKEN}` : "";
+const deploymentToken = process.env.DEPLOYMENT_TOKEN ?? "";
+const tokenFlag = deploymentToken ? ` --token=${deploymentToken}` : "";
 
 const pullCommand = `pnpm dlx vercel@latest pull --yes --environment=${environment}${tokenFlag}`;
 const buildCommand = `pnpm dlx vercel@latest build${buildFlag}${tokenFlag}`;

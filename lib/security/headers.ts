@@ -129,9 +129,9 @@ export function createContentSecurityPolicy({ nonce, isDev }: CspOptions): strin
   directives["style-src"].push("https://rsms.me/inter/inter.css");
   directives["img-src"].push("https://avatars.githubusercontent.com");
 
+  const appEnv = process.env.APP_ENV ?? process.env.NODE_ENV ?? "development";
   // Allow Vercel preview toolbar (vercel.live) only on preview deployments
-  const { environment } = getRuntimeConfig();
-  if (environment === "preview") {
+  if (appEnv === "preview") {
     directives["frame-src"].push("https://vercel.live");
     directives["connect-src"].push("https://vercel.live");
   }

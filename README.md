@@ -16,22 +16,25 @@ A staff-only Progressive Web App for Umurenge SACCO ibimina operations. The UI f
 - Supabase (`@supabase/ssr`) for auth and data
 - PWA manifest & service worker ready for production deploys
 
-## Getting started
+## Local setup
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-Set the required environment variables:
+`.env.local` stays out of version control and is loaded automatically by Next.js. Populate it with your Supabase project details (URL, anon key, service role, peppers, secrets) before starting the dev server. See [`docs/local-hosting.md`](docs/local-hosting.md) for a quick checklist and copy-ready snippets.
 
-```
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=public-anon-key
-SUPABASE_SERVICE_ROLE_KEY=service-role-key
-```
+### Environment variables
 
-Copy `.env.example` to `.env` (for the Next.js app) and populate Supabase secrets separately using `supabase secrets set --env-file supabase/.env.production` during deployment.
+The repo ships with a curated `.env.example` that lists every secret the runtime expects. Update that file when you add/remove configuration so the team always has an up-to-date reference.
+
+- `APP_ENV` controls high-level behaviour such as CSP allowances and log metadata. Defaults to `development` locally.
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are required for Supabase clients.
+- `GIT_COMMIT_SHA` is optional and feeds `/api/healthz` plus build diagnostics when CI exports it.
+
+For Supabase edge functions and migrations, continue to manage secrets through `supabase/.env` files or `supabase secrets set --env-file supabase/.env.production` as part of your deployment process.
 
 ## Running Supabase migrations
 
@@ -62,6 +65,7 @@ supabase/                # Config, migrations, seed data
 - `lib/auth.ts` centralises user/session lookups and guards the `(main)` route group.
 - Dashboard, Ikimina, Recon, Reports, and Admin pages now query Supabase directly in server components.
 - See `docs/go-live-checklist.md` for the full Supabase bootstrap sequence (migrations, secrets, edge functions, GSM ingestion).
+- Refer to `docs/local-hosting.md` when wiring Supabase credentials into `.env.local` for local development.
 
 ## SACCO+ Supabase backend
 
