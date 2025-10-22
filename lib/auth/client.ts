@@ -1,6 +1,9 @@
 "use client";
 
-import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
+import type {
+  AuthenticationResponseJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { mapAuthError } from "@/lib/auth/errors";
 
@@ -13,6 +16,11 @@ export type FactorEnrollmentMap = Record<AuthxFactor, boolean>;
 export type AuthxFactorsSummary = {
   preferred: AuthxFactor;
   enrolled: FactorEnrollmentMap;
+};
+
+type PasskeyAssertionPayload = {
+  response: AuthenticationResponseJSON;
+  stateToken: string;
 };
 
 export type SignInSuccess =
@@ -198,12 +206,28 @@ export const verifyAuthxFactor = async (input: {
   factor: AuthxFactor;
   token?: string;
   trustDevice?: boolean;
+  passkeyPayload?: PasskeyAssertionPayload;
 }): Promise<VerifyAuthxResult> => {
   try {
+    const body: {
+      factor: AuthxFactor;
+      token?: string;
+      trustDevice?: boolean;
+    } = {
+      factor: input.factor,
+      trustDevice: input.trustDevice,
+    };
+
+    if (input.passkeyPayload) {
+      body.token = JSON.stringify(input.passkeyPayload);
+    } else if (input.token) {
+      body.token = input.token;
+    }
+
     const response = await fetch("/api/authx/challenge/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ factor: input.factor, token: input.token, trustDevice: input.trustDevice }),
+      body: JSON.stringify(body),
     });
 
     const payload = await response.json().catch(() => ({}));

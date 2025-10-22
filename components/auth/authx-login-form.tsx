@@ -582,13 +582,16 @@ export function AuthxLoginForm({ variant }: { variant: AuthxLoginVariant }) {
         return;
       }
 
-      await startAuthentication({
+      const assertion = await startAuthentication({
         optionsJSON: initiation.options,
       });
 
       const verification = await verifyAuthxFactor({
         factor: "passkey",
-        token: initiation.stateToken,
+        passkeyPayload: {
+          response: assertion,
+          stateToken: initiation.stateToken,
+        },
         trustDevice,
       });
 
