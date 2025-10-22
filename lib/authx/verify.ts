@@ -19,10 +19,26 @@ export type PasskeyVerificationPayload = {
   stateToken: string;
 };
 
-export const verifyPasskey = async (user: { id: string }, payload: PasskeyVerificationPayload) => {
+type PasskeyCredential = {
+  credential_id: string;
+  device_type: string | null;
+};
+
+export type VerifyPasskeyResult =
+  | { ok: true; rememberDevice: boolean; credential: PasskeyCredential | null }
+  | { ok: false };
+
+export const verifyPasskey = async (
+  user: { id: string },
+  payload: PasskeyVerificationPayload,
+): Promise<VerifyPasskeyResult> => {
   try {
     const result = await verifyAuthentication({ id: user.id }, payload.response, payload.stateToken);
-    return { ok: true as const, rememberDevice: result.rememberDevice };
+    return {
+      ok: true as const,
+      rememberDevice: result.rememberDevice,
+      credential: (result.credential as PasskeyCredential | null) ?? null,
+    };
   } catch (error) {
     console.error("authx.verifyPasskey", error);
     return { ok: false as const };

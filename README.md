@@ -2,6 +2,12 @@
 
 A staff-only Progressive Web App for Umurenge SACCO ibimina operations. The UI foundation now matches the Rwanda-inspired liquid-glass spec: Next.js 15 App Router, mobile-first gradients, Framer Motion transitions, and Supabase-backed semantic SACCO search.
 
+## Branching model
+
+- `main` is the deployment-ready default branch and now tracks the latest reviewed `work` refactor.
+- `work` remains the integration branch for active feature development; open pull requests should continue to target `work` until they are ready to be promoted.
+- After validation, merge `work` into `main` (fast-forward preferred) so Vercel builds and environments stay aligned with the most recent authenticated flows.
+
 ## Tech stack
 
 - Next.js 15 (App Router, typed routes)

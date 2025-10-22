@@ -1,10 +1,19 @@
 "use client";
 
-import type { Factor } from "@supabase/supabase-js";
+import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { mapAuthError } from "@/lib/auth/errors";
 
-type TotpFactor = Factor<"totp", "verified">;
+export const AUTHX_FACTORS = ["passkey", "totp", "email", "whatsapp", "backup"] as const;
+
+export type AuthxFactor = (typeof AUTHX_FACTORS)[number];
+
+export type FactorEnrollmentMap = Record<AuthxFactor, boolean>;
+
+export type AuthxFactorsSummary = {
+  preferred: AuthxFactor;
+  enrolled: FactorEnrollmentMap;
+};
 
 export type SignInSuccess =
   | {
@@ -12,9 +21,7 @@ export type SignInSuccess =
     }
   | {
       status: "mfa_required";
-      factor: TotpFactor;
-      challengeId: string;
-      expiresAt: number | null;
+      factors: AuthxFactorsSummary;
     };
 
 export type SignInFailure = {
@@ -22,11 +29,85 @@ export type SignInFailure = {
   message: string;
 };
 
+type MfaStatusResponse = {
+  mfaEnabled: boolean;
+  mfaRequired: boolean;
+  trustedDevice: boolean;
+  passkeyEnrolled: boolean;
+};
+
+const EMPTY_ENROLLMENT = AUTHX_FACTORS.reduce<FactorEnrollmentMap>((acc, factor) => {
+  acc[factor] = false;
+  return acc;
+}, {} as FactorEnrollmentMap);
+
+const parseFactor = (value: unknown): AuthxFactor | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+  return AUTHX_FACTORS.includes(value as AuthxFactor) ? (value as AuthxFactor) : null;
+};
+
+const normaliseEnrollment = (raw: unknown): FactorEnrollmentMap => {
+  if (!raw || typeof raw !== "object") {
+    return { ...EMPTY_ENROLLMENT };
+  }
+
+  const parsed: FactorEnrollmentMap = { ...EMPTY_ENROLLMENT };
+  for (const factor of AUTHX_FACTORS) {
+    const value = (raw as Record<string, unknown>)[factor];
+    parsed[factor] = typeof value === "boolean" ? value : false;
+  }
+  return parsed;
+};
+
+const choosePreferred = (summary: { preferred?: unknown; enrolled: FactorEnrollmentMap }): AuthxFactor => {
+  const requested = parseFactor(summary.preferred);
+  if (requested && summary.enrolled[requested]) {
+    return requested;
+  }
+
+  for (const factor of AUTHX_FACTORS) {
+    if (summary.enrolled[factor]) {
+      return factor;
+    }
+  }
+
+  return "totp";
+};
+
+const fetchMfaStatus = async (): Promise<MfaStatusResponse | null> => {
+  try {
+    const response = await fetch("/api/mfa/status", { cache: "no-store" });
+    if (!response.ok) {
+      return null;
+    }
+    const json = (await response.json()) as MfaStatusResponse;
+    return json;
+  } catch (error) {
+    console.error("[auth] fetchMfaStatus failed", error);
+    return null;
+  }
+};
+
+export const listAuthxFactors = async (): Promise<AuthxFactorsSummary> => {
+  const response = await fetch("/api/authx/factors/list", { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("authx_factors_failed");
+  }
+
+  const payload = await response.json();
+  const enrolled = normaliseEnrollment((payload as Record<string, unknown>).enrolled);
+  const preferred = choosePreferred({ preferred: (payload as Record<string, unknown>).preferred, enrolled });
+
+  return { preferred, enrolled };
+};
+
 export async function signInWithPassword(email: string, password: string): Promise<SignInSuccess | SignInFailure> {
   const supabase = getSupabaseBrowserClient();
   const normalizedEmail = email.trim();
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email: normalizedEmail,
     password,
   });
@@ -38,21 +119,21 @@ export async function signInWithPassword(email: string, password: string): Promi
     };
   }
 
-  if (data.session) {
+  const status = await fetchMfaStatus();
+  if (!status || !status.mfaEnabled || !status.mfaRequired) {
     return { status: "authenticated" };
   }
 
-  const mfaDetails = await startTotpChallenge(supabase);
-  if (mfaDetails.status === "error") {
-    return mfaDetails;
+  try {
+    const factors = await listAuthxFactors();
+    return { status: "mfa_required", factors };
+  } catch (cause) {
+    console.error("[auth] listAuthxFactors failed", cause);
+    return {
+      status: "error",
+      message: "We couldn't load available MFA methods. Try again.",
+    };
   }
-
-  return {
-    status: "mfa_required",
-    factor: mfaDetails.factor,
-    challengeId: mfaDetails.challengeId,
-    expiresAt: mfaDetails.expiresAt,
-  };
 }
 
 export async function signOut() {
@@ -60,105 +141,86 @@ export async function signOut() {
   await supabase.auth.signOut();
 }
 
-type TotpChallenge =
-  | {
-      status: "ok";
-      factor: TotpFactor;
-      challengeId: string;
-      expiresAt: number | null;
-    }
-  | {
-      status: "error";
-      message: string;
-    };
+export type AuthxInitiationResult =
+  | { status: "ready"; factor: AuthxFactor }
+  | { status: "passkey"; factor: "passkey"; options: PublicKeyCredentialRequestOptionsJSON; stateToken: string }
+  | { status: "otp"; factor: "email" | "whatsapp"; expiresAt: string | null }
+  | { status: "error"; factor: AuthxFactor; message: string; code?: string; retryAt?: string };
 
-async function startTotpChallenge(
-  supabase = getSupabaseBrowserClient(),
-  factorOverride?: TotpFactor | null,
-): Promise<TotpChallenge> {
-  const fetchFactor = async () => {
-    if (factorOverride) {
-      return factorOverride;
-    }
-
-    const { data, error } = await supabase.auth.mfa.listFactors();
-    if (error) {
-      throw new Error(error.message || "list_factors_failed");
-    }
-
-    const factors = (data?.totp ?? []) as TotpFactor[];
-    const verified = factors.find((factor) => factor.status === "verified");
-    if (!verified) {
-      throw new Error("no_totp_factor");
-    }
-
-    return verified;
-  };
-
+export const initiateAuthxFactor = async (
+  factor: AuthxFactor,
+  options: { rememberDevice?: boolean } = {},
+): Promise<AuthxInitiationResult> => {
   try {
-    const factor = await fetchFactor();
-    const { data, error } = await supabase.auth.mfa.challenge({
-      factorId: factor.id,
+    const response = await fetch("/api/authx/challenge/initiate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ factor, rememberDevice: options.rememberDevice }),
     });
 
-    if (error || !data) {
-      throw new Error(error?.message || "challenge_failed");
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const message = typeof payload.error === "string" ? payload.error : "initiate_failed";
+      const code = typeof payload.code === "string" ? payload.code : undefined;
+      const retryAt = typeof payload.retryAt === "string" ? payload.retryAt : undefined;
+      return { status: "error", factor, message, code, retryAt };
     }
 
-    return {
-      status: "ok",
-      factor,
-      challengeId: data.id,
-      expiresAt: parseExpiresAt(data.expires_at),
-    };
-  } catch (cause) {
-    console.error("[auth] startTotpChallenge failed", cause);
-    return {
-      status: "error",
-      message: "We couldn't send an MFA challenge. Try again in a moment.",
-    };
-  }
-}
+    if (payload && typeof payload === "object") {
+      if (payload.factor === "passkey" && payload.options && payload.stateToken) {
+        return {
+          status: "passkey",
+          factor: "passkey",
+          options: payload.options as PublicKeyCredentialRequestOptionsJSON,
+          stateToken: String(payload.stateToken),
+        };
+      }
 
-export async function resendTotpChallenge(factor: TotpFactor) {
-  return startTotpChallenge(getSupabaseBrowserClient(), factor);
-}
-
-export async function verifyTotpCode(args: {
-  factor: TotpFactor;
-  challengeId: string;
-  code: string;
-}): Promise<{ status: "authenticated" } | { status: "error"; message: string }> {
-  const supabase = getSupabaseBrowserClient();
-  const sanitizedCode = args.code.replace(/[^0-9]/g, "");
-
-  const { data, error } = await supabase.auth.mfa.verify({
-    factorId: args.factor.id,
-    challengeId: args.challengeId,
-    code: sanitizedCode,
-  });
-
-  if (error || !data) {
-    return {
-      status: "error",
-      message: mapAuthError(error),
-    };
-  }
-
-  return { status: "authenticated" };
-}
-
-function parseExpiresAt(expiresAtRaw: unknown) {
-  if (typeof expiresAtRaw === "number") {
-    return expiresAtRaw;
-  }
-
-  if (typeof expiresAtRaw === "string") {
-    const parsed = Date.parse(expiresAtRaw);
-    if (!Number.isNaN(parsed)) {
-      return Math.round(parsed / 1000);
+      if (payload.channel === "email" || payload.channel === "whatsapp") {
+        const expiresAt = typeof payload.expiresAt === "string" ? payload.expiresAt : null;
+        return { status: "otp", factor: payload.channel, expiresAt };
+      }
     }
-  }
 
-  return null;
-}
+    return { status: "ready", factor };
+  } catch (error) {
+    console.error("[auth] initiateAuthxFactor failed", error);
+    return { status: "error", factor, message: "network_error" };
+  }
+};
+
+export type VerifyAuthxResult =
+  | { status: "authenticated"; factor: AuthxFactor; usedBackup: boolean }
+  | { status: "error"; message: string; code?: string };
+
+export const verifyAuthxFactor = async (input: {
+  factor: AuthxFactor;
+  token?: string;
+  trustDevice?: boolean;
+}): Promise<VerifyAuthxResult> => {
+  try {
+    const response = await fetch("/api/authx/challenge/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ factor: input.factor, token: input.token, trustDevice: input.trustDevice }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (response.ok && payload && payload.ok) {
+      return {
+        status: "authenticated",
+        factor: parseFactor(payload.factor) ?? input.factor,
+        usedBackup: Boolean(payload.usedBackup),
+      };
+    }
+
+    const message = typeof payload.error === "string" ? payload.error : "verification_failed";
+    const code = typeof payload.code === "string" ? payload.code : undefined;
+    return { status: "error", message, code };
+  } catch (error) {
+    console.error("[auth] verifyAuthxFactor failed", error);
+    return { status: "error", message: "verification_failed" };
+  }
+};

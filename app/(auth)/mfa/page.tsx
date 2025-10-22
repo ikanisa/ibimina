@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { startAuthentication } from "@simplewebauthn/browser";
-import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/types";
+import {
+  initiateAuthxFactor,
+  listAuthxFactors,
+  verifyAuthxFactor,
+  type AuthxFactor,
+  type AuthxFactorsSummary,
+} from "@/lib/auth/client";
 import {
   Fingerprint,
   KeyRound,
@@ -13,31 +19,7 @@ import {
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Button } from "@/components/ui/button";
 
-type FactorsResponse = {
-  preferred: string;
-  enrolled: {
-    passkey: boolean;
-    totp: boolean;
-    email: boolean;
-    whatsapp: boolean;
-    backup: boolean;
-  };
-};
-
-type PasskeyInitiate = {
-  factor: "passkey";
-  options: PublicKeyCredentialRequestOptionsJSON;
-  stateToken: string;
-};
-
-type InitiateResponse =
-  | PasskeyInitiate
-  | { ok: true; factor: string }
-  | { channel: "email" | "whatsapp"; sent: boolean; expiresAt?: string; error?: string };
-
-type VerifyResponse = { ok: boolean; factor: string; usedBackup?: boolean; error?: string };
-
-const factorLabels: Record<string, string> = {
+const factorLabels: Record<AuthxFactor, string> = {
   passkey: "Passkey / Biometrics",
   totp: "Authenticator App",
   email: "Email Code",
@@ -45,7 +27,7 @@ const factorLabels: Record<string, string> = {
   backup: "Backup Code",
 };
 
-const factorDescriptions: Record<string, string> = {
+const factorDescriptions: Record<AuthxFactor, string> = {
   passkey: "Use device biometrics or security keys.",
   totp: "Enter the 6-digit code from your authenticator.",
   email: "Receive a one-time code in your inbox.",
@@ -53,7 +35,7 @@ const factorDescriptions: Record<string, string> = {
   backup: "Fallback single-use code for emergencies.",
 };
 
-const factorIcons: Record<string, ReactNode> = {
+const factorIcons: Record<AuthxFactor, ReactNode> = {
   passkey: <Fingerprint className="h-4 w-4" aria-hidden />,
   totp: <KeyRound className="h-4 w-4" aria-hidden />,
   email: <MailCheck className="h-4 w-4" aria-hidden />,
@@ -62,53 +44,57 @@ const factorIcons: Record<string, ReactNode> = {
 };
 
 export default function SmartMFA() {
-  const [factors, setFactors] = useState<FactorsResponse | null>(null);
-  const [factor, setFactor] = useState<string>("passkey");
+  const [summary, setSummary] = useState<AuthxFactorsSummary | null>(null);
+  const [factor, setFactor] = useState<AuthxFactor | null>(null);
   const [token, setToken] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [trustDevice, setTrustDevice] = useState(true);
   const [loadingAction, setLoadingAction] = useState<"initiate" | "verify" | null>(null);
+  const [loadingFactors, setLoadingFactors] = useState(true);
+  const [otpExpiresAt, setOtpExpiresAt] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
+
     const load = async () => {
+      setLoadingFactors(true);
       try {
-        const res = await fetch("/api/authx/factors/list", { cache: "no-store" });
-        if (!res.ok) {
-          setError("Unable to load factors");
-          return;
-        }
-        const json = (await res.json()) as FactorsResponse;
-        setFactors(json);
-        if (json.enrolled.passkey) {
-          setFactor("passkey");
-        } else if (json.enrolled.totp) {
-          setFactor("totp");
-        } else if (json.enrolled.email) {
-          setFactor("email");
-        }
+        const details = await listAuthxFactors();
+        if (!active) return;
+        setSummary(details);
+        setFactor(details.preferred);
       } catch (err) {
         console.error(err);
-        setError("Failed to load factors");
+        if (!active) return;
+        setError("Unable to load factors");
+      } finally {
+        if (active) {
+          setLoadingFactors(false);
+        }
       }
     };
 
-    load();
+    void load();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const availableFactors = useMemo(() => {
-    if (!factors) return [];
-    return Object.entries(factors.enrolled)
+    if (!summary) return [] as AuthxFactor[];
+    return (Object.entries(summary.enrolled) as [AuthxFactor, boolean][])
       .filter(([, enrolled]) => enrolled)
       .map(([key]) => key);
-  }, [factors]);
+  }, [summary]);
 
   const factorOptions = useMemo(() => {
     return availableFactors.map((key) => ({
       value: key,
-      label: factorLabels[key] ?? key,
-      description: factorDescriptions[key] ?? undefined,
-      icon: factorIcons[key] ?? null,
+      label: factorLabels[key],
+      description: factorDescriptions[key],
+      icon: factorIcons[key],
     }));
   }, [availableFactors]);
 
@@ -116,63 +102,106 @@ export default function SmartMFA() {
     if (!factor) return;
     setError(null);
     setMessage(null);
+    setOtpExpiresAt(null);
     setLoadingAction("initiate");
 
     try {
-      const res = await fetch("/api/authx/challenge/initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ factor }),
-      });
+      if (factor === "passkey") {
+        const initiation = await initiateAuthxFactor("passkey", { rememberDevice: trustDevice });
 
-      if (!res.ok) {
-        const payload = await res.json().catch(() => ({ error: "failed" }));
-        setError(payload.error ?? "Failed to initiate");
+        if (initiation.status !== "passkey") {
+          const message =
+            initiation.status === "error" && initiation.message
+              ? initiation.message
+              : "Unable to start passkey verification";
+          setError(message);
+          return;
+        }
+
+        try {
+          await startAuthentication({ optionsJSON: initiation.options });
+        } catch (cause) {
+          console.error(cause);
+          setError("Passkey challenge was cancelled");
+          return;
+        }
+
+        setLoadingAction("verify");
+
+        const verification = await verifyAuthxFactor({
+          factor: "passkey",
+          token: initiation.stateToken,
+          trustDevice,
+        });
+
+        if (verification.status === "error") {
+          setError(verification.message ?? "Verification failed");
+          return;
+        }
+
+        setMessage("Passkey verified. MFA challenge satisfied.");
         return;
       }
 
-      const json = (await res.json()) as InitiateResponse;
+      const initiation = await initiateAuthxFactor(factor, { rememberDevice: trustDevice });
 
-      if (json && "factor" in json && json.factor === "passkey" && "options" in json) {
-        const passkeyInit = json as PasskeyInitiate;
-        const assertion = await startAuthentication({ optionsJSON: passkeyInit.options });
-        const payload = { response: assertion, stateToken: passkeyInit.stateToken };
-        setToken(JSON.stringify(payload));
-        setMessage("Approve the passkey prompt to continue.");
-      } else if (json && "channel" in json) {
-        setMessage(`Code sent via ${json.channel}. Expires ${(json.expiresAt && new Date(json.expiresAt).toLocaleString()) || "soon"}.`);
-      } else {
-        setMessage("Factor ready. Enter your code to continue.");
+      if (initiation.status === "error") {
+        setError(initiation.message ?? "Failed to initiate factor");
+        return;
       }
+
+      if (initiation.status === "otp") {
+        setOtpExpiresAt(initiation.expiresAt ?? null);
+        const channel = initiation.factor === "email" ? "Email" : "WhatsApp";
+        setMessage(
+          `Code sent via ${channel}. ${
+            initiation.expiresAt
+              ? `Expires ${new Date(initiation.expiresAt).toLocaleString()}.`
+              : "Expires soon."
+          }`,
+        );
+        return;
+      }
+
+      setMessage("Factor ready. Enter your code to continue.");
     } catch (err) {
       console.error(err);
       setError("Failed to initiate factor");
     } finally {
       setLoadingAction(null);
     }
-  }, [factor]);
+  }, [factor, trustDevice]);
 
   const verify = useCallback(async () => {
-    if (!factor) return;
+    if (!factor || factor === "passkey") return;
     setError(null);
     setMessage(null);
     setLoadingAction("verify");
 
     try {
-      const res = await fetch("/api/authx/challenge/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ factor, token, trustDevice }),
+      const sanitized = factor === "backup" ? token.trim() : token.replace(/[^0-9]/g, "");
+      if (factor === "backup" && sanitized.length === 0) {
+        setError("Enter your backup code to continue");
+        return;
+      }
+      if (factor !== "backup" && sanitized.length !== 6) {
+        setError("Enter the 6-digit verification code");
+        return;
+      }
+      const verification = await verifyAuthxFactor({
+        factor,
+        token: sanitized,
+        trustDevice,
       });
 
-      const json = (await res.json()) as VerifyResponse;
-      if (!res.ok || !json.ok) {
-        setError(json.error ?? "Verification failed");
+      if (verification.status === "error") {
+        setError(verification.message ?? "Verification failed");
         return;
       }
 
-      setMessage(json.usedBackup ? "Logged in with backup code" : "MFA challenge satisfied");
+      setMessage(verification.usedBackup ? "Logged in with backup code" : "MFA challenge satisfied");
       setToken("");
+      setOtpExpiresAt(null);
     } catch (err) {
       console.error(err);
       setError("Verification failed");
@@ -184,7 +213,16 @@ export default function SmartMFA() {
   const onSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (!factor || (factor !== "passkey" && token.trim().length === 0)) {
+      if (!factor || factor === "passkey") {
+        return;
+      }
+      const sanitized = factor === "backup" ? token.trim() : token.replace(/[^0-9]/g, "");
+      if (factor === "backup" && sanitized.length === 0) {
+        setError("Enter your backup code to continue");
+        return;
+      }
+      if (factor !== "backup" && sanitized.length !== 6) {
+        setError("Enter the 6-digit verification code");
         return;
       }
       void verify();
@@ -209,25 +247,31 @@ export default function SmartMFA() {
           <legend className="sr-only">Factor selection</legend>
           {factorOptions.length > 0 ? (
             <SegmentedControl
-              value={factor}
+              value={factor ?? ""}
               onValueChange={(next) => {
                 if (typeof next !== "string") return;
-                setFactor(next);
+                if (!availableFactors.includes(next as AuthxFactor)) return;
+                setFactor(next as AuthxFactor);
                 setToken("");
                 setMessage(null);
                 setError(null);
+                setOtpExpiresAt(null);
               }}
               options={factorOptions}
               columns={2}
               aria-label="Available factors"
             />
+          ) : loadingFactors ? (
+            <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-2">
+              Loading available factors…
+            </p>
           ) : (
             <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-2">
               No MFA factors are enrolled. Contact an administrator to configure passkeys or codes.
             </p>
           )}
 
-          {factor !== "passkey" && (
+          {factor && factor !== "passkey" && (
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-400" htmlFor="mfa-token">
                 {factor === "backup" ? "Backup code" : "Verification code"}
@@ -241,6 +285,11 @@ export default function SmartMFA() {
                 autoComplete="one-time-code"
                 className="w-full rounded-xl border border-white/20 bg-white/5 p-3 text-sm text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-ink focus:ring-white/40"
               />
+              {otpExpiresAt && (
+                <p className="text-xs text-neutral-400">
+                  Code expires {new Date(otpExpiresAt).toLocaleTimeString()}.
+                </p>
+              )}
             </div>
           )}
 
@@ -264,11 +313,17 @@ export default function SmartMFA() {
             variant="secondary"
             fullWidth
           >
-            {loadingAction === "initiate" ? "Sending…" : "Send code"}
+            {factor === "passkey"
+              ? loadingAction !== null
+                ? "Verifying…"
+                : "Verify with passkey"
+              : loadingAction === "initiate"
+                ? "Sending…"
+                : "Send code"}
           </Button>
           <Button
             type="submit"
-            disabled={isBusy || !factor || (factor !== "passkey" && token.trim().length === 0)}
+            disabled={isBusy || !factor || factor === "passkey" || token.trim().length === 0}
             fullWidth
           >
             {loadingAction === "verify" ? "Verifying…" : "Verify"}

@@ -7,6 +7,7 @@ import {
   overrideInitiateHandlers,
   overrideVerifyHandlers,
   resetFactorOverrides,
+  setPasskeyChallengeStarterForTests,
   type Factor,
   type FactorSuccess,
   verifyFactor,
@@ -14,6 +15,7 @@ import {
 
 afterEach(() => {
   resetFactorOverrides();
+  setPasskeyChallengeStarterForTests(null);
 });
 
 describe("mfa factor facade", () => {
@@ -125,10 +127,18 @@ describe("mfa factor facade", () => {
     assert.equal(called, 1);
   });
 
-  it("returns 501 for passkey initiation", async () => {
+  it("delegates passkey initiation to the AuthX challenge helper", async () => {
+    const challenge = {
+      options: { challenge: "abc" },
+      stateToken: "state-token",
+    };
+    setPasskeyChallengeStarterForTests(async () => challenge);
+
     const response = await initiateFactor({ factor: "passkey", userId: base.userId, email: base.email, phone: null });
-    assert.equal(response.ok, false);
-    assert.equal(response.status, 501);
+
+    assert.equal(response.ok, true);
+    assert.equal(response.status, 200);
+    assert.deepEqual(response.payload, { factor: "passkey", ...challenge });
   });
 
   it("invokes passkey verification when requested", async () => {
