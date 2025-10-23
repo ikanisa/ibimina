@@ -1,0 +1,15 @@
+# Cloudflared tunnel configuration
+# Replace the placeholders below with the credentials generated for your tunnel.
+tunnel: ${CLOUDFLARED_TUNNEL_ID}
+credentials-file: /etc/cloudflared/${CLOUDFLARED_TUNNEL_ID}.json
+
+# Optional metadata to help identify the tunnel instance
+tag: ${DEPLOYMENT_TAG:-local}
+
+ingress:
+  - hostname: ${ADMIN_HOSTNAME}
+    service: https://localhost:443
+    originRequest:
+      originServerName: ${ADMIN_HOSTNAME}
+      http2Origin: true
+  - service: http_status:404
