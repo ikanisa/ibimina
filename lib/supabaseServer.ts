@@ -17,7 +17,7 @@ function resolveServiceRoleKey(context: string): string {
   return rawKey.trim();
 }
 
-const defaultOptions: ClientOptions = {
+const defaultOptions: NonNullable<ClientOptions> = {
   auth: {
     persistSession: false,
   },

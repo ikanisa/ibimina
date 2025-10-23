@@ -1,7 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-
 import { getRuntimeConfig } from "../../src/lib/runtime-config";
-
 interface LogContext {
   requestId?: string;
   userId?: string | null;

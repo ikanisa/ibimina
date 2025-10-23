@@ -15,7 +15,7 @@
 - Passkey enrolments are auto-detected and trigger WebAuthn assertions with device trust cookies, keeping parity with Supabase MFA session and trusted-device tokens.【F:components/auth/login-form.tsx†L198-L351】【F:app/api/mfa/status/route.ts†L1-L119】
 
 ### 2. Branding, PWA, and Asset Delivery
-- Metadata icons point at `/icons/icon.svg`, `/icons/icon-192.png`, and `/icons/icon-512.png` while the ingress configuration (previously expressed in `vercel.json`) and `next.config.ts` align cache headers + `next-pwa` bundling so any reverse proxy serves the correct assets and service worker on every deploy.【F:app/layout.tsx†L1-L24】【F:next.config.ts†L1-L71】
+- Metadata icons point at `/icons/icon.svg`, `/icons/icon-192.png`, and `/icons/icon-512.png` while `next.config.ts` keeps cache headers + `next-pwa` bundling aligned so any reverse proxy serves the correct assets and service worker on every deploy.【F:app/layout.tsx†L1-L24】【F:next.config.ts†L1-L71】
 - The manifest/theme colour remain wired through the App Router layout and are cached with explicit TTLs, satisfying Lighthouse requirements for installable PWAs.【F:app/layout.tsx†L1-L24】【F:next.config.ts†L43-L71】
 
 ### 3. Application Surface & Data Coverage
@@ -39,7 +39,7 @@
 5. **Monitoring hand-off:** Ensure Supabase function logs, Grafana dashboards, and alerting hooks documented in the go-live checklist are active before announcing availability.【F:docs/go-live-checklist.md†L161-L205】
 
 ## Platform Recommendation
-- **Primary choice: Self-hosted container or VM deployment.** The repository now documents required cache headers and PWA bundling so you can front the app with your preferred reverse proxy (e.g., Nginx, Traefik) without relying on vendor-specific configuration. Leverage existing CI pipelines to build the Next.js output and ship it via Docker, systemd services, or another orchestrator.【F:docs/deployment/vercel-readiness.md†L1-L32】【F:next.config.ts†L1-L71】
+- **Primary choice: Self-hosted container or VM deployment.** The repository now documents required cache headers and PWA bundling so you can front the app with your preferred reverse proxy (e.g., Nginx, Traefik) without relying on vendor-specific configuration. Leverage existing CI pipelines to build the Next.js output and ship it via Docker, systemd services, or another orchestrator.【F:docs/local-hosting.md†L1-L94】【F:next.config.ts†L1-L71】
 - **Alternative: Managed hosting.** Platforms such as Render or Fly.io can host the Next.js app, but ensure you port the documented headers, PWA asset caching, and custom build commands manually to match production expectations.
 
 With the above steps complete and remaining risks tracked, the application is ready for production promotion pending Supabase environment validation and final MFA channel rehearsals.

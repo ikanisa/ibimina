@@ -43,7 +43,7 @@ export function requireSupabaseConfig(context: string): SupabaseConfig {
 
     const error = new Error(
       "Supabase environment variables are not configured. " +
-        "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment (for example, the Vercel project settings).",
+        "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment (for example, .env.local or your process manager).",
     );
     error.name = "SupabaseConfigError";
     throw error;

@@ -9,7 +9,6 @@ const baseDirectives: DirectiveMap = {
   "base-uri": ["'self'"],
   "form-action": ["'self'"],
   "frame-ancestors": ["'none'"],
-  // what we are allowed to embed (iframes). Preview toolbar uses vercel.live
   "frame-src": ["'self'"],
   "img-src": ["'self'", "data:", "blob:", "https://images.unsplash.com", "https://api.qrserver.com"],
   "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -146,13 +145,6 @@ export function createContentSecurityPolicy({ nonce, isDev }: CspOptions): strin
 
   directives["style-src"].push("https://rsms.me/inter/inter.css");
   directives["img-src"].push("https://avatars.githubusercontent.com");
-
-  const appEnv = runtimeConfig?.environment ?? process.env.APP_ENV ?? process.env.NODE_ENV ?? "development";
-  // Allow Vercel preview toolbar (vercel.live) only on preview deployments
-  if (appEnv === "preview") {
-    directives["frame-src"].push("https://vercel.live");
-    directives["connect-src"].push("https://vercel.live");
-  }
 
   directives["upgrade-insecure-requests"] = [""];
 

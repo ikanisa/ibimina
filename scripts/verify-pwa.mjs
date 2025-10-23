@@ -91,7 +91,7 @@ async function runServerHealthcheck() {
     controller.abort();
   }, 45000);
 
-  const url = `http://127.0.0.1:${port}/api/health`;
+  const url = `http://127.0.0.1:${port}/api/healthz`;
   let success = false;
   let exitCode = null;
   let exitSignal = null;
@@ -126,12 +126,12 @@ async function runServerHealthcheck() {
   if (!success) {
     if (exitCode !== null) {
       console.warn(
-        `⚠️  Could not verify /api/health locally (exit code ${exitCode}${exitSignal ? `, signal ${exitSignal}` : ""}). Deployments on Vercel will expose the route.`,
+        `⚠️  Could not verify /api/healthz locally (exit code ${exitCode}${exitSignal ? `, signal ${exitSignal}` : ""}). Double-check env vars and rerun.`,
       );
       return;
     }
-    throw new Error("Failed to confirm /api/health within 45s");
-  }
+    throw new Error("Failed to confirm /api/healthz within 45s");
+}
 }
 
 async function main() {

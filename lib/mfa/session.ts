@@ -1,5 +1,4 @@
 import { cookies } from "next/headers";
-import type { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
 import { createSignedToken, verifySignedToken } from "@/lib/mfa/tokens";
 
 export const MFA_SESSION_COOKIE = "ibimina_mfa";
@@ -96,7 +95,11 @@ export const verifyTrustedDeviceToken = (token: string): TrustedPayload | null =
   return payload;
 };
 
-export const readCookieToken = async (name: string, jar?: RequestCookies) => {
+type CookieJar = {
+  get(name: string): { value?: string } | undefined;
+};
+
+export const readCookieToken = async (name: string, jar?: CookieJar) => {
   const source = jar ?? (await cookies());
   return source.get(name)?.value ?? null;
 };

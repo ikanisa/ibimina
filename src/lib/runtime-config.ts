@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-const environmentSchema = z
-  .enum(["development", "preview", "production"])
-  .or(z.literal("test"));
+const environmentSchema = z.enum(["development", "local", "preview", "staging", "production", "test"]);
 
 const runtimeConfigSchema = z.object({
   environment: environmentSchema,
@@ -25,7 +23,7 @@ let cachedConfig: RuntimeConfig | null = null;
 function resolveEnvironment(): RuntimeConfig["environment"] {
   const raw =
     process.env.NEXT_PUBLIC_RUNTIME_ENV ??
-    process.env.VERCEL_ENV ??
+    process.env.APP_ENV ??
     process.env.NODE_ENV ??
     "development";
 
@@ -43,16 +41,11 @@ function resolveSiteUrl(): string | undefined {
     return publicUrl.startsWith("http") ? publicUrl : `https://${publicUrl}`;
   }
 
-  const vercelUrl = process.env.VERCEL_URL;
-  if (vercelUrl) {
-    return `https://${vercelUrl}`;
-  }
-
   return undefined;
 }
 
 function resolveBuildId(): string | undefined {
-  return process.env.NEXT_PUBLIC_BUILD_ID ?? process.env.VERCEL_GIT_COMMIT_SHA ?? undefined;
+  return process.env.NEXT_PUBLIC_BUILD_ID ?? process.env.GIT_COMMIT_SHA ?? process.env.APP_COMMIT_SHA ?? undefined;
 }
 
 export function getRuntimeConfig(): RuntimeConfig {

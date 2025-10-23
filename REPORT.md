@@ -100,7 +100,7 @@ _Date: 2025-10-18_
 ## Recommendations
 - **Short term (P0)**: (Completed) AuthX verify now ships rate limits, replay guards, and trusted-device updates; WhatsApp OTP is throttled and salted; edge functions enforce signed headers with timestamp tolerance. Continue migrating dashboard queries to `app.*` views and finish accessibility refinements (focus ring, offline affordances).【F:app/api/authx/challenge/verify/route.ts†L36-L200】【F:lib/authx/start.ts†L83-L170】【F:supabase/functions/sms-inbox/index.ts†L1-L200】【F:components/layout/app-shell.tsx†L166-L320】
 - **Medium term (P1)**: Consolidate MFA flows under AuthX facade with shared storage, unify UI to use new endpoints, instrument service worker via workbox, enable Next image optimisation, and expand RLS SQL tests for payments/recon/trusted devices.【F:components/auth/login-form.tsx†L214-L279】【F:service-worker.js†L1-L58】【F:lib/dashboard.ts†L74-L190】
-- **Long term (P2)**: Materialise dashboard aggregates in Supabase, introduce analytics widgets with caching, push structured logs to observability backend, and codify preview infra (Supabase branch DB + e2e tests).【F:lib/dashboard.ts†L74-L200】【F:lib/observability/logger.ts†L1-L76】【F:.github/workflows/preview.yml†L1-L42】
+- **Long term (P2)**: Materialise dashboard aggregates in Supabase, introduce analytics widgets with caching, push structured logs to observability backend, and codify preview infra (Supabase branch DB + e2e tests).【F:lib/dashboard.ts†L74-L200】【F:lib/observability/logger.ts†L1-L76】【F:.github/workflows/node.yml†L1-L46】
 
 ## Appendix
 - Tooling executed: `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm build` (captured in `.reports/build.log`).【f76b84†L1-L43】【962175†L1-L2】【66ab3a†L1-L3】【892a54†L1-L4】【a1517a†L1-L20】

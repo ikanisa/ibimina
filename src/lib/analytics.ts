@@ -3,11 +3,11 @@
 import type { ComponentProps } from "react";
 
 /**
- * Lightweight analytics adapter used to decouple the app from Vercel's SDK.
+ * Lightweight analytics adapter used to decouple the app from any vendor SDK.
  *
  * The real implementation can be swapped in without touching the call sites.
- * For now, we intentionally no-op to keep the runtime free of vendor code
- * while we build the replacement data pipeline.
+ * For now, we intentionally no-op to keep the runtime free of hosted
+ * platform dependencies while we build the replacement data pipeline.
  */
 export type TrackEvent =
   | string
@@ -53,7 +53,7 @@ export type AnalyticsProps = ComponentProps<"script"> & {
 
 /**
  * Client component placeholder so layouts can keep their JSX tree unchanged
- * while the analytics backend is migrated away from Vercel.
+ * while the analytics backend is migrated to the new self-hosted pipeline.
  */
 export function Analytics(_props: AnalyticsProps): null {
   void _props;

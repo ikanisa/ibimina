@@ -5,23 +5,21 @@ _Date: 2025-10-18_
 ## Executive Summary
 | Dimension | Status | Notes |
 | --- | --- | --- |
-| Factor coverage | 🟠 Partial | Factors (passkey, TOTP, email, WhatsApp, backup) surface in AuthX UI, but WhatsApp is unsafe to ship without throttling/salting, and backup/TOTP replay guard missing in new API.【F:app/(auth)/mfa/page.tsx†L81-L213】【F:lib/authx/start.ts†L83-L122】【F:lib/authx/verify.ts†L35-L52】 |
-| API hygiene | 🔴 High risk | `/api/authx/challenge/verify` lacks rate limiting and state persistence; login still posts to `/api/mfa/verify`, creating divergent logic and cookie issuance paths.【F:app/api/authx/challenge/verify/route.ts†L36-L100】【F:components/auth/login-form.tsx†L214-L279】 |
-| Secrets & storage | 🟡 Acceptable | TOTP secrets encrypted with AES-GCM (KMS key), backup codes peppered; however new flow no longer updates `users.last_mfa_step`/`failed_mfa_count`, undermining brute-force defence.【F:lib/mfa/crypto.ts†L1-L103】【F:lib/authx/verify.ts†L35-L52】 |
-| Trusted devices | 🟠 Needs work | Legacy route writes `trusted_devices` rows and refreshes cookies; AuthX path only sets cookies, leaving DB state stale and bypassing IP/user-agent checks.【F:app/api/mfa/verify/route.ts†L172-L206】【F:lib/authx/verify.ts†L109-L166】 |
+| Factor coverage | 🟡 Acceptable | WhatsApp factor is gated behind `NEXT_PUBLIC_WHATSAPP_MFA` and hidden by default while throttling lands; passkey, TOTP, email, and backup factors remain available.【F:app/(auth)/mfa/page.tsx†L10-L115】【F:lib/authx/start.ts†L83-L122】 |
+| API hygiene | 🟢 Good | `/api/authx/challenge/verify` now mirrors legacy parity with shared helpers, rate limits, and Supabase state updates aligned with `/api/mfa/verify`.【F:app/api/authx/challenge/verify/route.ts†L33-L248】【F:app/api/mfa/verify/route.ts†L28-L214】【F:lib/authx/verify.ts†L32-L89】 |
+| Secrets & storage | 🟢 Good | TOTP secrets stay encrypted, backup codes peppered, and both verification paths reset failure counters and replay guards on success.【F:lib/mfa/crypto.ts†L1-L103】【F:app/api/mfa/verify/route.ts†L146-L206】【F:app/api/authx/challenge/verify/route.ts†L169-L236】 |
+| Trusted devices | 🟢 Good | Legacy and AuthX paths now converge on `issueSessionCookies`, ensuring trusted-device rows and cookies stay in sync across flows.【F:app/api/mfa/verify/route.ts†L200-L214】【F:app/api/authx/challenge/verify/route.ts†L233-L246】【F:lib/authx/verify.ts†L32-L89】 |
 | Observability & tests | 🔴 Missing | No automated MFA unit/e2e tests, audit logging swallows failures, and rate limit RPC lacks telemetry or circuit breakers.【F:lib/audit.ts†L9-L21】【F:lib/rate-limit.ts†L1-L19】 |
 
 ### Implementation Snapshot (Work Branch `work`)
-- **Factor facade live on legacy path** – `/api/mfa/verify` now funnels tokens through `src/auth/factors`, layering replay caches, audit metadata, and typed success/failure payloads so new UI can reuse responses without schema drift.【F:app/api/mfa/verify/route.ts†L26-L209】【F:src/auth/factors/index.ts†L1-L78】【F:src/auth/factors/totp.ts†L1-L66】
-- **Channel resilience uplift** – Email factor adapter now emits structured audits for rate limits vs transport faults and avoids cascading crashes when SMTP/Supabase fail, but AuthX verify handler still bypasses it; follow-up requires routing AuthX through the same facade.【F:src/auth/factors/email.ts†L1-L87】【F:app/api/authx/challenge/verify/route.ts†L49-L96】
-- **Replay guard & trusted devices** – Legacy verify persists failure counters, writes trusted device hashes, and signs cookies via new helpers, yet AuthX verify skips those updates; parity remains a P0 risk until flow unification lands.【F:app/api/mfa/verify/route.ts†L74-L205】【F:src/auth/limits.ts†L39-L71】【F:lib/authx/verify.ts†L109-L166】
+- **Unified verification parity** – `/api/mfa/verify` and `/api/authx/challenge/verify` both rely on the factor facade, enforce rate limits, persist replay guards, and issue trusted-device cookies via `issueSessionCookies`.【F:app/api/mfa/verify/route.ts†L28-L214】【F:app/api/authx/challenge/verify/route.ts†L33-L248】【F:lib/authx/verify.ts†L32-L89】
+- **WhatsApp gated by default** – Smart MFA UI filters out WhatsApp unless `NEXT_PUBLIC_WHATSAPP_MFA` explicitly enables it, and surfaces guidance while the channel remains hardened.【F:app/(auth)/mfa/page.tsx†L10-L118】
+- **RLS harness committed** – SQL policy tests cover payments, recon, ops, and trusted device tables, executed via `scripts/test-rls.sh` and Docker wrapper for parity with CI.【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L118】【F:supabase/tests/rls/trusted_devices_access.test.sql†L1-L84】【F:scripts/test-rls-docker.sh†L1-L21】
 
 ## Key Findings
-1. **AuthX verify fail-open** – New verification route does not throttle attempts, fails to persist `last_mfa_step`/`failed_mfa_count`, and always returns `{ok}` on success without updating Supabase state, enabling brute-force and replay attacks.【F:app/api/authx/challenge/verify/route.ts†L49-L96】【F:lib/authx/verify.ts†L35-L52】
-2. **Dual MFA stacks** – Login form still posts to legacy `/api/mfa/verify`, so cookies/trusted-device creation diverge. Without unification, staff may satisfy one flow but not the other, breaking session enforcement.【F:components/auth/login-form.tsx†L214-L279】【F:app/api/mfa/verify/route.ts†L72-L209】
-3. **WhatsApp OTP unsafe** – `sendWhatsAppOtp` hashes `BACKUP_PEPPER+code` (no salt) and lacks issuance limits, allowing spamming and offline brute force if DB leaked. UI exposes factor but backend not production-ready.【F:lib/authx/start.ts†L83-L122】
-4. **Trusted device mismatch** – Legacy verify writes `trusted_devices` rows based on hashed user-agent/IP; AuthX verify only sets cookie tokens, leaving DB entries outdated and reducing device revocation efficacy.【F:app/api/mfa/verify/route.ts†L172-L206】【F:lib/authx/verify.ts†L109-L166】
-5. **Edge reset & admin flows** – Admin reset route still uses legacy path; AuthX audit logging inserts to `authx.audit` but not centralised; ensure resets, diagnostics, and admin flows align with new API.【F:app/api/admin/mfa/reset/route.ts†L1-L64】【F:lib/authx/audit.ts†L1-L14】
+1. **Observability & test debt** – Audit logging still swallows failures, rate-limit RPC lacks telemetry, and there are no automated unit or Playwright suites covering AuthX factors.【F:lib/audit.ts†L9-L21】【F:lib/rate-limit.ts†L1-L19】
+2. **WhatsApp backend hardening outstanding** – Delivery remains gated at the UI, but server-side hashing and throttling must still add per-request salts, HMAC, and provider metrics before reenabling.【F:lib/authx/start.ts†L83-L122】
+3. **Admin & diagnostics alignment** – Admin reset and diagnostics endpoints continue to rely on legacy flows; align them with AuthX audit + verification paths for consistent logging and policy enforcement.【F:app/api/admin/mfa/reset/route.ts†L1-L64】【F:lib/authx/audit.ts†L1-L14】
 
 ## Flow Analysis
 ### Sign-in
@@ -30,8 +28,8 @@ _Date: 2025-10-18_
 
 ### AuthX MFA page
 - Client fetches `/api/authx/factors/list` to detect enrolled factors (passkey/TOTP/email/WhatsApp/backup). Factor data derived from service-role Supabase queries against `public.users`, `authx.user_mfa`, and credential counts.【F:app/(auth)/mfa/page.tsx†L81-L148】【F:lib/authx/factors.ts†L19-L52】
-- Initiation: `/api/authx/challenge/initiate` issues passkey options, sends email via existing OTP service, sends WhatsApp code (unsafe), or simply signals TOTP readiness.【F:app/api/authx/challenge/initiate/route.ts†L1-L47】【F:lib/authx/start.ts†L17-L122】
-- Verification: `/api/authx/challenge/verify` validates payload but omits rate limiting, failure tracking, and trusted-device DB writes. It calls `issueSessionCookies` to set cookies directly from route handler.【F:app/api/authx/challenge/verify/route.ts†L49-L96】【F:lib/authx/verify.ts†L109-L166】
+- Initiation: `/api/authx/challenge/initiate` issues passkey options, sends email via existing OTP service, and only triggers WhatsApp delivery when the feature flag is enabled—backend hashing still needs salting before production rollout.【F:app/api/authx/challenge/initiate/route.ts†L1-L47】【F:lib/authx/start.ts†L17-L122】
+- Verification: `/api/authx/challenge/verify` shares the factor facade with legacy flow, enforces rate limits, persists Supabase state, and issues cookies via `issueSessionCookies`.【F:app/api/authx/challenge/verify/route.ts†L33-L246】【F:lib/authx/verify.ts†L32-L89】
 
 ### Legacy MFA route
 - `/api/mfa/verify` enforces rate limit via RPC, decrypts TOTP secret, compares steps, updates `last_mfa_step` and `failed_mfa_count`, persists backup code usage, writes audit logs, and creates trusted device row before setting cookies.【F:app/api/mfa/verify/route.ts†L52-L205】
@@ -47,19 +45,19 @@ _Date: 2025-10-18_
 
 ## Recommendations
 ### P0 (Immediate)
-1. **Parity hardening**: Add rate limiting, replay guard (step tracking), and failure counters to `/api/authx/challenge/verify`; ensure success updates `users.last_mfa_step`, `failed_mfa_count`, `last_mfa_success_at`, and trusted device table before issuing cookies.【F:app/api/authx/challenge/verify/route.ts†L49-L96】【F:lib/authx/verify.ts†L35-L166】
-2. **Disable risky factors**: Hide WhatsApp factor until throttling, salting, and audit logging implemented; display UI banner explaining availability status.【F:app/(auth)/mfa/page.tsx†L81-L148】【F:lib/authx/start.ts†L83-L122】
-3. **Edge guardrails**: Require signed JWT/HMAC for admin reset, diagnostics, and OTP issuance functions; log audit events for rate limit hits and resets.【F:supabase/config.toml†L1-L22】【F:app/api/admin/mfa/reset/route.ts†L1-L64】
+1. **WhatsApp backend hardening**: Add per-request salts, throttling, and provider telemetry before re-enabling the channel that the UI currently hides by default.【F:lib/authx/start.ts†L83-L122】
+2. **Observability & automated tests**: Instrument audit/rate-limit paths with structured logs and ship unit + Playwright coverage for AuthX verification and recovery flows.【F:lib/audit.ts†L9-L21】【F:lib/rate-limit.ts†L1-L19】
+3. **Admin & diagnostics alignment**: Move reset/diagnostics flows onto AuthX audit pathways so operator actions share the same logging and policy enforcement.【F:app/api/admin/mfa/reset/route.ts†L1-L64】【F:lib/authx/audit.ts†L1-L14】
 
 ### P1 (Near Term)
-1. **Unify MFA stacks**: Refactor login to use AuthX endpoints, remove legacy `/api/mfa/verify`, and migrate Supabase state updates into shared service module to avoid duplication.【F:components/auth/login-form.tsx†L214-L279】【F:lib/authx/verify.ts†L35-L166】
-2. **Trusted device management**: Consolidate cookie + DB updates into a single module that both AuthX and legacy flows call; add revocation UX and expose device list in profile settings.【F:lib/authx/verify.ts†L109-L166】【F:app/api/mfa/status/route.ts†L64-L120】
-3. **Testing**: Create unit tests for crypto helpers (AES-GCM, backup code), OTP issuance, and rate limiter; add Playwright scenarios for TOTP success/failure, email OTP, backup code, and trusted device enrollment.【F:lib/mfa/crypto.ts†L1-L123】【F:lib/mfa/email.ts†L68-L200】
+1. **Unify MFA entrypoint**: Point the login form at AuthX endpoints and retire legacy `/api/mfa/verify` once tests cover the new path end-to-end.【F:components/auth/login-form.tsx†L214-L279】【F:app/api/authx/challenge/verify/route.ts†L33-L246】
+2. **Trusted device management UX**: Expose device inventory and revocation controls in profile while reusing the shared session issue helper.【F:lib/authx/verify.ts†L32-L89】【F:app/api/mfa/status/route.ts†L64-L120】
+3. **Factor lifecycle documentation**: Extend runbooks (`docs/AUTH-SETUP.md`) to capture enrollment, recovery, and incident response with the AuthX stack.【F:docs/AUTH-SETUP.md†L1-L44】
 
 ### P2 (Longer Term)
-1. **Passkey enhancements**: Implement trusted device heuristics for passkey successes (reuse existing rememberDevice flag) and provide management UI for stored credentials.【F:lib/mfa/passkeys.ts†L200-L296】
-2. **Telemetry**: Emit structured events for MFA attempts (success/failure/rate-limit) to monitoring pipeline; integrate with alerting dashboards and SIEM.【F:lib/observability/logger.ts†L1-L76】【F:lib/audit.ts†L9-L21】
-3. **Documentation**: Update `docs/AUTH-SETUP.md` (created separately) with environment, enrollment, recovery, and troubleshooting steps; maintain runbook for incident response.
+1. **Passkey enhancements**: Implement trusted-device heuristics for passkey successes (reuse rememberDevice flag) and surface management UI for stored credentials.【F:lib/mfa/passkeys.ts†L200-L296】
+2. **Telemetry integration**: Emit structured metrics for MFA attempts (success/failure/rate-limit) and wire into alerting dashboards / SIEM.【F:lib/observability/logger.ts†L1-L76】【F:lib/audit.ts†L9-L21】
+3. **Offline + member apps**: Continue mobile/PWA polish once core auth paths complete; maintain runbook for incident response and scheduled reconciliation.【F:docs/operations/mfa-rollout.md†L1-L80】
 
 ## Go-Live Checklist (Auth)
 - [ ] `/api/authx/challenge/verify` parity verified with regression tests (4xx/429/200) and Supabase state updates.

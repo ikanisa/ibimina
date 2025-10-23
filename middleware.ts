@@ -38,6 +38,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icons/|robots.txt|manifest.json|service-worker.js).*)",
+    // Run middleware on everything EXCEPT these paths
+    "/((?!_next/static|_next/image|favicon.ico|icons/|robots.txt|manifest.json|manifest.webmanifest|service-worker.js|assets|offline|api).*)",
   ],
 };

@@ -74,3 +74,8 @@ export const preventTotpReplay = (userId: string, step: number) => {
   replayCache.set(key, expiresAt);
   return true;
 };
+
+export const __resetRateLimitCachesForTests = () => {
+  memoryLimits.clear();
+  replayCache.clear();
+};

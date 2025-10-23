@@ -40,7 +40,7 @@ The Ibimina Staff Console runs on Next.js 15 App Router with Tailwind design tok
 ## Observability
 - **Logging**: Async-local logger supports structured logs, but audit log failures still only emit console errors; no integration with external logging/alerting system yet.【F:lib/observability/logger.ts†L1-L76】【F:lib/audit.ts†L9-L21】
 - **Metrics**: Prometheus-compatible metrics ship via the `metrics-exporter` edge function, which now requires timestamped HMAC signatures; wiring dashboards and alerting to the scrape target remains a follow-up.【F:supabase/functions/metrics-exporter/index.ts†L1-L140】【F:infra/metrics/prometheus.yml†L1-L40】
-- **CI/CD**: CI now runs on pnpm with Lighthouse budgets, auth integration tests, and bundle analysis tooling; preview workflow still needs Supabase branch DB wiring and auth e2e gate.【F:.github/workflows/ci.yml†L1-L80】【F:scripts/analyze-bundle.mjs†L1-L28】【F:.github/workflows/preview.yml†L1-L42】
+- **CI/CD**: CI now runs on pnpm with Lighthouse budgets, auth integration tests, and bundle analysis tooling; the lightweight Node workflow (`node.yml`) covers fast regression checks while branch databases still need wiring for full e2e coverage.【F:.github/workflows/ci.yml†L1-L80】【F:scripts/analyze-bundle.mjs†L1-L28】【F:.github/workflows/node.yml†L1-L46】
 
 ## Security Header Recommendation
 Continue issuing CSP with nonce via middleware but remove `'unsafe-inline'` from `style-src` by migrating critical inline styles to hashed or stylesheet-based approaches; ensure Supabase domains remain whitelisted.【F:lib/security/headers.ts†L1-L66】

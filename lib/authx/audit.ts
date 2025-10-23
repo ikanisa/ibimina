@@ -1,3 +1,4 @@
+import { logError } from "@/lib/observability/logger";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 
@@ -17,6 +18,6 @@ export const audit = async (actor: string | null, action: string, detail: Record
 
   const { error } = await admin.schema("authx").from("audit").insert(payload);
   if (error) {
-    console.error("authx.audit failed", error);
+    logError("authx.audit.failed", { action, actor, detail, error: error instanceof Error ? error.message : error });
   }
 };
