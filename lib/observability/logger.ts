@@ -81,7 +81,7 @@ function write(level: LogLevel, event: string, payload: LogPayload) {
     userId: context.userId ?? null,
     saccoId: context.saccoId ?? null,
     source: context.source ?? null,
-    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
+    environment: process.env.APP_ENV ?? process.env.NODE_ENV ?? "development",
     payload: payload ? normalize(payload) : undefined,
   };
 

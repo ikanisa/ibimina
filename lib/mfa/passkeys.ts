@@ -36,10 +36,6 @@ const getRpId = () => {
     }
   }
 
-  if (process.env.VERCEL_URL) {
-    return process.env.VERCEL_URL.replace(/^https?:\/\//, "");
-  }
-
   return "localhost";
 };
 

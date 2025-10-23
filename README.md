@@ -10,22 +10,41 @@ A staff-only Progressive Web App for Umurenge SACCO ibimina operations. The UI f
 - Supabase (`@supabase/ssr`) for auth and data
 - PWA manifest & service worker ready for production deploys
 
-## Getting started
+## Local Setup (MacBook)
 
-```bash
-npm install
-npm run dev
-```
+1. `corepack enable pnpm && pnpm --version` (installs pnpm 9+ via Corepack).
+2. `pnpm install --frozen-lockfile`
+3. Copy `.env.example` → `.env.local` and fill required secrets (see below).
+4. `pnpm build && pnpm start` (or `pnpm dev` for hot reload).
+5. Review the end-to-end checklist in [`docs/local-hosting.md`](docs/local-hosting.md) for health checks, Supabase expectations, and reverse-proxy tips.
 
-Set the required environment variables:
+## Environment Variables
 
-```
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=public-anon-key
-SUPABASE_SERVICE_ROLE_KEY=service-role-key
-```
+| Key | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser + SSR Supabase access; must match the target project. |
+| `SUPABASE_SERVICE_ROLE_KEY` / `SUPABASE_JWT_SECRET` | Server-only keys for admin clients and token validation helpers. |
+| `BACKUP_PEPPER` / `MFA_SESSION_SECRET` / `TRUSTED_COOKIE_SECRET` | Shared secrets for OTP hashing and signed cookies. |
+| `KMS_DATA_KEY` or `KMS_DATA_KEY_BASE64` | 32-byte base64 key for encrypting MFA payloads and sensitive exports. |
+| `OPENAI_API_KEY` | OCR + SMS parsing via OpenAI Responses API. |
+| `APP_ENV` / `APP_COMMIT_SHA` / `APP_REGION` | Optional metadata surfaced in `/api/healthz` and structured logs. |
+| `LOG_DRAIN_URL` (+ token/source) | Enables streaming structured logs to your observability stack. |
+| `TWILIO_*` / SMTP / Resend | Optional channel integrations for WhatsApp OTP and email fallbacks. |
 
-Copy `.env.example` to `.env` (for the Next.js app) and populate Supabase secrets separately using `supabase secrets set --env-file supabase/.env.production` during deployment.
+See `.env.example` for annotated defaults and `supabase/.env.example` for matching Supabase secrets.
+
+## Supabase Notes
+
+- Run migrations from `supabase/migrations/` before exposing new environments; `supabase db push` or the SQL console keeps Supabase in sync with the app.
+- RLS policies are documented in [`docs/RLS.md`](docs/RLS.md); ensure seeded fixtures via `scripts/test-rls.sh` when adding new policies.
+- Shared secrets (`SUPABASE_SERVICE_ROLE_KEY`, `HMAC_SHARED_SECRET`, `KMS_DATA_KEY_BASE64`, `RESEND_API_KEY`) must be mirrored between `.env.local` and the Supabase dashboard to keep background workers aligned.
+- Edge Functions expect the same HMAC/KMS/Resend credentials (see `supabase/.env.example`) and can be smoke-tested with `scripts/postdeploy-verify.sh`.
+
+## What we removed (previous PaaS) & why
+
+- Retired the hosted PaaS configuration/CLI scripts in favour of a single self-hosted Node workflow (`pnpm build && pnpm start`).
+- Preview actions were rewritten to use standard pnpm builds (`.github/workflows/node.yml`), avoiding locked-down platform secrets.
+- Environment variables now live entirely in `.env.local` + Supabase dashboards; no remote env pull/update steps remain.
 
 ## Running Supabase migrations
 
@@ -155,21 +174,18 @@ curl -X POST \
 - Expanded client-side search across Ikimina directories while keeping upload wizards and RPC-powered SACCO picking in sync with Supabase.
 - Rounded out accessibility with consistent focus treatments, bilingual microcopy, and a `viewport` export that advertises the active theme colour.
 
-## Scripts
+## Run Commands
 
-- `npm run dev` – start the dev server on port 3000
-- `npm run build` – production build with PWA bundling
-- `npm run start` – serve the built app on port 3000 (127.0.0.1)
-- `npm run lint` – lint the project
-- `npm run typecheck` – run TypeScript without emitting files
-- `npm run check:lighthouse` – open a Lighthouse report against localhost
-- `npm run analyze:pwa` – run Lighthouse PWA checks against `https://localhost:3000`
-- `npm run verify:pwa` – validate manifest/head/service worker and probe `/api/health`
-- `npm run check:i18n` – ensure en/rw/fr have matching keys
-- `npm run check:i18n:consistency` – enforce canonical glossary terms across locales
-- `npm run fix:i18n` – backfill missing rw/fr keys from en (flat keys)
- 
+- `pnpm dev` – start the dev server on port 3000
+- `pnpm build` – production build with PWA bundling
+- `pnpm start` – serve the built app on port `${PORT:-3000}` (`0.0.0.0`)
+- `pnpm lint` – lint the project
+- `pnpm typecheck` – run TypeScript without emitting files
+- `pnpm check:lighthouse` – open a Lighthouse report against localhost
+- `pnpm analyze:pwa` – run Lighthouse PWA checks against `https://localhost:3000`
+- `pnpm verify:pwa` – validate manifest/head/service worker and probe `/api/health`
+- `pnpm check:i18n` – ensure en/rw/fr have matching keys
+- `pnpm check:i18n:consistency` – enforce canonical glossary terms across locales
+- `pnpm fix:i18n` – backfill missing rw/fr keys from en (flat keys)
 
-Deployments run through your existing CI/CD pipeline (e.g., Vercel); push changes when you’re ready to release.
-
- 
+Deployments now target a self-hosted Node runtime (see `docs/local-hosting.md`) or the Docker workflow under `infra/`.

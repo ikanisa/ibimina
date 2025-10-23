@@ -1,6 +1,6 @@
 # SACCO+ Member App Implementation Guide
 
-This document translates the high-level product brief into a phased delivery plan for the SACCO+ member-facing progressive web application (PWA). The guide covers architecture, feature scope, sequencing, and validation to ensure a smooth path from prototype to production deployment on Vercel.
+This document translates the high-level product brief into a phased delivery plan for the SACCO+ member-facing progressive web application (PWA). The guide covers architecture, feature scope, sequencing, and validation to ensure a smooth path from prototype to production deployment on your chosen hosting platform.
 
 ## 1. Experience Pillars
 
@@ -107,9 +107,9 @@ All endpoints reside under `/app/api`. Handlers use Zod for validation and Supab
 - **Playwright E2E** scenarios: onboarding, add SACCO, request to join, USSD payment, invite acceptance.
 - **Lighthouse CI** targeting ≥90 scores for Performance, Accessibility, and PWA categories.
 
-## 8. Deployment Checklist (Vercel)
+## 8. Deployment Checklist (Hosting)
 
-1. Configure Supabase service role keys and storage buckets as Vercel environment variables.
+1. Configure Supabase service role keys and storage buckets as environment variables on the hosting platform (or via `.env` files for containerized deploys).
 2. Ensure service worker and manifest paths are correct for production domains.
 3. Add edge function endpoints (if used) to Supabase project with proper permissions.
 4. Validate RLS policies in staging before promoting to production.

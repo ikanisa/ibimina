@@ -4,12 +4,14 @@ import requiredEnvConfig from "../config/required-env.json" assert { type: "json
 
 const rawEnv = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
+  APP_ENV: process.env.APP_ENV ?? "local",
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_BUILD_ID: process.env.NEXT_PUBLIC_BUILD_ID,
   NEXT_PUBLIC_E2E: process.env.NEXT_PUBLIC_E2E,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
   BACKUP_PEPPER: process.env.BACKUP_PEPPER,
   RATE_LIMIT_SECRET: process.env.RATE_LIMIT_SECRET,
   EMAIL_OTP_PEPPER: process.env.EMAIL_OTP_PEPPER,
@@ -48,10 +50,8 @@ const rawEnv = {
   TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM ?? "whatsapp:+14155238886",
   SITE_URL: process.env.SITE_URL,
   EDGE_URL: process.env.EDGE_URL,
-  VERCEL_ENV: process.env.VERCEL_ENV,
-  VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
-  VERCEL_URL: process.env.VERCEL_URL,
-  VERCEL_REGION: process.env.VERCEL_REGION,
+  APP_COMMIT_SHA: process.env.APP_COMMIT_SHA,
+  APP_REGION: process.env.APP_REGION,
   DISABLE_PWA: process.env.DISABLE_PWA,
   ANALYZE_BUNDLE: process.env.ANALYZE_BUNDLE,
   AUTH_E2E_STUB: process.env.AUTH_E2E_STUB,
@@ -80,6 +80,7 @@ const positiveNumberString = z
 const schema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]),
+    APP_ENV: z.enum(["local", "staging", "production"]),
     NEXT_PUBLIC_SUPABASE_URL: z
       .string({ required_error: "NEXT_PUBLIC_SUPABASE_URL is required" })
       .trim()
@@ -95,6 +96,7 @@ const schema = z
       .string({ required_error: "SUPABASE_SERVICE_ROLE_KEY is required" })
       .trim()
       .min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
+    SUPABASE_JWT_SECRET: optionalString,
     BACKUP_PEPPER: z
       .string({ required_error: "BACKUP_PEPPER is required" })
       .trim()
@@ -148,10 +150,8 @@ const schema = z
     TWILIO_WHATSAPP_FROM: z.string().trim().min(1),
     SITE_URL: optionalString,
     EDGE_URL: optionalString,
-    VERCEL_ENV: optionalString,
-    VERCEL_GIT_COMMIT_SHA: optionalString,
-    VERCEL_URL: optionalString,
-    VERCEL_REGION: optionalString,
+    APP_COMMIT_SHA: optionalString,
+    APP_REGION: optionalString,
     DISABLE_PWA: optionalString,
     ANALYZE_BUNDLE: optionalString,
     AUTH_E2E_STUB: optionalString,

@@ -28,7 +28,7 @@
         "build": ".next",
         "standalone": ".next/standalone"
       },
-      "envSources": [".env.local", "Vercel project settings", "Supabase project"],
+      "envSources": [".env.local", ".env", "Supabase project"],
       "notes": [
         "Uses next-pwa for service worker bundling when available.",
         "Relies on Supabase client and server SDKs.",
@@ -45,7 +45,6 @@
     }
   ],
   "infrastructure": {
-    "vercelConfig": "vercel.json",
     "dockerfile": true,
     "ci": {
       "existingWorkflows": [".github/workflows"]
