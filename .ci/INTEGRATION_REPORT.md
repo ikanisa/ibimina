@@ -55,7 +55,9 @@ All tracked feature branches are ancestors of `main`; no additional merge commit
 - `pnpm build` (stub env vars set locally for required secrets; see Notes)
 - `pnpm test:unit`
 - `pnpm test:auth`
-- Not run: `pnpm test:rls`, `pnpm test:e2e`, `pnpm verify:log-drain` (requires Supabase stack, queues, and Playwright browsers)
+- `pnpm verify:log-drain`
+- `pnpm test:rls:docker` *(fails: pg_net extension missing from postgres:15 image used in `infra/docker/docker-compose.rls.yml`; Supabase’s pg_net is required for migration `20251018010458_remote_schema.sql`)*
+- `pnpm test:e2e` *(fails: 3 smoke scenarios—login button stays disabled and seeded dashboard/offline queue fixtures never render under stubbed server)*
 
 ## Notes
 - Build/test commands supplied placeholder secrets:
@@ -69,6 +71,8 @@ All tracked feature branches are ancestors of `main`; no additional merge commit
   - `HMAC_SHARED_SECRET="test-hmac"`
   - `KMS_DATA_KEY_BASE64="MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="`
 - Replace with real credentials in CI/production before shipping.
+- RLS test harness should run against a Postgres image with Supabase extensions (pg_net). Either install `pg_net` manually in the `postgres:15` container or switch the compose file to Supabase’s `supabase/postgres` image to unblock `pnpm test:rls:docker`.
+- Investigate Playwright smoke fixtures—the stub server leaves the login button disabled and seeding endpoints do not populate dashboard/offline queue components.
 
 ## Next Steps
 1. Decide on upgrade strategy for the major-version bumps (Next.js 16, React 19.2, Zod 4, Next ESLint config 16) and deprecated SimpleWebAuthn types package.
