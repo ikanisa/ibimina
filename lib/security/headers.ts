@@ -1,4 +1,4 @@
-import { getRuntimeConfig } from "@/src/lib/runtime-config";
+import { getRuntimeConfig } from "../../src/lib/runtime-config";
 
 type DirectiveMap = Record<string, string[]>;
 
@@ -20,6 +20,14 @@ const baseDirectives: DirectiveMap = {
   "media-src": ["'self'"],
   "object-src": ["'none'"],
 };
+
+const runtimeConfig = (() => {
+  try {
+    return getRuntimeConfig();
+  } catch {
+    return null;
+  }
+})();
 
 const staticSecurityHeaders: ReadonlyArray<{ key: string; value: string }> = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -55,6 +63,16 @@ if (supabaseUrl) {
     baseDirectives["img-src"].push(`${origin}/storage/v1/object/public`);
   } catch (error) {
     console.warn("Invalid NEXT_PUBLIC_SUPABASE_URL provided for CSP", error);
+  }
+}
+
+if (runtimeConfig?.siteUrl) {
+  try {
+    const { origin } = new URL(runtimeConfig.siteUrl);
+    baseDirectives["connect-src"].push(origin);
+    baseDirectives["img-src"].push(origin);
+  } catch (error) {
+    console.warn("Invalid siteUrl provided in runtime config for CSP allowlist", error);
   }
 }
 
@@ -129,7 +147,7 @@ export function createContentSecurityPolicy({ nonce, isDev }: CspOptions): strin
   directives["style-src"].push("https://rsms.me/inter/inter.css");
   directives["img-src"].push("https://avatars.githubusercontent.com");
 
-  const appEnv = process.env.APP_ENV ?? process.env.NODE_ENV ?? "development";
+  const appEnv = runtimeConfig?.environment ?? process.env.APP_ENV ?? process.env.NODE_ENV ?? "development";
   // Allow Vercel preview toolbar (vercel.live) only on preview deployments
   if (appEnv === "preview") {
     directives["frame-src"].push("https://vercel.live");

@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 import { requireSupabaseConfig } from "@/lib/supabase/config";
 
-type ClientOptions = Parameters<typeof createClient<Database>>[2];
+type ClientOptions = NonNullable<Parameters<typeof createClient<Database>>[2]>;
 
 function resolveServiceRoleKey(context: string): string {
   const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
