@@ -41,10 +41,10 @@ make build
 
 ## 4. Start the Service
 ```bash
-PORT=3000 pnpm start
+make local-up    # starts Next.js + Caddy in background
+# when finished: make local-down
 ```
-- The script runs `next start -H 0.0.0.0 -p ${PORT:-3000}`.
-- Attach a reverse proxy (e.g., nginx/Caddy) if exposing to the network; otherwise, hit `http://localhost:3000`.
+- This uses the macOS helpers to run Next.js and Caddy with sensible defaults.
 - Verify readiness with `curl http://localhost:3000/api/healthz` (confirm `buildId`, `environment`, `timestamp`).
 - Ensure `/manifest.json` and `/service-worker.js` are accessible if the PWA should remain installable.
 
