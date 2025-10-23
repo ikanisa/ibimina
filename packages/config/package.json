@@ -10,5 +10,8 @@
     "lint": "echo 'TODO: add linting'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "echo 'TODO: add tests'"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
   }
 }

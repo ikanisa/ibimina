@@ -13,6 +13,13 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "types": ["node"],
+    "paths": {
+      "@ibimina/config": ["packages/config/src"],
+      "@ibimina/core": ["packages/core/src"],
+      "@ibimina/testing": ["packages/testing/src"],
+      "@ibimina/ui": ["packages/ui/src"]
+    },
     "plugins": [
       { "name": "next" }
     ]

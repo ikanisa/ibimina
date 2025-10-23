@@ -1,0 +1,277 @@
+import { Buffer } from "node:buffer";
+import { z } from "zod";
+import requiredEnvConfig from "../required-env.json" assert { type: "json" };
+
+type ProcessEnvSource = Partial<Record<string, string | undefined>>;
+
+const optionalString = z
+  .string()
+  .trim()
+  .min(1)
+  .optional();
+
+const positiveNumberString = z
+  .string()
+  .trim()
+  .regex(/^\d+$/, { message: "Expected a positive integer" });
+
+const schema = z
+  .object({
+    NODE_ENV: z.enum(["development", "test", "production"]),
+    APP_ENV: z
+      .enum(["development", "test", "preview", "staging", "production"])
+      .default("development"),
+    APP_REGION: optionalString,
+    GIT_COMMIT_SHA: optionalString,
+    NEXT_PUBLIC_SUPABASE_URL: z
+      .string({ required_error: "NEXT_PUBLIC_SUPABASE_URL is required" })
+      .trim()
+      .url({ message: "NEXT_PUBLIC_SUPABASE_URL must be a valid URL" }),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z
+      .string({ required_error: "NEXT_PUBLIC_SUPABASE_ANON_KEY is required" })
+      .trim()
+      .min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required"),
+    NEXT_PUBLIC_SITE_URL: optionalString,
+    NEXT_PUBLIC_BUILD_ID: optionalString,
+    NEXT_PUBLIC_E2E: optionalString,
+    SUPABASE_SERVICE_ROLE_KEY: z
+      .string({ required_error: "SUPABASE_SERVICE_ROLE_KEY is required" })
+      .trim()
+      .min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
+    BACKUP_PEPPER: z
+      .string({ required_error: "BACKUP_PEPPER is required" })
+      .trim()
+      .min(1, "BACKUP_PEPPER is required"),
+    RATE_LIMIT_SECRET: optionalString,
+    EMAIL_OTP_PEPPER: optionalString,
+    MFA_SESSION_SECRET: z
+      .string({ required_error: "MFA_SESSION_SECRET is required" })
+      .trim()
+      .min(1, "MFA_SESSION_SECRET is required"),
+    TRUSTED_COOKIE_SECRET: z
+      .string({ required_error: "TRUSTED_COOKIE_SECRET is required" })
+      .trim()
+      .min(1, "TRUSTED_COOKIE_SECRET is required"),
+    MFA_SESSION_TTL_SECONDS: positiveNumberString,
+    TRUSTED_DEVICE_TTL_SECONDS: positiveNumberString,
+    MFA_RP_ID: optionalString,
+    MFA_ORIGIN: optionalString,
+    MFA_RP_NAME: z.string().trim().min(1),
+    MFA_EMAIL_LOCALE: z.string().trim().min(1),
+    MFA_EMAIL_FROM: z.string().trim().min(3),
+    ANALYTICS_CACHE_TOKEN: optionalString,
+    REPORT_SIGNING_KEY: optionalString,
+    OPENAI_API_KEY: z
+      .string({ required_error: "OPENAI_API_KEY is required" })
+      .trim()
+      .min(1, "OPENAI_API_KEY is required"),
+    OPENAI_OCR_MODEL: z.string().trim().min(1),
+    OPENAI_RESPONSES_MODEL: z.string().trim().min(1),
+    MAIL_FROM: z.string().trim().min(3),
+    SMTP_HOST: optionalString,
+    SMTP_PORT: positiveNumberString,
+    SMTP_USER: optionalString,
+    SMTP_PASS: optionalString,
+    LOG_DRAIN_URL: optionalString,
+    LOG_DRAIN_TOKEN: optionalString,
+    LOG_DRAIN_SOURCE: optionalString,
+    LOG_DRAIN_TIMEOUT_MS: positiveNumberString,
+    LOG_DRAIN_ALERT_WEBHOOK: optionalString,
+    LOG_DRAIN_ALERT_TOKEN: optionalString,
+    LOG_DRAIN_ALERT_COOLDOWN_MS: positiveNumberString,
+    LOG_DRAIN_SILENT: optionalString,
+    HMAC_SHARED_SECRET: z
+      .string({ required_error: "HMAC_SHARED_SECRET is required" })
+      .trim()
+      .min(1, "HMAC_SHARED_SECRET is required"),
+    KMS_DATA_KEY: optionalString,
+    KMS_DATA_KEY_BASE64: optionalString,
+    TWILIO_ACCOUNT_SID: optionalString,
+    TWILIO_AUTH_TOKEN: optionalString,
+    TWILIO_WHATSAPP_FROM: z.string().trim().min(1),
+    SITE_URL: optionalString,
+    EDGE_URL: optionalString,
+    DISABLE_PWA: optionalString,
+    ANALYZE_BUNDLE: optionalString,
+    AUTH_E2E_STUB: optionalString,
+    E2E_BACKUP_PEPPER: optionalString,
+    E2E_MFA_SESSION_SECRET: optionalString,
+    E2E_TRUSTED_COOKIE_SECRET: optionalString,
+    E2E_RATE_LIMIT_SECRET: optionalString,
+    E2E_KMS_DATA_KEY: optionalString,
+    PLAYWRIGHT_BASE_URL: optionalString,
+    PLAYWRIGHT_SUPABASE_URL: optionalString,
+    PLAYWRIGHT_SUPABASE_ANON_KEY: optionalString,
+    CI: optionalString,
+  })
+  .superRefine((values, ctx) => {
+    const kmsCandidates = [values.KMS_DATA_KEY, values.KMS_DATA_KEY_BASE64].filter(
+      (candidate): candidate is string => Boolean(candidate && candidate.trim().length > 0),
+    );
+
+    if (kmsCandidates.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide KMS_DATA_KEY or KMS_DATA_KEY_BASE64 (32-byte base64 string)",
+        path: ["KMS_DATA_KEY"],
+      });
+    } else {
+      for (const candidate of kmsCandidates) {
+        const decoded = Buffer.from(candidate, "base64");
+        if (decoded.length !== 32) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "KMS data key must decode to 32 bytes",
+            path: ["KMS_DATA_KEY"],
+          });
+          break;
+        }
+      }
+    }
+  });
+
+export type RawEnv = z.infer<typeof schema>;
+
+function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
+  if (raw.AUTH_E2E_STUB !== "1") {
+    return raw;
+  }
+
+  const stubbedDefaults = Object.freeze({
+    NEXT_PUBLIC_SUPABASE_URL: "https://stub.supabase.local",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "stub-anon-key",
+    SUPABASE_SERVICE_ROLE_KEY: "stub-service-role-key",
+    BACKUP_PEPPER: "stub-backup-pepper",
+    MFA_SESSION_SECRET: "stub-mfa-session-secret",
+    TRUSTED_COOKIE_SECRET: "stub-trusted-cookie-secret",
+    HMAC_SHARED_SECRET: "stub-hmac-shared-secret",
+    OPENAI_API_KEY: "stub-openai-api-key",
+    KMS_DATA_KEY_BASE64: "ZGV2LWttcy1kYXRhLWtleS0zMi1ieXRlcyEhISEhISE=",
+  } as const);
+
+  const withFallback = (value: string | undefined, fallback: string) => {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+    return fallback;
+  };
+
+  const augmented: ProcessEnvSource = { ...raw };
+
+  augmented.NEXT_PUBLIC_SUPABASE_URL = withFallback(
+    raw.NEXT_PUBLIC_SUPABASE_URL,
+    stubbedDefaults.NEXT_PUBLIC_SUPABASE_URL,
+  );
+  augmented.NEXT_PUBLIC_SUPABASE_ANON_KEY = withFallback(
+    raw.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    stubbedDefaults.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
+  augmented.SUPABASE_SERVICE_ROLE_KEY = withFallback(
+    raw.SUPABASE_SERVICE_ROLE_KEY,
+    stubbedDefaults.SUPABASE_SERVICE_ROLE_KEY,
+  );
+  augmented.BACKUP_PEPPER = withFallback(raw.BACKUP_PEPPER, stubbedDefaults.BACKUP_PEPPER);
+  augmented.MFA_SESSION_SECRET = withFallback(
+    raw.MFA_SESSION_SECRET,
+    stubbedDefaults.MFA_SESSION_SECRET,
+  );
+  augmented.TRUSTED_COOKIE_SECRET = withFallback(
+    raw.TRUSTED_COOKIE_SECRET,
+    stubbedDefaults.TRUSTED_COOKIE_SECRET,
+  );
+  augmented.HMAC_SHARED_SECRET = withFallback(
+    raw.HMAC_SHARED_SECRET,
+    stubbedDefaults.HMAC_SHARED_SECRET,
+  );
+  augmented.OPENAI_API_KEY = withFallback(raw.OPENAI_API_KEY, stubbedDefaults.OPENAI_API_KEY);
+
+  const hasKmsDataKey = Boolean(raw.KMS_DATA_KEY && raw.KMS_DATA_KEY.trim().length > 0);
+  const hasKmsDataKeyBase64 = Boolean(
+    raw.KMS_DATA_KEY_BASE64 && raw.KMS_DATA_KEY_BASE64.trim().length > 0,
+  );
+
+  if (!hasKmsDataKey && !hasKmsDataKeyBase64) {
+    augmented.KMS_DATA_KEY_BASE64 = stubbedDefaults.KMS_DATA_KEY_BASE64;
+  }
+
+  return augmented;
+}
+
+function parsePositiveInteger(value: string, fallback: number): number {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+  return parsed;
+}
+
+export type ServerEnv = ReturnType<typeof prepareServerEnv>;
+
+function prepareServerEnv(parsedEnv: RawEnv) {
+  const rateLimitSecret = parsedEnv.RATE_LIMIT_SECRET ?? parsedEnv.BACKUP_PEPPER;
+  const emailOtpPepper = parsedEnv.EMAIL_OTP_PEPPER ?? parsedEnv.BACKUP_PEPPER;
+  const kmsDataKey = parsedEnv.KMS_DATA_KEY ?? parsedEnv.KMS_DATA_KEY_BASE64!;
+
+  return Object.freeze({
+    ...parsedEnv,
+    MFA_SESSION_TTL_SECONDS: parsePositiveInteger(parsedEnv.MFA_SESSION_TTL_SECONDS, 12 * 60 * 60),
+    TRUSTED_DEVICE_TTL_SECONDS: parsePositiveInteger(
+      parsedEnv.TRUSTED_DEVICE_TTL_SECONDS,
+      30 * 24 * 60 * 60,
+    ),
+    LOG_DRAIN_TIMEOUT_MS: parsePositiveInteger(parsedEnv.LOG_DRAIN_TIMEOUT_MS, 2000),
+    LOG_DRAIN_ALERT_COOLDOWN_MS: parsePositiveInteger(
+      parsedEnv.LOG_DRAIN_ALERT_COOLDOWN_MS,
+      5 * 60 * 1000,
+    ),
+    SMTP_PORT: parsePositiveInteger(parsedEnv.SMTP_PORT, 587),
+    rateLimitSecret,
+    emailOtpPepper,
+    kmsDataKey,
+  });
+}
+
+function loadRawEnv(source: ProcessEnvSource): RawEnv {
+  const envWithFallbacks = withStubFallbacks(source);
+
+  try {
+    return schema.parse(envWithFallbacks);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const details = error.issues
+        .map((issue) => `- ${issue.path.join(".") || "<root>"}: ${issue.message}`)
+        .join("\n");
+      console.error("\nEnvironment validation failed:\n" + details + "\n");
+    }
+    throw error;
+  }
+}
+
+let cachedServerEnv: ServerEnv | null = null;
+
+export function loadServerEnv(overrides: ProcessEnvSource = process.env): ServerEnv {
+  if (cachedServerEnv) {
+    return cachedServerEnv;
+  }
+
+  const parsed = loadRawEnv(overrides);
+  cachedServerEnv = prepareServerEnv(parsed);
+  return cachedServerEnv;
+}
+
+export const env = loadServerEnv();
+
+export const clientEnv = Object.freeze({
+  NEXT_PUBLIC_SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_SITE_URL: env.NEXT_PUBLIC_SITE_URL ?? null,
+  NEXT_PUBLIC_BUILD_ID: env.NEXT_PUBLIC_BUILD_ID ?? null,
+});
+
+export const requiredServerEnv: ReadonlyArray<string> = Object.freeze(requiredEnvConfig.required);
+export const atLeastOneServerEnv: ReadonlyArray<ReadonlyArray<string>> = Object.freeze(
+  requiredEnvConfig.atLeastOne.map((group) => [...group]),
+);
+
+export type ClientEnv = typeof clientEnv;
+export type RequiredServerEnvGroups = typeof atLeastOneServerEnv;
