@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-COMPOSE_FILE="$ROOT_DIR/infra/docker/docker-compose.rls.yml"
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+APP_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
+REPO_ROOT=$(cd "$APP_DIR/../.." && pwd)
+COMPOSE_FILE="$REPO_ROOT/infra/docker/docker-compose.rls.yml"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "Docker is required to run RLS tests in a container." >&2
@@ -18,4 +20,4 @@ docker compose -f "$COMPOSE_FILE" up -d --wait
 
 export RLS_TEST_DATABASE_URL="${RLS_TEST_DATABASE_URL:-postgresql://postgres:postgres@localhost:6543/ibimina_test}"
 
-bash "$ROOT_DIR/scripts/test-rls.sh"
+bash "$SCRIPT_DIR/test-rls.sh"

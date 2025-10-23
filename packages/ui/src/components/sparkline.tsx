@@ -1,5 +1,9 @@
-import { cn } from "@/lib/utils";
-import type { TrendPoint } from "@/lib/operations/dashboard";
+import { cn } from "../utils/cn";
+
+type TrendPoint = {
+  label: string;
+  value: number;
+};
 
 const toneClasses: Record<"emerald" | "amber" | "cyan", string> = {
   emerald: "text-emerald-300",

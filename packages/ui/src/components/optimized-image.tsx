@@ -1,7 +1,8 @@
 "use client";
 
 import Image, { type ImageProps } from "next/image";
-import { getBlurDataURL } from "@/lib/performance/image";
+
+import { getBlurDataURL } from "../utils/blur-placeholder";
 
 export interface OptimizedImageProps extends Omit<ImageProps, "placeholder"> {
   withPlaceholder?: boolean;
@@ -18,7 +19,8 @@ export function OptimizedImage({
   ...props
 }: OptimizedImageProps) {
   const resolvedBlur = withPlaceholder
-    ? blurDataURL ?? getBlurDataURL({
+    ? blurDataURL ??
+      getBlurDataURL({
         width: typeof props.width === "number" ? props.width : undefined,
         height: typeof props.height === "number" ? props.height : undefined,
         accent: accentColor,

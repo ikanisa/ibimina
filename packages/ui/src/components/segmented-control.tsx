@@ -1,25 +1,27 @@
+"use client";
+
+import type { HTMLAttributes, ReactNode } from "react";
 import { useId } from "react";
-import { cn } from "@/lib/utils";
+
+import { cn } from "../utils/cn";
 
 type SegmentedValue = string | number;
 
 export interface SegmentedOption {
   value: SegmentedValue;
-  label: React.ReactNode;
-  description?: React.ReactNode;
+  label: ReactNode;
+  description?: ReactNode;
   disabled?: boolean;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }
 
-interface SegmentedControlProps {
+interface SegmentedControlProps extends Pick<HTMLAttributes<HTMLDivElement>, "aria-label" | "aria-labelledby"> {
   name?: string;
   value: SegmentedValue;
   onValueChange: (value: SegmentedValue) => void;
   options: SegmentedOption[];
   className?: string;
   columns?: 1 | 2 | 3;
-  "aria-label"?: string;
-  "aria-labelledby"?: string;
 }
 
 export function SegmentedControl({
@@ -30,7 +32,7 @@ export function SegmentedControl({
   className,
   columns = 1,
   ...aria
-}: SegmentedControlProps & Pick<React.HTMLAttributes<HTMLDivElement>, "aria-label" | "aria-labelledby">) {
+}: SegmentedControlProps) {
   const fallbackName = useId();
   const fieldName = name ?? fallbackName;
 
@@ -74,9 +76,9 @@ export function SegmentedControl({
               {option.icon && <span aria-hidden>{option.icon}</span>}
               <span className="text-neutral-1">{option.label}</span>
             </span>
-            {option.description && (
+            {option.description ? (
               <span className="text-[11px] text-neutral-2">{option.description}</span>
-            )}
+            ) : null}
           </label>
         );
       })}

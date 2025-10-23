@@ -1,12 +1,14 @@
-import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 import { Smile } from "lucide-react";
 
-interface EmptyStateProps {
+import { cn } from "../utils/cn";
+
+export interface EmptyStateProps {
   title: string;
   description?: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   className?: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }
 
 export function EmptyState({ title, description, icon, className, action }: EmptyStateProps) {
@@ -14,7 +16,7 @@ export function EmptyState({ title, description, icon, className, action }: Empt
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-white/15 bg-white/5 p-8 text-center text-sm text-neutral-2",
-        className
+        className,
       )}
       role="status"
       aria-live="polite"

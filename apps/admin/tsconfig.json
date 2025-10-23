@@ -4,9 +4,23 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@ibimina/config": [
+        "../../packages/config/src/index.ts"
+      ],
+      "@ibimina/ui": [
+        "../../packages/ui/src/index.ts"
+      ],
+      "@ibimina/core": [
+        "../../packages/core/src/index.ts"
+      ],
+      "@ibimina/testing": [
+        "../../packages/testing/src/index.ts"
       ]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
+    "jsx": "preserve",
+    "noImplicitAny": false
   },
   "include": [
     "app/**/*.ts",

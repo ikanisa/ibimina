@@ -25,6 +25,20 @@
         "name": "next"
       }
     ],
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@ibimina/config": [
+        "packages/config/src/index.ts"
+      ],
+      "@ibimina/core": [
+        "packages/core/src/index.ts"
+      ],
+      "@ibimina/testing": [
+        "packages/testing/src/index.ts"
+      ],
+      "@ibimina/ui": [
+        "packages/ui/src/index.ts"
+      ]
+    }
   }
 }

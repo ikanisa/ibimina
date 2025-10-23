@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
 
-interface GradientHeaderProps {
+import { cn } from "../utils/cn";
+
+export interface GradientHeaderProps {
   title: ReactNode;
   subtitle?: ReactNode;
   badge?: ReactNode;

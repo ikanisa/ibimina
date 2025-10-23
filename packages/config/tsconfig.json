@@ -9,8 +9,6 @@
     "types": [
       "node"
     ],
-    "moduleResolution": "nodenext",
-    "module": "nodenext",
     "baseUrl": "."
   },
   "include": [

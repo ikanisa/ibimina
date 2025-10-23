@@ -224,32 +224,25 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
 
   const augmented: ProcessEnvSource = { ...raw };
 
-  augmented.NEXT_PUBLIC_SUPABASE_URL = withFallback(
-    raw.NEXT_PUBLIC_SUPABASE_URL,
-    stubbedDefaults.NEXT_PUBLIC_SUPABASE_URL,
-  );
-  augmented.NEXT_PUBLIC_SUPABASE_ANON_KEY = withFallback(
-    raw.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    stubbedDefaults.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  );
-  augmented.SUPABASE_SERVICE_ROLE_KEY = withFallback(
-    raw.SUPABASE_SERVICE_ROLE_KEY,
-    stubbedDefaults.SUPABASE_SERVICE_ROLE_KEY,
-  );
-  augmented.BACKUP_PEPPER = withFallback(raw.BACKUP_PEPPER, stubbedDefaults.BACKUP_PEPPER);
-  augmented.MFA_SESSION_SECRET = withFallback(
-    raw.MFA_SESSION_SECRET,
-    stubbedDefaults.MFA_SESSION_SECRET,
-  );
-  augmented.TRUSTED_COOKIE_SECRET = withFallback(
-    raw.TRUSTED_COOKIE_SECRET,
-    stubbedDefaults.TRUSTED_COOKIE_SECRET,
-  );
-  augmented.HMAC_SHARED_SECRET = withFallback(
-    raw.HMAC_SHARED_SECRET,
-    stubbedDefaults.HMAC_SHARED_SECRET,
-  );
-  augmented.OPENAI_API_KEY = withFallback(raw.OPENAI_API_KEY, stubbedDefaults.OPENAI_API_KEY);
+  const applyWithFallback = (key: keyof typeof stubbedDefaults) => {
+    const fallback = stubbedDefaults[key];
+    const original = raw[key];
+    const value = withFallback(original, fallback);
+    augmented[key] = value;
+
+    if (typeof original !== "string" || original.trim().length === 0) {
+      process.env[key] = value;
+    }
+  };
+
+  applyWithFallback("NEXT_PUBLIC_SUPABASE_URL");
+  applyWithFallback("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  applyWithFallback("SUPABASE_SERVICE_ROLE_KEY");
+  applyWithFallback("BACKUP_PEPPER");
+  applyWithFallback("MFA_SESSION_SECRET");
+  applyWithFallback("TRUSTED_COOKIE_SECRET");
+  applyWithFallback("HMAC_SHARED_SECRET");
+  applyWithFallback("OPENAI_API_KEY");
 
   const hasKmsDataKey = Boolean(raw.KMS_DATA_KEY && raw.KMS_DATA_KEY.trim().length > 0);
   const hasKmsDataKeyBase64 = Boolean(
@@ -258,6 +251,9 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
 
   if (!hasKmsDataKey && !hasKmsDataKeyBase64) {
     augmented.KMS_DATA_KEY_BASE64 = stubbedDefaults.KMS_DATA_KEY_BASE64;
+    if (!process.env.KMS_DATA_KEY_BASE64) {
+      process.env.KMS_DATA_KEY_BASE64 = stubbedDefaults.KMS_DATA_KEY_BASE64;
+    }
   }
 
   return augmented;

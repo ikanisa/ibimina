@@ -1,5 +1,9 @@
+"use client";
+
 import { forwardRef } from "react";
-import { cn } from "@/lib/utils";
+import type { ButtonHTMLAttributes } from "react";
+
+import { cn } from "../utils/cn";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "destructive";
 type ButtonSize = "sm" | "md" | "lg" | "icon";
@@ -22,7 +26,7 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
   icon: "h-10 w-10 p-0",
 };
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
@@ -32,14 +36,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   { className, variant = "primary", size = "md", fullWidth = false, type = "button", ...props },
   ref,
 ) {
+  const resolvedVariant = variant as ButtonVariant;
+  const resolvedSize = size as ButtonSize;
+
   return (
     <button
       ref={ref}
       type={type}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-full font-semibold uppercase tracking-[0.3em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-ink",
-        VARIANT_CLASSES[variant],
-        SIZE_CLASSES[size],
+        VARIANT_CLASSES[resolvedVariant],
+        SIZE_CLASSES[resolvedSize],
         fullWidth ? "w-full" : undefined,
         className,
       )}

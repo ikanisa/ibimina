@@ -1,11 +1,13 @@
-import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
-interface GlassCardProps {
-  title?: React.ReactNode;
-  subtitle?: React.ReactNode;
-  actions?: React.ReactNode;
+import { cn } from "../utils/cn";
+
+export interface GlassCardProps {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
   className?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function GlassCard({ title, subtitle, actions, className, children }: GlassCardProps) {
