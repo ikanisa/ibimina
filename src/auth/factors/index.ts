@@ -1,6 +1,7 @@
 import type { Database } from "@/lib/supabase/types";
 import { verifyBackupFactor } from "./backup";
 import { initiateEmailFactor, verifyEmailFactor } from "./email";
+import { startPasskeyChallenge as baseStartPasskeyChallenge } from "@/lib/authx/start";
 import { verifyPasskeyFactor } from "./passkey";
 import { verifyTotpFactor } from "./totp";
 import { initiateWhatsAppFactor, verifyWhatsAppFactor } from "./whatsapp";
@@ -12,6 +13,10 @@ type InitiateHandler = (input: FactorInitiateInput) => Promise<FactorInitiateRes
 
 const verifyHandlerOverrides = new Map<Factor, VerifyHandler>();
 const initiateHandlerOverrides = new Map<Factor, InitiateHandler>();
+
+type PasskeyChallengeStarter = typeof baseStartPasskeyChallenge;
+
+let startPasskeyChallenge: PasskeyChallengeStarter = baseStartPasskeyChallenge;
 
 export function overrideVerifyHandlers(overrides: Partial<Record<Factor, VerifyHandler>>) {
   for (const [factor, handler] of Object.entries(overrides) as Array<[Factor, VerifyHandler | undefined]>) {
@@ -36,6 +41,10 @@ export function overrideInitiateHandlers(overrides: Partial<Record<Factor, Initi
 export function resetFactorOverrides() {
   verifyHandlerOverrides.clear();
   initiateHandlerOverrides.clear();
+}
+
+export function setPasskeyChallengeStarterForTests(starter: PasskeyChallengeStarter | null) {
+  startPasskeyChallenge = starter ?? baseStartPasskeyChallenge;
 }
 
 export type Factor = "totp" | "email" | "whatsapp" | "backup" | "passkey";
@@ -65,6 +74,7 @@ export interface FactorSuccess {
   nextLastStep?: number | null;
   usedBackup?: boolean;
   step?: number | null;
+  rememberDevice?: boolean;
 }
 
 export interface FactorFailure {
@@ -127,7 +137,22 @@ export const initiateFactor = async (
     case "backup":
       return { ok: true, status: 200, payload: { channel: input.factor } };
     case "passkey":
-      return { ok: false, status: 501, error: "passkey_not_enabled", code: "PASSKEY_NOT_ENABLED" };
+      try {
+        const challenge = await startPasskeyChallenge({ id: input.userId });
+        return {
+          ok: true,
+          status: 200,
+          payload: { factor: "passkey", ...challenge },
+        } satisfies FactorInitiateResult;
+      } catch (error) {
+        console.error("passkey_challenge_failed", error);
+        return {
+          ok: false,
+          status: 500,
+          error: "passkey_not_available",
+          code: "PASSKEY_NOT_AVAILABLE",
+        } satisfies FactorInitiateResult;
+      }
     default:
       return { ok: false, status: 400, error: "unsupported_factor", code: "UNSUPPORTED_FACTOR" };
   }

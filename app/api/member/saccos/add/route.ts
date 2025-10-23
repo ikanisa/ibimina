@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const addSchema = z.object({ saccoId: z.string().uuid("Invalid SACCO id") });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
   // Member app tables are optional; treat as dynamic
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

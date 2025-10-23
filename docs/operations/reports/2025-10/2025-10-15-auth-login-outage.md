@@ -7,7 +7,7 @@
 - **Status:** Resolved (pending database migration application)
 
 ## Summary
-Between 15 Oct 2025 08:05 CAT and 08:40 CAT the Ibimina production login experienced a complete outage. Users attempting to authenticate via `https://staff.ibimina.example/login` received a banner error: “Database error querying schema.” No requests completed successfully, blocking staff access to the dashboard. The frontend behaved as designed—the failure originated from Supabase’s auth backend during password verification.【F:components/auth/login-form.tsx†L22-L107】
+Between 15 Oct 2025 08:05 CAT and 08:40 CAT the Ibimina production login experienced a complete outage. Users attempting to authenticate via the hosted login page received a banner error: “Database error querying schema.” No requests completed successfully, blocking staff access to the dashboard. The frontend behaved as designed—the failure originated from Supabase’s auth backend during password verification.【F:components/auth/login-form.tsx†L22-L107】
 
 ## Impact
 - All staff and admin sign-ins failed, preventing access to operational tooling.
@@ -16,7 +16,7 @@ Between 15 Oct 2025 08:05 CAT and 08:40 CAT the Ibimina production login experie
 
 ## Detection
 - Customer success escalated after a staff member reported persistent login failure.
-- Hosting logs showed repeated 500 responses from `POST https://vacltfdslodqybxojytc.supabase.co/auth/v1/token` with body message “Database error querying schema,” confirming backend failure.
+- Hosting provider logs showed repeated 500 responses from `POST https://vacltfdslodqybxojytc.supabase.co/auth/v1/token` with body message “Database error querying schema,” confirming backend failure.
 
 ## Timeline
 | Time (CAT) | Event |
@@ -38,7 +38,7 @@ Apply the pending migration against the production database:
 3. Confirm `SELECT has_schema_privilege('supabase_authenticator', 'authx', 'USAGE');` returns `t`.
 4. Re-run the login flow to verify successful authentication.
 
-No frontend deployment is required once grants are in place, but redeploying the Node service (`ibimina`) keeps release history aligned.
+No frontend deployment is required once grants are in place, but redeploying the production application keeps release history aligned.
 
 ## Corrective Actions
 - **Apply** the Supabase migration immediately in production and stage (owner: Platform).

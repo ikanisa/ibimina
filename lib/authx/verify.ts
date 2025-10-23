@@ -19,18 +19,26 @@ export type PasskeyVerificationPayload = {
   stateToken: string;
 };
 
-export const verifyPasskey = async (user: { id: string }, payload: PasskeyVerificationPayload) => {
+type PasskeyCredential = {
+  credential_id: string;
+  device_type: string | null;
+};
+
+export type VerifyPasskeyResult =
+  | { ok: true; rememberDevice: boolean; credential: PasskeyCredential | null }
+  | { ok: false };
+
+export const verifyPasskey = async (
+  user: { id: string },
+  payload: PasskeyVerificationPayload,
+): Promise<VerifyPasskeyResult> => {
   try {
     const result = await verifyAuthentication({ id: user.id }, payload.response, payload.stateToken);
-    const { rememberDevice, credential } = result;
-    const supabase = createSupabaseAdminClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any)
-      .from("webauthn_credentials")
-      .update({ last_used_at: new Date().toISOString() })
-      .eq("id", credential.id)
-      .eq("user_id", user.id);
-    return { ok: true as const, rememberDevice };
+    return {
+      ok: true as const,
+      rememberDevice: result.rememberDevice,
+      credential: (result.credential as PasskeyCredential | null) ?? null,
+    };
   } catch (error) {
     console.error("authx.verifyPasskey", error);
     return { ok: false as const };

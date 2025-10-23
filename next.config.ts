@@ -5,8 +5,31 @@ import { env } from "./src/env.server";
 
 const resolvedBuildId =
   env.NEXT_PUBLIC_BUILD_ID ??
-  env.APP_COMMIT_SHA ??
+  env.GIT_COMMIT_SHA ??
   `local-${Date.now().toString(36)}`;
+
+const remotePatterns: Array<{ protocol: "https"; hostname: string; pathname?: string }> = [
+  {
+    protocol: "https",
+    hostname: "images.unsplash.com",
+  },
+  {
+    protocol: "https",
+    hostname: "api.qrserver.com",
+    pathname: "/v1/create-qr-code/**",
+  },
+];
+
+try {
+  const { hostname } = new URL(env.NEXT_PUBLIC_SUPABASE_URL);
+  remotePatterns.push({
+    protocol: "https",
+    hostname,
+    pathname: "/storage/v1/object/public/**",
+  });
+} catch (error) {
+  console.warn("Invalid NEXT_PUBLIC_SUPABASE_URL", error);
+}
 
 let withPWA = (config: NextConfig) => config;
 let withBundleAnalyzer = (config: NextConfig) => config;
@@ -20,7 +43,6 @@ try {
     register: true,
     skipWaiting: true,
     sw: "service-worker.js",
-    buildExcludes: [/\/_next\/app-build-manifest\.json$/],
   });
 } catch {
   console.warn("next-pwa not available during local build; proceeding without service worker bundling.");
@@ -50,7 +72,11 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
   },
   images: {
+    remotePatterns,
     unoptimized: true,
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 3600,
+    deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
   },
   poweredByHeader: false,
   modularizeImports: {

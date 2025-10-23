@@ -4,23 +4,10 @@ import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 import { requireSupabaseConfig } from "@/lib/supabase/config";
-import { env } from "@/src/env.server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 
-const getServiceRoleKey = () => {
-  if (env.AUTH_E2E_STUB === "1") {
-    return env.SUPABASE_SERVICE_ROLE_KEY;
-  }
-  return env.SUPABASE_SERVICE_ROLE_KEY;
-};
-
-export const supabaseSrv = (): SupabaseClient<Database> => {
-  const { url } = requireSupabaseConfig("supabaseSrv");
-  const serviceRoleKey = getServiceRoleKey();
-
-  return createClient<Database>(url, serviceRoleKey, {
-    auth: { persistSession: false },
-  });
-};
+export const supabaseSrv = (): SupabaseClient<Database> =>
+  createSupabaseServiceRoleClient("supabaseSrv");
 
 export const supabaseAnon = (): SupabaseClient<Database> => {
   const { url, anonKey } = requireSupabaseConfig("supabaseAnon");

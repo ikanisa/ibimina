@@ -8,7 +8,7 @@ This runbook complements the go-live checklist by documenting how structured log
 - Forwarding happens asynchronously via `fetch` with a guard timeout (default 2000 ms, configurable via `LOG_DRAIN_TIMEOUT_MS`); failures are logged with `console.warn` unless `LOG_DRAIN_SILENT=1` is set for noisy drains.【F:lib/observability/logger.ts†L71-L125】
 
 ### Configuration steps
-1. Add the following secrets to the hosting environment (and any CI context) before deploying:
+1. Add the following secrets to your deployment environment (and any CI context) before deploying:
    ```
    LOG_DRAIN_URL=https://logs.example.com/ingest
    LOG_DRAIN_TOKEN=<bearer token>
@@ -34,14 +34,14 @@ This runbook complements the go-live checklist by documenting how structured log
   This spins up a stub drain, emits a log entry, and fails if the webhook is not invoked on error.【F:scripts/verify-log-drain.ts†L1-L132】
 - After deploying, trigger a representative action (e.g., complete an offline queue sync) and confirm the drain captures the `queue_processed` event with the correct environment tag.
 - Verify that the alert webhook receives a `log_drain_failure` payload if the drain endpoint intentionally returns a 500—alerts are throttled by `LOG_DRAIN_ALERT_COOLDOWN_MS` (default 5 minutes).【F:lib/observability/logger.ts†L88-L170】
-- If the drain is unreachable, expect `log_drain_failure` warnings in the Node process logs—investigate network access, credentials, or the downstream service.
+- If the drain is unreachable, expect `log_drain_failure` warnings in the application logs—investigate network access, credentials, or the downstream service.
 
 ## 2. Preview deployments & Supabase data
-- Use `.github/workflows/node.yml` for lightweight preview builds (`pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm build`). Attach artefacts or screenshots to pull requests for reviewers.
-- When spinning up ad-hoc previews, provision a Supabase branch database, copy required secrets into `.env.local`, and run `pnpm build && pnpm start` on the target host. Share the resulting URL manually with stakeholders.
+- The `Preview Deploy` GitHub Action builds the app with pnpm, runs the deployment CLI for the configured self-hosted environment, and comments the preview URL on each pull request once the required secrets are present.【F:.github/workflows/preview.yml†L1-L52】
 - Supabase previews should reuse the same logger configuration when credentials are available; unset `LOG_DRAIN_URL` to disable forwarding for throwaway branches.
+- Attach Supabase branch database URLs to preview comments manually until Supabase Preview Branches are automated.
 
 ## 3. Incident triage tips
 - During an outage, start with the latest drain events filtered by `environment` and `requestId` to correlate with Supabase audit rows (`logAudit` writes still run for every privileged action).【F:lib/audit.ts†L1-L29】
-- If the drain is silent, verify the GitHub Action/CI logs to confirm secrets are present, then fall back to host logs while remediating the drain.
+- If the drain is silent, verify the GitHub Action/CI logs to confirm secrets are present, then fall back to the application logs while remediating the drain.
 - Keep this runbook and the QA checklist linked in release notes so on-call staff can quickly retrace logging, preview, and smoke-test steps.

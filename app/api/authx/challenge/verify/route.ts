@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { audit } from "@/lib/authx/audit";
 import { issueSessionCookies, verifyPasskey, type PasskeyVerificationPayload } from "@/lib/authx/verify";
@@ -32,7 +32,7 @@ const parsePasskeyPayload = (value: string | undefined): PasskeyVerificationPayl
   }
 };
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const context = await getUserAndProfile();
   if (!context) {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });

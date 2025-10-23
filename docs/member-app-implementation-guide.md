@@ -107,9 +107,9 @@ All endpoints reside under `/app/api`. Handlers use Zod for validation and Supab
 - **Playwright E2E** scenarios: onboarding, add SACCO, request to join, USSD payment, invite acceptance.
 - **Lighthouse CI** targeting ≥90 scores for Performance, Accessibility, and PWA categories.
 
-## 8. Deployment Checklist (Hosting)
+## 8. Deployment Checklist (Self-Hosted or Managed Platform)
 
-1. Configure Supabase service role keys and storage buckets as environment variables on the hosting platform (or via `.env` files for containerized deploys).
+1. Configure Supabase service role keys and storage buckets as environment variables in your deployment target.
 2. Ensure service worker and manifest paths are correct for production domains.
 3. Add edge function endpoints (if used) to Supabase project with proper permissions.
 4. Validate RLS policies in staging before promoting to production.

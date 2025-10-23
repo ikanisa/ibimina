@@ -4,14 +4,15 @@ import requiredEnvConfig from "../config/required-env.json" assert { type: "json
 
 const rawEnv = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
-  APP_ENV: process.env.APP_ENV ?? "local",
+  APP_ENV: process.env.APP_ENV ?? process.env.NODE_ENV ?? "development",
+  APP_REGION: process.env.APP_REGION,
+  GIT_COMMIT_SHA: process.env.GIT_COMMIT_SHA,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_BUILD_ID: process.env.NEXT_PUBLIC_BUILD_ID,
   NEXT_PUBLIC_E2E: process.env.NEXT_PUBLIC_E2E,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
   BACKUP_PEPPER: process.env.BACKUP_PEPPER,
   RATE_LIMIT_SECRET: process.env.RATE_LIMIT_SECRET,
   EMAIL_OTP_PEPPER: process.env.EMAIL_OTP_PEPPER,
@@ -50,8 +51,6 @@ const rawEnv = {
   TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM ?? "whatsapp:+14155238886",
   SITE_URL: process.env.SITE_URL,
   EDGE_URL: process.env.EDGE_URL,
-  APP_COMMIT_SHA: process.env.APP_COMMIT_SHA,
-  APP_REGION: process.env.APP_REGION,
   DISABLE_PWA: process.env.DISABLE_PWA,
   ANALYZE_BUNDLE: process.env.ANALYZE_BUNDLE,
   AUTH_E2E_STUB: process.env.AUTH_E2E_STUB,
@@ -65,6 +64,54 @@ const rawEnv = {
   PLAYWRIGHT_SUPABASE_ANON_KEY: process.env.PLAYWRIGHT_SUPABASE_ANON_KEY,
   CI: process.env.CI,
 };
+
+const isStubbedEnvironment = process.env.AUTH_E2E_STUB === "1";
+
+const stubbedDefaults = Object.freeze({
+  NEXT_PUBLIC_SUPABASE_URL: "https://stub.supabase.local",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "stub-anon-key",
+  SUPABASE_SERVICE_ROLE_KEY: "stub-service-role-key",
+  BACKUP_PEPPER: "stub-backup-pepper",
+  MFA_SESSION_SECRET: "stub-mfa-session-secret",
+  TRUSTED_COOKIE_SECRET: "stub-trusted-cookie-secret",
+  HMAC_SHARED_SECRET: "stub-hmac-shared-secret",
+  OPENAI_API_KEY: "stub-openai-api-key",
+  KMS_DATA_KEY_BASE64: "ZGV2LWttcy1kYXRhLWtleS0zMi1ieXRlcyEhISEhISE=",
+} as const);
+
+if (isStubbedEnvironment) {
+  const withFallback = (value: string | undefined, fallback: string) => {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+    return fallback;
+  };
+
+  const assignFallback = <Key extends keyof typeof stubbedDefaults>(key: Key) => {
+    const nextValue = withFallback(rawEnv[key], stubbedDefaults[key]);
+    rawEnv[key] = nextValue;
+    process.env[key] = nextValue;
+  };
+
+  assignFallback("NEXT_PUBLIC_SUPABASE_URL");
+  assignFallback("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  assignFallback("SUPABASE_SERVICE_ROLE_KEY");
+  assignFallback("BACKUP_PEPPER");
+  assignFallback("MFA_SESSION_SECRET");
+  assignFallback("TRUSTED_COOKIE_SECRET");
+  assignFallback("HMAC_SHARED_SECRET");
+  assignFallback("OPENAI_API_KEY");
+
+  const hasKmsDataKey = Boolean(rawEnv.KMS_DATA_KEY && rawEnv.KMS_DATA_KEY.trim().length > 0);
+  const hasKmsDataKeyBase64 = Boolean(
+    rawEnv.KMS_DATA_KEY_BASE64 && rawEnv.KMS_DATA_KEY_BASE64.trim().length > 0,
+  );
+
+  if (!hasKmsDataKey && !hasKmsDataKeyBase64) {
+    rawEnv.KMS_DATA_KEY_BASE64 = stubbedDefaults.KMS_DATA_KEY_BASE64;
+    process.env.KMS_DATA_KEY_BASE64 = stubbedDefaults.KMS_DATA_KEY_BASE64;
+  }
+}
 
 const optionalString = z
   .string()
@@ -80,7 +127,11 @@ const positiveNumberString = z
 const schema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]),
-    APP_ENV: z.enum(["local", "staging", "production"]),
+    APP_ENV: z
+      .enum(["development", "test", "preview", "staging", "production"])
+      .default("development"),
+    APP_REGION: optionalString,
+    GIT_COMMIT_SHA: optionalString,
     NEXT_PUBLIC_SUPABASE_URL: z
       .string({ required_error: "NEXT_PUBLIC_SUPABASE_URL is required" })
       .trim()
@@ -96,7 +147,6 @@ const schema = z
       .string({ required_error: "SUPABASE_SERVICE_ROLE_KEY is required" })
       .trim()
       .min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
-    SUPABASE_JWT_SECRET: optionalString,
     BACKUP_PEPPER: z
       .string({ required_error: "BACKUP_PEPPER is required" })
       .trim()
@@ -150,8 +200,6 @@ const schema = z
     TWILIO_WHATSAPP_FROM: z.string().trim().min(1),
     SITE_URL: optionalString,
     EDGE_URL: optionalString,
-    APP_COMMIT_SHA: optionalString,
-    APP_REGION: optionalString,
     DISABLE_PWA: optionalString,
     ANALYZE_BUNDLE: optionalString,
     AUTH_E2E_STUB: optionalString,

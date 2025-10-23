@@ -1,4 +1,6 @@
-export function GET(request: Request) {
+import { NextRequest, NextResponse } from "next/server";
+
+export function GET(request: NextRequest) {
   const redirectUrl = new URL("/icons/icon.svg", request.url);
-  return Response.redirect(redirectUrl, 308);
+  return NextResponse.redirect(redirectUrl, 308);
 }

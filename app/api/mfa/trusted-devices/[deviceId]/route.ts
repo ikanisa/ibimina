@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
@@ -7,7 +7,7 @@ type Params = {
   params: Promise<{ deviceId: string }>;
 };
 
-export async function DELETE(_: Request, { params }: Params) {
+export async function DELETE(_: NextRequest, { params }: Params) {
   const { user } = await requireUserAndProfile();
   const { deviceId } = await params;
   if (!deviceId) {

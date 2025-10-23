@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { logAudit } from "@/lib/audit";
 import { guardAdminAction } from "@/lib/admin/guard";
@@ -10,7 +10,7 @@ type ResetPayload = {
   reason: string;
 };
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const guard = await guardAdminAction(
     {
       action: "admin_mfa_reset",

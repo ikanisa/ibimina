@@ -11,7 +11,7 @@
 - **Cryptographically strong nonces**: `createNonce` now requires secure randomness via `crypto.getRandomValues` or `crypto.randomUUID`, guaranteeing CSP entropy across Node, Edge, and browser runtimes with exhaustive unit coverage.【F:lib/security/headers.ts†L63-L109】
 - **Deterministic request IDs**: Middleware emits secure UUIDs whenever clients omit `x-request-id`, ensuring traceability for structured logging and downstream drains without relying on low-entropy fallbacks.【F:middleware.ts†L1-L45】
 - **Offline auth scope hashing**: Auth scope updates abort if hashing fails, so legacy browsers never persist raw Supabase credentials; background sync resets caches instead of risking credential leakage.【F:lib/offline/sync.ts†L1-L94】【F:service-worker.js†L107-L205】
-- **Service worker versioning**: Cache namespaces incorporate the injected build identifier, automatically invalidating stale bundles during each deployment without manual version bumps.【F:service-worker.js†L1-L76】【F:next.config.ts†L1-L74】
+- **Service worker versioning**: Cache namespaces incorporate the injected build identifier, automatically invalidating stale bundles during each production deployment without manual version bumps.【F:service-worker.js†L1-L76】【F:next.config.ts†L1-L74】
 
 ### Backend & Supabase integration
 - **Session callback health**: `/auth/callback` emits structured logs, validates payloads, and fails closed when Supabase credentials are absent, avoiding silent cookie hydration failures during cold starts.【F:app/auth/callback/route.ts†L1-L88】【F:lib/supabase/config.ts†L1-L70】
@@ -63,7 +63,7 @@
 
 ## Phase 1 implementation updates
 - **Locale negotiation** now reads the persisted cookie and `Accept-Language` header to align `<html lang>` with the initial `I18nProvider` value, preventing assistive-technology mismatches during server rendering.【F:app/layout.tsx†L1-L45】【F:providers/app-providers.tsx†L1-L32】【F:providers/i18n-provider.tsx†L1-L84】【F:lib/i18n/resolve-locale.ts†L1-L45】
-- **Service worker cache busting** derives cache keys from the build identifier exposed via `NEXT_PUBLIC_BUILD_ID`, eliminating manual version bumps ahead of deployments.【F:service-worker.js†L1-L15】【F:next.config.ts†L1-L109】
+- **Service worker cache busting** derives cache keys from the build identifier exposed via `NEXT_PUBLIC_BUILD_ID`, eliminating manual version bumps ahead of production deployments.【F:service-worker.js†L1-L15】【F:next.config.ts†L1-L109】
 - **RLS regression automation** ships a Docker Compose harness and wrapper script so developers and CI can launch the Postgres fixture container with `pnpm test:rls:docker`, matching the GitHub Actions setup.【F:infra/docker/docker-compose.rls.yml†L1-L24】【F:scripts/test-rls-docker.sh†L1-L19】【F:package.json†L11-L24】
 
 ## Phase 2 implementation updates
