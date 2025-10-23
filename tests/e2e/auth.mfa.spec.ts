@@ -17,12 +17,12 @@ const ensurePepper = () => {
 
 test.describe("MFA factor facade", () => {
   test.beforeEach(async ({ request }) => {
-    await request.post("/api/__e2e/session", { data: { state: "authenticated" } });
+    await request.post("/api/e2e/session", { data: { state: "authenticated" } });
     ensurePepper();
   });
 
   test("rejects invalid TOTP tokens", async ({ request }) => {
-    const response = await request.post("/api/__e2e/factors/verify", {
+    const response = await request.post("/api/e2e/factors/verify", {
       data: {
         factor: "totp",
         token: "000000",
@@ -41,7 +41,7 @@ test.describe("MFA factor facade", () => {
     const step = currentStep();
     const token = getOtpForStep(TOTP_SECRET, step);
 
-    const response = await request.post("/api/__e2e/factors/verify", {
+    const response = await request.post("/api/e2e/factors/verify", {
       data: {
         factor: "totp",
         token,
@@ -61,7 +61,7 @@ test.describe("MFA factor facade", () => {
     const token = getOtpForStep(TOTP_SECRET, step);
     const userId = "20000000-0000-4000-8000-000000000000";
 
-    const first = await request.post("/api/__e2e/factors/verify", {
+    const first = await request.post("/api/e2e/factors/verify", {
       data: {
         factor: "totp",
         token,
@@ -71,7 +71,7 @@ test.describe("MFA factor facade", () => {
     });
     expect(first.status()).toBe(200);
 
-    const second = await request.post("/api/__e2e/factors/verify", {
+    const second = await request.post("/api/e2e/factors/verify", {
       data: {
         factor: "totp",
         token,
@@ -90,7 +90,7 @@ test.describe("MFA factor facade", () => {
     const backupCode = "ALPHA-1234";
     const hashed = hashOneTimeCode(backupCode.replace(/[^A-Z0-9]/gi, ""));
 
-    const response = await request.post("/api/__e2e/factors/verify", {
+    const response = await request.post("/api/e2e/factors/verify", {
       data: {
         factor: "backup",
         token: backupCode,

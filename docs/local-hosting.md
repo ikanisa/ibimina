@@ -35,7 +35,7 @@ pnpm build
 
 You can also leverage the Makefile helpers:
 ```bash
-make install
+make deps   # installs Caddy + Cloudflared via Homebrew (macOS)
 make build
 ```
 
@@ -49,8 +49,21 @@ PORT=3000 pnpm start
 - Ensure `/manifest.json` and `/service-worker.js` are accessible if the PWA should remain installable.
 
 The macOS scripts under `scripts/mac/` wrap Caddy and Cloudflared lifecycle commands for developers who prefer managed certificates or tunnels:
-- `scripts/mac/caddy_up.sh` / `caddy_down.sh`
-- `scripts/mac/tunnel_up.sh` / `tunnel_down.sh`
+- `scripts/mac/install_caddy_cloudflared.sh` (also invoked by `make deps`)
+- `scripts/mac/caddy_up.sh` / `caddy_down.sh` / `caddy_bg.sh`
+- `scripts/mac/tunnel_up.sh` / `tunnel_down.sh` / `tunnel_bg.sh`
+
+Makefile shortcuts are available:
+```bash
+make caddy-up      # foreground
+make caddy-bg      # background (logs under ./.logs)
+make caddy-down
+make tunnel-up     # foreground
+make tunnel-bg     # background
+make tunnel-down
+```
+
+> ℹ️ Copy `infra/cloudflared/config.yml.example` to `infra/cloudflared/config.yml` and fill in your Cloudflare tunnel ID, credentials, and hostname before starting the tunnel. The scripts will refuse to start if the config is missing or empty.
 
 ## 5. Supabase Notes
 - Keep Supabase migrations up to date (`supabase db push` or CI pipeline).

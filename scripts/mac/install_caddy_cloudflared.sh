@@ -32,6 +32,7 @@ BREWFILE_CANDIDATES+=(
   "$SCRIPT_DIR/Brewfile"
   "$REPO_ROOT/Brewfile"
   "$REPO_ROOT/Brewfile.mac"
+  "$REPO_ROOT/infra/mac/Brewfile"
 )
 
 SELECTED_BREWFILE=""
