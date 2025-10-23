@@ -12,4 +12,8 @@ ingress:
     originRequest:
       originServerName: ${ADMIN_HOSTNAME}
       http2Origin: true
+      # Caddy issues certificates from its private CA via `tls internal`. Unless you
+      # install that CA into the trust store (for example with `caddy trust`), skip
+      # verification so the tunnel can establish successfully.
+      noTLSVerify: true
   - service: http_status:404
