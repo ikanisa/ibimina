@@ -1,4 +1,5 @@
 {$ADMIN_HOSTNAME} {
+  tls internal
   encode zstd gzip
   reverse_proxy localhost:3000
   header {
