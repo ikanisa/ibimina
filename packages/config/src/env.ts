@@ -1,8 +1,74 @@
 import { Buffer } from "node:buffer";
 import { z } from "zod";
-import requiredEnvConfig from "../required-env.json" assert { type: "json" };
+import requiredEnvConfig from "../required-env.json" with { type: "json" };
 
 type ProcessEnvSource = Partial<Record<string, string | undefined>>;
+
+
+function buildRawEnv(source: ProcessEnvSource) {
+  return {
+    NODE_ENV: source.NODE_ENV ?? "development",
+    APP_ENV: source.APP_ENV ?? source.NODE_ENV ?? "development",
+    APP_REGION: source.APP_REGION,
+    GIT_COMMIT_SHA: source.GIT_COMMIT_SHA,
+    NEXT_PUBLIC_SUPABASE_URL: source.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: source.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SITE_URL: source.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_BUILD_ID: source.NEXT_PUBLIC_BUILD_ID,
+    NEXT_PUBLIC_E2E: source.NEXT_PUBLIC_E2E,
+    SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY,
+    BACKUP_PEPPER: source.BACKUP_PEPPER,
+    RATE_LIMIT_SECRET: source.RATE_LIMIT_SECRET,
+    EMAIL_OTP_PEPPER: source.EMAIL_OTP_PEPPER,
+    MFA_SESSION_SECRET: source.MFA_SESSION_SECRET,
+    TRUSTED_COOKIE_SECRET: source.TRUSTED_COOKIE_SECRET,
+    MFA_SESSION_TTL_SECONDS: source.MFA_SESSION_TTL_SECONDS ?? "43200",
+    TRUSTED_DEVICE_TTL_SECONDS: source.TRUSTED_DEVICE_TTL_SECONDS ?? "2592000",
+    MFA_RP_ID: source.MFA_RP_ID,
+    MFA_ORIGIN: source.MFA_ORIGIN,
+    MFA_RP_NAME: source.MFA_RP_NAME ?? "SACCO+",
+    MFA_EMAIL_LOCALE: source.MFA_EMAIL_LOCALE ?? "en",
+    MFA_EMAIL_FROM: source.MFA_EMAIL_FROM ?? "security@example.com",
+    ANALYTICS_CACHE_TOKEN: source.ANALYTICS_CACHE_TOKEN,
+    REPORT_SIGNING_KEY: source.REPORT_SIGNING_KEY,
+    OPENAI_API_KEY: source.OPENAI_API_KEY,
+    OPENAI_OCR_MODEL: source.OPENAI_OCR_MODEL ?? "gpt-4.1-mini",
+    OPENAI_RESPONSES_MODEL: source.OPENAI_RESPONSES_MODEL ?? "gpt-4.1-mini",
+    MAIL_FROM: source.MAIL_FROM ?? "SACCO+ <no-reply@sacco.plus>",
+    SMTP_HOST: source.SMTP_HOST,
+    SMTP_PORT: source.SMTP_PORT ?? "587",
+    SMTP_USER: source.SMTP_USER,
+    SMTP_PASS: source.SMTP_PASS,
+    LOG_DRAIN_URL: source.LOG_DRAIN_URL,
+    LOG_DRAIN_TOKEN: source.LOG_DRAIN_TOKEN,
+    LOG_DRAIN_SOURCE: source.LOG_DRAIN_SOURCE,
+    LOG_DRAIN_TIMEOUT_MS: source.LOG_DRAIN_TIMEOUT_MS ?? "2000",
+    LOG_DRAIN_ALERT_WEBHOOK: source.LOG_DRAIN_ALERT_WEBHOOK,
+    LOG_DRAIN_ALERT_TOKEN: source.LOG_DRAIN_ALERT_TOKEN,
+    LOG_DRAIN_ALERT_COOLDOWN_MS: source.LOG_DRAIN_ALERT_COOLDOWN_MS ?? "300000",
+    LOG_DRAIN_SILENT: source.LOG_DRAIN_SILENT,
+    HMAC_SHARED_SECRET: source.HMAC_SHARED_SECRET,
+    KMS_DATA_KEY: source.KMS_DATA_KEY,
+    KMS_DATA_KEY_BASE64: source.KMS_DATA_KEY_BASE64,
+    TWILIO_ACCOUNT_SID: source.TWILIO_ACCOUNT_SID,
+    TWILIO_AUTH_TOKEN: source.TWILIO_AUTH_TOKEN,
+    TWILIO_WHATSAPP_FROM: source.TWILIO_WHATSAPP_FROM ?? "whatsapp:+14155238886",
+    SITE_URL: source.SITE_URL,
+    EDGE_URL: source.EDGE_URL,
+    DISABLE_PWA: source.DISABLE_PWA,
+    ANALYZE_BUNDLE: source.ANALYZE_BUNDLE,
+    AUTH_E2E_STUB: source.AUTH_E2E_STUB,
+    E2E_BACKUP_PEPPER: source.E2E_BACKUP_PEPPER,
+    E2E_MFA_SESSION_SECRET: source.E2E_MFA_SESSION_SECRET,
+    E2E_TRUSTED_COOKIE_SECRET: source.E2E_TRUSTED_COOKIE_SECRET,
+    E2E_RATE_LIMIT_SECRET: source.E2E_RATE_LIMIT_SECRET,
+    E2E_KMS_DATA_KEY: source.E2E_KMS_DATA_KEY,
+    PLAYWRIGHT_BASE_URL: source.PLAYWRIGHT_BASE_URL,
+    PLAYWRIGHT_SUPABASE_URL: source.PLAYWRIGHT_SUPABASE_URL,
+    PLAYWRIGHT_SUPABASE_ANON_KEY: source.PLAYWRIGHT_SUPABASE_ANON_KEY,
+    CI: source.CI,
+  } as Record<string, string | undefined>;
+}
 
 const optionalString = z
   .string()
@@ -232,7 +298,8 @@ function prepareServerEnv(parsedEnv: RawEnv) {
 }
 
 function loadRawEnv(source: ProcessEnvSource): RawEnv {
-  const envWithFallbacks = withStubFallbacks(source);
+  const base = buildRawEnv(source);
+  const envWithFallbacks = withStubFallbacks(base);
 
   try {
     return schema.parse(envWithFallbacks);

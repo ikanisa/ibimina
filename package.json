@@ -9,5 +9,10 @@
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
     "start": "pnpm --filter @ibimina/admin run start"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "ts-node": "^10.9.1",
+    "@types/node": "20.19.21"
   }
 }

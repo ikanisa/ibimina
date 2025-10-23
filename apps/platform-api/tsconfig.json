@@ -3,11 +3,13 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "module": "commonjs",
+    "module": "esnext",
     "noEmit": false,
     "types": [
       "node"
-    ]
+    ],
+    "moduleResolution": "node",
+    "baseUrl": "."
   },
   "include": [
     "src/**/*"

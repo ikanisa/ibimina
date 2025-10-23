@@ -4,10 +4,10 @@ export {
   requiredServerEnv,
   atLeastOneServerEnv,
   loadServerEnv,
-} from "./env";
+} from "./env.js";
 export type {
   ServerEnv,
   ClientEnv,
   RequiredServerEnvGroups,
   RawEnv,
-} from "./env";
+} from "./env.js";

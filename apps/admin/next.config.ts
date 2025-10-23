@@ -79,6 +79,7 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
   },
   poweredByHeader: false,
+  transpilePackages: ['@ibimina/config'],
   modularizeImports: {
     "lucide-react": {
       transform: "lucide-react/dist/esm/icons/{{member}}",
