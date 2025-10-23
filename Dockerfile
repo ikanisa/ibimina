@@ -1,57 +1,34 @@
-ARG NEXT_PUBLIC_SUPABASE_URL
-ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
-ARG SUPABASE_SERVICE_ROLE_KEY
-ARG OPENAI_API_KEY
-ARG OPENAI_RESPONSES_MODEL
-
-FROM node:20-bookworm-slim AS deps
+# ---- Build stage ----
+FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
 
-FROM node:20-bookworm-slim AS builder
-WORKDIR /app
-ENV NODE_ENV=production
-ARG NEXT_PUBLIC_SUPABASE_URL
-ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
-ARG SUPABASE_SERVICE_ROLE_KEY
-ARG OPENAI_API_KEY
-ARG OPENAI_RESPONSES_MODEL
-ENV NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-ENV SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-ENV OPENAI_API_KEY=${OPENAI_API_KEY}
-ENV OPENAI_RESPONSES_MODEL=${OPENAI_RESPONSES_MODEL}
-COPY --from=deps /app/node_modules ./node_modules
+# Corepack + pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+# Copy manifests first (better caching)
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Copy source
 COPY . .
-RUN npm run build
 
-FROM node:20-bookworm-slim AS prod-deps
+# Ensure standalone output for simple runtime
+# (also set this in next.config.[jt]s: output: 'standalone')
+RUN pnpm build
+
+# ---- Runtime stage ----
+FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
-COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
-
-FROM node:20-bookworm-slim AS runner
-WORKDIR /app
-ENV NODE_ENV=production
+# Prevent Next telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
-ARG NEXT_PUBLIC_SUPABASE_URL
-ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
-ARG SUPABASE_SERVICE_ROLE_KEY
-ARG OPENAI_API_KEY
-ARG OPENAI_RESPONSES_MODEL
-ENV NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-ENV SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-ENV OPENAI_API_KEY=${OPENAI_API_KEY}
-ENV OPENAI_RESPONSES_MODEL=${OPENAI_RESPONSES_MODEL}
-EXPOSE 3000
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
+
+# Copy standalone server and assets
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY package.json package-lock.json ./
-COPY next.config.ts ./next.config.ts
-COPY service-worker.js ./service-worker.js
-CMD ["npm", "run", "start"]
+
+# The standalone server exposes a server.js entry
+EXPOSE 3000
+# Make sure your next.config sets runtime: 'nodejs' for any routes
+CMD ["node", "server.js"]

@@ -1,4 +1,4 @@
-.PHONY: deps build start admin caddy-up caddy-bg caddy-down tunnel-up tunnel-bg tunnel-down
+.PHONY: deps build start admin deps-cloudflare tunnel-up tunnel-bg tunnel-down caddy-up caddy-bg caddy-down
 
 deps:
 	./scripts/install.sh
@@ -13,20 +13,22 @@ admin:
 	$(MAKE) build
 	$(MAKE) start
 
-caddy-up:
-	./scripts/caddy-up.sh
-
-caddy-bg:
-	./scripts/caddy-bg.sh
-
-caddy-down:
-	./scripts/caddy-down.sh
+deps-cloudflare:
+	./scripts/mac/install_cloudflared.sh
 
 tunnel-up:
-	./scripts/tunnel-up.sh
+	./scripts/mac/tunnel_up.sh
 
 tunnel-bg:
-	./scripts/tunnel-bg.sh
+	./scripts/mac/tunnel_bg.sh
 
 tunnel-down:
-	./scripts/tunnel-down.sh
+	./scripts/mac/tunnel_down.sh
+
+caddy-up:
+	docker compose up -d caddy
+
+caddy-bg: caddy-up
+
+caddy-down:
+	docker compose rm -sf caddy

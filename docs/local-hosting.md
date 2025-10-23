@@ -4,12 +4,12 @@ This guide documents how to run Ibimina end-to-end on a MacBook (or similar Node
 
 ## 1. Prerequisites
 - **Node.js 20.x** (see `.nvmrc` for the recommended version).
-- **pnpm 9+** (`corepack enable pnpm` will activate the correct toolchain).
+- **pnpm 10+** (`corepack enable pnpm` will activate the correct toolchain).
 - Access to the staging/production Supabase project (service role + anon keys) and OpenAI credentials.
 - Optional: [Caddy + Cloudflared helpers](../scripts/mac/) if you want to expose the service via a reverse proxy or tunnel.
 
 ## 2. Environment Configuration
-1. Copy `.env.example` to `.env.local` (gitignored).
+1. Copy `.env.example` to `.env.local` (gitignored). For Docker/Caddy usage, duplicate `.env.template` to `.env` in the repo root so `docker compose` picks it up.
 2. Populate required secrets:
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (and `SUPABASE_JWT_SECRET` if you validate Supabase JWTs)
@@ -48,9 +48,10 @@ PORT=3000 pnpm start
 - Verify readiness with `curl http://localhost:3000/api/healthz` (confirm `buildId`, `environment`, `timestamp`).
 - Ensure `/manifest.json` and `/service-worker.js` are accessible if the PWA should remain installable.
 
-The macOS scripts under `scripts/mac/` wrap Caddy and Cloudflared lifecycle commands for developers who prefer managed certificates or tunnels:
-- `scripts/mac/caddy_up.sh` / `caddy_down.sh`
-- `scripts/mac/tunnel_up.sh` / `tunnel_down.sh`
+The Makefile exposes helper targets for wrapping Caddy (via Docker) and Cloudflared lifecycle commands:
+- `make caddy-up` / `make caddy-down`
+- `make tunnel-up` / `make tunnel-down`
+- `make deps-cloudflare` installs the Cloudflared binary on macOS via Homebrew.
 
 ## 5. Supabase Notes
 - Keep Supabase migrations up to date (`supabase db push` or CI pipeline).

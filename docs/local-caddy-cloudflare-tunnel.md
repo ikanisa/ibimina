@@ -1,120 +1,163 @@
 # Local Caddy + Cloudflare Tunnel Guide (macOS)
 
-This guide focuses on macOS developer workstations. Linux usage is out of scope for now (see [Future Work](#future-work)).
+This guide walks through running the Ibimina admin locally behind Caddy and a Cloudflare Tunnel. It assumes you are on macOS with Docker Desktop installed and have access to the Cloudflare zone that owns the admin domain.
 
 ## Prerequisites
 
 - macOS 13 or later with Homebrew installed.
-- `pnpm` (see `README.md` for installation steps) and project dependencies.
-- Access to the Cloudflare account that owns the target zone.
+- Docker Desktop (or another Docker engine) running.
+- `pnpm` (see `README.md` for setup instructions) and project dependencies.
+- Access to the Cloudflare account that owns `admin.sacco-plus.com` (or your target hostname).
 - Supabase project administrator access.
-- Cloudflare Access (Zero Trust) seat provisioned for all local operators.
-- Optional: `direnv` or `chezmoi` for managing environment variables securely.
+- Cloudflare Access (Zero Trust) seat provisioned for every operator.
 
 ## Install Dependencies
 
-Run the consolidated dependency bootstrapper before any local zero-trust work:
+Install the JavaScript toolchain as usual:
 
 ```bash
-make deps
+pnpm install --frozen-lockfile
 ```
 
-This target installs Homebrew formulas, Node toolchains, Caddy, and Cloudflare Tunnel binaries where required. If you encounter missing tools, re-run `make deps` before opening an issue.
-
-## Environment Variables
-
-Add the following secrets to your local environment manager (`.env.local`, `direnv`, etc.). Replace the placeholder values before use.
+Then install Cloudflared via Homebrew:
 
 ```bash
-export CLOUDFLARE_ACCOUNT_ID="cf-acc-xxxxxxxxxxxx"
-export CLOUDFLARE_TUNNEL_ID="cf-tunnel-xxxxxxxxxxxx"
-export CLOUDFLARE_TUNNEL_SECRET="base64-encoded-secret"
-export CLOUDFLARE_API_TOKEN="cf-api-token-with-tunnel-scope"
-export SUPABASE_SERVICE_ROLE_KEY="supabase-service-role-key"
-export SUPABASE_PROJECT_URL="https://your-project.supabase.co"
+make deps-cloudflare
 ```
 
-Never commit these secrets. Gate sharing through Cloudflare Access to maintain the zero-trust posture.
+The script prints next steps for authenticating Cloudflared with your Cloudflare account.
 
-## Caddy and Cloudflare Tunnel Scripts
+## Environment Files
 
-The repository ships convenience scripts in `scripts/`:
+Prepare runtime configuration for both Next.js and Docker:
 
-- `scripts/caddy-local.sh` – starts Caddy with the local reverse-proxy config.
-- `scripts/cf-tunnel-local.sh` – launches the Cloudflare Tunnel using the env vars above.
+```bash
+cp .env.example .env.local         # Next.js local overrides (gitignored)
+cp .env.template .env              # Docker Compose + Caddy runtime
+```
 
-Each script honors the `LOG_LEVEL` environment variable for debugging output.
+Populate the Supabase keys and any other required secrets before building.
+
+Next configure Cloudflared:
+
+```bash
+cp infra/cloudflared/config.yml.example infra/cloudflared/config.yml
+```
+
+Edit the new `config.yml` so that:
+
+- `credentials-file` points to the JSON emitted by `cloudflared login` (usually `~/.cloudflared/<UUID>.json`).
+- `hostname` matches the Cloudflare Access hostname you plan to expose (e.g., `admin.sacco-plus.com`).
+
+## Lifecycle Commands
+
+Docker Compose runs both the Next.js standalone server and Caddy reverse proxy:
+
+```bash
+docker compose up -d --build
+```
+
+The Makefile exposes helper targets for Cloudflared and Caddy:
+
+- `make caddy-up` / `make caddy-down` start or stop the Caddy container.
+- `make tunnel-up` starts Cloudflared in the foreground (Ctrl+C to stop).
+- `make tunnel-bg` / `make tunnel-down` manage Cloudflared in the background and store logs under `.logs/`.
 
 ### Foreground Usage
 
-1. Ensure secrets are exported.
-2. Start the tunnel in one terminal:
+1. Start the app stack:
    ```bash
-   scripts/cf-tunnel-local.sh
+   docker compose up -d --build
    ```
-3. Start Caddy in a second terminal:
+2. Launch Cloudflared in the foreground:
    ```bash
-   scripts/caddy-local.sh
+   make tunnel-up
    ```
-4. Visit the Cloudflare-access-protected hostname to confirm the Access login prompt appears.
+3. Visit `https://admin.sacco-plus.com` (or your hostname). Cloudflare Access should prompt for authentication before proxying traffic to the local Caddy instance.
 
 ### Background Usage
 
-Use the Makefile targets to supervise the services via `tmux` or `launchctl` (macOS specific):
+Prefer the tunnel in the background?
 
 ```bash
-make tunnel-up
-make caddy-up
+docker compose up -d --build
+make tunnel-bg
 ```
 
-Logs stream to `./logs/tunnel.log` and `./logs/caddy.log`. Stop background tasks with `make tunnel-down` and `make caddy-down`.
+Logs live in `.logs/cloudflared.out`. Stop the tunnel with `make tunnel-down` when finished.
+
+### Optional: Run Cloudflared via Docker Compose
+
+Prefer to keep everything inside Docker? Add this service to `docker-compose.yml`:
+
+```yaml
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: admin-cloudflared
+    restart: unless-stopped
+    command: tunnel --config /etc/cloudflared/config.yml run
+    volumes:
+      - ./infra/cloudflared/config.yml:/etc/cloudflared/config.yml:ro
+      - ~/.cloudflared/:/root/.cloudflared/:ro
+    depends_on:
+      - caddy
+    networks: [web]
+```
+
+Run `cloudflared login` once on the host to mint the credentials JSON under `~/.cloudflared/…`. Afterwards you can manage the tunnel like any other Compose service:
+
+```bash
+docker compose up -d cloudflared
+docker compose logs -f cloudflared
+docker compose rm -sf cloudflared
+```
 
 ## Cloudflare Access Configuration
 
-1. Navigate to **Zero Trust → Access → Applications**.
-2. Create (or update) an application for the local hostname (e.g., `local.ibimina.dev`).
-3. Require SSO with the team IdP and enforce device posture checks.
-4. Add a new **Service Auth** rule referencing the `CLOUDFLARE_TUNNEL_ID` so only the local tunnel can reach the origin.
+Create a self-hosted application in Cloudflare Zero Trust before sharing the URL:
+
+1. **Zero Trust → Access → Applications → Add application → Self-hosted**.
+2. Application name: **SACCO Admin** (or your preferred label).
+3. Application domain: **admin.sacco-plus.com**.
+4. Session duration: **24 hours** (adjust as needed).
+5. In the Policies tab, add an Allow policy:
+   - Name: `Allow-Staff`
+   - Include: Emails → `*@ikanisa.com`
+   - (Optional) Require device posture, such as `Is Managed`.
+   - (Optional) Exclude additional emails if you need to block specific accounts.
+
+Save the policy so only authorized staff can access the tunnel.
 
 ## Supabase CORS Updates
 
-Update the Supabase project settings:
+In the Supabase dashboard (**Authentication → URL Configuration**):
 
-1. In the Supabase dashboard, open **Authentication → URL Configuration**.
-2. Add the tunneled hostname (e.g., `https://local.ibimina.dev`) to the **Redirect URLs** and **Additional Redirect URLs** lists.
-3. Under **Auth → Config → Allowed CORS Origins**, add the same hostname.
-4. Save changes. Propagation typically takes <1 minute.
+1. Add `https://admin.sacco-plus.com` to **Redirect URLs** and **Allowed Origins**.
+2. Keep your local URLs (e.g., `http://localhost:3000`) for development.
 
-## Health Checks
+## Quick Health Checklist
 
-- `scripts/cf-tunnel-local.sh --status` returns Cloudflare Tunnel diagnostics.
-- `scripts/caddy-local.sh --status` verifies the local Caddy instance is healthy.
-- `curl -I https://local.ibimina.dev/healthz` should return `200 OK` when both services run correctly.
+- `http://localhost:3000` – direct Next.js standalone server.
+- `http://localhost:8080` – Caddy reverse proxy.
+- `docker compose logs -f admin` / `docker compose logs -f caddy` – runtime diagnostics.
+- `https://admin.sacco-plus.com` – Cloudflare-tunneled access (prompts for Access login first).
 
 ## Stopping Services
-
-Foreground sessions can be stopped with `Ctrl+C`.
-
-For background sessions, run:
 
 ```bash
 make tunnel-down
 make caddy-down
+docker compose down
 ```
 
-These targets terminate processes and clean up PID files under `./tmp/`.
+Alternatively, stop all containers with `docker compose down` first and then terminate Cloudflared with `make tunnel-down`.
 
-## Rollback / Cleanup
+## Cleanup Checklist
 
-To return to a pre-tunnel state:
+1. Stop the tunnel (`make tunnel-down`).
+2. Remove containers (`docker compose down`).
+3. Revoke the Cloudflared credentials if the tunnel is no longer needed.
+4. Remove the tunneled hostname from Supabase CORS entries if you are decommissioning access.
+5. Delete any temporary `.env` files that contain secrets you no longer require.
 
-1. Stop background jobs (`make tunnel-down`, `make caddy-down`).
-2. Revoke the `CLOUDFLARE_TUNNEL_SECRET` via the Cloudflare dashboard.
-3. Remove any temporary Supabase CORS entries.
-4. Delete local config overrides (e.g., `.env.local`, `~/Library/LaunchAgents/local.caddy.plist`).
-5. Re-run `make deps` if you need to reinstall stable binaries after cleanup.
-
-## Future Work (Linux)
-
-Document a systemd-based workflow for Debian/Ubuntu hosts, including `systemd` unit files, `apt` package requirements, and SELinux notes. This remains TODO.
-
+Stay mindful that service-role keys must remain server-side only; never expose them to the browser or commit them to git.

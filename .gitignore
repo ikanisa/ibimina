@@ -23,6 +23,7 @@ yarn-error.log*
 # Environment
 .env*
 !.env.example
+!.env.template
 
 # TypeScript
 *.tsbuildinfo
@@ -36,3 +37,7 @@ supabase/.temp
 
 # Playwright artifacts
 test-results/
+
+# Cloudflare/Caddy local runtime
+infra/cloudflared/config.yml
+infra/cloudflared/credentials/
