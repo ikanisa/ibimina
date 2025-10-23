@@ -33,7 +33,12 @@ check_dependency() {
 check_dependency "cloudflared" "Install it with 'brew install cloudflare/cloudflare/cloudflared'."
 
 if [[ ! -f "$CONFIG" ]]; then
-  err "Cloudflared config not found at '$CONFIG'. Set CLOUDFLARED_CONFIG or pass the path as the first argument."
+  example_path="$REPO_ROOT/infra/cloudflared/config.yml.example"
+  if [[ -f "$example_path" ]]; then
+    err "Cloudflared config not found at '$CONFIG'. Copy '$example_path' to '$CONFIG' and fill in your tunnel credentials, or set CLOUDFLARED_CONFIG to point at a custom file."
+  else
+    err "Cloudflared config not found at '$CONFIG'. Set CLOUDFLARED_CONFIG or pass the path as the first argument."
+  fi
   exit 1
 fi
 

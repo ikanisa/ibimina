@@ -54,4 +54,4 @@ if [[ -f "$PID_FILE" ]]; then
 fi
 
 printf "Starting Caddy with config %s\n" "$CONFIG"
-exec caddy run --config "$CONFIG" "$@"
+ADMIN_HOSTNAME="${ADMIN_HOSTNAME:-admin.127.0.0.1.nip.io}" exec caddy run --config "$CONFIG" "$@"

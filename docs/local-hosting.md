@@ -35,22 +35,35 @@ pnpm build
 
 You can also leverage the Makefile helpers:
 ```bash
-make install
+make deps   # installs Caddy + Cloudflared via Homebrew (macOS)
 make build
 ```
 
 ## 4. Start the Service
 ```bash
-PORT=3000 pnpm start
+make local-up    # starts Next.js + Caddy in background
+# when finished: make local-down
 ```
-- The script runs `next start -H 0.0.0.0 -p ${PORT:-3000}`.
-- Attach a reverse proxy (e.g., nginx/Caddy) if exposing to the network; otherwise, hit `http://localhost:3000`.
+- This uses the macOS helpers to run Next.js and Caddy with sensible defaults.
 - Verify readiness with `curl http://localhost:3000/api/healthz` (confirm `buildId`, `environment`, `timestamp`).
 - Ensure `/manifest.json` and `/service-worker.js` are accessible if the PWA should remain installable.
 
 The macOS scripts under `scripts/mac/` wrap Caddy and Cloudflared lifecycle commands for developers who prefer managed certificates or tunnels:
-- `scripts/mac/caddy_up.sh` / `caddy_down.sh`
-- `scripts/mac/tunnel_up.sh` / `tunnel_down.sh`
+- `scripts/mac/install_caddy_cloudflared.sh` (also invoked by `make deps`)
+- `scripts/mac/caddy_up.sh` / `caddy_down.sh` / `caddy_bg.sh`
+- `scripts/mac/tunnel_up.sh` / `tunnel_down.sh` / `tunnel_bg.sh`
+
+Makefile shortcuts are available:
+```bash
+make caddy-up      # foreground
+make caddy-bg      # background (logs under ./.logs) — HTTPS on :8443
+make caddy-down
+make tunnel-up     # foreground
+make tunnel-bg     # background
+make tunnel-down
+```
+
+> ℹ️ Copy `infra/cloudflared/config.yml.example` to `infra/cloudflared/config.yml` and fill in your Cloudflare tunnel ID, credentials, and hostname before starting the tunnel. The scripts will refuse to start if the config is missing or empty. Cloudflared is configured to route to `https://localhost:8443` (Caddy).
 
 ## 5. Supabase Notes
 - Keep Supabase migrations up to date (`supabase db push` or CI pipeline).

@@ -10,13 +10,13 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
 
 async function setSession(request: APIRequestContext, page: Page, state: SessionState) {
   if (state === "anonymous") {
-    await request.delete("/api/__e2e/session");
+    await request.delete("/api/e2e/session");
     // Clear cookie from browser context as well
     await page.context().clearCookies();
     return;
   }
 
-  await request.post("/api/__e2e/session", { data: { state } });
+  await request.post("/api/e2e/session", { data: { state } });
   // Mirror the stub cookie into the browser context so server components
   // see an authenticated session on navigations.
   await page.context().addCookies([

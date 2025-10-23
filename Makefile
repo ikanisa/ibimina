@@ -1,7 +1,7 @@
-.PHONY: deps build start admin caddy-up caddy-bg caddy-down tunnel-up tunnel-bg tunnel-down
+.PHONY: deps build start admin caddy-up caddy-bg caddy-down tunnel-up tunnel-bg tunnel-down next-bg next-down local-up local-down local-status
 
 deps:
-	./scripts/install.sh
+	./scripts/mac/install_caddy_cloudflared.sh
 
 build:
 	pnpm run build
@@ -14,19 +14,36 @@ admin:
 	$(MAKE) start
 
 caddy-up:
-	./scripts/caddy-up.sh
+	./scripts/mac/caddy_up.sh
 
 caddy-bg:
-	./scripts/caddy-bg.sh
+	./scripts/mac/caddy_bg.sh
 
 caddy-down:
-	./scripts/caddy-down.sh
+	./scripts/mac/caddy_down.sh
 
 tunnel-up:
-	./scripts/tunnel-up.sh
+	./scripts/mac/tunnel_up.sh
 
 tunnel-bg:
-	./scripts/tunnel-bg.sh
+	./scripts/mac/tunnel_bg.sh
 
 tunnel-down:
-	./scripts/tunnel-down.sh
+	./scripts/mac/tunnel_down.sh
+
+next-bg:
+	./scripts/mac/next_bg.sh
+
+next-down:
+	./scripts/mac/next_down.sh
+
+local-up:
+	$(MAKE) next-bg
+	$(MAKE) caddy-bg
+
+local-down:
+	-$(MAKE) caddy-down
+	-$(MAKE) next-down
+
+local-status:
+	@echo "Ports in use:" && (lsof -iTCP:3000 -sTCP:LISTEN -Pn || true) && (lsof -iTCP:443 -sTCP:LISTEN -Pn || true)

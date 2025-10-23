@@ -1,4 +1,4 @@
-{$ADMIN_HOSTNAME} {
+{$ADMIN_HOSTNAME}:8443 {
   tls internal
   encode zstd gzip
   reverse_proxy localhost:3000
