@@ -1,0 +1,3 @@
+# Homebrew Bundle file for macOS infrastructure tools
+brew "caddy"
+brew "cloudflared"
