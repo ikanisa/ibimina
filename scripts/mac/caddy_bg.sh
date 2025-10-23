@@ -63,7 +63,8 @@ info "Starting Caddy in the background using $CONFIG"
   printf "\n[%s] Starting Caddy with config %s\n" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$CONFIG"
 } >>"$LOG_FILE"
 
-caddy run --config "$CONFIG" "$@" >>"$LOG_FILE" 2>&1 &
+ADMIN_HOSTNAME="${ADMIN_HOSTNAME:-admin.127.0.0.1.nip.io}" \
+  caddy run --config "$CONFIG" "$@" >>"$LOG_FILE" 2>&1 &
 PID=$!
 sleep 1
 if ! kill -0 "$PID" >/dev/null 2>&1; then

@@ -56,14 +56,14 @@ The macOS scripts under `scripts/mac/` wrap Caddy and Cloudflared lifecycle comm
 Makefile shortcuts are available:
 ```bash
 make caddy-up      # foreground
-make caddy-bg      # background (logs under ./.logs)
+make caddy-bg      # background (logs under ./.logs) — HTTPS on :8443
 make caddy-down
 make tunnel-up     # foreground
 make tunnel-bg     # background
 make tunnel-down
 ```
 
-> ℹ️ Copy `infra/cloudflared/config.yml.example` to `infra/cloudflared/config.yml` and fill in your Cloudflare tunnel ID, credentials, and hostname before starting the tunnel. The scripts will refuse to start if the config is missing or empty.
+> ℹ️ Copy `infra/cloudflared/config.yml.example` to `infra/cloudflared/config.yml` and fill in your Cloudflare tunnel ID, credentials, and hostname before starting the tunnel. The scripts will refuse to start if the config is missing or empty. Cloudflared is configured to route to `https://localhost:8443` (Caddy).
 
 ## 5. Supabase Notes
 - Keep Supabase migrations up to date (`supabase db push` or CI pipeline).

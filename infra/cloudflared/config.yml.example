@@ -8,7 +8,7 @@ tag: ${DEPLOYMENT_TAG:-local}
 
 ingress:
   - hostname: ${ADMIN_HOSTNAME}
-    service: https://localhost:443
+    service: https://localhost:8443
     originRequest:
       originServerName: ${ADMIN_HOSTNAME}
       http2Origin: true
