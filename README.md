@@ -167,19 +167,16 @@ curl -X POST \
 
 ## Scripts
 
-- `npm run dev` – start the dev server on port 3000
-- `npm run build` – production build with PWA bundling
-- `npm run start` – serve the built app on port 3000 (127.0.0.1)
-- `npm run lint` – lint the project
-- `npm run typecheck` – run TypeScript without emitting files
-- `npm run check:lighthouse` – open a Lighthouse report against localhost
-- `npm run analyze:pwa` – run Lighthouse PWA checks against `https://localhost:3000`
-- `npm run verify:pwa` – validate manifest/head/service worker and probe `/api/health`
-- `npm run check:i18n` – ensure en/rw/fr have matching keys
-- `npm run check:i18n:consistency` – enforce canonical glossary terms across locales
-- `npm run fix:i18n` – backfill missing rw/fr keys from en (flat keys)
- 
+- `pnpm dev` – start the dev server on port 3000
+- `pnpm build` – production build with PWA bundling
+- `pnpm start` – serve the built app on port 3000 (respects `PORT`)
+- `pnpm lint` – lint the project
+- `pnpm typecheck` – run TypeScript without emitting files
+- `pnpm check:lighthouse` – open a Lighthouse report against localhost
+- `pnpm analyze:pwa` – run Lighthouse PWA checks against `https://localhost:3000`
+- `pnpm verify:pwa` – validate manifest/head/service worker and probe `/api/health`
+- `pnpm check:i18n` – ensure en/rw/fr have matching keys
+- `pnpm check:i18n:consistency` – enforce canonical glossary terms across locales
+- `pnpm fix:i18n` – backfill missing rw/fr keys from en (flat keys)
 
 Deployments run through your self-hosted CI/CD pipeline; push changes when you’re ready to release to your local or on-prem infrastructure.
-
- 

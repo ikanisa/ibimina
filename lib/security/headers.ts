@@ -1,3 +1,5 @@
+import { getRuntimeConfig } from "../../src/lib/runtime-config";
+
 type DirectiveMap = Record<string, string[]>;
 
 const runtimeCrypto = globalThis.crypto;
@@ -17,6 +19,14 @@ const baseDirectives: DirectiveMap = {
   "media-src": ["'self'"],
   "object-src": ["'none'"],
 };
+
+const runtimeConfig = (() => {
+  try {
+    return getRuntimeConfig();
+  } catch {
+    return null;
+  }
+})();
 
 const staticSecurityHeaders: ReadonlyArray<{ key: string; value: string }> = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -52,6 +62,16 @@ if (supabaseUrl) {
     baseDirectives["img-src"].push(`${origin}/storage/v1/object/public`);
   } catch (error) {
     console.warn("Invalid NEXT_PUBLIC_SUPABASE_URL provided for CSP", error);
+  }
+}
+
+if (runtimeConfig?.siteUrl) {
+  try {
+    const { origin } = new URL(runtimeConfig.siteUrl);
+    baseDirectives["connect-src"].push(origin);
+    baseDirectives["img-src"].push(origin);
+  } catch (error) {
+    console.warn("Invalid siteUrl provided in runtime config for CSP allowlist", error);
   }
 }
 

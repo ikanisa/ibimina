@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-
+import { getRuntimeConfig } from "../../src/lib/runtime-config";
 interface LogContext {
   requestId?: string;
   userId?: string | null;
@@ -29,7 +29,11 @@ const DEFAULT_ALERT_COOLDOWN_MS = 5 * 60 * 1000;
 let lastLogDrainAlertAt: number | null = null;
 
 function getEnvironmentLabel(): string {
-  return process.env.APP_ENV ?? process.env.NODE_ENV ?? "development";
+  try {
+    return getRuntimeConfig().environment;
+  } catch {
+    return process.env.APP_ENV ?? process.env.NODE_ENV ?? "development";
+  }
 }
 
 function normalize(value: unknown): unknown {
