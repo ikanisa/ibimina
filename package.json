@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
+    "start": "./scripts/start.sh",
     "lint": "pnpm exec eslint --max-warnings=0 .",
     "typecheck": "pnpm exec tsc -p tsconfig.json --noEmit",
     "check:i18n": "node scripts/check-i18n.mjs",
