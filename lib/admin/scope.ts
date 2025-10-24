@@ -5,9 +5,12 @@ export interface TenantScope {
   includeAll: boolean;
 }
 
+export type TenantSearchParams = Record<string, string | string[] | undefined>;
+export type TenantScopeSearchParams = TenantSearchParams | URLSearchParams;
+
 export function resolveTenantScope(
   profile: ProfileRow,
-  searchParams?: Record<string, string | string[] | undefined> | URLSearchParams,
+  searchParams?: TenantScopeSearchParams,
 ): TenantScope {
   const raw = isUrlSearchParams(searchParams)
     ? searchParams.get("sacco")
@@ -39,4 +42,31 @@ function valueFromRecord(value: unknown): string | null {
     return typeof first === "string" ? first : null;
   }
   return null;
+}
+
+export function normalizeTenantSearchParams(
+  searchParams?: TenantScopeSearchParams,
+): TenantSearchParams | undefined {
+  if (!searchParams) {
+    return undefined;
+  }
+
+  if (isUrlSearchParams(searchParams)) {
+    const result: Record<string, string | string[]> = {};
+    for (const [key, value] of searchParams.entries()) {
+      if (!Object.prototype.hasOwnProperty.call(result, key)) {
+        result[key] = value;
+        continue;
+      }
+      const existing = result[key];
+      if (Array.isArray(existing)) {
+        existing.push(value);
+      } else {
+        result[key] = [existing, value];
+      }
+    }
+    return result as TenantSearchParams;
+  }
+
+  return searchParams;
 }

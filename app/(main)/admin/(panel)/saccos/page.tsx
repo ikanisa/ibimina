@@ -6,19 +6,25 @@ import { FinancialInstitutionManager } from "@/components/admin/financial-instit
 import { MomoCodeTable } from "@/components/admin/momo-code-table";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  normalizeTenantSearchParams,
+  resolveTenantScope,
+  type TenantScopeSearchParams,
+} from "@/lib/admin/scope";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { Trans } from "@/components/common/trans";
 import type { Database } from "@/lib/supabase/types";
 import type { SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
 
 interface SaccosPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
 }
 
 export default async function SaccosPage({ searchParams }: SaccosPageProps) {
   const { profile } = await requireUserAndProfile();
-  const scope = resolveTenantScope(profile, searchParams);
+  const rawSearchParams = searchParams ? await searchParams : undefined;
+  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = await createSupabaseServerClient();
 
   let saccoQuery = supabase
