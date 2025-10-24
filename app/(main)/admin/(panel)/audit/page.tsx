@@ -9,13 +9,13 @@ import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import {
-  normalizeTenantSearchParams,
   resolveTenantScope,
-  type TenantScopeSearchParams,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
 } from "@/lib/admin/scope";
 
 interface AuditPageProps {
-  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 type AuditRow = {
@@ -31,8 +31,7 @@ type AuditRow = {
 export default async function AuditPage({ searchParams }: AuditPageProps) {
   const { profile } = await requireUserAndProfile();
   const supabase = await createSupabaseServerClient();
-  const rawSearchParams = searchParams ? await searchParams : undefined;
-  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
   const scope = resolveTenantScope(profile, resolvedSearchParams);
 
   const filters: AuditFiltersState = {

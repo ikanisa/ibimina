@@ -7,13 +7,13 @@ import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient, supabaseSrv } from "@/lib/supabase/server";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import {
-  normalizeTenantSearchParams,
   resolveTenantScope,
-  type TenantScopeSearchParams,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
 } from "@/lib/admin/scope";
 
 interface OcrPageProps {
-  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 type ProfileRow = {
@@ -37,8 +37,7 @@ type MemberRow = {
 export default async function OcrPage({ searchParams }: OcrPageProps) {
   const { profile } = await requireUserAndProfile();
   const supabase = await createSupabaseServerClient();
-  const rawSearchParams = searchParams ? await searchParams : undefined;
-  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
   const scope = resolveTenantScope(profile, resolvedSearchParams);
 
   const { data: profileRows, error: profileError } = await supabase

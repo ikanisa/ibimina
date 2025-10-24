@@ -1,3 +1,4 @@
+import type { ReadonlyURLSearchParams } from "next/navigation";
 import type { ProfileRow } from "@/lib/auth";
 
 export interface TenantScope {
@@ -6,15 +7,21 @@ export interface TenantScope {
 }
 
 export type TenantSearchParams = Record<string, string | string[] | undefined>;
-export type TenantScopeSearchParams = TenantSearchParams | URLSearchParams;
+export type TenantScopeSearchParams =
+  | TenantSearchParams
+  | URLSearchParams
+  | ReadonlyURLSearchParams;
+
+export type TenantScopeSearchParamsInput =
+  | TenantScopeSearchParams
+  | Promise<TenantScopeSearchParams | undefined>
+  | undefined;
 
 export function resolveTenantScope(
   profile: ProfileRow,
-  searchParams?: TenantScopeSearchParams,
+  searchParams?: TenantSearchParams,
 ): TenantScope {
-  const raw = isUrlSearchParams(searchParams)
-    ? searchParams.get("sacco")
-    : valueFromRecord(searchParams?.sacco);
+  const raw = valueFromRecord(searchParams?.sacco);
   const requested = raw && raw.length > 0 ? raw : null;
 
   if (profile.role === "SYSTEM_ADMIN") {
@@ -29,10 +36,6 @@ export function resolveTenantScope(
   }
 
   return { saccoId: profile.sacco_id ?? null, includeAll: false };
-}
-
-function isUrlSearchParams(value: unknown): value is URLSearchParams {
-  return typeof value === "object" && value !== null && typeof (value as URLSearchParams).get === "function";
 }
 
 function valueFromRecord(value: unknown): string | null {
@@ -51,7 +54,7 @@ export function normalizeTenantSearchParams(
     return undefined;
   }
 
-  if (isUrlSearchParams(searchParams)) {
+  if (isSearchParamsObject(searchParams)) {
     const result: Record<string, string | string[]> = {};
     for (const [key, value] of searchParams.entries()) {
       if (!Object.prototype.hasOwnProperty.call(result, key)) {
@@ -68,5 +71,38 @@ export function normalizeTenantSearchParams(
     return result as TenantSearchParams;
   }
 
-  return searchParams;
+  return searchParams as TenantSearchParams;
+}
+
+export async function resolveTenantScopeSearchParams(
+  input: TenantScopeSearchParamsInput,
+): Promise<TenantSearchParams | undefined> {
+  if (!input) {
+    return undefined;
+  }
+
+  if (isPromiseLike(input)) {
+    const awaited = await input;
+    if (!awaited) {
+      return undefined;
+    }
+    return normalizeTenantSearchParams(awaited);
+  }
+
+  return normalizeTenantSearchParams(input);
+}
+
+function isSearchParamsObject(value: unknown): value is URLSearchParams | ReadonlyURLSearchParams {
+  if (!value || typeof value !== "object") return false;
+  return typeof (value as URLSearchParams).get === "function" && typeof (value as URLSearchParams).entries === "function";
+}
+
+function isPromiseLike(
+  value: TenantScopeSearchParamsInput,
+): value is Promise<TenantScopeSearchParams | undefined> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as PromiseLike<unknown>).then === "function"
+  );
 }

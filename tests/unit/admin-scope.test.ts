@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  resolveTenantScope,
+  resolveTenantScopeSearchParams,
+  type TenantSearchParams,
+} from "@/lib/admin/scope";
 import type { ProfileRow } from "@/lib/auth";
 
 function buildProfile(overrides: Partial<ProfileRow>): ProfileRow {
@@ -61,5 +65,31 @@ describe("resolveTenantScope", () => {
     const scope = resolveTenantScope(profile, { sacco: "other" });
     assert.equal(scope.includeAll, false);
     assert.equal(scope.saccoId, "tenant-1");
+  });
+});
+
+describe("resolveTenantScopeSearchParams", () => {
+  it("returns undefined when input is falsy", async () => {
+    const result = await resolveTenantScopeSearchParams(undefined);
+    assert.equal(result, undefined);
+  });
+
+  it("awaits promise-like inputs", async () => {
+    const promise = Promise.resolve({ sacco: "tenant-1" } satisfies TenantSearchParams);
+    const result = await resolveTenantScopeSearchParams(promise);
+    assert.deepEqual(result, { sacco: "tenant-1" });
+  });
+
+  it("normalizes URLSearchParams entries", async () => {
+    const params = new URLSearchParams();
+    params.append("sacco", "tenant-2");
+    params.append("filter", "one");
+    params.append("filter", "two");
+
+    const result = await resolveTenantScopeSearchParams(params);
+
+    assert.ok(result);
+    assert.equal(result?.sacco, "tenant-2");
+    assert.deepEqual(result?.filter, ["one", "two"]);
   });
 });
