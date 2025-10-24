@@ -1,19 +1,25 @@
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  normalizeTenantSearchParams,
+  resolveTenantScope,
+  type TenantScopeSearchParams,
+} from "@/lib/admin/scope";
 import type { SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
 import { ReportsClient } from "@/app/(main)/reports/client";
 import { mapSubscriptionRow } from "@/app/(main)/reports/subscription-utils";
 import type { ReportSubscription } from "@/app/(main)/reports/types";
 
 interface ReportsAdminPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
 }
 
 export default async function ReportsAdminPage({ searchParams }: ReportsAdminPageProps) {
   const { profile } = await requireUserAndProfile();
+  const rawSearchParams = searchParams ? await searchParams : undefined;
+  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = createSupabaseServiceRoleClient("admin/panel/reports");
-  const scope = resolveTenantScope(profile, searchParams);
 
   let saccoQuery = supabase
     .schema("app")

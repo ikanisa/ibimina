@@ -10,14 +10,18 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  normalizeTenantSearchParams,
+  resolveTenantScope,
+  type TenantScopeSearchParams,
+} from "@/lib/admin/scope";
 import { getMfaInsights } from "@/lib/mfa/insights";
 import { Trans } from "@/components/common/trans";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 
 interface OverviewPageProps {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
 }
 
 interface MetricSummary {
@@ -173,7 +177,8 @@ async function computePendingInviteCount(
 
 export default async function OverviewPage({ searchParams }: OverviewPageProps) {
   const { profile } = await requireUserAndProfile();
-  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const rawSearchParams = searchParams ? await searchParams : undefined;
+  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
   const scope = resolveTenantScope(profile, resolvedSearchParams);
 
   const header = (

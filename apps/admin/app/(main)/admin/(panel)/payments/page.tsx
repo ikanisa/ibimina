@@ -6,10 +6,14 @@ import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  normalizeTenantSearchParams,
+  resolveTenantScope,
+  type TenantScopeSearchParams,
+} from "@/lib/admin/scope";
 
 interface PaymentsPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
 }
 
 type PaymentRow = {
@@ -33,8 +37,10 @@ type PaymentStatus = (typeof STATUSES)[number];
 
 export default async function PaymentsPage({ searchParams }: PaymentsPageProps) {
   const { profile } = await requireUserAndProfile();
+  const rawSearchParams = searchParams ? await searchParams : undefined;
+  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = createSupabaseServiceRoleClient("admin/panel/payments");
-  const scope = resolveTenantScope(profile, searchParams);
 
   const statusPromises = STATUSES.map(async (status) => {
     let query = supabase

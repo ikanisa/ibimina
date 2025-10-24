@@ -7,10 +7,14 @@ import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  normalizeTenantSearchParams,
+  resolveTenantScope,
+  type TenantScopeSearchParams,
+} from "@/lib/admin/scope";
 
 interface SettingsPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
 }
 
 type SaccoRow = {
@@ -21,8 +25,10 @@ type SaccoRow = {
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
   const { profile } = await requireUserAndProfile();
+  const rawSearchParams = searchParams ? await searchParams : undefined;
+  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = createSupabaseServiceRoleClient("admin/panel/settings");
-  const scope = resolveTenantScope(profile, searchParams);
 
   let saccoQuery = supabase
     .schema("app")
