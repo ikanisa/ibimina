@@ -9,8 +9,8 @@ This guide documents how to run Ibimina end-to-end on a MacBook (or similar Node
 - Optional: [Caddy + Cloudflared helpers](../scripts/mac/) if you want to expose the service via a reverse proxy or tunnel.
 
 ## 2. Environment Configuration
-1. Copy `.env.example` to `.env.local` (gitignored).
-2. Populate required secrets:
+1. Copy `.env.example` to `.env` (primary runtime file) and, if you want per-developer overrides, to `.env.local` (gitignored).
+2. Populate required secrets in `.env`:
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (and `SUPABASE_JWT_SECRET` if you validate Supabase JWTs)
    - `BACKUP_PEPPER`, `MFA_SESSION_SECRET`, `TRUSTED_COOKIE_SECRET`, `HMAC_SHARED_SECRET`

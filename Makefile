@@ -1,7 +1,7 @@
 .PHONY: deps build start admin caddy-up caddy-bg caddy-down tunnel-up tunnel-bg tunnel-down next-bg next-down local-up local-down local-status
 
 deps:
-	./scripts/mac/install_caddy_cloudflared.sh
+	./apps/admin/scripts/mac/install_caddy_cloudflared.sh
 
 build:
 	pnpm run build
@@ -14,28 +14,28 @@ admin:
 	$(MAKE) start
 
 caddy-up:
-	./scripts/mac/caddy_up.sh
+	./apps/admin/scripts/mac/caddy_up.sh
 
 caddy-bg:
-	./scripts/mac/caddy_bg.sh
+	./apps/admin/scripts/mac/caddy_bg.sh
 
 caddy-down:
-	./scripts/mac/caddy_down.sh
+	./apps/admin/scripts/mac/caddy_down.sh
 
 tunnel-up:
-	./scripts/mac/tunnel_up.sh
+	./apps/admin/scripts/mac/tunnel_up.sh
 
 tunnel-bg:
-	./scripts/mac/tunnel_bg.sh
+	./apps/admin/scripts/mac/tunnel_bg.sh
 
 tunnel-down:
-	./scripts/mac/tunnel_down.sh
+	./apps/admin/scripts/mac/tunnel_down.sh
 
 next-bg:
-	./scripts/mac/next_bg.sh
+	./apps/admin/scripts/mac/next_bg.sh
 
 next-down:
-	./scripts/mac/next_down.sh
+	./apps/admin/scripts/mac/next_down.sh
 
 local-up:
 	$(MAKE) next-bg

@@ -1,0 +1,19 @@
+{
+  "name": "@ibimina/platform-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "ts-node-esm src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "lint": "echo 'TODO: add linting'",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "echo 'TODO: add tests'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "@types/node": "20.19.21"
+  }
+}

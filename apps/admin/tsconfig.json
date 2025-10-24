@@ -1,0 +1,44 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@ibimina/config": [
+        "../../packages/config/src/index.ts"
+      ],
+      "@ibimina/ui": [
+        "../../packages/ui/src/index.ts"
+      ],
+      "@ibimina/core": [
+        "../../packages/core/src/index.ts"
+      ],
+      "@ibimina/testing": [
+        "../../packages/testing/src/index.ts"
+      ]
+    },
+    "baseUrl": ".",
+    "jsx": "preserve",
+    "noImplicitAny": false
+  },
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tests/**/*.ts",
+    "next-env.d.ts",
+    "providers/**/*.ts",
+    "providers/**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next"
+  ]
+}

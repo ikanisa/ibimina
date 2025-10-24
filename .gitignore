@@ -2,11 +2,11 @@
 /node_modules
 
 # Next.js build output
-/.next/
-/out/
-/build
-/public/service-worker.js
-/public/workbox-*.js
+**/.next/
+**/out/
+**/build/
+**/public/service-worker.js
+**/public/workbox-*.js
 
 # Misc
 .DS_Store
@@ -23,10 +23,11 @@ yarn-error.log*
 # Environment
 .env*
 !.env.example
+!apps/admin/.env.example
 
 # TypeScript
 *.tsbuildinfo
-next-env.d.ts
+/next-env.d.ts
 
 # Supabase local metadata
 supabase/.temp

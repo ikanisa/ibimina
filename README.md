@@ -19,12 +19,12 @@ A staff-only Progressive Web App for Umurenge SACCO ibimina operations. The UI f
 ## Local setup
 
 ```bash
-pnpm install --frozen-lockfile
-cp .env.example .env.local
+pnpm install
+cp .env.example .env
 pnpm dev
 ```
 
-`.env.local` stays out of version control and is loaded automatically by Next.js. Populate it with your Supabase project details (URL, anon key, service role, peppers, secrets) before starting the dev server. See [`docs/local-hosting.md`](docs/local-hosting.md) for a detailed Mac-hosting walkthrough plus health-check steps.
+`.env` stays out of version control and is loaded automatically by the admin app. Populate it with your Supabase project details (URL, anon key, service role, peppers, secrets) before starting the dev server. See [`docs/local-hosting.md`](docs/local-hosting.md) for a detailed Mac-hosting walkthrough plus health-check steps.
 
 ### Environment variables
 
@@ -49,14 +49,17 @@ Run this migration via the Supabase SQL console (or through your preferred admin
 ## Project layout
 
 ```
-app/                     # App Router routes
-  (auth)/                # Auth shell + login
-  (main)/                # Dashboard, Ikimina, Recon, Reports, Admin
-components/              # Shared UI building blocks
-lib/supabase/            # Supabase client + typed schema
-providers/               # Motion + theme + profile contexts
-styles/                  # Global design tokens
-supabase/                # Config, migrations, seed data
+pnpm-workspace.yaml      # pnpm monorepo definition
+apps/
+  admin/                # Next.js staff console (App Router)
+  platform-api/         # Placeholder for future API/cron services
+packages/
+  config/               # (WIP) typed runtime config loader
+  core/                 # (WIP) shared domain + Supabase helpers
+  testing/              # (WIP) Playwright / Vitest utilities
+  ui/                   # (WIP) shared design system components
+supabase/               # Config, migrations, seed data
+docs/                   # Architecture, hosting, onboarding guides
 ```
 
 ## Supabase integration
