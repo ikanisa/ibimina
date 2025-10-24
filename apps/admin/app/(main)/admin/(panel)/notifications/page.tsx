@@ -9,13 +9,13 @@ import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import {
-  normalizeTenantSearchParams,
   resolveTenantScope,
-  type TenantScopeSearchParams,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
 } from "@/lib/admin/scope";
 
 interface NotificationsPageProps {
-  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 type QueueRow = {
@@ -42,8 +42,7 @@ type SaccoOption = {
 
 export default async function NotificationsPage({ searchParams }: NotificationsPageProps) {
   const { profile } = await requireUserAndProfile();
-  const rawSearchParams = searchParams ? await searchParams : undefined;
-  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
   const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = createSupabaseServiceRoleClient("admin/panel/notifications");
 

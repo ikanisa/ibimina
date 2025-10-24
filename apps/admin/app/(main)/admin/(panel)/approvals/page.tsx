@@ -5,22 +5,21 @@ import { AdminApprovalsPanel, JoinRequestItem, InviteItem } from "@/components/a
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import {
-  normalizeTenantSearchParams,
   resolveTenantScope,
-  type TenantScopeSearchParams,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
 } from "@/lib/admin/scope";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { Trans } from "@/components/common/trans";
 import type { Database } from "@/lib/supabase/types";
 
 interface ApprovalsPageProps {
-  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps) {
   const { profile } = await requireUserAndProfile();
-  const rawSearchParams = searchParams ? await searchParams : undefined;
-  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
   const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = createSupabaseServiceRoleClient("admin/panel/approvals");
 

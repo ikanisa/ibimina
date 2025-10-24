@@ -5,20 +5,19 @@ import { IkiminaTable } from "@/components/ikimina/ikimina-table";
 import { requireUserAndProfile } from "@/lib/auth";
 import { getIkiminaDirectorySummary } from "@/lib/ikimina/list";
 import {
-  normalizeTenantSearchParams,
   resolveTenantScope,
-  type TenantScopeSearchParams,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
 } from "@/lib/admin/scope";
 import { Trans } from "@/components/common/trans";
 
 interface GroupsPageProps {
-  searchParams?: TenantScopeSearchParams | Promise<TenantScopeSearchParams>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 export default async function GroupsPage({ searchParams }: GroupsPageProps) {
   const { profile } = await requireUserAndProfile();
-  const rawSearchParams = searchParams ? await searchParams : undefined;
-  const resolvedSearchParams = normalizeTenantSearchParams(rawSearchParams);
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
   const scope = resolveTenantScope(profile, resolvedSearchParams);
   const { rows, statusOptions, typeOptions, saccoOptions } = await getIkiminaDirectorySummary({
     saccoId: scope.saccoId,
