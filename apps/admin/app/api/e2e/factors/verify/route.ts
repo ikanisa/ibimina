@@ -1,77 +1,81 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyTotp } from "@/lib/mfa/crypto";
-import { preventTotpReplay } from "@/src/auth/limits";
-import { verifyOneTimeCode } from "@/src/auth/util/crypto";
+import { z } from "zod";
+import { verifyFactor, type FactorState } from "@/src/auth/factors";
+import { encryptTotpSecret } from "@/src/auth/util/crypto";
 
-function disabled() {
-  return NextResponse.json({ error: "not_found" }, { status: 404 });
+const payloadSchema = z.object({
+  factor: z.enum(["totp", "backup", "email", "whatsapp", "passkey"] as const),
+  token: z.string().min(1),
+  userId: z.string().min(1),
+  email: z.string().email().optional(),
+  plaintextTotpSecret: z.string().min(1).optional(),
+  rememberDevice: z.boolean().optional(),
+  state: z
+    .object({
+      totpSecret: z.string().nullable().optional(),
+      lastStep: z.number().nullable().optional(),
+      backupHashes: z.array(z.string()).optional(),
+    })
+    .optional(),
+});
+
+function e2eEnabled() {
+  return process.env.AUTH_E2E_STUB === "1";
 }
 
 export async function POST(request: NextRequest) {
-  if (process.env.AUTH_E2E_STUB !== "1") {
-    return disabled();
+  if (!e2eEnabled()) {
+    return NextResponse.json({ ok: false, error: "e2e_stub_disabled" }, { status: 404 });
   }
 
-  type VerifyState = {
-    totpSecret?: string | null;
-    lastStep?: number | null;
-    backupHashes?: string[] | null;
-  } | null | undefined;
+  const raw = await request.json().catch(() => ({}));
+  const parsed = payloadSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { ok: false, error: "invalid_payload", issues: parsed.error.flatten() },
+      { status: 400 },
+    );
+  }
 
-  type VerifyBody = {
-    factor?: string;
-    token?: string;
-    userId?: string;
-    plaintextTotpSecret?: string;
-    state?: VerifyState;
+  const state: FactorState = {
+    totpSecret: null,
+    lastStep: null,
+    backupHashes: [],
   };
 
-  let body: VerifyBody = {};
-  try {
-    body = (await request.json()) as unknown as VerifyBody;
-  } catch {
-    return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
+  if (parsed.data.state?.totpSecret ?? null) {
+    state.totpSecret = parsed.data.state?.totpSecret ?? null;
+  }
+  if (typeof parsed.data.state?.lastStep !== "undefined") {
+    state.lastStep = parsed.data.state?.lastStep ?? null;
+  }
+  if (parsed.data.state?.backupHashes) {
+    state.backupHashes = parsed.data.state.backupHashes;
   }
 
-  const factor = String(body?.factor ?? "");
-  const token = String(body?.token ?? "");
-  const userId = String(body?.userId ?? "");
-
-  if (!factor || !token || !userId) {
-    return NextResponse.json({ ok: false, error: "missing_fields" }, { status: 400 });
+  if (parsed.data.plaintextTotpSecret) {
+    try {
+      state.totpSecret = encryptTotpSecret(parsed.data.plaintextTotpSecret);
+    } catch (error) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "secret_encryption_failed",
+          details: error instanceof Error ? error.message : String(error),
+        },
+        { status: 500 },
+      );
+    }
   }
 
-  if (factor === "totp") {
-    const secret: string | undefined = body?.plaintextTotpSecret ?? body?.state?.totpSecret ?? undefined;
-    if (!secret) {
-      return NextResponse.json({ ok: false, error: "missing_totp_secret" }, { status: 400 });
-    }
+  const result = await verifyFactor({
+    factor: parsed.data.factor,
+    token: parsed.data.token,
+    userId: parsed.data.userId,
+    email: parsed.data.email ?? null,
+    state,
+    rememberDevice: parsed.data.rememberDevice,
+  });
 
-    const result = verifyTotp(secret, token);
-    if (!result.ok || typeof result.step !== "number") {
-      return NextResponse.json({ ok: false, error: "invalid_code" }, { status: 401 });
-    }
-
-    if (!preventTotpReplay(userId, result.step)) {
-      return NextResponse.json({ ok: false, code: "REPLAY_BLOCKED" }, { status: 401 });
-    }
-
-    return NextResponse.json({ ok: true, factor: "totp", step: result.step });
-  }
-
-  if (factor === "backup") {
-    const normalized = token.replace(/[^A-Z0-9]/gi, "").toUpperCase();
-    const backupHashes: string[] = Array.isArray(body?.state?.backupHashes)
-      ? (body!.state!.backupHashes as string[])
-      : [];
-    const index = backupHashes.findIndex((hash) => verifyOneTimeCode(normalized, hash));
-    if (index === -1) {
-      return NextResponse.json({ ok: false, error: "invalid_code" }, { status: 401 });
-    }
-    const nextBackupHashes = [...backupHashes];
-    nextBackupHashes.splice(index, 1);
-    return NextResponse.json({ ok: true, factor: "backup", nextBackupHashes });
-  }
-
-  return NextResponse.json({ ok: false, error: "unsupported_factor" }, { status: 400 });
+  return NextResponse.json(result, { status: result.status });
 }

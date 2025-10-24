@@ -1,61 +1,60 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 const STUB_COOKIE_NAME = "stub-auth";
+const SESSION_SCHEMA = z.object({
+  state: z.enum(["authenticated", "anonymous"]).default("authenticated"),
+});
 
-function disabled() {
-  return NextResponse.json({ error: "not_found" }, { status: 404 });
+function e2eEnabled() {
+  return process.env.AUTH_E2E_STUB === "1";
 }
 
-type SessionState = "authenticated" | "anonymous";
+export async function POST(request: NextRequest) {
+  if (!e2eEnabled()) {
+    return NextResponse.json({ ok: false, error: "e2e_stub_disabled" }, { status: 404 });
+  }
 
-function createResponse(state: SessionState) {
-  const response = NextResponse.json({ state });
-  if (state === "authenticated") {
+  const raw = await request.json().catch(() => ({}));
+  const parsed = SESSION_SCHEMA.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { ok: false, error: "invalid_state", issues: parsed.error.flatten() },
+      { status: 400 },
+    );
+  }
+
+  const response = NextResponse.json({ ok: true, state: parsed.data.state }, { status: 200 });
+  const cookieStore = await cookies();
+
+  if (parsed.data.state === "authenticated") {
+    cookieStore.set(STUB_COOKIE_NAME, "1");
     response.cookies.set({
       name: STUB_COOKIE_NAME,
       value: "1",
       httpOnly: true,
-      sameSite: "lax",
       path: "/",
+      sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60,
     });
   } else {
-    response.cookies.set({
-      name: STUB_COOKIE_NAME,
-      value: "",
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 0,
-    });
+    cookieStore.delete(STUB_COOKIE_NAME);
+    response.cookies.delete(STUB_COOKIE_NAME);
   }
+
   return response;
 }
 
-export async function POST(request: NextRequest) {
-  if (process.env.AUTH_E2E_STUB !== "1") {
-    return disabled();
-  }
-
-  let state: SessionState = "anonymous";
-  try {
-    const body = await request.json();
-    if (body && typeof body.state === "string" && body.state === "authenticated") {
-      state = "authenticated";
-    }
-  } catch {
-    state = "anonymous";
-  }
-
-  return createResponse(state);
-}
-
 export async function DELETE() {
-  if (process.env.AUTH_E2E_STUB !== "1") {
-    return disabled();
+  if (!e2eEnabled()) {
+    return NextResponse.json({ ok: false, error: "e2e_stub_disabled" }, { status: 404 });
   }
 
-  return createResponse("anonymous");
+  const response = NextResponse.json({ ok: true }, { status: 200 });
+  const cookieStore = await cookies();
+  cookieStore.delete(STUB_COOKIE_NAME);
+  response.cookies.delete(STUB_COOKIE_NAME);
+  return response;
 }
