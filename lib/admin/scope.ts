@@ -7,10 +7,12 @@ export interface TenantScope {
 
 export function resolveTenantScope(
   profile: ProfileRow,
-  searchParams?: Record<string, string | string[] | undefined>,
+  searchParams?: Record<string, string | string[] | undefined> | URLSearchParams,
 ): TenantScope {
-  const raw = searchParams?.sacco;
-  const requested = typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : null;
+  const raw = isUrlSearchParams(searchParams)
+    ? searchParams.get("sacco")
+    : valueFromRecord(searchParams?.sacco);
+  const requested = raw && raw.length > 0 ? raw : null;
 
   if (profile.role === "SYSTEM_ADMIN") {
     if (!requested || requested === "") {
@@ -24,4 +26,17 @@ export function resolveTenantScope(
   }
 
   return { saccoId: profile.sacco_id ?? null, includeAll: false };
+}
+
+function isUrlSearchParams(value: unknown): value is URLSearchParams {
+  return typeof value === "object" && value !== null && typeof (value as URLSearchParams).get === "function";
+}
+
+function valueFromRecord(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    const [first] = value;
+    return typeof first === "string" ? first : null;
+  }
+  return null;
 }
