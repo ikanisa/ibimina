@@ -86,7 +86,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "invalid_code" }, { status: 401 });
   }
 
-  const remainingMethods = new Set(record.mfa_methods ?? profile.mfa_methods ?? []);
+  const remainingMethods = new Set<string>(record.mfa_methods ?? profile.mfa_methods ?? []);
   remainingMethods.delete("TOTP");
   const remainingList = Array.from(remainingMethods);
   const stillProtected = remainingList.length > 0;

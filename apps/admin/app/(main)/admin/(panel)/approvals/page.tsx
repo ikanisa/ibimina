@@ -3,7 +3,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { AdminApprovalsPanel, JoinRequestItem, InviteItem } from "@/components/admin/approvals/approvals-panel";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { resolveTenantScope } from "@/lib/admin/scope";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { Trans } from "@/components/common/trans";
@@ -16,7 +16,7 @@ interface ApprovalsPageProps {
 export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps) {
   const { profile } = await requireUserAndProfile();
   const scope = resolveTenantScope(profile, searchParams);
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/approvals");
 
   let joinQuery = supabase
     .from("join_requests")

@@ -4,7 +4,8 @@ import { StatusChip } from "@/components/common/status-chip";
 import { OcrReviewQueue, type OcrReviewItem } from "@/components/admin/ocr/ocr-review-queue";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient, supabaseSrv } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
+import { supabaseSrv } from "@/lib/supabase/server";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { resolveTenantScope } from "@/lib/admin/scope";
 
@@ -32,7 +33,7 @@ type MemberRow = {
 
 export default async function OcrPage({ searchParams }: OcrPageProps) {
   const { profile } = await requireUserAndProfile();
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/ocr");
   const scope = resolveTenantScope(profile, searchParams);
 
   const { data: profileRows, error: profileError } = await supabase

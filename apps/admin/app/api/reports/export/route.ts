@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "node:crypto";
 import { z } from "zod";
 import { getUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import type { Database } from "@/lib/supabase/types";
 import { hasSaccoReadAccess, isSystemAdmin } from "@/lib/permissions";
 
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseServiceRoleClient("reports/export");
 
     let ikiminaRecord: IkiminaRow | null = null;
     if (ikiminaId) {

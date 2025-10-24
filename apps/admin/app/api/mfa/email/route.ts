@@ -8,7 +8,7 @@ export async function POST() {
   const { user, profile } = await requireUserAndProfile();
   const supabase = createSupabaseAdminClient();
 
-  const methods = new Set(profile.mfa_methods ?? []);
+  const methods = new Set<string>(profile.mfa_methods ?? []);
   if (!profile.mfa_enabled) {
     methods.delete("TOTP");
   }
@@ -50,7 +50,7 @@ export async function DELETE() {
   const { user, profile } = await requireUserAndProfile();
   const supabase = createSupabaseAdminClient();
 
-  const methods = new Set(profile.mfa_methods ?? []);
+  const methods = new Set<string>(profile.mfa_methods ?? []);
   methods.delete("EMAIL");
 
   const remaining = Array.from(methods);

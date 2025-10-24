@@ -5,7 +5,7 @@ import { TenantSettingsPanel, type TenantSettingsRecord } from "@/components/adm
 import { SecurityOperationsCard } from "@/components/admin/settings/security-operations-card";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { resolveTenantScope } from "@/lib/admin/scope";
 
@@ -21,7 +21,7 @@ type SaccoRow = {
 
 export default async function SettingsPage({ searchParams }: SettingsPageProps) {
   const { profile } = await requireUserAndProfile();
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/settings");
   const scope = resolveTenantScope(profile, searchParams);
 
   let saccoQuery = supabase
@@ -51,7 +51,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
   const badgeLabel = scope.includeAll
     ? "Global"
-    : saccoRecords.find((item) => item.saccoId === scope.saccoId)?.saccoName ?? profile.saccos?.name ?? "Scoped";
+    : saccoRecords.find((item) => item.saccoId === scope.saccoId)?.saccoName ?? profile.sacco?.name ?? "Scoped";
 
   return (
     <div className="space-y-8">

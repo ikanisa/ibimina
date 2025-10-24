@@ -7,7 +7,7 @@ import { AuditLogTable, type AuditLogEntry } from "@/components/admin/audit-log-
 import { FeatureFlagsCard } from "@/components/admin/feature-flags-card";
 import { MfaInsightsCard } from "@/components/admin/mfa-insights-card";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { resolveTenantScope } from "@/lib/admin/scope";
 import { getMfaInsights } from "@/lib/mfa/insights";
@@ -27,10 +27,10 @@ interface MetricSummary {
 }
 
 async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promise<MetricSummary> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/overview:metrics");
 
   const saccoQuery = scope.includeAll
-    ? supabase.schema("app").from("saccos").select("id", { head: true, count: "exact" })
+    ? supabase.from("saccos").select("id", { head: true, count: "exact" })
     : supabase
         .schema("app")
         .from("saccos")
@@ -38,7 +38,7 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
         .eq("id", scope.saccoId ?? "");
 
   const groupsQuery = scope.includeAll
-    ? supabase.schema("app").from("ikimina").select("id", { head: true, count: "exact" })
+    ? supabase.from("ibimina").select("id", { head: true, count: "exact" })
     : supabase
         .schema("app")
         .from("ikimina")
@@ -46,7 +46,7 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
         .eq("sacco_id", scope.saccoId ?? "");
 
   const membersQuery = scope.includeAll
-    ? supabase.schema("app").from("members").select("id", { head: true, count: "exact" })
+    ? supabase.from("ikimina_members").select("id", { head: true, count: "exact" })
     : supabase
         .schema("app")
         .from("members")
@@ -122,7 +122,7 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
 export default async function OverviewPage({ searchParams }: OverviewPageProps) {
   const { profile } = await requireUserAndProfile();
   const scope = resolveTenantScope(profile, searchParams);
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/overview");
 
   const metricsPromise = loadMetrics(scope);
   const mfaInsightsPromise = scope.includeAll ? getMfaInsights() : Promise.resolve(null);
@@ -247,7 +247,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
             className="text-xs text-neutral-3"
           />
         }
-        badge={<StatusChip tone="info">{scope.includeAll ? "Global" : profile.saccos?.name ?? "Scoped"}</StatusChip>}
+        badge={<StatusChip tone="info">{scope.includeAll ? "Global" : profile.sacco?.name ?? "Scoped"}</StatusChip>}
       />
 
       <GlassCard

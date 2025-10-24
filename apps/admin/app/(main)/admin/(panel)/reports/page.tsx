@@ -1,5 +1,5 @@
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { resolveTenantScope } from "@/lib/admin/scope";
 import type { SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
 import { ReportsClient } from "@/app/(main)/reports/client";
@@ -12,7 +12,7 @@ interface ReportsAdminPageProps {
 
 export default async function ReportsAdminPage({ searchParams }: ReportsAdminPageProps) {
   const { profile } = await requireUserAndProfile();
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/reports");
   const scope = resolveTenantScope(profile, searchParams);
 
   let saccoQuery = supabase

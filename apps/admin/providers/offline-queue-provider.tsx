@@ -3,7 +3,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { clearActions, enqueueAction, listActions, removeAction, updateAction, type OfflineAction } from "@/lib/offline/queue";
 import { notifyOfflineQueueUpdated, requestBackgroundSync, requestImmediateOfflineSync } from "@/lib/offline/sync";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useToast } from "@/providers/toast-provider";
 import type { Database } from "@/lib/supabase/types";
 
@@ -34,7 +33,6 @@ async function safeListActions() {
 }
 
 export function OfflineQueueProvider({ children }: { children: React.ReactNode }) {
-  const supabase = getSupabaseBrowserClient();
   const toast = useToast();
   const [isOnline, setIsOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
   const [actions, setActions] = useState<OfflineAction[]>([]);
@@ -69,43 +67,59 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
 
   type QueueHandler = (action: OfflineAction) => Promise<void>;
 
+  const callPaymentsEndpoint = useCallback(async (path: string, payload: Record<string, unknown>) => {
+    const response = await fetch(path, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(body.error ?? "Request failed");
+    }
+  }, []);
+
   const handlers = useMemo<Record<string, QueueHandler>>(
     () => ({
       "payments:update-status": async (action: OfflineAction) => {
-        const { ids, status } = action.payload as { ids?: string[]; status?: PaymentStatus };
+        const { ids, status, saccoId } = action.payload as {
+          ids?: string[];
+          status?: PaymentStatus;
+          saccoId?: string | null;
+        };
         if (!ids?.length || !status) {
           throw new Error("Invalid payload for status update");
         }
-        const updatePayload = { status } satisfies Partial<Database["app"]["Tables"]["payments"]["Row"]>;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any).schema("app").from("payments").update(updatePayload).in("id", ids);
-        if (error) {
-          throw new Error(error.message ?? "Failed to update payment status");
-        }
+        await callPaymentsEndpoint("/api/admin/payments/update-status", {
+          ids,
+          status,
+          saccoId: saccoId ?? null,
+        });
       },
       "payments:assign": async (action: OfflineAction) => {
-        const { ids, ikiminaId, memberId } = action.payload as {
+        const { ids, ikiminaId, memberId, saccoId } = action.payload as {
           ids?: string[];
           ikiminaId?: string;
           memberId?: string | null;
+          saccoId?: string | null;
         };
         if (!ids?.length || !ikiminaId) {
           throw new Error("Invalid payload for ikimina assignment");
         }
 
-        const updatePayload: Partial<Database["app"]["Tables"]["payments"]["Row"]> = { ikimina_id: ikiminaId };
+        const payload: Record<string, unknown> = {
+          ids,
+          ikiminaId,
+          saccoId: saccoId ?? null,
+        };
         if (memberId !== undefined) {
-          updatePayload.member_id = memberId;
+          payload.memberId = memberId;
         }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any).schema("app").from("payments").update(updatePayload).in("id", ids);
-        if (error) {
-          throw new Error(error.message ?? "Failed to assign ikimina");
-        }
+        await callPaymentsEndpoint("/api/admin/payments/assign", payload);
       },
     }),
-    [supabase],
+    [callPaymentsEndpoint],
   );
 
   const processQueue = useCallback(async () => {

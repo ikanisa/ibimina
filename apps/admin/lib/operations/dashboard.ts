@@ -91,7 +91,6 @@ export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParam
 
   const reconSince = new Date(Date.now() - TREND_WINDOW_HOURS * HOUR_IN_MS).toISOString();
   let reconQuery = supabase
-    .schema("app")
     .from("payments")
     .select("id, status, occurred_at, sacco_id", { count: "exact" })
     .in("status", RECON_STATUSES)
@@ -130,7 +129,6 @@ export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParam
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
 
   const incidentQuery = supabase
-    .schema("app")
     .from("audit_logs")
     .select("id, action, entity, entity_id, created_at, diff")
     .in("action", INCIDENT_ACTIONS)
@@ -149,7 +147,6 @@ export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParam
 
   const mfaAuditSince = new Date(Date.now() - TREND_WINDOW_DAYS * DAY_IN_MS).toISOString();
   const { data: mfaAuditRows } = await supabase
-    .schema("app")
     .from("audit_logs")
     .select("created_at")
     .eq("action", "MFA_SUCCESS")

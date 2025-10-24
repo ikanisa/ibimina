@@ -6,7 +6,7 @@ import { ReconciliationTable, type ReconciliationRow } from "@/components/recon/
 import { SmsInboxPanel } from "@/components/recon/sms-inbox-panel";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { resolveTenantScope } from "@/lib/admin/scope";
 import { canImportStatements, canReconcilePayments, isSystemAdmin } from "@/lib/permissions";
 import type { Database } from "@/lib/supabase/types";
@@ -38,7 +38,7 @@ interface ReconciliationPageProps {
 export default async function AdminReconciliationPage({ searchParams }: ReconciliationPageProps) {
   const { profile } = await requireUserAndProfile();
   const scope = resolveTenantScope(profile, searchParams);
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/reconciliation");
 
   type PaymentRow = Database["app"]["Tables"]["payments"]["Row"] & {
     source: {

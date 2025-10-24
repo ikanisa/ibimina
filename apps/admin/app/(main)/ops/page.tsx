@@ -84,9 +84,7 @@ export default async function OperationsPage() {
   const saccoScope = profile.role === "SYSTEM_ADMIN" ? null : profile.sacco_id ?? null;
   const snapshot = await getOperationsSnapshot({ saccoId: saccoScope });
   const scopeLabel =
-    profile.role === "SYSTEM_ADMIN"
-      ? "All SACCOs"
-      : profile.saccos?.name ?? "Assigned SACCO";
+    profile.role === "SYSTEM_ADMIN" ? "All SACCOs" : profile.sacco?.name ?? "Assigned SACCO";
 
   const notificationDelta = computeDelta(snapshot.trends.notifications);
   const reconciliationDelta = computeDelta(snapshot.trends.reconciliation);

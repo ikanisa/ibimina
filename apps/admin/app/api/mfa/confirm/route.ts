@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
   const backupRecords = generateBackupCodes();
   const supabase = createSupabaseAdminClient();
 
-  const methodSet = new Set(profile.mfa_methods ?? []);
+  const methodSet = new Set<string>(profile.mfa_methods ?? []);
   methodSet.add("TOTP");
 
   const updatePayload: Database["public"]["Tables"]["users"]["Update"] = {

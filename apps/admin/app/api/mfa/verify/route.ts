@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
         last_mfa_success_at: new Date().toISOString(),
       };
 
-      const methodSet = new Set(profile.mfa_methods ?? []);
+      const methodSet = new Set<string>(profile.mfa_methods ?? []);
       if (verification.factor === "email") {
         methodSet.add("EMAIL");
       }

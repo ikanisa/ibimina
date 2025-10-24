@@ -6,7 +6,7 @@ import { SmsTemplatePanel } from "@/components/admin/sms-template-panel";
 import { OutreachAutomationCard } from "@/components/admin/outreach-automation-card";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { resolveTenantScope } from "@/lib/admin/scope";
 
@@ -39,7 +39,7 @@ type SaccoOption = {
 export default async function NotificationsPage({ searchParams }: NotificationsPageProps) {
   const { profile } = await requireUserAndProfile();
   const scope = resolveTenantScope(profile, searchParams);
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/notifications");
 
   const saccoQuery = supabase
     .schema("app")

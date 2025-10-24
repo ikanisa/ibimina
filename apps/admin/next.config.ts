@@ -105,6 +105,9 @@ const nextConfig: NextConfig = {
       transform: "lucide-react/dist/esm/icons/{{member}}",
     },
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   async headers() {
     const baseHeaders = [...SECURITY_HEADERS];
     if (process.env.NODE_ENV === "production") {

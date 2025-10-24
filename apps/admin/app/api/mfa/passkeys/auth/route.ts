@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createSupabaseAdminClient();
-  const methods = new Set(profile.mfa_methods ?? ["EMAIL"]);
+  const methods = new Set<string>(profile.mfa_methods ?? ["EMAIL"]);
   methods.add("EMAIL");
   methods.add("PASSKEY");
   if (profile.mfa_enabled) {

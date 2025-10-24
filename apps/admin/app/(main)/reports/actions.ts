@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { logAudit } from "@/lib/audit";
 import { instrumentServerAction } from "@/lib/observability/server-action";
 import { logError, logInfo, logWarn, updateLogContext } from "@/lib/observability/logger";
@@ -66,7 +66,7 @@ async function createReportSubscriptionInternal(payload: CreatePayload): Promise
   const { profile, user } = await requireUserAndProfile();
   updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("reports/actions:create");
 
   const saccoId = profile.role === "SYSTEM_ADMIN" ? payload.saccoId ?? profile.sacco_id ?? null : profile.sacco_id;
 
@@ -139,7 +139,7 @@ async function toggleReportSubscriptionInternal({ id, isActive }: TogglePayload)
   const { profile, user } = await requireUserAndProfile();
   updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("reports/actions:toggle");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: existing, error } = await (supabase as any)
@@ -197,7 +197,7 @@ async function deleteReportSubscriptionInternal({ id }: DeletePayload): Promise<
   const { profile, user } = await requireUserAndProfile();
   updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("reports/actions:delete");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)

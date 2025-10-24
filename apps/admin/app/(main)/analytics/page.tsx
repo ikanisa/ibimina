@@ -12,9 +12,7 @@ export default async function AnalyticsPage() {
   const analytics = await getExecutiveAnalytics(saccoScope);
 
   const scopeLabel =
-    profile.role === "SYSTEM_ADMIN"
-      ? "All SACCOs"
-      : profile.saccos?.name ?? "Assigned SACCO";
+    profile.role === "SYSTEM_ADMIN" ? "All SACCOs" : profile.sacco?.name ?? "Assigned SACCO";
 
   return (
     <div className="space-y-8">

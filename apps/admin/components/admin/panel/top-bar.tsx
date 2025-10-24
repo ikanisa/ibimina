@@ -4,42 +4,57 @@ import { useMemo, useState } from "react";
 import { Bell, Menu, Search } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
-import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator";
+import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { TenantSwitcher } from "@/components/admin/panel/tenant-switcher";
-import type { PanelNavItem, TenantOption } from "@/components/admin/panel/types";
+import type { TenantOption } from "@/components/admin/panel/types";
+import { ADMIN_NAV_LINKS } from "@/components/admin/panel/nav-items";
 
 interface AdminPanelTopBarProps {
   profile: ProfileRow;
   tenantOptions: TenantOption[];
   alertsCount: number;
   onToggleNav: () => void;
-  navItems: PanelNavItem[];
+  alertsBreakdown: { approvals: number; reconciliation: number };
 }
 
-export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggleNav, navItems }: AdminPanelTopBarProps) {
+export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggleNav, alertsBreakdown }: AdminPanelTopBarProps) {
   const [showSearch, setShowSearch] = useState(false);
   const navTargets = useMemo(
     () =>
-      navItems.map((item) => ({
-        href: item.href,
-        primary: item.label,
-        secondary: "",
-        badge: item.badge
-          ? {
-              label: item.badge.label,
-              tone: item.badge.tone === "warning" ? "critical" : (item.badge.tone as "critical" | "info" | "success"),
-            }
-          : undefined,
-      })),
-    [navItems],
+      ADMIN_NAV_LINKS.map((item) => {
+        if (item.href === "/admin/approvals" && alertsBreakdown.approvals > 0) {
+          return {
+            href: item.href,
+            primary: item.label,
+            secondary: "",
+            badge: { label: String(alertsBreakdown.approvals), tone: "critical" as const },
+          };
+        }
+        if (item.href === "/admin/reconciliation" && alertsBreakdown.reconciliation > 0) {
+          return {
+            href: item.href,
+            primary: item.label,
+            secondary: "",
+            badge: { label: String(alertsBreakdown.reconciliation), tone: "critical" as const },
+          };
+        }
+        return {
+          href: item.href,
+          primary: item.label,
+          secondary: "",
+          badge: undefined,
+        };
+      }),
+    [alertsBreakdown],
   );
 
   return (
     <header className="fixed inset-x-0 top-0 z-30 border-b border-white/5 bg-neutral-950/70 backdrop-blur">
       <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10">
         <div className="flex items-center gap-3">
+          <OfflineQueueIndicator />
           <button
             type="button"
             onClick={onToggleNav}
@@ -52,6 +67,7 @@ export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggle
         </div>
         <div className="flex flex-1 items-center justify-end gap-4">
           <TenantSwitcher options={tenantOptions} className="md:hidden" />
+          <OfflineQueueIndicator />
           <button
             type="button"
             onClick={() => setShowSearch(true)}
@@ -69,7 +85,6 @@ export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggle
               </span>
             )}
           </div>
-          <OfflineQueueIndicator />
           <LanguageSwitcher variant="compact" />
           <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-left sm:flex">
             <div>
