@@ -4,7 +4,7 @@ import { StatusChip } from "@/components/common/status-chip";
 import { OutreachAutomationCard } from "@/components/admin/outreach-automation-card";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { resolveTenantScope } from "@/lib/admin/scope";
 
@@ -33,7 +33,7 @@ type PaymentStatus = (typeof STATUSES)[number];
 
 export default async function PaymentsPage({ searchParams }: PaymentsPageProps) {
   const { profile } = await requireUserAndProfile();
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/payments");
   const scope = resolveTenantScope(profile, searchParams);
 
   const statusPromises = STATUSES.map(async (status) => {

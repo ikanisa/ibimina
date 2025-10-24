@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseSrv } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { logAudit } from "@/lib/audit";
 import { CACHE_TAGS } from "@/lib/performance/cache";
@@ -241,7 +241,7 @@ async function deleteSmsTemplateInternal({
       reason: "Only system administrators can delete templates.",
       logEvent: "admin_template_delete_denied",
       metadata: { templateId },
-      clientFactory: () => createSupabaseServerClient(),
+      clientFactory: () => supabaseSrv(),
     },
     (error) => ({ status: "error", message: error.message }),
   );
@@ -272,7 +272,7 @@ async function upsertSaccoInternal({
       reason: "Only system administrators can modify SACCO registry.",
       logEvent: "admin_sacco_upsert_denied",
       metadata: { mode },
-      clientFactory: () => createSupabaseServerClient(),
+      clientFactory: () => supabaseSrv(),
     },
     (error) => ({ status: "error", message: error.message }),
   );
@@ -330,7 +330,7 @@ async function removeSaccoInternal({ id }: { id: string }): Promise<AdminActionR
       reason: "Only system administrators can delete SACCOs.",
       logEvent: "admin_sacco_delete_denied",
       metadata: { saccoId: id },
-      clientFactory: () => createSupabaseServerClient(),
+      clientFactory: () => supabaseSrv(),
     },
     (error) => ({ status: "error", message: error.message }),
   );
@@ -362,7 +362,7 @@ async function resetMfaForAllEnabledInternal({
       reason: "Only system administrators can reset 2FA in bulk.",
       logEvent: "admin_mfa_bulk_reset_denied",
       fallbackResult: { count: 0 },
-      clientFactory: () => createSupabaseServerClient(),
+      clientFactory: () => supabaseSrv(),
     },
     (error) => ({
       status: "error",
@@ -626,7 +626,7 @@ async function upsertFinancialInstitutionInternal(payload: FinancialInstitutionP
     return { status: "error", message: "Only system administrators can manage financial institutions." };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = supabaseSrv();
   const table = supabase.schema("app").from("financial_institutions");
   const basePayload: Database["app"]["Tables"]["financial_institutions"]["Insert"] = {
     name: payload.name.trim(),
@@ -683,7 +683,7 @@ async function deleteFinancialInstitutionInternal({ id }: { id: string }): Promi
     return { status: "error", message: "Only system administrators can manage financial institutions." };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = supabaseSrv();
   const { error } = await supabase.schema("app").from("financial_institutions").delete().eq("id", id);
 
   if (error) {
@@ -733,7 +733,7 @@ async function upsertMomoCodeInternal(payload: MomoCodePayload): Promise<
     return { status: "error", message: "Only system administrators can manage MoMo codes." };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = supabaseSrv();
   const table = supabase.schema("app").from("momo_codes");
   const basePayload: Database["app"]["Tables"]["momo_codes"]["Insert"] = {
     provider: (payload.provider ?? "").trim().toUpperCase(),
@@ -796,7 +796,7 @@ async function deleteMomoCodeInternal({ id }: { id: string }): Promise<AdminActi
     return { status: "error", message: "Only system administrators can manage MoMo codes." };
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = supabaseSrv();
   const { error } = await supabase.schema("app").from("momo_codes").delete().eq("id", id);
 
   if (error) {

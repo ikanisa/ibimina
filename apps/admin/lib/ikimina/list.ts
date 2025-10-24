@@ -1,5 +1,6 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { cacheWithTags, CACHE_TAGS, REVALIDATION_SECONDS } from "@/lib/performance/cache";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, supabaseSrv } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import type { IkiminaTableRow } from "@/components/ikimina/ikimina-table";
 
@@ -17,14 +18,22 @@ export interface IkiminaDirectoryResult {
   saccoOptions: string[];
 }
 
-async function fetchIkiminaDirectory({ saccoId, includeAll }: IkiminaDirectoryParams): Promise<IkiminaDirectoryResult> {
+interface IkiminaDirectoryClients {
+  user: SupabaseClient<Database>;
+  app: SupabaseClient<Database>;
+}
+
+async function fetchIkiminaDirectory(
+  { saccoId, includeAll }: IkiminaDirectoryParams,
+  clients: IkiminaDirectoryClients,
+): Promise<IkiminaDirectoryResult> {
   if (!includeAll && !saccoId) {
     return { rows: [], statusOptions: [], typeOptions: [], saccoOptions: [] };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const baseQuery = supabase
-    .schema("app")
+  const supabase = clients.user;
+  const appSupabase = clients.app;
+  const baseQuery = appSupabase
     .from("ikimina")
     .select("id, name, code, status, type, sacco_id, created_at, updated_at, saccos(name)")
     .order("updated_at", { ascending: false })
@@ -40,7 +49,7 @@ async function fetchIkiminaDirectory({ saccoId, includeAll }: IkiminaDirectoryPa
     saccos: { name: string | null } | null;
   };
 
-  const rawRows = (data ?? []) as IkiminaRow[];
+  const rawRows = Array.isArray(data) ? (data as unknown as IkiminaRow[]) : [];
   if (rawRows.length === 0) {
     return { rows: [], statusOptions: [], typeOptions: [], saccoOptions: [] };
   }
@@ -62,8 +71,7 @@ async function fetchIkiminaDirectory({ saccoId, includeAll }: IkiminaDirectoryPa
       .in("ikimina_id", groupIds)
       .group("ikimina_id");
 
-    const paymentsPromise = supabase
-      .schema("app")
+    const paymentsPromise = appSupabase
       .from("payments")
       .select("ikimina_id, amount, status, occurred_at")
       .in("ikimina_id", groupIds)
@@ -152,8 +160,10 @@ async function fetchIkiminaDirectory({ saccoId, includeAll }: IkiminaDirectoryPa
 export async function getIkiminaDirectorySummary(params: IkiminaDirectoryParams): Promise<IkiminaDirectoryResult> {
   const { saccoId, includeAll } = params;
   const keyParts = ["ikimina-directory", includeAll ? "all" : saccoId ?? "none"];
+  const supabase = await createSupabaseServerClient();
+  const appSupabase = supabaseSrv();
   const cached = cacheWithTags(
-    () => fetchIkiminaDirectory(params),
+    () => fetchIkiminaDirectory(params, { user: supabase, app: appSupabase }),
     keyParts,
     [CACHE_TAGS.ikiminaDirectory, CACHE_TAGS.sacco(saccoId ?? null)],
     includeAll ? REVALIDATION_SECONDS.minute : REVALIDATION_SECONDS.fiveMinutes

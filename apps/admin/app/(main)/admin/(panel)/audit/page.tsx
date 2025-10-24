@@ -6,7 +6,7 @@ import { AuditFilters, type AuditFiltersState } from "@/components/admin/audit/a
 import { AuditExportButton } from "@/components/admin/audit/audit-export-button";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { resolveTenantScope } from "@/lib/admin/scope";
 
@@ -26,7 +26,7 @@ type AuditRow = {
 
 export default async function AuditPage({ searchParams }: AuditPageProps) {
   const { profile } = await requireUserAndProfile();
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/audit");
   const scope = resolveTenantScope(profile, searchParams);
 
   const filters: AuditFiltersState = {

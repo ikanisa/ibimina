@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     diff: { friendlyName },
   });
 
-  const methodSet = new Set([...(profile.mfa_methods ?? ["EMAIL"])]);
+  const methodSet = new Set<string>([...(profile.mfa_methods ?? ["EMAIL"])]);
   methodSet.add("EMAIL");
   methodSet.add("PASSKEY");
   if (profile.mfa_enabled) {

@@ -90,7 +90,7 @@ export async function GET() {
     console.error("profile: failed to load audit logs", auditError);
   }
 
-  const methodSet = new Set([...(profile.mfa_methods ?? userRow?.mfa_methods ?? [])]);
+  const methodSet = new Set<string>([...(profile.mfa_methods ?? userRow?.mfa_methods ?? [])]);
   if (userRow?.mfa_passkey_enrolled) {
     methodSet.add("PASSKEY");
   }

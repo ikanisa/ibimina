@@ -11,8 +11,14 @@
     "start": "pnpm --filter @ibimina/admin run start"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
+    "@types/node": "20.19.21",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "eslint": "^9.37.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "globals": "^16.4.0",
     "ts-node": "^10.9.1",
-    "@types/node": "20.19.21"
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "5.9.3"
   }
 }

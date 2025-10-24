@@ -1,5 +1,13 @@
 project_id = "vacltfdslodqybxojytc"
 
+[api]
+schemas = ["public", "storage", "graphql_public", "app", "app_helpers"]
+extra_search_path = ["public", "extensions", "app", "app_helpers"]
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = []
+
 [functions.parse-sms]
 verify_jwt = true
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { OptimizedImage } from "@/components/ui/optimized-image";
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
@@ -29,19 +29,30 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
   const notifySuccess = (msg: string) => success(msg);
   const notifyError = (msg: string) => error(msg);
 
+  const patchBranding = useCallback(
+    async (payload: Record<string, unknown>) => {
+      const response = await fetch(`/api/admin/saccos/${sacco.id}/branding`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.error ?? t("common.operationFailed", "Operation failed"));
+      }
+      return body as { logoUrl: string | null; brandColor: string | null };
+    },
+    [sacco.id, t],
+  );
+
   const updateLogo = async (logoUrl: string | null) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: updateError } = await (supabase as any)
-      .schema("app")
-      .from("saccos")
-      .update({ logo_url: logoUrl })
-      .eq("id", sacco.id);
-    if (updateError) {
-      notifyError(updateError.message ?? t("admin.branding.logoUpdateFailed", "Failed to update logo"));
-      throw updateError;
-    }
+    const result = await patchBranding({ logoUrl });
     notifySuccess(t("admin.branding.logoUpdated", "Logo updated"));
-    setLogoUrl(logoUrl);
+    setLogoUrl(result.logoUrl);
+    if (result.brandColor) {
+      setBrandColor(result.brandColor);
+    }
   };
 
   const handleLogoUpload = (file: File) => {
@@ -77,18 +88,13 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
     }
     const hex = value.startsWith("#") ? value : `#${value}`;
     startTransition(async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: updateError } = await (supabase as any)
-        .schema("app")
-        .from("saccos")
-        .update({ brand_color: hex })
-        .eq("id", sacco.id);
-      if (updateError) {
-        error(updateError.message ?? t("common.operationFailed", "Operation failed"));
-        return;
+      try {
+        const result = await patchBranding({ brandColor: hex });
+        success(t("admin.branding.colorUpdated", "Brand color updated"));
+        setBrandColor(result.brandColor ?? hex);
+      } catch (err) {
+        notifyError(err instanceof Error ? err.message : t("common.operationFailed", "Operation failed"));
       }
-      success(t("admin.branding.colorUpdated", "Brand color updated"));
-      setBrandColor(hex);
     });
   };
 

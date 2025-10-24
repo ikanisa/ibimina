@@ -85,7 +85,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const { t } = useTranslation();
 
-  const saccoName = useMemo(() => profile.saccos?.name ?? t("sacco.all", "All SACCOs"), [profile.saccos?.name, t]);
+  const saccoName = useMemo(() => profile.sacco?.name ?? t("sacco.all", "All SACCOs"), [profile.sacco?.name, t]);
 
   const navBadges = useMemo(() => {
     const badges: Record<string, { label: string; tone: keyof typeof BADGE_TONE_STYLES }> = {};

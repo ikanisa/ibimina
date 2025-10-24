@@ -56,14 +56,14 @@ export function TenantSettingsPanel({ saccos, canEdit, initialSaccoId }: TenantS
 
   useEffect(() => {
     if (!selectedRecord) {
-      setState(DEFAULT_STATE);
+      setState((prev) => (prev === DEFAULT_STATE ? prev : DEFAULT_STATE));
       return;
     }
     const meta = (selectedRecord.metadata ?? {}) as Record<string, unknown>;
     const adminSettings = (meta.admin_settings ?? {}) as Record<string, unknown>;
     const kyc = (adminSettings.kycThresholds ?? {}) as Record<string, unknown>;
     const integrations = (adminSettings.integrations ?? {}) as Record<string, unknown>;
-    setState({
+    const nextState: TenantSettingsState = {
       rules: String(adminSettings.rules ?? ""),
       feePolicy: String(adminSettings.feePolicy ?? ""),
       enhancedThreshold: Number(kyc.enhanced ?? 1000000) || 0,
@@ -75,6 +75,12 @@ export function TenantSettingsPanel({ saccos, canEdit, initialSaccoId }: TenantS
       },
       updatedAt: typeof adminSettings.updated_at === "string" ? adminSettings.updated_at : null,
       updatedBy: typeof adminSettings.updated_by === "string" ? adminSettings.updated_by : null,
+    };
+    setState((prev) => {
+      if (JSON.stringify(prev) === JSON.stringify(nextState)) {
+        return prev;
+      }
+      return nextState;
     });
   }, [selectedRecord]);
 

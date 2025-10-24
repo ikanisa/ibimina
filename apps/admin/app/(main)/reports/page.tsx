@@ -1,5 +1,5 @@
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import type { SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
 import { ReportsClient } from "./client";
 import { mapSubscriptionRow } from "./subscription-utils";
@@ -7,11 +7,10 @@ import type { ReportSubscription } from "./types";
 
 export default async function ReportsPage() {
   const { profile } = await requireUserAndProfile();
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("reports/page");
 
   const ikiminaQuery = supabase
-    .schema("app")
-    .from("ikimina")
+    .from("ibimina")
     .select("id, name")
     .order("name", { ascending: true })
     .limit(50);
@@ -23,7 +22,6 @@ export default async function ReportsPage() {
 
   const saccos = profile.role === "SYSTEM_ADMIN"
     ? (((await supabase
-        .schema("app")
         .from("saccos")
         .select("id, name, district, province, category")
         .order("name", { ascending: true })).data ?? [])
@@ -35,14 +33,14 @@ export default async function ReportsPage() {
           province: row.province ?? "",
           category: row.category ?? "",
         })))
-    : profile.saccos && typeof profile.saccos.id === "string"
+    : profile.sacco && typeof profile.sacco.id === "string"
     ? [
         {
-          id: profile.saccos.id,
-          name: profile.saccos.name ?? "",
-          district: profile.saccos.district ?? "",
-          province: profile.saccos.province ?? "",
-          category: profile.saccos.category ?? "",
+          id: profile.sacco.id,
+          name: profile.sacco.name ?? "",
+          district: profile.sacco.district ?? "",
+          province: profile.sacco.province ?? "",
+          category: profile.sacco.category ?? "",
         } satisfies SaccoSearchResult,
       ]
     : ([] as SaccoSearchResult[]);

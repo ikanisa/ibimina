@@ -48,7 +48,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
 
   useEffect(() => {
     if (!selectedSacco) {
-      setTemplates([]);
+      setTemplates((prev) => (prev.length === 0 ? prev : []));
       return;
     }
     let cancelled = false;
@@ -63,7 +63,13 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         toast.error(fetchError.message ?? t("admin.templates.loadFailed", "Failed to load templates"));
         return;
       }
-      setTemplates(data ?? []);
+      setTemplates((prev) => {
+        const next = data ?? [];
+        if (JSON.stringify(prev) === JSON.stringify(next)) {
+          return prev;
+        }
+        return next;
+      });
     })();
     return () => {
       cancelled = true;

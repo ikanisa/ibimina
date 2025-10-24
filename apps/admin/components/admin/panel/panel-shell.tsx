@@ -3,27 +3,67 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import {
+  BarChartBig,
+  Building2,
+  Flag,
+  Inbox,
+  LayoutDashboard,
+  Menu,
+  Megaphone,
+  Scan,
+  ScrollText,
+  Settings2,
+  SlidersHorizontal,
+  UsersRound,
+  UserSquare2,
+  Wallet,
+  X,
+} from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { AdminPanelTopBar } from "@/components/admin/panel/top-bar";
-import type { PanelNavItem, TenantOption } from "@/components/admin/panel/types";
+import type { PanelBadgeTone, PanelIconKey, TenantOption } from "@/components/admin/panel/types";
+import { ADMIN_NAV_LINKS } from "@/components/admin/panel/nav-items";
 import { AdminPanelShortcuts } from "@/components/admin/panel/shortcuts";
 
 interface AdminPanelShellProps {
   children: React.ReactNode;
   profile: ProfileRow;
-  navItems: PanelNavItem[];
   tenantOptions: TenantOption[];
   alertsCount: number;
+  alertsBreakdown: { approvals: number; reconciliation: number };
 }
+
+type PanelNavItem = {
+  href: string;
+  label: string;
+  icon: PanelIconKey;
+  badge?: { label: string; tone: PanelBadgeTone } | null;
+};
+
+const ICON_MAP: Record<PanelIconKey, React.ComponentType<{ className?: string }>> = {
+  overview: LayoutDashboard,
+  saccos: Building2,
+  groups: UsersRound,
+  members: UserSquare2,
+  approvals: Inbox,
+  reconciliation: Wallet,
+  payments: SlidersHorizontal,
+  ocr: Scan,
+  notifications: Megaphone,
+  reports: BarChartBig,
+  settings: Settings2,
+  audit: ScrollText,
+  "feature-flags": Flag,
+};
 
 export function AdminPanelShell({
   children,
   profile,
-  navItems,
   tenantOptions,
   alertsCount,
+  alertsBreakdown,
 }: AdminPanelShellProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,10 +80,28 @@ export function AdminPanelShell({
 
   const saccoFilter = useMemo(() => searchParams?.get("sacco") ?? null, [searchParams]);
 
+  const navItems: PanelNavItem[] = useMemo(() => {
+    return ADMIN_NAV_LINKS.map((item) => {
+      if (item.href === "/admin/approvals" && alertsBreakdown.approvals > 0) {
+        return {
+          ...item,
+          badge: { label: String(alertsBreakdown.approvals), tone: "warning" },
+        };
+      }
+      if (item.href === "/admin/reconciliation" && alertsBreakdown.reconciliation > 0) {
+        return {
+          ...item,
+          badge: { label: String(alertsBreakdown.reconciliation), tone: "critical" },
+        };
+      }
+      return { ...item, badge: null } satisfies PanelNavItem;
+    });
+  }, [alertsBreakdown]);
+
   const nav = (
     <nav className="flex h-full flex-col gap-1 overflow-y-auto p-3">
       {navItems.map((item) => {
-        const Icon = item.icon;
+        const Icon = ICON_MAP[item.icon];
         const isActive = activePath === item.href;
         return (
           <Link
@@ -85,7 +143,7 @@ export function AdminPanelShell({
           tenantOptions={tenantOptions}
           alertsCount={alertsCount}
           onToggleNav={() => setMobileOpen((value) => !value)}
-          navItems={navItems}
+          alertsBreakdown={alertsBreakdown}
         />
         <div className="flex flex-1">
           <aside className="hidden w-64 flex-shrink-0 border-r border-white/5 bg-white/5 backdrop-blur lg:block">

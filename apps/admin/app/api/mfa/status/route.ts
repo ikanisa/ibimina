@@ -19,7 +19,7 @@ import type { Database } from "@/lib/supabase/types";
 export async function GET() {
   const { user, profile } = await requireUserAndProfile();
   const requireMfa = true;
-  const methodSet = new Set(profile.mfa_methods ?? []);
+  const methodSet = new Set<string>(profile.mfa_methods ?? []);
   if (profile.mfa_passkey_enrolled) {
     methodSet.add("PASSKEY");
   }

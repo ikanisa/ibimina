@@ -46,18 +46,32 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
   const pending = pendingAction;
 
   useEffect(() => {
+    const nextJoinId = joinRequests.length === 0 ? null : joinRequests[0]?.id ?? null;
     if (joinRequests.length === 0) {
-      setSelectedJoin(null);
-    } else if (!selectedJoin || !joinRequests.some((request) => request.id === selectedJoin)) {
-      setSelectedJoin(joinRequests[0]?.id ?? null);
+      if (selectedJoin !== null) {
+        setSelectedJoin(null);
+      }
+      return;
+    }
+    if (!selectedJoin || !joinRequests.some((request) => request.id === selectedJoin)) {
+      if (nextJoinId !== selectedJoin) {
+        setSelectedJoin(nextJoinId);
+      }
     }
   }, [joinRequests, selectedJoin]);
 
   useEffect(() => {
+    const nextInviteId = invites.length === 0 ? null : invites[0]?.id ?? null;
     if (invites.length === 0) {
-      setSelectedInvite(null);
-    } else if (!selectedInvite || !invites.some((invite) => invite.id === selectedInvite)) {
-      setSelectedInvite(invites[0]?.id ?? null);
+      if (selectedInvite !== null) {
+        setSelectedInvite(null);
+      }
+      return;
+    }
+    if (!selectedInvite || !invites.some((invite) => invite.id === selectedInvite)) {
+      if (nextInviteId !== selectedInvite) {
+        setSelectedInvite(nextInviteId);
+      }
     }
   }, [invites, selectedInvite]);
 

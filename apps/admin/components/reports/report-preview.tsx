@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
 import type { ReportExportFilters } from "@/components/reports/report-export-panel";
 
-const supabase = getSupabaseBrowserClient();
-const ACTIVE_STATUSES = new Set(["POSTED", "SETTLED"]);
 const DEFAULT_WINDOW_DAYS = 30;
 const MAX_BARS = 14;
 
@@ -39,24 +36,10 @@ interface ReportPreviewData extends ReportPreviewSummary {
   }>;
 }
 
-type PaymentRow = {
-  id: string;
-  sacco_id: string | null;
-  amount: number;
-  currency: string | null;
-  status: string;
-  occurred_at: string;
-  ikimina_id: string | null;
-  group: { id: string; name: string | null; code: string | null } | null;
+type PreviewResponse = {
+  summary: ReportPreviewData | null;
+  brandColor: string | null;
 };
-
-function toDateStart(value: Date) {
-  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
-}
-
-function toDateEnd(value: Date) {
-  return new Date(value.getFullYear(), value.getMonth(), value.getDate(), 23, 59, 59, 999);
-}
 
 function formatCurrency(amount: number, currency: string) {
   return new Intl.NumberFormat("en-RW", {
@@ -75,33 +58,7 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
   const [brandColor, setBrandColor] = useState<string | null>(null);
 
   useEffect(() => {
-    let active = true;
-    async function loadBrand() {
-      if (!filters.sacco?.id) {
-        setBrandColor(null);
-        return;
-      }
-      const { data: row, error } = await supabase
-        .schema("app")
-        .from("saccos")
-        .select("brand_color")
-        .eq("id", filters.sacco.id)
-        .single();
-      if (!active) return;
-      if (error) {
-        setBrandColor(null);
-        return;
-      }
-      const hex = (row as { brand_color?: string | null })?.brand_color ?? null;
-      setBrandColor(hex && /^#?[0-9a-fA-F]{6}$/.test(hex) ? (hex.startsWith('#') ? hex : `#${hex}`) : null);
-    }
-    void loadBrand();
-    return () => {
-      active = false;
-    };
-  }, [filters.sacco?.id]);
-
-  useEffect(() => {
+    const controller = new AbortController();
     let cancelled = false;
 
     async function loadPreview() {
@@ -129,27 +86,40 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
         return;
       }
 
-      const startIso = toDateStart(startDate).toISOString();
-      const endIso = toDateEnd(endDate).toISOString();
+      let response: Response;
+      let payload: PreviewResponse | { error?: string } = {};
 
-      let query = supabase
-        .schema("app")
-        .from("payments")
-        .select("id, sacco_id, amount, currency, status, occurred_at, ikimina_id, group:ikimina(id, name, code)")
-        .gte("occurred_at", startIso)
-        .lte("occurred_at", endIso)
-        .order("occurred_at", { ascending: false })
-        .limit(2000);
-
-      if (filters.sacco?.id) {
-        query = query.eq("sacco_id", filters.sacco.id);
+      try {
+        response = await fetch("/api/reports/preview", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            saccoId: filters.sacco?.id ?? null,
+            from: filters.from || undefined,
+            to: filters.to || undefined,
+          }),
+        });
+        payload = (await response.json().catch(() => ({}))) as PreviewResponse | { error?: string };
+      } catch (error) {
+        if ((error as DOMException | Error)?.name === "AbortError") {
+          return;
+        }
+        const message = t("reports.errors.loadFailed", "Failed to load preview");
+        if (!cancelled) {
+          setErrorMessage(message);
+          setData(null);
+          toastError(message);
+          setLoading(false);
+        }
+        return;
       }
 
-      const { data: rows, error } = await query;
       if (cancelled) return;
 
-      if (error) {
-        const message = error.message ?? t("reports.errors.loadFailed", "Failed to load preview");
+      if (!response.ok) {
+        const message = (payload as { error?: string }).error ?? t("reports.errors.loadFailed", "Failed to load preview");
         setErrorMessage(message);
         setData(null);
         toastError(message);
@@ -157,10 +127,10 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
         return;
       }
 
-      const payments = (rows as PaymentRow[] | null) ?? [];
-      const posted = payments.filter((row) => ACTIVE_STATUSES.has(row.status));
+      const { summary, brandColor: nextBrandColor } = payload as PreviewResponse;
+      setBrandColor(nextBrandColor ?? null);
 
-      if (posted.length === 0) {
+      if (!summary) {
         setData(null);
         onSummaryChange?.({
           currency: "RWF",
@@ -172,64 +142,21 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
         return;
       }
 
-      const currency = posted[0]?.currency ?? "RWF";
-      let totalAmount = 0;
-      let totalTransactions = 0;
-      const groupTotals = new Map<string, { name: string; code: string; amount: number; count: number }>();
-      const dailyTotals = new Map<string, number>();
-
-      for (const payment of posted) {
-        totalAmount += payment.amount;
-        totalTransactions += 1;
-
-        const groupId = payment.ikimina_id ?? "unassigned";
-        const groupEntry = groupTotals.get(groupId) ?? {
-          name: payment.group?.name ?? "Unassigned",
-          code: payment.group?.code ?? "—",
-          amount: 0,
-          count: 0,
-        };
-        groupEntry.amount += payment.amount;
-        groupEntry.count += 1;
-        groupTotals.set(groupId, groupEntry);
-
-        const dayKey = payment.occurred_at.slice(0, 10);
-        dailyTotals.set(dayKey, (dailyTotals.get(dayKey) ?? 0) + payment.amount);
-      }
-
-      const uniqueIkimina = Array.from(groupTotals.keys()).filter((id) => id !== "unassigned").length;
-
-      const topIkimina = Array.from(groupTotals.entries())
-        .map(([id, entry]) => ({
-          id,
-          name: entry.name,
-          code: entry.code,
-          amount: entry.amount,
-          transactionCount: entry.count,
-        }))
-        .sort((a, b) => b.amount - a.amount)
-        .slice(0, 5);
-
-      const sortedDaily = Array.from(dailyTotals.entries())
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([date, amount]) => ({ date, amount }));
-      const recentDaily = sortedDaily.slice(-MAX_BARS);
-
-      const summary: ReportPreviewData = {
-        currency,
-        totalAmount,
-        totalTransactions,
-        uniqueIkimina,
-        topIkimina,
-        dailyTotals: recentDaily,
+      const trimmed: ReportPreviewData = {
+        currency: summary.currency,
+        totalAmount: summary.totalAmount,
+        totalTransactions: summary.totalTransactions,
+        uniqueIkimina: summary.uniqueIkimina,
+        topIkimina: summary.topIkimina.slice(0, 5),
+        dailyTotals: summary.dailyTotals.slice(-MAX_BARS),
       };
 
-      setData(summary);
+      setData(trimmed);
       onSummaryChange?.({
-        currency,
-        totalAmount,
-        totalTransactions,
-        uniqueIkimina,
+        currency: summary.currency,
+        totalAmount: summary.totalAmount,
+        totalTransactions: summary.totalTransactions,
+        uniqueIkimina: summary.uniqueIkimina,
       });
       setLoading(false);
     }
@@ -238,6 +165,7 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [filters.from, filters.to, filters.sacco?.id, onSummaryChange, toastError, t]);
 

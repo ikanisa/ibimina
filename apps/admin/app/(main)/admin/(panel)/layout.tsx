@@ -1,29 +1,12 @@
 import { redirect } from "next/navigation";
-import { Building2, Flag, LayoutDashboard, Megaphone, ScrollText, Settings2, UsersRound, UserSquare2, Inbox, Wallet, Scan, BarChartBig, SlidersHorizontal } from "lucide-react";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { AdminPanelShell } from "@/components/admin/panel/panel-shell";
-import type { PanelNavItem, TenantOption } from "@/components/admin/panel/types";
-
-const NAV_ITEMS: PanelNavItem[] = [
-  { href: "/admin/overview", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/saccos", label: "SACCOs", icon: Building2 },
-  { href: "/admin/groups", label: "Groups", icon: UsersRound },
-  { href: "/admin/members", label: "Members", icon: UserSquare2 },
-  { href: "/admin/approvals", label: "Approvals & Invites", icon: Inbox },
-  { href: "/admin/reconciliation", label: "Deposits & Reconciliation", icon: Wallet },
-  { href: "/admin/payments", label: "Payments & Settlement", icon: SlidersHorizontal },
-  { href: "/admin/ocr", label: "OCR Review", icon: Scan },
-  { href: "/admin/notifications", label: "Notifications & Comms", icon: Megaphone },
-  { href: "/admin/reports", label: "Reports & Exports", icon: BarChartBig },
-  { href: "/admin/settings", label: "Settings & Policies", icon: Settings2 },
-  { href: "/admin/audit", label: "Audit & Logs", icon: ScrollText },
-  { href: "/admin/feature-flags", label: "Feature Flags & Experiments", icon: Flag },
-];
+import type { TenantOption } from "@/components/admin/panel/types";
 
 async function getTenantOptions(profile: Awaited<ReturnType<typeof requireUserAndProfile>>["profile"]) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/layout:getTenantOptions");
 
   if (profile.role === "SYSTEM_ADMIN") {
     const { data, error } = await supabase
@@ -48,12 +31,12 @@ async function getTenantOptions(profile: Awaited<ReturnType<typeof requireUserAn
     return options;
   }
 
-  if (profile.sacco_id && profile.saccos?.name) {
+  if (profile.sacco_id && profile.sacco?.name) {
     return [
       {
         id: profile.sacco_id,
-        name: profile.saccos.name,
-        badge: profile.saccos.category,
+        name: profile.sacco.name,
+        badge: profile.sacco.category,
       },
     ];
   }
@@ -67,7 +50,7 @@ async function getTenantOptions(profile: Awaited<ReturnType<typeof requireUserAn
 }
 
 async function getAlertSummary(profile: Awaited<ReturnType<typeof requireUserAndProfile>>["profile"]) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/layout:getAlertSummary");
   const scope = profile.role === "SYSTEM_ADMIN" ? null : profile.sacco_id ?? null;
 
   let joinQuery = supabase
@@ -130,24 +113,13 @@ export default async function AdminPanelLayout({ children }: { children: React.R
     getAlertSummary(auth.profile),
   ]);
 
-  const navItems = NAV_ITEMS.map((item) => {
-    if (item.href === "/admin/approvals" && alertSummary.approvals > 0) {
-      return {
-        ...item,
-        badge: { label: String(alertSummary.approvals), tone: "warning" as const },
-      } satisfies PanelNavItem;
-    }
-    if (item.href === "/admin/reconciliation" && alertSummary.reconciliation > 0) {
-      return {
-        ...item,
-        badge: { label: String(alertSummary.reconciliation), tone: "critical" as const },
-      } satisfies PanelNavItem;
-    }
-    return item;
-  });
-
   return (
-    <AdminPanelShell profile={auth.profile} navItems={navItems} tenantOptions={tenantOptions} alertsCount={alertSummary.total}>
+    <AdminPanelShell
+      profile={auth.profile}
+      tenantOptions={tenantOptions}
+      alertsCount={alertSummary.total}
+      alertsBreakdown={{ approvals: alertSummary.approvals, reconciliation: alertSummary.reconciliation }}
+    >
       {children}
     </AdminPanelShell>
   );

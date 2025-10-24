@@ -3,7 +3,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { AdminMembersDirectory, MemberDirectoryRow } from "@/components/admin/members/directory-table";
 import { requireUserAndProfile } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { resolveTenantScope } from "@/lib/admin/scope";
 import { Trans } from "@/components/common/trans";
 import { isMissingRelationError } from "@/lib/supabase/errors";
@@ -15,7 +15,7 @@ interface MembersPageProps {
 export default async function MembersPage({ searchParams }: MembersPageProps) {
   const { profile } = await requireUserAndProfile();
   const scope = resolveTenantScope(profile, searchParams);
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServiceRoleClient("admin/panel/members");
 
   let membersQuery = supabase
     .from("ikimina_members_public")

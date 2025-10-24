@@ -178,6 +178,52 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [showLowConfidence, setShowLowConfidence] = useState(false);
+
+  const performStatusUpdate = useCallback(
+    async (ids: string[], status: string) => {
+      const response = await fetch("/api/admin/payments/update-status", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids,
+          status,
+          saccoId: saccoId ?? null,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error ?? t("recon.errors.statusUpdateFailed", "Failed to update status"));
+      }
+      return payload as { updated?: number };
+    },
+    [saccoId, t],
+  );
+
+  const performAssignUpdate = useCallback(
+    async (ids: string[], ikiminaId: string, memberId?: string | null) => {
+      const body: Record<string, unknown> = {
+        ids,
+        ikiminaId,
+        saccoId: saccoId ?? null,
+      };
+      if (memberId !== undefined) {
+        body.memberId = memberId;
+      }
+      const response = await fetch("/api/admin/payments/assign", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error ?? t("recon.errors.bulkAssignFailed", "Failed to assign group"));
+      }
+      return payload as { updated?: number };
+    },
+    [saccoId, t],
+  );
   const [showDuplicatesOnly, setShowDuplicatesOnly] = useState(false);
   const [reasonFilters, setReasonFilters] = useState<string[]>([]);
 
@@ -323,7 +369,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       const statusLabel = getStatusLabel(status);
       void offlineQueue.queueAction({
         type: "payments:update-status",
-        payload: { ids: selectedIds, status },
+        payload: { ids: selectedIds, status, saccoId: saccoId ?? null },
         summary: {
           primary: `Sync ${selectedIds.length} → ${statusLabel.primary}`,
           secondary: `${selectedIds.length} ku ${statusLabel.secondary}`,
@@ -338,14 +384,13 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     startTransition(async () => {
       setBulkMessage(null);
       setBulkError(null);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
-        .schema("app")
-        .from("payments")
-        .update({ status })
-        .in("id", selectedIds);
-      if (error) {
-        const message = error.message ?? t("recon.errors.statusUpdateFailed", "Failed to update status");
+      try {
+        await performStatusUpdate(selectedIds, status);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : t("recon.errors.statusUpdateFailed", "Failed to update status");
         setBulkError(message);
         toastError(message);
         return;
@@ -367,7 +412,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     if (!offlineQueue.isOnline) {
       void offlineQueue.queueAction({
         type: "payments:assign",
-        payload: { ids: selectedIds, ikiminaId: trimmed },
+        payload: { ids: selectedIds, ikiminaId: trimmed, saccoId: saccoId ?? null },
         summary: {
           primary: `Sync ${selectedIds.length} → ${trimmed}`,
           secondary: `${selectedIds.length} kuri ${trimmed}`,
@@ -382,14 +427,13 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     startTransition(async () => {
       setBulkMessage(null);
       setBulkError(null);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
-        .schema("app")
-        .from("payments")
-        .update({ ikimina_id: trimmed })
-        .in("id", selectedIds);
-      if (error) {
-        const message = error.message ?? t("recon.errors.bulkAssignFailed", "Failed to assign group");
+      try {
+        await performAssignUpdate(selectedIds, trimmed, null);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : t("recon.errors.bulkAssignFailed", "Failed to assign group");
         setBulkError(message);
         toastError(message);
         return;
@@ -449,16 +493,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
           throw new Error(groupError?.message ?? "No matching ikimina found for reference");
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (supabase as any)
-          .schema("app")
-          .from("payments")
-          .update({ ikimina_id: resolvedGroup.id })
-          .in("id", selectedIds);
-
-        if (error) {
-          throw error;
-        }
+        await performAssignUpdate(selectedIds, resolvedGroup.id, null);
 
         const count = selectedIds.length;
         const assignedEn = `Assigned ${count} payment(s) to ${groupCode}.`;
@@ -487,7 +522,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       const statusLabel = getStatusLabel(newStatus);
       void offlineQueue.queueAction({
         type: "payments:update-status",
-        payload: { ids: [selected.id], status: newStatus },
+        payload: { ids: [selected.id], status: newStatus, saccoId: saccoId ?? null },
         summary: {
           primary: `Sync → ${statusLabel.primary}`,
           secondary: `Bizahuzwa kuri ${statusLabel.secondary}`,
@@ -500,15 +535,14 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     startTransition(async () => {
       setActionMessage(null);
       setActionError(null);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
-        .schema("app")
-        .from("payments")
-        .update({ status: newStatus })
-        .eq("id", selected.id);
-      if (error) {
-        const message = error.message ?? "Failed to update status";
-        setActionError(message ?? t("recon.errors.statusUpdateFailed", "Failed to update status"));
+      try {
+        await performStatusUpdate([selected.id], newStatus);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : t("recon.errors.statusUpdateFailed", "Failed to update status");
+        setActionError(message);
         return;
       }
       const statusLabel = getStatusLabel(newStatus);
@@ -522,7 +556,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     if (!offlineQueue.isOnline) {
       void offlineQueue.queueAction({
         type: "payments:assign",
-        payload: { ids: [selected.id], ikiminaId, memberId },
+        payload: { ids: [selected.id], ikiminaId, memberId, saccoId: saccoId ?? null },
         summary: {
           primary: `Sync assignment → ${ikiminaId}`,
           secondary: `Byashyizwe kuri ${ikiminaId}`,
@@ -535,14 +569,11 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     startTransition(async () => {
       setActionMessage(null);
       setActionError(null);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
-        .schema("app")
-        .from("payments")
-        .update({ ikimina_id: ikiminaId, member_id: memberId })
-        .eq("id", selected.id);
-      if (error) {
-        const message = error.message ?? t("recon.errors.assignFailed", "Failed to assign");
+      try {
+        await performAssignUpdate([selected.id], ikiminaId, memberId);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : t("recon.errors.assignFailed", "Failed to assign");
         setActionError(message);
         return;
       }
