@@ -112,6 +112,8 @@ alter table "app"."mfa_codes" enable row level security;
 
 alter table "app"."mfa_email_codes" enable row level security;
 
+drop view if exists "public"."saccos";
+
 alter table "app"."saccos" drop column "search_slug";
 
 alter table "app"."saccos" add column "search_slug" text generated always as (TRIM(BOTH '-'::text FROM lower(regexp_replace(COALESCE(name, ''::text), '[^a-z0-9]+'::text, '-'::text, 'g'::text)))) stored;
@@ -379,7 +381,28 @@ $procedure$
 ;
 
 
-create extension if not exists "pg_net" with schema "public" version '0.19.5';
+do $do$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_net') then
+    return;
+  end if;
+
+  execute 'create schema if not exists net';
+  execute $func$
+    create or replace function net.http_post(
+      url text,
+      headers jsonb default '{}'::jsonb,
+      body jsonb default '{}'::jsonb,
+      timeout_msec integer default null
+    )
+    returns jsonb
+    language sql
+    as $body$
+      select jsonb_build_object('status', 'stubbed');
+    $body$;
+  $func$;
+end;
+$do$;
 
 revoke delete on table "public"."ikimina" from "anon";
 
@@ -1102,6 +1125,3 @@ using (((bucket_id = 'reports'::text) AND (auth.role() = 'authenticated'::text))
   for delete
   to authenticated
 using (((bucket_id = 'reports'::text) AND (auth.role() = 'authenticated'::text)));
-
-
-
