@@ -8,10 +8,14 @@ import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  resolveTenantScope,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
+} from "@/lib/admin/scope";
 
 interface NotificationsPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 type QueueRow = {
@@ -38,7 +42,8 @@ type SaccoOption = {
 
 export default async function NotificationsPage({ searchParams }: NotificationsPageProps) {
   const { profile } = await requireUserAndProfile();
-  const scope = resolveTenantScope(profile, searchParams);
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = createSupabaseServiceRoleClient("admin/panel/notifications");
 
   const saccoQuery = supabase

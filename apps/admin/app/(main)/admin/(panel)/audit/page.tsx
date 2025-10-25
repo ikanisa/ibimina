@@ -8,10 +8,14 @@ import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  resolveTenantScope,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
+} from "@/lib/admin/scope";
 
 interface AuditPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 type AuditRow = {
@@ -26,15 +30,16 @@ type AuditRow = {
 
 export default async function AuditPage({ searchParams }: AuditPageProps) {
   const { profile } = await requireUserAndProfile();
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = createSupabaseServiceRoleClient("admin/panel/audit");
-  const scope = resolveTenantScope(profile, searchParams);
 
   const filters: AuditFiltersState = {
-    action: getParam(searchParams?.["action"]),
-    entity: getParam(searchParams?.["entity"]),
-    actor: getParam(searchParams?.["actor"]),
-    from: getParam(searchParams?.["from"]),
-    to: getParam(searchParams?.["to"]),
+    action: getParam(resolvedSearchParams?.["action"]),
+    entity: getParam(resolvedSearchParams?.["entity"]),
+    actor: getParam(resolvedSearchParams?.["actor"]),
+    from: getParam(resolvedSearchParams?.["from"]),
+    to: getParam(resolvedSearchParams?.["to"]),
   };
 
   const actorFilterIds: string[] = [];

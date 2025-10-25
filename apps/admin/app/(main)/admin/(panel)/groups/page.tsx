@@ -4,16 +4,21 @@ import { StatusChip } from "@/components/common/status-chip";
 import { IkiminaTable } from "@/components/ikimina/ikimina-table";
 import { requireUserAndProfile } from "@/lib/auth";
 import { getIkiminaDirectorySummary } from "@/lib/ikimina/list";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  resolveTenantScope,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
+} from "@/lib/admin/scope";
 import { Trans } from "@/components/common/trans";
 
 interface GroupsPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 export default async function GroupsPage({ searchParams }: GroupsPageProps) {
   const { profile } = await requireUserAndProfile();
-  const scope = resolveTenantScope(profile, searchParams);
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
   const { rows, statusOptions, typeOptions, saccoOptions } = await getIkiminaDirectorySummary({
     saccoId: scope.saccoId,
     includeAll: scope.includeAll,

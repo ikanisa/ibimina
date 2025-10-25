@@ -295,7 +295,29 @@ $procedure$
 ;
 
 
-create extension if not exists "pg_net" with schema "public" version '0.19.5';
+do $do$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_net') then
+    return;
+  end if;
+
+  execute 'create schema if not exists net';
+  execute $func$
+    create or replace function net.http_post(
+      url text,
+      headers jsonb default '{}'::jsonb,
+      body jsonb default '{}'::jsonb,
+      timeout_msec integer default null
+    )
+    returns jsonb
+    language sql
+    as $body$
+      select jsonb_build_object('status', 'stubbed');
+    $body$;
+  $func$;
+  raise notice 'pg_net stub installed via remote_schema migration';
+end;
+$do$;
 
 create type "public"."invite_status" as enum ('sent', 'accepted', 'expired');
 

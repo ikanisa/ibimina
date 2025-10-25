@@ -7,7 +7,11 @@ import { SmsInboxPanel } from "@/components/recon/sms-inbox-panel";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  resolveTenantScope,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
+} from "@/lib/admin/scope";
 import { canImportStatements, canReconcilePayments, isSystemAdmin } from "@/lib/permissions";
 import type { Database } from "@/lib/supabase/types";
 
@@ -32,12 +36,13 @@ const parseSmsJson = (value: unknown): Record<string, unknown> | null => {
 };
 
 interface ReconciliationPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 export default async function AdminReconciliationPage({ searchParams }: ReconciliationPageProps) {
   const { profile } = await requireUserAndProfile();
-  const scope = resolveTenantScope(profile, searchParams);
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = createSupabaseServiceRoleClient("admin/panel/reconciliation");
 
   type PaymentRow = Database["app"]["Tables"]["payments"]["Row"] & {

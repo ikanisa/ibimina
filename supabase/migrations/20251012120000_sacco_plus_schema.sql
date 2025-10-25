@@ -421,16 +421,26 @@ $$;
 
 -- 5. Row level security -------------------------------------------------------
 alter table app.user_profiles enable row level security;
+alter table app.user_profiles force row level security;
 alter table app.saccos enable row level security;
+alter table app.saccos force row level security;
 alter table app.ikimina enable row level security;
+alter table app.ikimina force row level security;
 alter table app.members enable row level security;
+alter table app.members force row level security;
 alter table app.payments enable row level security;
+alter table app.payments force row level security;
 alter table app.recon_exceptions enable row level security;
+alter table app.recon_exceptions force row level security;
 alter table app.accounts enable row level security;
+alter table app.accounts force row level security;
 alter table app.ledger_entries enable row level security;
+alter table app.ledger_entries force row level security;
 alter table app.sms_inbox enable row level security;
+alter table app.sms_inbox force row level security;
 alter table app.import_files enable row level security;
 alter table app.audit_logs enable row level security;
+alter table app.audit_logs force row level security;
 alter table app.devices_trusted enable row level security;
 alter table ops.rate_limits enable row level security;
 alter table ops.idempotency enable row level security;

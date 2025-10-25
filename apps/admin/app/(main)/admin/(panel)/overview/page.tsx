@@ -6,15 +6,22 @@ import { OperationalTelemetry } from "@/components/admin/operational-telemetry";
 import { AuditLogTable, type AuditLogEntry } from "@/components/admin/audit-log-table";
 import { FeatureFlagsCard } from "@/components/admin/feature-flags-card";
 import { MfaInsightsCard } from "@/components/admin/mfa-insights-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  resolveTenantScope,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
+} from "@/lib/admin/scope";
 import { getMfaInsights } from "@/lib/mfa/insights";
 import { Trans } from "@/components/common/trans";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/types";
 
 interface OverviewPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 interface MetricSummary {
@@ -28,6 +35,7 @@ interface MetricSummary {
 
 async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promise<MetricSummary> {
   const supabase = createSupabaseServiceRoleClient("admin/panel/overview:metrics");
+  const pendingInvitesPromise = computePendingInviteCount(supabase, scope);
 
   const saccoQuery = scope.includeAll
     ? supabase.from("saccos").select("id", { head: true, count: "exact" })
@@ -64,12 +72,6 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
         .eq("status", "pending")
         .eq("sacco_id", scope.saccoId ?? "");
 
-  const invitesQuery = supabase
-    .from("group_invites")
-    .select("id, group:ibimina(sacco_id)")
-    .eq("status", "sent")
-    .limit(500);
-
   const exceptionQuery = scope.includeAll
     ? supabase
         .schema("app")
@@ -83,24 +85,14 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
         .in("status", ["UNALLOCATED", "PENDING", "REJECTED"])
         .eq("sacco_id", scope.saccoId ?? "");
 
-  const [saccos, groups, members, approvals, invitesRows, exceptions] = await Promise.all([
+  const [saccos, groups, members, approvals, exceptions] = await Promise.all([
     saccoQuery,
     groupsQuery,
     membersQuery,
     approvalsQuery,
-    invitesQuery,
     exceptionQuery,
   ]);
-
-  if (invitesRows.error && !isMissingRelationError(invitesRows.error)) {
-    throw invitesRows.error;
-  }
-
-  const inviteCount = Array.isArray(invitesRows.data)
-    ? invitesRows.data.filter((row: { group: { sacco_id: string | null } | null }) =>
-        scope.includeAll ? true : row.group?.sacco_id === scope.saccoId,
-      ).length
-    : 0;
+  const inviteCount = await pendingInvitesPromise;
 
   const safeCount = (result: { count: number | null; error: unknown }) => {
     const { count, error } = result;
@@ -119,181 +111,303 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
   };
 }
 
+async function computePendingInviteCount(
+  supabase: SupabaseClient<Database>,
+  scope: ReturnType<typeof resolveTenantScope>,
+): Promise<number> {
+  try {
+    if (scope.includeAll) {
+      const { count, error } = await supabase
+        .from("group_invites")
+        .select("id", { head: true, count: "exact" })
+        .eq("status", "sent");
+      if (error) {
+        throw error;
+      }
+      return Number(count ?? 0);
+    }
+
+    if (!scope.saccoId) {
+      return 0;
+    }
+
+    const { data: inviteRows, error: inviteError } = await supabase
+      .from("group_invites")
+      .select("id, group_id")
+      .eq("status", "sent");
+    if (inviteError) {
+      throw inviteError;
+    }
+
+    const invites = (inviteRows ?? []) as Array<{ group_id: string | null }>;
+    const groupIds = Array.from(
+      new Set(invites.map((row) => row.group_id).filter((id): id is string => typeof id === "string" && id.length > 0)),
+    );
+
+    if (groupIds.length === 0) {
+      return 0;
+    }
+
+    const { data: groupRows, error: groupError } = await supabase
+      .schema("app")
+      .from("ikimina")
+      .select("id, sacco_id")
+      .in("id", groupIds);
+
+    if (groupError) {
+      throw groupError;
+    }
+
+    const saccoLookup = new Map<string, string | null>(
+      (groupRows ?? []).map((row) => [String(row.id), (row.sacco_id as string | null) ?? null]),
+    );
+
+    return invites.filter((row) => {
+      const groupId = row.group_id;
+      if (!groupId) return false;
+      return saccoLookup.get(groupId) === scope.saccoId;
+    }).length;
+  } catch (error) {
+    if (!isMissingRelationError(error)) {
+      console.error("[admin/overview] failed to compute pending invites", error);
+    }
+    return 0;
+  }
+}
+
 export default async function OverviewPage({ searchParams }: OverviewPageProps) {
   const { profile } = await requireUserAndProfile();
-  const scope = resolveTenantScope(profile, searchParams);
-  const supabase = createSupabaseServiceRoleClient("admin/panel/overview");
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
 
-  const metricsPromise = loadMetrics(scope);
-  const mfaInsightsPromise = scope.includeAll ? getMfaInsights() : Promise.resolve(null);
-
-  let notificationQuery = supabase
-    .from("notification_queue")
-    .select("id, event, sacco_id, template_id, status, scheduled_for, created_at")
-    .order("created_at", { ascending: false })
-    .limit(20);
-  if (!scope.includeAll && scope.saccoId) {
-    notificationQuery = notificationQuery.eq("sacco_id", scope.saccoId);
-  }
-
-  const telemetryQuery = supabase
-    .from("system_metrics")
-    .select("event, total, last_occurred, meta")
-    .order("last_occurred", { ascending: false })
-    .limit(20);
-
-  let auditQuery = supabase
-    .schema("app")
-    .from("audit_logs")
-    .select("id, action, entity, entity_id, diff, created_at, actor, sacco_id")
-    .order("created_at", { ascending: false })
-    .limit(30);
-  if (!scope.includeAll && scope.saccoId) {
-    auditQuery = auditQuery.eq("sacco_id", scope.saccoId);
-  }
-
-  const [notificationResponse, telemetryResponse, auditResponse, mfaInsights] = await Promise.all([
-    notificationQuery,
-    telemetryQuery,
-    auditQuery,
-    mfaInsightsPromise,
-  ]);
-
-  const metrics = await metricsPromise;
-
-  if (notificationResponse.error && !isMissingRelationError(notificationResponse.error)) {
-    throw notificationResponse.error;
-  }
-  if (telemetryResponse.error && !isMissingRelationError(telemetryResponse.error)) {
-    throw telemetryResponse.error;
-  }
-  if (auditResponse.error && !isMissingRelationError(auditResponse.error)) {
-    throw auditResponse.error;
-  }
-
-  type NotificationRow = {
-    id: string;
-    event: string;
-    sacco_id: string | null;
-    template_id: string | null;
-    status: string | null;
-    scheduled_for: string | null;
-    created_at: string | null;
-  };
-
-  type TelemetryRow = {
-    event: string;
-    total: number | null;
-    last_occurred: string | null;
-    meta: Record<string, unknown> | null;
-  };
-
-  type AuditRow = {
-    id: string;
-    action: string;
-    entity: string;
-    entity_id: string | null;
-    diff: Record<string, unknown> | null;
-    created_at: string | null;
-    actor: string | null;
-  };
-
-  const telemetryMetrics = ((telemetryResponse.data ?? []) as TelemetryRow[]).map((row) => ({
-    event: row.event,
-    total: Number(row.total ?? 0),
-    last_occurred: row.last_occurred,
-    meta: row.meta,
-  }));
-
-  const auditRows = (auditResponse.data ?? []) as AuditRow[];
-  const actorIds = Array.from(
-    new Set(
-      auditRows
-        .map((row) => row.actor)
-        .filter((value): value is string => Boolean(value && value.length > 0)),
-    ),
+  const header = (
+    <GradientHeader
+      title={<Trans i18nKey="admin.overview.title" fallback="Admin overview" />}
+      subtitle={
+        <Trans
+          i18nKey="admin.overview.subtitle"
+          fallback="Monitor core operations across SACCOs, groups, members, and financial reconciliation."
+          className="text-xs text-neutral-3"
+        />
+      }
+      badge={<StatusChip tone="info">{scope.includeAll ? "Global" : profile.sacco?.name ?? "Scoped"}</StatusChip>}
+    />
   );
 
-  let actorLookup = new Map<string, string>();
-  if (actorIds.length > 0) {
-    const { data: actorData, error: actorError } = await supabase
-      .from("users")
-      .select("id, email")
-      .in("id", actorIds);
-    if (actorError && !isMissingRelationError(actorError)) {
-      throw actorError;
+  try {
+    const supabase = createSupabaseServiceRoleClient("admin/panel/overview");
+
+    const metricsPromise = loadMetrics(scope);
+    const mfaInsightsPromise = scope.includeAll ? getMfaInsights() : Promise.resolve(null);
+
+    let notificationQuery = supabase
+      .from("notification_queue")
+      .select("id, event, sacco_id, template_id, status, scheduled_for, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (!scope.includeAll && scope.saccoId) {
+      notificationQuery = notificationQuery.eq("sacco_id", scope.saccoId);
     }
-    actorLookup = new Map((actorData ?? []).map((row) => [String(row.id), row.email ?? ""]));
-  }
 
-  const auditEntries: AuditLogEntry[] = auditRows.map((row) => ({
-    id: row.id,
-    action: row.action,
-    entity: row.entity,
-    entityId: row.entity_id,
-    diff: row.diff,
-    actorLabel: row.actor ? actorLookup.get(row.actor) ?? row.actor : "—",
-    createdAt: row.created_at ?? new Date().toISOString(),
-  }));
+    const telemetryQuery = supabase
+      .from("system_metrics")
+      .select("event, total, last_occurred, meta")
+      .order("last_occurred", { ascending: false })
+      .limit(20);
 
-  return (
-    <div className="space-y-8">
-      <GradientHeader
-        title={<Trans i18nKey="admin.overview.title" fallback="Admin overview" />}
-        subtitle={
-          <Trans
-            i18nKey="admin.overview.subtitle"
-            fallback="Monitor core operations across SACCOs, groups, members, and financial reconciliation."
-            className="text-xs text-neutral-3"
-          />
-        }
-        badge={<StatusChip tone="info">{scope.includeAll ? "Global" : profile.sacco?.name ?? "Scoped"}</StatusChip>}
-      />
+    let auditQuery = supabase
+      .schema("app")
+      .from("audit_logs")
+      .select("id, action, entity, entity_id, diff, created_at, actor, sacco_id")
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (!scope.includeAll && scope.saccoId) {
+      auditQuery = auditQuery.eq("sacco_id", scope.saccoId);
+    }
 
-      <GlassCard
-        title={<Trans i18nKey="admin.overview.metrics.title" fallback="Key metrics" />}
-        subtitle={<Trans i18nKey="admin.overview.metrics.subtitle" fallback="Latest counts for your current tenant scope." className="text-xs text-neutral-3" />}
-      >
-        <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <MetricTile label="SACCOs" value={metrics.saccos} tone="info" />
-          <MetricTile label="Groups" value={metrics.groups} tone="info" />
-          <MetricTile label="Members" value={metrics.members} tone="success" />
-          <MetricTile label="Pending approvals" value={metrics.pendingApprovals} tone="warning" />
-          <MetricTile label="Pending invites" value={metrics.pendingInvites} tone="warning" />
-          <MetricTile label="Reconciliation exceptions" value={metrics.reconciliationExceptions} tone="critical" />
-        </dl>
-      </GlassCard>
+    const [notificationResponse, telemetryResponse, auditResponse, mfaInsights] = await Promise.all([
+      notificationQuery,
+      telemetryQuery,
+      auditQuery,
+      mfaInsightsPromise,
+    ]);
 
-      <div className="grid gap-8 xl:grid-cols-2">
+    if (notificationResponse.error && !isMissingRelationError(notificationResponse.error)) {
+      console.error("[admin/overview] notification query failed", notificationResponse.error);
+    }
+    if (telemetryResponse.error && !isMissingRelationError(telemetryResponse.error)) {
+      console.error("[admin/overview] telemetry query failed", telemetryResponse.error);
+    }
+    if (auditResponse.error && !isMissingRelationError(auditResponse.error)) {
+      console.error("[admin/overview] audit query failed", auditResponse.error);
+    }
+
+    type NotificationRow = {
+      id: string;
+      event: string;
+      sacco_id: string | null;
+      template_id: string | null;
+      status: string | null;
+      scheduled_for: string | null;
+      created_at: string | null;
+    };
+
+    type TelemetryRow = {
+      event: string;
+      total: number | null;
+      last_occurred: string | null;
+      meta: Record<string, unknown> | null;
+    };
+
+    type AuditRow = {
+      id: string;
+      action: string;
+      entity: string;
+      entity_id: string | null;
+      diff: Record<string, unknown> | null;
+      created_at: string | null;
+      actor: string | null;
+    };
+
+    const metrics = await metricsPromise;
+
+    const telemetryMetrics = ((telemetryResponse.data ?? []) as TelemetryRow[]).map((row) => ({
+      event: row.event,
+      total: Number(row.total ?? 0),
+      last_occurred: row.last_occurred,
+      meta: row.meta,
+    }));
+
+    const auditRows = (auditResponse.data ?? []) as AuditRow[];
+    const actorIds = Array.from(
+      new Set(
+        auditRows
+          .map((row) => row.actor)
+          .filter((value): value is string => Boolean(value && value.length > 0)),
+      ),
+    );
+
+    let actorLookup = new Map<string, string>();
+    if (actorIds.length > 0) {
+      const { data: actorData, error: actorError } = await supabase
+        .from("users")
+        .select("id, email")
+        .in("id", actorIds);
+      if (actorError && !isMissingRelationError(actorError)) {
+        console.error("[admin/overview] actor lookup failed", actorError);
+      }
+      actorLookup = new Map((actorData ?? []).map((row) => [String(row.id), row.email ?? ""]));
+    }
+
+    const auditEntries: AuditLogEntry[] = auditRows.map((row) => ({
+      id: row.id,
+      action: row.action,
+      entity: row.entity,
+      entityId: row.entity_id,
+      diff: row.diff,
+      actorLabel: row.actor ? actorLookup.get(row.actor) ?? row.actor : "—",
+      createdAt: row.created_at ?? new Date().toISOString(),
+    }));
+
+    return (
+      <div className="space-y-8">
+        {header}
+
         <GlassCard
-          title={<Trans i18nKey="admin.overview.telemetry.title" fallback="Operational telemetry" />}
-          subtitle={<Trans i18nKey="admin.overview.telemetry.subtitle" fallback="Recent platform events and signals." className="text-xs text-neutral-3" />}
+          title={<Trans i18nKey="admin.overview.metrics.title" fallback="Key metrics" />}
+          subtitle={
+            <Trans
+              i18nKey="admin.overview.metrics.subtitle"
+              fallback="Latest counts for your current tenant scope."
+              className="text-xs text-neutral-3"
+            />
+          }
         >
-          <OperationalTelemetry metrics={telemetryMetrics} />
+          <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <MetricTile label="SACCOs" value={metrics.saccos} tone="info" />
+            <MetricTile label="Groups" value={metrics.groups} tone="info" />
+            <MetricTile label="Members" value={metrics.members} tone="success" />
+            <MetricTile label="Pending approvals" value={metrics.pendingApprovals} tone="warning" />
+            <MetricTile label="Pending invites" value={metrics.pendingInvites} tone="warning" />
+            <MetricTile label="Reconciliation exceptions" value={metrics.reconciliationExceptions} tone="critical" />
+          </dl>
         </GlassCard>
 
-        <GlassCard
-          title={<Trans i18nKey="admin.overview.notifications.title" fallback="Notification queue" />}
-          subtitle={<Trans i18nKey="admin.overview.notifications.subtitle" fallback="Scheduled and recent deliveries." className="text-xs text-neutral-3" />}
-        >
-          <NotificationQueueTable rows={(notificationResponse.data ?? []) as NotificationRow[]} saccoLookup={new Map()} templateLookup={new Map()} />
-        </GlassCard>
-      </div>
+        <div className="grid gap-8 xl:grid-cols-2">
+          <GlassCard
+            title={<Trans i18nKey="admin.overview.telemetry.title" fallback="Operational telemetry" />}
+            subtitle={
+              <Trans
+                i18nKey="admin.overview.telemetry.subtitle"
+                fallback="Recent platform events and signals."
+                className="text-xs text-neutral-3"
+              />
+            }
+          >
+            <OperationalTelemetry metrics={telemetryMetrics} />
+          </GlassCard>
 
-      <div className="grid gap-8 xl:grid-cols-[2fr,1fr]">
-        <GlassCard
-          title={<Trans i18nKey="admin.overview.audit.title" fallback="Audit timeline" />}
-          subtitle={<Trans i18nKey="admin.overview.audit.subtitle" fallback="Latest platform actions" className="text-xs text-neutral-3" />}
-        >
-          <AuditLogTable rows={auditEntries} />
-        </GlassCard>
-        <div className="space-y-8">
-          {scope.includeAll && mfaInsights ? <MfaInsightsCard insights={mfaInsights} /> : null}
-          <FeatureFlagsCard />
+          <GlassCard
+            title={<Trans i18nKey="admin.overview.notifications.title" fallback="Notification queue" />}
+            subtitle={
+              <Trans
+                i18nKey="admin.overview.notifications.subtitle"
+                fallback="Scheduled and recent deliveries."
+                className="text-xs text-neutral-3"
+              />
+            }
+          >
+            <NotificationQueueTable
+              rows={(notificationResponse.data ?? []) as NotificationRow[]}
+              saccoLookup={new Map()}
+              templateLookup={new Map()}
+            />
+          </GlassCard>
+        </div>
+
+        <div className="grid gap-8 xl:grid-cols-[2fr,1fr]">
+          <GlassCard
+            title={<Trans i18nKey="admin.overview.audit.title" fallback="Audit timeline" />}
+            subtitle={
+              <Trans
+                i18nKey="admin.overview.audit.subtitle"
+                fallback="Latest platform actions"
+                className="text-xs text-neutral-3"
+              />
+            }
+          >
+            <AuditLogTable rows={auditEntries} />
+          </GlassCard>
+          <div className="space-y-8">
+            {scope.includeAll && mfaInsights ? <MfaInsightsCard insights={mfaInsights} /> : null}
+            <FeatureFlagsCard />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  } catch (error) {
+    console.error("[admin/overview] failed to render overview", error);
+    return (
+      <div className="space-y-8">
+        {header}
+        <GlassCard
+          title={<Trans i18nKey="admin.overview.metrics.title" fallback="Key metrics" />}
+          subtitle={
+            <Trans
+              i18nKey="admin.overview.metrics.subtitle"
+              fallback="Latest counts for your current tenant scope."
+              className="text-xs text-neutral-3"
+            />
+          }
+        >
+          <EmptyState
+            title="We couldn't load the admin overview"
+            description="Check your Supabase configuration and try again."
+          />
+        </GlassCard>
+      </div>
+    );
+  }
 }
 
 interface MetricTileProps {

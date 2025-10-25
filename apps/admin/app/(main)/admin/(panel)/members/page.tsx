@@ -4,17 +4,22 @@ import { StatusChip } from "@/components/common/status-chip";
 import { AdminMembersDirectory, MemberDirectoryRow } from "@/components/admin/members/directory-table";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
-import { resolveTenantScope } from "@/lib/admin/scope";
+import {
+  resolveTenantScope,
+  resolveTenantScopeSearchParams,
+  type TenantScopeSearchParamsInput,
+} from "@/lib/admin/scope";
 import { Trans } from "@/components/common/trans";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 
 interface MembersPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: TenantScopeSearchParamsInput;
 }
 
 export default async function MembersPage({ searchParams }: MembersPageProps) {
   const { profile } = await requireUserAndProfile();
-  const scope = resolveTenantScope(profile, searchParams);
+  const resolvedSearchParams = await resolveTenantScopeSearchParams(searchParams);
+  const scope = resolveTenantScope(profile, resolvedSearchParams);
   const supabase = createSupabaseServiceRoleClient("admin/panel/members");
 
   let membersQuery = supabase

@@ -10,7 +10,7 @@ begin
 end;
 $$;
 
-set role service_role;
+set role postgres;
 
 insert into auth.users (id, email)
 values
@@ -19,12 +19,14 @@ values
   ('a3333333-3333-3333-3333-333333333333', 'admin_ops@sacco.rw')
 ON CONFLICT (id) DO NOTHING;
 
-insert into public.users (id, email, role, sacco_id, mfa_enabled)
+insert into app.user_profiles (user_id, role, sacco_id)
 values
-  ('a1111111-1111-1111-1111-111111111111', 'alice_ops@sacco.rw', 'SACCO_STAFF', null, true),
-  ('a2222222-2222-2222-2222-222222222222', 'ben_ops@sacco.rw', 'SACCO_STAFF', null, true),
-  ('a3333333-3333-3333-3333-333333333333', 'admin_ops@sacco.rw', 'SYSTEM_ADMIN', null, true)
-ON CONFLICT (id) DO NOTHING;
+  ('a1111111-1111-1111-1111-111111111111', 'SACCO_STAFF', null),
+  ('a2222222-2222-2222-2222-222222222222', 'SACCO_STAFF', null),
+  ('a3333333-3333-3333-3333-333333333333', 'SYSTEM_ADMIN', null)
+on conflict (user_id) do update
+set role = excluded.role,
+    sacco_id = excluded.sacco_id;
 
 insert into ops.rate_limits (bucket_key, route, window_started, count)
 values
@@ -42,11 +44,11 @@ reset role;
 
 -- SACCO staff cannot read rate_limits rows
 set role app_authenticator;
-select set_config('request.jwt.claim.sub', 'a1111111-1111-1111-1111-111111111111', true);
+select set_config('request.jwt.claim.sub', 'a1111111-1111-1111-1111-111111111111', false);
 select set_config(
   'request.jwt.claims',
   json_build_object('sub', 'a1111111-1111-1111-1111-111111111111', 'app_metadata', json_build_object('role', 'SACCO_STAFF'))::text,
-  true
+  false
 );
 
 \echo 'Expect rate_limits select to fail for non-admin'
@@ -89,16 +91,16 @@ end;
 $$;
 
 reset role;
-select set_config('request.jwt.claim.sub', '', true);
-select set_config('request.jwt.claims', '', true);
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);
 
 -- Admins can manage both tables
 set role app_authenticator;
-select set_config('request.jwt.claim.sub', 'a3333333-3333-3333-3333-333333333333', true);
+select set_config('request.jwt.claim.sub', 'a3333333-3333-3333-3333-333333333333', false);
 select set_config(
   'request.jwt.claims',
   json_build_object('sub', 'a3333333-3333-3333-3333-333333333333', 'app_metadata', json_build_object('role', 'SYSTEM_ADMIN'))::text,
-  true
+  false
 );
 
 do $$
@@ -123,5 +125,5 @@ end;
 $$;
 
 reset role;
-select set_config('request.jwt.claim.sub', '', true);
-select set_config('request.jwt.claims', '', true);
+select set_config('request.jwt.claim.sub', '', false);
+select set_config('request.jwt.claims', '', false);

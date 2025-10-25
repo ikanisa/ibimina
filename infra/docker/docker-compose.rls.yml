@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:15
+    image: supabase/postgres:15.1.1.71
     container_name: ibimina-rls-postgres
     ports:
       - "6543:5432"
