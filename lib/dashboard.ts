@@ -1,7 +1,5 @@
 import { cacheWithTags, CACHE_TAGS, REVALIDATION_SECONDS } from "@/lib/performance/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase/types";
 
 const DAYS_THRESHOLD = 30;
 
@@ -131,12 +129,11 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
   }
 
   const supabase = await createSupabaseServerClient();
-  const analyticsClient = supabase.schema("app");
-  const typedAnalytics = analyticsClient as unknown as SupabaseClient<Database>;
+  const analyticsClient = supabase;
 
   const resolveRollup = async (): Promise<PaymentRollupRow | null> => {
     if (allowAll) {
-      const { data, error } = await typedAnalytics
+      const { data, error } = await analyticsClient
         .from("analytics_payment_rollups_mv")
         .select("sacco_id, month_total, week_total, today_total, unallocated_count")
         .is("sacco_id", null)
@@ -151,7 +148,7 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
       return null;
     }
 
-    const { data, error } = await typedAnalytics
+    const { data, error } = await analyticsClient
       .from("analytics_payment_rollups_mv")
       .select("sacco_id, month_total, week_total, today_total, unallocated_count")
       .eq("sacco_id", saccoId)
@@ -164,7 +161,7 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
       return data;
     }
 
-    const { data: fallback } = await typedAnalytics
+    const { data: fallback } = await analyticsClient
       .from("analytics_payment_rollups_mv")
       .select("sacco_id, month_total, week_total, today_total, unallocated_count")
       .is("sacco_id", null)
@@ -181,7 +178,7 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
     unallocated: Number(rollup?.unallocated_count ?? 0),
   } satisfies DashboardSummary["totals"];
 
-  let ikiminaQuery = typedAnalytics
+  let ikiminaQuery = analyticsClient
     .from("analytics_ikimina_monthly_mv")
     .select(
       "ikimina_id, sacco_id, name, code, status, updated_at, month_total, active_member_count, contributing_members, last_contribution_at",
@@ -208,7 +205,7 @@ async function computeDashboardSummary({ saccoId, allowAll }: DashboardSummaryPa
     member_count: Number(row.active_member_count ?? row.contributing_members ?? 0),
   }));
 
-  let overdueQuery = typedAnalytics
+  let overdueQuery = analyticsClient
     .from("analytics_member_last_payment_mv")
     .select("member_id, full_name, msisdn, member_code, ikimina_id, ikimina_name, days_since_last, status")
     .eq("status", "ACTIVE")
