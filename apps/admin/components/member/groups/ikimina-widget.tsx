@@ -7,6 +7,7 @@ interface IkiminaWidgetProps {
 }
 
 export function IkiminaWidget({ group }: IkiminaWidgetProps) {
+  const createdAtLabel = group.created_at ? new Date(group.created_at).toLocaleDateString() : "—";
   return (
     <article className="flex flex-col gap-3 rounded-3xl bg-white/10 p-5 text-neutral-0 shadow-glass backdrop-blur-xl transition-all duration-interactive ease-interactive hover:bg-white/12">
       <header className="flex items-start justify-between gap-3">
@@ -40,7 +41,7 @@ export function IkiminaWidget({ group }: IkiminaWidgetProps) {
           <dt className="text-white/70">Created</dt>
           <dd className="flex items-center gap-2 font-semibold">
             <CalendarClock className="h-4 w-4" aria-hidden />
-            <span>{new Date(group.created_at ?? Date.now()).toLocaleDateString()}</span>
+            <span>{createdAtLabel}</span>
           </dd>
         </div>
       </dl>

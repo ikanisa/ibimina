@@ -28,6 +28,7 @@ export default defineConfig({
   webServer: {
     command: [
       `AUTH_E2E_STUB=1`,
+      `ADMIN_USE_STANDALONE_START=1`,
       `NEXT_PUBLIC_E2E=1`,
       `NEXT_PUBLIC_SUPABASE_URL=${process.env.PLAYWRIGHT_SUPABASE_URL ?? "http://127.0.0.1:54321"}`,
       `NEXT_PUBLIC_SUPABASE_ANON_KEY=${process.env.PLAYWRIGHT_SUPABASE_ANON_KEY ?? "stub-anon-key"}`,
@@ -43,6 +44,11 @@ export default defineConfig({
       "pnpm",
       "run",
       "start",
+      "--",
+      "--hostname",
+      "127.0.0.1",
+      "--port",
+      "3000",
     ].join(" "),
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,

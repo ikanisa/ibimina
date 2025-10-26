@@ -62,6 +62,26 @@ begin
 end;
 $$;
 
+-- Staff may clear their own trusted device
+do $$
+declare
+  removed integer;
+begin
+  delete from public.trusted_devices
+  where user_id = '71111111-1111-1111-1111-111111111111';
+
+  get diagnostics removed = row_count;
+  if removed <> 1 then
+    raise exception 'staff should be able to delete their own trusted devices (removed %)', removed;
+  end if;
+
+  insert into public.trusted_devices (user_id, device_id, device_fingerprint_hash, user_agent_hash, ip_prefix)
+  values ('71111111-1111-1111-1111-111111111111', 'device-a', 'hash-a', 'ua-a', '10.1.2')
+  on conflict (user_id, device_id) do update
+    set device_fingerprint_hash = excluded.device_fingerprint_hash;
+end;
+$$;
+
 do $$
 declare
   before_count integer;

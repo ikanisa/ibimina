@@ -4,7 +4,7 @@
   files: ["app/api/authx/challenge/verify/route.ts", "lib/authx/verify.ts"]
   risk: critical
   evidence: "AuthX verification loop lacks throttling and never persists last_mfa_step/failed_mfa_count, so attackers can brute-force or replay TOTP/backup codes."
-  fix: "Add per-user/IP rate limits, persist step counters + failure counts, align with legacy /api/mfa/verify semantics, and emit structured errors."
+  fix: "Add per-user/IP rate limits, persist step counters + failure counts, align with legacy legacy /api/mfa/verify (removed) semantics, and emit structured errors."
   status: resolved
   resolution: "/api/authx/challenge/verify now enforces per-user and per-IP throttles, audits failures, and keeps Supabase MFA counters in sync with legacy routes."
   effort: M
@@ -30,7 +30,7 @@
 - id: REL-004
   area: reliability
   title: "Dual MFA stacks risk inconsistent state"
-  files: ["components/auth/login-form.tsx", "app/api/mfa/verify/route.ts", "app/api/authx/challenge/verify/route.ts"]
+  files: ["components/auth/login-form.tsx", "app/api/authx/challenge/verify/route.ts", "app/api/authx/challenge/verify/route.ts"]
   risk: high
   evidence: "Login posts to /api/mfa/* while AuthX endpoints skip failure counters and set different cookies, creating divergent MFA states."
   fix: "Unify flows behind AuthX facade, migrate UI to new endpoints, and remove legacy routes after parity tests."
@@ -102,7 +102,7 @@
   title: "MFA factor facade lacks automated coverage"
   files: ["src/auth/factors/index.ts", "src/auth/factors/*.ts", "tests/e2e/auth.mfa.spec.ts"]
   risk: medium
-  evidence: "New factor orchestrator powers /api/mfa/verify but has no unit tests and the Playwright MFA spec remains skipped, leaving regressions undetected."
+  evidence: "New factor orchestrator powers legacy /api/mfa/verify (removed) but has no unit tests and the Playwright MFA spec remains skipped, leaving regressions undetected."
   fix: "Add targeted unit tests for TOTP/email/backup adapters, wire replay guard integration tests, and enable Playwright MFA suite in CI."
   status: resolved
   resolution: "Node:test coverage stubs each adapter and the Playwright MFA spec calls `/api/__e2e/factors/verify` to validate totp, backup, and replay guards with the stub secrets."

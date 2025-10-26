@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   AUTHX_FACTORS,
   initiateAuthxFactor,
+  listAuthxFactors,
   signInWithPassword,
   signOut,
   verifyAuthxFactor,
@@ -267,14 +268,23 @@ const VARIANT_CONFIG: Record<AuthxLoginVariant, VariantConfig> = {
 
 type EnsureAccessResult = { ok: true } | { ok: false };
 
-export function AuthxLoginForm({ variant }: { variant: AuthxLoginVariant }) {
+export function AuthxLoginForm({
+  variant,
+  mode = "full",
+  showHeader = true,
+}: {
+  variant: AuthxLoginVariant;
+  mode?: "full" | "mfa-only";
+  showHeader?: boolean;
+}) {
   const router = useRouter();
   const { t } = useTranslation();
   const supabase = getSupabaseBrowserClient();
 
   const config = VARIANT_CONFIG[variant];
 
-  const [step, setStep] = useState<Step>("credentials");
+  const initialStep: Step = mode === "mfa-only" ? "mfa" : "credentials";
+  const [step, setStep] = useState<Step>(initialStep);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -320,6 +330,10 @@ export function AuthxLoginForm({ variant }: { variant: AuthxLoginVariant }) {
       return;
     }
 
+    if (mode === "mfa-only") {
+      return;
+    }
+
     const emailField = emailInputRef.current;
     const passwordField = passwordInputRef.current;
     const hasEmail = email.trim().length > 0;
@@ -331,7 +345,7 @@ export function AuthxLoginForm({ variant }: { variant: AuthxLoginVariant }) {
     } else if (activeElement !== emailField) {
       emailField?.focus();
     }
-  }, [email, step, selectedFactor]);
+  }, [email, mode, selectedFactor, step]);
 
   useEffect(() => {
     if (!otpExpiresAt) {
@@ -359,7 +373,7 @@ export function AuthxLoginForm({ variant }: { variant: AuthxLoginVariant }) {
   const parsedSeconds = useMemo(() => secondsRemaining ?? 0, [secondsRemaining]);
 
   const resetAll = useCallback((options?: { clearCredentials?: boolean }) => {
-    setStep("credentials");
+    setStep(mode === "mfa-only" ? "mfa" : "credentials");
     setFormPending(false);
     setResendPending(false);
     setError(null);
@@ -375,7 +389,7 @@ export function AuthxLoginForm({ variant }: { variant: AuthxLoginVariant }) {
       setEmail("");
       setPassword("");
     }
-  }, []);
+  }, [mode]);
 
   const availableFactors = useMemo<AuthxFactor[]>(() => {
     if (!mfaSummary) {
@@ -518,6 +532,30 @@ export function AuthxLoginForm({ variant }: { variant: AuthxLoginVariant }) {
     },
     [prepareFactor],
   );
+
+  useEffect(() => {
+    if (mode !== "mfa-only") {
+      return;
+    }
+    let cancelled = false;
+    const hydrate = async () => {
+      try {
+        const summary = await listAuthxFactors();
+        if (!cancelled) {
+          transitionToMfa(summary);
+        }
+      } catch (cause) {
+        if (!cancelled) {
+          console.error(`[${config.logPrefix}] standalone MFA factors failed`, cause);
+          setError(t(config.errors.general.key, config.errors.general.fallback));
+        }
+      }
+    };
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [config.errors.general.fallback, config.errors.general.key, config.logPrefix, mode, t, transitionToMfa]);
 
   const handleCredentialsSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -690,17 +728,19 @@ export function AuthxLoginForm({ variant }: { variant: AuthxLoginVariant }) {
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-8" data-testid={config.testId}>
-      <header className="flex flex-col items-center gap-4 text-center">
-        <OptimizedImage
-          src="/logo.svg"
-          width={80}
-          height={80}
-          alt={t("auth.logoAlt", "SACCO+ logo")}
-          priority
-        />
-        <h1 className="text-2xl font-semibold">{t(config.title.key, config.title.fallback)}</h1>
-        <p className="text-muted-foreground">{t(config.subtitle.key, config.subtitle.fallback)}</p>
-      </header>
+      {showHeader ? (
+        <header className="flex flex-col items-center gap-4 text-center">
+          <OptimizedImage
+            src="/logo.svg"
+            width={80}
+            height={80}
+            alt={t("auth.logoAlt", "SACCO+ logo")}
+            priority
+          />
+          <h1 className="text-2xl font-semibold">{t(config.title.key, config.title.fallback)}</h1>
+          <p className="text-muted-foreground">{t(config.subtitle.key, config.subtitle.fallback)}</p>
+        </header>
+      ) : null}
 
       {message && (
         <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success" role="status">
@@ -889,4 +929,3 @@ export function AuthxLoginForm({ variant }: { variant: AuthxLoginVariant }) {
     </div>
   );
 }
-

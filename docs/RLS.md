@@ -41,3 +41,14 @@ The Supabase service-role key used inside Edge Functions bypasses RLS; every fun
 - `/admin/reset-mfa` is restricted to `SYSTEM_ADMIN` via JWT + profile check before any MFA data is mutated.
 
 Keep this file updated whenever policies change to ensure auditors can trace authorisation paths quickly.
+
+## Local testing harness
+
+The RLS test suite (`pnpm run test:rls` from `apps/admin`) now mirrors Supabase more closely:
+
+- `infra/docker/docker-compose.rls.yml` runs `supabase/postgres:15.1.1.71`, which ships the same extensions (`pg_net`, `pgcrypto`, etc.) as production instances. Start it with `docker compose -f infra/docker/docker-compose.rls.yml up -d postgres` before running tests.
+- `supabase/tests/fixtures/bootstrap.sql` provisions the minimal `auth`, `storage`, `extensions`, and helper schemas that migrations expect. It also exposes `auth.uid()`, `auth.jwt()`, and the new `auth.role()` so policies behave the same as on Supabase.
+- When `pg_net` cannot be installed (common on CI), the remote-schema migrations stub `net.http_post()` inside a guarded `DO $$` block, allowing migrations to complete while still exercising the code paths that call `net.http_post`.
+- Each RLS test sets `set_config(..., false)` to pin JWT claims for the session and targets `app.*` tables directly, so results aren’t dependent on privileged `public.*` view owners.
+
+If the harness fails with “connection refused,” ensure the docker container is running and that nothing else is bound to port `6543`.

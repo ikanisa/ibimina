@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useId } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpRight, Loader2, Search, X } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
@@ -109,6 +109,16 @@ const BADGE_TONE_STYLES = {
   success: "border-emerald-500/40 bg-emerald-500/15 text-emerald-200",
 } as const;
 
+const DIALOG_FOCUSABLE_SELECTORS =
+  'a[href]:not([tabindex="-1"]):not([aria-hidden="true"]),button:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),textarea:not([disabled]):not([tabindex="-1"]),select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"]):not([aria-hidden="true"])';
+
+const getDialogFocusable = (root: HTMLElement | null) => {
+  if (!root) return [] as HTMLElement[];
+  return Array.from(root.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTORS)).filter(
+    (element) => !element.hasAttribute("disabled"),
+  );
+};
+
 interface GlobalSearchDialogProps {
   open: boolean;
   onClose: () => void;
@@ -187,21 +197,40 @@ export function GlobalSearchDialog({
   const refreshBadgeTimer = useRef<NodeJS.Timeout | null>(null);
   const lastRefreshToastAt = useRef<number>(0);
   const focusRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const dialogTitleId = useId();
 
   useEffect(() => {
     if (!open) return;
-    setQuery("");
-    setSelectedSacco(null);
-    setError(null);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setQuery("");
+      setSelectedSacco(null);
+      setError(null);
+    });
     const timeout = window.setTimeout(() => {
-      inputRef.current?.focus();
+      if (!cancelled) {
+        inputRef.current?.focus();
+      }
     }, 30);
-    return () => window.clearTimeout(timeout);
-  }, [open, t]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
     let active = true;
+    const scheduleStateUpdate = (updater: () => void) => {
+      queueMicrotask(() => {
+        if (active) {
+          updater();
+        }
+      });
+    };
 
     const cacheKey = `${profile.role}-${profile.sacco_id ?? "all"}`;
     const cached = SEARCH_CACHE.get(cacheKey);
@@ -212,16 +241,18 @@ export function GlobalSearchDialog({
         "search.console.supabaseUnavailable",
         "Search is unavailable because Supabase is not configured.",
       );
-      setIkimina([]);
-      setMembers([]);
-      setPayments([]);
-      setError(unavailableMessage);
-      setMembersError(unavailableMessage);
-      setPaymentsError(unavailableMessage);
-      setLoading(false);
-      setMembersLoading(false);
-      setPaymentsLoading(false);
-      setLastSyncedAt(new Date());
+      scheduleStateUpdate(() => {
+        setIkimina([]);
+        setMembers([]);
+        setPayments([]);
+        setError(unavailableMessage);
+        setMembersError(unavailableMessage);
+        setPaymentsError(unavailableMessage);
+        setLoading(false);
+        setMembersLoading(false);
+        setPaymentsLoading(false);
+        setLastSyncedAt(new Date());
+      });
       SEARCH_CACHE.set(cacheKey, {
         ikimina: [],
         members: [],
@@ -237,31 +268,35 @@ export function GlobalSearchDialog({
     }
 
     if (cached) {
-      setIkimina(cached.ikimina);
-      setMembers(cached.members);
-      setPayments(cached.payments);
-      setError(cached.error ?? null);
-      setMembersError(cached.membersError ?? null);
-      setPaymentsError(cached.paymentsError ?? null);
-      setLoading(false);
-      setMembersLoading(false);
-      setPaymentsLoading(false);
-      setLastSyncedAt(new Date(cached.timestamp));
+      scheduleStateUpdate(() => {
+        setIkimina(cached.ikimina);
+        setMembers(cached.members);
+        setPayments(cached.payments);
+        setError(cached.error ?? null);
+        setMembersError(cached.membersError ?? null);
+        setPaymentsError(cached.paymentsError ?? null);
+        setLoading(false);
+        setMembersLoading(false);
+        setPaymentsLoading(false);
+        setLastSyncedAt(new Date(cached.timestamp));
+      });
       if (cacheFresh) {
         return () => {
           active = false;
         };
       }
     } else {
-      setLoading(true);
-      setMembersLoading(true);
-      setPaymentsLoading(true);
-      setError(null);
-      setMembersError(null);
-      setPaymentsError(null);
-      setIkimina([]);
-      setMembers([]);
-      setPayments([]);
+      scheduleStateUpdate(() => {
+        setLoading(true);
+        setMembersLoading(true);
+        setPaymentsLoading(true);
+        setError(null);
+        setMembersError(null);
+        setPaymentsError(null);
+        setIkimina([]);
+        setMembers([]);
+        setPayments([]);
+      });
     }
 
     const fetchData = async () => {
@@ -481,19 +516,6 @@ export function GlobalSearchDialog({
   }, [open, profile.role, profile.sacco_id, supabase, toast, t]);
 
   useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
-
-  useEffect(() => {
     return () => {
       if (refreshBadgeTimer.current) {
         clearTimeout(refreshBadgeTimer.current);
@@ -663,10 +685,52 @@ export function GlobalSearchDialog({
   }, [totalFocusCount]);
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    } else {
       focusRefs.current = [];
+      previouslyFocusedRef.current?.focus();
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const panel = panelRef.current;
+    if (!panel) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+      const focusable = getDialogFocusable(panel);
+      if (focusable.length === 0) {
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (event.shiftKey) {
+        if (active === first || active === panel) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    panel.addEventListener("keydown", handleKeyDown);
+    return () => panel.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
 
   const currencyFormatter = useMemo(
     () =>
@@ -699,17 +763,21 @@ export function GlobalSearchDialog({
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 md:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("search.aria.global", "Global search")}
+      role="presentation"
       onClick={onClose}
     >
       <div
         className="glass relative w-full max-w-4xl rounded-3xl p-6 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={dialogTitleId}
+        ref={panelRef}
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-lg font-semibold text-neutral-0">{t("search.console.title", "Search console")}</span>
+          <span id={dialogTitleId} className="text-lg font-semibold text-neutral-0">
+            {t("search.console.title", "Search console")}
+          </span>
           <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-neutral-2">
             <span className="hidden rounded-full border border-white/15 px-3 py-1 md:inline-flex">⌘K</span>
             <button

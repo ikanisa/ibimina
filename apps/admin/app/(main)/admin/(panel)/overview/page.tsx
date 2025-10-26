@@ -33,6 +33,33 @@ interface MetricSummary {
   reconciliationExceptions: number;
 }
 
+type NotificationRow = {
+  id: string;
+  event: string;
+  sacco_id: string | null;
+  template_id: string | null;
+  status: string | null;
+  scheduled_for: string | null;
+  created_at: string | null;
+};
+
+type TelemetryRow = {
+  event: string;
+  total: number | null;
+  last_occurred: string | null;
+  meta: Record<string, unknown> | null;
+};
+
+type AuditRow = {
+  id: string;
+  action: string;
+  entity: string;
+  entity_id: string | null;
+  diff: Record<string, unknown> | null;
+  created_at: string | null;
+  actor: string | null;
+};
+
 async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promise<MetricSummary> {
   const supabase = createSupabaseServiceRoleClient("admin/panel/overview:metrics");
   const pendingInvitesPromise = computePendingInviteCount(supabase, scope);
@@ -194,8 +221,20 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
     />
   );
 
+  const supabase = createSupabaseServiceRoleClient("admin/panel/overview");
+  let metrics: MetricSummary | null = null;
+  let telemetryMetrics: Array<{
+    event: string;
+    total: number;
+    last_occurred: string | null;
+    meta: Record<string, unknown> | null;
+  }> = [];
+  let notificationRows: NotificationRow[] = [];
+  let auditEntries: AuditLogEntry[] = [];
+  let mfaInsights: Awaited<ReturnType<typeof getMfaInsights>> | null = null;
+  let overviewError: unknown = null;
+
   try {
-    const supabase = createSupabaseServiceRoleClient("admin/panel/overview");
 
     const metricsPromise = loadMetrics(scope);
     const mfaInsightsPromise = scope.includeAll ? getMfaInsights() : Promise.resolve(null);
@@ -225,7 +264,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       auditQuery = auditQuery.eq("sacco_id", scope.saccoId);
     }
 
-    const [notificationResponse, telemetryResponse, auditResponse, mfaInsights] = await Promise.all([
+    const [notificationResponse, telemetryResponse, auditResponse, mfaInsightsResult] = await Promise.all([
       notificationQuery,
       telemetryQuery,
       auditQuery,
@@ -242,41 +281,17 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       console.error("[admin/overview] audit query failed", auditResponse.error);
     }
 
-    type NotificationRow = {
-      id: string;
-      event: string;
-      sacco_id: string | null;
-      template_id: string | null;
-      status: string | null;
-      scheduled_for: string | null;
-      created_at: string | null;
-    };
+    metrics = await metricsPromise;
+    mfaInsights = mfaInsightsResult;
 
-    type TelemetryRow = {
-      event: string;
-      total: number | null;
-      last_occurred: string | null;
-      meta: Record<string, unknown> | null;
-    };
-
-    type AuditRow = {
-      id: string;
-      action: string;
-      entity: string;
-      entity_id: string | null;
-      diff: Record<string, unknown> | null;
-      created_at: string | null;
-      actor: string | null;
-    };
-
-    const metrics = await metricsPromise;
-
-    const telemetryMetrics = ((telemetryResponse.data ?? []) as TelemetryRow[]).map((row) => ({
+    telemetryMetrics = ((telemetryResponse.data ?? []) as TelemetryRow[]).map((row) => ({
       event: row.event,
       total: Number(row.total ?? 0),
       last_occurred: row.last_occurred,
       meta: row.meta,
     }));
+
+    notificationRows = (notificationResponse.data ?? []) as NotificationRow[];
 
     const auditRows = (auditResponse.data ?? []) as AuditRow[];
     const actorIds = Array.from(
@@ -299,7 +314,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       actorLookup = new Map((actorData ?? []).map((row) => [String(row.id), row.email ?? ""]));
     }
 
-    const auditEntries: AuditLogEntry[] = auditRows.map((row) => ({
+    auditEntries = auditRows.map((row) => ({
       id: row.id,
       action: row.action,
       entity: row.entity,
@@ -308,85 +323,14 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       actorLabel: row.actor ? actorLookup.get(row.actor) ?? row.actor : "—",
       createdAt: row.created_at ?? new Date().toISOString(),
     }));
-
-    return (
-      <div className="space-y-8">
-        {header}
-
-        <GlassCard
-          title={<Trans i18nKey="admin.overview.metrics.title" fallback="Key metrics" />}
-          subtitle={
-            <Trans
-              i18nKey="admin.overview.metrics.subtitle"
-              fallback="Latest counts for your current tenant scope."
-              className="text-xs text-neutral-3"
-            />
-          }
-        >
-          <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <MetricTile label="SACCOs" value={metrics.saccos} tone="info" />
-            <MetricTile label="Groups" value={metrics.groups} tone="info" />
-            <MetricTile label="Members" value={metrics.members} tone="success" />
-            <MetricTile label="Pending approvals" value={metrics.pendingApprovals} tone="warning" />
-            <MetricTile label="Pending invites" value={metrics.pendingInvites} tone="warning" />
-            <MetricTile label="Reconciliation exceptions" value={metrics.reconciliationExceptions} tone="critical" />
-          </dl>
-        </GlassCard>
-
-        <div className="grid gap-8 xl:grid-cols-2">
-          <GlassCard
-            title={<Trans i18nKey="admin.overview.telemetry.title" fallback="Operational telemetry" />}
-            subtitle={
-              <Trans
-                i18nKey="admin.overview.telemetry.subtitle"
-                fallback="Recent platform events and signals."
-                className="text-xs text-neutral-3"
-              />
-            }
-          >
-            <OperationalTelemetry metrics={telemetryMetrics} />
-          </GlassCard>
-
-          <GlassCard
-            title={<Trans i18nKey="admin.overview.notifications.title" fallback="Notification queue" />}
-            subtitle={
-              <Trans
-                i18nKey="admin.overview.notifications.subtitle"
-                fallback="Scheduled and recent deliveries."
-                className="text-xs text-neutral-3"
-              />
-            }
-          >
-            <NotificationQueueTable
-              rows={(notificationResponse.data ?? []) as NotificationRow[]}
-              saccoLookup={new Map()}
-              templateLookup={new Map()}
-            />
-          </GlassCard>
-        </div>
-
-        <div className="grid gap-8 xl:grid-cols-[2fr,1fr]">
-          <GlassCard
-            title={<Trans i18nKey="admin.overview.audit.title" fallback="Audit timeline" />}
-            subtitle={
-              <Trans
-                i18nKey="admin.overview.audit.subtitle"
-                fallback="Latest platform actions"
-                className="text-xs text-neutral-3"
-              />
-            }
-          >
-            <AuditLogTable rows={auditEntries} />
-          </GlassCard>
-          <div className="space-y-8">
-            {scope.includeAll && mfaInsights ? <MfaInsightsCard insights={mfaInsights} /> : null}
-            <FeatureFlagsCard />
-          </div>
-        </div>
-      </div>
-    );
   } catch (error) {
-    console.error("[admin/overview] failed to render overview", error);
+    if (!isMissingRelationError(error)) {
+      console.error("[admin/overview] failed to render overview", error);
+    }
+    overviewError = error;
+  }
+
+  if (!metrics || overviewError) {
     return (
       <div className="space-y-8">
         {header}
@@ -408,6 +352,79 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       </div>
     );
   }
+
+  return (
+    <div className="space-y-8">
+      {header}
+
+      <GlassCard
+        title={<Trans i18nKey="admin.overview.metrics.title" fallback="Key metrics" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.overview.metrics.subtitle"
+            fallback="Latest counts for your current tenant scope."
+            className="text-xs text-neutral-3"
+          />
+        }
+      >
+        <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <MetricTile label="SACCOs" value={metrics.saccos} tone="info" />
+          <MetricTile label="Groups" value={metrics.groups} tone="info" />
+          <MetricTile label="Members" value={metrics.members} tone="success" />
+          <MetricTile label="Pending approvals" value={metrics.pendingApprovals} tone="warning" />
+          <MetricTile label="Pending invites" value={metrics.pendingInvites} tone="warning" />
+          <MetricTile label="Reconciliation exceptions" value={metrics.reconciliationExceptions} tone="critical" />
+        </dl>
+      </GlassCard>
+
+      <div className="grid gap-8 xl:grid-cols-2">
+        <GlassCard
+          title={<Trans i18nKey="admin.overview.telemetry.title" fallback="Operational telemetry" />}
+          subtitle={
+            <Trans
+              i18nKey="admin.overview.telemetry.subtitle"
+              fallback="Recent platform events and signals."
+              className="text-xs text-neutral-3"
+            />
+          }
+        >
+          <OperationalTelemetry metrics={telemetryMetrics} />
+        </GlassCard>
+
+        <GlassCard
+          title={<Trans i18nKey="admin.overview.notifications.title" fallback="Notification queue" />}
+          subtitle={
+            <Trans
+              i18nKey="admin.overview.notifications.subtitle"
+              fallback="Scheduled and recent deliveries."
+              className="text-xs text-neutral-3"
+            />
+          }
+        >
+          <NotificationQueueTable rows={notificationRows} saccoLookup={new Map()} templateLookup={new Map()} />
+        </GlassCard>
+      </div>
+
+      <div className="grid gap-8 xl:grid-cols-[2fr,1fr]">
+        <GlassCard
+          title={<Trans i18nKey="admin.overview.audit.title" fallback="Audit timeline" />}
+          subtitle={
+            <Trans
+              i18nKey="admin.overview.audit.subtitle"
+              fallback="Latest platform actions"
+              className="text-xs text-neutral-3"
+            />
+          }
+        >
+          <AuditLogTable rows={auditEntries} />
+        </GlassCard>
+        <div className="space-y-8">
+          {scope.includeAll && mfaInsights ? <MfaInsightsCard insights={mfaInsights} /> : null}
+          <FeatureFlagsCard />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 interface MetricTileProps {

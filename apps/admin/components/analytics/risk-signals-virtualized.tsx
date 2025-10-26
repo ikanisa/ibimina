@@ -26,6 +26,8 @@ export function RiskSignalsVirtualized({ signals }: RiskSignalsVirtualizedProps)
     return Math.max(88, Math.min(128, Math.round(360 / Math.min(signals.length, 6))));
   }, [signals.length]);
 
+  // TanStack's virtualizer exposes mutable APIs that React Compiler cannot memoize safely.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: signals.length,
     getScrollElement: () => parentRef.current,

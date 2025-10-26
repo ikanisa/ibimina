@@ -35,6 +35,7 @@
     "next-env.d.ts",
     "providers/**/*.ts",
     "providers/**/*.tsx",
+    "workers/**/*.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [

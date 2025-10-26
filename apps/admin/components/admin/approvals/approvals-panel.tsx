@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { Loader2, MailCheck, RefreshCcw, ShieldCheck, ShieldX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,8 +36,8 @@ interface AdminApprovalsPanelProps {
 }
 
 export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPanelProps) {
-  const [selectedJoin, setSelectedJoin] = useState<string | null>(joinRequests[0]?.id ?? null);
-  const [selectedInvite, setSelectedInvite] = useState<string | null>(invites[0]?.id ?? null);
+  const [requestedJoinId, setRequestedJoinId] = useState<string | null>(joinRequests[0]?.id ?? null);
+  const [requestedInviteId, setRequestedInviteId] = useState<string | null>(invites[0]?.id ?? null);
   const [pendingAction, startTransition] = useTransition();
   const { success, error } = useToast();
   const [inviteGroup, setInviteGroup] = useState("");
@@ -45,35 +45,21 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
 
   const pending = pendingAction;
 
-  useEffect(() => {
-    const nextJoinId = joinRequests.length === 0 ? null : joinRequests[0]?.id ?? null;
-    if (joinRequests.length === 0) {
-      if (selectedJoin !== null) {
-        setSelectedJoin(null);
-      }
-      return;
+  const selectedJoin = useMemo(() => {
+    if (joinRequests.length === 0) return null;
+    if (requestedJoinId && joinRequests.some((request) => request.id === requestedJoinId)) {
+      return requestedJoinId;
     }
-    if (!selectedJoin || !joinRequests.some((request) => request.id === selectedJoin)) {
-      if (nextJoinId !== selectedJoin) {
-        setSelectedJoin(nextJoinId);
-      }
-    }
-  }, [joinRequests, selectedJoin]);
+    return joinRequests[0]?.id ?? null;
+  }, [joinRequests, requestedJoinId]);
 
-  useEffect(() => {
-    const nextInviteId = invites.length === 0 ? null : invites[0]?.id ?? null;
-    if (invites.length === 0) {
-      if (selectedInvite !== null) {
-        setSelectedInvite(null);
-      }
-      return;
+  const selectedInvite = useMemo(() => {
+    if (invites.length === 0) return null;
+    if (requestedInviteId && invites.some((invite) => invite.id === requestedInviteId)) {
+      return requestedInviteId;
     }
-    if (!selectedInvite || !invites.some((invite) => invite.id === selectedInvite)) {
-      if (nextInviteId !== selectedInvite) {
-        setSelectedInvite(nextInviteId);
-      }
-    }
-  }, [invites, selectedInvite]);
+    return invites[0]?.id ?? null;
+  }, [invites, requestedInviteId]);
 
   const handleResult = useCallback(
     (result: ApprovalActionResult, successMessage: string) => {
@@ -158,7 +144,7 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
                     "cursor-pointer bg-white/0 transition",
                     isSelected ? "bg-white/10" : "hover:bg-white/5",
                   )}
-                  onClick={() => setSelectedJoin(request.id)}
+                  onClick={() => setRequestedJoinId(request.id)}
                 >
                   <div className="flex items-center justify-between gap-4 px-4 py-3">
                     <div>
@@ -211,7 +197,7 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
                       "cursor-pointer transition",
                       isSelected ? "bg-white/10" : "hover:bg-white/5",
                     )}
-                    onClick={() => setSelectedInvite(invite.id)}
+                  onClick={() => setRequestedInviteId(invite.id)}
                   >
                     <div className="flex items-center justify-between gap-4 px-4 py-3">
                       <div>

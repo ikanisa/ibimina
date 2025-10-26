@@ -5,16 +5,25 @@ import type { Route } from "next";
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { track } from "@/src/lib/analytics";
 
 interface QuickActionProps {
   href: Route;
   label: ReactNode;
   description?: ReactNode;
+  eventName?: string;
+  eventProperties?: Record<string, unknown>;
 }
 
-export function QuickAction({ href, label, description }: QuickActionProps) {
+export function QuickAction({ href, label, description, eventName, eventProperties }: QuickActionProps) {
+  const handleClick = () => {
+    if (eventName) {
+      void track(eventName, eventProperties);
+    }
+  };
+
   return (
-    <Link href={href} className="block">
+    <Link href={href} className="block" onClick={handleClick}>
       <motion.div
         whileHover={{ y: -4, scale: 1.02 }}
         whileTap={{ scale: 0.98 }}

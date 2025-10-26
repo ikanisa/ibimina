@@ -59,16 +59,24 @@ export function I18nProvider({ children, defaultLocale = DEFAULT_LOCALE }: I18nP
   const [locale, setLocaleState] = useState<SupportedLocale>(defaultLocale);
 
   useEffect(() => {
+    let cancelled = false;
+    const applyLocale = (next: SupportedLocale) => {
+      queueMicrotask(() => {
+        if (!cancelled) {
+          setLocaleState(next);
+        }
+      });
+    };
     const stored = readStoredLocale();
     if (stored) {
-      setLocaleState(stored);
-      return;
-    }
-
-    if (typeof window !== "undefined") {
+      applyLocale(stored);
+    } else if (typeof window !== "undefined") {
       window.localStorage.setItem(LOCALE_COOKIE_NAME, defaultLocale);
       persistLocaleCookie(defaultLocale);
     }
+    return () => {
+      cancelled = true;
+    };
   }, [defaultLocale]);
 
   const setLocale = useCallback((next: SupportedLocale) => {

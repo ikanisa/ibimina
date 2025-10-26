@@ -89,6 +89,22 @@ jobs:
       - name: Playwright smoke tests
         run: pnpm run test:e2e
 
+      - name: Upload Playwright traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: apps/admin/test-results
+          if-no-files-found: ignore
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/admin/.reports/playwright
+          if-no-files-found: ignore
+
       - name: Start preview server
         run: |
           mkdir -p .reports

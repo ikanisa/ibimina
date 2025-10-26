@@ -28,6 +28,8 @@ interface ColumnMeta {
 }
 
 export function VirtualTable<TData>({ data, columns, className, tableHeight = 480, emptyState }: VirtualTableProps<TData>) {
+  // TanStack Table cannot be memoized safely by React Compiler; this hook needs to run on every render.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable<TData>({
     data,
     columns,

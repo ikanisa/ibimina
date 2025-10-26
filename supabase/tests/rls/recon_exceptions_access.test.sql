@@ -71,6 +71,26 @@ begin
 end;
 $$;
 
+-- SACCO staff can resolve exceptions in their SACCO
+do $$
+declare
+  updated_rows integer;
+begin
+  update app.recon_exceptions
+  set status = 'RESOLVED'
+  where id = 'b0111111-1111-1111-1111-111111111111';
+
+  get diagnostics updated_rows = row_count;
+  if updated_rows <> 1 then
+    raise exception 'staff should be able to resolve recon exceptions in their SACCO (updated %)', updated_rows;
+  end if;
+
+  update app.recon_exceptions
+  set status = 'OPEN'
+  where id = 'b0111111-1111-1111-1111-111111111111';
+end;
+$$;
+
 -- Attempt to update an exception from another SACCO should fail
 \echo 'Expect cross-SACCO update to fail'
 do $$
