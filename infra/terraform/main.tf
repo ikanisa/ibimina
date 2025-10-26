@@ -29,6 +29,10 @@ resource "aws_secretsmanager_secret" "ibimina" {
 resource "aws_secretsmanager_secret_version" "ibimina" {
   secret_id     = aws_secretsmanager_secret.ibimina.id
   secret_string = jsonencode({
+    LOG_DRAIN_URL             = var.log_drain_url
+    LOG_DRAIN_TOKEN           = var.log_drain_token
+    LOG_DRAIN_ALERT_WEBHOOK   = var.log_drain_alert_webhook
+    LOG_DRAIN_ALERT_TOKEN     = var.log_drain_alert_token
     FIELD_ENCRYPTION_KEY      = random_password.field_encryption.result
     RATE_LIMIT_MAX            = var.rate_limit_max
     RATE_LIMIT_WINDOW_SECONDS = var.rate_limit_window_seconds
@@ -104,4 +108,26 @@ variable "openai_responses_model" {
   type        = string
   description = "OpenAI Responses API model used for structured SMS parsing"
   default     = "gpt-4.1-mini"
+}
+
+variable "log_drain_url" {
+  type        = string
+  description = "External endpoint that receives structured log payloads"
+}
+
+variable "log_drain_token" {
+  type        = string
+  description = "Bearer token added to log drain requests"
+  sensitive   = true
+}
+
+variable "log_drain_alert_webhook" {
+  type        = string
+  description = "Webhook invoked when the log drain repeatedly fails"
+}
+
+variable "log_drain_alert_token" {
+  type        = string
+  description = "Bearer token included with log drain alert webhook calls"
+  sensitive   = true
 }
