@@ -1156,40 +1156,55 @@ export type Database = {
       }
       notification_queue: {
         Row: {
+          attempts: number
+          channel: Database["public"]["Enums"]["notification_channel"]
           created_at: string
           event: string
           id: string
-          sacco_id: string | null
+          last_attempt_at: string | null
+          last_error: string | null
           payload: Json
           payment_id: string | null
-          template_id: string | null
           processed_at: string | null
+          retry_after: string | null
+          sacco_id: string | null
           scheduled_for: string
           status: string
+          template_id: string | null
         }
         Insert: {
+          attempts?: number
+          channel?: Database["public"]["Enums"]["notification_channel"]
           created_at?: string
           event: string
           id?: string
-          sacco_id?: string | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           payload: Json
           payment_id?: string | null
-          template_id?: string | null
           processed_at?: string | null
+          retry_after?: string | null
+          sacco_id?: string | null
           scheduled_for?: string
           status?: string
+          template_id?: string | null
         }
         Update: {
+          attempts?: number
+          channel?: Database["public"]["Enums"]["notification_channel"]
           created_at?: string
           event?: string
           id?: string
-          sacco_id?: string | null
+          last_attempt_at?: string | null
+          last_error?: string | null
           payload?: Json
           payment_id?: string | null
-          template_id?: string | null
           processed_at?: string | null
+          retry_after?: string | null
+          sacco_id?: string | null
           scheduled_for?: string
           status?: string
+          template_id?: string | null
         }
         Relationships: [
           {
@@ -2143,6 +2158,7 @@ export type Database = {
       join_request_status: "pending" | "approved" | "rejected"
       join_status: "pending" | "approved" | "rejected"
       member_id_type: "NID" | "DL" | "PASSPORT"
+      notification_channel: "WHATSAPP" | "EMAIL"
       notification_type: "new_member" | "payment_confirmed" | "invite_accepted"
       notify_type: "new_member" | "payment_confirmed" | "invite_accepted"
       payment_status: "pending" | "completed" | "failed"

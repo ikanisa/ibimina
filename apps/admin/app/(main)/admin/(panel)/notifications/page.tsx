@@ -13,6 +13,7 @@ import {
   resolveTenantScopeSearchParams,
   type TenantScopeSearchParamsInput,
 } from "@/lib/admin/scope";
+import { env } from "@/src/env.server";
 
 interface NotificationsPageProps {
   searchParams?: TenantScopeSearchParamsInput;
@@ -26,6 +27,7 @@ type QueueRow = {
   status: string | null;
   scheduled_for: string | null;
   created_at: string | null;
+  channel: string | null;
 };
 
 type TemplateRow = {
@@ -60,7 +62,7 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
 
   let queueQuery = supabase
     .from("notification_queue")
-    .select("id, event, sacco_id, template_id, status, scheduled_for, created_at")
+    .select("id, event, sacco_id, template_id, status, scheduled_for, created_at, channel")
     .order("created_at", { ascending: false })
     .limit(75);
 
@@ -112,6 +114,11 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
   const failedCount = queueRows.filter((row) => row.status === "failed").length;
   const activeTemplates = templateRows.filter((row) => row.is_active).length;
 
+  const channelAcks = {
+    whatsapp: Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_WHATSAPP_FROM),
+    email: Boolean(env.RESEND_API_KEY && env.MFA_EMAIL_FROM),
+  } as const;
+
   return (
     <div className="space-y-8">
       <GradientHeader
@@ -158,6 +165,40 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
             tone="info"
           />
         </dl>
+      </GlassCard>
+
+      <GlassCard
+        title={<Trans i18nKey="admin.notifications.acksTitle" fallback="Channel acknowledgements" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.notifications.acksSubtitle"
+            fallback="Ensure Twilio and Resend credentials are configured before dispatching."
+            className="text-xs text-neutral-3"
+          />
+        }
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <AckTile
+            label={<Trans i18nKey="admin.notifications.acks.whatsapp" fallback="WhatsApp" />}
+            configured={channelAcks.whatsapp}
+            detail={
+              <Trans
+                i18nKey="admin.notifications.acks.whatsappDetail"
+                fallback="Requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_FROM."
+              />
+            }
+          />
+          <AckTile
+            label={<Trans i18nKey="admin.notifications.acks.email" fallback="Email" />}
+            configured={channelAcks.email}
+            detail={
+              <Trans
+                i18nKey="admin.notifications.acks.emailDetail"
+                fallback="Requires RESEND_API_KEY and MFA_EMAIL_FROM."
+              />
+            }
+          />
+        </div>
       </GlassCard>
 
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
@@ -258,6 +299,32 @@ function MetricTile({
     <div className="rounded-3xl border border-white/5 bg-gradient-to-br from-white/10 to-transparent p-6">
       <p className="text-xs uppercase tracking-[0.3em] text-neutral-3">{label}</p>
       <p className={`mt-3 text-3xl font-semibold ${toneClasses[tone]}`}>{value.toLocaleString()}</p>
+    </div>
+  );
+}
+
+function AckTile({
+  label,
+  configured,
+  detail,
+}: {
+  label: React.ReactNode;
+  configured: boolean;
+  detail: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs uppercase tracking-[0.3em] text-neutral-3">{label}</span>
+        <StatusChip tone={configured ? "success" : "critical"}>
+          {configured ? (
+            <Trans i18nKey="admin.notifications.acks.connected" fallback="Connected" />
+          ) : (
+            <Trans i18nKey="admin.notifications.acks.missing" fallback="Missing" />
+          )}
+        </StatusChip>
+      </div>
+      <p className="mt-3 text-sm text-neutral-2">{detail}</p>
     </div>
   );
 }

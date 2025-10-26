@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
 
     const { data: pending, error } = await supabase
       .from("payments")
-      .select("id, sacco_id, reference, occurred_at, status")
+      .select("id, sacco_id, reference, occurred_at, status, msisdn")
       .in("status", ["PENDING", "UNALLOCATED"])
       .lt("occurred_at", cutoff);
 
@@ -77,11 +77,13 @@ Deno.serve(async (req) => {
         .upsert({
           event: "RECON_ESCALATION",
           payment_id: payment.id,
+          channel: "WHATSAPP",
           payload: {
             paymentId: payment.id,
             reference: payment.reference,
             occurredAt: payment.occurred_at,
             status: payment.status,
+            to: payment.msisdn,
           },
           scheduled_for: new Date().toISOString(),
         });

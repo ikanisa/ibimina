@@ -11,6 +11,7 @@ interface NotificationRow {
   status: string | null;
   scheduled_for: string | null;
   created_at: string | null;
+  channel?: string | null;
 }
 
 interface NotificationQueueTableProps {
@@ -30,6 +31,7 @@ export function NotificationQueueTable({ rows, saccoLookup, templateLookup }: No
         templateLabel: row.template_id ? templateLookup.get(row.template_id) ?? row.template_id : "—",
         createdLabel: row.created_at ? new Date(row.created_at).toLocaleString() : "—",
         scheduledLabel: row.scheduled_for ? new Date(row.scheduled_for).toLocaleString() : "—",
+        channelLabel: row.channel ?? "—",
       })),
     [rows, saccoLookup, templateLookup, t]
   );
@@ -49,6 +51,9 @@ export function NotificationQueueTable({ rows, saccoLookup, templateLookup }: No
           <tr>
             <th className="px-4 py-3">
               {t("admin.queue.event", "Event")}
+            </th>
+            <th className="px-4 py-3">
+              {t("admin.queue.channel", "Channel")}
             </th>
             <th className="px-4 py-3">
               {t("admin.queue.sacco", "SACCO")}
@@ -71,6 +76,7 @@ export function NotificationQueueTable({ rows, saccoLookup, templateLookup }: No
           {formatted.map((row) => (
             <tr key={row.id} className="hover:bg-white/5">
               <td className="px-4 py-3 text-neutral-0">{row.event}</td>
+              <td className="px-4 py-3 text-neutral-2">{row.channelLabel ?? "—"}</td>
               <td className="px-4 py-3 text-neutral-2">{row.saccoLabel}</td>
               <td className="px-4 py-3 text-neutral-2">{row.templateLabel}</td>
               <td className="px-4 py-3 text-neutral-2">{row.status ?? "pending"}</td>

@@ -72,6 +72,17 @@ docs/                   # Architecture, hosting, onboarding guides
 - See `docs/go-live-checklist.md` for the full Supabase bootstrap sequence (migrations, secrets, edge functions, GSM ingestion).
 - Refer to `docs/local-hosting.md` when wiring Supabase credentials into `.env.local` for local development.
 
+### GitHub Actions deployment secrets
+
+The Supabase deploy workflow (`.github/workflows/supabase-deploy.yml`) requires the following repository secrets so migrations and
+edge functions can be promoted automatically:
+
+- `SUPABASE_PROJECT_REF` – the Supabase project reference used by `supabase link` and `supabase migration up`.
+- `SUPABASE_ACCESS_TOKEN` – a personal access token with CLI access to the project (Settings → Access Tokens in the Supabase
+  dashboard).
+
+Ensure these secrets stay in sync with your production project before re-running the workflow.
+
 ## SACCO+ Supabase backend
 
 The SACCO+ runtime lives under `supabase/` and is documented in:

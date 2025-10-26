@@ -53,6 +53,9 @@ verify_jwt = true
 [functions.metrics-exporter]
 verify_jwt = true
 
+[functions.metrics-anomaly-detector]
+verify_jwt = true
+
 [functions.generate-mfa-code]
 verify_jwt = false
 

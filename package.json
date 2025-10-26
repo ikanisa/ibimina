@@ -9,7 +9,8 @@
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
     "start": "pnpm --filter @ibimina/admin run start",
-    "check:deploy": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse"
+    "check:flags": "node scripts/check-feature-flags.mjs",
+    "check:deploy": "pnpm run check:flags && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse"
   },
   "devDependencies": {
     "@types/node": "20.19.21",

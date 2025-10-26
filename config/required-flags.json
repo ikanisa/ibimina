@@ -1,0 +1,7 @@
+{
+  "flags": [
+    "enable_offline_queue",
+    "enable_scheduled_reconciliation",
+    "enable_notification_pipeline"
+  ]
+}
