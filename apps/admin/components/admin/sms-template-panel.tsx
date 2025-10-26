@@ -159,7 +159,22 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
       return;
     }
     startTransition(async () => {
-      const result = await queueNotification({ saccoId: template.sacco_id, templateId: template.id });
+      const recipient = window.prompt(
+        t("admin.templates.testRecipientPrompt", "Enter WhatsApp number for the test send"),
+      );
+      if (recipient === null) {
+        return;
+      }
+      const trimmed = recipient.trim();
+      if (!trimmed) {
+        notifyError(t("admin.templates.recipientRequired", "Recipient number is required"));
+        return;
+      }
+      const result = await queueNotification({
+        saccoId: template.sacco_id as string,
+        templateId: template.id,
+        testMsisdn: trimmed,
+      });
       if (result.status === "error") {
         notifyError(result.message ?? t("admin.templates.testQueueFailed", "Failed to queue test"));
       } else {

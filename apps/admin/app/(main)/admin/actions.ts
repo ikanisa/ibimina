@@ -65,10 +65,12 @@ async function queueNotificationInternal({
   saccoId,
   templateId,
   event = "SMS_TEMPLATE_TEST",
+  testMsisdn,
 }: {
   saccoId: string;
   templateId: string;
   event?: string;
+  testMsisdn?: string | null;
 }): Promise<AdminActionResult> {
   const guard = await guardAdminAction<AdminActionResult>(
     {
@@ -85,11 +87,26 @@ async function queueNotificationInternal({
   }
 
   const { supabase, user } = guard.context;
+
+  let normalizedRecipient: string | null = null;
+  if (testMsisdn && testMsisdn.trim().length > 0) {
+    const digits = testMsisdn.replace(/[^0-9+]/g, "");
+    if (digits.startsWith("+")) {
+      normalizedRecipient = digits;
+    } else if (digits.startsWith("2507")) {
+      normalizedRecipient = `+${digits}`;
+    } else if (digits.startsWith("07")) {
+      normalizedRecipient = `+250${digits.slice(2)}`;
+    } else {
+      normalizedRecipient = digits;
+    }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from("notification_queue").insert({
     event,
+    channel: "WHATSAPP",
     sacco_id: saccoId,
-    payload: { templateId, queuedBy: user.id },
+    payload: { templateId, queuedBy: user.id, to: normalizedRecipient },
     scheduled_for: new Date().toISOString(),
   });
 
@@ -127,6 +144,7 @@ async function queueMfaReminderInternal({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from("notification_queue").insert({
     event: "MFA_REMINDER",
+    channel: "EMAIL",
     payload: { userId, email, queuedBy: user.id },
     scheduled_for: new Date().toISOString(),
   });

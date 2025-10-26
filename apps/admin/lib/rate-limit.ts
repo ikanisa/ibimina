@@ -3,17 +3,32 @@ import { logError, logInfo } from "@/lib/observability/logger";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
-let clientFactoryOverride: (() => Promise<SupabaseServerClient>) | null = null;
+const CLIENT_FACTORY_TOKEN = "__ibimina_rate_limit_client_factory__" as const;
+
+type ClientFactory = () => Promise<SupabaseServerClient>;
+
+type GlobalWithFactory = typeof globalThis & {
+  [CLIENT_FACTORY_TOKEN]?: ClientFactory | null;
+};
+
+const getGlobalWithFactory = () => globalThis as GlobalWithFactory;
+
+const setClientFactoryOverride = (factory: ClientFactory | null) => {
+  getGlobalWithFactory()[CLIENT_FACTORY_TOKEN] = factory;
+};
+
+const getClientFactoryOverride = () => getGlobalWithFactory()[CLIENT_FACTORY_TOKEN] ?? null;
 
 export const __setRateLimitClientFactoryForTests = (
-  factory: (() => Promise<SupabaseServerClient>) | null,
+  factory: ClientFactory | null,
 ) => {
-  clientFactoryOverride = factory;
+  setClientFactoryOverride(factory);
 };
 
 const resolveSupabaseClient = () => {
-  if (clientFactoryOverride) {
-    return clientFactoryOverride();
+  const override = getClientFactoryOverride();
+  if (override) {
+    return override();
   }
   return createSupabaseServerClient();
 };
