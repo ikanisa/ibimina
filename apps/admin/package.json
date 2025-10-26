@@ -22,6 +22,7 @@
     "test:rls:docker": "bash scripts/test-rls-docker.sh",
     "test:auth": "tsx --test tests/integration/authx-security.test.ts",
     "test:unit": "tsx --test tests/unit/*.test.ts",
+    "start:e2e": "node scripts/start-e2e.mjs",
     "verify:log-drain": "tsx scripts/verify-log-drain.ts",
     "test:e2e": "playwright test"
   },
