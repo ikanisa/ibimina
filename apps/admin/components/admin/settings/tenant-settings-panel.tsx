@@ -55,33 +55,40 @@ export function TenantSettingsPanel({ saccos, canEdit, initialSaccoId }: TenantS
   const selectedRecord = useMemo(() => saccos.find((item) => item.saccoId === selected) ?? null, [selected, saccos]);
 
   useEffect(() => {
-    if (!selectedRecord) {
-      setState((prev) => (prev === DEFAULT_STATE ? prev : DEFAULT_STATE));
-      return;
-    }
-    const meta = (selectedRecord.metadata ?? {}) as Record<string, unknown>;
-    const adminSettings = (meta.admin_settings ?? {}) as Record<string, unknown>;
-    const kyc = (adminSettings.kycThresholds ?? {}) as Record<string, unknown>;
-    const integrations = (adminSettings.integrations ?? {}) as Record<string, unknown>;
-    const nextState: TenantSettingsState = {
-      rules: String(adminSettings.rules ?? ""),
-      feePolicy: String(adminSettings.feePolicy ?? ""),
-      enhancedThreshold: Number(kyc.enhanced ?? 1000000) || 0,
-      freezeThreshold: Number(kyc.freeze ?? 5000000) || 0,
-      integrations: {
-        webhook: Boolean(integrations.webhook ?? false),
-        edgeReconciliation: Boolean(integrations.edgeReconciliation ?? false),
-        notifications: Boolean(integrations.notifications ?? false),
-      },
-      updatedAt: typeof adminSettings.updated_at === "string" ? adminSettings.updated_at : null,
-      updatedBy: typeof adminSettings.updated_by === "string" ? adminSettings.updated_by : null,
-    };
-    setState((prev) => {
-      if (JSON.stringify(prev) === JSON.stringify(nextState)) {
-        return prev;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      if (!selectedRecord) {
+        setState((prev) => (prev === DEFAULT_STATE ? prev : DEFAULT_STATE));
+        return;
       }
-      return nextState;
+      const meta = (selectedRecord.metadata ?? {}) as Record<string, unknown>;
+      const adminSettings = (meta.admin_settings ?? {}) as Record<string, unknown>;
+      const kyc = (adminSettings.kycThresholds ?? {}) as Record<string, unknown>;
+      const integrations = (adminSettings.integrations ?? {}) as Record<string, unknown>;
+      const nextState: TenantSettingsState = {
+        rules: String(adminSettings.rules ?? ""),
+        feePolicy: String(adminSettings.feePolicy ?? ""),
+        enhancedThreshold: Number(kyc.enhanced ?? 1000000) || 0,
+        freezeThreshold: Number(kyc.freeze ?? 5000000) || 0,
+        integrations: {
+          webhook: Boolean(integrations.webhook ?? false),
+          edgeReconciliation: Boolean(integrations.edgeReconciliation ?? false),
+          notifications: Boolean(integrations.notifications ?? false),
+        },
+        updatedAt: typeof adminSettings.updated_at === "string" ? adminSettings.updated_at : null,
+        updatedBy: typeof adminSettings.updated_by === "string" ? adminSettings.updated_by : null,
+      };
+      setState((prev) => {
+        if (JSON.stringify(prev) === JSON.stringify(nextState)) {
+          return prev;
+        }
+        return nextState;
+      });
     });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedRecord]);
 
   const updateField = <K extends keyof TenantSettingsState>(key: K, value: TenantSettingsState[K]) => {

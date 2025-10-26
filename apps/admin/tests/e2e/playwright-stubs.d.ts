@@ -28,6 +28,8 @@ declare module "@playwright/test" {
     callback: (fixtures: TestFixtures) => Promise<unknown> | unknown,
   ) => void;
 
+  export type Page = PlaywrightPage;
+
   export const test: TestFn & TestHooks;
   export const expect: (...args: unknown[]) => { toBeVisible: () => Promise<void>; toBeEnabled: () => Promise<void> };
 }

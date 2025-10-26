@@ -6,11 +6,11 @@ interface TransProps {
   i18nKey: string;
   fallback: string;
   className?: string;
+  values?: Record<string, string | number>;
   children?: never;
 }
 
-export function Trans({ i18nKey, fallback, className }: TransProps) {
+export function Trans({ i18nKey, fallback, className, values }: TransProps) {
   const { t } = useTranslation();
-  return <span className={className}>{t(i18nKey, fallback)}</span>;
+  return <span className={className}>{t(i18nKey, fallback, values)}</span>;
 }
-

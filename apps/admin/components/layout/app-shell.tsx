@@ -50,6 +50,16 @@ const BADGE_DOT_STYLES = {
   success: "bg-emerald-400",
 } as const;
 
+const FOCUSABLE_SELECTORS =
+  'a[href]:not([tabindex="-1"]):not([aria-hidden="true"]),button:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),textarea:not([disabled]):not([tabindex="-1"]),select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"]):not([aria-hidden="true"])';
+
+const getFocusableElements = (container: HTMLElement | null) => {
+  if (!container) return [] as HTMLElement[];
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter(
+    (element) => !element.hasAttribute("disabled") && element.offsetParent !== null,
+  );
+};
+
 type QuickActionBadge = { label: string; tone: keyof typeof BADGE_TONE_STYLES };
 
 type QuickActionDefinition = {
@@ -82,7 +92,11 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
   const [showActions, setShowActions] = useState(false);
   const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+  const globalSearchTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const wasGlobalSearchOpenRef = useRef(false);
+  const wasQuickActionsOpenRef = useRef(false);
   const { t } = useTranslation();
 
   const saccoName = useMemo(() => profile.sacco?.name ?? t("sacco.all", "All SACCOs"), [profile.sacco?.name, t]);
@@ -197,6 +211,71 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
       },
     ];
   }, [profile.failed_mfa_count, profile.mfa_enabled, t]);
+
+  useEffect(() => {
+    if (!showActions) {
+      if (wasQuickActionsOpenRef.current) {
+        wasQuickActionsOpenRef.current = false;
+        (quickActionsTriggerRef.current ?? quickActionsLastFocusRef.current)?.focus();
+      }
+      return;
+    }
+
+    wasQuickActionsOpenRef.current = true;
+    quickActionsLastFocusRef.current = document.activeElement as HTMLElement | null;
+    const container = quickActionsRef.current;
+    const firstFocusable = getFocusableElements(container).at(0);
+    if (firstFocusable) {
+      queueMicrotask(() => firstFocusable.focus());
+    } else {
+      container?.focus();
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!container) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setShowActions(false);
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const focusable = getFocusableElements(container);
+      if (focusable.length === 0) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey) {
+        if (activeElement === first || activeElement === container) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    container?.addEventListener("keydown", handleKeyDown);
+    return () => container?.removeEventListener("keydown", handleKeyDown);
+  }, [showActions]);
+
+  useEffect(() => {
+    if (showGlobalSearch) {
+      wasGlobalSearchOpenRef.current = true;
+      return;
+    }
+    if (wasGlobalSearchOpenRef.current) {
+      wasGlobalSearchOpenRef.current = false;
+      globalSearchTriggerRef.current?.focus();
+    }
+  }, [showGlobalSearch]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -362,6 +441,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                   className="interactive-scale inline-flex items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold tracking-[0.1em] text-neutral-0 transition hover:border-white/25 hover:text-neutral-0 md:text-xs md:uppercase md:tracking-[0.3em]"
                   aria-haspopup="dialog"
                   aria-expanded={showGlobalSearch}
+                  ref={globalSearchTriggerRef}
                 >
                   <Search className="h-4 w-4" aria-hidden />
                   <span className="items-center">{t("common.search", "Search")}</span>

@@ -48,7 +48,6 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
 
   useEffect(() => {
     if (!selectedSacco) {
-      setTemplates((prev) => (prev.length === 0 ? prev : []));
       return;
     }
     let cancelled = false;
@@ -175,7 +174,13 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.sacco", "SACCO")}</label>
         <select
           value={selectedSacco ?? ""}
-          onChange={(event) => setSelectedSacco(event.target.value || null)}
+          onChange={(event) => {
+            const value = event.target.value || null;
+            setSelectedSacco(value);
+            if (!value) {
+              setTemplates([]);
+            }
+          }}
           className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
         >
           {saccos.map((sacco) => (

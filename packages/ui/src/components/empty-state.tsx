@@ -4,8 +4,8 @@ import { Smile } from "lucide-react";
 import { cn } from "../utils/cn";
 
 export interface EmptyStateProps {
-  title: string;
-  description?: string;
+  title: ReactNode;
+  description?: ReactNode;
   icon?: ReactNode;
   className?: string;
   action?: ReactNode;

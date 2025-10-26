@@ -21,9 +21,16 @@ export function UssdInstructions({ groupId }: UssdInstructionsProps) {
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     if (!groupId) {
-      setParams(null);
-      return;
+      queueMicrotask(() => {
+        if (!cancelled) {
+          setParams(null);
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
     }
 
     startFetch(async () => {
@@ -33,8 +40,13 @@ export function UssdInstructions({ groupId }: UssdInstructionsProps) {
         return;
       }
       const data = (await response.json()) as UssdParams;
-      setParams(data);
+      if (!cancelled) {
+        setParams(data);
+      }
     });
+    return () => {
+      cancelled = true;
+    };
   }, [groupId]);
 
   const copy = async (value: string) => {

@@ -26,6 +26,8 @@ pnpm dev
 
 `.env` stays out of version control and is loaded automatically by the admin app. Populate it with your Supabase project details (URL, anon key, service role, peppers, secrets) before starting the dev server. See [`docs/local-hosting.md`](docs/local-hosting.md) for a detailed Mac-hosting walkthrough plus health-check steps.
 
+- `pnpm start` (and the `apps/admin/scripts/start.sh` wrapper) boots the `.next/standalone` output by default. Set `ADMIN_USE_STANDALONE_START=0` (or `USE_STANDALONE_START=0`) if you explicitly want to fall back to `next start` during troubleshooting.
+
 ### Environment variables
 
 The repo ships with a curated `.env.example` that lists every secret the runtime expects. Update that file when you add/remove configuration so the team always has an up-to-date reference.
@@ -183,3 +185,8 @@ curl -X POST \
 - `pnpm fix:i18n` – backfill missing rw/fr keys from en (flat keys)
 
 Deployments run through your self-hosted CI/CD pipeline; push changes when you’re ready to release to your local or on-prem infrastructure.
+
+## Deployment readiness
+
+- Run `pnpm run check:deploy` (or `make ready`) to execute the same lint/type/test/build/Playwright/Lighthouse/log-drain gates that CI enforces.
+- Walk through the [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) before tagging a release to confirm secrets, Supabase migrations, smoke tests, and observability wiring are complete.

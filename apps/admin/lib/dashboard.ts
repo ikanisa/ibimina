@@ -30,6 +30,7 @@ export interface DashboardSummary {
     ikimina_name: string | null;
     days_since: number | null;
   }>;
+  generatedAt: string;
 }
 
 export const EMPTY_DASHBOARD_SUMMARY: DashboardSummary = {
@@ -42,6 +43,7 @@ export const EMPTY_DASHBOARD_SUMMARY: DashboardSummary = {
   activeIkimina: 0,
   topIkimina: [],
   missedContributors: [],
+  generatedAt: new Date(0).toISOString(),
 };
 
 interface DashboardSummaryParams {
@@ -131,6 +133,7 @@ async function computeDashboardSummary(
           days_since: 16,
         },
       ],
+      generatedAt: new Date().toISOString(),
     } satisfies DashboardSummary;
   }
 
@@ -138,7 +141,7 @@ async function computeDashboardSummary(
     return EMPTY_DASHBOARD_SUMMARY;
   }
 
-  const analyticsClient = clients.app.schema("app") as unknown as any;
+  const analyticsClient = clients.app;
 
   try {
     const resolveRollup = async (): Promise<PaymentRollupRow | null> => {
@@ -266,12 +269,13 @@ async function computeDashboardSummary(
       activeIkimina: activeIkiminaCount,
       topIkimina,
       missedContributors,
+      generatedAt: new Date().toISOString(),
     } satisfies DashboardSummary;
   } catch (error) {
     const code = (error as { code?: string } | undefined)?.code;
     if (code === "PGRST205" && !options.attemptedRefresh) {
       try {
-      await clients.app.rpc("analytics_refresh_dashboard_materialized_views" as never);
+        await clients.app.rpc("analytics_refresh_dashboard_materialized_views" as never);
         return computeDashboardSummary({ saccoId, allowAll }, clients, { attemptedRefresh: true });
       } catch (refreshError) {
         console.warn("[dashboard] analytics refresh failed", refreshError);

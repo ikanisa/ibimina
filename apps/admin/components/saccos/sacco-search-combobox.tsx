@@ -52,14 +52,23 @@ export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, cl
 
   useEffect(() => {
     let active = true;
+    const scheduleStateUpdate = (updater: () => void) => {
+      queueMicrotask(() => {
+        if (active) {
+          updater();
+        }
+      });
+    };
     if (!supabase) {
-      if (query.trim()) {
-        setError(t("sacco.search.disabled", "Search is unavailable right now."));
-      } else {
-        setError(null);
-      }
-      setLoading(false);
-      setResults([]);
+      scheduleStateUpdate(() => {
+        if (query.trim()) {
+          setError(t("sacco.search.disabled", "Search is unavailable right now."));
+        } else {
+          setError(null);
+        }
+        setLoading(false);
+        setResults([]);
+      });
       return () => {
         active = false;
       };

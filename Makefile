@@ -1,4 +1,4 @@
-.PHONY: deps build start admin caddy-up caddy-bg caddy-down tunnel-up tunnel-bg tunnel-down next-bg next-down local-up local-down local-status
+.PHONY: deps build start admin caddy-up caddy-bg caddy-down tunnel-up tunnel-bg tunnel-down next-bg next-down local-up local-down local-status ready
 
 deps:
 	./apps/admin/scripts/mac/install_caddy_cloudflared.sh
@@ -47,3 +47,6 @@ local-down:
 
 local-status:
 	@echo "Ports in use:" && (lsof -iTCP:3000 -sTCP:LISTEN -Pn || true) && (lsof -iTCP:443 -sTCP:LISTEN -Pn || true)
+
+ready:
+	pnpm run check:deploy

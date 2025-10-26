@@ -83,6 +83,27 @@ begin
 end;
 $$;
 
+-- SACCO staff can update payments inside their scope
+do $$
+declare
+  updated_rows integer;
+begin
+  update app.payments
+  set status = 'PENDING'
+  where id = '90111111-1111-4111-8111-111111111111';
+
+  get diagnostics updated_rows = row_count;
+  if updated_rows <> 1 then
+    raise exception 'staff should be able to update payments in their SACCO (updated %)', updated_rows;
+  end if;
+
+  -- revert status to maintain downstream expectations
+  update app.payments
+  set status = 'POSTED'
+  where id = '90111111-1111-4111-8111-111111111111';
+end;
+$$;
+
 -- Staff cannot insert into another SACCO
 \echo 'Expect foreign SACCO insert to fail'
 do $$
@@ -99,6 +120,22 @@ begin
 
   if allowed then
     raise exception 'staff managed to insert payment for foreign SACCO';
+  end if;
+end;
+$$;
+
+\echo 'Expect cross-SACCO update to fail'
+do $$
+declare
+  updated_rows integer;
+begin
+  update app.payments
+  set amount = amount + 100
+  where id = '90222222-2222-4222-8222-222222222222';
+
+  get diagnostics updated_rows = row_count;
+  if updated_rows <> 0 then
+    raise exception 'staff must not update payments outside their SACCO (updated %)', updated_rows;
   end if;
 end;
 $$;

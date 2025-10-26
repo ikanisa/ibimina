@@ -43,8 +43,8 @@
 - **Observability**: Configure `LOG_DRAIN_URL`/alert webhook before go-live to preserve security audit trail.
 
 ## Next Steps Checklist
-1. Populate `.env.local` (and any automation scripts) using `.env.example` as the source of truth.
-2. Mirror shared secrets in the Supabase dashboard via `supabase/.env.example`.
-3. Run `pnpm install && pnpm build && pnpm start` on the target MacBook host; verify `/api/healthz` responds with HTTP 200.
-4. Execute the full CI pipeline (`pnpm lint`, `pnpm typecheck`, tests) to confirm parity with automation.
+1. Run `pnpm run check:deploy` (or `make ready`) to execute lint/type/tests/log-drain verification/build/Playwright/Lighthouse in one shot; resolve any failures before proceeding.
+2. Populate `.env.local` (and any automation scripts) using `.env.example` as the source of truth.
+3. Mirror shared secrets in the Supabase dashboard via `supabase/.env.example`.
+4. Run `pnpm install && pnpm build && pnpm start` on the target MacBook host; verify `/api/healthz` responds with HTTP 200.
 5. Configure monitoring/log drain endpoints once the app is accessible behind the intended reverse proxy.

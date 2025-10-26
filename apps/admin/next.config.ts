@@ -63,6 +63,8 @@ try {
     register: true,
     skipWaiting: true,
     sw: "service-worker.js",
+    swSrc: "workers/service-worker.ts",
+    buildExcludes: [/middleware-manifest\.json$/],
   });
 } catch {
   console.warn("next-pwa not available during local build; proceeding without service worker bundling.");

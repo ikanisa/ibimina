@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSessionUser } from "@/lib/authx/session";
-import { startPasskeyChallenge, sendEmailOtp, sendWhatsAppOtp } from "@/lib/authx/start";
+import { initiateFactor } from "@/src/auth/factors";
 
 const bodySchema = z.object({
   factor: z.enum(["passkey", "totp", "email", "whatsapp"]),
@@ -22,29 +22,24 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    if (data.factor === "passkey") {
-      const result = await startPasskeyChallenge({ id: user.id });
-      return NextResponse.json({ factor: "passkey", ...result });
+    const result = await initiateFactor({
+      factor: data.factor,
+      userId: user.id,
+      email: user.email,
+    });
+
+    if (!result.ok) {
+      return NextResponse.json(
+        {
+          error: result.error,
+          code: result.code,
+          ...(result.payload ?? {}),
+        },
+        { status: result.status },
+      );
     }
 
-    if (data.factor === "email") {
-      const result = await sendEmailOtp({ id: user.id, email: user.email });
-      if (!result.sent) {
-        return NextResponse.json({ error: result.error ?? "send_failed" }, { status: 400 });
-      }
-      return NextResponse.json(result);
-    }
-
-    if (data.factor === "whatsapp") {
-      const result = await sendWhatsAppOtp({ id: user.id });
-      if (!result.sent) {
-        return NextResponse.json({ error: result.error ?? "send_failed" }, { status: 400 });
-      }
-      return NextResponse.json(result);
-    }
-
-    // TOTP and other local factors do not require initiation
-    return NextResponse.json({ ok: true, factor: data.factor });
+    return NextResponse.json(result.payload ?? { ok: true, factor: data.factor });
   } catch (error) {
     console.error("authx.challenge.initiate", error);
     return NextResponse.json({ error: "failed" }, { status: 500 });
