@@ -4,6 +4,7 @@ import { StatusChip } from "@/components/common/status-chip";
 import { StatementImportWizard } from "@/components/ikimina/statement-import-wizard";
 import { ReconciliationTable, type ReconciliationRow } from "@/components/recon/reconciliation-table";
 import { SmsInboxPanel } from "@/components/recon/sms-inbox-panel";
+import { AutomationHealthBanner } from "@/components/recon/automation-health-banner";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
@@ -14,6 +15,7 @@ import {
 } from "@/lib/admin/scope";
 import { canImportStatements, canReconcilePayments, isSystemAdmin } from "@/lib/permissions";
 import type { Database } from "@/lib/supabase/types";
+import { getAutomationHealthStub } from "@/lib/e2e/automation-health-store";
 
 const EXCEPTION_STATUSES = ["UNALLOCATED", "PENDING", "REJECTED"] as const;
 
@@ -101,6 +103,81 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
     throw smsError;
   }
 
+  const automationStub = getAutomationHealthStub();
+
+  let pollerIssues: Parameters<typeof AutomationHealthBanner>[0]["pollers"] = [];
+  let gatewayIssues: Parameters<typeof AutomationHealthBanner>[0]["gateways"] = [];
+
+  if (automationStub) {
+    pollerIssues = automationStub.pollers.map((item) => ({
+      id: item.id,
+      name: item.displayName,
+      status: item.status,
+      lastPolledAt: item.lastPolledAt ?? null,
+      lastError: item.lastError ?? null,
+      latencyMs: item.lastLatencyMs ?? null,
+    }));
+    gatewayIssues = automationStub.gateways.map((item) => ({
+      id: item.id,
+      name: item.displayName,
+      status: item.status,
+      lastHeartbeatAt: item.lastHeartbeatAt ?? null,
+      lastError: item.lastError ?? null,
+      latencyMs: item.lastLatencyMs ?? null,
+    }));
+  } else {
+    const [pollerRows, gatewayRows] = await Promise.all([
+      (supabase as any)
+        .schema("app")
+        .from("momo_statement_pollers")
+        .select("id, display_name, status, last_polled_at, last_error, last_latency_ms")
+        .order("display_name", { ascending: true }),
+      (supabase as any)
+        .schema("app")
+        .from("sms_gateway_endpoints")
+        .select("id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms")
+        .order("display_name", { ascending: true }),
+    ]);
+
+    const now = Date.now();
+    const pollerStaleThreshold = now - 15 * 60 * 1000;
+    const gatewayStaleThreshold = now - 10 * 60 * 1000;
+
+    pollerIssues = (pollerRows?.data ?? [])
+      .filter((row) => {
+        const lastPolled = row.last_polled_at ? Date.parse(row.last_polled_at) : null;
+        const stale = lastPolled ? lastPolled < pollerStaleThreshold : true;
+        const hasError = Boolean(row.last_error);
+        const inactive = row.status !== "ACTIVE";
+        return stale || hasError || inactive;
+      })
+      .map((row) => ({
+        id: row.id,
+        name: row.display_name ?? "MoMo poller",
+        status: row.status ?? "UNKNOWN",
+        lastPolledAt: row.last_polled_at ?? null,
+        lastError: row.last_error ?? null,
+        latencyMs: row.last_latency_ms ?? null,
+      }));
+
+    gatewayIssues = (gatewayRows?.data ?? [])
+      .filter((row) => {
+        const lastHeartbeat = row.last_heartbeat_at ? Date.parse(row.last_heartbeat_at) : null;
+        const stale = lastHeartbeat ? lastHeartbeat < gatewayStaleThreshold : true;
+        const unhealthy = row.last_status !== "UP" || Boolean(row.last_error);
+        const disabled = row.status !== "ACTIVE";
+        return stale || unhealthy || disabled;
+      })
+      .map((row) => ({
+        id: row.id,
+        name: row.display_name ?? row.id,
+        status: row.last_status ?? row.status ?? "UNKNOWN",
+        lastHeartbeatAt: row.last_heartbeat_at ?? null,
+        lastError: row.last_error ?? null,
+        latencyMs: row.last_latency_ms ?? null,
+      }));
+  }
+
   const smsPanelItems = (smsEntries ?? []).map((item) => ({
     id: item.id,
     raw_text: item.raw_text,
@@ -129,6 +206,8 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
         }
         badge={<StatusChip tone="warning">{exceptionRows.length} pending</StatusChip>}
       />
+
+      <AutomationHealthBanner pollers={pollerIssues} gateways={gatewayIssues} />
 
       <GlassCard
         title={<Trans i18nKey="admin.reconciliation.momo" fallback="MoMo statement ingest" />}
