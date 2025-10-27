@@ -38,10 +38,10 @@ import { z } from "zod";
  * Ensures parameters are properly formatted and within acceptable ranges
  */
 const queryParamsSchema = z.object({
-  status: z.enum(["PENDING", "COMPLETED", "FAILED"]).nullable().optional(),
-  ikimina_id: z.string().uuid("Invalid group ID format").nullable().optional(),
-  limit: z.coerce.number().int().min(1).max(100).nullable().optional().default(50),
-  offset: z.coerce.number().int().min(0).nullable().optional().default(0),
+  status: z.enum(["PENDING", "COMPLETED", "FAILED"]).nullish(),
+  ikimina_id: z.string().uuid("Invalid group ID format").nullish(),
+  limit: z.coerce.number().int().min(1).max(100).nullish().default(50),
+  offset: z.coerce.number().int().min(0).nullish().default(0),
 });
 
 /**
@@ -78,8 +78,8 @@ export async function GET(request: Request) {
 
     // Fetch pay sheet data using the API utility
     const paySheetEntries = await getUssdPaySheet({
-      status: status || undefined,
-      ikimina_id: ikimina_id || undefined,
+      status,
+      ikimina_id,
       limit,
       offset,
     });

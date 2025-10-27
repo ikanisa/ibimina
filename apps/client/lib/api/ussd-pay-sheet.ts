@@ -32,10 +32,10 @@ export interface UssdPaySheetEntry {
  * Optional filters for fetching pay sheet entries
  */
 export interface UssdPaySheetParams {
-  status?: "PENDING" | "COMPLETED" | "FAILED";
-  ikimina_id?: string;
-  limit?: number;
-  offset?: number;
+  status?: "PENDING" | "COMPLETED" | "FAILED" | null | undefined;
+  ikimina_id?: string | null | undefined;
+  limit?: number | null | undefined;
+  offset?: number | null | undefined;
 }
 
 /**
@@ -111,14 +111,16 @@ export async function getUssdPaySheet(
     },
   ];
 
-  // Filter by status if provided
+  // Filter by status if provided and not null
   let filteredEntries = mockPaySheetEntries;
-  if (status) {
+  if (status != null) {
     filteredEntries = filteredEntries.filter(entry => entry.payment_status === status);
   }
 
-  // Apply pagination
-  return filteredEntries.slice(offset, offset + limit);
+  // Apply pagination with proper null handling
+  const effectiveLimit = limit ?? 50;
+  const effectiveOffset = offset ?? 0;
+  return filteredEntries.slice(effectiveOffset, effectiveOffset + effectiveLimit);
 }
 
 /**
@@ -184,14 +186,16 @@ export async function getUssdPaySheetClient(
     },
   ];
 
-  // Filter by status if provided
+  // Filter by status if provided and not null
   let filteredEntries = mockPaySheetEntries;
-  if (status) {
+  if (status != null) {
     filteredEntries = filteredEntries.filter(entry => entry.payment_status === status);
   }
 
-  // Apply pagination
-  return filteredEntries.slice(offset, offset + limit);
+  // Apply pagination with proper null handling
+  const effectiveLimit = limit ?? 50;
+  const effectiveOffset = offset ?? 0;
+  return filteredEntries.slice(effectiveOffset, effectiveOffset + effectiveLimit);
 }
 
 /**
