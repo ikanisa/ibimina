@@ -115,7 +115,15 @@ export function FeatureFlagsCard() {
   );
 }
 
-function FlagToggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+function FlagToggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <label className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-neutral-0">
       <span>{label}</span>
@@ -130,4 +138,3 @@ function FlagToggle({ label, checked, onChange }: { label: string; checked: bool
     </label>
   );
 }
-

@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
         totals.rangeDeposits += payment.amount;
         contributionsByDay.set(
           occurredDateKey,
-          (contributionsByDay.get(occurredDateKey) ?? 0) + payment.amount,
+          (contributionsByDay.get(occurredDateKey) ?? 0) + payment.amount
         );
 
         if (occurred >= startOfToday) {
@@ -137,10 +137,7 @@ Deno.serve(async (req) => {
 
     const activeIbimina = (ikiminaRows ?? []).filter((row) => row.status === "ACTIVE").length;
 
-    const { data: membersRows } = await supabase
-      .schema("app")
-      .from("members")
-      .select("id, status");
+    const { data: membersRows } = await supabase.schema("app").from("members").select("id, status");
 
     const activeMembers = (membersRows ?? []).filter((row) => row.status === "ACTIVE").length;
 
@@ -193,7 +190,7 @@ Deno.serve(async (req) => {
         topIkimina,
         recentPayments,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error(error);

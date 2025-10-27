@@ -3,7 +3,7 @@ import type { FactorFailure, FactorSuccess, FactorVerifyInput } from "./index";
 import { authLog } from "../util/log";
 
 export const verifyBackupFactor = async (
-  input: FactorVerifyInput,
+  input: FactorVerifyInput
 ): Promise<FactorSuccess | FactorFailure> => {
   if (!input.token) {
     return { ok: false, status: 400, error: "token_required", code: "TOKEN_REQUIRED" };

@@ -24,9 +24,7 @@ export function RecentActivity({ joinRequests }: RecentActivityProps) {
             <p className="text-base font-semibold capitalize">{request.status}</p>
             <span className="text-sm text-white/70">{renderRelativeTime(request.created_at)}</span>
           </div>
-          {request.note ? (
-            <p className="mt-2 text-sm text-white/80">{request.note}</p>
-          ) : null}
+          {request.note ? <p className="mt-2 text-sm text-white/80">{request.note}</p> : null}
         </li>
       ))}
     </ul>

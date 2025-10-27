@@ -71,13 +71,22 @@ export const enforceRateLimit = async (key: string, options?: { maxHits?: number
   });
 
   if (error) {
-    logError("rate_limit_rpc_failed", { key, error, maxHits: options?.maxHits, windowSeconds: options?.windowSeconds });
+    logError("rate_limit_rpc_failed", {
+      key,
+      error,
+      maxHits: options?.maxHits,
+      windowSeconds: options?.windowSeconds,
+    });
     throw error;
   }
 
   // data is false when rate limit is exceeded
   if (!data) {
-    logInfo("rate_limit_blocked", { key, maxHits: options?.maxHits ?? 5, windowSeconds: options?.windowSeconds ?? 300 });
+    logInfo("rate_limit_blocked", {
+      key,
+      maxHits: options?.maxHits ?? 5,
+      windowSeconds: options?.windowSeconds ?? 300,
+    });
     throw new Error("rate_limit_exceeded");
   }
 };

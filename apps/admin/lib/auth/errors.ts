@@ -8,7 +8,10 @@ export type AuthErrorPayload = {
 /**
  * Maps Supabase auth errors into user-friendly copy while avoiding leaking internal codes.
  */
-export function mapAuthError(error: AuthErrorPayload | null | undefined, fallback = DEFAULT_MESSAGE) {
+export function mapAuthError(
+  error: AuthErrorPayload | null | undefined,
+  fallback = DEFAULT_MESSAGE
+) {
   if (!error) {
     return fallback;
   }
@@ -30,4 +33,3 @@ export function mapAuthError(error: AuthErrorPayload | null | undefined, fallbac
 
   return fallback;
 }
-

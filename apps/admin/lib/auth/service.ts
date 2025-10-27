@@ -49,7 +49,7 @@ export async function fetchUserAndProfile(): Promise<AuthContext | null> {
         "failed_mfa_count",
         "last_mfa_success_at",
         "last_mfa_step",
-      ].join(", "),
+      ].join(", ")
     )
     .eq("id", user.id)
     .maybeSingle<UserRow>();
@@ -81,7 +81,7 @@ export async function fetchUserAndProfile(): Promise<AuthContext | null> {
           "failed_mfa_count",
           "last_mfa_success_at",
           "last_mfa_step",
-        ].join(", "),
+        ].join(", ")
       )
       .eq("id", user.id)
       .maybeSingle<UserRow>();

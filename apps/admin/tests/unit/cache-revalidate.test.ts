@@ -62,7 +62,10 @@ describe("cache revalidate webhook", () => {
 
     assert.equal(json.ok, true);
     assert.ok(Array.isArray(json.tags));
-    assert.equal(Object.values(json.results).every((value) => value === "ok"), true);
+    assert.equal(
+      Object.values(json.results).every((value) => value === "ok"),
+      true
+    );
     assert.equal(invocations.length, json.tags.length);
   });
 

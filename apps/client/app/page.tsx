@@ -1,6 +1,6 @@
 /**
  * Home Page for SACCO+ Client App
- * 
+ *
  * This is a placeholder home page that redirects to the welcome page.
  * In a production environment, this would show the main app interface
  * for authenticated users or redirect to onboarding for new users.

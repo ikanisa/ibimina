@@ -53,18 +53,39 @@ export function ReportsClient({
     <div className="space-y-8">
       <GradientHeader
         title={<span>{t("reports.title", "Reports")}</span>}
-        subtitle={<span className="text-xs text-ink/70">{t("reports.subtitle", "Generate branded exports for SACCO leadership, auditors, and members.")}</span>}
-        badge={<span className="rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-[0.3em] text-ink">{t("reports.badge.pwa", "PWA-ready")}</span>}
+        subtitle={
+          <span className="text-xs text-ink/70">
+            {t(
+              "reports.subtitle",
+              "Generate branded exports for SACCO leadership, auditors, and members."
+            )}
+          </span>
+        }
+        badge={
+          <span className="rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-[0.3em] text-ink">
+            {t("reports.badge.pwa", "PWA-ready")}
+          </span>
+        }
       />
 
       <GlassCard
         title={<span>{t("reports.summary.title", "Summary")}</span>}
-        subtitle={<span className="text-xs text-neutral-3">{previewSummary ? t("reports.summary.ready", "Figures reflect the applied filters.") : t("reports.summary.pending", "Adjust filters to populate the summary.")}</span>}
+        subtitle={
+          <span className="text-xs text-neutral-3">
+            {previewSummary
+              ? t("reports.summary.ready", "Figures reflect the applied filters.")
+              : t("reports.summary.pending", "Adjust filters to populate the summary.")}
+          </span>
+        }
       >
         <div className="grid gap-3 md:grid-cols-3">
           <SummaryTile
             label={t("reports.cards.totalVolume", "Total volume")}
-            value={previewSummary ? formatCurrency(previewSummary.totalAmount, previewSummary.currency) : "—"}
+            value={
+              previewSummary
+                ? formatCurrency(previewSummary.totalAmount, previewSummary.currency)
+                : "—"
+            }
           />
           <SummaryTile
             label={t("reports.cards.transactions", "Transactions")}
@@ -80,20 +101,25 @@ export function ReportsClient({
       <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <GlassCard
           title={<span>{t("reports.filters.title", "Filters")}</span>}
-          subtitle={<span className="text-xs text-neutral-3">{t("reports.filters.subtitle", "Fine-tune the reporting scope.")}</span>}
+          subtitle={
+            <span className="text-xs text-neutral-3">
+              {t("reports.filters.subtitle", "Fine-tune the reporting scope.")}
+            </span>
+          }
         >
           <ReportFilters initialSacco={initialSacco} onChange={handleFiltersChange} />
         </GlassCard>
 
         <GlassCard
           title={<span>{t("reports.preview.title", "Preview")}</span>}
-          subtitle={<span className="text-xs text-neutral-3">{t("reports.preview.subtitle", "Review performance before exporting.")}</span>}
+          subtitle={
+            <span className="text-xs text-neutral-3">
+              {t("reports.preview.subtitle", "Review performance before exporting.")}
+            </span>
+          }
           className="min-h-[320px] space-y-6"
         >
-          <ReportPreview
-            filters={exportContext}
-            onSummaryChange={setPreviewSummary}
-          />
+          <ReportPreview filters={exportContext} onSummaryChange={setPreviewSummary} />
           <div className="border-t border-white/10 pt-6">
             <ReportExportPanel
               filters={exportContext}
@@ -126,9 +152,7 @@ export function ReportsClient({
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
-      <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-        {label}
-      </p>
+      <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{label}</p>
       <p className="mt-3 text-2xl font-semibold text-neutral-0">{value}</p>
     </div>
   );

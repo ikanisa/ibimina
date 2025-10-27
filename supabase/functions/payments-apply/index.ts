@@ -54,7 +54,7 @@ const loadProfile = async (supabase: ReturnType<typeof createServiceClient>, use
 const computeBalances = async (
   supabase: ReturnType<typeof createServiceClient>,
   saccoId: string,
-  ikiminaId: string | null,
+  ikiminaId: string | null
 ) => {
   if (!ikiminaId) {
     return null;
@@ -127,8 +127,8 @@ Deno.serve(async (req) => {
       }
 
       const profile = await loadProfile(supabase, auth.userId);
-      actingRole = profile?.role as string | null ?? actingRole;
-      actingSaccoId = profile?.sacco_id as string | null ?? actingSaccoId;
+      actingRole = (profile?.role as string | null) ?? actingRole;
+      actingSaccoId = (profile?.sacco_id as string | null) ?? actingSaccoId;
 
       // Non-admin users can only post payments to their assigned SACCO
       if (actingRole !== "SYSTEM_ADMIN") {
@@ -150,7 +150,11 @@ Deno.serve(async (req) => {
       actorId,
     });
 
-    const cached = await getIdempotentResponse<Record<string, unknown>>(supabase, identityKey, idempotencyKey);
+    const cached = await getIdempotentResponse<Record<string, unknown>>(
+      supabase,
+      identityKey,
+      idempotencyKey
+    );
     if (cached && cached.request_hash === requestHash) {
       return jsonCorsResponse({
         ...cached.response,
@@ -217,7 +221,7 @@ Deno.serve(async (req) => {
     const balances = await computeBalances(
       supabase,
       (payment.sacco_id as string) ?? payload.saccoId,
-      payment.ikimina_id as string | null,
+      payment.ikimina_id as string | null
     );
 
     const responsePayload = {
@@ -226,7 +230,13 @@ Deno.serve(async (req) => {
       balances,
     };
 
-    await saveIdempotentResponse(supabase, identityKey, idempotencyKey, requestHash, responsePayload);
+    await saveIdempotentResponse(
+      supabase,
+      identityKey,
+      idempotencyKey,
+      requestHash,
+      responsePayload
+    );
 
     await writeAuditLog(supabase, {
       action: "PAYMENT_APPLY",

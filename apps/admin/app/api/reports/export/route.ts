@@ -34,8 +34,14 @@ const CSV_HEADER = [
 ] as const;
 
 type PaymentRow = Database["app"]["Tables"]["payments"]["Row"];
-type IkiminaRow = Pick<Database["app"]["Tables"]["ikimina"]["Row"], "id" | "code" | "name" | "sacco_id">;
-type MemberRow = Pick<Database["public"]["Views"]["ikimina_members_public"]["Row"], "id" | "member_code" | "full_name">;
+type IkiminaRow = Pick<
+  Database["app"]["Tables"]["ikimina"]["Row"],
+  "id" | "code" | "name" | "sacco_id"
+>;
+type MemberRow = Pick<
+  Database["public"]["Views"]["ikimina_members_public"]["Row"],
+  "id" | "member_code" | "full_name"
+>;
 
 function parseDate(value: string | undefined, fallback: Date, mode: "start" | "end"): Date {
   if (!value) return fallback;
@@ -82,7 +88,10 @@ export async function GET(request: NextRequest) {
     const query = Object.fromEntries(request.nextUrl.searchParams.entries());
     const parsed = querySchema.safeParse(query);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid query parameters", details: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid query parameters", details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
 
     const { saccoId, ikiminaId, startDate, endDate, separator = ",", limit } = parsed.data;
@@ -127,7 +136,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (ikiminaRecord && ikiminaRecord.sacco_id !== saccoScope) {
-      return NextResponse.json({ error: "Ikimina does not belong to the selected SACCO" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Ikimina does not belong to the selected SACCO" },
+        { status: 400 }
+      );
     }
 
     const now = new Date();
@@ -144,7 +156,9 @@ export async function GET(request: NextRequest) {
     let paymentsQuery = supabase
       .schema("app")
       .from("payments")
-      .select("id, sacco_id, ikimina_id, member_id, occurred_at, status, amount, currency, reference")
+      .select(
+        "id, sacco_id, ikimina_id, member_id, occurred_at, status, amount, currency, reference"
+      )
       .eq("sacco_id", resolvedSaccoId)
       .gte("occurred_at", windowStart.toISOString())
       .lte("occurred_at", windowEnd.toISOString())
@@ -163,15 +177,20 @@ export async function GET(request: NextRequest) {
 
     const payments = (paymentRows ?? []) as Array<PaymentRow>;
 
-    const ikiminaIds = Array.from(new Set(payments.map((row) => row.ikimina_id).filter((value): value is string => Boolean(value))));
-    const memberIds = Array.from(new Set(payments.map((row) => row.member_id).filter((value): value is string => Boolean(value))));
+    const ikiminaIds = Array.from(
+      new Set(
+        payments.map((row) => row.ikimina_id).filter((value): value is string => Boolean(value))
+      )
+    );
+    const memberIds = Array.from(
+      new Set(
+        payments.map((row) => row.member_id).filter((value): value is string => Boolean(value))
+      )
+    );
 
     const [ikiminaRes, membersRes] = await Promise.all([
       ikiminaIds.length
-        ? supabase
-            .from("ibimina")
-            .select("id, code, name, sacco_id")
-            .in("id", ikiminaIds)
+        ? supabase.from("ibimina").select("id, code, name, sacco_id").in("id", ikiminaIds)
         : Promise.resolve({ data: [] as IkiminaRow[], error: null }),
       memberIds.length
         ? supabase
@@ -215,8 +234,8 @@ export async function GET(request: NextRequest) {
       const nextBalance = previousBalance + delta;
       runningBalances.set(groupId, nextBalance);
 
-      const group = payment.ikimina_id ? ikiminaMap.get(payment.ikimina_id) ?? null : null;
-      const member = payment.member_id ? memberMap.get(payment.member_id) ?? null : null;
+      const group = payment.ikimina_id ? (ikiminaMap.get(payment.ikimina_id) ?? null) : null;
+      const member = payment.member_id ? (memberMap.get(payment.member_id) ?? null) : null;
 
       rows.push(
         [
@@ -230,7 +249,7 @@ export async function GET(request: NextRequest) {
           csvEscape(member?.member_code ?? "", separator),
           csvEscape(member?.full_name ?? "", separator),
           csvEscape(nextBalance.toFixed(2), separator),
-        ].join(separator),
+        ].join(separator)
       );
     }
 

@@ -21,7 +21,7 @@ const parsePasskeyPayload = (token: string | undefined): PasskeyVerificationPayl
 };
 
 export const verifyPasskeyFactor = async (
-  input: FactorVerifyInput,
+  input: FactorVerifyInput
 ): Promise<FactorSuccess | FactorFailure> => {
   const payload = parsePasskeyPayload(input.token);
 

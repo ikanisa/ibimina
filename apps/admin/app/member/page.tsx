@@ -13,7 +13,9 @@ export default async function MemberHomePage() {
           <div>
             <h1 className="text-3xl font-semibold">My groups</h1>
             <p className="text-sm text-white/80">
-              {groups.length > 0 ? "Stay on top of your ibimina contributions." : "Add a SACCO to discover ibimina groups."}
+              {groups.length > 0
+                ? "Stay on top of your ibimina contributions."
+                : "Add a SACCO to discover ibimina groups."}
             </p>
           </div>
         </header>

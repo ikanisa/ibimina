@@ -5,7 +5,10 @@ import { upsertFinancialInstitution, deleteFinancialInstitution } from "@/app/(m
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
-import { SaccoSearchCombobox, type SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
+import {
+  SaccoSearchCombobox,
+  type SaccoSearchResult,
+} from "@/components/saccos/sacco-search-combobox";
 import { cn } from "@/lib/utils";
 
 type FinancialInstitutionRow = Database["app"]["Tables"]["financial_institutions"]["Row"];
@@ -50,15 +53,16 @@ export function FinancialInstitutionManager({
   const filtered = useMemo(() => {
     if (!searchTerm.trim()) return institutions;
     const lowered = searchTerm.toLowerCase();
-    return institutions.filter(
-      (institution) =>
-        `${institution.name} ${institution.district} ${institution.kind}`.toLowerCase().includes(lowered),
+    return institutions.filter((institution) =>
+      `${institution.name} ${institution.district} ${institution.kind}`
+        .toLowerCase()
+        .includes(lowered)
     );
   }, [institutions, searchTerm]);
 
   const districtSuggestions = useMemo(
     () => Array.from(new Set([...districtOptions, ...institutions.map((inst) => inst.district)])),
-    [districtOptions, institutions],
+    [districtOptions, institutions]
   );
 
   const findSaccoOption = (id: string | null) =>
@@ -134,14 +138,21 @@ export function FinancialInstitutionManager({
       notifySuccess(
         mode === "create"
           ? t("admin.financialInstitutions.created", "Financial institution created.")
-          : t("admin.financialInstitutions.updated", "Financial institution updated."),
+          : t("admin.financialInstitutions.updated", "Financial institution updated.")
       );
       resetForm();
     });
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm(t("admin.financialInstitutions.deleteConfirm", "Delete this institution? This cannot be undone."))) {
+    if (
+      !confirm(
+        t(
+          "admin.financialInstitutions.deleteConfirm",
+          "Delete this institution? This cannot be undone."
+        )
+      )
+    ) {
       return;
     }
 
@@ -166,7 +177,10 @@ export function FinancialInstitutionManager({
             type="search"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder={t("admin.financialInstitutions.searchPlaceholder", "Search by name or district")}
+            placeholder={t(
+              "admin.financialInstitutions.searchPlaceholder",
+              "Search by name or district"
+            )}
             className="w-full max-w-xs rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
           />
           <button
@@ -187,9 +201,13 @@ export function FinancialInstitutionManager({
           <thead className="bg-white/5 text-xs uppercase tracking-[0.3em] text-neutral-3">
             <tr>
               <th className="px-4 py-3 text-left">{t("common.name", "Name")}</th>
-              <th className="px-4 py-3 text-left">{t("admin.financialInstitutions.kind", "Type")}</th>
+              <th className="px-4 py-3 text-left">
+                {t("admin.financialInstitutions.kind", "Type")}
+              </th>
               <th className="px-4 py-3 text-left">{t("common.district", "District")}</th>
-              <th className="px-4 py-3 text-left">{t("admin.financialInstitutions.linkedSacco", "Linked SACCO")}</th>
+              <th className="px-4 py-3 text-left">
+                {t("admin.financialInstitutions.linkedSacco", "Linked SACCO")}
+              </th>
               <th className="px-4 py-3 text-right">{t("common.actions", "Actions")}</th>
             </tr>
           </thead>
@@ -197,17 +215,25 @@ export function FinancialInstitutionManager({
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-center text-sm text-neutral-2">
-                  {t("admin.financialInstitutions.empty", "No institutions found. Create one to get started.")}
+                  {t(
+                    "admin.financialInstitutions.empty",
+                    "No institutions found. Create one to get started."
+                  )}
                 </td>
               </tr>
             ) : (
               filtered.map((institution) => (
                 <tr
                   key={institution.id}
-                  className={cn("border-b border-white/5", editing?.id === institution.id && "bg-white/8")}
+                  className={cn(
+                    "border-b border-white/5",
+                    editing?.id === institution.id && "bg-white/8"
+                  )}
                 >
                   <td className="px-4 py-3 font-medium text-neutral-0">{institution.name}</td>
-                  <td className="px-4 py-3 capitalize text-neutral-1">{institution.kind.toLowerCase()}</td>
+                  <td className="px-4 py-3 capitalize text-neutral-1">
+                    {institution.kind.toLowerCase()}
+                  </td>
                   <td className="px-4 py-3 text-neutral-1">{institution.district}</td>
                   <td className="px-4 py-3 text-neutral-1">
                     {findSaccoOption(institution.sacco_id)?.name ?? t("common.none", "None")}
@@ -254,11 +280,15 @@ export function FinancialInstitutionManager({
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.name", "Name")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("common.name", "Name")}
+              </span>
               <input
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                 value={editing.name}
-                onChange={(event) => setEditing((prev) => (prev ? { ...prev, name: event.target.value } : prev))}
+                onChange={(event) =>
+                  setEditing((prev) => (prev ? { ...prev, name: event.target.value } : prev))
+                }
               />
             </label>
 
@@ -270,7 +300,11 @@ export function FinancialInstitutionManager({
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                 value={editing.kind}
                 onChange={(event) =>
-                  setEditing((prev) => (prev ? { ...prev, kind: event.target.value as typeof KIND_OPTIONS[number] } : prev))
+                  setEditing((prev) =>
+                    prev
+                      ? { ...prev, kind: event.target.value as (typeof KIND_OPTIONS)[number] }
+                      : prev
+                  )
                 }
               >
                 {KIND_OPTIONS.map((kind) => (
@@ -306,7 +340,9 @@ export function FinancialInstitutionManager({
               </span>
               <SaccoSearchCombobox
                 value={editing.sacco}
-                onChange={(value) => setEditing((prev) => (prev ? { ...prev, sacco: value } : prev))}
+                onChange={(value) =>
+                  setEditing((prev) => (prev ? { ...prev, sacco: value } : prev))
+                }
                 placeholder={t("admin.financialInstitutions.saccoPlaceholder", "Search SACCO")}
               />
             </div>

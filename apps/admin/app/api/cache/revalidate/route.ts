@@ -53,7 +53,9 @@ export async function POST(request: NextRequest) {
   try {
     parsed = bodySchema.parse(await request.json());
   } catch (error) {
-    logWarn("cache.revalidate.invalid_payload", { error: error instanceof Error ? error.message : String(error) });
+    logWarn("cache.revalidate.invalid_payload", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
   }
 
@@ -61,7 +63,7 @@ export async function POST(request: NextRequest) {
     CACHE_TAGS.dashboardSummary,
     CACHE_TAGS.analyticsExecutive(parsed.saccoId ?? null),
     parsed.saccoId ? CACHE_TAGS.sacco(parsed.saccoId) : null,
-    ...(parsed.tags ?? []),
+    ...(parsed.tags ?? [])
   );
 
   const results: Record<string, "ok" | "error"> = {};
@@ -79,7 +81,7 @@ export async function POST(request: NextRequest) {
           error: error instanceof Error ? error.message : String(error),
         });
       }
-    }),
+    })
   );
 
   logInfo("cache.revalidate.completed", {

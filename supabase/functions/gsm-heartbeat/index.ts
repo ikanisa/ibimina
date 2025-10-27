@@ -5,10 +5,14 @@ import { requireEnv } from "../_shared/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
 
-const HEARTBEAT_TIMEOUT_MS = Math.max(parseInt(Deno.env.get("GSM_HEARTBEAT_TIMEOUT_MS") ?? "8000", 10), 1000);
+const HEARTBEAT_TIMEOUT_MS = Math.max(
+  parseInt(Deno.env.get("GSM_HEARTBEAT_TIMEOUT_MS") ?? "8000", 10),
+  1000
+);
 
 interface EndpointRow {
   id: string;
@@ -24,7 +28,7 @@ type HeartbeatStatus = "UP" | "DOWN" | "DEGRADED";
 
 const classifyResponse = async (
   response: Response,
-  expectedKeyword: string | null,
+  expectedKeyword: string | null
 ): Promise<HeartbeatStatus> => {
   if (!response.ok) {
     return "DOWN";
@@ -61,7 +65,11 @@ const checkEndpoint = async (endpoint: EndpointRow) => {
     return { status, latencyMs, error: null as string | null };
   } catch (error) {
     const latencyMs = Math.round(performance.now() - started);
-    return { status: "DOWN" as HeartbeatStatus, latencyMs, error: error instanceof Error ? error.message : String(error) };
+    return {
+      status: "DOWN" as HeartbeatStatus,
+      latencyMs,
+      error: error instanceof Error ? error.message : String(error),
+    };
   } finally {
     clearTimeout(timeout);
   }
@@ -107,21 +115,28 @@ Deno.serve(async (req) => {
       });
     }
 
-    const summaries: Array<{ id: string; status: HeartbeatStatus; latencyMs: number; error: string | null }> = [];
+    const summaries: Array<{
+      id: string;
+      status: HeartbeatStatus;
+      latencyMs: number;
+      error: string | null;
+    }> = [];
 
     for (const endpoint of endpoints as EndpointRow[]) {
       const outcome = await checkEndpoint(endpoint);
-      summaries.push({ id: endpoint.id, status: outcome.status, latencyMs: outcome.latencyMs, error: outcome.error });
+      summaries.push({
+        id: endpoint.id,
+        status: outcome.status,
+        latencyMs: outcome.latencyMs,
+        error: outcome.error,
+      });
 
-      await supabase
-        .schema("app")
-        .from("sms_gateway_heartbeats")
-        .insert({
-          endpoint_id: endpoint.id,
-          status: outcome.status,
-          latency_ms: outcome.latencyMs,
-          error: outcome.error,
-        });
+      await supabase.schema("app").from("sms_gateway_heartbeats").insert({
+        endpoint_id: endpoint.id,
+        status: outcome.status,
+        latency_ms: outcome.latencyMs,
+        error: outcome.error,
+      });
 
       await supabase
         .schema("app")
@@ -144,14 +159,23 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ success: true, checked: summaries.length, results: summaries }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ success: true, checked: summaries.length, results: summaries }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("gsm-heartbeat failure", error);
-    return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
+    );
   }
 });

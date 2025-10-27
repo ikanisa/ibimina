@@ -19,7 +19,8 @@ const run = (command, args) =>
 
 let child;
 
-const canUseStandalone = preferStandalone && existsSync(standaloneEntry) && existsSync(standaloneCpuProfile);
+const canUseStandalone =
+  preferStandalone && existsSync(standaloneEntry) && existsSync(standaloneCpuProfile);
 
 if (canUseStandalone) {
   child = run(process.execPath, [standaloneEntry]);

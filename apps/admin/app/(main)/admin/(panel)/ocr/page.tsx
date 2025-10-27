@@ -44,7 +44,7 @@ export default async function OcrPage({ searchParams }: OcrPageProps) {
   const { data: profileRows, error: profileError } = await supabase
     .from("members_app_profiles")
     .select(
-      "user_id, momo_msisdn, whatsapp_msisdn, id_type, id_number, id_files, ocr_json, updated_at, is_verified",
+      "user_id, momo_msisdn, whatsapp_msisdn, id_type, id_number, id_files, ocr_json, updated_at, is_verified"
     )
     .order("updated_at", { ascending: false })
     .limit(60);
@@ -55,14 +55,16 @@ export default async function OcrPage({ searchParams }: OcrPageProps) {
 
   const pendingProfiles = (profileRows ?? ([] as ProfileRow[]))
     .map((row) => row as ProfileRow)
-    .filter((row) => row.ocr_json && (row.is_verified === false || (row.ocr_json as Record<string, unknown>).status !== "accepted"));
+    .filter(
+      (row) =>
+        row.ocr_json &&
+        (row.is_verified === false ||
+          (row.ocr_json as Record<string, unknown>).status !== "accepted")
+    );
 
   const userIds = pendingProfiles.map((row) => row.user_id);
   const { data: memberRows, error: memberError } = userIds.length
-    ? await supabase
-        .from("members")
-        .select("user_id, ikimina_id, status")
-        .in("user_id", userIds)
+    ? await supabase.from("members").select("user_id, ikimina_id, status").in("user_id", userIds)
     : { data: [], error: null };
 
   if (memberError && !isMissingRelationError(memberError)) {
@@ -78,14 +80,11 @@ export default async function OcrPage({ searchParams }: OcrPageProps) {
   const ikiminaIds = new Set<string>(
     memberRecords
       .map((row) => (typeof row.ikimina_id === "string" ? row.ikimina_id : null))
-      .filter((id): id is string => Boolean(id)),
+      .filter((id): id is string => Boolean(id))
   );
 
   const { data: ikiminaRows, error: ikiminaError } = ikiminaIds.size
-    ? await supabase
-        .from("ibimina")
-        .select("id, sacco_id")
-        .in("id", Array.from(ikiminaIds))
+    ? await supabase.from("ibimina").select("id, sacco_id").in("id", Array.from(ikiminaIds))
     : { data: [], error: null };
 
   if (ikiminaError && !isMissingRelationError(ikiminaError)) {
@@ -95,7 +94,7 @@ export default async function OcrPage({ searchParams }: OcrPageProps) {
   const ikiminaMap = new Map<string, string | null>(
     ((ikiminaRows ?? []) as Array<{ id: string | null; sacco_id: string | null }>)
       .filter((row) => typeof row.id === "string")
-      .map((row) => [row.id as string, row.sacco_id ?? null]),
+      .map((row) => [row.id as string, row.sacco_id ?? null])
   );
 
   const membershipMap = new Map<string, MemberRow>();
@@ -103,7 +102,7 @@ export default async function OcrPage({ searchParams }: OcrPageProps) {
     if (!row.user_id) {
       continue;
     }
-    const saccoId = row.ikimina_id ? ikiminaMap.get(row.ikimina_id) ?? null : null;
+    const saccoId = row.ikimina_id ? (ikiminaMap.get(row.ikimina_id) ?? null) : null;
     if (!membershipMap.has(row.user_id)) {
       membershipMap.set(row.user_id, {
         user_id: row.user_id,
@@ -127,18 +126,16 @@ export default async function OcrPage({ searchParams }: OcrPageProps) {
   });
 
   const { data: saccoRows, error: saccoError } = saccoIds.size
-    ? await supabase
-        .schema("app")
-        .from("saccos")
-        .select("id, name")
-        .in("id", Array.from(saccoIds))
+    ? await supabase.schema("app").from("saccos").select("id, name").in("id", Array.from(saccoIds))
     : { data: [], error: null };
 
   if (saccoError && !isMissingRelationError(saccoError)) {
     throw saccoError;
   }
 
-  const saccoLookup = new Map<string, string>((saccoRows ?? []).map((row) => [String(row.id), row.name ?? ""]));
+  const saccoLookup = new Map<string, string>(
+    (saccoRows ?? []).map((row) => [String(row.id), row.name ?? ""])
+  );
 
   const service = supabaseSrv();
   const reviewItems: OcrReviewItem[] = [];
@@ -160,11 +157,12 @@ export default async function OcrPage({ searchParams }: OcrPageProps) {
     const item: OcrReviewItem = {
       userId: row.user_id,
       saccoId: membership?.sacco_id ?? null,
-      saccoName: membership?.sacco_id ? saccoLookup.get(membership.sacco_id) ?? null : null,
+      saccoName: membership?.sacco_id ? (saccoLookup.get(membership.sacco_id) ?? null) : null,
       msisdn: row.momo_msisdn ?? row.whatsapp_msisdn ?? null,
       idType: row.id_type,
       idNumber: row.id_number,
-      confidence: typeof ocrPayload.confidence === "number" ? (ocrPayload.confidence as number) : null,
+      confidence:
+        typeof ocrPayload.confidence === "number" ? (ocrPayload.confidence as number) : null,
       ocrFields: ocrPayload,
       documentUrl,
       updatedAt: row.updated_at,

@@ -120,7 +120,12 @@ describe("mfa factor facade", () => {
       },
     });
 
-    const response = await initiateFactor({ factor: "email", userId: base.userId, email: base.email, phone: null });
+    const response = await initiateFactor({
+      factor: "email",
+      userId: base.userId,
+      email: base.email,
+      phone: null,
+    });
 
     assert.equal(response.ok, true);
     assert.equal(response.status, 202);
@@ -134,7 +139,12 @@ describe("mfa factor facade", () => {
     };
     setPasskeyChallengeStarterForTests(async () => challenge);
 
-    const response = await initiateFactor({ factor: "passkey", userId: base.userId, email: base.email, phone: null });
+    const response = await initiateFactor({
+      factor: "passkey",
+      userId: base.userId,
+      email: base.email,
+      phone: null,
+    });
 
     assert.equal(response.ok, true);
     assert.equal(response.status, 200);
@@ -178,7 +188,12 @@ describe("mfa factor facade", () => {
       },
     });
 
-    const response = await initiateFactor({ factor: "whatsapp", userId: base.userId, phone: "+250788000000", email: null });
+    const response = await initiateFactor({
+      factor: "whatsapp",
+      userId: base.userId,
+      phone: "+250788000000",
+      email: null,
+    });
     assert.equal(response.ok, true);
     assert.equal(called, 1);
   });
