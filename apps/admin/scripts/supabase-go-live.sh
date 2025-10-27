@@ -6,20 +6,26 @@ ENV_FILE=${SUPABASE_SECRETS_FILE:-supabase/.env.production}
 PROJECT_REF=${SUPABASE_PROJECT_REF:-}
 
 FUNCTIONS=(
+  admin-reset-mfa
   analytics-forecast
   bootstrap-admin
   export-report
   export-statement
   gsm-maintenance
+  payments-apply
   import-statement
   ingest-sms
   invite-user
   metrics-exporter
   parse-sms
+  recon-exceptions
   reporting-summary
+  reports-export
   scheduled-reconciliation
   secure-import-members
   settle-payment
+  sms-ai-parse
+  sms-inbox
   sms-review
 )
 
