@@ -54,6 +54,22 @@ Deno.serve(async (req) => {
 
     const payload = requestSchema.parse(await req.json());
 
+    const { data: targetUser, error: targetError } = await supabase
+      .schema("auth")
+      .from("users")
+      .select("email")
+      .eq("id", payload.userId)
+      .maybeSingle();
+
+    if (targetError) {
+      console.error("admin-reset-mfa target lookup failed", targetError);
+      return errorResponse("Failed to lookup user", 500);
+    }
+
+    if (!targetUser?.email) {
+      return errorResponse("User email required for reset notification", 400);
+    }
+
     await supabase
       .schema("app")
       .from("devices_trusted")
@@ -78,15 +94,34 @@ Deno.serve(async (req) => {
       })
       .eq("id", payload.userId);
 
+    const notificationBody = [
+      "Hello,",
+      "",
+      "Your SACCO+ multi-factor authentication has been reset by a system administrator.",
+      "",
+      `Reason provided: ${payload.reason}`,
+      "",
+      "You will need to enrol in MFA again the next time you sign in.",
+      "",
+      "If this was unexpected, please contact support immediately.",
+      "",
+      "— SACCO+ Security",
+    ].join("\n");
+
     await supabase
       .from("notification_queue")
       .insert({
         event: "MFA_RESET",
+        channel: "EMAIL",
         payment_id: null,
         payload: {
           userId: payload.userId,
+          email: targetUser.email,
           reason: payload.reason,
+          subject: "Your SACCO+ MFA has been reset",
+          body: notificationBody,
         },
+        scheduled_for: new Date().toISOString(),
       });
 
     await writeAuditLog(supabase, {
