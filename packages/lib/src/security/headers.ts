@@ -25,6 +25,8 @@ const baseDirectives: DirectiveMap = {
     "https://images.unsplash.com",
     "https://api.qrserver.com",
   ],
+  // Note: 'unsafe-inline' is commonly used for CSS-in-JS libraries and Next.js styled-jsx
+  // Consider using nonce or hash-based styles for stricter CSP in the future
   "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
   "font-src": ["'self'", "https://fonts.gstatic.com"],
   "connect-src": ["'self'"],
@@ -103,6 +105,10 @@ function sanitizeUuid(uuid: string): string {
 
 /**
  * Create a cryptographically secure nonce for CSP
+ *
+ * @param size - The number of random bytes to generate (default: 16)
+ * @returns A base64-encoded string of cryptographically secure random bytes
+ * @throws Error if secure random number generation is unavailable
  */
 export function createNonce(size = 16): string {
   const cryptoImpl = globalThis.crypto;
@@ -154,6 +160,8 @@ export function createContentSecurityPolicy({
   // Configure script-src with nonce and strict-dynamic
   directives["script-src"] = ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'"];
 
+  // Note: 'unsafe-eval' is required for Next.js development mode (HMR, Fast Refresh)
+  // This is automatically disabled in production builds
   if (isDev) {
     directives["script-src"].push("'unsafe-eval'");
     directives["connect-src"].push("ws://localhost:3000", "ws://127.0.0.1:3000");

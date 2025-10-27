@@ -37,6 +37,8 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
+// Middleware runs on all routes except static assets and API routes
+// This pattern is standard for Next.js middleware matchers
 export const config = {
   matcher: [
     // Run middleware on everything EXCEPT these paths
