@@ -188,6 +188,52 @@ export const processWhatsappJob = async (
     return { type: "success", detail: "delivered" };
   }
 
+  // Handle templated event notifications (INVITE_ACCEPTED, JOIN_APPROVED, PAYMENT_CONFIRMED)
+  if (["INVITE_ACCEPTED", "JOIN_APPROVED", "PAYMENT_CONFIRMED"].includes(job.event)) {
+    const recipient = ensureRecipient(job.payload["to"]);
+    if (!recipient) {
+      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", { reason: "missing_recipient", event: job.event });
+      return { type: "failed", detail: "missing_recipient" };
+    }
+
+    const templateId = job.template_id;
+    if (!templateId) {
+      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", { reason: "missing_template", event: job.event });
+      return { type: "failed", detail: "missing_template" };
+    }
+
+    const template = await deps.fetchTemplate(templateId);
+    if (!template) {
+      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", { reason: "template_not_found", templateId, event: job.event });
+      return { type: "failed", detail: "template_not_found" };
+    }
+
+    const allowed = await deps.rateLimit(`whatsapp:${recipient}`, { route: "notifications:whatsapp" });
+    if (!allowed) {
+      await ensureAudit("NOTIFICATION_WHATSAPP_RATE_LIMIT", { to: recipient, event: job.event });
+      return resolveRetry(job, "rate_limited", now);
+    }
+
+    const rendered = renderTemplate(template.body, {
+      ...tokens,
+    });
+
+    const response = await deps.send({ to: recipient, body: rendered });
+    if (!response.ok) {
+      const shouldRetry = response.status >= 500 || response.status === 429;
+      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", {
+        to: recipient,
+        status: response.status,
+        retryable: shouldRetry,
+        event: job.event,
+      });
+      return shouldRetry ? resolveRetry(job, "upstream_error", now) : { type: "failed", detail: "send_failed" };
+    }
+
+    await ensureAudit("NOTIFICATION_WHATSAPP_SENT", { to: recipient, event: job.event });
+    return { type: "success", detail: "delivered" };
+  }
+
   if (job.event === "RECON_ESCALATION") {
     const candidateRecipient = ensureRecipient(job.payload["to"] ?? job.payload["msisdn"]);
     let recipient = candidateRecipient;
