@@ -1,9 +1,32 @@
+/**
+ * Multi-Factor Authentication (MFA) Cryptography Utilities
+ * 
+ * This module provides cryptographic functions for TOTP (Time-based One-Time Password)
+ * generation and verification, as well as secure encryption for MFA backup codes.
+ * 
+ * Key features:
+ * - TOTP generation and verification (RFC 6238)
+ * - Base32 secret generation
+ * - AES-256-GCM encryption for backup codes
+ * - Secure key management using environment variables
+ * 
+ * @module lib/mfa/crypto
+ */
+
 import crypto from "node:crypto";
 import { base32Decode, generateBase32Secret } from "@/lib/mfa/base32";
 
+/** TOTP period in seconds (standard is 30 seconds) */
 const PERIOD_SECONDS = 30;
+/** Number of digits in generated TOTP codes */
 const DIGITS = 6;
 
+/**
+ * Retrieves a required environment variable or throws an error
+ * @param key - Environment variable name
+ * @returns Environment variable value
+ * @throws Error if the environment variable is not set
+ */
 const requireEnv = (key: string) => {
   const value = process.env[key];
   if (!value) {
@@ -15,6 +38,11 @@ const requireEnv = (key: string) => {
 // Accept either KMS_DATA_KEY (preferred) or KMS_DATA_KEY_BASE64 (legacy)
 const resolveDataKeyB64 = () => process.env.KMS_DATA_KEY ?? process.env.KMS_DATA_KEY_BASE64 ?? "";
 
+/**
+ * Retrieves and validates the data encryption key from environment
+ * @returns 32-byte encryption key buffer
+ * @throws Error if key is not configured or has invalid length
+ */
 const dataKey = () => {
   const keyB64 = resolveDataKeyB64();
   if (!keyB64) throw new Error("KMS_DATA_KEY (or KMS_DATA_KEY_BASE64) is not configured");
@@ -26,8 +54,21 @@ const backupPepper = () => requireEnv("BACKUP_PEPPER");
 
 const padLeft = (value: number, size: number) => value.toString().padStart(size, "0");
 
+/**
+ * Generates a new base32-encoded TOTP secret (20 bytes = 160 bits)
+ * @returns Base32-encoded secret string
+ */
 export const generateTotpSecret = () => generateBase32Secret(20);
 
+/**
+ * Creates an otpauth:// URI for TOTP configuration
+ * This URI can be encoded as a QR code for easy setup in authenticator apps
+ * 
+ * @param issuer - Service name (e.g., "Ibimina SACCO+")
+ * @param account - User identifier (typically email or username)
+ * @param secret - Base32-encoded TOTP secret
+ * @returns otpauth URI string compatible with RFC 6238
+ */
 export const createOtpAuthUri = (issuer: string, account: string, secret: string) => {
   const label = encodeURIComponent(`${issuer}:${account}`);
   const params = new URLSearchParams({
@@ -41,6 +82,14 @@ export const createOtpAuthUri = (issuer: string, account: string, secret: string
   return `otpauth://totp/${label}?${params.toString()}`;
 };
 
+/**
+ * Generates an HMAC-based One-Time Password at a specific counter value
+ * This is the core HOTP algorithm (RFC 4226) used by TOTP
+ * 
+ * @param secret - Base32-encoded secret
+ * @param counter - Counter value (for TOTP, this is the time step)
+ * @returns 6-digit OTP string
+ */
 const hotpAt = (secret: string, counter: number) => {
   const key = base32Decode(secret);
   const buffer = Buffer.alloc(8);
@@ -52,8 +101,21 @@ const hotpAt = (secret: string, counter: number) => {
   return padLeft(code, DIGITS);
 };
 
+/**
+ * Calculates the current TOTP time step
+ * @param now - Current timestamp in milliseconds (defaults to Date.now())
+ * @returns Time step number
+ */
 export const currentStep = (now = Date.now()) => Math.floor(now / 1000 / PERIOD_SECONDS);
 
+/**
+ * Verifies a TOTP token against a secret with time window tolerance
+ * 
+ * @param secret - Base32-encoded TOTP secret
+ * @param token - User-provided TOTP token (6 digits)
+ * @param window - Time window tolerance (number of steps before/after current, default 1)
+ * @returns Verification result with success status and optional step offset
+ */
 export const verifyTotp = (secret: string, token: string, window = 1) => {
   const sanitized = token.replace(/[^0-9]/g, "");
   if (sanitized.length !== DIGITS) {
