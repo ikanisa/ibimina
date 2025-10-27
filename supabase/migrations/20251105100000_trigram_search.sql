@@ -24,7 +24,7 @@ SECURITY INVOKER
 SET search_path = public
 AS $$
   -- Search SACCOs using trigram similarity on name and sector_code
-  -- Returns results with similarity score >= 0.1 (10% match threshold)
+  -- Returns top 20 results ordered by similarity score
   SELECT
     s.id,
     s.name,
@@ -36,10 +36,6 @@ AS $$
     ) AS similarity
   FROM public.saccos s
   WHERE coalesce(trim(q), '') <> ''
-    AND (
-      similarity(s.name, q) > 0.1
-      OR similarity(s.sector_code, q) > 0.1
-    )
   ORDER BY similarity DESC, s.name ASC
   LIMIT 20
 $$;
