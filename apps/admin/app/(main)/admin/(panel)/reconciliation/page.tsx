@@ -105,6 +105,21 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
 
   const automationStub = getAutomationHealthStub();
 
+  type PollerRow = Pick<
+    Database["app"]["Tables"]["momo_statement_pollers"]["Row"],
+    "id" | "display_name" | "status" | "last_polled_at" | "last_error" | "last_latency_ms"
+  >;
+  type SmsGatewayEndpointRow = Pick<
+    Database["app"]["Tables"]["sms_gateway_endpoints"]["Row"],
+    | "id"
+    | "display_name"
+    | "status"
+    | "last_status"
+    | "last_heartbeat_at"
+    | "last_error"
+    | "last_latency_ms"
+  >;
+
   let pollerIssues: Parameters<typeof AutomationHealthBanner>[0]["pollers"] = [];
   let gatewayIssues: Parameters<typeof AutomationHealthBanner>[0]["gateways"] = [];
 
@@ -136,12 +151,14 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
         .schema("app")
         .from("momo_statement_pollers")
         .select("id, display_name, status, last_polled_at, last_error, last_latency_ms")
-        .order("display_name", { ascending: true }),
+        .order("display_name", { ascending: true })
+        .returns<PollerRow[]>(),
       supabase
         .schema("app")
         .from("sms_gateway_endpoints")
         .select("id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms")
-        .order("display_name", { ascending: true }) as Promise<SupabaseAppSchemaResponse<SmsGatewayEndpoint>>,
+        .order("display_name", { ascending: true })
+        .returns<SmsGatewayEndpointRow[]>(),
     ]);
 
     pollerIssues = (pollerRows?.data ?? [])
