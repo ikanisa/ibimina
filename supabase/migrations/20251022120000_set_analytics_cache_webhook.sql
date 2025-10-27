@@ -14,7 +14,7 @@ insert into public.configuration as config (key, description, value)
 values (
   'analytics_cache_webhook_token',
   'Bearer token expected by the analytics cache revalidation webhook',
-  null
+  'null'::jsonb
 )
 on conflict (key) do update
 set
