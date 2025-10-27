@@ -54,21 +54,6 @@ Deno.serve(async (req) => {
 
     const payload = requestSchema.parse(await req.json());
 
-    await supabase
-      .schema("app")
-      .from("devices_trusted")
-      .delete()
-      .eq("user_id", payload.userId);
-
-    await supabase
-      .schema("auth")
-      .from("mfa_factors")
-      .update({
-        status: "revoked",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", payload.userId);
-
     const { data: targetUser, error: targetError } = await supabase
       .schema("auth")
       .from("users")
@@ -84,6 +69,21 @@ Deno.serve(async (req) => {
     if (!targetUser?.email) {
       return errorResponse("User email required for reset notification", 400);
     }
+
+    await supabase
+      .schema("app")
+      .from("devices_trusted")
+      .delete()
+      .eq("user_id", payload.userId);
+
+    await supabase
+      .schema("auth")
+      .from("mfa_factors")
+      .update({
+        status: "revoked",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", payload.userId);
 
     await supabase
       .schema("auth")
