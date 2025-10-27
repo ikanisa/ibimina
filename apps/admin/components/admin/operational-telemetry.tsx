@@ -10,6 +10,7 @@ type TelemetryMetric = {
 
 type MetricAccent = "blue" | "yellow" | "green" | "neutral";
 
+// Note: 'yellow' is used for warning states (previously 'amber') to align with design system tokens
 function getMetricMeta(event: string, t: (k: string, f?: string) => string): { title: string; desc: string; accent: MetricAccent } {
   switch (event) {
     case "sms_ingested":
@@ -69,7 +70,7 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
         const meta = getMetricMeta(metric.event, t);
         
         return (
-          <div key={metric.event} className="space-y-1">
+          <article key={metric.event} className="space-y-2">
             <MetricCard
               label={meta.title}
               value={numberFormatter.format(metric.total ?? 0)}
@@ -80,8 +81,8 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
                 </span>
               }
             />
-            <p className="px-4 text-xs text-neutral-2">{meta.desc}</p>
-          </div>
+            <p className="pl-4 text-xs text-neutral-2">{meta.desc}</p>
+          </article>
         );
       })}
     </div>
