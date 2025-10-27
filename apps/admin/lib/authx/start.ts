@@ -45,14 +45,12 @@ export const sendEmailOtp = async (user: { id: string; email: string | null }) =
     .maybeSingle();
 
   if (latest) {
-    await authx
-      .from("otp_issues")
-      .insert({
-        user_id: user.id,
-        channel: "email",
-        legacy_code_id: latest.id,
-        expires_at: latest.expires_at,
-      });
+    await authx.from("otp_issues").insert({
+      user_id: user.id,
+      channel: "email",
+      legacy_code_id: latest.id,
+      expires_at: latest.expires_at,
+    });
   }
 
   return {

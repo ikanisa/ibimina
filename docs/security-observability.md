@@ -71,6 +71,7 @@
    `x-signature = HMAC_SHA256(HMAC_SHARED_SECRET, <ts>GET:/functions/v1/metrics-exporter)`
    headers when scraping.
 2. Bootstrap Prometheus + Grafana (ships with scrape/dashboards pre-wired):
+
    ```
    cd infra/metrics
    docker compose up -d
