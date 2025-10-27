@@ -384,11 +384,16 @@ const detectRateAnomalies = async (
       zeroStreak,
     } = stats;
 
-    if (detector.minDelta && latestDelta < detector.minDelta) {
+    if (baselineSamples < detector.minBaselineSamples) {
       continue;
     }
 
-    if (baselineSamples < detector.minBaselineSamples) {
+    const zeroActivityEligible =
+      Boolean(detector.zeroWindow) &&
+      zeroStreak >= detector.zeroWindow &&
+      baselineMean >= detector.minBaselineMean;
+
+    if (!zeroActivityEligible && detector.minDelta && latestDelta < detector.minDelta) {
       continue;
     }
 
@@ -439,11 +444,7 @@ const detectRateAnomalies = async (
         sampleWindowMinutes: detector.window * 5,
         type: "rate_spike",
       };
-    } else if (
-      detector.zeroWindow &&
-      zeroStreak >= detector.zeroWindow &&
-      baselineMean >= detector.minBaselineMean
-    ) {
+    } else if (zeroActivityEligible) {
       anomaly = {
         signal: detector.signal,
         event: detector.event,
