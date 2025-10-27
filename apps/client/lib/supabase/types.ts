@@ -61,12 +61,64 @@ export type Database = {
         }
         Relationships: []
       }
+      saccos: {
+        Row: {
+          id: string
+          name: string
+          district: string | null
+          sector_code: string | null
+          merchant_code: string | null
+          province: string | null
+          category: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          district?: string | null
+          sector_code?: string | null
+          merchant_code?: string | null
+          province?: string | null
+          category?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          district?: string | null
+          sector_code?: string | null
+          merchant_code?: string | null
+          province?: string | null
+          category?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_saccos: {
+        Args: {
+          query: string | null
+          limit_count: number
+          district_filter: string | null
+          sector_filter: string | null
+        }
+        Returns: {
+          id: string
+          name: string
+          district: string | null
+          sector_code: string | null
+          merchant_code: string | null
+          province: string | null
+          category: string | null
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

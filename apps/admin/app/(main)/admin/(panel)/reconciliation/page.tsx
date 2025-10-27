@@ -141,7 +141,7 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
         .schema("app")
         .from("sms_gateway_endpoints")
         .select("id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms")
-        .order("display_name", { ascending: true }),
+        .order("display_name", { ascending: true }) as Promise<SupabaseAppSchemaResponse<SmsGatewayEndpoint>>,
     ]);
 
     pollerIssues = (pollerRows?.data ?? [])
