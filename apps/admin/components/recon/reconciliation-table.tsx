@@ -740,20 +740,23 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     setAiStatus("loading");
     setAiError(null);
 
-    fetch("/api/reconciliation/suggest", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ paymentId: selected.id }),
-      signal: controller.signal,
-    })
-      .then(async (response) => {
+    (async () => {
+      try {
+        const response = await fetch("/api/reconciliation/suggest", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ paymentId: selected.id }),
+          signal: controller.signal,
+        });
+
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
           throw new Error(payload.error ?? `Suggestion request failed (${response.status})`);
         }
-        return response.json() as Promise<{
+
+        const payload = (await response.json()) as {
           suggestion: {
             member_id: string;
             ikimina_id: string | null;
@@ -768,9 +771,8 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             reason: string;
             member_code?: string | null;
           }>;
-        }>;
-      })
-      .then((payload) => {
+        };
+
         if (cancelled) return;
         suggestionCache.current.set(selected.id, {
           suggestion: payload.suggestion ?? null,
@@ -779,14 +781,14 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         setAiSuggestion(payload.suggestion ?? null);
         setAiAlternatives(payload.alternatives ?? []);
         setAiStatus("ready");
-      })
-      .catch((err) => {
+      } catch (err) {
         if (cancelled) return;
         console.error("AI suggestion fetch error", err);
         const msg = err instanceof Error ? err.message : "Suggestion lookup failed";
         setAiError(t("recon.errors.suggestionFailed", msg));
         setAiStatus("error");
-      });
+      }
+    })();
 
     return () => {
       cancelled = true;

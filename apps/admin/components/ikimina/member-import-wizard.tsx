@@ -144,35 +144,33 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
     setParsing(false);
   };
 
-  const handleFile = (file?: File) => {
+  const handleFile = async (file?: File) => {
     if (!file) return;
     setMessage(null);
     setError(null);
     setParsing(true);
     setFileName(file.name);
     setMasks({ ...DEFAULT_MEMBER_MASKS });
-    parseTabularFile(file)
-      .then(({ headers: nextHeaders, rows: nextRows }) => {
-        setHeaders(nextHeaders);
-        setRows(nextRows);
-        const autoMapping: Mapping = {};
-        for (const field of nextHeaders) {
-          const lower = field.toLowerCase();
-          if (lower.includes("name") && !autoMapping.full_name) autoMapping.full_name = field;
-          if ((lower.includes("msisdn") || lower.includes("phone")) && !autoMapping.msisdn) autoMapping.msisdn = field;
-          if ((lower.includes("code") || lower.includes("member")) && !autoMapping.member_code) autoMapping.member_code = field;
-        }
-        setMapping(autoMapping);
-        setStep(2);
-      })
-      .catch((parseError: unknown) => {
-        const message = parseError instanceof Error ? parseError.message : "Unable to parse file";
-        setError(message);
-        notifyError(message);
-      })
-      .finally(() => {
-        setParsing(false);
-      });
+    try {
+      const { headers: nextHeaders, rows: nextRows } = await parseTabularFile(file);
+      setHeaders(nextHeaders);
+      setRows(nextRows);
+      const autoMapping: Mapping = {};
+      for (const field of nextHeaders) {
+        const lower = field.toLowerCase();
+        if (lower.includes("name") && !autoMapping.full_name) autoMapping.full_name = field;
+        if ((lower.includes("msisdn") || lower.includes("phone")) && !autoMapping.msisdn) autoMapping.msisdn = field;
+        if ((lower.includes("code") || lower.includes("member")) && !autoMapping.member_code) autoMapping.member_code = field;
+      }
+      setMapping(autoMapping);
+      setStep(2);
+    } catch (parseError: unknown) {
+      const message = parseError instanceof Error ? parseError.message : "Unable to parse file";
+      setError(message);
+      notifyError(message);
+    } finally {
+      setParsing(false);
+    }
   };
 
   const handleConfirm = async () => {

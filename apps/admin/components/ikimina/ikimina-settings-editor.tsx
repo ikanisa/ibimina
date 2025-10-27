@@ -86,7 +86,7 @@ export function IkiminaSettingsEditor({ ikiminaId, ikiminaName, saccoId, initial
 
   useEffect(() => {
     if (state.status === "success") {
-      success("Settings updated" + " / Amabwiriza yavuguruwe");
+      success(`Settings updated / Amabwiriza yavuguruwe`);
     }
     if (state.status === "error" && state.message) {
       error(state.message);
