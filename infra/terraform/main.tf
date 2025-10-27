@@ -113,21 +113,25 @@ variable "openai_responses_model" {
 variable "log_drain_url" {
   type        = string
   description = "External endpoint that receives structured log payloads"
+  default     = ""
 }
 
 variable "log_drain_token" {
   type        = string
   description = "Bearer token added to log drain requests"
   sensitive   = true
+  default     = ""
 }
 
 variable "log_drain_alert_webhook" {
   type        = string
   description = "Webhook invoked when the log drain repeatedly fails"
+  default     = ""
 }
 
 variable "log_drain_alert_token" {
   type        = string
   description = "Bearer token included with log drain alert webhook calls"
   sensitive   = true
+  default     = ""
 }
