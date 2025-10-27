@@ -1,3 +1,25 @@
+/**
+ * WebAuthn Passkey Management Module
+ * 
+ * This module implements WebAuthn/FIDO2 passkey authentication for multi-factor
+ * authentication (MFA). It provides server-side functions for passkey registration
+ * and verification using the SimpleWebAuthn library.
+ * 
+ * Key features:
+ * - Passkey registration (credential creation)
+ * - Passkey authentication (credential verification)
+ * - Secure credential storage with encrypted private data
+ * - Support for multiple passkeys per user
+ * - Device attestation and verification
+ * 
+ * Environment variables:
+ * - MFA_RP_ID: Relying Party ID (defaults to hostname from SITE_URL)
+ * - MFA_RP_NAME: Relying Party display name (defaults to "SACCO+")
+ * - MFA_ORIGIN: Expected origin for WebAuthn ceremonies
+ * 
+ * @module lib/mfa/passkeys
+ */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   generateAuthenticationOptions,
@@ -15,13 +37,29 @@ import { encryptSensitiveString, decryptSensitiveString } from "@/lib/mfa/crypto
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
 
+/** Relying Party display name shown to users during passkey creation */
 const rpName = process.env.MFA_RP_NAME ?? "SACCO+";
 
+/**
+ * Converts a buffer to base64url encoding (URL-safe base64)
+ * @param buffer - ArrayBuffer or Uint8Array to encode
+ * @returns Base64url encoded string
+ */
 const bufferToBase64Url = (buffer: ArrayBuffer | Uint8Array) =>
   Buffer.from(buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)).toString("base64url");
 
+/**
+ * Converts base64url string to Uint8Array
+ * @param value - Base64url encoded string
+ * @returns Decoded Uint8Array
+ */
 const base64UrlToUint8Array = (value: string) => new Uint8Array(Buffer.from(value, "base64url"));
 
+/**
+ * Determines the Relying Party ID for WebAuthn ceremonies
+ * Priority: MFA_RP_ID env var > hostname from SITE_URL > "localhost"
+ * @returns Relying Party ID string
+ */
 const getRpId = () => {
   const explicit = process.env.MFA_RP_ID;
   if (explicit) return explicit;
@@ -39,6 +77,11 @@ const getRpId = () => {
   return "localhost";
 };
 
+/**
+ * Determines the expected origin for WebAuthn ceremonies
+ * Priority: MFA_ORIGIN > SITE_URL > inferred from RP ID
+ * @returns Expected origin URL string
+ */
 const getExpectedOrigin = () => {
   const explicit = process.env.MFA_ORIGIN ?? process.env.NEXT_PUBLIC_SITE_URL ?? process.env.SITE_URL;
   if (explicit) return explicit;
