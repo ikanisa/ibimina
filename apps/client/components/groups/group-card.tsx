@@ -8,6 +8,7 @@
  * - Creation date
  * - SACCO affiliation
  * - "Ask to Join" button with loading state
+ * - Integration with join request API
  * - Accessible with proper ARIA labels
  */
 
@@ -38,27 +39,44 @@ interface GroupCardProps {
  * - Icon labels for screen readers
  * - Loading state announced to screen readers
  * - Focus visible styles for keyboard navigation
+ * - Error messages announced to assistive technology
  */
 export function GroupCard({ group }: GroupCardProps) {
   const [isJoining, setIsJoining] = useState(false);
   const [hasRequested, setHasRequested] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   /**
    * Handle "Ask to Join" button click
-   * Simulates join request (to be implemented with actual API)
+   * Calls the join request API route to submit membership request
    */
   const handleJoinRequest = async () => {
     setIsJoining(true);
+    setErrorMessage(null);
     
     try {
-      // TODO: Implement actual API call to request group membership
-      // For now, simulate a network request
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call the join request API route
+      const response = await fetch(`/api/groups/${group.id}/join-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sacco_id: group.sacco_id,
+        }),
+      });
+
+      const result = await response.json();
       
-      setHasRequested(true);
+      if (response.ok && result.success) {
+        setHasRequested(true);
+        setErrorMessage(null);
+      } else {
+        setErrorMessage(result.details || result.error || "Failed to submit join request");
+      }
     } catch (error) {
       console.error("Error requesting to join group:", error);
-      // TODO: Show error message to user
+      setErrorMessage("An unexpected error occurred. Please try again.");
     } finally {
       setIsJoining(false);
     }
@@ -132,6 +150,17 @@ export function GroupCard({ group }: GroupCardProps) {
           </span>
         </div>
       </div>
+
+      {/* Error message */}
+      {errorMessage && (
+        <div
+          className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md"
+          role="alert"
+          aria-live="polite"
+        >
+          <p className="text-sm text-red-700">{errorMessage}</p>
+        </div>
+      )}
 
       {/* Action button */}
       <button
