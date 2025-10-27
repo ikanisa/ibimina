@@ -104,19 +104,21 @@ export type Database = {
     Functions: {
       search_saccos: {
         Args: {
-          query: string | null
-          limit_count: number
-          district_filter: string | null
-          sector_filter: string | null
+          district_filter?: string
+          limit_count?: number
+          province_filter?: string
+          query: string
         }
         Returns: {
+          category: string | null
+          district: string | null
+          email: string | null
           id: string
           name: string
-          district: string | null
-          sector_code: string | null
-          merchant_code: string | null
           province: string | null
-          category: string | null
+          rank_score: number
+          sector: string | null
+          similarity_score: number
         }[]
       }
     }
