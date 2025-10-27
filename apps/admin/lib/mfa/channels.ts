@@ -70,11 +70,11 @@ export const buildChannelSummary = ({
 }): MfaChannelSummary => {
   const nowIso = new Date().toISOString();
   const activeEmailCodes = emailCodeRecords.filter(
-    (code) => !code.consumed_at && code.expires_at >= nowIso,
+    (code) => !code.consumed_at && code.expires_at >= nowIso
   );
 
   const lastEmailIssuedAt =
-    emailCodeRecords.length > 0 ? emailCodeRecords[0].created_at ?? null : null;
+    emailCodeRecords.length > 0 ? (emailCodeRecords[0].created_at ?? null) : null;
   const lastEmailConsumedAt =
     emailCodeRecords.find((code) => Boolean(code.consumed_at))?.consumed_at ?? null;
 

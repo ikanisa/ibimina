@@ -26,7 +26,10 @@ export async function POST(request: NextRequest) {
 
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", details: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const { ids, ikiminaId, memberId, saccoId } = parsed.data;
@@ -52,7 +55,10 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (ikiminaError || !ikiminaRow) {
-    return NextResponse.json({ error: ikiminaError?.message ?? "Ikimina not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: ikiminaError?.message ?? "Ikimina not found" },
+      { status: 404 }
+    );
   }
 
   if (!isSystemAdmin(userProfile) && ikiminaRow.sacco_id !== userProfile.sacco_id) {
@@ -82,7 +88,10 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await query;
   if (error) {
-    return NextResponse.json({ error: error.message ?? "Failed to assign payments" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message ?? "Failed to assign payments" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ updated: data?.length ?? 0 });

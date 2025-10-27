@@ -17,5 +17,8 @@ export const deriveIpPrefix = (ipRaw: string | null) => {
   return `${parts[0]}.${parts[1]}.${parts[2]}`;
 };
 
-export const hashDeviceFingerprint = (userId: string, userAgentHash: string, ipPrefix: string | null) =>
-  sha256(`${userId}:${userAgentHash}:${ipPrefix ?? "unknown"}`);
+export const hashDeviceFingerprint = (
+  userId: string,
+  userAgentHash: string,
+  ipPrefix: string | null
+) => sha256(`${userId}:${userAgentHash}:${ipPrefix ?? "unknown"}`);

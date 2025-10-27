@@ -15,6 +15,10 @@ const toneClasses: Record<NonNullable<StatusChipProps["tone"]>, string> = {
 
 export function StatusChip({ children, tone = "neutral" }: StatusChipProps) {
   return (
-    <span className={cn("rounded-full px-3 py-1 text-xs uppercase tracking-wide", toneClasses[tone])}>{children}</span>
+    <span
+      className={cn("rounded-full px-3 py-1 text-xs uppercase tracking-wide", toneClasses[tone])}
+    >
+      {children}
+    </span>
   );
 }

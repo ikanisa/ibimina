@@ -1,7 +1,7 @@
 /**
  * Groups Page
  * Displays a grid of groups (Ibimina) with metadata and join functionality
- * 
+ *
  * This page provides:
  * - Grid view of all active groups
  * - Group metadata: name, total members, creation date
@@ -24,9 +24,9 @@ export const metadata = {
  */
 export default async function GroupsPage() {
   // Fetch groups with metadata - filter for active groups only
-  const groups = await getGroups({ 
+  const groups = await getGroups({
     status: "ACTIVE",
-    limit: 100 
+    limit: 100,
   });
 
   return (

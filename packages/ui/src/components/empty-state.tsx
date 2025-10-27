@@ -16,7 +16,7 @@ export function EmptyState({ title, description, icon, className, action }: Empt
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-white/15 bg-white/5 p-8 text-center text-sm text-neutral-2",
-        className,
+        className
       )}
       role="status"
       aria-live="polite"

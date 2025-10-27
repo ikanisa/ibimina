@@ -1,7 +1,10 @@
 import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
-import { TenantSettingsPanel, type TenantSettingsRecord } from "@/components/admin/settings/tenant-settings-panel";
+import {
+  TenantSettingsPanel,
+  type TenantSettingsRecord,
+} from "@/components/admin/settings/tenant-settings-panel";
 import { SecurityOperationsCard } from "@/components/admin/settings/security-operations-card";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
@@ -56,7 +59,9 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
   const badgeLabel = scope.includeAll
     ? "Global"
-    : saccoRecords.find((item) => item.saccoId === scope.saccoId)?.saccoName ?? profile.sacco?.name ?? "Scoped";
+    : (saccoRecords.find((item) => item.saccoId === scope.saccoId)?.saccoName ??
+      profile.sacco?.name ??
+      "Scoped");
 
   return (
     <div className="space-y-8">

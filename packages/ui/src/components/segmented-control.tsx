@@ -15,7 +15,8 @@ export interface SegmentedOption {
   icon?: ReactNode;
 }
 
-interface SegmentedControlProps extends Pick<HTMLAttributes<HTMLDivElement>, "aria-label" | "aria-labelledby"> {
+interface SegmentedControlProps
+  extends Pick<HTMLAttributes<HTMLDivElement>, "aria-label" | "aria-labelledby"> {
   name?: string;
   value: SegmentedValue;
   onValueChange: (value: SegmentedValue) => void;
@@ -43,7 +44,7 @@ export function SegmentedControl({
         "grid gap-2",
         columns === 2 && "sm:grid-cols-2",
         columns === 3 && "sm:grid-cols-3",
-        className,
+        className
       )}
       {...aria}
     >
@@ -59,7 +60,7 @@ export function SegmentedControl({
               selected
                 ? "border-white/50 bg-white/15 text-neutral-0"
                 : "border-white/15 bg-white/5 text-neutral-2 hover:border-white/25 hover:bg-white/10",
-              option.disabled && "cursor-not-allowed opacity-50",
+              option.disabled && "cursor-not-allowed opacity-50"
             )}
           >
             <input

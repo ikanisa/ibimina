@@ -53,7 +53,9 @@ const parseContributionSettings = (settings: Record<string, unknown> | null | un
     return { fixedAmount: null as number | null, frequency: "MONTHLY" };
   }
 
-  const contribution = (settings as Record<string, unknown>).contribution as Record<string, unknown> | undefined;
+  const contribution = (settings as Record<string, unknown>).contribution as
+    | Record<string, unknown>
+    | undefined;
   const fixedAmountRaw = contribution?.fixedAmount ?? contribution?.fixed_amount;
   const frequencyRaw = contribution?.frequency ?? contribution?.Frequency;
   const frequency = typeof frequencyRaw === "string" ? frequencyRaw.toUpperCase() : "MONTHLY";
@@ -115,7 +117,9 @@ type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
 
 const determineRiskLevel = (ratio: number, lastContribution: Date | null) => {
   const today = new Date();
-  const ageDays = lastContribution ? (today.getTime() - lastContribution.getTime()) / (1000 * 60 * 60 * 24) : Infinity;
+  const ageDays = lastContribution
+    ? (today.getTime() - lastContribution.getTime()) / (1000 * 60 * 60 * 24)
+    : Infinity;
 
   if (ageDays > 21) {
     return "HIGH" as RiskLevel;
@@ -197,7 +201,11 @@ Deno.serve(async (req) => {
       dailyTotals.set(dateKey, (dailyTotals.get(dateKey) ?? 0) + payment.amount);
 
       if (payment.ikimina_id) {
-        const entry = riskMap.get(payment.ikimina_id) ?? { total: 0, last: null, trailingThirty: 0 };
+        const entry = riskMap.get(payment.ikimina_id) ?? {
+          total: 0,
+          last: null,
+          trailingThirty: 0,
+        };
         entry.total += payment.amount;
         if (!entry.last || occurred > entry.last) {
           entry.last = occurred;
@@ -215,7 +223,9 @@ Deno.serve(async (req) => {
     }
 
     const regression = computeRegression(lookbackRange);
-    const lastDate = lookbackRange.length ? new Date(lookbackRange[lookbackRange.length - 1].date) : new Date();
+    const lastDate = lookbackRange.length
+      ? new Date(lookbackRange[lookbackRange.length - 1].date)
+      : new Date();
     const forecast: { date: string; projected: number; lower: number; upper: number }[] = [];
 
     for (let index = 1; index <= horizonDays; index += 1) {
@@ -233,7 +243,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const sumRange = (range: { amount: number }[]) => range.reduce((acc, item) => acc + item.amount, 0);
+    const sumRange = (range: { amount: number }[]) =>
+      range.reduce((acc, item) => acc + item.amount, 0);
     const lastSeven = lookbackRange.slice(-7);
     const previousSeven = lookbackRange.slice(-14, -7);
     const lastThirty = lookbackRange.slice(-30);
@@ -244,10 +255,28 @@ Deno.serve(async (req) => {
     const lastThirtyTotal = sumRange(lastThirty);
     const previousThirtyTotal = sumRange(previousThirty);
 
-    const weekOverWeek = previousSevenTotal === 0 ? (lastSevenTotal > 0 ? 1 : 0) : (lastSevenTotal - previousSevenTotal) / previousSevenTotal;
-    const monthOverMonth = previousThirtyTotal === 0 ? (lastThirtyTotal > 0 ? 1 : 0) : (lastThirtyTotal - previousThirtyTotal) / previousThirtyTotal;
-    const volatility = regression.residualStdDev === 0 ? 0 : regression.residualStdDev / Math.max(sumRange(lookbackRange) / Math.max(lookbackRange.length, 1), 1);
-    const trendScore = clamp(((weekOverWeek * 0.6 + monthOverMonth * 0.4) * 100) - volatility * 25, -100, 100);
+    const weekOverWeek =
+      previousSevenTotal === 0
+        ? lastSevenTotal > 0
+          ? 1
+          : 0
+        : (lastSevenTotal - previousSevenTotal) / previousSevenTotal;
+    const monthOverMonth =
+      previousThirtyTotal === 0
+        ? lastThirtyTotal > 0
+          ? 1
+          : 0
+        : (lastThirtyTotal - previousThirtyTotal) / previousThirtyTotal;
+    const volatility =
+      regression.residualStdDev === 0
+        ? 0
+        : regression.residualStdDev /
+          Math.max(sumRange(lookbackRange) / Math.max(lookbackRange.length, 1), 1);
+    const trendScore = clamp(
+      (weekOverWeek * 0.6 + monthOverMonth * 0.4) * 100 - volatility * 25,
+      -100,
+      100
+    );
 
     let ikiminaQuery = supabase
       .schema("app")
@@ -262,18 +291,18 @@ Deno.serve(async (req) => {
       throw ikiminaError;
     }
 
-    const { data: saccoRows } = await supabase
-      .from("saccos")
-      .select("id, name");
+    const { data: saccoRows } = await supabase.from("saccos").select("id, name");
 
-    const saccoMap = new Map((saccoRows ?? []).map((row) => [row.id, row.name] as [string, string]));
+    const saccoMap = new Map(
+      (saccoRows ?? []).map((row) => [row.id, row.name] as [string, string])
+    );
 
-    let membersQuery = supabase
-      .from("ikimina_members")
-      .select("ikimina_id")
-      .eq("status", "ACTIVE");
+    let membersQuery = supabase.from("ikimina_members").select("ikimina_id").eq("status", "ACTIVE");
     if (saccoIds?.length) {
-      membersQuery = membersQuery.in("ikimina_id", (ikiminaRows ?? []).map((row) => row.id));
+      membersQuery = membersQuery.in(
+        "ikimina_id",
+        (ikiminaRows ?? []).map((row) => row.id)
+      );
     }
     const { data: memberRows } = await membersQuery;
 
@@ -283,27 +312,29 @@ Deno.serve(async (req) => {
       memberCounts.set(ikiminaId, (memberCounts.get(ikiminaId) ?? 0) + 1);
     }
 
-    const riskInsights = (ikiminaRows ?? []).map((ikimina) => {
-      const members = memberCounts.get(ikimina.id) ?? 0;
-      const risk = riskMap.get(ikimina.id) ?? { total: 0, last: null, trailingThirty: 0 };
-      const { fixedAmount, frequency } = parseContributionSettings(ikimina.settings_json);
-      const multiplier = frequencyMultiplier[frequency] ?? 1;
-      const expected = fixedAmount && members > 0 ? fixedAmount * members * multiplier : risk.trailingThirty;
-      const ratio = expected === 0 ? 1 : risk.trailingThirty / expected;
-      const level = determineRiskLevel(ratio, risk.last ?? null);
-      return {
-        ikiminaId: ikimina.id,
-        name: ikimina.name,
-        code: ikimina.code,
-        saccoName: saccoMap.get(ikimina.sacco_id) ?? null,
-        members,
-        trailingThirty: risk.trailingThirty,
-        expectedThirty: expected,
-        contributionRatio: ratio,
-        lastContribution: risk.last ? risk.last.toISOString() : null,
-        riskLevel: level,
-      };
-    })
+    const riskInsights = (ikiminaRows ?? [])
+      .map((ikimina) => {
+        const members = memberCounts.get(ikimina.id) ?? 0;
+        const risk = riskMap.get(ikimina.id) ?? { total: 0, last: null, trailingThirty: 0 };
+        const { fixedAmount, frequency } = parseContributionSettings(ikimina.settings_json);
+        const multiplier = frequencyMultiplier[frequency] ?? 1;
+        const expected =
+          fixedAmount && members > 0 ? fixedAmount * members * multiplier : risk.trailingThirty;
+        const ratio = expected === 0 ? 1 : risk.trailingThirty / expected;
+        const level = determineRiskLevel(ratio, risk.last ?? null);
+        return {
+          ikiminaId: ikimina.id,
+          name: ikimina.name,
+          code: ikimina.code,
+          saccoName: saccoMap.get(ikimina.sacco_id) ?? null,
+          members,
+          trailingThirty: risk.trailingThirty,
+          expectedThirty: expected,
+          contributionRatio: ratio,
+          lastContribution: risk.last ? risk.last.toISOString() : null,
+          riskLevel: level,
+        };
+      })
       .filter((item) => item.members > 0)
       .sort((a, b) => {
         const levelOrder: Record<RiskLevel, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
@@ -362,7 +393,11 @@ Deno.serve(async (req) => {
       .eq("status", "PENDING")
       .order("scheduled_for", { ascending: true });
     if (saccoIds?.length) {
-      notificationsQuery = notificationsQuery.in("event", ["RECON_ESCALATION", "SMS_RETRY", "DAILY_REPORT"]);
+      notificationsQuery = notificationsQuery.in("event", [
+        "RECON_ESCALATION",
+        "SMS_RETRY",
+        "DAILY_REPORT",
+      ]);
     }
     const { data: notificationRows } = await notificationsQuery;
 

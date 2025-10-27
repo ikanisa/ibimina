@@ -2,7 +2,10 @@ import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { StatementImportWizard } from "@/components/ikimina/statement-import-wizard";
-import { ReconciliationTable, type ReconciliationRow } from "@/components/recon/reconciliation-table";
+import {
+  ReconciliationTable,
+  type ReconciliationRow,
+} from "@/components/recon/reconciliation-table";
 import { SmsInboxPanel } from "@/components/recon/sms-inbox-panel";
 import { AutomationHealthBanner } from "@/components/recon/automation-health-banner";
 import { Trans } from "@/components/common/trans";
@@ -59,7 +62,9 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
   let paymentsQuery = supabase
     .schema("app")
     .from("payments")
-    .select("id, sacco_id, ikimina_id, member_id, msisdn, reference, amount, occurred_at, status, source:sms_inbox(raw_text, parsed_json, msisdn, received_at)")
+    .select(
+      "id, sacco_id, ikimina_id, member_id, msisdn, reference, amount, occurred_at, status, source:sms_inbox(raw_text, parsed_json, msisdn, received_at)"
+    )
     .in("status", EXCEPTION_STATUSES)
     .order("occurred_at", { ascending: false })
     .limit(50);
@@ -135,7 +140,9 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
       (supabase as any)
         .schema("app")
         .from("sms_gateway_endpoints")
-        .select("id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms")
+        .select(
+          "id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms"
+        )
         .order("display_name", { ascending: true }),
     ]);
 
@@ -190,8 +197,12 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
   }));
 
   const saccoIdForWrites = scope.includeAll ? profile.sacco_id : scope.saccoId;
-  const allowStatementImport = saccoIdForWrites ? canImportStatements(profile, saccoIdForWrites) : isSystemAdmin(profile);
-  const allowReconciliationUpdates = saccoIdForWrites ? canReconcilePayments(profile, saccoIdForWrites) : isSystemAdmin(profile);
+  const allowStatementImport = saccoIdForWrites
+    ? canImportStatements(profile, saccoIdForWrites)
+    : isSystemAdmin(profile);
+  const allowReconciliationUpdates = saccoIdForWrites
+    ? canReconcilePayments(profile, saccoIdForWrites)
+    : isSystemAdmin(profile);
 
   return (
     <div className="space-y-8">
@@ -211,7 +222,13 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
 
       <GlassCard
         title={<Trans i18nKey="admin.reconciliation.momo" fallback="MoMo statement ingest" />}
-        subtitle={<Trans i18nKey="admin.reconciliation.momoSubtitle" fallback="Validate and upload statements with strict idempotency." className="text-xs text-neutral-3" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.reconciliation.momoSubtitle"
+            fallback="Validate and upload statements with strict idempotency."
+            className="text-xs text-neutral-3"
+          />
+        }
         actions={
           saccoIdForWrites ? (
             <StatementImportWizard
@@ -226,31 +243,56 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
         {saccoIdForWrites ? (
           <div className="space-y-2 text-sm text-neutral-2">
             <p className="text-xs text-neutral-3">
-              <Trans i18nKey="admin.reconciliation.momoNote1" fallback="Drag-and-drop MTN CSV exports. Parser feedback surfaces duplicates and validation errors before ingest." />
+              <Trans
+                i18nKey="admin.reconciliation.momoNote1"
+                fallback="Drag-and-drop MTN CSV exports. Parser feedback surfaces duplicates and validation errors before ingest."
+              />
             </p>
             <p className="text-xs text-neutral-3">
-              <Trans i18nKey="admin.reconciliation.momoNote2" fallback="Only validated rows reach Supabase; invalid entries remain quarantined for follow-up." />
+              <Trans
+                i18nKey="admin.reconciliation.momoNote2"
+                fallback="Only validated rows reach Supabase; invalid entries remain quarantined for follow-up."
+              />
             </p>
           </div>
         ) : (
           <p className="text-xs text-neutral-3">
-            <Trans i18nKey="admin.reconciliation.assignTenant" fallback="Select a SACCO to enable statement ingestion." />
+            <Trans
+              i18nKey="admin.reconciliation.assignTenant"
+              fallback="Select a SACCO to enable statement ingestion."
+            />
           </p>
         )}
       </GlassCard>
 
       <GlassCard
         title={<Trans i18nKey="admin.reconciliation.sms" fallback="SMS inbox" />}
-        subtitle={<Trans i18nKey="admin.reconciliation.smsSubtitle" fallback="Latest gateway messages awaiting parser review." className="text-xs text-neutral-3" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.reconciliation.smsSubtitle"
+            fallback="Latest gateway messages awaiting parser review."
+            className="text-xs text-neutral-3"
+          />
+        }
       >
         <SmsInboxPanel items={smsPanelItems} />
       </GlassCard>
 
       <GlassCard
         title={<Trans i18nKey="admin.reconciliation.exceptions" fallback="Exceptions" />}
-        subtitle={<Trans i18nKey="admin.reconciliation.exceptionsSubtitle" fallback="Resolve unmatched deposits and reconcile ledgers." className="text-xs text-neutral-3" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.reconciliation.exceptionsSubtitle"
+            fallback="Resolve unmatched deposits and reconcile ledgers."
+            className="text-xs text-neutral-3"
+          />
+        }
       >
-        <ReconciliationTable rows={exceptionRows} saccoId={saccoIdForWrites} canWrite={allowReconciliationUpdates} />
+        <ReconciliationTable
+          rows={exceptionRows}
+          saccoId={saccoIdForWrites}
+          canWrite={allowReconciliationUpdates}
+        />
       </GlassCard>
     </div>
   );

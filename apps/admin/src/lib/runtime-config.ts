@@ -1,14 +1,17 @@
 import { z } from "zod";
 
-const environmentSchema = z.enum(["development", "local", "preview", "staging", "production", "test"]);
+const environmentSchema = z.enum([
+  "development",
+  "local",
+  "preview",
+  "staging",
+  "production",
+  "test",
+]);
 
 const runtimeConfigSchema = z.object({
   environment: environmentSchema,
-  siteUrl: z
-    .string()
-    .trim()
-    .url({ message: "siteUrl must be a valid URL" })
-    .optional(),
+  siteUrl: z.string().trim().url({ message: "siteUrl must be a valid URL" }).optional(),
   buildId: z
     .string()
     .trim()
@@ -45,7 +48,12 @@ function resolveSiteUrl(): string | undefined {
 }
 
 function resolveBuildId(): string | undefined {
-  return process.env.NEXT_PUBLIC_BUILD_ID ?? process.env.GIT_COMMIT_SHA ?? process.env.APP_COMMIT_SHA ?? undefined;
+  return (
+    process.env.NEXT_PUBLIC_BUILD_ID ??
+    process.env.GIT_COMMIT_SHA ??
+    process.env.APP_COMMIT_SHA ??
+    undefined
+  );
 }
 
 export function getRuntimeConfig(): RuntimeConfig {

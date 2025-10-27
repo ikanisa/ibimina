@@ -5,13 +5,18 @@ import { supabaseSrv } from "@/lib/supabase/server";
 import { logWarn, updateLogContext } from "@/lib/observability/logger";
 
 export class AdminPermissionError extends Error {
-  constructor(message: string, public readonly extras: Record<string, unknown> | undefined = undefined) {
+  constructor(
+    message: string,
+    public readonly extras: Record<string, unknown> | undefined = undefined
+  ) {
     super(message);
     this.name = "AdminPermissionError";
   }
 }
 
-export interface AdminGuardOptions<Client extends SupabaseClient<Database> = SupabaseClient<Database>> {
+export interface AdminGuardOptions<
+  Client extends SupabaseClient<Database> = SupabaseClient<Database>,
+> {
   action: string;
   reason: string;
   allowedRoles?: Array<Database["public"]["Enums"]["app_role"]>;
@@ -53,14 +58,17 @@ export async function requireAdminContext<Client extends SupabaseClient<Database
 }
 
 type GuardDenied<Result> = { denied: true; result: Result };
-type GuardGranted<Client extends SupabaseClient<Database>> = { denied: false; context: AdminContext<Client> };
+type GuardGranted<Client extends SupabaseClient<Database>> = {
+  denied: false;
+  context: AdminContext<Client>;
+};
 
 export async function guardAdminAction<
   Result,
   Client extends SupabaseClient<Database> = SupabaseClient<Database>,
 >(
   options: AdminGuardOptions<Client>,
-  onDenied: (error: AdminPermissionError) => Result,
+  onDenied: (error: AdminPermissionError) => Result
 ): Promise<GuardDenied<Result> | GuardGranted<Client>> {
   try {
     const context = await requireAdminContext<Client>(options);

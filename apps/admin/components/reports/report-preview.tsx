@@ -119,7 +119,9 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
       if (cancelled) return;
 
       if (!response.ok) {
-        const message = (payload as { error?: string }).error ?? t("reports.errors.loadFailed", "Failed to load preview");
+        const message =
+          (payload as { error?: string }).error ??
+          t("reports.errors.loadFailed", "Failed to load preview");
         setErrorMessage(message);
         setData(null);
         toastError(message);
@@ -200,7 +202,10 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
     return (
       <EmptyState
         title={t("reports.empty.title", "No data in range")}
-        description={t("reports.empty.description", "Adjust the filters or select a SACCO to generate a preview.")}
+        description={t(
+          "reports.empty.description",
+          "Adjust the filters or select a SACCO to generate a preview."
+        )}
       />
     );
   }
@@ -209,42 +214,63 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-3">
         <article className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.cards.totalVolume", "Total volume")}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("reports.cards.totalVolume", "Total volume")}
+          </p>
           <p className="mt-2 text-2xl font-semibold text-neutral-0">
             {formatCurrency(data.totalAmount, data.currency)}
           </p>
         </article>
         <article className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.cards.transactions", "Transactions")}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("reports.cards.transactions", "Transactions")}
+          </p>
           <p className="mt-2 text-2xl font-semibold text-neutral-0">{data.totalTransactions}</p>
         </article>
         <article className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.cards.uniqueIkimina", "Unique ikimina")}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("reports.cards.uniqueIkimina", "Unique ikimina")}
+          </p>
           <p className="mt-2 text-2xl font-semibold text-neutral-0">{data.uniqueIkimina}</p>
         </article>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-neutral-3">{t("reports.chart.dailyTotals", "Daily totals")}</span>
+          <span className="text-xs text-neutral-3">
+            {t("reports.chart.dailyTotals", "Daily totals")}
+          </span>
           <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-3">
             {data.dailyTotals.length} {t("reports.chart.daysSuffix", "days")}
           </span>
         </div>
         {data.dailyTotals.length === 0 ? (
-          <p className="mt-4 text-xs text-neutral-2">{t("reports.chart.noPosted", "No posted transactions in this window.")}</p>
+          <p className="mt-4 text-xs text-neutral-2">
+            {t("reports.chart.noPosted", "No posted transactions in this window.")}
+          </p>
         ) : (
           <div className="mt-6 flex h-40 items-end gap-2">
             {data.dailyTotals.map((entry) => {
-              const barHeight = maxDailyAmount > 0 ? Math.max(8, Math.round((entry.amount / maxDailyAmount) * 100)) : 8;
+              const barHeight =
+                maxDailyAmount > 0
+                  ? Math.max(8, Math.round((entry.amount / maxDailyAmount) * 100))
+                  : 8;
               return (
-                <div key={entry.date} className="flex flex-col items-center gap-2 text-[10px] text-neutral-3">
+                <div
+                  key={entry.date}
+                  className="flex flex-col items-center gap-2 text-[10px] text-neutral-3"
+                >
                   <div
                     className="w-5 rounded-t-full"
                     style={{ height: `${barHeight}%`, backgroundColor: brandColor ?? "#0ea5e9" }}
                     aria-label={`${entry.date}: ${formatCurrency(entry.amount, data.currency)}`}
                   />
-                  <span>{new Date(entry.date).toLocaleDateString("en-RW", { month: "short", day: "numeric" })}</span>
+                  <span>
+                    {new Date(entry.date).toLocaleDateString("en-RW", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
                 </div>
               );
             })}
@@ -253,9 +279,13 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-        <span className="text-xs text-neutral-3">{t("reports.topIkimina.title", "Top ikimina")}</span>
+        <span className="text-xs text-neutral-3">
+          {t("reports.topIkimina.title", "Top ikimina")}
+        </span>
         {data.topIkimina.length === 0 ? (
-          <p className="mt-4 text-xs text-neutral-2">{t("reports.topIkimina.noActivity", "No ikimina activity captured during this window.")}</p>
+          <p className="mt-4 text-xs text-neutral-2">
+            {t("reports.topIkimina.noActivity", "No ikimina activity captured during this window.")}
+          </p>
         ) : (
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[320px] text-left text-sm">
@@ -272,7 +302,9 @@ export function ReportPreview({ filters, onSummaryChange }: ReportPreviewProps) 
                   <tr key={item.id}>
                     <td className="py-2 text-neutral-0">{item.name}</td>
                     <td className="py-2 text-neutral-2">{item.code}</td>
-                    <td className="py-2 text-right text-neutral-0">{formatCurrency(item.amount, data.currency)}</td>
+                    <td className="py-2 text-right text-neutral-0">
+                      {formatCurrency(item.amount, data.currency)}
+                    </td>
                     <td className="py-2 text-right text-neutral-2">
                       {data.totalAmount > 0
                         ? `${Math.round((item.amount / data.totalAmount) * 100)}%`

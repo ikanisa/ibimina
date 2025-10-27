@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json(
       { ok: false, error: "invalid_state", issues: parsed.error.flatten() },
-      { status: 400 },
+      { status: 400 }
     );
   }
 

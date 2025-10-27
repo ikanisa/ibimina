@@ -36,7 +36,12 @@ describe("audit logger", () => {
 
     configureAuditClientFactory(async () => client as unknown as SupabaseClient);
 
-    await logAudit({ action: "TEST", entity: "member", entityId: "member-1", diff: { status: "ACTIVE" } });
+    await logAudit({
+      action: "TEST",
+      entity: "member",
+      entityId: "member-1",
+      diff: { status: "ACTIVE" },
+    });
 
     assert.equal(inserts.length, 1);
     const [entry] = inserts;

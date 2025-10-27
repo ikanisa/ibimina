@@ -1,7 +1,10 @@
 import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
-import { AdminMembersDirectory, MemberDirectoryRow } from "@/components/admin/members/directory-table";
+import {
+  AdminMembersDirectory,
+  MemberDirectoryRow,
+} from "@/components/admin/members/directory-table";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import {
@@ -24,7 +27,9 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
 
   let membersQuery = supabase
     .from("ikimina_members_public")
-    .select("id, full_name, member_code, msisdn, status, joined_at, ikimina_id, ikimina_name, sacco_id")
+    .select(
+      "id, full_name, member_code, msisdn, status, joined_at, ikimina_id, ikimina_name, sacco_id"
+    )
     .order("joined_at", { ascending: false })
     .limit(500);
 
@@ -56,7 +61,13 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
 
       <GlassCard
         title={<Trans i18nKey="admin.members.directory" fallback="Directory" />}
-        subtitle={<Trans i18nKey="admin.members.directorySubtitle" fallback="Filter by group, status, and search." className="text-xs text-neutral-3" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.members.directorySubtitle"
+            fallback="Filter by group, status, and search."
+            className="text-xs text-neutral-3"
+          />
+        }
       >
         <AdminMembersDirectory rows={members} />
       </GlassCard>

@@ -40,7 +40,8 @@ const getRpId = () => {
 };
 
 const getExpectedOrigin = () => {
-  const explicit = process.env.MFA_ORIGIN ?? process.env.NEXT_PUBLIC_SITE_URL ?? process.env.SITE_URL;
+  const explicit =
+    process.env.MFA_ORIGIN ?? process.env.NEXT_PUBLIC_SITE_URL ?? process.env.SITE_URL;
   if (explicit) return explicit;
 
   const rpID = getRpId();
@@ -66,7 +67,7 @@ const listUserCredentials = async (userId: string) => {
   const { data, error } = await supabase
     .from("webauthn_credentials")
     .select(
-      "id, user_id, credential_id, credential_public_key, sign_count, transports, backed_up, device_type, friendly_name, created_at, last_used_at",
+      "id, user_id, credential_id, credential_public_key, sign_count, transports, backed_up, device_type, friendly_name, created_at, last_used_at"
     )
     .eq("user_id", userId);
 
@@ -81,14 +82,19 @@ type PasskeyState =
   | { type: "register"; userId: string; challenge: string; friendlyName?: string | null }
   | { type: "authenticate"; userId: string; challenge: string; rememberDevice?: boolean };
 
-export const encodePasskeyState = (payload: PasskeyState) => encryptSensitiveString(JSON.stringify(payload));
+export const encodePasskeyState = (payload: PasskeyState) =>
+  encryptSensitiveString(JSON.stringify(payload));
 
 export const decodePasskeyState = (token: string): PasskeyState => {
   const json = decryptSensitiveString(token);
   return JSON.parse(json) as PasskeyState;
 };
 
-export const createRegistrationOptions = async (user: { id: string; email?: string | null; full_name?: string | null }) => {
+export const createRegistrationOptions = async (user: {
+  id: string;
+  email?: string | null;
+  full_name?: string | null;
+}) => {
   const credentials = await listUserCredentials(user.id);
   const options = await generateRegistrationOptions({
     rpName,
@@ -107,7 +113,11 @@ export const createRegistrationOptions = async (user: { id: string; email?: stri
     })),
   });
 
-  const stateToken = encodePasskeyState({ type: "register", userId: user.id, challenge: options.challenge });
+  const stateToken = encodePasskeyState({
+    type: "register",
+    userId: user.id,
+    challenge: options.challenge,
+  });
 
   return {
     options,
@@ -124,7 +134,7 @@ export const verifyRegistration = async (
   user: { id: string; email?: string | null },
   response: RegistrationResponseJSON,
   stateToken: string,
-  friendlyName?: string | null,
+  friendlyName?: string | null
 ): Promise<RegistrationVerificationResult> => {
   const state = decodePasskeyState(stateToken);
   if (state.type !== "register" || state.userId !== user.id) {
@@ -187,7 +197,7 @@ type AuthenticationOptionsResult = {
 
 export const createAuthenticationOptions = async (
   user: { id: string },
-  rememberDevice = false,
+  rememberDevice = false
 ): Promise<AuthenticationOptionsResult> => {
   const credentials = await listUserCredentials(user.id);
   if (credentials.length === 0) {
@@ -221,7 +231,7 @@ type AuthenticationVerificationResult = {
 export const verifyAuthentication = async (
   user: { id: string },
   response: AuthenticationResponseJSON,
-  stateToken: string,
+  stateToken: string
 ): Promise<AuthenticationVerificationResult> => {
   const state = decodePasskeyState(stateToken);
   if (state.type !== "authenticate" || state.userId !== user.id) {
@@ -245,7 +255,9 @@ export const verifyAuthentication = async (
       id: credential.credential_id,
       publicKey: base64UrlToUint8Array(credential.credential_public_key),
       counter: credential.sign_count ?? 0,
-      transports: credential.transports ? toAuthenticatorTransports(credential.transports) : undefined,
+      transports: credential.transports
+        ? toAuthenticatorTransports(credential.transports)
+        : undefined,
     },
     requireUserVerification: true,
   });
@@ -290,7 +302,10 @@ export const markPasskeyEnrollment = async (userId: string, firstPasskey: boolea
     throw fetchError;
   }
 
-  type UserMfaFields = Pick<Database["public"]["Tables"]["users"]["Row"], "mfa_methods" | "mfa_enabled" | "mfa_enrolled_at" | "mfa_passkey_enrolled">;
+  type UserMfaFields = Pick<
+    Database["public"]["Tables"]["users"]["Row"],
+    "mfa_methods" | "mfa_enabled" | "mfa_enrolled_at" | "mfa_passkey_enrolled"
+  >;
   const existingFields = existing as UserMfaFields | null;
 
   const methods = new Set(existingFields?.mfa_methods ?? []);

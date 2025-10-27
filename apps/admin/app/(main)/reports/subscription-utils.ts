@@ -30,10 +30,14 @@ export function computeNextRunUtc(
   frequency: ReportSubscriptionFrequency,
   deliveryHour: number,
   deliveryDay: number | null,
-  now = new Date(),
+  now = new Date()
 ): Date {
-  const hour = Number.isFinite(deliveryHour) ? Math.min(23, Math.max(0, Math.trunc(deliveryHour))) : 6;
-  const base = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0, 0, 0));
+  const hour = Number.isFinite(deliveryHour)
+    ? Math.min(23, Math.max(0, Math.trunc(deliveryHour)))
+    : 6;
+  const base = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0, 0, 0)
+  );
 
   if (frequency === "DAILY") {
     if (base <= now) {
@@ -60,7 +64,9 @@ export function computeNextRunUtc(
   if (base <= now) {
     const month = now.getUTCMonth() + 1;
     base.setUTCMonth(month);
-    const daysInNextMonth = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 0)).getUTCDate();
+    const daysInNextMonth = new Date(
+      Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 0)
+    ).getUTCDate();
     base.setUTCDate(Math.min(target, daysInNextMonth));
   }
   return base;

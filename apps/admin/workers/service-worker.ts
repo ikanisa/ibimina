@@ -2,19 +2,19 @@
 
 /**
  * Service Worker for Ibimina Staff Console PWA
- * 
+ *
  * This service worker implements a comprehensive caching strategy to ensure
  * the application works offline and provides optimal performance.
- * 
+ *
  * Caching Strategies:
  * - Precaching: Critical app shell resources are cached at install time
  * - Stale-While-Revalidate (SWR): For static assets that can be served from cache
  *   while being updated in the background
  * - Network-First: For pages and API data to ensure fresh content when online
  * - Cache-First: For fonts and icons that rarely change
- * 
+ *
  * Accessibility: Includes offline fallback page that adheres to WCAG 2.1 AA standards
- * 
+ *
  * @see https://developer.chrome.com/docs/workbox/
  */
 
@@ -38,26 +38,20 @@ clientsClaim();
 
 // Precache critical app shell resources
 // The workbox plugin injects the manifest at build time via __WB_MANIFEST
-precacheAndRoute(
-  [
-    ...(self.__WB_MANIFEST ?? []),
-    { url: OFFLINE_URL, revision: BUILD_ID },
-  ],
-  {
-    // Ignore common tracking parameters that don't affect content
-    ignoreURLParametersMatching: [/^utm_/, /^fbclid$/],
-  },
-);
+precacheAndRoute([...(self.__WB_MANIFEST ?? []), { url: OFFLINE_URL, revision: BUILD_ID }], {
+  // Ignore common tracking parameters that don't affect content
+  ignoreURLParametersMatching: [/^utm_/, /^fbclid$/],
+});
 
 // Remove outdated caches from previous versions
 cleanupOutdatedCaches();
 
 /**
  * Cache Strategy: Stale-While-Revalidate (SWR) for Next.js static assets
- * 
+ *
  * These assets (JS, CSS) are hashed and immutable. We serve from cache first
  * for instant loading while revalidating in the background.
- * 
+ *
  * WCAG 2.1 AA Compliance: Fast loading improves accessibility for users
  * with cognitive disabilities or slow connections.
  */
@@ -71,16 +65,16 @@ registerRoute(
         purgeOnQuotaError: true,
       }),
     ],
-  }),
+  })
 );
 
 /**
  * Cache Strategy: Cache-First for fonts
- * 
+ *
  * Fonts rarely change and should be served from cache first
  * for optimal performance. This captures font requests via the
  * standard request.destination property.
- * 
+ *
  * Note: For CDN-hosted fonts, additional URL pattern matching
  * may be needed in a separate route.
  */
@@ -96,7 +90,7 @@ registerRoute(
         purgeOnQuotaError: true,
       }),
     ],
-  }),
+  })
 );
 
 /**
@@ -108,7 +102,7 @@ const isIconRequest = ({ request, url }: { request: Request; url: URL }) => {
 
 /**
  * Cache Strategy: Cache-First for icons
- * 
+ *
  * Application icons should be served from cache for instant loading.
  */
 registerRoute(
@@ -123,12 +117,12 @@ registerRoute(
         purgeOnQuotaError: true,
       }),
     ],
-  }),
+  })
 );
 
 /**
  * Cache Strategy: Stale-While-Revalidate for CSS and other style resources
- * 
+ *
  * Serve styles from cache for immediate rendering while updating in background.
  */
 registerRoute(
@@ -142,15 +136,15 @@ registerRoute(
         purgeOnQuotaError: true,
       }),
     ],
-  }),
+  })
 );
 
 /**
  * Cache Strategy: Network-First for page navigation
- * 
+ *
  * For HTML pages, always try the network first to get fresh content.
  * Falls back to cache if network is unavailable (offline mode).
- * 
+ *
  * This ensures users always see the latest content when online while
  * maintaining offline functionality.
  */
@@ -163,12 +157,12 @@ registerRoute(
       new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({ maxEntries: 32, purgeOnQuotaError: true }),
     ],
-  }),
+  })
 );
 
 /**
  * Cache Strategy: Network-First for API routes and data
- * 
+ *
  * API calls should prioritize fresh data from the network.
  * Short-term caching (60 seconds) provides a fallback for offline use
  * and reduces repeated identical requests.
@@ -185,15 +179,15 @@ registerRoute(
       new CacheableResponsePlugin({ statuses: [0, 200, 204] }),
       new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 }),
     ],
-  }),
+  })
 );
 
 /**
  * Offline Fallback Handler
- * 
+ *
  * When all caching strategies fail (e.g., user is offline and resource
  * is not cached), this handler provides a graceful fallback.
- * 
+ *
  * For document requests, serves the offline page which includes:
  * - Clear messaging about offline status
  * - WCAG 2.1 AA compliant design (contrast ratios, focus indicators)
@@ -213,10 +207,10 @@ setCatchHandler(async ({ event }) => {
 
 /**
  * Service Worker Message Handler
- * 
+ *
  * Listens for messages from the client (main app) to control
  * service worker behavior.
- * 
+ *
  * SKIP_WAITING: Allows the client to force activation of a new service worker
  * version without waiting for all tabs to close.
  */

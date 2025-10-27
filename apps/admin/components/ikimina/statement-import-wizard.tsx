@@ -74,7 +74,13 @@ type ImportResult = {
   rowCount?: number;
 };
 
-export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic", canImport = true, disabledReason }: StatementImportWizardProps) {
+export function StatementImportWizard({
+  saccoId,
+  ikiminaId,
+  variant = "generic",
+  canImport = true,
+  disabledReason,
+}: StatementImportWizardProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -95,26 +101,23 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const handleMappingChange = useCallback(
-    (fieldKey: string, column: string) => {
-      setError(null);
-      setMapping((current) => {
-        const next = { ...current };
-        for (const [key, value] of Object.entries(next)) {
-          if (key !== fieldKey && value === column) {
-            delete next[key];
-          }
+  const handleMappingChange = useCallback((fieldKey: string, column: string) => {
+    setError(null);
+    setMapping((current) => {
+      const next = { ...current };
+      for (const [key, value] of Object.entries(next)) {
+        if (key !== fieldKey && value === column) {
+          delete next[key];
         }
-        if (!column) {
-          delete next[fieldKey];
-        } else {
-          next[fieldKey] = column;
-        }
-        return next;
-      });
-    },
-    [],
-  );
+      }
+      if (!column) {
+        delete next[fieldKey];
+      } else {
+        next[fieldKey] = column;
+      }
+      return next;
+    });
+  }, []);
   const { success, error: toastError } = useToast();
 
   const toBilingual = (english: string, kinyarwanda: string) => `${english} / ${kinyarwanda}`;
@@ -171,14 +174,9 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
           occurredAt: occurredAtValue ? occurredAtValue.toString() : "",
           txnId: txnValue ? txnValue.toString() : "",
           msisdn: msisdnValue ? msisdnValue.toString() : "",
-          amount:
-            typeof amountValue === "number"
-              ? amountValue
-              : Number(amountValue ?? 0),
+          amount: typeof amountValue === "number" ? amountValue : Number(amountValue ?? 0),
           reference:
-            referenceValue === null || referenceValue === ""
-              ? null
-              : referenceValue.toString(),
+            referenceValue === null || referenceValue === "" ? null : referenceValue.toString(),
         } satisfies StatementRow;
       });
 
@@ -186,9 +184,15 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
     });
   }, [rows, mapping, masks, mappingComplete]);
 
-  const validRows = useMemo(() => processedRows.filter((row) => row.errors.length === 0), [processedRows]);
+  const validRows = useMemo(
+    () => processedRows.filter((row) => row.errors.length === 0),
+    [processedRows]
+  );
 
-  const invalidRows = useMemo(() => processedRows.filter((row) => row.errors.length > 0), [processedRows]);
+  const invalidRows = useMemo(
+    () => processedRows.filter((row) => row.errors.length > 0),
+    [processedRows]
+  );
 
   const parserFeedback = useMemo(() => {
     const txnCounter = new Map<string, number>();
@@ -224,7 +228,9 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
       }
     });
 
-    const duplicateRows = processedRows.filter((row) => duplicateTxnIds.has(row.record.txnId)).length;
+    const duplicateRows = processedRows.filter((row) =>
+      duplicateTxnIds.has(row.record.txnId)
+    ).length;
 
     return {
       total: processedRows.length,
@@ -268,11 +274,15 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
       const autoMap: Mapping = {};
       for (const field of nextHeaders) {
         const lower = field.toLowerCase();
-        if (lower.includes("date") || lower.includes("occur")) autoMap.occurredAt = autoMap.occurredAt ?? field;
+        if (lower.includes("date") || lower.includes("occur"))
+          autoMap.occurredAt = autoMap.occurredAt ?? field;
         if (lower.includes("txn") || lower.includes("id")) autoMap.txnId = autoMap.txnId ?? field;
-        if ((lower.includes("msisdn") || lower.includes("phone")) && !autoMap.msisdn) autoMap.msisdn = field;
-        if ((lower.includes("amount") || lower.includes("amt")) && !autoMap.amount) autoMap.amount = field;
-        if ((lower.includes("reference") || lower.includes("ref")) && !autoMap.reference) autoMap.reference = field;
+        if ((lower.includes("msisdn") || lower.includes("phone")) && !autoMap.msisdn)
+          autoMap.msisdn = field;
+        if ((lower.includes("amount") || lower.includes("amt")) && !autoMap.amount)
+          autoMap.amount = field;
+        if ((lower.includes("reference") || lower.includes("ref")) && !autoMap.reference)
+          autoMap.reference = field;
       }
       setMapping(autoMap);
       setStep(2);
@@ -292,7 +302,9 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
       .filter(Boolean);
 
     if (trimmed.length === 0) {
-      setSmsError(toBilingual("Paste one or more SMS messages first.", "Banza ushyiremo ubutumwa bwa SMS"));
+      setSmsError(
+        toBilingual("Paste one or more SMS messages first.", "Banza ushyiremo ubutumwa bwa SMS")
+      );
       return;
     }
 
@@ -362,15 +374,17 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
         setSmsError(
           toBilingual(
             `${payload.summary.errors} message(s) could not be parsed.`,
-            `${payload.summary.errors} ubutumwa ntibwashoboye gusesengurwa.`,
-          ),
+            `${payload.summary.errors} ubutumwa ntibwashoboye gusesengurwa.`
+          )
         );
       } else {
         setSmsError(null);
       }
     } catch (smsError) {
       console.error("Failed to parse SMS batch", smsError);
-      setSmsError(toBilingual("Unable to parse one or more SMS messages.", "Gusesengura SMS byanze"));
+      setSmsError(
+        toBilingual("Unable to parse one or more SMS messages.", "Gusesengura SMS byanze")
+      );
       setSmsParsing(false);
       return;
     }
@@ -422,7 +436,9 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
           }),
         });
 
-        const resultPayload = (await response.json()) as (ImportResult & { success?: boolean; error?: string }) | null;
+        const resultPayload = (await response.json()) as
+          | (ImportResult & { success?: boolean; error?: string })
+          | null;
 
         if (!response.ok || !resultPayload?.success) {
           throw new Error(resultPayload?.error ?? "Import failed");
@@ -459,7 +475,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
           setOpen(true);
         }}
         disabled={!canImport}
-        title={!canImport ? disabledReason ?? "Read-only access" : undefined}
+        title={!canImport ? (disabledReason ?? "Read-only access") : undefined}
         className="w-full sm:w-auto"
       >
         {t("statement.trigger", "Import statements")}
@@ -476,12 +492,18 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
             )}
             <header className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">Statement import</p>
-                <h2 className="text-lg font-semibold">Step {step} · {fileName ?? "Upload"}</h2>
+                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                  Statement import
+                </p>
+                <h2 className="text-lg font-semibold">
+                  Step {step} · {fileName ?? "Upload"}
+                </h2>
               </div>
               <button className="text-sm text-neutral-2 hover:text-neutral-0" onClick={reset}>
                 <span>{t("common.close", "Close")}</span>
-                <span aria-hidden className="ml-1">✕</span>
+                <span aria-hidden className="ml-1">
+                  ✕
+                </span>
               </button>
             </header>
 
@@ -511,10 +533,19 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
 
                 {importMode === "file" ? (
                   <>
-                    <p>{t("statement.upload.intro", "Upload bank or MoMo statements exported as CSV or Excel. Include a header row.")}</p>
+                    <p>
+                      {t(
+                        "statement.upload.intro",
+                        "Upload bank or MoMo statements exported as CSV or Excel. Include a header row."
+                      )}
+                    </p>
                     <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 p-10 text-center transition hover:bg-white/10">
-                      <span className="text-sm font-semibold">{t("statement.upload.dropCta", "Drop file here or click to browse")}</span>
-                      <span className="text-xs text-neutral-2">{t("statement.upload.supported", "Supported: .csv, .xlsx")}</span>
+                      <span className="text-sm font-semibold">
+                        {t("statement.upload.dropCta", "Drop file here or click to browse")}
+                      </span>
+                      <span className="text-xs text-neutral-2">
+                        {t("statement.upload.supported", "Supported: .csv, .xlsx")}
+                      </span>
                       <input
                         type="file"
                         accept=".csv,.xlsx,.xls,.xlsm,.xlsb"
@@ -522,12 +553,26 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                         onChange={(event) => handleFile(event.target.files?.[0])}
                       />
                     </label>
-                    {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
-                    <p className="text-xs text-neutral-2">{t("statement.upload.requiredCols", "Required columns: date, transaction id, amount, msisdn. Optional: reference.")}</p>
+                    {error && (
+                      <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                        {error}
+                      </p>
+                    )}
+                    <p className="text-xs text-neutral-2">
+                      {t(
+                        "statement.upload.requiredCols",
+                        "Required columns: date, transaction id, amount, msisdn. Optional: reference."
+                      )}
+                    </p>
                   </>
                 ) : (
                   <>
-                    <p>{t("statement.sms.intro", "Paste one or more MoMo SMS messages. Each line should be a full SMS.")}</p>
+                    <p>
+                      {t(
+                        "statement.sms.intro",
+                        "Paste one or more MoMo SMS messages. Each line should be a full SMS."
+                      )}
+                    </p>
                     <textarea
                       value={smsInput}
                       onChange={(event) => setSmsInput(event.target.value)}
@@ -535,7 +580,11 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                       className="w-full rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                       placeholder="You have received RWF 15,000 from 078xxxxxxx (John Doe). Ref: ..."
                     />
-                    {smsError && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{smsError}</p>}
+                    {smsError && (
+                      <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                        {smsError}
+                      </p>
+                    )}
                     <div className="flex justify-end">
                       <Button type="button" onClick={handleSmsParse} size="sm">
                         {t("statement.sms.parse", "Parse SMS")}
@@ -548,7 +597,12 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
 
             {step === 2 && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>{t("statement.map.intro", "Assign each required field to a column using the selectors below.")}</p>
+                <p>
+                  {t(
+                    "statement.map.intro",
+                    "Assign each required field to a column using the selectors below."
+                  )}
+                </p>
                 <div className="flex flex-wrap gap-2 text-[11px] text-neutral-2">
                   <span className="rounded-full bg-white/5 px-3 py-1">
                     {t("statement.map.columnsAvailable", "Columns detected:")} {headers.length}
@@ -560,7 +614,7 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                 <p className="text-[11px] text-neutral-2">
                   {t(
                     "statement.map.keyboard",
-                    "Use arrow keys and enter to choose columns. Each column may only be assigned once.",
+                    "Use arrow keys and enter to choose columns. Each column may only be assigned once."
                   )}
                 </p>
                 {[...REQUIRED_FIELDS, ...OPTIONAL_FIELDS].map((field) => {
@@ -569,10 +623,15 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                   const selectedMask = masks[field.key];
                   const activeMask = maskOptions.find((mask) => mask.id === selectedMask);
                   return (
-                    <div key={field.key} className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div
+                      key={field.key}
+                      className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4"
+                    >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <label className="flex flex-1 flex-col gap-2 text-sm text-neutral-0">
-                          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{field.label}</span>
+                          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                            {field.label}
+                          </span>
                           <select
                             value={assigned}
                             onChange={(event) => handleMappingChange(field.key, event.target.value)}
@@ -626,7 +685,10 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                   );
                 })}
                 <div className="flex justify-end gap-2">
-                  <button className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2" onClick={() => setStep(1)}>
+                  <button
+                    className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
+                    onClick={() => setStep(1)}
+                  >
                     {t("common.back", "Back")}
                   </button>
                   <button
@@ -635,8 +697,16 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                     onClick={() => {
                       if (!mappingComplete) {
                         const msg = "Map all required fields before continuing.";
-                        setError(toBilingual(msg, "Shyira ahakwiye imirongo yose ibisabwa mbere yo gukomeza."));
-                        notifyError(msg, "Shyira ahakwiye imirongo yose ibisabwa mbere yo gukomeza.");
+                        setError(
+                          toBilingual(
+                            msg,
+                            "Shyira ahakwiye imirongo yose ibisabwa mbere yo gukomeza."
+                          )
+                        );
+                        notifyError(
+                          msg,
+                          "Shyira ahakwiye imirongo yose ibisabwa mbere yo gukomeza."
+                        );
                         return;
                       }
                       setError(null);
@@ -651,13 +721,33 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
 
             {step === 3 && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>{t("statement.preview.intro", "Preview the first rows. Invalid entries are highlighted.")}</p>
+                <p>
+                  {t(
+                    "statement.preview.intro",
+                    "Preview the first rows. Invalid entries are highlighted."
+                  )}
+                </p>
                 <div className="flex flex-wrap gap-2 text-xs text-neutral-2">
-                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.autoMatch", "Likely auto-match:")} {parserFeedback.autoMatch}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.duplicateRows", "Duplicate rows:")} {parserFeedback.duplicateRows}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.missingRef", "Missing references:")} {parserFeedback.missingReference}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.invalidMsisdn", "Invalid MSISDN:")} {parserFeedback.invalidMsisdn}</span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">{t("statement.preview.invalidDates", "Invalid dates:")} {parserFeedback.invalidDate}</span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">
+                    {t("statement.preview.autoMatch", "Likely auto-match:")}{" "}
+                    {parserFeedback.autoMatch}
+                  </span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">
+                    {t("statement.preview.duplicateRows", "Duplicate rows:")}{" "}
+                    {parserFeedback.duplicateRows}
+                  </span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">
+                    {t("statement.preview.missingRef", "Missing references:")}{" "}
+                    {parserFeedback.missingReference}
+                  </span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">
+                    {t("statement.preview.invalidMsisdn", "Invalid MSISDN:")}{" "}
+                    {parserFeedback.invalidMsisdn}
+                  </span>
+                  <span className="rounded-full bg-white/5 px-3 py-1">
+                    {t("statement.preview.invalidDates", "Invalid dates:")}{" "}
+                    {parserFeedback.invalidDate}
+                  </span>
                 </div>
                 <div className="max-h-64 overflow-auto rounded-2xl border border-white/10">
                   <table className="w-full border-collapse text-xs">
@@ -680,11 +770,15 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                         const invalid = row.errors.length > 0;
                         const duplicate = parserFeedback.duplicateTxnIds.has(row.record.txnId);
                         const missingReference = !row.record.reference;
-                        const className = invalid ? "bg-red-500/10" : duplicate ? "bg-amber-500/10" : undefined;
+                        const className = invalid
+                          ? "bg-red-500/10"
+                          : duplicate
+                            ? "bg-amber-500/10"
+                            : undefined;
                         const occurredDisplay =
                           typeof occurredCell?.value === "string" && occurredCell.value
                             ? new Date(occurredCell.value).toLocaleString()
-                            : occurredCell?.value ?? "";
+                            : (occurredCell?.value ?? "");
                         const amountDisplay =
                           typeof amountCell?.value === "number"
                             ? amountCell.value
@@ -694,7 +788,9 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                             <td className="px-4 py-2 text-neutral-0">
                               {occurredDisplay || "—"}
                               {!occurredCell?.valid && occurredCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{occurredCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {occurredCell.reason}
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-2 text-neutral-2">
@@ -703,30 +799,43 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                                 <p className="mt-1 text-[10px] text-amber-200">{txnCell.reason}</p>
                               )}
                               {duplicate && (
-                                <p className="mt-1 text-[10px] text-amber-200">Duplicate txn ID in this file</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  Duplicate txn ID in this file
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-2 text-neutral-2">
                               {msisdnCell?.value ?? "—"}
                               {!msisdnCell?.valid && msisdnCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{msisdnCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {msisdnCell.reason}
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-2 text-neutral-2">
                               {Number.isFinite(amountDisplay) && amountDisplay > 0
                                 ? amountFormatter.format(amountDisplay)
-                                : amountCell?.value ?? "—"}
+                                : (amountCell?.value ?? "—")}
                               {!amountCell?.valid && amountCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{amountCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {amountCell.reason}
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-2 text-neutral-2">
                               {referenceCell?.value ?? "—"}
                               {missingReference && (
-                                <p className="mt-1 text-[10px] text-amber-200">{t("statement.preview.noRefHint", "No reference · will require manual allocation")}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {t(
+                                    "statement.preview.noRefHint",
+                                    "No reference · will require manual allocation"
+                                  )}
+                                </p>
                               )}
                               {!referenceCell?.valid && referenceCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{referenceCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {referenceCell.reason}
+                                </p>
                               )}
                             </td>
                           </tr>
@@ -736,34 +845,61 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                   </table>
                 </div>
                 <div className="flex items-start justify-between gap-4">
-                  <button className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2" onClick={() => setStep(2)}>
+                  <button
+                    className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
+                    onClick={() => setStep(2)}
+                  >
                     {t("common.back", "Back")}
                   </button>
                   <div className="flex flex-1 flex-col gap-2 text-right">
-                    <div className="text-xs text-neutral-2">Valid rows: {validRows.length} / {processedRows.length}</div>
+                    <div className="text-xs text-neutral-2">
+                      Valid rows: {validRows.length} / {processedRows.length}
+                    </div>
                     <button
                       type="button"
                       onClick={handleConfirm}
-                      disabled={pending || !mappingComplete || validRows.length === 0 || invalidRows.length > 0}
+                      disabled={
+                        pending ||
+                        !mappingComplete ||
+                        validRows.length === 0 ||
+                        invalidRows.length > 0
+                      }
                       className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
                     >
-                      {pending ? t("statement.import.importing", "Importing…") : t("statement.import.confirm", "Confirm import")}
+                      {pending
+                        ? t("statement.import.importing", "Importing…")
+                        : t("statement.import.confirm", "Confirm import")}
                     </button>
-                    {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
-                    {message && <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">{message}</p>}
+                    {error && (
+                      <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                        {error}
+                      </p>
+                    )}
+                    {message && (
+                      <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                        {message}
+                      </p>
+                    )}
                     {invalidRows.length > 0 && (
                       <div className="rounded-xl bg-amber-500/10 px-3 py-2 text-left text-[11px] text-amber-200">
                         <p>{invalidRows.length} row(s) need fixes before importing.</p>
                         <ul className="mt-1 space-y-1">
                           {invalidRows.slice(0, 3).map((row) => (
-                            <li key={row.index}>Row {row.index + 1}: {row.errors[0]}</li>
+                            <li key={row.index}>
+                              Row {row.index + 1}: {row.errors[0]}
+                            </li>
                           ))}
                         </ul>
                       </div>
                     )}
                     {parserFeedback.duplicateRows > 0 && (
                       <div className="rounded-xl bg-white/5 px-3 py-2 text-left text-[11px] text-neutral-2">
-                        <p>{t("statement.preview.duplicatesHint", "Duplicate txn IDs detected. They will be skipped by the importer.")}</p>
+                        <p>
+                          {t(
+                            "statement.preview.duplicatesHint",
+                            "Duplicate txn IDs detected. They will be skipped by the importer."
+                          )}
+                        </p>
                       </div>
                     )}
                     {result && (
@@ -772,7 +908,10 @@ export function StatementImportWizard({ saccoId, ikiminaId, variant = "generic",
                         <p>Posted: {result.posted}</p>
                         <p>Unallocated: {result.unallocated}</p>
                         <p>Duplicates skipped: {result.duplicates}</p>
-                        <Link href="/recon" className="inline-block text-xs font-semibold uppercase tracking-[0.3em] text-rw-yellow hover:underline">
+                        <Link
+                          href="/recon"
+                          className="inline-block text-xs font-semibold uppercase tracking-[0.3em] text-rw-yellow hover:underline"
+                        >
                           {t("statement.preview.viewRecon", "View in Recon →")}
                         </Link>
                       </div>

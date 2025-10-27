@@ -47,15 +47,22 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
     const parse = (s?: string) => (s ? new Date(`${s}T00:00:00`) : null);
     const start = parse(filters.from);
     const end = parse(filters.to);
-    if (filters.from && (!start || Number.isNaN(start.getTime()))) return { valid: false as const, reason: "invalid" as const };
-    if (filters.to && (!end || Number.isNaN(end.getTime()))) return { valid: false as const, reason: "invalid" as const };
+    if (filters.from && (!start || Number.isNaN(start.getTime())))
+      return { valid: false as const, reason: "invalid" as const };
+    if (filters.to && (!end || Number.isNaN(end.getTime())))
+      return { valid: false as const, reason: "invalid" as const };
     if (start && end && start > end) return { valid: false as const, reason: "order" as const };
     return { valid: true as const };
   }, [filters.from, filters.to]);
 
   const handleExport = (format: "pdf" | "csv") => {
     if (ikiminaCount === 0) {
-      setErrorMessage(t("reports.export.noData", "Select a SACCO or adjust the date range to include ikimina activity."));
+      setErrorMessage(
+        t(
+          "reports.export.noData",
+          "Select a SACCO or adjust the date range to include ikimina activity."
+        )
+      );
       return;
     }
     setMessage(null);
@@ -97,7 +104,10 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
           separator: csvSep,
         }),
       }).catch((fetchError: unknown) => {
-        const msg = fetchError instanceof Error ? fetchError.message : t("common.networkError", "Network error");
+        const msg =
+          fetchError instanceof Error
+            ? fetchError.message
+            : t("common.networkError", "Network error");
         setErrorMessage(msg);
         error(msg);
         return null;
@@ -108,7 +118,9 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
       }
 
       if (!response.ok) {
-        const fallback = await response.text().catch(() => t("reports.export.failed", "Export failed"));
+        const fallback = await response
+          .text()
+          .catch(() => t("reports.export.failed", "Export failed"));
         setErrorMessage(fallback);
         error(fallback);
         return;
@@ -126,7 +138,10 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
       link.remove();
       URL.revokeObjectURL(url);
 
-      const started = format === "pdf" ? t("reports.export.startedPdf", "PDF export started") : t("reports.export.startedCsv", "CSV export started");
+      const started =
+        format === "pdf"
+          ? t("reports.export.startedPdf", "PDF export started")
+          : t("reports.export.startedCsv", "CSV export started");
       setMessage(started);
       success(started);
     });
@@ -136,7 +151,9 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
     <div className="flex h-full flex-col justify-between gap-4">
       <div className="space-y-3 text-sm text-neutral-0">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.scope", "Scope")}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("common.scope", "Scope")}
+          </p>
           <p className="mt-1 font-medium text-neutral-0">{saccoLabel}</p>
           <p className="text-xs text-neutral-2">{rangeLabel}</p>
           {!dateValidation.valid && (
@@ -149,7 +166,9 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-neutral-0">
           <label className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-neutral-2">{t("reports.export.localeLabel", "Export locale")}</span>
+            <span className="text-neutral-2">
+              {t("reports.export.localeLabel", "Export locale")}
+            </span>
             <select
               className="rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-neutral-0"
               value={selectedLocale}
@@ -161,7 +180,9 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
             </select>
           </label>
           <div className="mt-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-neutral-2">{t("reports.export.separatorLabel", "CSV separator")}</span>
+            <span className="text-neutral-2">
+              {t("reports.export.separatorLabel", "CSV separator")}
+            </span>
             <select
               className="rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-neutral-0"
               value={csvSep}
@@ -172,20 +193,34 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
             </select>
           </div>
           <p className="mt-2 text-[11px] text-neutral-3">
-            {t("reports.export.brandingHelp", "PDF includes SACCO logo/color when available; CSV uses raw values. Date range defaults to last 30 days.")}
+            {t(
+              "reports.export.brandingHelp",
+              "PDF includes SACCO logo/color when available; CSV uses raw values. Date range defaults to last 30 days."
+            )}
           </p>
         </div>
         <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 p-3 text-xs text-neutral-2">
-          <span>{ikiminaCount} {t("reports.export.eligibleSuffix", "ikimina eligible for export.")}</span>
+          <span>
+            {ikiminaCount} {t("reports.export.eligibleSuffix", "ikimina eligible for export.")}
+          </span>
           <p className="mt-2 text-[11px] text-neutral-3">
-            {t("reports.export.hint", "Exports default to the last 30 days when no dates are provided.")}
+            {t(
+              "reports.export.hint",
+              "Exports default to the last 30 days when no dates are provided."
+            )}
           </p>
         </div>
       </div>
 
       <div className="space-y-3">
-        {errorMessage && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{errorMessage}</p>}
-        {message && <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{message}</p>}
+        {errorMessage && (
+          <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{errorMessage}</p>
+        )}
+        {message && (
+          <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+            {message}
+          </p>
+        )}
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
@@ -193,7 +228,9 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
             disabled={pending || ikiminaCount === 0 || !dateValidation.valid}
             className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
           >
-            {pending ? t("common.exporting", "Exporting…") : t("common.downloadPdf", "Download PDF")}
+            {pending
+              ? t("common.exporting", "Exporting…")
+              : t("common.downloadPdf", "Download PDF")}
           </button>
           <button
             type="button"
@@ -201,7 +238,9 @@ export function ReportExportPanel({ filters, ikiminaCount }: ReportExportPanelPr
             disabled={pending || ikiminaCount === 0 || !dateValidation.valid}
             className="interactive-scale rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 disabled:opacity-60"
           >
-            {pending ? t("common.exporting", "Exporting…") : t("common.downloadCsv", "Download CSV")}
+            {pending
+              ? t("common.exporting", "Exporting…")
+              : t("common.downloadCsv", "Download CSV")}
           </button>
           <button
             type="button"

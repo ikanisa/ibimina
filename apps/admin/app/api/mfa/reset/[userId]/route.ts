@@ -15,7 +15,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       logEvent: "admin_mfa_reset_user_denied",
       clientFactory: createSupabaseAdminClient,
     },
-    () => NextResponse.json({ error: "forbidden" }, { status: 403 }),
+    () => NextResponse.json({ error: "forbidden" }, { status: 403 })
   );
 
   if (guard.denied) {
@@ -29,7 +29,8 @@ export async function POST(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "user_required" }, { status: 400 });
   }
 
-  const reason = (await request.json().catch(() => ({} as { reason?: string }))).reason ?? "manual_reset";
+  const reason =
+    (await request.json().catch(() => ({}) as { reason?: string })).reason ?? "manual_reset";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
