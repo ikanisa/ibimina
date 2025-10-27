@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "pnpm exec eslint --max-warnings=0 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.tests.json --noEmit",
     "check:i18n": "node scripts/check-i18n.mjs",
     "check:i18n:consistency": "node scripts/check-i18n-consistency.mjs",
     "fix:i18n": "node scripts/fix-i18n.mjs && node scripts/check-i18n.mjs",

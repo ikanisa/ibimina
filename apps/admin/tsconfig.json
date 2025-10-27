@@ -31,7 +31,6 @@
     "lib/**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "tests/**/*.ts",
     "next-env.d.ts",
     "providers/**/*.ts",
     "providers/**/*.tsx",
@@ -40,6 +39,7 @@
   ],
   "exclude": [
     "node_modules",
-    ".next"
+    ".next",
+    "../../supabase"
   ]
 }

@@ -303,7 +303,7 @@ export function GlobalSearchDialog({
       const baseLimit = profile.role === "SYSTEM_ADMIN" ? 400 : 200;
       let queryBuilder = supabase
         .from("ibimina")
-        .select("id, name, code, status, saccos(name)")
+        .select("id, name, code, status")
         .order("updated_at", { ascending: false })
         .limit(baseLimit);
 

@@ -35,7 +35,7 @@ async function fetchIkiminaDirectory(
   const appSupabase = clients.app;
   const baseQuery = appSupabase
     .from("ikimina")
-    .select("id, name, code, status, type, sacco_id, created_at, updated_at, saccos(name)")
+    .select("id, name, code, status, type, sacco_id, created_at, updated_at")
     .order("updated_at", { ascending: false })
     .limit(500);
 

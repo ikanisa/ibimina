@@ -5,13 +5,11 @@ import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
 import { upsertSacco, removeSacco } from "@/app/(main)/admin/actions";
-
-
 import type { Database } from "@/lib/supabase/types";
 
 type RawSaccoRow = Pick<
   Database["app"]["Tables"]["saccos"]["Row"],
-  "id" | "name" | "district" | "province" | "sector" | "status" | "email" | "category" | "logo_url" | "sector_code"
+  "id" | "name" | "district" | "province" | "sector" | "status" | "email" | "category" | "logo_url" | "sector_code" | "district_org_id"
 >;
 
 type SaccoRow = {
@@ -25,6 +23,7 @@ type SaccoRow = {
   category: string;
   logo_url: string | null;
   sector_code: string;
+  district_org_id: string | null;
 };
 
 const normalizeSacco = (row: RawSaccoRow): SaccoRow => ({
@@ -38,6 +37,7 @@ const normalizeSacco = (row: RawSaccoRow): SaccoRow => ({
   category: row.category ?? DEFAULT_CATEGORY,
   logo_url: row.logo_url ?? null,
   sector_code: row.sector_code ?? "",
+  district_org_id: row.district_org_id ?? null,
 });
 
 type DistrictMomoInfo = {
@@ -107,6 +107,7 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
       province: sacco.province ?? "",
       sector: sacco.sector ?? "",
       sector_code: buildSectorCode(sacco.district ?? "", sacco.sector ?? ""),
+      district_org_id: sacco.district_org_id ?? null,
     });
     setMode("edit");
   };
@@ -123,12 +124,17 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
       category: DEFAULT_CATEGORY,
       logo_url: null,
       sector_code: "",
+      district_org_id: null,
     });
     setMode("create");
   };
 
   const handleChange = <K extends keyof SaccoFormState>(key: K, value: SaccoFormState[K]) => {
-    setEditing((current) => (current ? { ...current, [key]: value ?? "" } : current));
+    setEditing((current) => {
+      if (!current) return current;
+      const nextValue = value === undefined ? ("" as SaccoFormState[K]) : value;
+      return { ...current, [key]: nextValue };
+    });
   };
 
   const validateForm = (state: SaccoFormState | null) => {
@@ -160,6 +166,7 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
         status: editing.status,
         email: editing.email?.trim() ? editing.email.trim() : null,
         logo_url: editing.logo_url ?? null,
+        district_org_id: editing.district_org_id ?? null,
       } as Database["app"]["Tables"]["saccos"]["Insert"];
 
       const result = await upsertSacco({
@@ -339,9 +346,17 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
               <input
                 type="text"
                 value={editing.district}
-                onChange={(event) => handleChange("district", event.target.value)}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  handleChange("district", nextValue);
+                  setEditing((current) => (current ? { ...current, district_org_id: null } : current));
+                }}
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
+                placeholder={t("admin.registry.districtHelper", "ex: Kicukiro")}
               />
+              <p className="text-[11px] text-neutral-3">
+                {t("admin.registry.districtHelperText", "We auto-link the hidden District org for RLS when you save.")}
+              </p>
             </label>
             <label className="space-y-1">
               <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.sector", "Sector")}</span>

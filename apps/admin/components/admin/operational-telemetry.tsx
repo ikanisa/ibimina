@@ -1,3 +1,4 @@
+'use client';
 import { useTranslation } from "@/providers/i18n-provider";
 import { cn } from "@/lib/utils";
 

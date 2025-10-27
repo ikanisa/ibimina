@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["node", "@playwright/test"]
+  },
+  "include": [
+    "tests/unit/**/*.ts",
+    "tests/integration/**/*.ts",
+    "tests/types/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "tests/e2e/**",
+    "tests/unit/notification-dispatch.test.ts",
+    "tests/e2e/playwright-stubs.d.ts"
+  ]
+}

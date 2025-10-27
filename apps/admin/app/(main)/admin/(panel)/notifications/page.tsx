@@ -116,7 +116,7 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
 
   const channelAcks = {
     whatsapp: Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_WHATSAPP_FROM),
-    email: Boolean(env.RESEND_API_KEY && env.MFA_EMAIL_FROM),
+    email: Boolean(process.env.RESEND_API_KEY && env.MFA_EMAIL_FROM),
   } as const;
 
   return (
