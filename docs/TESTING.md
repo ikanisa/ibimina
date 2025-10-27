@@ -33,6 +33,8 @@ pnpm --filter @ibimina/platform-api run test:unit
 pnpm --filter @ibimina/client run test:unit
 pnpm --filter @ibimina/ui run test:unit
 
+# Note: @ibimina/core and @ibimina/testing packages don't have tests yet
+
 # Run integration tests (platform-api)
 pnpm --filter @ibimina/platform-api run test:integration
 
@@ -213,7 +215,7 @@ test("user can login", async ({ page }) => {
 
 ## CI/CD Integration
 
-Tests are automatically run in CI/CD pipelines on every push and pull request:
+Tests are automatically run in CI/CD pipelines on every push and pull request. The CI workflow (`.github/workflows/ci.yml`) includes:
 
 ```yaml
 - name: Unit tests
@@ -225,7 +227,7 @@ Tests are automatically run in CI/CD pipelines on every push and pull request:
 - name: RLS policy tests
   run: pnpm run test:rls
 
-- name: E2E tests
+- name: Playwright smoke tests
   run: pnpm run test:e2e
 ```
 
@@ -233,15 +235,17 @@ See `.github/workflows/ci.yml` for the complete CI configuration.
 
 ## Test Coverage
 
-### Current Coverage
+### Current Coverage (as of this PR)
 
 | Package | Unit Tests | Integration Tests | E2E Tests | Total |
 |---------|-----------|-------------------|-----------|-------|
-| admin | 65 | Yes | 6 specs | 65+ |
+| admin | 65 | Yes (auth, RLS) | 6 specs | 65+ |
 | platform-api | 10 | 5 | - | 15 |
 | client | 8 | - | - | 8 |
 | ui | 14 | - | - | 14 |
 | **Total** | **97** | **5+** | **6** | **102+** |
+
+*Note: These are actual test counts as implemented. The "+" indicates additional tests in integration/e2e suites that aren't counted individually.*
 
 ### Coverage Goals
 - **Unit tests**: Aim for >80% coverage of utility functions and business logic
