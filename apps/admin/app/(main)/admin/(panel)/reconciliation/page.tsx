@@ -126,22 +126,23 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
       latencyMs: item.lastLatencyMs ?? null,
     }));
   } else {
+    // eslint-disable-next-line react-hooks/purity -- Server component: Date.now() is safe here
+    const now = Date.now();
+    const pollerStaleThreshold = now - 15 * 60 * 1000;
+    const gatewayStaleThreshold = now - 10 * 60 * 1000;
+
     const [pollerRows, gatewayRows] = await Promise.all([
-      (supabase as any)
+      supabase
         .schema("app")
         .from("momo_statement_pollers")
         .select("id, display_name, status, last_polled_at, last_error, last_latency_ms")
         .order("display_name", { ascending: true }),
-      (supabase as any)
+      supabase
         .schema("app")
         .from("sms_gateway_endpoints")
         .select("id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms")
         .order("display_name", { ascending: true }),
     ]);
-
-    const now = Date.now();
-    const pollerStaleThreshold = now - 15 * 60 * 1000;
-    const gatewayStaleThreshold = now - 10 * 60 * 1000;
 
     pollerIssues = (pollerRows?.data ?? [])
       .filter((row) => {
