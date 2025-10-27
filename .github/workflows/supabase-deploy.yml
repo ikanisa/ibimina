@@ -16,6 +16,8 @@ jobs:
   migration-check:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,6 +57,9 @@ jobs:
     needs: migration-check
     runs-on: ubuntu-latest
     environment: staging
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
