@@ -176,23 +176,28 @@ Preview environment has been updated with your changes.
 
 **Script**: `apps/admin/scripts/supabase-go-live.sh`
 
-**Functions Deployed** (20 total):
+**Functions Deployed** (21 total):
 - admin-reset-mfa
 - analytics-forecast
 - bootstrap-admin
-- export-report, export-statement
+- export-report
+- export-statement
 - gsm-maintenance
-- import-statement, ingest-sms
+- import-statement
+- ingest-sms
 - invite-user
 - metrics-exporter
 - parse-sms
 - payments-apply
 - recon-exceptions
-- reporting-summary, reports-export
+- reporting-summary
+- reports-export
 - scheduled-reconciliation
 - secure-import-members
 - settle-payment
-- sms-ai-parse, sms-inbox, sms-review
+- sms-ai-parse
+- sms-inbox
+- sms-review
 
 ### Configuration
 
