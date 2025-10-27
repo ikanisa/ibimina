@@ -177,6 +177,20 @@ type BackupCodeRecord = {
   hash: string;
 };
 
+/**
+ * Internal function to hash a backup code using PBKDF2 with pepper and salt
+ * 
+ * Security considerations:
+ * - Uses PBKDF2 with 250,000 iterations (OWASP recommendation)
+ * - SHA-256 hash algorithm
+ * - 32-byte output length
+ * - Combines pepper (from env) with per-code salt
+ * - Returns format: "{salt}${hash}" for storage
+ * 
+ * @param code - Plain text backup code to hash
+ * @param salt - Optional salt (if not provided, generates new 16-byte random salt)
+ * @returns Salted hash string in format "salt$hash" (both base64 encoded)
+ */
 const hashBackupCodeInternal = (code: string, salt?: string) => {
   const pepper = backupPepper();
   const effectiveSalt = salt ?? crypto.randomBytes(16).toString("base64");
@@ -184,6 +198,13 @@ const hashBackupCodeInternal = (code: string, salt?: string) => {
   return `${effectiveSalt}$${hash}`;
 };
 
+/**
+ * Generates a set of one-time backup codes for MFA recovery
+ * Each code is 10 characters (uppercase alphanumeric) and cryptographically hashed
+ * 
+ * @param count - Number of backup codes to generate (default: 10)
+ * @returns Array of backup code records with plaintext code and secure hash
+ */
 export const generateBackupCodes = (count = 10): BackupCodeRecord[] => {
   const records: BackupCodeRecord[] = [];
   for (let i = 0; i < count; i += 1) {
