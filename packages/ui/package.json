@@ -9,10 +9,12 @@
     "build": "tsc -p tsconfig.json",
     "lint": "echo 'TODO: add linting'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo 'TODO: add tests'"
+    "test": "pnpm run test:unit",
+    "test:unit": "tsx --test tests/unit/*.test.ts"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
+    "tsx": "^4.20.6",
     "@types/node": "20.19.21",
     "@types/react": "^19.0.11",
     "@types/react-dom": "^19.0.11",
