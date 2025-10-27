@@ -25,6 +25,7 @@ SET search_path = public
 AS $$
   -- Search SACCOs using trigram similarity on name and sector_code
   -- Returns top 20 results ordered by similarity score
+  -- Filters out results with very low similarity (<= 0.05) for performance
   SELECT
     s.id,
     s.name,
@@ -36,6 +37,10 @@ AS $$
     ) AS similarity
   FROM public.saccos s
   WHERE coalesce(trim(q), '') <> ''
+    AND (
+      similarity(s.name, q) > 0.05
+      OR similarity(s.sector_code, q) > 0.05
+    )
   ORDER BY similarity DESC, s.name ASC
   LIMIT 20
 $$;
