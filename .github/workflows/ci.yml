@@ -57,7 +57,12 @@ jobs:
         run: pnpm exec playwright install --with-deps
 
       - name: Verify required feature flags
+        if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' }}
         run: pnpm run check:flags
+
+      - name: Skip feature flag verification (secrets unavailable)
+        if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_SERVICE_ROLE_KEY == '' }}
+        run: echo "Skipping feature flag verification because Supabase secrets are not available."
 
       - name: Lint
         run: pnpm run lint
