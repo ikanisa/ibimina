@@ -31,13 +31,19 @@ test_count=0
 failed_tests=0
 passed_tests=0
 
+# Check if test directory exists
+if [[ ! -d "$REPO_ROOT/supabase/tests/rls" ]]; then
+  echo "Error: Test directory not found: $REPO_ROOT/supabase/tests/rls" >&2
+  exit 1
+fi
+
 echo "Running RLS tests..."
-while IFS= read -r -d '' test; do
-  test_name=$(basename "$test")
+while IFS= read -r -d '' test_file; do
+  test_name=$(basename "$test_file")
   ((test_count++))
   echo "  Running: $test_name"
   
-  if psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$test" >/dev/null 2>&1; then
+  if psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$test_file" >/dev/null 2>&1; then
     echo "    ✓ Passed"
     ((passed_tests++))
   else
@@ -46,6 +52,12 @@ while IFS= read -r -d '' test; do
     status=1
   fi
 done < <(find "$REPO_ROOT/supabase/tests/rls" -maxdepth 1 -name "*.test.sql" -type f -print0 2>/dev/null | sort -z)
+
+# Check if any tests were found
+if [[ $test_count -eq 0 ]]; then
+  echo "Warning: No RLS tests found in $REPO_ROOT/supabase/tests/rls" >&2
+  exit 0
+fi
 
 # Print summary
 echo ""

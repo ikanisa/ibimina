@@ -55,15 +55,27 @@ fi
 # Apply migrations in order
 echo "Applying migrations..."
 migration_count=0
-while IFS= read -r -d '' migration; do
-  migration_name=$(basename "$migration")
+
+# Check if migrations directory exists
+if [[ ! -d "$REPO_ROOT/supabase/migrations" ]]; then
+  echo "Error: Migrations directory not found: $REPO_ROOT/supabase/migrations" >&2
+  exit 1
+fi
+
+while IFS= read -r -d '' migration_file; do
+  migration_name=$(basename "$migration_file")
   echo "  Applying: $migration_name"
-  if ! psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$migration" >/dev/null; then
+  if ! psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$migration_file" >/dev/null; then
     echo "Error: Failed applying $migration_name" >&2
     exit 1
   fi
   ((migration_count++))
 done < <(find "$REPO_ROOT/supabase/migrations" -maxdepth 1 -name "*.sql" -type f -print0 | sort -z)
+
+if [[ $migration_count -eq 0 ]]; then
+  echo "Warning: No migrations found in $REPO_ROOT/supabase/migrations" >&2
+fi
+
 echo "Successfully applied $migration_count migrations"
 
 # Apply test seed data
