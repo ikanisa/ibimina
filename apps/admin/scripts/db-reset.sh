@@ -26,7 +26,7 @@ if [[ -z "$DB_NAME" ]]; then
   exit 1
 fi
 
-ADMIN_URL="${DB_URL%/$DB_NAME}/postgres"
+ADMIN_URL="${DB_URL%/"$DB_NAME"}/postgres"
 
 # Check if psql is available
 if ! command -v psql >/dev/null 2>&1; then
@@ -55,7 +55,7 @@ fi
 # Apply migrations in order
 echo "Applying migrations..."
 migration_count=0
-for migration in $(ls "$REPO_ROOT"/supabase/migrations/*.sql | sort); do
+while IFS= read -r -d '' migration; do
   migration_name=$(basename "$migration")
   echo "  Applying: $migration_name"
   if ! psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$migration" >/dev/null; then
@@ -63,7 +63,7 @@ for migration in $(ls "$REPO_ROOT"/supabase/migrations/*.sql | sort); do
     exit 1
   fi
   ((migration_count++))
-done
+done < <(find "$REPO_ROOT/supabase/migrations" -maxdepth 1 -name "*.sql" -type f -print0 | sort -z)
 echo "Successfully applied $migration_count migrations"
 
 # Apply test seed data

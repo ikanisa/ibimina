@@ -32,7 +32,7 @@ failed_tests=0
 passed_tests=0
 
 echo "Running RLS tests..."
-for test in $(ls "$REPO_ROOT"/supabase/tests/rls/*.test.sql 2>/dev/null | sort); do
+while IFS= read -r -d '' test; do
   test_name=$(basename "$test")
   ((test_count++))
   echo "  Running: $test_name"
@@ -45,7 +45,7 @@ for test in $(ls "$REPO_ROOT"/supabase/tests/rls/*.test.sql 2>/dev/null | sort);
     ((failed_tests++))
     status=1
   fi
-done
+done < <(find "$REPO_ROOT/supabase/tests/rls" -maxdepth 1 -name "*.test.sql" -type f -print0 2>/dev/null | sort -z)
 
 # Print summary
 echo ""
