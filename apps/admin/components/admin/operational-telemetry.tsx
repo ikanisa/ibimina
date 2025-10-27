@@ -1,5 +1,5 @@
 import { useTranslation } from "@/providers/i18n-provider";
-import { cn } from "@/lib/utils";
+import { MetricCard } from "@ibimina/ui";
 
 type TelemetryMetric = {
   event: string;
@@ -8,7 +8,10 @@ type TelemetryMetric = {
   meta: Record<string, unknown> | null;
 };
 
-function getMetricMeta(event: string, t: (k: string, f?: string) => string) {
+type MetricAccent = "blue" | "yellow" | "green" | "neutral";
+
+// Note: 'yellow' is used for warning states (previously 'amber') to align with design system tokens
+function getMetricMeta(event: string, t: (k: string, f?: string) => string): { title: string; desc: string; accent: MetricAccent } {
   switch (event) {
     case "sms_ingested":
       return {
@@ -82,21 +85,14 @@ function getMetricMeta(event: string, t: (k: string, f?: string) => string) {
   }
 }
 
-const numberFormatter = new Intl.NumberFormat("en-RW");
-
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString();
-}
-
 interface OperationalTelemetryProps {
   metrics: TelemetryMetric[];
 }
 
 export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
   const { t } = useTranslation();
+  const numberFormatter = new Intl.NumberFormat("en-RW");
+
   if (!metrics.length) {
     return (
       <p className="text-sm text-neutral-2">
@@ -104,6 +100,13 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
       </p>
     );
   }
+
+  const formatDate = (value: string | null) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return date.toLocaleString();
+  };
 
   const sorted = [...metrics].sort((a, b) => {
     const weightA = [
@@ -141,14 +144,7 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {sorted.map((metric) => {
         const meta = getMetricMeta(metric.event, t);
-
-        const accentClass =
-          meta.accent === "green"
-            ? "bg-gradient-to-br from-emerald-400/15 to-transparent border-emerald-400/30"
-            : meta.accent === "amber"
-              ? "bg-gradient-to-br from-amber-300/15 to-transparent border-amber-300/30"
-              : "bg-gradient-to-br from-sky-400/15 to-transparent border-sky-400/30";
-
+        
         return (
           <article
             key={metric.event}
