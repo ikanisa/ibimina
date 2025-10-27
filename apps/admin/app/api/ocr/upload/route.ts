@@ -64,9 +64,7 @@ export async function POST(req: NextRequest) {
 
   const base64 = Buffer.from(bytes).toString("base64");
 
-  const ocrPrompt =
-    "Extract the ID number and holder details from this document. " +
-    "Only respond using the provided JSON schema.";
+  const ocrPrompt = `Extract the ID number and holder details from this document. Only respond using the provided JSON schema.`;
 
   let response;
   let parsedOcr: OcrPayload;
