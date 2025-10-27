@@ -14,6 +14,10 @@ semantic SACCO search.
 - [**docs/**](docs/) - Additional documentation on architecture, deployment, and
   operations
 
+## Overview
+
+**Ibimina** (Kinyarwanda for "groups") is a comprehensive SACCO management platform designed for Rwanda's Umurenge SACCOs. The system manages group savings (ikimina), member accounts, mobile money payments, and reconciliation workflows. Built with security, observability, and offline-first capabilities in mind.
+
 ## Branching model
 
 - `main` is the deployment-ready default branch and now tracks the latest
@@ -27,11 +31,40 @@ semantic SACCO search.
 
 ## Tech stack
 
-- Next.js 15 (App Router, typed routes)
-- TypeScript + Tailwind design tokens (`styles/tokens.css`)
-- Framer Motion for page transitions
-- Supabase (`@supabase/ssr`) for auth and data
-- PWA manifest & service worker ready for production deploys
+### Frontend
+- **Next.js 15** (App Router with typed routes)
+- **TypeScript 5.9** for type safety
+- **Tailwind CSS** with custom design tokens (`styles/tokens.css`)
+- **Framer Motion** for page transitions and animations
+- **PWA** (Progressive Web App) with manifest & service worker
+
+### Backend
+- **Supabase** for authentication, database, and Edge Functions
+  - PostgreSQL with Row-Level Security (RLS)
+  - Real-time subscriptions
+  - Edge Functions (Deno runtime)
+- **@supabase/ssr** for SSR-compatible auth
+
+### Infrastructure
+- **Prometheus + Grafana** for observability (in `infra/metrics/`)
+- **Docker** for containerized deployments
+- **pg_cron** for scheduled database jobs
+
+### Key Features
+- Multi-factor authentication (TOTP, Passkeys/WebAuthn, Email OTP)
+- End-to-end encryption for PII (AES-256-GCM)
+- Offline-first capabilities with service workers
+- Bilingual interface (English, Kinyarwanda, French)
+- Semantic SACCO search with trigram matching
+
+## Prerequisites
+
+Before setting up the project, ensure you have:
+
+- **Node.js** v20.x or higher (specified in `.nvmrc`)
+- **pnpm** v10.19.0 (specified in `package.json`)
+- **Supabase CLI** (for local database development)
+- **Docker** (optional, for running local Supabase and metrics stack)
 
 ## Development Tooling
 
@@ -47,17 +80,69 @@ detailed guidelines.
 
 ## Local setup
 
+### 1. Install dependencies
+
 ```bash
+# Use the correct Node version
+nvm use
+
+# Install pnpm if not already installed
+npm install -g pnpm@10.19.0
+
+# Install project dependencies
 pnpm install
-cp .env.example .env
-pnpm dev
 ```
 
-`.env` stays out of version control and is loaded automatically by the admin
-app. Populate it with your Supabase project details (URL, anon key, service
-role, peppers, secrets) before starting the dev server. See
-[`docs/local-hosting.md`](docs/local-hosting.md) for a detailed Mac-hosting
-walkthrough plus health-check steps.
+### 2. Configure environment variables
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+```
+
+Edit `.env` and populate the following **required** variables:
+
+| Variable | Purpose | How to obtain |
+|----------|---------|---------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | From your Supabase project settings |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key | From your Supabase project API settings |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server-only) | From your Supabase project API settings |
+| `KMS_DATA_KEY_BASE64` | 32-byte base64 encryption key | Generate with: `openssl rand -base64 32` |
+| `BACKUP_PEPPER` | Salt for backup codes | Generate with: `openssl rand -hex 32` |
+| `MFA_SESSION_SECRET` | MFA session signing key | Generate with: `openssl rand -hex 32` |
+| `TRUSTED_COOKIE_SECRET` | Trusted device cookie key | Generate with: `openssl rand -hex 32` |
+| `HMAC_SHARED_SECRET` | HMAC for edge function auth | Generate with: `openssl rand -hex 32` |
+
+See `.env.example` for additional optional configuration (logging, email, analytics, etc.).
+
+### 3. Start local Supabase (optional)
+
+For local development with a full database:
+
+```bash
+# Start local Supabase instance
+supabase start
+
+# Apply migrations
+supabase db reset
+
+# The local instance runs at http://127.0.0.1:54321
+# Update your .env with these local URLs
+```
+
+### 4. Run the development server
+
+```bash
+# Start Next.js dev server (default port 3000)
+pnpm dev
+
+# Or start a specific app
+pnpm --filter @ibimina/admin dev
+```
+
+The admin console will be available at `http://localhost:3000`.
+
+`.env` stays out of version control and is loaded automatically by the admin app. See [`docs/local-hosting.md`](docs/local-hosting.md) for a detailed Mac-hosting walkthrough plus health-check steps.
 
 - `pnpm start` (and the `apps/admin/scripts/start.sh` wrapper) boots the
   `.next/standalone` output by default. Set `ADMIN_USE_STANDALONE_START=0` (or

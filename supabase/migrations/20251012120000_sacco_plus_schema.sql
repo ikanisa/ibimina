@@ -655,6 +655,14 @@ create policy idempotency_user_update
   using (auth.uid() = user_id or app.is_admin());
 
 -- 6. Stored procedures --------------------------------------------------------
+-- Stored Procedure: Nightly Reconciliation
+-- Reopens all closed reconciliation exceptions for review
+-- This procedure runs nightly at 2 AM via pg_cron to ensure that any
+-- previously closed exceptions are re-examined. This helps catch cases where
+-- payments may have been incorrectly matched or need additional review.
+-- 
+-- Schedule: Daily at 2:00 AM UTC (via cron job 00-nightly-recon)
+-- Impact: Reopens all non-OPEN exceptions by setting status to OPEN and clearing resolved_at
 create or replace procedure ops.sp_nightly_recon()
 language plpgsql
 as $$
@@ -667,6 +675,14 @@ begin
 end;
 $$;
 
+-- Stored Procedure: Monthly Close
+-- Creates an immutable audit log entry marking the end of a monthly period
+-- This procedure runs on the 1st of each month at 2:10 AM to create a
+-- checkpoint in the audit trail. Used for regulatory reporting and ensures
+-- a clear audit trail of monthly accounting periods.
+-- 
+-- Schedule: Monthly on the 1st at 2:10 AM UTC (via cron job 01-monthly-close)
+-- Impact: Inserts a MONTHLY_CLOSE audit log entry with UTC timestamp
 create or replace procedure ops.sp_monthly_close()
 language plpgsql
 as $$

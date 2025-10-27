@@ -61,6 +61,26 @@ plaintext PII outside the encrypted columns.
 - `*_touch_updated_at` – reuse `public.set_updated_at` to keep `updated_at`
   columns current.
 
+## Stored Procedures
+
+### Operational Procedures
+
+- `ops.sp_nightly_recon()` – Re-opens lingering reconciliation exceptions. Runs nightly at 2 AM via pg_cron. Checks for payments that remain unallocated beyond the configured threshold and escalates them for manual review.
+  
+- `ops.sp_monthly_close()` – Creates an immutable monthly close snapshot in `app.audit_logs`. Runs on the 1st of each month at 2:10 AM. Captures aggregate balances, payment volumes, and exception counts for regulatory reporting.
+
+### Search & Analytics
+
+- `public.search_saccos_semantic(query text, max_results int)` – Trigram-based fuzzy search across SACCO names, districts, and sectors. Returns ranked results with similarity scores. Used by the global search palette and SACCO picker components.
+
+- `public.get_dashboard_metrics(sacco_id uuid, start_date date, end_date date)` – Computes key performance indicators including total deposits, active members, pending reconciliations, and daily payment trends. Optimized with indexed queries to support dashboard views.
+
+### Payment Processing
+
+- `app.apply_payment(...)` – Core payment ingestion procedure. Validates incoming payment data, encrypts PII fields, matches payments to members via phone number or reference, creates ledger entries, and handles exceptions. Called by the `payments-apply` Edge Function.
+
+- `app.resolve_member_by_msisdn(msisdn text, sacco_id uuid)` – Looks up a member by encrypted phone number hash. Uses the `msisdn_hash` index for efficient lookups without exposing plaintext.
+
 ## Scheduled jobs (pg_cron)
 
 | Job                | Schedule     | Command                                                                      |
