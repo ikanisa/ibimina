@@ -131,13 +131,48 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
       latencyMs: item.lastLatencyMs ?? null,
     }));
   } else {
+    // Define types for app schema tables not in generated types
+    type MomoStatementPoller = {
+      id: string;
+      display_name: string | null;
+      status: string | null;
+      last_polled_at: string | null;
+      last_error: string | null;
+      last_latency_ms: number | null;
+    };
+
+    type SmsGatewayEndpoint = {
+      id: string;
+      display_name: string | null;
+      status: string | null;
+      last_status: string | null;
+      last_heartbeat_at: string | null;
+      last_error: string | null;
+      last_latency_ms: number | null;
+    };
+
+    type SupabaseAppSchemaResponse<T> = {
+      data: T[] | null;
+      error: unknown;
+    };
+
+    type SupabaseAppSchema = {
+      schema: (name: string) => {
+        from: (table: string) => {
+          select: (columns: string) => {
+            order: (column: string, options: { ascending: boolean }) => Promise<SupabaseAppSchemaResponse<unknown>>;
+          };
+        };
+      };
+    };
+    
     const [pollerRows, gatewayRows] = await Promise.all([
-      (supabase as any)
+      (supabase as unknown as SupabaseAppSchema)
         .schema("app")
         .from("momo_statement_pollers")
         .select("id, display_name, status, last_polled_at, last_error, last_latency_ms")
-        .order("display_name", { ascending: true }),
-      (supabase as any)
+        .order("display_name", { ascending: true }) as Promise<SupabaseAppSchemaResponse<MomoStatementPoller>>,
+      (supabase as unknown as SupabaseAppSchema)
         .schema("app")
         .from("sms_gateway_endpoints")
         .select(
@@ -146,9 +181,10 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
         .order("display_name", { ascending: true }),
     ]);
 
-    const now = Date.now();
-    const pollerStaleThreshold = now - 15 * 60 * 1000;
-    const gatewayStaleThreshold = now - 10 * 60 * 1000;
+    // Calculate thresholds at query time instead of render time
+    const currentTimestamp = new Date().getTime();
+    const pollerStaleThreshold = currentTimestamp - 15 * 60 * 1000;
+    const gatewayStaleThreshold = currentTimestamp - 10 * 60 * 1000;
 
     pollerIssues = (pollerRows?.data ?? [])
       .filter((row) => {
