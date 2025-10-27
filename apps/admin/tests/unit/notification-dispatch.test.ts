@@ -91,7 +91,10 @@ describe("notification dispatch helpers", () => {
     assert.equal(outcome.type, "success");
     assert.equal(sent.length, 1);
     assert.ok(sent[0].body.includes("Aline"));
-    assert.equal(audits.some((diff) => diff.event === "SMS_TEMPLATE_TEST"), true);
+    assert.equal(
+      audits.some((diff) => diff.event === "SMS_TEMPLATE_TEST"),
+      true
+    );
   });
 
   it("fails email jobs without recipient", async () => {

@@ -5,7 +5,8 @@ import { validateHmacRequest } from "../_shared/auth.ts";
 const APP_ORIGIN = Deno.env.get("APP_ORIGIN") ?? "*";
 const corsHeaders = {
   "Access-Control-Allow-Origin": APP_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
 
 const DEFAULT_LOOKBACK_HOURS = parseInt(Deno.env.get("RECON_AUTO_ESCALATE_HOURS") ?? "48", 10);
@@ -42,7 +43,9 @@ Deno.serve(async (req) => {
       if (contentType.includes("application/json") && validation.rawBody.length > 0) {
         let payload: { hours?: unknown } | null = null;
         try {
-          payload = JSON.parse(new TextDecoder().decode(validation.rawBody)) as { hours?: unknown } | null;
+          payload = JSON.parse(new TextDecoder().decode(validation.rawBody)) as {
+            hours?: unknown;
+          } | null;
         } catch (error) {
           console.warn("scheduled-reconciliation.json_parse_failed", { error: String(error) });
           return new Response(JSON.stringify({ success: false, error: "invalid_payload" }), {
@@ -72,21 +75,19 @@ Deno.serve(async (req) => {
     let queued = 0;
 
     for (const payment of pending ?? []) {
-      const { error: upsertError } = await supabase
-        .from("notification_queue")
-        .upsert({
-          event: "RECON_ESCALATION",
-          payment_id: payment.id,
-          channel: "WHATSAPP",
-          payload: {
-            paymentId: payment.id,
-            reference: payment.reference,
-            occurredAt: payment.occurred_at,
-            status: payment.status,
-            to: payment.msisdn,
-          },
-          scheduled_for: new Date().toISOString(),
-        });
+      const { error: upsertError } = await supabase.from("notification_queue").upsert({
+        event: "RECON_ESCALATION",
+        payment_id: payment.id,
+        channel: "WHATSAPP",
+        payload: {
+          paymentId: payment.id,
+          reference: payment.reference,
+          occurredAt: payment.occurred_at,
+          status: payment.status,
+          to: payment.msisdn,
+        },
+        scheduled_for: new Date().toISOString(),
+      });
 
       if (upsertError) {
         console.error("notification enqueue error", upsertError);

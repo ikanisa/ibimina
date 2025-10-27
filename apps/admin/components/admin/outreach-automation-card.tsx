@@ -33,7 +33,9 @@ export function OutreachAutomationCard() {
       if (!res) return;
       if (!res.ok) {
         const text = await res.text().catch(() => null);
-        toast.error(text ?? t("admin.outreach.runFailed", "Failed to run scheduled reconciliation"));
+        toast.error(
+          text ?? t("admin.outreach.runFailed", "Failed to run scheduled reconciliation")
+        );
         return;
       }
       const json = (await res.json()) as { queued?: number; checked?: number };
@@ -41,7 +43,7 @@ export function OutreachAutomationCard() {
       const checked = json.checked ?? 0;
       const template = t(
         "admin.outreach.runOk",
-        "Queued {{queued}} of {{checked}} pending payments for escalation.",
+        "Queued {{queued}} of {{checked}} pending payments for escalation."
       );
       const message = template
         .replace(/\{\{\s*queued\s*\}\}/g, String(queued))
@@ -56,7 +58,7 @@ export function OutreachAutomationCard() {
         <p className="text-sm text-neutral-2">
           {t(
             "admin.outreach.description",
-            "Escalate aged pending/unallocated payments to the notification queue for follow-up.",
+            "Escalate aged pending/unallocated payments to the notification queue for follow-up."
           )}
         </p>
         <label className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-neutral-0">
@@ -69,7 +71,9 @@ export function OutreachAutomationCard() {
               min={1}
               max={14 * 24}
               value={hours}
-              onChange={(e) => setHours(Math.max(1, Math.min(14 * 24, Number(e.target.value) || 1)))}
+              onChange={(e) =>
+                setHours(Math.max(1, Math.min(14 * 24, Number(e.target.value) || 1)))
+              }
               className="w-20 rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-right"
             />
             <span className="text-xs text-neutral-2">{hoursLabel}</span>
@@ -89,4 +93,3 @@ export function OutreachAutomationCard() {
     </div>
   );
 }
-

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       logEvent: "admin_mfa_reset_denied",
       clientFactory: createSupabaseAdminClient,
     },
-    () => NextResponse.json({ error: "forbidden" }, { status: 403 }),
+    () => NextResponse.json({ error: "forbidden" }, { status: 403 })
   );
 
   if (guard.denied) {
@@ -39,18 +39,18 @@ export async function POST(request: NextRequest) {
     mfa_secret_enc: string | null;
   };
 
-  const query = supabase
-    .from("users")
-    .select("id, email, mfa_enabled, mfa_secret_enc")
-    .limit(1);
+  const query = supabase.from("users").select("id, email, mfa_enabled, mfa_secret_enc").limit(1);
 
-  const { data: foundById } = body.userId
-    ? await query.eq("id", body.userId)
-    : { data: null };
+  const { data: foundById } = body.userId ? await query.eq("id", body.userId) : { data: null };
 
-  const { data: foundByEmail } = !foundById?.[0] && body.email
-    ? await supabase.from("users").select("id, email, mfa_enabled, mfa_secret_enc").eq("email", body.email).limit(1)
-    : { data: null };
+  const { data: foundByEmail } =
+    !foundById?.[0] && body.email
+      ? await supabase
+          .from("users")
+          .select("id, email, mfa_enabled, mfa_secret_enc")
+          .eq("email", body.email)
+          .limit(1)
+      : { data: null };
 
   const target = ((foundById ?? foundByEmail)?.[0] as TargetRow | undefined) ?? null;
   if (!target) {

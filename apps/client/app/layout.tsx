@@ -1,12 +1,12 @@
 /**
  * Root Layout for SACCO+ Client App
- * 
+ *
  * This layout wraps all pages and provides:
  * - Global styles and CSS reset
  * - Semantic HTML structure for accessibility
  * - Meta tags for SEO and PWA support
  * - Language attribute for screen readers
- * 
+ *
  * Accessibility features:
  * - lang attribute on html element
  * - Semantic viewport configuration
@@ -34,9 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

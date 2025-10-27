@@ -105,7 +105,7 @@ export function I18nProvider({ children, defaultLocale = DEFAULT_LOCALE }: I18nP
       }
       return value;
     },
-    [dictionary, locale],
+    [dictionary, locale]
   );
 
   const value = useMemo<I18nContextValue>(
@@ -114,7 +114,7 @@ export function I18nProvider({ children, defaultLocale = DEFAULT_LOCALE }: I18nP
       setLocale,
       t: translate,
     }),
-    [locale, setLocale, translate],
+    [locale, setLocale, translate]
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

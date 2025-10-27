@@ -26,9 +26,19 @@ export async function POST() {
   const otpauth = createOtpAuthUri(issuer, account, secret);
   const pendingToken = encodePendingEnrollment({ userId: user.id, secret, issuedAt: Date.now() });
 
-  await logAudit({ action: "MFA_ENROLLMENT_STARTED", entity: "USER", entityId: user.id, diff: null });
+  await logAudit({
+    action: "MFA_ENROLLMENT_STARTED",
+    entity: "USER",
+    entityId: user.id,
+    diff: null,
+  });
 
-  return NextResponse.json({ otpauth, secret, secretPreview: previewSecret(secret, 6), pendingToken });
+  return NextResponse.json({
+    otpauth,
+    secret,
+    secretPreview: previewSecret(secret, 6),
+    pendingToken,
+  });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -38,7 +48,9 @@ export async function DELETE(request: NextRequest) {
   }
 
   const supabase = createSupabaseAdminClient();
-  const { token, method } = await request.json().catch(() => ({ token: undefined, method: "totp" }));
+  const { token, method } = await request
+    .json()
+    .catch(() => ({ token: undefined, method: "totp" }));
 
   if (!token) {
     return NextResponse.json({ error: "token_required" }, { status: 400 });
@@ -46,13 +58,20 @@ export async function DELETE(request: NextRequest) {
 
   const { data: rawRecord, error } = await supabase
     .from("users")
-    .select("mfa_secret_enc, mfa_backup_hashes, mfa_methods, mfa_passkey_enrolled, mfa_enabled, mfa_enrolled_at")
+    .select(
+      "mfa_secret_enc, mfa_backup_hashes, mfa_methods, mfa_passkey_enrolled, mfa_enabled, mfa_enrolled_at"
+    )
     .eq("id", user.id)
     .maybeSingle();
 
   const record = rawRecord as Pick<
     Database["public"]["Tables"]["users"]["Row"],
-    "mfa_secret_enc" | "mfa_backup_hashes" | "mfa_methods" | "mfa_passkey_enrolled" | "mfa_enabled" | "mfa_enrolled_at"
+    | "mfa_secret_enc"
+    | "mfa_backup_hashes"
+    | "mfa_methods"
+    | "mfa_passkey_enrolled"
+    | "mfa_enabled"
+    | "mfa_enrolled_at"
   > | null;
 
   if (error || !record?.mfa_secret_enc) {
@@ -94,7 +113,7 @@ export async function DELETE(request: NextRequest) {
   const updatePayload: Database["public"]["Tables"]["users"]["Update"] = {
     mfa_enabled: stillProtected,
     mfa_secret_enc: null,
-    mfa_enrolled_at: stillProtected ? record.mfa_enrolled_at ?? new Date().toISOString() : null,
+    mfa_enrolled_at: stillProtected ? (record.mfa_enrolled_at ?? new Date().toISOString()) : null,
     mfa_backup_hashes: [],
     mfa_methods: remainingList,
     failed_mfa_count: 0,
@@ -103,7 +122,10 @@ export async function DELETE(request: NextRequest) {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error: updateError } = await (supabase as any).from("users").update(updatePayload).eq("id", user.id);
+  const { error: updateError } = await (supabase as any)
+    .from("users")
+    .update(updatePayload)
+    .eq("id", user.id);
 
   if (updateError) {
     console.error(updateError);

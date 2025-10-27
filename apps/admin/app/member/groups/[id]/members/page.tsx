@@ -7,22 +7,22 @@ import Link from "next/link";
 
 /**
  * Members List Page Component
- * 
+ *
  * Displays a list of members for a specific group. Access is restricted to
  * current group members through Row-Level Security (RLS) enforcement on the API.
- * 
+ *
  * @component
- * 
+ *
  * Features:
  * - Fetches and displays group members with key information
  * - Handles loading, error, and empty states
  * - Provides accessible navigation back to group detail
  * - Implements WCAG 2.1 AA compliance with semantic HTML and ARIA labels
- * 
+ *
  * @param props - Component props
  * @param props.params - Route parameters
  * @param props.params.id - UUID of the group
- * 
+ *
  * @accessibility
  * - Uses semantic HTML elements (main, header, article)
  * - Implements ARIA landmarks and labels for screen readers
@@ -37,7 +37,7 @@ interface MembersPageProps {
 
 export default function MembersPage({ params }: MembersPageProps) {
   const { id: groupId } = params;
-  
+
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +95,7 @@ export default function MembersPage({ params }: MembersPageProps) {
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           <span>Back to Group</span>
         </Link>
-        
+
         <div className="flex items-center gap-3">
           <Users className="h-8 w-8 text-emerald-500" aria-hidden="true" />
           <h1 className="text-3xl font-semibold">Group Members</h1>
@@ -109,7 +109,10 @@ export default function MembersPage({ params }: MembersPageProps) {
           role="status"
           aria-live="polite"
         >
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-white/20 border-t-emerald-500" aria-hidden="true" />
+          <div
+            className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-white/20 border-t-emerald-500"
+            aria-hidden="true"
+          />
           <p className="mt-4 text-white/70">Loading members...</p>
           <span className="sr-only">Loading group members</span>
         </div>
@@ -143,7 +146,7 @@ export default function MembersPage({ params }: MembersPageProps) {
           <h2 id="members-heading" className="sr-only">
             List of group members
           </h2>
-          
+
           {members.length === 0 ? (
             // Empty State
             <div className="rounded-3xl border border-dashed border-white/20 bg-white/4 p-8 text-center">
@@ -156,7 +159,7 @@ export default function MembersPage({ params }: MembersPageProps) {
               <p className="text-sm text-white/70" aria-live="polite">
                 Showing {members.length} member{members.length !== 1 ? "s" : ""}
               </p>
-              
+
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {members.map((member) => (
                   <article
@@ -169,13 +172,13 @@ export default function MembersPage({ params }: MembersPageProps) {
                         Code: <span className="font-mono">{member.member_code}</span>
                       </p>
                     </header>
-                    
+
                     <dl className="mt-4 space-y-2 text-sm">
                       <div>
                         <dt className="inline text-white/70">Phone: </dt>
                         <dd className="inline font-mono">{member.msisdn}</dd>
                       </div>
-                      
+
                       <div>
                         <dt className="inline text-white/70">Status: </dt>
                         <dd className="inline">
@@ -186,11 +189,12 @@ export default function MembersPage({ params }: MembersPageProps) {
                                 : "bg-white/20 text-white/70"
                             }`}
                           >
-                            {member.status.charAt(0).toUpperCase() + member.status.slice(1).toLowerCase()}
+                            {member.status.charAt(0).toUpperCase() +
+                              member.status.slice(1).toLowerCase()}
                           </span>
                         </dd>
                       </div>
-                      
+
                       <div>
                         <dt className="inline text-white/70">Joined: </dt>
                         <dd className="inline">{formatDate(member.joined_at)}</dd>

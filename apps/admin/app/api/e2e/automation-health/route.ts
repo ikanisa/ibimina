@@ -37,7 +37,10 @@ export function GET() {
   if (!e2eEnabled()) {
     return NextResponse.json({ ok: false, error: "e2e_stub_disabled" }, { status: 404 });
   }
-  return NextResponse.json({ ok: true, data: getAutomationHealthStub() ?? { pollers: [], gateways: [] } });
+  return NextResponse.json({
+    ok: true,
+    data: getAutomationHealthStub() ?? { pollers: [], gateways: [] },
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -49,7 +52,10 @@ export async function POST(request: NextRequest) {
   const parsed = STUB_SCHEMA.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "invalid_payload", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "invalid_payload", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   setAutomationHealthStub(parsed.data as AutomationHealthStub);

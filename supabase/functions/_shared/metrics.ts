@@ -6,7 +6,7 @@ export const recordMetric = async (
   supabase: AnyClient,
   eventName: string,
   delta = 1,
-  meta: Record<string, unknown> | null = null,
+  meta: Record<string, unknown> | null = null
 ) => {
   const { error } = await supabase.rpc("increment_metric", {
     event_name: eventName,

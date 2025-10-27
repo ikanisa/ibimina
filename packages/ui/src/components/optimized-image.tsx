@@ -19,12 +19,12 @@ export function OptimizedImage({
   ...props
 }: OptimizedImageProps) {
   const resolvedBlur = withPlaceholder
-    ? blurDataURL ??
+    ? (blurDataURL ??
       getBlurDataURL({
         width: typeof props.width === "number" ? props.width : undefined,
         height: typeof props.height === "number" ? props.height : undefined,
         accent: accentColor,
-      })
+      }))
     : undefined;
 
   return (
@@ -32,7 +32,7 @@ export function OptimizedImage({
       {...props}
       alt={alt}
       priority={priority}
-      loading={priority ? loading : loading ?? "lazy"}
+      loading={priority ? loading : (loading ?? "lazy")}
       placeholder={resolvedBlur ? "blur" : undefined}
       blurDataURL={resolvedBlur}
     />

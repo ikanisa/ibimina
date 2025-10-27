@@ -52,13 +52,11 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
     return { profile: null, saccos: [], groups: [], joinRequests: [] };
   }
 
-  const [
-    { data: profile, error: profileError },
-    { data: linkedSaccos, error: linkedError },
-  ] = await Promise.all([
-    legacyClient.from("members_app_profiles").select("*").eq("user_id", user.id).maybeSingle(),
-    legacyClient.from("user_saccos").select("sacco_id, created_at").eq("user_id", user.id),
-  ]);
+  const [{ data: profile, error: profileError }, { data: linkedSaccos, error: linkedError }] =
+    await Promise.all([
+      legacyClient.from("members_app_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+      legacyClient.from("user_saccos").select("sacco_id, created_at").eq("user_id", user.id),
+    ]);
 
   if (profileError) {
     console.error("Failed to load member profile", profileError);
@@ -102,7 +100,7 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
       throw new Error("Unable to load groups");
     }
 
-    groups = ((groupRows ?? []) as unknown as MemberGroupRow[]);
+    groups = (groupRows ?? []) as unknown as MemberGroupRow[];
   }
 
   const { data: joinRequests, error: joinError } = await legacyClient
@@ -129,10 +127,7 @@ export async function getMemberGroupSummary(groupId: string): Promise<{
   sacco: MemberSaccoSummary | null;
 }> {
   const appSupabase = supabaseSrv();
-  const {
-    data: group,
-    error,
-  } = await appSupabase
+  const { data: group, error } = await appSupabase
     .from("ikimina")
     .select("*")
     .eq("id", groupId)

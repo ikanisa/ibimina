@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition, useDeferredValue } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  useDeferredValue,
+} from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { StatusChip } from "@/components/common/status-chip";
@@ -13,7 +21,10 @@ import { useOfflineQueue } from "@/providers/offline-queue-provider";
 const supabase = getSupabaseBrowserClient();
 
 export type ReconciliationRow = Database["app"]["Tables"]["payments"]["Row"] & {
-  source: Pick<Database["app"]["Tables"]["sms_inbox"]["Row"], "raw_text" | "parsed_json" | "msisdn" | "received_at"> | null;
+  source: Pick<
+    Database["app"]["Tables"]["sms_inbox"]["Row"],
+    "raw_text" | "parsed_json" | "msisdn" | "received_at"
+  > | null;
 };
 
 interface ReconciliationTableProps {
@@ -37,7 +48,6 @@ type ReasonChip = {
   label: { primary: string; secondary: string };
   tone: "warning" | "critical" | "info";
 };
-
 
 const STATUS_BILINGUAL: Record<string, { primary: string; secondary: string }> = {
   UNALLOCATED: { primary: "unallocated", secondary: "bitaragabanywa" },
@@ -122,7 +132,7 @@ const reasonGuidance: Record<ReasonChip["id"], { primary: string; secondary: str
   },
   "msisdn-mismatch": {
     primary: "Capture the sender MSISDN from statements for future auto-matching.",
-    secondary: "Andika nimero ya telefoni ku nyandiko kugirango bizafashe guhuza ku buryo bwikora." ,
+    secondary: "Andika nimero ya telefoni ku nyandiko kugirango bizafashe guhuza ku buryo bwikora.",
   },
   "low-confidence": {
     primary: "Double-check amount and reference before marking posted.",
@@ -193,11 +203,13 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error ?? t("recon.errors.statusUpdateFailed", "Failed to update status"));
+        throw new Error(
+          payload.error ?? t("recon.errors.statusUpdateFailed", "Failed to update status")
+        );
       }
       return payload as { updated?: number };
     },
-    [saccoId, t],
+    [saccoId, t]
   );
 
   const performAssignUpdate = useCallback(
@@ -218,11 +230,13 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload.error ?? t("recon.errors.bulkAssignFailed", "Failed to assign group"));
+        throw new Error(
+          payload.error ?? t("recon.errors.bulkAssignFailed", "Failed to assign group")
+        );
       }
       return payload as { updated?: number };
     },
-    [saccoId, t],
+    [saccoId, t]
   );
   const [showDuplicatesOnly, setShowDuplicatesOnly] = useState(false);
   const [reasonFilters, setReasonFilters] = useState<string[]>([]);
@@ -256,7 +270,11 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       if (!row.txn_id) continue;
       counts.set(row.txn_id, (counts.get(row.txn_id) ?? 0) + 1);
     }
-    return new Set(Array.from(counts.entries()).filter(([, count]) => count > 1).map(([txnId]) => txnId));
+    return new Set(
+      Array.from(counts.entries())
+        .filter(([, count]) => count > 1)
+        .map(([txnId]) => txnId)
+    );
   }, [rows]);
 
   const deriveReasons = useCallback(
@@ -293,7 +311,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
 
       return reasons;
     },
-    [duplicateTxnIds],
+    [duplicateTxnIds]
   );
 
   const rowMap = useMemo(() => {
@@ -332,25 +350,38 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         return true;
       }
 
-      const haystack = `${row.reference ?? ""} ${row.msisdn ?? ""} ${row.txn_id ?? ""}`.toLowerCase();
+      const haystack =
+        `${row.reference ?? ""} ${row.msisdn ?? ""} ${row.txn_id ?? ""}`.toLowerCase();
       return haystack.includes(query);
     });
-  }, [rows, statusFilter, showDuplicatesOnly, showLowConfidence, reasonFilters, duplicateTxnIds, deriveReasons, deferredSearch]);
+  }, [
+    rows,
+    statusFilter,
+    showDuplicatesOnly,
+    showLowConfidence,
+    reasonFilters,
+    duplicateTxnIds,
+    deriveReasons,
+    deferredSearch,
+  ]);
 
-  const displayRows = useMemo(() =>
-    [...filteredRows].sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : -1)),
-  [filteredRows]);
+  const displayRows = useMemo(
+    () => [...filteredRows].sort((a, b) => (a.occurred_at < b.occurred_at ? 1 : -1)),
+    [filteredRows]
+  );
 
   const selectedReasons = useMemo(
     () => (selected ? deriveReasons(selected) : []),
-    [selected, deriveReasons],
+    [selected, deriveReasons]
   );
 
   const allSelected = selectedIds.length > 0 && selectedIds.length === displayRows.length;
 
   const toggleSelect = (id: string) => {
     if (!canWrite) return;
-    setSelectedIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    );
   };
 
   const toggleSelectAll = () => {
@@ -457,12 +488,19 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       .map((id) => rowMap.get(id)?.reference ?? null)
       .filter((value): value is string => Boolean(value));
     if (references.length !== selectedIds.length) {
-      setBulkError(t("recon.errors.sameReferenceRequired", "All selected rows must share a reference to auto-assign."));
+      setBulkError(
+        t(
+          "recon.errors.sameReferenceRequired",
+          "All selected rows must share a reference to auto-assign."
+        )
+      );
       return;
     }
     const uniqueReferences = Array.from(new Set(references));
     if (uniqueReferences.length !== 1) {
-      setBulkError(t("recon.errors.noSharedReference", "Selected rows do not share the same reference."));
+      setBulkError(
+        t("recon.errors.noSharedReference", "Selected rows do not share the same reference.")
+      );
       return;
     }
 
@@ -546,7 +584,9 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         return;
       }
       const statusLabel = getStatusLabel(newStatus);
-      setActionMessage(t("recon.action.statusUpdated", "Status updated. Refresh the page to see latest data."));
+      setActionMessage(
+        t("recon.action.statusUpdated", "Status updated. Refresh the page to see latest data.")
+      );
       toastSuccess(`Status updated to ${statusLabel.primary}`);
     });
   };
@@ -573,7 +613,9 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         await performAssignUpdate([selected.id], ikiminaId, memberId);
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : t("recon.errors.assignFailed", "Failed to assign");
+          error instanceof Error
+            ? error.message
+            : t("recon.errors.assignFailed", "Failed to assign");
         setActionError(message);
         return;
       }
@@ -599,7 +641,10 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     if (!selected) return;
     const targetIkiminaId = suggestion.ikimina_id ?? selected.ikimina_id;
     if (!targetIkiminaId) {
-      const msg = t("recon.ai.missingIkimina", "Suggestion missing ikimina. Assign a group manually.");
+      const msg = t(
+        "recon.ai.missingIkimina",
+        "Suggestion missing ikimina. Assign a group manually."
+      );
       setActionError(msg);
       toastError(msg);
       return;
@@ -634,7 +679,10 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       return;
     }
 
-    const cleanMsisdn = selected.msisdn && !selected.msisdn.includes("✱") ? selected.msisdn.replace(/[^0-9+]/g, "") : "";
+    const cleanMsisdn =
+      selected.msisdn && !selected.msisdn.includes("✱")
+        ? selected.msisdn.replace(/[^0-9+]/g, "")
+        : "";
     if (cleanMsisdn && cleanMsisdn.length >= 6) {
       setMemberQuery(cleanMsisdn);
       return;
@@ -684,8 +732,8 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       }
 
       if (error) {
-      const message = error.message ?? t("recon.search.memberFailed", "Member search failed");
-      toastError(message);
+        const message = error.message ?? t("recon.search.memberFailed", "Member search failed");
+        toastError(message);
         setMemberResults([]);
       } else {
         type RawMember = {
@@ -852,7 +900,9 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
           />
         </div>
         <div className="flex items-center gap-2 text-xs text-neutral-2">
-          <label htmlFor="status-filter" className="items-center gap-1">{t("table.status", "Status")}</label>
+          <label htmlFor="status-filter" className="items-center gap-1">
+            {t("table.status", "Status")}
+          </label>
           <select
             id="status-filter"
             value={statusFilter}
@@ -1026,15 +1076,23 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                       className="h-4 w-4 rounded border-white/30 bg-transparent disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   </td>
-                  <td className="px-4 py-3 text-neutral-2">{new Date(row.occurred_at).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-neutral-2">
+                    {new Date(row.occurred_at).toLocaleString()}
+                  </td>
                   <td className="px-4 py-3 font-medium">
-                    {new Intl.NumberFormat("en-RW", { style: "currency", currency: row.currency ?? "RWF", maximumFractionDigits: 0 }).format(row.amount)}
+                    {new Intl.NumberFormat("en-RW", {
+                      style: "currency",
+                      currency: row.currency ?? "RWF",
+                      maximumFractionDigits: 0,
+                    }).format(row.amount)}
                   </td>
                   <td className="px-4 py-3 text-neutral-2">{row.reference ?? "—"}</td>
                   <td className="px-4 py-3 text-neutral-2">{row.msisdn ?? "—"}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
-                      {reasons.length === 0 && <span className="text-[11px] text-neutral-2">—</span>}
+                      {reasons.length === 0 && (
+                        <span className="text-[11px] text-neutral-2">—</span>
+                      )}
                       {reasons.map((reason) => {
                         const guidance = reasonGuidance[reason.id];
                         const key = REASON_GUIDANCE_KEYS[reason.id];
@@ -1050,7 +1108,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                             )}
                             title={title}
                           >
-                          <span className="items-center gap-1">{reason.label.primary}</span>
+                            <span className="items-center gap-1">{reason.label.primary}</span>
                           </span>
                         );
                       })}
@@ -1060,7 +1118,15 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                     {(() => {
                       const label = getStatusLabel(row.status);
                       return (
-                        <StatusChip tone={row.status === "UNALLOCATED" ? "critical" : row.status === "POSTED" || row.status === "SETTLED" ? "success" : "warning"}>
+                        <StatusChip
+                          tone={
+                            row.status === "UNALLOCATED"
+                              ? "critical"
+                              : row.status === "POSTED" || row.status === "SETTLED"
+                                ? "success"
+                                : "warning"
+                          }
+                        >
                           <span>{label.primary.toUpperCase()}</span>
                         </StatusChip>
                       );
@@ -1082,10 +1148,14 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
               onClick={handleClose}
             >
               {t("common.close", "Close")}
-              <span aria-hidden className="ml-1">✕</span>
+              <span aria-hidden className="ml-1">
+                ✕
+              </span>
             </button>
             <div className="pt-6 text-sm text-neutral-0">
-              <h3 className="text-lg font-semibold">{t("recon.detail.title", "Transaction Details")}</h3>
+              <h3 className="text-lg font-semibold">
+                {t("recon.detail.title", "Transaction Details")}
+              </h3>
               <dl className="mt-3 space-y-2 text-xs text-neutral-2">
                 <div>
                   <dt className="uppercase tracking-[0.2em]">{t("table.occurred", "Occurred")}</dt>
@@ -1094,11 +1164,17 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                 <div>
                   <dt className="uppercase tracking-[0.2em]">{t("table.amount", "Amount")}</dt>
                   <dd>
-                    {new Intl.NumberFormat("en-RW", { style: "currency", currency: selected.currency ?? "RWF", maximumFractionDigits: 0 }).format(selected.amount)}
+                    {new Intl.NumberFormat("en-RW", {
+                      style: "currency",
+                      currency: selected.currency ?? "RWF",
+                      maximumFractionDigits: 0,
+                    }).format(selected.amount)}
                   </dd>
                 </div>
                 <div>
-                  <dt className="uppercase tracking-[0.2em]">{t("table.reference", "Reference")}</dt>
+                  <dt className="uppercase tracking-[0.2em]">
+                    {t("table.reference", "Reference")}
+                  </dt>
                   <dd>{selected.reference ?? "—"}</dd>
                 </div>
                 <div>
@@ -1114,15 +1190,23 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                   </dd>
                 </div>
                 <div>
-                  <dt className="uppercase tracking-[0.2em]">{t("recon.detail.confidence", "Confidence")}</dt>
-                  <dd>{selected.confidence != null ? `${Math.round(selected.confidence * 100)}%` : "—"}</dd>
+                  <dt className="uppercase tracking-[0.2em]">
+                    {t("recon.detail.confidence", "Confidence")}
+                  </dt>
+                  <dd>
+                    {selected.confidence != null
+                      ? `${Math.round(selected.confidence * 100)}%`
+                      : "—"}
+                  </dd>
                 </div>
                 {selectedReasons.length > 0 && (
                   <div>
-                    <dt className="uppercase tracking-[0.2em]">{t("recon.detail.reasonTags", "Reason tags")}</dt>
+                    <dt className="uppercase tracking-[0.2em]">
+                      {t("recon.detail.reasonTags", "Reason tags")}
+                    </dt>
                     <dd>
                       <div className="mt-1 flex flex-wrap gap-1">
-                       {selectedReasons.map((reason) => (
+                        {selectedReasons.map((reason) => (
                           <span
                             key={reason.id}
                             className={cn(
@@ -1141,14 +1225,19 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                 )}
                 {selectedReasons.length > 0 && (
                   <div>
-                    <dt className="uppercase tracking-[0.2em]">{t("recon.detail.auditHints", "Audit hints")}</dt>
+                    <dt className="uppercase tracking-[0.2em]">
+                      {t("recon.detail.auditHints", "Audit hints")}
+                    </dt>
                     <dd>
                       <ul className="mt-2 space-y-2">
                         {selectedReasons.map((reason) => {
                           const guidance = reasonGuidance[reason.id];
                           if (!guidance) return null;
                           return (
-                            <li key={`hint-${reason.id}`} className="rounded-xl bg-white/10 px-3 py-2 text-neutral-0">
+                            <li
+                              key={`hint-${reason.id}`}
+                              className="rounded-xl bg-white/10 px-3 py-2 text-neutral-0"
+                            >
                               {guidance.primary}
                             </li>
                           );
@@ -1178,33 +1267,39 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             <div className="space-y-3 text-sm text-neutral-0">
               <h4 className="font-semibold">{t("common.actions", "Actions")}</h4>
               <div className="space-y-2 text-xs text-neutral-2">
-                <label className="block uppercase tracking-[0.2em]">{t("recon.detail.updateStatus", "Update status")}</label>
+                <label className="block uppercase tracking-[0.2em]">
+                  {t("recon.detail.updateStatus", "Update status")}
+                </label>
                 <select
-          value={newStatus}
-          onChange={(event) => setNewStatus(event.target.value)}
-          className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-        >
-          {STATUS_OPTIONS.map((status) => {
-            const label = getStatusLabel(status);
-            return (
-              <option key={status} value={status}>
-                {label.primary}
-              </option>
-            );
-          })}
-        </select>
+                  value={newStatus}
+                  onChange={(event) => setNewStatus(event.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
+                >
+                  {STATUS_OPTIONS.map((status) => {
+                    const label = getStatusLabel(status);
+                    return (
+                      <option key={status} value={status}>
+                        {label.primary}
+                      </option>
+                    );
+                  })}
+                </select>
                 <button
                   type="button"
                   onClick={handleUpdateStatus}
                   disabled={pending}
                   className="interactive-scale w-full rounded-xl bg-kigali py-2 text-xs font-semibold uppercase tracking-wide text-ink shadow-glass disabled:opacity-60"
                 >
-                  {pending ? t("common.saving", "Saving…") : t("recon.detail.saveStatus", "Save status")}
+                  {pending
+                    ? t("common.saving", "Saving…")
+                    : t("recon.detail.saveStatus", "Save status")}
                 </button>
               </div>
               <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">
                 <div className="flex items-center justify-between">
-                  <span className="uppercase tracking-[0.2em] text-neutral-2">{t("recon.ai.title", "AI suggestion")}</span>
+                  <span className="uppercase tracking-[0.2em] text-neutral-2">
+                    {t("recon.ai.title", "AI suggestion")}
+                  </span>
                   <button
                     type="button"
                     onClick={refreshAiSuggestion}
@@ -1214,17 +1309,22 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                   </button>
                 </div>
                 {aiStatus === "loading" && <p>{t("recon.ai.analyzing", "Analyzing payment…")}</p>}
-                {aiStatus === "error" && aiError && (
-                  <p className="text-rose-300">{aiError}</p>
-                )}
+                {aiStatus === "error" && aiError && <p className="text-rose-300">{aiError}</p>}
                 {aiStatus === "ready" && aiSuggestion && (
                   <div className="space-y-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-neutral-0">
-                    <p className="font-semibold text-sm">{t("recon.ai.suggestedMember", "Suggested member")}</p>
+                    <p className="font-semibold text-sm">
+                      {t("recon.ai.suggestedMember", "Suggested member")}
+                    </p>
                     <p className="text-xs text-neutral-2">{aiSuggestion.reason}</p>
                     <div className="flex items-center justify-between text-[11px] text-neutral-2">
-                      <span>{t("recon.detail.confidence", "Confidence")} {Math.round(aiSuggestion.confidence * 100)}%</span>
+                      <span>
+                        {t("recon.detail.confidence", "Confidence")}{" "}
+                        {Math.round(aiSuggestion.confidence * 100)}%
+                      </span>
                       {aiSuggestion.member_code && (
-                        <span>{t("recon.ai.code", "Code")} {aiSuggestion.member_code}</span>
+                        <span>
+                          {t("recon.ai.code", "Code")} {aiSuggestion.member_code}
+                        </span>
                       )}
                     </div>
                     <button
@@ -1237,16 +1337,31 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                     </button>
                   </div>
                 )}
-                {aiStatus === "ready" && !aiSuggestion && <p>{t("recon.ai.noConfident", "No confident suggestion. Review alternatives or assign manually.")}</p>}
+                {aiStatus === "ready" && !aiSuggestion && (
+                  <p>
+                    {t(
+                      "recon.ai.noConfident",
+                      "No confident suggestion. Review alternatives or assign manually."
+                    )}
+                  </p>
+                )}
                 {aiStatus === "ready" && aiAlternatives.length > 0 && (
                   <div className="space-y-1">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-2">{t("recon.ai.otherOptions", "Other options")}</p>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-2">
+                      {t("recon.ai.otherOptions", "Other options")}
+                    </p>
                     <ul className="space-y-1">
                       {aiAlternatives.map((option) => (
-                        <li key={`${option.member_id}-${option.reason}`} className="flex items-center justify-between gap-3 rounded-xl bg-black/15 px-3 py-2">
+                        <li
+                          key={`${option.member_id}-${option.reason}`}
+                          className="flex items-center justify-between gap-3 rounded-xl bg-black/15 px-3 py-2"
+                        >
                           <div className="text-left text-[11px] text-neutral-0">
                             <p className="font-semibold">{option.reason}</p>
-                            <p className="text-neutral-2">{t("common.confidence", "Confidence")} {Math.round(option.confidence * 100)}%</p>
+                            <p className="text-neutral-2">
+                              {t("common.confidence", "Confidence")}{" "}
+                              {Math.round(option.confidence * 100)}%
+                            </p>
                           </div>
                           <button
                             type="button"
@@ -1264,7 +1379,9 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                 )}
               </div>
               <div className="space-y-2 text-xs text-neutral-2">
-                <label className="block uppercase tracking-[0.2em]">{t("recon.detail.assignLabel", "Assign to ikimina (ID)")}</label>
+                <label className="block uppercase tracking-[0.2em]">
+                  {t("recon.detail.assignLabel", "Assign to ikimina (ID)")}
+                </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -1278,11 +1395,15 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                       }
                     }}
                   />
-                  <span className="text-[10px] text-neutral-2">{t("recon.detail.assignHint", "On blur to apply")}</span>
+                  <span className="text-[10px] text-neutral-2">
+                    {t("recon.detail.assignHint", "On blur to apply")}
+                  </span>
                 </div>
               </div>
               <div className="space-y-2 text-xs text-neutral-2">
-                <label className="block uppercase tracking-[0.2em]">{t("recon.detail.linkMember", "Link to member")}</label>
+                <label className="block uppercase tracking-[0.2em]">
+                  {t("recon.detail.linkMember", "Link to member")}
+                </label>
                 {recommendedQueries.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {recommendedQueries.map((item) => (
@@ -1301,15 +1422,26 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                   type="search"
                   value={memberQuery}
                   onChange={(event) => setMemberQuery(event.target.value)}
-                  placeholder={t("recon.detail.memberSearchPlaceholder", "Search by name, MSISDN, or code")}
+                  placeholder={t(
+                    "recon.detail.memberSearchPlaceholder",
+                    "Search by name, MSISDN, or code"
+                  )}
                   className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                 />
                 {memberQuery.trim().length > 0 && memberQuery.trim().length < 2 && (
-                  <p className="text-[10px] text-neutral-2">{t("recon.detail.memberSearchHint", "Type at least 2 characters.")}</p>
+                  <p className="text-[10px] text-neutral-2">
+                    {t("recon.detail.memberSearchHint", "Type at least 2 characters.")}
+                  </p>
                 )}
-                {memberLoading && <p className="text-[10px] text-neutral-2">{t("common.searching", "Searching…")}</p>}
+                {memberLoading && (
+                  <p className="text-[10px] text-neutral-2">
+                    {t("common.searching", "Searching…")}
+                  </p>
+                )}
                 {!memberLoading && memberQuery.trim().length >= 2 && memberResults.length === 0 && (
-                  <p className="text-[10px] text-neutral-2">{t("recon.detail.noMatches", "No matches yet.")}</p>
+                  <p className="text-[10px] text-neutral-2">
+                    {t("recon.detail.noMatches", "No matches yet.")}
+                  </p>
                 )}
                 {memberResults.length > 0 && (
                   <ul className="space-y-1">
@@ -1326,7 +1458,9 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                             {member.member_code ?? t("recon.detail.noCode", "No code")}
                           </span>
                           <div className="text-[11px] text-neutral-2">
-                            {member.msisdn ?? t("recon.detail.noMsisdn", "No MSISDN")} · {member.ikimina_name ?? t("recon.detail.unknownIkimina", "Unknown ikimina")}
+                            {member.msisdn ?? t("recon.detail.noMsisdn", "No MSISDN")} ·{" "}
+                            {member.ikimina_name ??
+                              t("recon.detail.unknownIkimina", "Unknown ikimina")}
                           </div>
                         </button>
                       </li>
@@ -1334,8 +1468,16 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
                   </ul>
                 )}
               </div>
-              {actionError && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">{actionError}</p>}
-              {actionMessage && <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">{actionMessage}</p>}
+              {actionError && (
+                <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                  {actionError}
+                </p>
+              )}
+              {actionMessage && (
+                <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                  {actionMessage}
+                </p>
+              )}
               <p className="text-[10px] text-neutral-2">
                 SACCO scope: {saccoId ?? "System"}. Some actions may be limited by RLS policies.
               </p>

@@ -13,7 +13,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const rawMfaParam = resolvedSearchParams?.mfa;
-  const mfaMode = typeof rawMfaParam === "string" ? rawMfaParam : Array.isArray(rawMfaParam) ? rawMfaParam[0] : undefined;
+  const mfaMode =
+    typeof rawMfaParam === "string"
+      ? rawMfaParam
+      : Array.isArray(rawMfaParam)
+        ? rawMfaParam[0]
+        : undefined;
   if (mfaMode === "1") {
     redirect("/mfa");
   }

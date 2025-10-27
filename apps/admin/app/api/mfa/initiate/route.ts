@@ -22,7 +22,10 @@ export async function POST(request: NextRequest) {
   const parsed = schema.safeParse(payload);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "invalid_factor", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "invalid_factor", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const factor = parsed.data.factor as Factor;
@@ -39,10 +42,7 @@ export async function POST(request: NextRequest) {
   const ip = forwarded?.split(",")[0]?.trim() ?? null;
   const hashedIp = ip ? hashRateLimitKey("ip", ip) : null;
 
-  const respondRateLimited = async (
-    scope: "user" | "ip",
-    retryAt: Date | null,
-  ) => {
+  const respondRateLimited = async (scope: "user" | "ip", retryAt: Date | null) => {
     await recordMfaAudit("MFA_RATE_LIMITED", user.id, {
       scope,
       channel: factor.toUpperCase(),
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         scope,
         retryAt: retryAt ? retryAt.toISOString() : undefined,
       },
-      { status: 429 },
+      { status: 429 }
     );
   };
 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
   if (!result.ok) {
     return NextResponse.json(
       { error: result.error, code: result.code, ...(result.payload ?? {}) },
-      { status: result.status },
+      { status: result.status }
     );
   }
 

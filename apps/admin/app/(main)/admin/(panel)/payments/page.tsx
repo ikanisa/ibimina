@@ -91,7 +91,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
   }
 
   const statusMap = new Map<PaymentStatus, number>(
-    statusSummaries.map((summary) => [summary.status as PaymentStatus, summary.count]),
+    statusSummaries.map((summary) => [summary.status as PaymentStatus, summary.count])
   );
   const reconCount = (reconSummary.data ?? []).length;
   const payments = (latestPayments.data ?? []) as PaymentRow[];
@@ -121,7 +121,11 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         }
       >
         <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <MetricTile label="Unallocated" value={statusMap.get("UNALLOCATED") ?? 0} tone="critical" />
+          <MetricTile
+            label="Unallocated"
+            value={statusMap.get("UNALLOCATED") ?? 0}
+            tone="critical"
+          />
           <MetricTile label="Pending" value={statusMap.get("PENDING") ?? 0} tone="warning" />
           <MetricTile label="Posted" value={statusMap.get("POSTED") ?? 0} tone="info" />
           <MetricTile label="Settled" value={statusMap.get("SETTLED") ?? 0} tone="success" />

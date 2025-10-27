@@ -32,12 +32,15 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
   const { success, error } = useToast();
   const [pending, startTransition] = useTransition();
 
-  const saccoOptions = useMemo(() => [{ id: "", name: t("sacco.all", "All SACCOs") }, ...saccos], [saccos, t]);
+  const saccoOptions = useMemo(
+    () => [{ id: "", name: t("sacco.all", "All SACCOs") }, ...saccos],
+    [saccos, t]
+  );
 
   const handleUpdate = (
     userId: string,
     role: Database["public"]["Enums"]["app_role"],
-    saccoId: string | null,
+    saccoId: string | null
   ) => {
     startTransition(async () => {
       const result = await updateUserAccess({ userId, role, saccoId });
@@ -69,11 +72,11 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
           body: JSON.stringify({ reason: "lost device" }),
         });
         if (!response.ok) {
-          const { error: code } = (await response.json().catch(() => ({ error: "unknown" })));
+          const { error: code } = await response.json().catch(() => ({ error: "unknown" }));
           error(
             code === "forbidden"
               ? t("admin.users.resetForbidden", "Only administrators can reset 2FA")
-              : t("admin.users.resetFailed", "Failed to reset 2FA"),
+              : t("admin.users.resetFailed", "Failed to reset 2FA")
           );
           return;
         }
@@ -89,21 +92,11 @@ export function UserAccessTable({ users, saccos }: UserAccessTableProps) {
       <table className="w-full border-collapse text-sm">
         <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-neutral-2">
           <tr>
-            <th className="px-4 py-3">
-              {t("common.email", "Email")}
-            </th>
-            <th className="px-4 py-3">
-              {t("admin.invite.role", "Role")}
-            </th>
-            <th className="px-4 py-3">
-              {t("nav.ikimina", "Ikimina")}
-            </th>
-            <th className="px-4 py-3">
-              {t("common.created", "Created")}
-            </th>
-            <th className="px-4 py-3">
-              2FA
-            </th>
+            <th className="px-4 py-3">{t("common.email", "Email")}</th>
+            <th className="px-4 py-3">{t("admin.invite.role", "Role")}</th>
+            <th className="px-4 py-3">{t("nav.ikimina", "Ikimina")}</th>
+            <th className="px-4 py-3">{t("common.created", "Created")}</th>
+            <th className="px-4 py-3">2FA</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">

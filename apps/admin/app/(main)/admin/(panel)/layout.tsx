@@ -5,7 +5,9 @@ import { isMissingRelationError } from "@/lib/supabase/errors";
 import { AdminPanelShell } from "@/components/admin/panel/panel-shell";
 import type { TenantOption } from "@/components/admin/panel/types";
 
-async function getTenantOptions(profile: Awaited<ReturnType<typeof requireUserAndProfile>>["profile"]) {
+async function getTenantOptions(
+  profile: Awaited<ReturnType<typeof requireUserAndProfile>>["profile"]
+) {
   const supabase = createSupabaseServiceRoleClient("admin/panel/layout:getTenantOptions");
 
   if (profile.role === "SYSTEM_ADMIN") {
@@ -19,7 +21,11 @@ async function getTenantOptions(profile: Awaited<ReturnType<typeof requireUserAn
       throw error;
     }
 
-    const rows = (data ?? []).map((row) => ({ id: row.id as string, name: row.name ?? "Unnamed SACCO", status: row.status as string | null }));
+    const rows = (data ?? []).map((row) => ({
+      id: row.id as string,
+      name: row.name ?? "Unnamed SACCO",
+      status: row.status as string | null,
+    }));
     const options: TenantOption[] = [
       { id: "", name: "All SACCOs" },
       ...rows.map((row) => ({
@@ -49,9 +55,11 @@ async function getTenantOptions(profile: Awaited<ReturnType<typeof requireUserAn
   ];
 }
 
-async function getAlertSummary(profile: Awaited<ReturnType<typeof requireUserAndProfile>>["profile"]) {
+async function getAlertSummary(
+  profile: Awaited<ReturnType<typeof requireUserAndProfile>>["profile"]
+) {
   const supabase = createSupabaseServiceRoleClient("admin/panel/layout:getAlertSummary");
-  const scope = profile.role === "SYSTEM_ADMIN" ? null : profile.sacco_id ?? null;
+  const scope = profile.role === "SYSTEM_ADMIN" ? null : (profile.sacco_id ?? null);
 
   let joinQuery = supabase
     .from("join_requests")
@@ -89,7 +97,9 @@ async function getAlertSummary(profile: Awaited<ReturnType<typeof requireUserAnd
 
   type InviteRow = { group: { sacco_id: string | null } | null };
   const inviteRows = Array.isArray(invites.data) ? (invites.data as InviteRow[]) : [];
-  const scopedInvites = scope ? inviteRows.filter((row) => row.group?.sacco_id === scope) : inviteRows;
+  const scopedInvites = scope
+    ? inviteRows.filter((row) => row.group?.sacco_id === scope)
+    : inviteRows;
 
   const pendingJoins = safeCount(join);
   const pendingInvites = scopedInvites.length;
@@ -118,7 +128,10 @@ export default async function AdminPanelLayout({ children }: { children: React.R
       profile={auth.profile}
       tenantOptions={tenantOptions}
       alertsCount={alertSummary.total}
-      alertsBreakdown={{ approvals: alertSummary.approvals, reconciliation: alertSummary.reconciliation }}
+      alertsBreakdown={{
+        approvals: alertSummary.approvals,
+        reconciliation: alertSummary.reconciliation,
+      }}
     >
       {children}
     </AdminPanelShell>

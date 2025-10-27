@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-const ALPHABET_MAP = new Map<string, number>(ALPHABET.split("").map((char, index) => [char, index]));
+const ALPHABET_MAP = new Map<string, number>(
+  ALPHABET.split("").map((char, index) => [char, index])
+);
 
 export const base32Encode = (buffer: Buffer): string => {
   let bits = "";

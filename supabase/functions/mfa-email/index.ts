@@ -82,7 +82,11 @@ Deno.serve(async (req) => {
     const payload = requestSchema.parse(await req.json());
     const resendApiKey = requireEnv("RESEND_API_KEY");
     const fromAddress = requireEnv("MFA_EMAIL_FROM");
-    const { subject, text } = emailContent(payload.locale ?? "en", payload.code, payload.ttlMinutes);
+    const { subject, text } = emailContent(
+      payload.locale ?? "en",
+      payload.code,
+      payload.ttlMinutes
+    );
 
     const domain = payload.email.split("@")[1] ?? "unknown";
 
