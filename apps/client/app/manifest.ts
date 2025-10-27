@@ -2,14 +2,14 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Ibimina Staff Console',
+    name: 'Ibimina Client',
     short_name: 'Ibimina',
     start_url: '/',
     scope: '/',
     display: 'standalone',
     background_color: '#0b1020',
     theme_color: '#0b1020',
-    description: 'A fast, installable PWA for Umurenge SACCO ibimina staff hosted on Node.',
+    description: 'Ibimina member client app for Umurenge SACCO operations',
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
@@ -17,24 +17,17 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       {
-        name: 'Dashboard',
-        short_name: 'Dashboard',
-        description: 'View SACCO operations dashboard',
-        url: '/dashboard',
-        icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }]
-      },
-      {
         name: 'Groups',
         short_name: 'Groups',
-        description: 'Manage Ikimina groups',
+        description: 'View my Ikimina groups',
         url: '/groups',
         icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }]
       },
       {
-        name: 'Reports',
-        short_name: 'Reports',
-        description: 'View financial reports',
-        url: '/reports',
+        name: 'Pay Sheet',
+        short_name: 'Pay',
+        description: 'Submit payment',
+        url: '/pay-sheet',
         icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }]
       }
     ]
