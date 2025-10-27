@@ -17,7 +17,10 @@ export function MySaccos({ saccos }: MySaccosProps) {
   return (
     <ul className="grid gap-4">
       {saccos.map((sacco) => (
-        <li key={sacco.id} className="rounded-3xl border border-white/15 bg-white/8 p-5 text-neutral-0 shadow-sm">
+        <li
+          key={sacco.id}
+          className="rounded-3xl border border-white/15 bg-white/8 p-5 text-neutral-0 shadow-sm"
+        >
           <div className="flex items-center gap-3">
             <div className="rounded-2xl bg-white/20 p-3">
               <Landmark className="h-6 w-6" aria-hidden />

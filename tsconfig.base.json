@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -17,9 +13,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "plugins": [
       {
         "name": "next"
@@ -27,18 +21,10 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@ibimina/config": [
-        "packages/config/src/index.ts"
-      ],
-      "@ibimina/core": [
-        "packages/core/src/index.ts"
-      ],
-      "@ibimina/testing": [
-        "packages/testing/src/index.ts"
-      ],
-      "@ibimina/ui": [
-        "packages/ui/src/index.ts"
-      ]
+      "@ibimina/config": ["packages/config/src/index.ts"],
+      "@ibimina/core": ["packages/core/src/index.ts"],
+      "@ibimina/testing": ["packages/testing/src/index.ts"],
+      "@ibimina/ui": ["packages/ui/src/index.ts"]
     }
   }
 }

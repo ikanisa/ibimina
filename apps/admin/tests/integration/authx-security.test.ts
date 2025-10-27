@@ -1,6 +1,11 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { hashOneTimeCode, verifyOneTimeCode, randomDigits, hashRateLimitKey } from "@/src/auth/util/crypto";
+import {
+  hashOneTimeCode,
+  verifyOneTimeCode,
+  randomDigits,
+  hashRateLimitKey,
+} from "@/src/auth/util/crypto";
 import { preventTotpReplay } from "@/src/auth/limits";
 
 describe("auth security primitives", () => {

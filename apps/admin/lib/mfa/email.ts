@@ -46,7 +46,7 @@ const sendOtpEmail = async (
   supabase: ReturnType<typeof createSupabaseAdminClient>,
   email: string,
   code: string,
-  expiresAt: string,
+  expiresAt: string
 ) => {
   const locale = (process.env.MFA_EMAIL_LOCALE ?? "en") as "en" | "fr" | "rw" | string;
   const { error } = await supabase.functions.invoke("mfa-email", {
@@ -116,7 +116,7 @@ export const issueEmailOtp = async (userId: string, email: string) => {
   if (rateLimited) {
     const retryAt = retryCandidates.reduce(
       (latest, candidate) => (candidate > latest ? candidate : latest),
-      retryCandidates[0],
+      retryCandidates[0]
     );
     return {
       status: "rate_limited" as const,

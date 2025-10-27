@@ -98,7 +98,9 @@ export function SmsInboxPanel({ items }: SmsInboxPanelProps) {
                 <p>{new Date(item.received_at).toLocaleString()}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.3em]">
-                <StatusChip tone={statusToneMap[item.status] ?? "neutral"}>{item.status}</StatusChip>
+                <StatusChip tone={statusToneMap[item.status] ?? "neutral"}>
+                  {item.status}
+                </StatusChip>
                 <span className="rounded-full border border-white/15 px-3 py-1 text-neutral-2">
                   Confidence: {confidenceToLabel(item.confidence)}
                 </span>
@@ -122,9 +124,7 @@ export function SmsInboxPanel({ items }: SmsInboxPanelProps) {
                 )}
               </div>
             </div>
-            {item.error && (
-              <p className="mt-3 text-xs text-amber-200">Error: {item.error}</p>
-            )}
+            {item.error && <p className="mt-3 text-xs text-amber-200">Error: {item.error}</p>}
           </article>
         ))}
       </div>

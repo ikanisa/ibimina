@@ -25,9 +25,7 @@ const getKey = async () => {
     return cachedKey;
   }
 
-  const secret =
-    Deno.env.get("KMS_DATA_KEY_BASE64") ??
-    Deno.env.get("FIELD_ENCRYPTION_KEY");
+  const secret = Deno.env.get("KMS_DATA_KEY_BASE64") ?? Deno.env.get("FIELD_ENCRYPTION_KEY");
 
   if (!secret) {
     throw new Error("KMS_DATA_KEY_BASE64 not configured");
@@ -50,7 +48,11 @@ export const encryptField = async (value: string | null | undefined) => {
 
   const key = await getKey();
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const cipherBuffer = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoder.encode(value));
+  const cipherBuffer = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    encoder.encode(value)
+  );
   const ciphertext = toBase64(cipherBuffer);
   const ivEncoded = toBase64(iv);
   return `${ivEncoded}:${ciphertext}`;

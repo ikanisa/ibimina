@@ -2,6 +2,8 @@ import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import reactHooks from "eslint-plugin-react-hooks";
+import prettierConfig from "eslint-config-prettier";
+import prettierPlugin from "eslint-plugin-prettier";
 
 export default [
   {
@@ -43,14 +45,20 @@ export default [
     plugins: {
       "@typescript-eslint": tsPlugin,
       "react-hooks": reactHooks,
+      prettier: prettierPlugin,
     },
     rules: {
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
       "no-undef": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
       "react-hooks/set-state-in-effect": "off",
+      "prettier/prettier": "warn",
     },
   },
+  prettierConfig,
 ];

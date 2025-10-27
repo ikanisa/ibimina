@@ -41,7 +41,7 @@ before(async () => {
 });
 
 const buildSupabaseStub = (state: StubState): SupabaseAdminClient => {
-  return ({
+  return {
     from(table: string) {
       if (table !== "users") {
         throw new Error(`unexpected table ${table}`);
@@ -63,7 +63,7 @@ const buildSupabaseStub = (state: StubState): SupabaseAdminClient => {
         }),
       };
     },
-  } as unknown) as SupabaseAdminClient;
+  } as unknown as SupabaseAdminClient;
 };
 
 describe("authx backup consumption", () => {

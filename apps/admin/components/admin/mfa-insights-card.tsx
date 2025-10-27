@@ -16,22 +16,21 @@ function formatDate(value: string | null, fallback: string): string {
   return date.toLocaleString();
 }
 
-function describeReason(reason: MfaRiskReason, format: (key: string, fallback: string, vars?: Record<string, string | number>) => string) {
+function describeReason(
+  reason: MfaRiskReason,
+  format: (key: string, fallback: string, vars?: Record<string, string | number>) => string
+) {
   switch (reason.type) {
     case "disabled":
       return format("admin.security.laggards.reason.disabled", "MFA disabled");
     case "stale":
-      return format(
-        "admin.security.laggards.reason.stale",
-        "No MFA success in {{days}} days",
-        { days: reason.days },
-      );
+      return format("admin.security.laggards.reason.stale", "No MFA success in {{days}} days", {
+        days: reason.days,
+      });
     case "failures":
-      return format(
-        "admin.security.laggards.reason.failures",
-        "{{count}} failed attempts",
-        { count: reason.failures },
-      );
+      return format("admin.security.laggards.reason.failures", "{{count}} failed attempts", {
+        count: reason.failures,
+      });
     default:
       return "";
   }
@@ -49,7 +48,7 @@ function RiskAccountList({ accounts }: { accounts: MfaRiskAccount[] }) {
         });
         return value;
       },
-    [t],
+    [t]
   );
 
   if (accounts.length === 0) {
@@ -63,11 +62,16 @@ function RiskAccountList({ accounts }: { accounts: MfaRiskAccount[] }) {
   return (
     <ul className="space-y-3">
       {accounts.map((account) => (
-        <li key={account.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-neutral-0">
+        <li
+          key={account.id}
+          className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-neutral-0"
+        >
           <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="font-semibold">{account.email ?? t("common.unknown", "Unknown")}</p>
-              <p className="text-[11px] text-neutral-3">{account.saccoName ?? t("sacco.unassigned", "Unassigned")}</p>
+              <p className="text-[11px] text-neutral-3">
+                {account.saccoName ?? t("sacco.unassigned", "Unassigned")}
+              </p>
             </div>
             <div className="text-right text-[11px] text-neutral-3">
               <p>
@@ -138,7 +142,7 @@ function MetricsGrid({ insights }: { insights: MfaInsights }) {
         value: insights.totals.outstandingEmailCodes,
       },
     ],
-    [insights.totals, t],
+    [insights.totals, t]
   );
 
   const numberFormatter = new Intl.NumberFormat("en-RW");
@@ -148,9 +152,13 @@ function MetricsGrid({ insights }: { insights: MfaInsights }) {
       {metrics.map((metric) => (
         <MetricCard
           key={metric.label}
-          label={metric.label}
-          value={numberFormatter.format(metric.value)}
-        />
+          className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-4 shadow-glass backdrop-blur"
+        >
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{metric.label}</p>
+          <p className="mt-3 text-2xl font-semibold text-neutral-0">
+            {numberFormatter.format(metric.value)}
+          </p>
+        </article>
       ))}
     </div>
   );
@@ -173,8 +181,12 @@ function SaccoCoverageTable({ insights }: { insights: MfaInsights }) {
         <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-neutral-2">
           <tr>
             <th className="px-4 py-3">{t("admin.security.sacco.headers.sacco", "SACCO")}</th>
-            <th className="px-4 py-3 text-right">{t("admin.security.sacco.headers.users", "Staff")}</th>
-            <th className="px-4 py-3 text-right">{t("admin.security.sacco.headers.mfa", "MFA enabled")}</th>
+            <th className="px-4 py-3 text-right">
+              {t("admin.security.sacco.headers.users", "Staff")}
+            </th>
+            <th className="px-4 py-3 text-right">
+              {t("admin.security.sacco.headers.mfa", "MFA enabled")}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-white/10 bg-white/5 text-xs text-neutral-0">
@@ -182,7 +194,9 @@ function SaccoCoverageTable({ insights }: { insights: MfaInsights }) {
             <tr key={entry.saccoId ?? "unassigned"} className="hover:bg-white/5">
               <td className="px-4 py-3 font-medium">{entry.saccoName}</td>
               <td className="px-4 py-3 text-right">{numberFormatter.format(entry.userCount)}</td>
-              <td className="px-4 py-3 text-right text-emerald-200">{numberFormatter.format(entry.mfaEnabled)}</td>
+              <td className="px-4 py-3 text-right text-emerald-200">
+                {numberFormatter.format(entry.mfaEnabled)}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -197,18 +211,32 @@ export function MfaInsightsCard({ insights }: MfaInsightsCardProps) {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <SectionHeader
-          title={t("admin.security.metrics.title", "Adoption summary")}
-          subtitle={t("admin.security.metrics.subtitle", "Track coverage of passkeys, authenticators, and email codes.")}
-        />
+        <header>
+          <h3 className="text-lg font-semibold text-neutral-0">
+            {t("admin.security.metrics.title", "Adoption summary")}
+          </h3>
+          <p className="text-xs text-neutral-2">
+            {t(
+              "admin.security.metrics.subtitle",
+              "Track coverage of passkeys, authenticators, and email codes."
+            )}
+          </p>
+        </header>
         <MetricsGrid insights={insights} />
       </section>
 
       <section className="space-y-3">
-        <SectionHeader
-          title={t("admin.security.laggards.title", "At-risk accounts")}
-          subtitle={t("admin.security.laggards.subtitle", "Follow up with staff who need assistance completing MFA.")}
-        />
+        <header>
+          <h3 className="text-lg font-semibold text-neutral-0">
+            {t("admin.security.laggards.title", "At-risk accounts")}
+          </h3>
+          <p className="text-xs text-neutral-2">
+            {t(
+              "admin.security.laggards.subtitle",
+              "Follow up with staff who need assistance completing MFA."
+            )}
+          </p>
+        </header>
         <RiskAccountList accounts={insights.riskAccounts} />
       </section>
 
@@ -221,4 +249,3 @@ export function MfaInsightsCard({ insights }: MfaInsightsCardProps) {
     </div>
   );
 }
-

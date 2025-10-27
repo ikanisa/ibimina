@@ -30,7 +30,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unable to load group" }, { status: 500 });
   }
 
-  const groupRow = (group ?? null) as Pick<Database["app"]["Tables"]["ikimina"]["Row"], "id" | "code" | "name" | "sacco_id"> | null;
+  const groupRow = (group ?? null) as Pick<
+    Database["app"]["Tables"]["ikimina"]["Row"],
+    "id" | "code" | "name" | "sacco_id"
+  > | null;
 
   if (!groupRow) {
     return NextResponse.json({ error: "Group not found" }, { status: 404 });
@@ -96,6 +99,6 @@ export async function GET(request: NextRequest) {
       headers: {
         "Cache-Control": "public, max-age=120, stale-while-revalidate=300",
       },
-    },
+    }
   );
 }

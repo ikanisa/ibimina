@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
       logEvent: "admin_audit_export_denied",
       allowedRoles,
     },
-    () => NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    () => NextResponse.json({ error: "Forbidden" }, { status: 403 })
   );
 
   if (guard.denied) {
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
   const saccoScope =
     profile.role === "SYSTEM_ADMIN"
       ? overrideSacco || null
-      : profile.sacco_id ?? (overrideSacco || null);
+      : (profile.sacco_id ?? (overrideSacco || null));
 
   if (saccoScope) {
     query = query.eq("sacco_id", saccoScope);
@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
         csvValue(row.actor),
         csvValue(row.created_at),
         csvValue(row.diff ? JSON.stringify(row.diff) : null),
-      ].join(","),
+      ].join(",")
     ),
   ];
 

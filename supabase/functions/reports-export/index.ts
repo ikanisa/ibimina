@@ -75,9 +75,10 @@ Deno.serve(async (req) => {
     const windowStart = toDate(startDateParam, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
     const windowEnd = toDate(endDateParam, new Date());
 
-    const saccoScope = profile?.role === "SYSTEM_ADMIN"
-      ? (requestedSaccoId ?? profile?.sacco_id ?? null)
-      : profile?.sacco_id;
+    const saccoScope =
+      profile?.role === "SYSTEM_ADMIN"
+        ? (requestedSaccoId ?? profile?.sacco_id ?? null)
+        : profile?.sacco_id;
 
     if (!saccoScope) {
       return errorResponse("SACCO context required", 422);
@@ -89,7 +90,7 @@ Deno.serve(async (req) => {
       .select(
         `id, occurred_at, status, amount, currency, reference, sacco_id, ikimina_id, member_id,
          ikimina:ikimina(id, code, name),
-         member:members(id, member_code, full_name)`,
+         member:members(id, member_code, full_name)`
       )
       .eq("sacco_id", saccoScope)
       .gte("occurred_at", windowStart.toISOString())
@@ -118,18 +119,20 @@ Deno.serve(async (req) => {
       const next = previous + delta;
       runningBalances.set(key, next);
 
-      lines.push([
-        csvEscape(record.occurred_at ?? ""),
-        csvEscape(record.status ?? ""),
-        csvEscape(record.amount ?? 0),
-        csvEscape(record.currency ?? "RWF"),
-        csvEscape(record.reference ?? ""),
-        csvEscape(record.ikimina?.code ?? ""),
-        csvEscape(record.ikimina?.name ?? ""),
-        csvEscape(record.member?.member_code ?? ""),
-        csvEscape(record.member?.full_name ?? ""),
-        csvEscape(next.toFixed(2)),
-      ].join(","));
+      lines.push(
+        [
+          csvEscape(record.occurred_at ?? ""),
+          csvEscape(record.status ?? ""),
+          csvEscape(record.amount ?? 0),
+          csvEscape(record.currency ?? "RWF"),
+          csvEscape(record.reference ?? ""),
+          csvEscape(record.ikimina?.code ?? ""),
+          csvEscape(record.ikimina?.name ?? ""),
+          csvEscape(record.member?.member_code ?? ""),
+          csvEscape(record.member?.full_name ?? ""),
+          csvEscape(next.toFixed(2)),
+        ].join(",")
+      );
     }
 
     const csvBody = lines.join("\n");

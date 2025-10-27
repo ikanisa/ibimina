@@ -6,11 +6,7 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { logAudit } from "@/lib/audit";
 import { instrumentServerAction } from "@/lib/observability/server-action";
 import { logError, logInfo, logWarn, updateLogContext } from "@/lib/observability/logger";
-import {
-  computeNextRunUtc,
-  mapSubscriptionRow,
-  sanitizeFilters,
-} from "./subscription-utils";
+import { computeNextRunUtc, mapSubscriptionRow, sanitizeFilters } from "./subscription-utils";
 import type {
   ReportSubscription,
   ReportSubscriptionFilters,
@@ -62,13 +58,18 @@ function clampDay(value: number | null | undefined, fallback: number): number {
   return Math.trunc(value as number);
 }
 
-async function createReportSubscriptionInternal(payload: CreatePayload): Promise<ReportSubscriptionActionResult> {
+async function createReportSubscriptionInternal(
+  payload: CreatePayload
+): Promise<ReportSubscriptionActionResult> {
   const { profile, user } = await requireUserAndProfile();
   updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
 
   const supabase = createSupabaseServiceRoleClient("reports/actions:create");
 
-  const saccoId = profile.role === "SYSTEM_ADMIN" ? payload.saccoId ?? profile.sacco_id ?? null : profile.sacco_id;
+  const saccoId =
+    profile.role === "SYSTEM_ADMIN"
+      ? (payload.saccoId ?? profile.sacco_id ?? null)
+      : profile.sacco_id;
 
   if (!saccoId) {
     logWarn("report_subscription_missing_sacco", { role: profile.role });
@@ -112,7 +113,9 @@ async function createReportSubscriptionInternal(payload: CreatePayload): Promise
     .schema("app")
     .from("report_subscriptions")
     .insert(insertPayload)
-    .select("id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at")
+    .select(
+      "id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at"
+    )
     .maybeSingle();
 
   if (error || !data) {
@@ -135,7 +138,10 @@ async function createReportSubscriptionInternal(payload: CreatePayload): Promise
   return { status: "success", subscription: mapSubscriptionRow(created) };
 }
 
-async function toggleReportSubscriptionInternal({ id, isActive }: TogglePayload): Promise<ReportSubscriptionActionResult> {
+async function toggleReportSubscriptionInternal({
+  id,
+  isActive,
+}: TogglePayload): Promise<ReportSubscriptionActionResult> {
   const { profile, user } = await requireUserAndProfile();
   updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
 
@@ -145,7 +151,9 @@ async function toggleReportSubscriptionInternal({ id, isActive }: TogglePayload)
   const { data: existing, error } = await (supabase as any)
     .schema("app")
     .from("report_subscriptions")
-    .select("id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at")
+    .select(
+      "id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at"
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -161,7 +169,11 @@ async function toggleReportSubscriptionInternal({ id, isActive }: TogglePayload)
   const existingRow = existing as SubscriptionRow;
 
   const nextRun = isActive
-    ? computeNextRunUtc(existingRow.frequency, existingRow.delivery_hour ?? 6, existingRow.delivery_day ?? null).toISOString()
+    ? computeNextRunUtc(
+        existingRow.frequency,
+        existingRow.delivery_hour ?? 6,
+        existingRow.delivery_day ?? null
+      ).toISOString()
     : existingRow.next_run_at;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -170,7 +182,9 @@ async function toggleReportSubscriptionInternal({ id, isActive }: TogglePayload)
     .from("report_subscriptions")
     .update({ is_active: isActive, next_run_at: nextRun })
     .eq("id", id)
-    .select("id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at")
+    .select(
+      "id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at"
+    )
     .maybeSingle();
 
   if (updateError || !updatedRow) {
@@ -193,7 +207,9 @@ async function toggleReportSubscriptionInternal({ id, isActive }: TogglePayload)
   return { status: "success", subscription: mapSubscriptionRow(updated) };
 }
 
-async function deleteReportSubscriptionInternal({ id }: DeletePayload): Promise<ReportSubscriptionActionResult> {
+async function deleteReportSubscriptionInternal({
+  id,
+}: DeletePayload): Promise<ReportSubscriptionActionResult> {
   const { profile, user } = await requireUserAndProfile();
   updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
 
@@ -226,15 +242,15 @@ async function deleteReportSubscriptionInternal({ id }: DeletePayload): Promise<
 
 export const createReportSubscription = instrumentServerAction(
   "reports.createSubscription",
-  createReportSubscriptionInternal,
+  createReportSubscriptionInternal
 );
 
 export const toggleReportSubscription = instrumentServerAction(
   "reports.toggleSubscription",
-  toggleReportSubscriptionInternal,
+  toggleReportSubscriptionInternal
 );
 
 export const deleteReportSubscription = instrumentServerAction(
   "reports.deleteSubscription",
-  deleteReportSubscriptionInternal,
+  deleteReportSubscriptionInternal
 );

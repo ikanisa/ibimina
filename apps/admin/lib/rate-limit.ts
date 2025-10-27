@@ -19,9 +19,7 @@ const setClientFactoryOverride = (factory: ClientFactory | null) => {
 
 const getClientFactoryOverride = () => getGlobalWithFactory()[CLIENT_FACTORY_TOKEN] ?? null;
 
-export const __setRateLimitClientFactoryForTests = (
-  factory: ClientFactory | null,
-) => {
+export const __setRateLimitClientFactoryForTests = (factory: ClientFactory | null) => {
   setClientFactoryOverride(factory);
 };
 
@@ -33,7 +31,10 @@ const resolveSupabaseClient = () => {
   return createSupabaseServerClient();
 };
 
-export const enforceRateLimit = async (key: string, options?: { maxHits?: number; windowSeconds?: number }) => {
+export const enforceRateLimit = async (
+  key: string,
+  options?: { maxHits?: number; windowSeconds?: number }
+) => {
   const supabase = await resolveSupabaseClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any).rpc("consume_rate_limit", {
@@ -43,12 +44,21 @@ export const enforceRateLimit = async (key: string, options?: { maxHits?: number
   });
 
   if (error) {
-    logError("rate_limit_rpc_failed", { key, error, maxHits: options?.maxHits, windowSeconds: options?.windowSeconds });
+    logError("rate_limit_rpc_failed", {
+      key,
+      error,
+      maxHits: options?.maxHits,
+      windowSeconds: options?.windowSeconds,
+    });
     throw error;
   }
 
   if (!data) {
-    logInfo("rate_limit_blocked", { key, maxHits: options?.maxHits ?? 5, windowSeconds: options?.windowSeconds ?? 300 });
+    logInfo("rate_limit_blocked", {
+      key,
+      maxHits: options?.maxHits ?? 5,
+      windowSeconds: options?.windowSeconds ?? 300,
+    });
     throw new Error("rate_limit_exceeded");
   }
 };

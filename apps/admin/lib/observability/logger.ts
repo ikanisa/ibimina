@@ -62,13 +62,12 @@ function normalize(value: unknown): unknown {
   }
 
   if (typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>).reduce<Record<string, unknown>>(
-      (accumulator, [key, item]) => {
-        accumulator[key] = normalize(item);
-        return accumulator;
-      },
-      {},
-    );
+    const entries = Object.entries(value as Record<string, unknown>).reduce<
+      Record<string, unknown>
+    >((accumulator, [key, item]) => {
+      accumulator[key] = normalize(item);
+      return accumulator;
+    }, {});
     return entries;
   }
 
@@ -138,7 +137,9 @@ function getLogDrainAlertConfig(): LogDrainAlertConfig | null {
 
   const rawCooldown = process.env.LOG_DRAIN_ALERT_COOLDOWN_MS;
   const parsedCooldown = Number.parseInt(rawCooldown ?? "", 10);
-  const cooldownMs = Number.isNaN(parsedCooldown) ? DEFAULT_ALERT_COOLDOWN_MS : Math.max(parsedCooldown, 1000);
+  const cooldownMs = Number.isNaN(parsedCooldown)
+    ? DEFAULT_ALERT_COOLDOWN_MS
+    : Math.max(parsedCooldown, 1000);
 
   return {
     webhook,
@@ -223,7 +224,7 @@ async function forwardToDrain(entry: Record<string, unknown>, config: LogDrainCo
       if (process.env.LOG_DRAIN_SILENT !== "1") {
         console.warn(
           "[log-drain] forward failed",
-          new Error(`unexpected status ${response.status}`),
+          new Error(`unexpected status ${response.status}`)
         );
       }
 
@@ -245,7 +246,10 @@ async function forwardToDrain(entry: Record<string, unknown>, config: LogDrainCo
   }
 }
 
-export function withLogContext<T>(base: LogContext, callback: () => Promise<T> | T): Promise<T> | T {
+export function withLogContext<T>(
+  base: LogContext,
+  callback: () => Promise<T> | T
+): Promise<T> | T {
   const parent = storage.getStore() ?? {};
   const merged = { ...parent, ...base };
   return storage.run(merged, callback);

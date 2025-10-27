@@ -48,7 +48,10 @@ export function GroupGrid({ groups, joinRequests }: GroupGridProps) {
       {groups.map((group) => {
         const status = getStatus(group.id);
         return (
-          <article key={group.id} className="rounded-3xl border border-white/15 bg-white/8 p-5 text-neutral-0 shadow-glass">
+          <article
+            key={group.id}
+            className="rounded-3xl border border-white/15 bg-white/8 p-5 text-neutral-0 shadow-glass"
+          >
             <header className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="text-xl font-semibold">{group.name}</h3>
@@ -71,7 +74,11 @@ export function GroupGrid({ groups, joinRequests }: GroupGridProps) {
                 onClick={() => submitJoinRequest(group.id, group.sacco_id)}
                 disabled={Boolean(status) || isSubmitting}
               >
-                {status ? status.charAt(0).toUpperCase() + status.slice(1) : isSubmitting ? "Sending…" : "Ask to Join"}
+                {status
+                  ? status.charAt(0).toUpperCase() + status.slice(1)
+                  : isSubmitting
+                    ? "Sending…"
+                    : "Ask to Join"}
               </button>
               <Link
                 href={`/member/pay?group=${group.id}`}

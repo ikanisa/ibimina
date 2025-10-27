@@ -14,7 +14,7 @@ type AuditAction =
 export const recordMfaAudit = async (
   action: AuditAction,
   userId: string,
-  diff: Record<string, unknown> | null,
+  diff: Record<string, unknown> | null
 ) => {
   try {
     await logAudit({ action, entity: "USER", entityId: userId, diff });

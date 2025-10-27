@@ -91,7 +91,7 @@ interface DashboardSummaryClients {
 async function computeDashboardSummary(
   { saccoId, allowAll }: DashboardSummaryParams,
   clients: DashboardSummaryClients,
-  options: { attemptedRefresh?: boolean } = {},
+  options: { attemptedRefresh?: boolean } = {}
 ): Promise<DashboardSummary> {
   if (process.env.AUTH_E2E_STUB === "1") {
     return {
@@ -194,7 +194,7 @@ async function computeDashboardSummary(
     let ikiminaQuery = analyticsClient
       .from("analytics_ikimina_monthly_mv")
       .select(
-        "ikimina_id, sacco_id, name, code, status, updated_at, month_total, active_member_count, contributing_members, last_contribution_at",
+        "ikimina_id, sacco_id, name, code, status, updated_at, month_total, active_member_count, contributing_members, last_contribution_at"
       )
       .order("month_total", { ascending: false })
       .limit(5);
@@ -220,7 +220,9 @@ async function computeDashboardSummary(
 
     let overdueQuery = analyticsClient
       .from("analytics_member_last_payment_mv")
-      .select("member_id, full_name, msisdn, member_code, ikimina_id, ikimina_name, days_since_last, status")
+      .select(
+        "member_id, full_name, msisdn, member_code, ikimina_id, ikimina_name, days_since_last, status"
+      )
       .eq("status", "ACTIVE")
       .order("days_since_last", { ascending: false })
       .limit(12);
@@ -236,15 +238,18 @@ async function computeDashboardSummary(
 
     const missedContributors = ((overdueRows ?? []) as MemberLastPaymentRow[])
       .filter((row) => typeof row.member_id === "string" && (row.member_id?.length ?? 0) > 0)
-      .map((row) => ({
-        id: row.member_id as string,
-        full_name: row.full_name ?? "Unknown member",
-        msisdn: row.msisdn ?? null,
-        member_code: row.member_code ?? null,
-        ikimina_id: row.ikimina_id ?? null,
-        ikimina_name: row.ikimina_name ?? null,
-        days_since: row.days_since_last == null ? null : Number(row.days_since_last),
-      } satisfies DashboardSummary["missedContributors"][number]))
+      .map(
+        (row) =>
+          ({
+            id: row.member_id as string,
+            full_name: row.full_name ?? "Unknown member",
+            msisdn: row.msisdn ?? null,
+            member_code: row.member_code ?? null,
+            ikimina_id: row.ikimina_id ?? null,
+            ikimina_name: row.ikimina_name ?? null,
+            days_since: row.days_since_last == null ? null : Number(row.days_since_last),
+          }) satisfies DashboardSummary["missedContributors"][number]
+      )
       .filter((entry) => entry.days_since === null || Number.isFinite(entry.days_since))
       .filter((entry) => entry.days_since === null || entry.days_since > DAYS_THRESHOLD)
       .slice(0, 6);
@@ -289,7 +294,9 @@ async function computeDashboardSummary(
   }
 }
 
-export async function getDashboardSummary(params: DashboardSummaryParams): Promise<DashboardSummary> {
+export async function getDashboardSummary(
+  params: DashboardSummaryParams
+): Promise<DashboardSummary> {
   const supabase = createSupabaseServiceRoleClient("dashboard:user");
   const appSupabase = createSupabaseServiceRoleClient("dashboard:app");
   return computeDashboardSummary(params, { user: supabase, app: appSupabase });

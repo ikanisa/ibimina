@@ -36,7 +36,7 @@ async function decideJoinRequestInternal({
       metadata: { requestId, decision },
       allowedRoles: SACCO_SCOPED_ROLES,
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -61,7 +61,11 @@ async function decideJoinRequestInternal({
   }
 
   if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id !== request.sacco_id) {
-    logWarn("admin.joinRequest.unauthorized", { requestId, actor: profile.id, saccoId: profile.sacco_id });
+    logWarn("admin.joinRequest.unauthorized", {
+      requestId,
+      actor: profile.id,
+      saccoId: profile.sacco_id,
+    });
     return { status: "error", message: "You are not allowed to manage this join request." };
   }
 
@@ -94,7 +98,11 @@ async function decideJoinRequestInternal({
   return { status: "success" };
 }
 
-async function resendInviteInternal({ inviteId }: { inviteId: string }): Promise<ApprovalActionResult> {
+async function resendInviteInternal({
+  inviteId,
+}: {
+  inviteId: string;
+}): Promise<ApprovalActionResult> {
   const guard = await guardAdminAction<ApprovalActionResult>(
     {
       action: "admin_group_invite_resend",
@@ -103,7 +111,7 @@ async function resendInviteInternal({ inviteId }: { inviteId: string }): Promise
       metadata: { inviteId },
       allowedRoles: SACCO_SCOPED_ROLES,
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -158,7 +166,11 @@ async function resendInviteInternal({ inviteId }: { inviteId: string }): Promise
   return { status: "success" };
 }
 
-async function revokeInviteInternal({ inviteId }: { inviteId: string }): Promise<ApprovalActionResult> {
+async function revokeInviteInternal({
+  inviteId,
+}: {
+  inviteId: string;
+}): Promise<ApprovalActionResult> {
   const guard = await guardAdminAction<ApprovalActionResult>(
     {
       action: "admin_group_invite_revoke",
@@ -167,7 +179,7 @@ async function revokeInviteInternal({ inviteId }: { inviteId: string }): Promise
       metadata: { inviteId },
       allowedRoles: SACCO_SCOPED_ROLES,
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -234,7 +246,7 @@ async function sendInviteInternal({
       metadata: { groupId },
       allowedRoles: SACCO_SCOPED_ROLES,
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -260,7 +272,11 @@ async function sendInviteInternal({
   }
 
   if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id !== group.sacco_id) {
-    logWarn("admin.invite.createUnauthorized", { groupId, actor: profile.id, saccoId: group.sacco_id });
+    logWarn("admin.invite.createUnauthorized", {
+      groupId,
+      actor: profile.id,
+      saccoId: group.sacco_id,
+    });
     return { status: "error", message: "You are not allowed to invite to this group." };
   }
 
@@ -298,7 +314,16 @@ async function sendInviteInternal({
   return { status: "success" };
 }
 
-export const decideJoinRequest = instrumentServerAction("admin.approvals.decideJoinRequest", decideJoinRequestInternal);
-export const resendInvite = instrumentServerAction("admin.approvals.resendInvite", resendInviteInternal);
-export const revokeInvite = instrumentServerAction("admin.approvals.revokeInvite", revokeInviteInternal);
+export const decideJoinRequest = instrumentServerAction(
+  "admin.approvals.decideJoinRequest",
+  decideJoinRequestInternal
+);
+export const resendInvite = instrumentServerAction(
+  "admin.approvals.resendInvite",
+  resendInviteInternal
+);
+export const revokeInvite = instrumentServerAction(
+  "admin.approvals.revokeInvite",
+  revokeInviteInternal
+);
 export const sendInvite = instrumentServerAction("admin.approvals.sendInvite", sendInviteInternal);

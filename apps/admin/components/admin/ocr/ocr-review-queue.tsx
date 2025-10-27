@@ -84,7 +84,20 @@ export function OcrReviewQueue({ items }: OcrReviewQueueProps) {
     if (!selected) return [] as Array<{ key: string; value: string }>;
     const fields = selected.ocrFields ?? {};
     return Object.entries(fields)
-      .filter(([key]) => !["source", "response_id", "model", "received_at", "confidence", "status", "reviewed_at", "reviewer", "note"].includes(key))
+      .filter(
+        ([key]) =>
+          ![
+            "source",
+            "response_id",
+            "model",
+            "received_at",
+            "confidence",
+            "status",
+            "reviewed_at",
+            "reviewer",
+            "note",
+          ].includes(key)
+      )
       .map(([key, value]) => ({ key, value: String(value ?? "") }));
   }, [selected]);
 
@@ -101,7 +114,8 @@ export function OcrReviewQueue({ items }: OcrReviewQueueProps) {
       <aside className="space-y-3">
         {entries.map((entry, index) => {
           const isActive = index === selectedIndex;
-          const statusTone = (entry.confidence ?? 0) >= CONFIDENCE_THRESHOLD ? "success" : "warning";
+          const statusTone =
+            (entry.confidence ?? 0) >= CONFIDENCE_THRESHOLD ? "success" : "warning";
           return (
             <button
               key={entry.userId}
@@ -142,12 +156,19 @@ export function OcrReviewQueue({ items }: OcrReviewQueueProps) {
                 {selected.saccoName ?? t("admin.ocr.unknownSacco", "Unassigned")}
               </p>
               <p className="text-xs text-neutral-3">
-                {selected.msisdn ?? "—"} · {selected.updatedAt ? new Date(selected.updatedAt).toLocaleString() : "—"}
+                {selected.msisdn ?? "—"} ·{" "}
+                {selected.updatedAt ? new Date(selected.updatedAt).toLocaleString() : "—"}
               </p>
             </div>
-            <StatusChip tone={confidenceStatus && confidenceStatus >= CONFIDENCE_THRESHOLD ? "success" : "warning"}>
+            <StatusChip
+              tone={
+                confidenceStatus && confidenceStatus >= CONFIDENCE_THRESHOLD ? "success" : "warning"
+              }
+            >
               {confidenceStatus !== null
-                ? t("admin.ocr.confidence", "Confidence {{value}}", { value: Math.round(confidenceStatus * 100) })
+                ? t("admin.ocr.confidence", "Confidence {{value}}", {
+                    value: Math.round(confidenceStatus * 100),
+                  })
                 : t("admin.ocr.confidenceUnknown", "No confidence")}
             </StatusChip>
           </header>
@@ -171,7 +192,9 @@ export function OcrReviewQueue({ items }: OcrReviewQueueProps) {
             <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label={t("admin.ocr.idType", "ID type")}>{selected.idType ?? "—"}</Field>
-                <Field label={t("admin.ocr.idNumber", "ID number")}>{selected.idNumber ?? "—"}</Field>
+                <Field label={t("admin.ocr.idNumber", "ID number")}>
+                  {selected.idNumber ?? "—"}
+                </Field>
               </div>
               <div className="space-y-2">
                 <p className="text-xs uppercase tracking-[0.3em] text-neutral-3">
@@ -179,7 +202,10 @@ export function OcrReviewQueue({ items }: OcrReviewQueueProps) {
                 </p>
                 <dl className="grid gap-2 sm:grid-cols-2">
                   {detailFields.map((field) => (
-                    <div key={field.key} className="rounded-xl border border-white/10 bg-white/10 p-3 text-xs text-neutral-0">
+                    <div
+                      key={field.key}
+                      className="rounded-xl border border-white/10 bg-white/10 p-3 text-xs text-neutral-0"
+                    >
                       <dt className="uppercase tracking-[0.2em] text-neutral-3">{field.key}</dt>
                       <dd className="mt-1 text-sm text-neutral-0">{field.value || "—"}</dd>
                     </div>
@@ -208,7 +234,9 @@ export function OcrReviewQueue({ items }: OcrReviewQueueProps) {
                 disabled={pending}
                 className="interactive-scale rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 shadow-glass disabled:opacity-60"
               >
-                {pending ? t("common.processing", "Processing…") : t("admin.ocr.accept", "Accept (A)")}
+                {pending
+                  ? t("common.processing", "Processing…")
+                  : t("admin.ocr.accept", "Accept (A)")}
               </button>
               <button
                 type="button"
@@ -216,7 +244,9 @@ export function OcrReviewQueue({ items }: OcrReviewQueueProps) {
                 disabled={pending}
                 className="interactive-scale rounded-full bg-rose-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 shadow-glass disabled:opacity-60"
               >
-                {pending ? t("common.processing", "Processing…") : t("admin.ocr.rescan", "Request rescan (R)")}
+                {pending
+                  ? t("common.processing", "Processing…")
+                  : t("admin.ocr.rescan", "Request rescan (R)")}
               </button>
             </div>
           </div>

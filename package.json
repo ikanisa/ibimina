@@ -6,21 +6,40 @@
     "dev": "pnpm --filter @ibimina/admin dev",
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
     "start": "pnpm --filter @ibimina/admin run start",
     "check:flags": "node scripts/check-feature-flags.mjs",
-    "check:deploy": "pnpm run check:flags && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse"
+    "check:deploy": "pnpm run check:flags && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
     "@types/node": "20.19.21",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react-hooks": "^7.0.0",
     "globals": "^16.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "5.9.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+      "prettier --write",
+      "eslint --fix --max-warnings=0"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }

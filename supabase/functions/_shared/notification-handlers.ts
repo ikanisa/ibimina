@@ -1,7 +1,10 @@
 import type { NotificationJob } from "./notifications.ts";
 import { computeNextRetryAt, normalizeMsisdn, renderTemplate } from "./notifications.ts";
 
-export type RateLimiter = (bucket: string, options?: { maxHits?: number; windowSeconds?: number; route?: string }) => Promise<boolean>;
+export type RateLimiter = (
+  bucket: string,
+  options?: { maxHits?: number; windowSeconds?: number; route?: string }
+) => Promise<boolean>;
 
 interface AuditEntry {
   actorId?: string | null;
@@ -21,7 +24,11 @@ interface SendResult {
 }
 
 export type WhatsappSender = (payload: { to: string; body: string }) => Promise<SendResult>;
-export type EmailSender = (payload: { to: string; subject: string; text: string }) => Promise<SendResult>;
+export type EmailSender = (payload: {
+  to: string;
+  subject: string;
+  text: string;
+}) => Promise<SendResult>;
 
 interface TemplateRecord {
   id: string;
@@ -61,7 +68,9 @@ const formatCurrency = (amount: number | null | undefined, currency: string | nu
   }
   const symbol = currency && currency.trim().length > 0 ? currency.trim().toUpperCase() : "RWF";
   try {
-    return new Intl.NumberFormat("en-KE", { style: "currency", currency: symbol }).format(amount / 100);
+    return new Intl.NumberFormat("en-KE", { style: "currency", currency: symbol }).format(
+      amount / 100
+    );
   } catch {
     return `${amount / 100} ${symbol}`;
   }
@@ -119,7 +128,7 @@ const tokensFromPayload = (payload: Record<string, unknown>) => {
 
 export const processWhatsappJob = async (
   job: NotificationJob,
-  deps: WhatsappJobDeps,
+  deps: WhatsappJobDeps
 ): Promise<JobOutcome> => {
   const now = deps.now?.() ?? new Date();
   const tokens = tokensFromPayload(job.payload);
@@ -149,7 +158,8 @@ export const processWhatsappJob = async (
       return { type: "failed", detail: "missing_recipient" };
     }
 
-    const templateId = typeof job.payload["templateId"] === "string" ? job.payload["templateId"] : job.template_id;
+    const templateId =
+      typeof job.payload["templateId"] === "string" ? job.payload["templateId"] : job.template_id;
     if (!templateId) {
       await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", { reason: "missing_template" });
       return { type: "failed", detail: "missing_template" };
@@ -157,7 +167,10 @@ export const processWhatsappJob = async (
 
     const template = await deps.fetchTemplate(templateId);
     if (!template) {
-      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", { reason: "template_not_found", templateId });
+      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", {
+        reason: "template_not_found",
+        templateId,
+      });
       return { type: "failed", detail: "template_not_found" };
     }
 
@@ -167,7 +180,9 @@ export const processWhatsappJob = async (
       ...tokens,
     });
 
-    const allowed = await deps.rateLimit(`whatsapp:${recipient}`, { route: "notifications:whatsapp" });
+    const allowed = await deps.rateLimit(`whatsapp:${recipient}`, {
+      route: "notifications:whatsapp",
+    });
     if (!allowed) {
       await ensureAudit("NOTIFICATION_WHATSAPP_RATE_LIMIT", { to: recipient });
       return resolveRetry(job, "rate_limited", now);
@@ -181,7 +196,9 @@ export const processWhatsappJob = async (
         status: response.status,
         retryable: shouldRetry,
       });
-      return shouldRetry ? resolveRetry(job, "upstream_error", now) : { type: "failed", detail: "send_failed" };
+      return shouldRetry
+        ? resolveRetry(job, "upstream_error", now)
+        : { type: "failed", detail: "send_failed" };
     }
 
     await ensureAudit("NOTIFICATION_WHATSAPP_SENT", { to: recipient, event: job.event });
@@ -213,11 +230,16 @@ export const processWhatsappJob = async (
     }
 
     if (!recipient) {
-      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", { reason: "missing_recipient", event: job.event });
+      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", {
+        reason: "missing_recipient",
+        event: job.event,
+      });
       return { type: "failed", detail: "missing_recipient" };
     }
 
-    const allowed = await deps.rateLimit(`whatsapp:${recipient}`, { route: "notifications:whatsapp" });
+    const allowed = await deps.rateLimit(`whatsapp:${recipient}`, {
+      route: "notifications:whatsapp",
+    });
     if (!allowed) {
       await ensureAudit("NOTIFICATION_WHATSAPP_RATE_LIMIT", { to: recipient });
       return resolveRetry(job, "rate_limited", now);
@@ -228,7 +250,10 @@ export const processWhatsappJob = async (
         ? job.payload["message"]
         : "Hello from SACCO+. Your payment {reference} recorded on {occurredAt} is still pending. Please contact your SACCO to finalize.";
 
-    const rendered = renderTemplate(template, tokens as Record<string, string | number | null | undefined>);
+    const rendered = renderTemplate(
+      template,
+      tokens as Record<string, string | number | null | undefined>
+    );
     const response = await deps.send({ to: recipient, body: rendered });
 
     if (!response.ok) {
@@ -238,7 +263,9 @@ export const processWhatsappJob = async (
         status: response.status,
         retryable: shouldRetry,
       });
-      return shouldRetry ? resolveRetry(job, "upstream_error", now) : { type: "failed", detail: "send_failed" };
+      return shouldRetry
+        ? resolveRetry(job, "upstream_error", now)
+        : { type: "failed", detail: "send_failed" };
     }
 
     await ensureAudit("NOTIFICATION_WHATSAPP_SENT", { to: recipient, event: job.event });
@@ -264,7 +291,7 @@ export interface EmailJobDeps {
 
 export const processEmailJob = async (
   job: NotificationJob,
-  deps: EmailJobDeps,
+  deps: EmailJobDeps
 ): Promise<JobOutcome> => {
   const now = deps.now?.() ?? new Date();
 
@@ -288,7 +315,10 @@ export const processEmailJob = async (
     return { type: "failed", detail: "missing_email" };
   }
 
-  const allowed = await deps.rateLimit(`email:${email.toLowerCase()}`, { route: "notifications:email", maxHits: 5 });
+  const allowed = await deps.rateLimit(`email:${email.toLowerCase()}`, {
+    route: "notifications:email",
+    maxHits: 5,
+  });
   if (!allowed) {
     await ensureAudit("NOTIFICATION_EMAIL_RATE_LIMIT", { email });
     return resolveRetry(job, "rate_limited", now);
@@ -316,15 +346,24 @@ export const processEmailJob = async (
   }
 
   if (!subject || !text) {
-    await ensureAudit("NOTIFICATION_EMAIL_FAILED", { reason: "missing_template", event: job.event });
+    await ensureAudit("NOTIFICATION_EMAIL_FAILED", {
+      reason: "missing_template",
+      event: job.event,
+    });
     return { type: "failed", detail: "missing_template" };
   }
 
   const response = await deps.send({ to: email, subject, text });
   if (!response.ok) {
     const shouldRetry = response.status >= 500 || response.status === 429;
-    await ensureAudit("NOTIFICATION_EMAIL_FAILED", { email, status: response.status, retryable: shouldRetry });
-    return shouldRetry ? resolveRetry(job, "upstream_error", now) : { type: "failed", detail: "send_failed" };
+    await ensureAudit("NOTIFICATION_EMAIL_FAILED", {
+      email,
+      status: response.status,
+      retryable: shouldRetry,
+    });
+    return shouldRetry
+      ? resolveRetry(job, "upstream_error", now)
+      : { type: "failed", detail: "send_failed" };
   }
 
   await ensureAudit("NOTIFICATION_EMAIL_SENT", { email, event: job.event });

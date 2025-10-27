@@ -9,7 +9,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const THRESHOLD_MINUTES = Math.max(parseInt(Deno.env.get("SMS_AUTOMATION_THRESHOLD_MINUTES") ?? "10", 10), 1);
+const THRESHOLD_MINUTES = Math.max(
+  parseInt(Deno.env.get("SMS_AUTOMATION_THRESHOLD_MINUTES") ?? "10", 10),
+  1
+);
 const MAX_BATCH = Math.max(parseInt(Deno.env.get("SMS_AUTOMATION_BATCH") ?? "25", 10), 1);
 
 interface SmsRecord {
@@ -52,9 +55,17 @@ const withLock = async (supabase: ReturnType<typeof createClient>, sms: SmsRecor
   return true;
 };
 
-const findIkimina = async (supabase: ReturnType<typeof createClient>, reference: string | null | undefined) => {
+const findIkimina = async (
+  supabase: ReturnType<typeof createClient>,
+  reference: string | null | undefined
+) => {
   if (!reference) {
-    return { saccoId: null as string | null, ikiminaId: null as string | null, memberId: null as string | null, status: "PENDING" };
+    return {
+      saccoId: null as string | null,
+      ikiminaId: null as string | null,
+      memberId: null as string | null,
+      status: "PENDING",
+    };
   }
 
   const parts = reference.split(".");
@@ -101,7 +112,12 @@ const persistPayment = async (
   supabase: ReturnType<typeof createClient>,
   sms: SmsRecord,
   parse: ParseResponse,
-  mapping: { saccoId: string | null; ikiminaId: string | null; memberId: string | null; status: string },
+  mapping: {
+    saccoId: string | null;
+    ikiminaId: string | null;
+    memberId: string | null;
+    status: string;
+  }
 ) => {
   const encryptedMsisdn = await encryptField(parse.parsed.msisdn);
   const msisdnHash = await hashField(parse.parsed.msisdn);
@@ -144,7 +160,7 @@ const persistPayment = async (
       occurred_at: parse.parsed.timestamp,
       status: mapping.status,
       source_id: sms.id,
-      ai_version: parse.parseSource === "AI" ? parse.modelUsed ?? "openai-structured" : null,
+      ai_version: parse.parseSource === "AI" ? (parse.modelUsed ?? "openai-structured") : null,
       confidence: parse.parsed.confidence,
     })
     .select()
@@ -214,7 +230,11 @@ Deno.serve(async (req) => {
 
       try {
         const parseResponse = await supabase.functions.invoke("parse-sms", {
-          body: { rawText: sms.raw_text, receivedAt: sms.received_at, vendorMeta: sms.vendor_meta ?? undefined },
+          body: {
+            rawText: sms.raw_text,
+            receivedAt: sms.received_at,
+            vendorMeta: sms.vendor_meta ?? undefined,
+          },
         });
 
         if (parseResponse.error) {
@@ -277,7 +297,10 @@ Deno.serve(async (req) => {
           .update({ status: "FAILED", error: message })
           .eq("id", sms.id);
         failed += 1;
-        await recordMetric(supabase, "sms_reprocess_failed", 1, { smsId: sms.id, reason: "exception" });
+        await recordMetric(supabase, "sms_reprocess_failed", 1, {
+          smsId: sms.id,
+          reason: "exception",
+        });
       }
     }
 
@@ -289,7 +312,7 @@ Deno.serve(async (req) => {
         retried,
         failed,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("gsm-maintenance error", error);

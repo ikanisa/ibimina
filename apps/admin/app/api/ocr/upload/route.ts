@@ -184,7 +184,7 @@ function createOpenAiClient() {
 }
 
 function parseOcrResponse(
-  response: Awaited<ReturnType<OpenAI["responses"]["create"]>>,
+  response: Awaited<ReturnType<OpenAI["responses"]["create"]>>
 ): OcrPayload {
   const textCandidates: string[] = [];
 

@@ -1,7 +1,7 @@
 /**
  * Groups Grid Component
  * Displays groups in a responsive grid layout with metadata
- * 
+ *
  * Features:
  * - Responsive grid (1-3 columns based on screen size)
  * - Group cards with name, members, and creation date
@@ -22,20 +22,20 @@ interface GroupsGridProps {
 /**
  * GroupsGrid Component
  * Renders a responsive grid of group cards
- * 
+ *
  * @param props.groups - Array of groups to display
- * 
+ *
  * @example
  * ```tsx
  * <GroupsGrid groups={groups} />
  * ```
- * 
+ *
  * @remarks
  * Uses CSS Grid for responsive layout:
  * - Mobile: 1 column
  * - Tablet: 2 columns
  * - Desktop: 3 columns
- * 
+ *
  * @accessibility
  * - Uses semantic HTML (section, ul)
  * - Provides descriptive aria-label
@@ -59,15 +59,9 @@ export function GroupsGrid({ groups }: GroupsGridProps) {
   }
 
   return (
-    <section
-      aria-label="Savings groups grid"
-      className="w-full"
-    >
+    <section aria-label="Savings groups grid" className="w-full">
       {/* Grid container with responsive columns */}
-      <ul
-        className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-        role="list"
-      >
+      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list">
         {groups.map((group) => (
           <li key={group.id} className="flex">
             <GroupCard group={group} />

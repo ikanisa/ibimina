@@ -29,7 +29,7 @@ export type TrackEvent =
  */
 export async function track(
   event: TrackEvent,
-  properties?: Record<string, unknown>,
+  properties?: Record<string, unknown>
 ): Promise<void> {
   if (process.env.NODE_ENV !== "production") {
     const payload =

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": false,
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true,
+      "groupName": "all major dependencies",
+      "groupSlug": "all-major"
+    },
+    {
+      "matchPackagePatterns": ["^@types/"],
+      "groupName": "TypeScript type definitions",
+      "automerge": false
+    },
+    {
+      "matchPackagePatterns": ["^eslint", "^prettier"],
+      "groupName": "linting and formatting",
+      "automerge": false
+    },
+    {
+      "matchPackagePatterns": ["^@supabase/"],
+      "groupName": "Supabase packages",
+      "automerge": false
+    },
+    {
+      "matchPackageNames": ["react", "react-dom"],
+      "groupName": "React core",
+      "automerge": false
+    },
+    {
+      "matchPackageNames": ["next"],
+      "groupName": "Next.js",
+      "automerge": false
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
+  "dependencyDashboard": true,
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "schedule": ["before 3am on Monday"],
+  "timezone": "Africa/Kigali",
+  "labels": ["dependencies"],
+  "commitMessagePrefix": "chore(deps):",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 3am on the first day of the month"]
+  },
+  "rangeStrategy": "bump"
+}

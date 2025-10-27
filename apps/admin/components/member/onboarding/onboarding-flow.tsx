@@ -62,8 +62,7 @@ export function OnboardingFlow() {
   );
 
   const nextDisabled =
-    (step === 0 && (!form.whatsapp_msisdn || !form.momo_msisdn)) ||
-    (step === 1 && !ocr);
+    (step === 0 && (!form.whatsapp_msisdn || !form.momo_msisdn)) || (step === 1 && !ocr);
 
   const submit = () => {
     startSubmit(async () => {
@@ -85,7 +84,9 @@ export function OnboardingFlow() {
   return (
     <div className="space-y-8">
       <header className="space-y-2 text-neutral-0">
-        <p className="text-sm uppercase tracking-wide text-white/70">Step {step + 1} of {steps.length}</p>
+        <p className="text-sm uppercase tracking-wide text-white/70">
+          Step {step + 1} of {steps.length}
+        </p>
         <h1 className="text-3xl font-semibold">{steps[step].title}</h1>
         <p className="text-base text-white/80">{steps[step].description}</p>
       </header>
@@ -119,7 +120,11 @@ export function OnboardingFlow() {
             onClick={submit}
             disabled={isSubmitting}
           >
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <CheckCircle2 className="h-4 w-4" aria-hidden />}
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" aria-hidden />
+            )}
             Finish onboarding
           </button>
         )}
@@ -193,7 +198,9 @@ function DocumentUploader({ onUploaded }: DocumentUploaderProps) {
       <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-white/30 bg-white/5 p-8 text-center">
         <Camera className="h-10 w-10" aria-hidden />
         <span className="text-lg font-semibold">Capture or upload your ID</span>
-        <span className="text-sm text-white/70">We support National ID, Driver’s License, or Passport.</span>
+        <span className="text-sm text-white/70">
+          We support National ID, Driver’s License, or Passport.
+        </span>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -267,7 +274,9 @@ function ReviewPanel({ form, ocr }: ReviewPanelProps) {
             </div>
           </dl>
         ) : (
-          <p className="text-sm text-white/70">Upload an ID document to see the extracted fields.</p>
+          <p className="text-sm text-white/70">
+            Upload an ID document to see the extracted fields.
+          </p>
         )}
       </section>
     </div>

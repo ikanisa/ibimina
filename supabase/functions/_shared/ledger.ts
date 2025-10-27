@@ -17,7 +17,7 @@ export const ensureAccount = async (
   ownerType: string,
   ownerId: string,
   saccoId: string,
-  currency = "RWF",
+  currency = "RWF"
 ) => {
   const { data, error } = await supabase
     .schema("app")
@@ -61,8 +61,18 @@ export const postToLedger = async (supabase: AnyClient, payment: Payment) => {
     throw new Error("Payment missing ikimina");
   }
 
-  const clearingAccountId = await ensureAccount(supabase, "MOMO_CLEARING", payment.sacco_id, payment.sacco_id);
-  const ikiminaAccountId = await ensureAccount(supabase, "IKIMINA", payment.ikimina_id, payment.sacco_id);
+  const clearingAccountId = await ensureAccount(
+    supabase,
+    "MOMO_CLEARING",
+    payment.sacco_id,
+    payment.sacco_id
+  );
+  const ikiminaAccountId = await ensureAccount(
+    supabase,
+    "IKIMINA",
+    payment.ikimina_id,
+    payment.sacco_id
+  );
 
   const { data: existing, error: fetchError } = await supabase
     .schema("app")
@@ -104,8 +114,18 @@ export const postToLedger = async (supabase: AnyClient, payment: Payment) => {
 };
 
 export const settleLedger = async (supabase: AnyClient, payment: Payment) => {
-  const clearingAccountId = await ensureAccount(supabase, "MOMO_CLEARING", payment.sacco_id, payment.sacco_id);
-  const settlementAccountId = await ensureAccount(supabase, "MOMO_SETTLEMENT", payment.sacco_id, payment.sacco_id);
+  const clearingAccountId = await ensureAccount(
+    supabase,
+    "MOMO_CLEARING",
+    payment.sacco_id,
+    payment.sacco_id
+  );
+  const settlementAccountId = await ensureAccount(
+    supabase,
+    "MOMO_SETTLEMENT",
+    payment.sacco_id,
+    payment.sacco_id
+  );
 
   const { data: existing, error: fetchError } = await supabase
     .schema("app")
