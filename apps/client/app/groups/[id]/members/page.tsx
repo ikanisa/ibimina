@@ -5,7 +5,7 @@
  * Access is restricted - only group members can view this page.
  * 
  * Features:
- * - Server-side data fetching with authentication
+ * - Client-side data fetching via API routes
  * - Displays member information with masked sensitive data
  * - Error handling for unauthorized access
  * - Accessibility-compliant UI following WCAG 2.1 AA standards
@@ -15,8 +15,8 @@
  * URL: /groups/[id]/members
  * 
  * Security:
- * - Server Component with authenticated data fetching
- * - RLS policies enforce member-only access
+ * - Client Component that fetches data from authenticated API route
+ * - RLS policies enforce member-only access at the database level
  * - Masked phone numbers and national IDs
  * 
  * @accessibility
