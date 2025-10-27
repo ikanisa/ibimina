@@ -13,6 +13,10 @@ import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
 import { errorCorsResponse, jsonCorsResponse, preflightResponse } from "../_shared/http.ts";
 
+/**
+ * Payment application request schema
+ * Validates incoming payment data before processing
+ */
 const requestSchema = z.object({
   saccoId: z.string().uuid(),
   msisdn: z.string().min(8),
@@ -24,6 +28,10 @@ const requestSchema = z.object({
   sourceId: z.string().uuid().optional(),
 });
 
+/**
+ * Load user profile to determine SACCO assignment and role
+ * Used for authorization checks to ensure users can only modify their assigned SACCO
+ */
 const loadProfile = async (supabase: ReturnType<typeof createServiceClient>, userId: string) => {
   const { data, error } = await supabase
     .schema("app")
@@ -39,6 +47,10 @@ const loadProfile = async (supabase: ReturnType<typeof createServiceClient>, use
   return data ?? null;
 };
 
+/**
+ * Compute current balances for an ikimina after payment is posted
+ * Returns null if the payment is not yet allocated to a specific group
+ */
 const computeBalances = async (
   supabase: ReturnType<typeof createServiceClient>,
   saccoId: string,
@@ -56,6 +68,28 @@ const computeBalances = async (
   };
 };
 
+/**
+ * Payment Application Edge Function
+ * 
+ * Processes incoming mobile money payments and posts them to the ledger.
+ * This is the primary entry point for payment ingestion from SMS parsing,
+ * manual entry, and third-party integrations.
+ * 
+ * Key features:
+ * - Idempotency: Duplicate requests with the same idempotency key return cached response
+ * - PII Encryption: Phone numbers are encrypted using AES-256-GCM before storage
+ * - Reference Resolution: Automatically matches payments to members/groups via reference codes
+ * - Ledger Posting: Creates double-entry bookkeeping records
+ * - Rate Limiting: Enforces 20 requests per minute per user
+ * - Audit Trail: Records all payment actions in audit_logs
+ * 
+ * Authorization:
+ * - SYSTEM_ADMIN: Can post payments to any SACCO
+ * - SACCO_STAFF/MANAGER: Can only post to their assigned SACCO
+ * - Service role: Can post to any SACCO (used by automated systems)
+ * 
+ * @see docs/API-EDGE.md for full API documentation
+ */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return preflightResponse({ "access-control-allow-methods": "POST,OPTIONS" });
@@ -66,6 +100,7 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Idempotency key is required to prevent duplicate payment posting
     const idempotencyKey = req.headers.get("x-idempotency-key");
     if (!idempotencyKey) {
       return errorCorsResponse("Missing x-idempotency-key header", 422);
@@ -80,6 +115,7 @@ Deno.serve(async (req) => {
     let actingSaccoId: string | null = payload.saccoId;
     const actorId = auth.userId ?? "service-role";
 
+    // Enforce rate limiting and authorization for authenticated users
     if (auth.userId) {
       const allowed = await enforceIdentityRateLimit(supabase, auth.userId, "/payments/apply", {
         maxHits: 20,
@@ -94,6 +130,7 @@ Deno.serve(async (req) => {
       actingRole = profile?.role as string | null ?? actingRole;
       actingSaccoId = profile?.sacco_id as string | null ?? actingSaccoId;
 
+      // Non-admin users can only post payments to their assigned SACCO
       if (actingRole !== "SYSTEM_ADMIN") {
         if (!profile?.sacco_id) {
           return errorCorsResponse("Profile missing SACCO assignment", 403);
@@ -105,6 +142,7 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Check for cached idempotent response
     const identityKey = auth.userId ?? "service-role";
     const requestHash = hashPayload({
       ...payload,
@@ -120,10 +158,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Encrypt PII fields (phone number) before storing
+    // We store: encrypted value (for decryption), hash (for lookups), masked (for display)
     const msisdnEncrypted = await encryptField(payload.msisdn);
     const msisdnHash = await hashField(payload.msisdn);
     const msisdnMasked = maskMsisdn(payload.msisdn) ?? payload.msisdn;
 
+    // Resolve reference code to match payment to a specific ikimina/member
+    // Returns POSTED if fully matched, UNALLOCATED if manual review needed
     const resolution = await resolveReference(supabase, payload.reference, actingSaccoId);
 
     const paymentBody = {
