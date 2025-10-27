@@ -6,6 +6,8 @@ type ProcessEnvSource = Partial<Record<string, string | undefined>>;
 
 
 function buildRawEnv(source: ProcessEnvSource) {
+  const analyticsCacheToken = source.ANALYTICS_CACHE_TOKEN?.trim();
+
   return {
     NODE_ENV: source.NODE_ENV ?? "development",
     APP_ENV: source.APP_ENV ?? source.NODE_ENV ?? "development",
@@ -29,7 +31,10 @@ function buildRawEnv(source: ProcessEnvSource) {
     MFA_RP_NAME: source.MFA_RP_NAME ?? "SACCO+",
     MFA_EMAIL_LOCALE: source.MFA_EMAIL_LOCALE ?? "en",
     MFA_EMAIL_FROM: source.MFA_EMAIL_FROM ?? "security@example.com",
-    ANALYTICS_CACHE_TOKEN: source.ANALYTICS_CACHE_TOKEN,
+    ANALYTICS_CACHE_TOKEN:
+      analyticsCacheToken && analyticsCacheToken.length > 0
+        ? analyticsCacheToken
+        : undefined,
     REPORT_SIGNING_KEY: source.REPORT_SIGNING_KEY,
     OPENAI_API_KEY: source.OPENAI_API_KEY,
     OPENAI_OCR_MODEL: source.OPENAI_OCR_MODEL ?? "gpt-4.1-mini",
