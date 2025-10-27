@@ -75,10 +75,14 @@ registerRoute(
 );
 
 /**
- * Cache Strategy: Cache-First for fonts and icons
+ * Cache Strategy: Cache-First for fonts
  * 
- * These resources rarely change and should be served from cache first
- * for optimal performance and reduced network usage.
+ * Fonts rarely change and should be served from cache first
+ * for optimal performance. This captures font requests via the
+ * standard request.destination property.
+ * 
+ * Note: For CDN-hosted fonts, additional URL pattern matching
+ * may be needed in a separate route.
  */
 registerRoute(
   ({ request }) => request.destination === "font",
@@ -95,9 +99,20 @@ registerRoute(
   }),
 );
 
+/**
+ * Helper: Check if request is for an icon
+ */
+const isIconRequest = ({ request, url }: { request: Request; url: URL }) => {
+  return request.destination === "image" && url.pathname.startsWith("/icons/");
+};
+
+/**
+ * Cache Strategy: Cache-First for icons
+ * 
+ * Application icons should be served from cache for instant loading.
+ */
 registerRoute(
-  ({ request, url }) => 
-    request.destination === "image" && url.pathname.startsWith("/icons/"),
+  isIconRequest,
   new CacheFirst({
     cacheName: "icons",
     plugins: [

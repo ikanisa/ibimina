@@ -32,7 +32,6 @@ export default function OfflineFallback() {
         <span 
           className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-2"
           role="status"
-          aria-live="polite"
         >
           Offline mode
         </span>
