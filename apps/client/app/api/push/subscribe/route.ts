@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
  * Web Push Notification Subscription API
@@ -23,24 +24,55 @@ const SubscriptionSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createSupabaseServerClient();
+
+    // Verify user authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Authentication required",
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const validatedData = SubscriptionSchema.parse(body);
 
-    // TODO: In a production environment, you would:
-    // 1. Store the subscription in a database (e.g., Supabase)
-    // 2. Associate it with the authenticated user
-    // 3. Link it to the requested topics
-    // 4. Use web-push library to send notifications later
+    // Store the subscription in the database
+    const { error: insertError } = await supabase.from("push_subscriptions" as any).upsert(
+      {
+        user_id: user.id,
+        endpoint: validatedData.endpoint,
+        p256dh_key: validatedData.keys.p256dh,
+        auth_key: validatedData.keys.auth,
+        topics: validatedData.topics,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "user_id,endpoint",
+      }
+    );
 
-    // For now, we'll validate and return success
-    // Example database storage would look like:
-    // await supabase.from('push_subscriptions').insert({
-    //   user_id: userId,
-    //   endpoint: validatedData.endpoint,
-    //   p256dh_key: validatedData.keys.p256dh,
-    //   auth_key: validatedData.keys.auth,
-    //   topics: validatedData.topics,
-    // });
+    if (insertError) {
+      console.error("Push subscription storage error:", insertError);
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Failed to store subscription",
+          error: insertError.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    console.log(`[Push] User ${user.id} subscribed to topics:`, validatedData.topics);
 
     return NextResponse.json(
       {

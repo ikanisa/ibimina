@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
  * Web Push Notification Unsubscribe API
@@ -15,41 +16,113 @@ const UnsubscribeSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createSupabaseServerClient();
+
+    // Verify user authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Authentication required",
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const validatedData = UnsubscribeSchema.parse(body);
 
-    // TODO: In a production environment, you would:
-    // 1. Look up the subscription by endpoint in the database
-    // 2. If topics are specified, remove only those topics
-    // 3. If no topics specified, remove the entire subscription
-    // 4. Clean up any orphaned data
+    if (validatedData.topics && validatedData.topics.length > 0) {
+      // Remove specific topics - fetch current subscription first
+      const { data: subscription, error: fetchError } = await supabase
+        .from("push_subscriptions" as any)
+        .select("topics")
+        .eq("user_id", user.id)
+        .eq("endpoint", validatedData.endpoint)
+        .single();
 
-    // Example database operations would look like:
-    // if (validatedData.topics) {
-    //   // Remove specific topics
-    //   await supabase.from('push_subscriptions')
-    //     .update({
-    //       topics: sql`array_remove(topics, ${topic})`
-    //     })
-    //     .eq('endpoint', validatedData.endpoint);
-    // } else {
-    //   // Remove entire subscription
-    //   await supabase.from('push_subscriptions')
-    //     .delete()
-    //     .eq('endpoint', validatedData.endpoint);
-    // }
+      if (fetchError || !subscription) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Subscription not found",
+          },
+          { status: 404 }
+        );
+      }
 
-    const message = validatedData.topics
-      ? `Unsubscribed from topics: ${validatedData.topics.join(", ")}`
-      : "Unsubscribed from all notifications";
+      // Filter out the topics to remove
+      const currentTopics = ((subscription as any).topics as string[]) || [];
+      const remainingTopics = currentTopics.filter(
+        (topic: string) => !validatedData.topics?.includes(topic)
+      );
 
-    return NextResponse.json(
-      {
-        success: true,
-        message,
-      },
-      { status: 200 }
-    );
+      // Update with remaining topics
+      const { error: updateError } = await supabase
+        .from("push_subscriptions" as any)
+        .update({
+          topics: remainingTopics,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id)
+        .eq("endpoint", validatedData.endpoint);
+
+      if (updateError) {
+        console.error("Push topic removal error:", updateError);
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Failed to update subscription",
+            error: updateError.message,
+          },
+          { status: 500 }
+        );
+      }
+
+      console.log(`[Push] User ${user.id} unsubscribed from topics:`, validatedData.topics);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: `Unsubscribed from topics: ${validatedData.topics.join(", ")}`,
+        },
+        { status: 200 }
+      );
+    } else {
+      // Remove entire subscription
+      const { error: deleteError } = await supabase
+        .from("push_subscriptions" as any)
+        .delete()
+        .eq("user_id", user.id)
+        .eq("endpoint", validatedData.endpoint);
+
+      if (deleteError) {
+        console.error("Push subscription removal error:", deleteError);
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Failed to remove subscription",
+            error: deleteError.message,
+          },
+          { status: 500 }
+        );
+      }
+
+      console.log(`[Push] User ${user.id} fully unsubscribed`);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Unsubscribed from all notifications",
+        },
+        { status: 200 }
+      );
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
