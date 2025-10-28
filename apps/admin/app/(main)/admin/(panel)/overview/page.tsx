@@ -17,7 +17,7 @@ import {
 } from "@/lib/admin/scope";
 import { getMfaInsights } from "@/lib/mfa/insights";
 import { Trans } from "@/components/common/trans";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, PostgrestError } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 
 interface OverviewPageProps {
@@ -276,12 +276,12 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       await Promise.all([notificationQuery, telemetryQuery, auditQuery, mfaInsightsPromise]);
 
     if (notificationResponse.error && !isMissingRelationError(notificationResponse.error)) {
-      const __err: any = notificationResponse.error as any;
+      const err = notificationResponse.error as PostgrestError;
       console.error("[admin/overview] notification query failed", {
-        code: __err?.code,
-        message: __err?.message,
-        details: __err?.details,
-        hint: __err?.hint,
+        code: err.code,
+        message: err.message,
+        details: err.details,
+        hint: err.hint,
       });
     }
     if (telemetryResponse.error && !isMissingRelationError(telemetryResponse.error)) {
