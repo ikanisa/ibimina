@@ -49,3 +49,8 @@ export function getSupabaseBrowserClient() {
 
   return client;
 }
+
+/**
+ * Alias for getSupabaseBrowserClient for backward compatibility
+ */
+export const createSupabaseBrowserClient = getSupabaseBrowserClient;

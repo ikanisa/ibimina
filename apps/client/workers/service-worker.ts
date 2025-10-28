@@ -237,7 +237,7 @@ self.addEventListener("push", (event) => {
   try {
     const data = event.data.json();
     const title = data.title || "Ibimina Client";
-    const options: NotificationOptions = {
+    const options = {
       body: data.body || "",
       icon: data.icon || "/icons/icon-192.png",
       badge: data.badge || "/icons/icon-192.png",
@@ -245,7 +245,7 @@ self.addEventListener("push", (event) => {
       tag: data.tag || "default",
       requireInteraction: data.requireInteraction || false,
       actions: data.actions || [],
-    };
+    } as NotificationOptions;
 
     event.waitUntil(self.registration.showNotification(title, options));
   } catch (error) {
