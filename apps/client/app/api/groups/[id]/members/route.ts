@@ -120,6 +120,31 @@ export async function GET(
       );
     }
 
+    // Verify the requesting user is an active member of this group
+    const { data: isMember, error: membershipError } = await (supabase as any)
+      .rpc("is_user_member_of_group", { gid: groupId });
+
+    if (membershipError) {
+      console.error("Error verifying group membership:", membershipError);
+      return NextResponse.json(
+        {
+          error: "Failed to verify membership",
+          details: membershipError.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!isMember) {
+      return NextResponse.json(
+        {
+          error: "Access denied",
+          details: "You must be a member of this group to view its members.",
+        },
+        { status: 403 }
+      );
+    }
+
     // Fetch members using the public view with RLS enforcement
     // The RLS policies will automatically restrict access to authorized users
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
