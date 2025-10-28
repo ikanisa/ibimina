@@ -1,7 +1,11 @@
 import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
-import { AdminApprovalsPanel, JoinRequestItem, InviteItem } from "@/components/admin/approvals/approvals-panel";
+import {
+  AdminApprovalsPanel,
+  JoinRequestItem,
+  InviteItem,
+} from "@/components/admin/approvals/approvals-panel";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import {
@@ -45,7 +49,8 @@ export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps
     inviteQuery = inviteQuery.filter("group.sacco_id", "eq", scope.saccoId);
   }
 
-  const [{ data: joinRows, error: joinError }, { data: inviteRows, error: inviteError }] = await Promise.all([joinQuery, inviteQuery]);
+  const [{ data: joinRows, error: joinError }, { data: inviteRows, error: inviteError }] =
+    await Promise.all([joinQuery, inviteQuery]);
 
   if (joinError && !isMissingRelationError(joinError)) {
     throw joinError;
@@ -62,21 +67,16 @@ export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps
   const joinRowsData = (joinRows ?? []) as JoinRequestRow[];
 
   const groupIds = Array.from(new Set(joinRowsData.map((row) => row.group_id)));
-  const userIds = Array.from(new Set(joinRowsData.map((row) => row.user_id).filter(Boolean))) as string[];
+  const userIds = Array.from(
+    new Set(joinRowsData.map((row) => row.user_id).filter(Boolean))
+  ) as string[];
 
   const [groupLookup, userLookup] = await Promise.all([
     groupIds.length > 0
-      ? supabase
-          .schema("app")
-          .from("ikimina")
-          .select("id, name, sacco_id")
-          .in("id", groupIds)
+      ? supabase.schema("app").from("ikimina").select("id, name, sacco_id").in("id", groupIds)
       : Promise.resolve({ data: [], error: null }),
     userIds.length > 0
-      ? supabase
-          .from("users")
-          .select("id, email")
-          .in("id", userIds)
+      ? supabase.from("users").select("id, email").in("id", userIds)
       : Promise.resolve({ data: [], error: null }),
   ]);
 
@@ -88,9 +88,20 @@ export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps
   }
 
   const groupMap = new Map(
-    ((groupLookup.data ?? []) as Array<{ id: string; name: string | null; sacco_id: string | null }>).map((row) => [row.id, row]),
+    (
+      (groupLookup.data ?? []) as Array<{
+        id: string;
+        name: string | null;
+        sacco_id: string | null;
+      }>
+    ).map((row) => [row.id, row])
   );
-  const userMap = new Map(((userLookup.data ?? []) as Array<{ id: string; email: string | null }>).map((row) => [row.id, row.email ?? null]));
+  const userMap = new Map(
+    ((userLookup.data ?? []) as Array<{ id: string; email: string | null }>).map((row) => [
+      row.id,
+      row.email ?? null,
+    ])
+  );
 
   const joinRequests: JoinRequestItem[] = joinRowsData.map((row) => {
     const group = groupMap.get(row.group_id);
@@ -100,7 +111,7 @@ export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps
       status: row.status,
       note: row.note,
       user_id: row.user_id ?? null,
-      user_email: row.user_id ? userMap.get(row.user_id) ?? null : null,
+      user_email: row.user_id ? (userMap.get(row.user_id) ?? null) : null,
       group_name: group?.name ?? null,
       sacco_id: row.sacco_id ?? group?.sacco_id ?? null,
     } satisfies JoinRequestItem;
@@ -126,12 +137,20 @@ export default async function ApprovalsPage({ searchParams }: ApprovalsPageProps
             className="text-xs text-neutral-3"
           />
         }
-        badge={<StatusChip tone="warning">{joinRequests.length + invites.length} pending</StatusChip>}
+        badge={
+          <StatusChip tone="warning">{joinRequests.length + invites.length} pending</StatusChip>
+        }
       />
 
       <GlassCard
         title={<Trans i18nKey="admin.approvals.queue" fallback="Queues" />}
-        subtitle={<Trans i18nKey="admin.approvals.queueSubtitle" fallback="Handle member onboarding flows across tenants." className="text-xs text-neutral-3" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.approvals.queueSubtitle"
+            fallback="Handle member onboarding flows across tenants."
+            className="text-xs text-neutral-3"
+          />
+        }
       >
         <AdminApprovalsPanel joinRequests={joinRequests} invites={invites} />
       </GlassCard>

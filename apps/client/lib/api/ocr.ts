@@ -1,16 +1,16 @@
 /**
  * Client-side API wrapper for OCR operations
- * 
+ *
  * This module provides a type-safe interface for uploading identity documents
  * and receiving OCR (Optical Character Recognition) extracted data.
- * 
+ *
  * Current implementation uses a stub API that returns mocked data for
  * development and testing purposes.
- * 
+ *
  * Usage:
  * ```typescript
  * import { uploadIDDocument } from '@/lib/api/ocr';
- * 
+ *
  * const file = event.target.files[0];
  * const result = await uploadIDDocument(file, 'NID');
  * console.log('Extracted ID number:', result.data.id_number);
@@ -77,25 +77,25 @@ export interface OCRError {
 
 /**
  * Uploads an identity document for OCR processing
- * 
+ *
  * This function sends a multipart/form-data request to /api/ocr/upload with
  * the provided image file. The API currently returns mocked data (stub).
- * 
+ *
  * @param file - Image file of the identity document
  * @param idType - Type of ID: 'NID' (National ID), 'DL' (Driver's License), or 'PASSPORT'
  * @returns Promise resolving to OCR extracted data
  * @throws Error if upload fails or file is invalid
- * 
+ *
  * File requirements:
  * - Format: JPEG, PNG, or WebP
  * - Maximum size: 10MB
  * - Should be clear and legible
- * 
+ *
  * @example
  * ```typescript
  * const fileInput = document.querySelector('input[type="file"]');
  * const file = fileInput.files[0];
- * 
+ *
  * try {
  *   const result = await uploadIDDocument(file, 'NID');
  *   if (result.stub) {
@@ -168,13 +168,13 @@ export async function uploadIDDocument(
 
 /**
  * Validates if a file is suitable for OCR processing
- * 
+ *
  * This function performs client-side validation before upload to provide
  * immediate feedback to users.
- * 
+ *
  * @param file - File to validate
  * @returns Object with isValid flag and error message if invalid
- * 
+ *
  * @example
  * ```typescript
  * const validation = validateIDFile(file);

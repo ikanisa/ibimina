@@ -17,7 +17,13 @@ export const requireEnv = (key: string): string => {
   return value;
 };
 
-const buildSignature = (secret: string, timestamp: string, method: string, pathname: string, payload: Uint8Array) => {
+const buildSignature = (
+  secret: string,
+  timestamp: string,
+  method: string,
+  pathname: string,
+  payload: Uint8Array
+) => {
   const hmac = createHmac("sha256", secret);
   hmac.update(encoder.encode(timestamp));
   hmac.update(encoder.encode(`${method.toUpperCase()}:${pathname}`));
@@ -26,7 +32,8 @@ const buildSignature = (secret: string, timestamp: string, method: string, pathn
 };
 
 export async function invokeEdge(path: string, options: EdgeInvocationOptions = {}) {
-  const baseUrl = process.env.EDGE_FUNCTION_BASE_URL ?? `${requireEnv("SUPABASE_URL")}/functions/v1/`;
+  const baseUrl =
+    process.env.EDGE_FUNCTION_BASE_URL ?? `${requireEnv("SUPABASE_URL")}/functions/v1/`;
   const secret = requireEnv("HMAC_SHARED_SECRET");
   const url = new URL(path, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
   const method = options.method?.toUpperCase() ?? (options.body ? "POST" : "GET");
@@ -59,7 +66,8 @@ export async function invokeEdge(path: string, options: EdgeInvocationOptions = 
     }
 
     if (!response.ok) {
-      const errorMessage = typeof (json as any)?.error === "string" ? (json as any).error : response.statusText;
+      const errorMessage =
+        typeof (json as any)?.error === "string" ? (json as any).error : response.statusText;
       throw new Error(`Edge invocation failed (${response.status}): ${errorMessage}`);
     }
 

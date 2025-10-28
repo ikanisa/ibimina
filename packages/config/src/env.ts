@@ -4,8 +4,9 @@ import requiredEnvConfig from "../required-env.json" with { type: "json" };
 
 type ProcessEnvSource = Partial<Record<string, string | undefined>>;
 
-
 function buildRawEnv(source: ProcessEnvSource) {
+  const analyticsCacheToken = source.ANALYTICS_CACHE_TOKEN?.trim();
+
   return {
     NODE_ENV: source.NODE_ENV ?? "development",
     APP_ENV: source.APP_ENV ?? source.NODE_ENV ?? "development",
@@ -29,7 +30,10 @@ function buildRawEnv(source: ProcessEnvSource) {
     MFA_RP_NAME: source.MFA_RP_NAME ?? "SACCO+",
     MFA_EMAIL_LOCALE: source.MFA_EMAIL_LOCALE ?? "en",
     MFA_EMAIL_FROM: source.MFA_EMAIL_FROM ?? "security@example.com",
-    ANALYTICS_CACHE_TOKEN: source.ANALYTICS_CACHE_TOKEN,
+    ANALYTICS_CACHE_TOKEN:
+      analyticsCacheToken && analyticsCacheToken.length > 0
+        ? analyticsCacheToken
+        : undefined,
     REPORT_SIGNING_KEY: source.REPORT_SIGNING_KEY,
     OPENAI_API_KEY: source.OPENAI_API_KEY,
     OPENAI_OCR_MODEL: source.OPENAI_OCR_MODEL ?? "gpt-4.1-mini",
@@ -70,11 +74,7 @@ function buildRawEnv(source: ProcessEnvSource) {
   } as Record<string, string | undefined>;
 }
 
-const optionalString = z
-  .string()
-  .trim()
-  .min(1)
-  .optional();
+const optionalString = z.string().trim().min(1).optional();
 
 const positiveNumberString = z
   .string()
@@ -172,7 +172,7 @@ const schema = z
   })
   .superRefine((values, ctx) => {
     const kmsCandidates = [values.KMS_DATA_KEY, values.KMS_DATA_KEY_BASE64].filter(
-      (candidate): candidate is string => Boolean(candidate && candidate.trim().length > 0),
+      (candidate): candidate is string => Boolean(candidate && candidate.trim().length > 0)
     );
 
     if (kmsCandidates.length === 0) {
@@ -246,7 +246,7 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
 
   const hasKmsDataKey = Boolean(raw.KMS_DATA_KEY && raw.KMS_DATA_KEY.trim().length > 0);
   const hasKmsDataKeyBase64 = Boolean(
-    raw.KMS_DATA_KEY_BASE64 && raw.KMS_DATA_KEY_BASE64.trim().length > 0,
+    raw.KMS_DATA_KEY_BASE64 && raw.KMS_DATA_KEY_BASE64.trim().length > 0
   );
 
   if (!hasKmsDataKey && !hasKmsDataKeyBase64) {
@@ -279,12 +279,12 @@ function prepareServerEnv(parsedEnv: RawEnv) {
     MFA_SESSION_TTL_SECONDS: parsePositiveInteger(parsedEnv.MFA_SESSION_TTL_SECONDS, 12 * 60 * 60),
     TRUSTED_DEVICE_TTL_SECONDS: parsePositiveInteger(
       parsedEnv.TRUSTED_DEVICE_TTL_SECONDS,
-      30 * 24 * 60 * 60,
+      30 * 24 * 60 * 60
     ),
     LOG_DRAIN_TIMEOUT_MS: parsePositiveInteger(parsedEnv.LOG_DRAIN_TIMEOUT_MS, 2000),
     LOG_DRAIN_ALERT_COOLDOWN_MS: parsePositiveInteger(
       parsedEnv.LOG_DRAIN_ALERT_COOLDOWN_MS,
-      5 * 60 * 1000,
+      5 * 60 * 1000
     ),
     SMTP_PORT: parsePositiveInteger(parsedEnv.SMTP_PORT, 587),
     rateLimitSecret,
@@ -333,7 +333,7 @@ export const clientEnv = Object.freeze({
 
 export const requiredServerEnv: ReadonlyArray<string> = Object.freeze(requiredEnvConfig.required);
 export const atLeastOneServerEnv: ReadonlyArray<ReadonlyArray<string>> = Object.freeze(
-  requiredEnvConfig.atLeastOne.map((group) => [...group]),
+  requiredEnvConfig.atLeastOne.map((group) => [...group])
 );
 
 export type ClientEnv = typeof clientEnv;

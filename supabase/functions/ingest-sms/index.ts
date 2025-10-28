@@ -19,96 +19,98 @@ interface IngestRequest {
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return preflightResponse();
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const validation = await validateHmacRequest(req);
 
     if (!validation.ok) {
-      console.warn('ingest-sms.signature_invalid', { reason: validation.reason });
-      const status = validation.reason === 'stale_timestamp' ? 408 : 401;
-      return jsonCorsResponse({ success: false, error: 'invalid_signature' }, { status });
+      console.warn("ingest-sms.signature_invalid", { reason: validation.reason });
+      const status = validation.reason === "stale_timestamp" ? 408 : 401;
+      return jsonCorsResponse({ success: false, error: "invalid_signature" }, { status });
     }
 
     let payload: IngestRequest;
     try {
       payload = JSON.parse(decoder.decode(validation.rawBody)) as IngestRequest;
     } catch (error) {
-      console.warn('ingest-sms.json_parse_failed', { error: String(error) });
-      return jsonCorsResponse({ success: false, error: 'invalid_payload' }, { status: 400 });
+      console.warn("ingest-sms.json_parse_failed", { error: String(error) });
+      return jsonCorsResponse({ success: false, error: "invalid_payload" }, { status: 400 });
     }
 
     const { rawText, receivedAt, vendorMeta, saccoId } = payload;
 
     if (!rawText || !receivedAt) {
-      return jsonCorsResponse({ success: false, error: 'missing_fields' }, { status: 400 });
+      return jsonCorsResponse({ success: false, error: "missing_fields" }, { status: 400 });
     }
 
-    const allowed = await enforceRateLimit(supabase, `sms:${saccoId ?? 'global'}`, { maxHits: 200 });
+    const allowed = await enforceRateLimit(supabase, `sms:${saccoId ?? "global"}`, {
+      maxHits: 200,
+    });
 
     if (!allowed) {
-      return errorCorsResponse('Rate limit exceeded', 429);
+      return errorCorsResponse("Rate limit exceeded", 429);
     }
 
-    console.log('Ingesting SMS:', { length: rawText.length, receivedAt, saccoId });
+    console.log("Ingesting SMS:", { length: rawText.length, receivedAt, saccoId });
 
     // Step 1: Store raw SMS
     const { data: smsRecord, error: smsError } = await supabase
-      .from('sms_inbox')
+      .from("sms_inbox")
       .insert({
         raw_text: rawText,
         received_at: receivedAt,
         vendor_meta: vendorMeta,
         sacco_id: saccoId,
-        status: 'NEW',
+        status: "NEW",
       })
       .select()
       .single();
 
     if (smsError) {
-      console.error('Error storing SMS:', smsError);
+      console.error("Error storing SMS:", smsError);
       throw smsError;
     }
 
-    console.log('SMS stored:', smsRecord.id);
+    console.log("SMS stored:", smsRecord.id);
 
     // Step 2: Parse SMS using regex + OpenAI fallback
     let parsed = parseWithRegex(rawText, receivedAt);
-    let parseSource: 'REGEX' | 'AI' = 'REGEX';
+    let parseSource: "REGEX" | "AI" = "REGEX";
     let modelUsed: string | null = null;
 
     if (!parsed || parsed.confidence < 0.9) {
-      console.log('Regex parse low confidence, invoking OpenAI');
+      console.log("Regex parse low confidence, invoking OpenAI");
       try {
         const aiResult = await parseWithOpenAI(rawText, receivedAt);
         parsed = aiResult.parsed;
-        parseSource = 'AI';
+        parseSource = "AI";
         modelUsed = aiResult.model;
       } catch (error) {
-        console.error('OpenAI parse failed:', error);
+        console.error("OpenAI parse failed:", error);
         await supabase
-          .from('sms_inbox')
-          .update({ status: 'FAILED', error: 'Parse failed' })
-          .eq('id', smsRecord.id);
+          .from("sms_inbox")
+          .update({ status: "FAILED", error: "Parse failed" })
+          .eq("id", smsRecord.id);
         throw error;
       }
     }
 
     if (!parsed) {
       await supabase
-        .from('sms_inbox')
-        .update({ status: 'FAILED', error: 'Parse failed' })
-        .eq('id', smsRecord.id);
-      throw new Error('Unable to parse SMS payload');
+        .from("sms_inbox")
+        .update({ status: "FAILED", error: "Parse failed" })
+        .eq("id", smsRecord.id);
+      throw new Error("Unable to parse SMS payload");
     }
 
-    console.log('SMS parsed:', { parseSource, confidence: parsed.confidence, modelUsed });
+    console.log("SMS parsed:", { parseSource, confidence: parsed.confidence, modelUsed });
 
     // Step 3: Update SMS with parsed data
     const encryptedMsisdn = await encryptField(parsed.msisdn);
@@ -116,7 +118,7 @@ Deno.serve(async (req) => {
     const maskedMsisdn = maskMsisdn(parsed.msisdn) ?? parsed.msisdn;
 
     await supabase
-      .from('sms_inbox')
+      .from("sms_inbox")
       .update({
         parsed_json: parsed,
         parse_source: parseSource,
@@ -125,30 +127,30 @@ Deno.serve(async (req) => {
         msisdn_encrypted: encryptedMsisdn,
         msisdn_hash: msisdnHash,
         msisdn_masked: maskedMsisdn,
-        status: 'PARSED'
+        status: "PARSED",
       })
-      .eq('id', smsRecord.id);
+      .eq("id", smsRecord.id);
 
     // Step 4: Map to SACCO/Ikimina/Member based on reference
     let mappedSaccoId = saccoId;
     let ikiminaId = null;
     let memberId = null;
-    let paymentStatus = 'PENDING';
+    let paymentStatus = "PENDING";
 
     // Duplicate guard
     const { data: duplicate } = await supabase
-      .from('payments')
-      .select('id')
-      .eq('txn_id', parsed.txn_id)
+      .from("payments")
+      .select("id")
+      .eq("txn_id", parsed.txn_id)
       .maybeSingle();
 
     if (duplicate?.id) {
       await supabase
-        .from('sms_inbox')
-        .update({ status: 'APPLIED', error: 'Duplicate transaction' })
-        .eq('id', smsRecord.id);
+        .from("sms_inbox")
+        .update({ status: "APPLIED", error: "Duplicate transaction" })
+        .eq("id", smsRecord.id);
 
-      await recordMetric(supabase, 'sms_duplicates', 1, {
+      await recordMetric(supabase, "sms_duplicates", 1, {
         saccoId: mappedSaccoId || saccoId,
       });
 
@@ -156,23 +158,23 @@ Deno.serve(async (req) => {
         success: true,
         smsId: smsRecord.id,
         paymentId: duplicate.id,
-        status: 'DUPLICATE',
+        status: "DUPLICATE",
       });
     }
 
     if (parsed.reference) {
       // Parse reference: DISTRICT.SACCO.GROUP(.MEMBER)?
-      const refParts = parsed.reference.split('.');
-      
+      const refParts = parsed.reference.split(".");
+
       if (refParts.length >= 3) {
         const groupCode = refParts[2];
-        
+
         // Find Ikimina by code
         const { data: ikimina } = await supabase
-          .from('ibimina')
-          .select('id, sacco_id')
-          .eq('code', groupCode)
-          .eq('status', 'ACTIVE')
+          .from("ibimina")
+          .select("id, sacco_id")
+          .eq("code", groupCode)
+          .eq("status", "ACTIVE")
           .single();
 
         if (ikimina) {
@@ -182,23 +184,23 @@ Deno.serve(async (req) => {
           // If member code provided, find member
           if (refParts.length >= 4) {
             const memberCode = refParts[3];
-            
+
             const { data: member } = await supabase
-              .from('ikimina_members')
-              .select('id')
-              .eq('ikimina_id', ikimina.id)
-              .eq('member_code', memberCode)
-              .eq('status', 'ACTIVE')
+              .from("ikimina_members")
+              .select("id")
+              .eq("ikimina_id", ikimina.id)
+              .eq("member_code", memberCode)
+              .eq("status", "ACTIVE")
               .single();
 
             if (member) {
               memberId = member.id;
-              paymentStatus = 'POSTED'; // Auto-approve when fully matched
+              paymentStatus = "POSTED"; // Auto-approve when fully matched
             } else {
-              paymentStatus = 'UNALLOCATED'; // Group matched but not member
+              paymentStatus = "UNALLOCATED"; // Group matched but not member
             }
           } else {
-            paymentStatus = 'UNALLOCATED'; // No member code provided
+            paymentStatus = "UNALLOCATED"; // No member code provided
           }
         }
       }
@@ -206,9 +208,9 @@ Deno.serve(async (req) => {
 
     // Step 5: Create Payment record
     const { data: payment, error: paymentError } = await supabase
-      .from('payments')
+      .from("payments")
       .insert({
-        channel: 'SMS',
+        channel: "SMS",
         sacco_id: mappedSaccoId || saccoId,
         ikimina_id: ikiminaId,
         member_id: memberId,
@@ -217,26 +219,26 @@ Deno.serve(async (req) => {
         msisdn_hash: msisdnHash,
         msisdn_masked: maskedMsisdn,
         amount: parsed.amount,
-        currency: 'RWF',
+        currency: "RWF",
         txn_id: parsed.txn_id,
         reference: parsed.reference,
         occurred_at: parsed.timestamp,
         status: paymentStatus,
         source_id: smsRecord.id,
-        ai_version: parseSource === 'AI' ? modelUsed ?? 'openai-structured' : null,
-        confidence: parsed.confidence
+        ai_version: parseSource === "AI" ? (modelUsed ?? "openai-structured") : null,
+        confidence: parsed.confidence,
       })
       .select()
       .single();
 
     if (paymentError) {
-      console.error('Error creating payment:', paymentError);
+      console.error("Error creating payment:", paymentError);
       throw paymentError;
     }
 
-    console.log('Payment created:', { id: payment.id, status: paymentStatus });
+    console.log("Payment created:", { id: payment.id, status: paymentStatus });
 
-    if (paymentStatus === 'POSTED') {
+    if (paymentStatus === "POSTED") {
       await postToLedger(supabase, {
         id: payment.id,
         sacco_id: payment.sacco_id,
@@ -249,8 +251,8 @@ Deno.serve(async (req) => {
     }
 
     await writeAuditLog(supabase, {
-      action: 'SMS_INGESTED',
-      entity: 'SMS_INBOX',
+      action: "SMS_INGESTED",
+      entity: "SMS_INBOX",
       entityId: smsRecord.id,
       diff: {
         paymentId: payment.id,
@@ -260,7 +262,7 @@ Deno.serve(async (req) => {
       },
     });
 
-    await recordMetric(supabase, 'sms_ingested', 1, {
+    await recordMetric(supabase, "sms_ingested", 1, {
       saccoId: mappedSaccoId || saccoId,
       status: paymentStatus,
       parseSource,
@@ -268,10 +270,7 @@ Deno.serve(async (req) => {
     });
 
     // Step 6: Update SMS status
-    await supabase
-      .from('sms_inbox')
-      .update({ status: 'APPLIED' })
-      .eq('id', smsRecord.id);
+    await supabase.from("sms_inbox").update({ status: "APPLIED" }).eq("id", smsRecord.id);
 
     return jsonCorsResponse({
       success: true,
@@ -282,11 +281,14 @@ Deno.serve(async (req) => {
       parseSource,
     });
   } catch (error) {
-    console.error('Ingestion error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return jsonCorsResponse({
-      success: false,
-      error: errorMessage,
-    }, { status: 500 });
+    console.error("Ingestion error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return jsonCorsResponse(
+      {
+        success: false,
+        error: errorMessage,
+      },
+      { status: 500 }
+    );
   }
 });

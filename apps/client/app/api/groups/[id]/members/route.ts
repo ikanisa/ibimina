@@ -1,17 +1,17 @@
 /**
  * Group Members API Route Handler
- * 
+ *
  * GET /api/groups/[id]/members
- * 
+ *
  * This route returns the list of members for a specific group (Ikimina).
  * Access is restricted by Row Level Security - only authenticated users who
  * are members of the group can view the members list.
- * 
+ *
  * Query parameters:
  * - status: string (optional) - Filter by member status (default: "ACTIVE")
  * - limit: number (optional) - Maximum number of results (default: 100, max: 500)
  * - offset: number (optional) - Pagination offset (default: 0)
- * 
+ *
  * Response:
  * - 200: Members list returned successfully
  * - 400: Invalid query parameters
@@ -19,17 +19,17 @@
  * - 403: User not authorized to view members (not a group member)
  * - 404: Group not found
  * - 500: Server error
- * 
+ *
  * Security:
  * - Requires valid Supabase session (authenticated user)
  * - Row Level Security (RLS) policies enforce member-only access
  * - Masked sensitive data (phone numbers, national IDs) returned
- * 
+ *
  * Database:
  * - View: public.ikimina_members_public (with RLS)
  * - Original Table: public.ikimina_members
  * - RLS Policy: Only accessible to group members
- * 
+ *
  * @accessibility
  * - Returns structured, semantic data for accessible presentation
  * - Clear error messages for user feedback
@@ -42,21 +42,21 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 /**
  * GET handler for fetching group members
  * Returns list of members with masked sensitive information
- * 
+ *
  * @param request - Next.js request object
  * @param context - Route context with group ID parameter
  */
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     // Get the group ID from route parameters
     const params = await context.params;
     const groupId = params.id;
 
     // Validate group ID format
-    if (!groupId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId)) {
+    if (
+      !groupId ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId)
+    ) {
       return NextResponse.json(
         {
           error: "Invalid group ID",
@@ -90,8 +90,11 @@ export async function GET(
     const supabase = await createSupabaseServerClient();
 
     // Verify user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       return NextResponse.json(
         {
@@ -120,12 +123,43 @@ export async function GET(
       );
     }
 
+    // Verify the requesting user is an active member of this group
+    const { data: isMember, error: membershipError } = await (supabase as any)
+      .rpc("is_user_member_of_group", { gid: groupId });
+
+    if (membershipError) {
+      console.error("Error verifying group membership:", membershipError);
+      return NextResponse.json(
+        {
+          error: "Failed to verify membership",
+          details: membershipError.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!isMember) {
+      return NextResponse.json(
+        {
+          error: "Access denied",
+          details: "You must be a member of this group to view its members.",
+        },
+        { status: 403 }
+      );
+    }
+
     // Fetch members using the public view with RLS enforcement
     // The RLS policies will automatically restrict access to authorized users
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: members, error: membersError, count } = await (supabase as any)
+    const {
+      data: members,
+      error: membersError,
+      count,
+    } = await (supabase as any)
       .from("ikimina_members_public")
-      .select("id, member_code, full_name, status, joined_at, msisdn, national_id", { count: "exact" })
+      .select("id, member_code, full_name, status, joined_at, msisdn, national_id", {
+        count: "exact",
+      })
       .eq("ikimina_id", groupId)
       .eq("status", status)
       .order("joined_at", { ascending: false })
@@ -133,18 +167,19 @@ export async function GET(
 
     if (membersError) {
       console.error("Error fetching group members:", membersError);
-      
+
       // Check if error is due to insufficient permissions
       if (membersError.code === "42501" || membersError.message.includes("permission")) {
         return NextResponse.json(
           {
             error: "Access denied",
-            details: "You do not have permission to view this group's members. Only group members can access this information.",
+            details:
+              "You do not have permission to view this group's members. Only group members can access this information.",
           },
           { status: 403 }
         );
       }
-      
+
       return NextResponse.json(
         {
           error: "Failed to fetch members",
@@ -174,7 +209,6 @@ export async function GET(
       },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("Group members error:", error);
     return NextResponse.json(

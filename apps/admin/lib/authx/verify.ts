@@ -30,10 +30,14 @@ export type VerifyPasskeyResult =
 
 export const verifyPasskey = async (
   user: { id: string },
-  payload: PasskeyVerificationPayload,
+  payload: PasskeyVerificationPayload
 ): Promise<VerifyPasskeyResult> => {
   try {
-    const result = await verifyAuthentication({ id: user.id }, payload.response, payload.stateToken);
+    const result = await verifyAuthentication(
+      { id: user.id },
+      payload.response,
+      payload.stateToken
+    );
     return {
       ok: true as const,
       rememberDevice: result.rememberDevice,

@@ -14,10 +14,19 @@ import { processEmailJob } from "../_shared/notification-handlers.ts";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
+  "access-control-allow-headers":
+    "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
 
-const sendResendEmail = async ({ to, subject, text }: { to: string; subject: string; text: string }) => {
+const sendResendEmail = async ({
+  to,
+  subject,
+  text,
+}: {
+  to: string;
+  subject: string;
+  text: string;
+}) => {
   const apiKey = requireEnv("RESEND_API_KEY");
   const from = requireEnv("MFA_EMAIL_FROM");
 
@@ -87,8 +96,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(
-    JSON.stringify({ success: true, processed: jobs.length, results }),
-    { headers: { ...corsHeaders, "content-type": "application/json" } },
-  );
+  return new Response(JSON.stringify({ success: true, processed: jobs.length, results }), {
+    headers: { ...corsHeaders, "content-type": "application/json" },
+  });
 });

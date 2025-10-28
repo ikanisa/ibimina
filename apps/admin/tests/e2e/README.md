@@ -1,6 +1,7 @@
 # E2E Tests
 
-This directory contains end-to-end tests for the Ibimina Staff Console using Playwright.
+This directory contains end-to-end tests for the Ibimina Staff Console using
+Playwright.
 
 ## Test Suites
 
@@ -17,6 +18,7 @@ This test suite validates the complete member onboarding and approval workflow:
 5. **Members Visible**: Approved member becomes visible in members list
 
 **Test Cases:**
+
 - Complete end-to-end workflow test
 - Member can view their SACCO after adding it
 - Staff can see pending join requests in approvals panel
@@ -53,15 +55,18 @@ pnpm exec playwright test --debug
 
 ## Test Environment
 
-Tests run against a stubbed authentication environment (`AUTH_E2E_STUB=1`) to avoid requiring real Supabase credentials. The test environment is configured in `playwright.config.ts`.
+Tests run against a stubbed authentication environment (`AUTH_E2E_STUB=1`) to
+avoid requiring real Supabase credentials. The test environment is configured in
+`playwright.config.ts`.
 
 ### Session Management
 
-Tests use the `setSession()` helper from `./support/session.ts` to manage authentication state:
+Tests use the `setSession()` helper from `./support/session.ts` to manage
+authentication state:
 
 ```typescript
 await setSession(request, page, "authenticated"); // Authenticated user
-await setSession(request, page, "anonymous");     // Anonymous/logged out
+await setSession(request, page, "anonymous"); // Anonymous/logged out
 ```
 
 ## CI/CD
@@ -74,6 +79,7 @@ E2E tests run automatically in CI via `.github/workflows/ci.yml`:
 4. **Artifacts**: Test traces and reports uploaded on failure
 
 Test results are available in the GitHub Actions artifacts:
+
 - `playwright-traces`: Test execution traces
 - `playwright-report`: HTML test report
 
@@ -100,10 +106,13 @@ test.describe("Your Feature", () => {
 
 ### Best Practices
 
-1. **Use semantic selectors**: Prefer `getByRole()`, `getByLabel()`, `getByText()` over CSS selectors
-2. **Wait for elements**: Use `toBeVisible()` with timeouts rather than arbitrary waits
+1. **Use semantic selectors**: Prefer `getByRole()`, `getByLabel()`,
+   `getByText()` over CSS selectors
+2. **Wait for elements**: Use `toBeVisible()` with timeouts rather than
+   arbitrary waits
 3. **Clean state**: Use `beforeEach` to set up consistent test state
-4. **Descriptive names**: Test names should clearly describe what is being tested
+4. **Descriptive names**: Test names should clearly describe what is being
+   tested
 5. **Independent tests**: Each test should be able to run independently
 
 ## Debugging
@@ -124,12 +133,15 @@ pnpm exec playwright show-trace trace.zip
 ### Common Issues
 
 **Test times out waiting for element**
+
 - Ensure the application is running correctly
 - Check if authentication state is set properly
 - Verify the selector matches the actual element
 
 **Flaky tests**
-- Avoid `page.waitForTimeout()`, use `waitForSelector()` or `toBeVisible()` instead
+
+- Avoid `page.waitForTimeout()`, use `waitForSelector()` or `toBeVisible()`
+  instead
 - Ensure proper wait conditions before interactions
 - Check for race conditions in the application code
 
@@ -137,4 +149,5 @@ pnpm exec playwright show-trace trace.zip
 
 - [Playwright Documentation](https://playwright.dev/)
 - [Playwright Best Practices](https://playwright.dev/docs/best-practices)
-- [Testing Library Queries](https://testing-library.com/docs/queries/about) - Similar patterns
+- [Testing Library Queries](https://testing-library.com/docs/queries/about) -
+  Similar patterns

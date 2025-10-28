@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, inserted, duplicates, posted, unallocated }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Statement import error", error);

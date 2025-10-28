@@ -5,7 +5,12 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
-import { queueNotification, createSmsTemplate, setSmsTemplateActive, deleteSmsTemplate } from "@/app/(main)/admin/actions";
+import {
+  queueNotification,
+  createSmsTemplate,
+  setSmsTemplateActive,
+  deleteSmsTemplate,
+} from "@/app/(main)/admin/actions";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -54,12 +59,16 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
     (async () => {
       const { data, error: fetchError } = await supabase
         .from("sms_templates")
-        .select("id, name, body, is_active, sacco_id, created_at, updated_at, version, tokens, description")
+        .select(
+          "id, name, body, is_active, sacco_id, created_at, updated_at, version, tokens, description"
+        )
         .eq("sacco_id", selectedSacco)
         .order("updated_at", { ascending: false });
       if (cancelled) return;
       if (fetchError) {
-        toast.error(fetchError.message ?? t("admin.templates.loadFailed", "Failed to load templates"));
+        toast.error(
+          fetchError.message ?? t("admin.templates.loadFailed", "Failed to load templates")
+        );
         return;
       }
       setTemplates((prev) => {
@@ -87,9 +96,12 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
   };
 
   const handleCreate = () => {
-    if (!selectedSacco) return notifyError(t("admin.templates.selectSacco", "Select a SACCO first"));
-    if (!name.trim()) return notifyError(t("admin.templates.nameRequired", "Template name is required"));
-    if (!body.trim()) return notifyError(t("admin.templates.bodyRequired", "Template body is required"));
+    if (!selectedSacco)
+      return notifyError(t("admin.templates.selectSacco", "Select a SACCO first"));
+    if (!name.trim())
+      return notifyError(t("admin.templates.nameRequired", "Template name is required"));
+    if (!body.trim())
+      return notifyError(t("admin.templates.bodyRequired", "Template body is required"));
 
     startTransition(async () => {
       const tokens = extractTokens(body.trim());
@@ -100,7 +112,10 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         description,
         tokens,
       });
-      if (result.status === "error") return notifyError(result.message ?? t("admin.templates.createFailed", "Failed to create template"));
+      if (result.status === "error")
+        return notifyError(
+          result.message ?? t("admin.templates.createFailed", "Failed to create template")
+        );
       if (result.template) setTemplates((prev) => [result.template as TemplateRow, ...prev]);
       notifySuccess(t("admin.templates.created", "Template created"));
       resetForm();
@@ -109,10 +124,26 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
 
   const handleToggleActive = (template: TemplateRow) => {
     startTransition(async () => {
-      const result = await setSmsTemplateActive({ templateId: template.id, isActive: !template.is_active });
-      if (result.status === "error") return notifyError(result.message ?? t("admin.templates.updateFailed", "Failed to update template"));
-      setTemplates((prev) => prev.map((item) => (item.id === template.id ? { ...item, is_active: !template.is_active, updated_at: new Date().toISOString() } : item)));
-      notifySuccess(template.is_active ? t("admin.templates.deactivated", "Template deactivated") : t("admin.templates.activated", "Template activated"));
+      const result = await setSmsTemplateActive({
+        templateId: template.id,
+        isActive: !template.is_active,
+      });
+      if (result.status === "error")
+        return notifyError(
+          result.message ?? t("admin.templates.updateFailed", "Failed to update template")
+        );
+      setTemplates((prev) =>
+        prev.map((item) =>
+          item.id === template.id
+            ? { ...item, is_active: !template.is_active, updated_at: new Date().toISOString() }
+            : item
+        )
+      );
+      notifySuccess(
+        template.is_active
+          ? t("admin.templates.deactivated", "Template deactivated")
+          : t("admin.templates.activated", "Template activated")
+      );
     });
   };
 
@@ -120,7 +151,10 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
     if (!confirm(t("admin.templates.deleteConfirm", "Delete this template?"))) return;
     startTransition(async () => {
       const result = await deleteSmsTemplate({ templateId });
-      if (result.status === "error") return notifyError(result.message ?? t("admin.templates.deleteFailed", "Failed to delete template"));
+      if (result.status === "error")
+        return notifyError(
+          result.message ?? t("admin.templates.deleteFailed", "Failed to delete template")
+        );
       setTemplates((prev) => prev.filter((item) => item.id !== templateId));
       notifySuccess(t("admin.templates.deleted", "Template deleted"));
     });
@@ -128,7 +162,9 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
 
   const handleNewVersion = (template: TemplateRow) => {
     startTransition(async () => {
-      const tokens = Array.isArray(template.tokens) ? template.tokens : extractTokens(template.body);
+      const tokens = Array.isArray(template.tokens)
+        ? template.tokens
+        : extractTokens(template.body);
       const payload: Database["public"]["Tables"]["sms_templates"]["Insert"] = {
         sacco_id: template.sacco_id,
         name: template.name,
@@ -142,10 +178,15 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
       const { data, error: insertError } = await (supabase as any)
         .from("sms_templates")
         .insert(payload)
-        .select("id, name, body, is_active, sacco_id, created_at, updated_at, version, tokens, description")
+        .select(
+          "id, name, body, is_active, sacco_id, created_at, updated_at, version, tokens, description"
+        )
         .single();
       if (insertError) {
-        notifyError(insertError.message ?? t("admin.templates.newVersionFailed", "Failed to create new version"));
+        notifyError(
+          insertError.message ??
+            t("admin.templates.newVersionFailed", "Failed to create new version")
+        );
         return;
       }
       setTemplates((prev) => [data as TemplateRow, ...prev]);
@@ -160,7 +201,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
     }
     startTransition(async () => {
       const recipient = window.prompt(
-        t("admin.templates.testRecipientPrompt", "Enter WhatsApp number for the test send"),
+        t("admin.templates.testRecipientPrompt", "Enter WhatsApp number for the test send")
       );
       if (recipient === null) {
         return;
@@ -186,7 +227,9 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.sacco", "SACCO")}</label>
+        <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+          {t("table.sacco", "SACCO")}
+        </label>
         <select
           value={selectedSacco ?? ""}
           onChange={(event) => {
@@ -207,10 +250,14 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
       </div>
 
       <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-4">
-        <p className="text-xs uppercase tracking-[0.2em] text-neutral-2">{t("admin.templates.create", "Create template")}</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-neutral-2">
+          {t("admin.templates.create", "Create template")}
+        </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="space-y-1">
-            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.name", "Name")}</span>
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+              {t("table.name", "Name")}
+            </span>
             <input
               type="text"
               value={name}
@@ -220,12 +267,17 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
             />
           </label>
           <label className="space-y-1 sm:col-span-2">
-            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.templates.bodyLabel", "Body")}</span>
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+              {t("admin.templates.bodyLabel", "Body")}
+            </span>
             <textarea
               value={body}
               onChange={(event) => setBody(event.target.value)}
               rows={4}
-              placeholder={t("admin.templates.bodyPlaceholder", "Hello {member_name}, this is your reminder for this month…")}
+              placeholder={t(
+                "admin.templates.bodyPlaceholder",
+                "Hello {member_name}, this is your reminder for this month…"
+              )}
               className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
             />
             <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-neutral-2">
@@ -233,7 +285,12 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
                 <button
                   key={token.token}
                   type="button"
-                  onClick={() => setBody((prev) => `${prev}${prev.endsWith(" ") || prev.length === 0 ? "" : " "}${token.token}`)}
+                  onClick={() =>
+                    setBody(
+                      (prev) =>
+                        `${prev}${prev.endsWith(" ") || prev.length === 0 ? "" : " "}${token.token}`
+                    )
+                  }
                   className="rounded-full border border-white/15 px-2 py-1 text-neutral-0 hover:border-white/30"
                 >
                   <span className="text-[9px] text-neutral-3">{token.primary}</span>
@@ -242,12 +299,17 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
             </div>
           </label>
           <label className="space-y-1 sm:col-span-2">
-            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.templates.description", "Description")}</span>
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+              {t("admin.templates.description", "Description")}
+            </span>
             <input
               type="text"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder={t("admin.templates.descriptionPlaceholder", "Reminder for weekly contributions")}
+              placeholder={t(
+                "admin.templates.descriptionPlaceholder",
+                "Reminder for weekly contributions"
+              )}
               className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
             />
           </label>
@@ -259,24 +321,36 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
             disabled={pending || !selectedSacco}
             className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
           >
-            {pending ? t("common.saving", "Saving…") : t("admin.templates.create", "Create template")}
+            {pending
+              ? t("common.saving", "Saving…")
+              : t("admin.templates.create", "Create template")}
           </button>
         </div>
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{templates.length} {t("admin.templates.count", "template(s)")} {t("admin.templates.for", "for")} {selectedSaccoName}</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+          {templates.length} {t("admin.templates.count", "template(s)")}{" "}
+          {t("admin.templates.for", "for")} {selectedSaccoName}
+        </p>
         {templates.length === 0 && (
-          <p className="text-sm text-neutral-2">{t("admin.templates.empty", "No templates yet. Create one above to get started.")}</p>
+          <p className="text-sm text-neutral-2">
+            {t("admin.templates.empty", "No templates yet. Create one above to get started.")}
+          </p>
         )}
         <div className="space-y-3">
           {templates.map((template) => (
-            <div key={template.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
-             <div className="flex flex-wrap items-center justify-between gap-2">
-               <div>
+            <div
+              key={template.id}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
                   <h4 className="text-base font-semibold">{template.name}</h4>
                   <p className="text-[11px] text-neutral-2">
-                    {t("common.version", "Version")}: {template.version ?? 1} · {t("common.updated", "Updated")}: {new Date(template.updated_at).toLocaleString()}
+                    {t("common.version", "Version")}: {template.version ?? 1} ·{" "}
+                    {t("common.updated", "Updated")}:{" "}
+                    {new Date(template.updated_at).toLocaleString()}
                   </p>
                   {template.description && (
                     <p className="text-[11px] text-neutral-2">{template.description}</p>
@@ -288,7 +362,9 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
                     onClick={() => handleToggleActive(template)}
                     className="text-xs text-neutral-2 underline-offset-2 hover:underline"
                   >
-                    {template.is_active ? t("admin.templates.deactivate", "Deactivate") : t("admin.templates.activate", "Activate")}
+                    {template.is_active
+                      ? t("admin.templates.deactivate", "Deactivate")
+                      : t("admin.templates.activate", "Activate")}
                   </button>
                   <button
                     type="button"
@@ -309,12 +385,23 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
               <pre className="mt-3 whitespace-pre-wrap rounded-xl bg-black/30 p-3 text-sm text-neutral-0">
                 {template.body}
               </pre>
-              <p className="mt-2 text-[10px] text-neutral-2">{t("table.status", "Status")}: {template.is_active ? t("common.active", "Active") : t("common.inactive", "Inactive")}</p>
+              <p className="mt-2 text-[10px] text-neutral-2">
+                {t("table.status", "Status")}:{" "}
+                {template.is_active
+                  ? t("common.active", "Active")
+                  : t("common.inactive", "Inactive")}
+              </p>
               <div className="mt-2 flex flex-wrap gap-1 text-[10px] text-neutral-3">
-                {(Array.isArray(template.tokens) ? template.tokens : extractTokens(template.body)).map((token) => {
+                {(Array.isArray(template.tokens)
+                  ? template.tokens
+                  : extractTokens(template.body)
+                ).map((token) => {
                   const tokenText = typeof token === "string" ? token : JSON.stringify(token);
                   return (
-                    <span key={`${template.id}-${tokenText}`} className="rounded-full bg-white/10 px-2 py-1">
+                    <span
+                      key={`${template.id}-${tokenText}`}
+                      className="rounded-full bg-white/10 px-2 py-1"
+                    >
                       {tokenText}
                     </span>
                   );
@@ -328,7 +415,9 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
                 >
                   {t("admin.templates.sendTest", "Send test SMS")}
                 </button>
-                <span className="text-[10px] text-neutral-3">{t("admin.templates.queueHint", "Queues an event in notification pipeline")}</span>
+                <span className="text-[10px] text-neutral-3">
+                  {t("admin.templates.queueHint", "Queues an event in notification pipeline")}
+                </span>
               </div>
             </div>
           ))}

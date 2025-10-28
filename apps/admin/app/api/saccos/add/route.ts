@@ -24,9 +24,7 @@ export async function POST(req: NextRequest) {
 
   const { sacco_id } = parsed.data;
 
-  const { error } = await client
-    .from("user_saccos")
-    .upsert({ user_id: user.id, sacco_id });
+  const { error } = await client.from("user_saccos").upsert({ user_id: user.id, sacco_id });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

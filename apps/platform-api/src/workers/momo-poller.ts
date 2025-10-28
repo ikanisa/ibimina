@@ -15,14 +15,20 @@ export async function runMomoPoller() {
     throw new Error(`MoMo polling failed: ${response?.error ?? "unknown error"}`);
   }
 
-  const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const supabase = createClient(
+    requireEnv("SUPABASE_URL"),
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+    }
+  );
 
   const { data: pollers } = await supabase
     .schema("app")
     .from("momo_statement_pollers")
-    .select("display_name, provider, last_polled_at, last_latency_ms, last_error, last_polled_count")
+    .select(
+      "display_name, provider, last_polled_at, last_latency_ms, last_error, last_polled_count"
+    )
     .order("display_name", { ascending: true });
 
   console.info("MoMo polling summary", {
@@ -39,7 +45,7 @@ export async function runMomoPoller() {
         lastLatencyMs: poller.last_latency_ms,
         lastBatchCount: poller.last_polled_count,
         error: poller.last_error ?? "—",
-      })),
+      }))
     );
   }
 }

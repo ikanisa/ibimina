@@ -35,7 +35,12 @@ type MemberInsert = Partial<Database["app"]["Tables"]["members"]["Insert"]>;
 
 type ProcessedMemberRow = ProcessedRow<MemberInsert> & { index: number };
 
-export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, disabledReason }: MemberPdfImportDialogProps) {
+export function MemberPdfImportDialog({
+  ikiminaId,
+  saccoId,
+  canImport = true,
+  disabledReason,
+}: MemberPdfImportDialogProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
@@ -76,8 +81,14 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
     });
   }, [records, masks]);
 
-  const validRows = useMemo(() => processedRows.filter((row) => row.errors.length === 0), [processedRows]);
-  const invalidRows = useMemo(() => processedRows.filter((row) => row.errors.length > 0), [processedRows]);
+  const validRows = useMemo(
+    () => processedRows.filter((row) => row.errors.length === 0),
+    [processedRows]
+  );
+  const invalidRows = useMemo(
+    () => processedRows.filter((row) => row.errors.length > 0),
+    [processedRows]
+  );
 
   const reset = () => {
     setOpen(false);
@@ -165,7 +176,10 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
   const handleImport = () => {
     if (records.length === 0) {
       const messageEn = "Add at least one member before importing.";
-      const bilingual = toBilingual(messageEn, "Ongeramo nibura umunyamuryango umwe imbere yo kwinjiza.");
+      const bilingual = toBilingual(
+        messageEn,
+        "Ongeramo nibura umunyamuryango umwe imbere yo kwinjiza."
+      );
       setError(bilingual);
       toastError(bilingual);
       return;
@@ -208,11 +222,13 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
         const bilingual = toBilingual(successEn, successRw);
         setMessage(bilingual);
         success(bilingual);
-        setRecords(payload.map((row) => ({
-          full_name: row.full_name,
-          msisdn: row.msisdn,
-          member_code: row.member_code,
-        })));
+        setRecords(
+          payload.map((row) => ({
+            full_name: row.full_name,
+            msisdn: row.msisdn,
+            member_code: row.member_code,
+          }))
+        );
       } catch (err) {
         const message = err instanceof Error ? err.message : "Import failed";
         const bilingual = toBilingual(message, "Kwinjiza byanze");
@@ -231,7 +247,7 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
           setOpen(true);
         }}
         disabled={!canImport}
-        title={!canImport ? disabledReason ?? "Read-only access" : undefined}
+        title={!canImport ? (disabledReason ?? "Read-only access") : undefined}
         className={cn(
           "interactive-scale rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-0 shadow-glass",
           !canImport && "cursor-not-allowed opacity-60"
@@ -251,8 +267,12 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
             )}
             <header className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">AI member import</p>
-                <h2 className="text-lg font-semibold">{step === 1 ? "Upload PDF" : "Review & edit"}</h2>
+                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                  AI member import
+                </p>
+                <h2 className="text-lg font-semibold">
+                  {step === 1 ? "Upload PDF" : "Review & edit"}
+                </h2>
                 {fileName && <p className="text-xs text-neutral-2">{fileName}</p>}
               </div>
               <button className="text-sm text-neutral-2 hover:text-neutral-0" onClick={reset}>
@@ -262,7 +282,10 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
 
             {step === 1 && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>Upload a scanned or digital PDF containing ikimina member lists. The AI will extract rows for review.</p>
+                <p>
+                  Upload a scanned or digital PDF containing ikimina member lists. The AI will
+                  extract rows for review.
+                </p>
                 <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 p-10 text-center transition hover:bg-white/10">
                   <span className="text-sm font-semibold">Drop PDF here or click to browse</span>
                   <span className="text-xs text-neutral-2">Supported: .pdf (max 8MB)</span>
@@ -274,9 +297,12 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
                   />
                 </label>
                 <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                  The PDF is processed with OpenAI OCR. Member data is reviewed locally before saving.
+                  The PDF is processed with OpenAI OCR. Member data is reviewed locally before
+                  saving.
                 </p>
-                {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
+                {error && (
+                  <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>
+                )}
               </div>
             )}
 
@@ -361,37 +387,52 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
                         const memberCodeCell = row.cells.member_code as ProcessedCell;
                         const invalid = row.errors.length > 0;
                         return (
-                          <tr key={`row-${row.index}`} className={invalid ? "bg-red-500/10" : undefined}>
+                          <tr
+                            key={`row-${row.index}`}
+                            className={invalid ? "bg-red-500/10" : undefined}
+                          >
                             <td className="px-4 py-2">
                               <input
                                 value={records[row.index]?.full_name ?? ""}
-                                onChange={(event) => handleUpdateRecord(row.index, "full_name", event.target.value)}
+                                onChange={(event) =>
+                                  handleUpdateRecord(row.index, "full_name", event.target.value)
+                                }
                                 className="w-full rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                               />
                               {!fullNameCell?.valid && fullNameCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{fullNameCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {fullNameCell.reason}
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-2">
                               <input
                                 value={records[row.index]?.msisdn ?? ""}
-                                onChange={(event) => handleUpdateRecord(row.index, "msisdn", event.target.value)}
+                                onChange={(event) =>
+                                  handleUpdateRecord(row.index, "msisdn", event.target.value)
+                                }
                                 className="w-full rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                                 placeholder="07########"
                               />
                               {!msisdnCell?.valid && msisdnCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{msisdnCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {msisdnCell.reason}
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-2">
                               <input
                                 value={records[row.index]?.member_code ?? ""}
-                                onChange={(event) => handleUpdateRecord(row.index, "member_code", event.target.value)}
+                                onChange={(event) =>
+                                  handleUpdateRecord(row.index, "member_code", event.target.value)
+                                }
                                 className="w-full rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                                 placeholder="Optional"
                               />
                               {!memberCodeCell?.valid && memberCodeCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{memberCodeCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {memberCodeCell.reason}
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-2">
@@ -408,8 +449,12 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
                       })}
                       {processedRows.length > MAX_PREVIEW_ROWS && (
                         <tr>
-                          <td colSpan={4} className="px-4 py-2 text-center text-[11px] text-neutral-2">
-                            Showing first {MAX_PREVIEW_ROWS} rows. {processedRows.length - MAX_PREVIEW_ROWS} additional row(s) hidden.
+                          <td
+                            colSpan={4}
+                            className="px-4 py-2 text-center text-[11px] text-neutral-2"
+                          >
+                            Showing first {MAX_PREVIEW_ROWS} rows.{" "}
+                            {processedRows.length - MAX_PREVIEW_ROWS} additional row(s) hidden.
                           </td>
                         </tr>
                       )}
@@ -419,7 +464,11 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
                 <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-2">
                   <div>
                     Valid rows: {validRows.length} / {processedRows.length}
-                    {invalidRows.length > 0 && <span className="ml-2 text-amber-200">Resolve {invalidRows.length} issue(s)</span>}
+                    {invalidRows.length > 0 && (
+                      <span className="ml-2 text-amber-200">
+                        Resolve {invalidRows.length} issue(s)
+                      </span>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -448,8 +497,16 @@ export function MemberPdfImportDialog({ ikiminaId, saccoId, canImport = true, di
                       {pending ? "Importing…" : "Confirm import"}
                     </button>
                   </div>
-                  {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
-                  {message && <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">{message}</p>}
+                  {error && (
+                    <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                      {error}
+                    </p>
+                  )}
+                  {message && (
+                    <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                      {message}
+                    </p>
+                  )}
                 </div>
               </div>
             )}

@@ -3,7 +3,8 @@ import { validateHmacRequest } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
 
 const sanitizeLabel = (value: string) => value.replace(/[^a-zA-Z0-9_:/.-]/g, "_");
@@ -87,11 +88,27 @@ Deno.serve(async (req) => {
       { count: notificationErrored },
       { count: reconJobsPending },
     ] = await Promise.all([
-      supabase.from("sms_inbox").select("id", { count: "exact", head: true }).in("status", ["NEW", "PARSED", "PENDING"]),
-      supabase.from("sms_inbox").select("id", { count: "exact", head: true }).eq("status", "FAILED"),
-      supabase.from("notification_queue").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
-      supabase.from("notification_queue").select("id", { count: "exact", head: true }).eq("status", "FAILED"),
-      supabase.schema("app").from("reconciliation_jobs").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
+      supabase
+        .from("sms_inbox")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["NEW", "PARSED", "PENDING"]),
+      supabase
+        .from("sms_inbox")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "FAILED"),
+      supabase
+        .from("notification_queue")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "PENDING"),
+      supabase
+        .from("notification_queue")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "FAILED"),
+      supabase
+        .schema("app")
+        .from("reconciliation_jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "PENDING"),
     ]);
 
     metrics.push(`# HELP ibimina_sms_queue_pending Pending SMS rows awaiting processing`);
@@ -110,7 +127,9 @@ Deno.serve(async (req) => {
     metrics.push("# TYPE ibimina_notification_queue_failed gauge");
     metrics.push(`ibimina_notification_queue_failed ${notificationErrored ?? 0}`);
 
-    metrics.push(`# HELP ibimina_reconciliation_jobs_pending Pending reconciliation automation jobs`);
+    metrics.push(
+      `# HELP ibimina_reconciliation_jobs_pending Pending reconciliation automation jobs`
+    );
     metrics.push("# TYPE ibimina_reconciliation_jobs_pending gauge");
     metrics.push(`ibimina_reconciliation_jobs_pending ${reconJobsPending ?? 0}`);
 
@@ -129,7 +148,9 @@ Deno.serve(async (req) => {
       .select("id, provider, display_name, last_polled_at, last_latency_ms, last_error, status");
 
     if (pollers?.length) {
-      metrics.push(`# HELP ibimina_momo_poller_latency_seconds Average latency of last MoMo polling batch`);
+      metrics.push(
+        `# HELP ibimina_momo_poller_latency_seconds Average latency of last MoMo polling batch`
+      );
       metrics.push("# TYPE ibimina_momo_poller_latency_seconds gauge");
       metrics.push(`# HELP ibimina_momo_poller_up Health indicator for MoMo polling workers`);
       metrics.push("# TYPE ibimina_momo_poller_up gauge");
@@ -149,18 +170,26 @@ Deno.serve(async (req) => {
         const isFresh = lastPolled ? now - lastPolled < 1000 * 60 * 30 : false;
         const up = poller.status === "ACTIVE" && !poller.last_error && isFresh ? 1 : 0;
         const latencySeconds = poller.last_latency_ms ? poller.last_latency_ms / 1000 : 0;
-        metrics.push(`ibimina_momo_poller_latency_seconds{poller="${pollerLabel}",provider="${providerLabel}"} ${latencySeconds}`);
-        metrics.push(`ibimina_momo_poller_up{poller="${pollerLabel}",provider="${providerLabel}"} ${up}`);
+        metrics.push(
+          `ibimina_momo_poller_latency_seconds{poller="${pollerLabel}",provider="${providerLabel}"} ${latencySeconds}`
+        );
+        metrics.push(
+          `ibimina_momo_poller_up{poller="${pollerLabel}",provider="${providerLabel}"} ${up}`
+        );
       }
     }
 
     const { data: gateways } = await supabase
       .schema("app")
       .from("sms_gateway_endpoints")
-      .select("gateway, display_name, last_status, last_latency_ms, last_heartbeat_at, last_error, status");
+      .select(
+        "gateway, display_name, last_status, last_latency_ms, last_heartbeat_at, last_error, status"
+      );
 
     if (gateways?.length) {
-      metrics.push(`# HELP ibimina_sms_gateway_latency_ms Latest latency recorded by GSM heartbeats`);
+      metrics.push(
+        `# HELP ibimina_sms_gateway_latency_ms Latest latency recorded by GSM heartbeats`
+      );
       metrics.push("# TYPE ibimina_sms_gateway_latency_ms gauge");
       metrics.push(`# HELP ibimina_sms_gateway_up Health indicator for configured GSM gateways`);
       metrics.push("# TYPE ibimina_sms_gateway_up gauge");
@@ -175,10 +204,15 @@ Deno.serve(async (req) => {
         status: string;
       }>) {
         const gatewayLabel = sanitizeLabel(gateway.display_name ?? gateway.gateway);
-        const lastHeartbeat = gateway.last_heartbeat_at ? Date.parse(gateway.last_heartbeat_at) : null;
+        const lastHeartbeat = gateway.last_heartbeat_at
+          ? Date.parse(gateway.last_heartbeat_at)
+          : null;
         const alive = lastHeartbeat ? now - lastHeartbeat < 1000 * 60 * 15 : false;
         const up =
-          gateway.status === "ACTIVE" && gateway.last_status === "UP" && !gateway.last_error && alive
+          gateway.status === "ACTIVE" &&
+          gateway.last_status === "UP" &&
+          !gateway.last_error &&
+          alive
             ? 1
             : 0;
         const latencyMs = gateway.last_latency_ms ?? 0;

@@ -70,11 +70,7 @@ Deno.serve(async (req) => {
       return errorResponse("User email required for reset notification", 400);
     }
 
-    await supabase
-      .schema("app")
-      .from("devices_trusted")
-      .delete()
-      .eq("user_id", payload.userId);
+    await supabase.schema("app").from("devices_trusted").delete().eq("user_id", payload.userId);
 
     await supabase
       .schema("auth")
@@ -108,21 +104,19 @@ Deno.serve(async (req) => {
       "— SACCO+ Security",
     ].join("\n");
 
-    await supabase
-      .from("notification_queue")
-      .insert({
-        event: "MFA_RESET",
-        channel: "EMAIL",
-        payment_id: null,
-        payload: {
-          userId: payload.userId,
-          email: targetUser.email,
-          reason: payload.reason,
-          subject: "Your SACCO+ MFA has been reset",
-          body: notificationBody,
-        },
-        scheduled_for: new Date().toISOString(),
-      });
+    await supabase.from("notification_queue").insert({
+      event: "MFA_RESET",
+      channel: "EMAIL",
+      payment_id: null,
+      payload: {
+        userId: payload.userId,
+        email: targetUser.email,
+        reason: payload.reason,
+        subject: "Your SACCO+ MFA has been reset",
+        body: notificationBody,
+      },
+      scheduled_for: new Date().toISOString(),
+    });
 
     await writeAuditLog(supabase, {
       action: "MFA_RESET",

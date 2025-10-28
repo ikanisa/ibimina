@@ -7,7 +7,10 @@ import { useRouter } from "next/navigation";
 import { ArrowUpRight, Loader2, Search, X } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { SaccoSearchCombobox, type SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
+import {
+  SaccoSearchCombobox,
+  type SaccoSearchResult,
+} from "@/components/saccos/sacco-search-combobox";
 import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
@@ -31,7 +34,6 @@ function resolveSupabaseClient() {
 
   return cachedSupabaseClient;
 }
-
 
 type SearchCacheEntry = {
   ikimina: IkiminaResult[];
@@ -115,7 +117,7 @@ const DIALOG_FOCUSABLE_SELECTORS =
 const getDialogFocusable = (root: HTMLElement | null) => {
   if (!root) return [] as HTMLElement[];
   return Array.from(root.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTORS)).filter(
-    (element) => !element.hasAttribute("disabled"),
+    (element) => !element.hasAttribute("disabled")
   );
 };
 
@@ -239,7 +241,7 @@ export function GlobalSearchDialog({
     if (!supabase) {
       const unavailableMessage = t(
         "search.console.supabaseUnavailable",
-        "Search is unavailable because Supabase is not configured.",
+        "Search is unavailable because Supabase is not configured."
       );
       scheduleStateUpdate(() => {
         setIkimina([]);
@@ -413,7 +415,9 @@ export function GlobalSearchDialog({
           .limit(memberLimit),
         supabase
           .from("payments")
-          .select("id, amount, status, occurred_at, reference, ikimina_id, member_id, group:ibimina(name)")
+          .select(
+            "id, amount, status, occurred_at, reference, ikimina_id, member_id, group:ibimina(name)"
+          )
           .in("ikimina_id", scopedIds)
           .order("occurred_at", { ascending: false })
           .limit(paymentLimit),
@@ -427,14 +431,16 @@ export function GlobalSearchDialog({
         setMembers([]);
         setMembersError(membersRes.error.message ?? "Failed to load members");
       } else {
-        memberRows = ((membersRes.data ?? []) as Array<{
-          id: string;
-          full_name: string;
-          member_code: string | null;
-          msisdn: string | null;
-          ikimina_id: string | null;
-          ikimina_name: string | null;
-        }>).map((row) => ({
+        memberRows = (
+          (membersRes.data ?? []) as Array<{
+            id: string;
+            full_name: string;
+            member_code: string | null;
+            msisdn: string | null;
+            ikimina_id: string | null;
+            ikimina_name: string | null;
+          }>
+        ).map((row) => ({
           id: row.id,
           fullName: row.full_name,
           memberCode: row.member_code,
@@ -455,16 +461,18 @@ export function GlobalSearchDialog({
         setPayments([]);
         setPaymentsError(paymentsRes.error.message ?? "Failed to load payments");
       } else {
-        paymentRows = ((paymentsRes.data ?? []) as Array<{
-          id: string;
-          amount: number;
-          status: string;
-          occurred_at: string;
-          reference: string | null;
-          ikimina_id: string | null;
-          member_id: string | null;
-          group: { name: string | null } | null;
-        }>).map((row) => ({
+        paymentRows = (
+          (paymentsRes.data ?? []) as Array<{
+            id: string;
+            amount: number;
+            status: string;
+            occurred_at: string;
+            reference: string | null;
+            ikimina_id: string | null;
+            member_id: string | null;
+            group: { name: string | null } | null;
+          }>
+        ).map((row) => ({
           id: row.id,
           amount: row.amount,
           status: row.status,
@@ -473,7 +481,7 @@ export function GlobalSearchDialog({
           ikiminaId: row.ikimina_id,
           ikiminaName: row.group?.name ?? null,
           memberId: row.member_id,
-          memberName: row.member_id ? memberNameMap.get(row.member_id) ?? null : null,
+          memberName: row.member_id ? (memberNameMap.get(row.member_id) ?? null) : null,
         }));
         setPayments(paymentRows);
         setPaymentsError(null);
@@ -486,8 +494,12 @@ export function GlobalSearchDialog({
         members: membersRes.error ? [] : memberRows,
         payments: paymentsRes.error ? [] : paymentRows,
         error: null,
-        membersError: membersRes.error ? membersRes.error.message ?? "Failed to load members" : null,
-        paymentsError: paymentsRes.error ? paymentsRes.error.message ?? "Failed to load payments" : null,
+        membersError: membersRes.error
+          ? (membersRes.error.message ?? "Failed to load members")
+          : null,
+        paymentsError: paymentsRes.error
+          ? (paymentsRes.error.message ?? "Failed to load payments")
+          : null,
         timestamp: cacheTimestamp,
       });
       setLastSyncedAt(new Date(cacheTimestamp));
@@ -526,8 +538,9 @@ export function GlobalSearchDialog({
   const filteredNav = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return navItems;
-    return navItems.filter((item) =>
-      item.primary.toLowerCase().includes(term) || item.secondary.toLowerCase().includes(term)
+    return navItems.filter(
+      (item) =>
+        item.primary.toLowerCase().includes(term) || item.secondary.toLowerCase().includes(term)
     );
   }, [navItems, query]);
 
@@ -557,9 +570,9 @@ export function GlobalSearchDialog({
   const flattenedQuickActions = useMemo(
     () =>
       filteredQuickActionGroups.flatMap((group) =>
-        group.actions.map((action) => ({ groupId: group.id, action })),
+        group.actions.map((action) => ({ groupId: group.id, action }))
       ),
-    [filteredQuickActionGroups],
+    [filteredQuickActionGroups]
   );
 
   const actionIndexByGroup = useMemo(() => {
@@ -630,21 +643,18 @@ export function GlobalSearchDialog({
   const paymentsOffset = membersOffset + filteredMembers.length;
   const totalFocusCount = paymentsOffset + filteredPayments.length;
 
-  const focusItem = useCallback(
-    (index: number) => {
-      const element = focusRefs.current[index];
-      if (element) {
-        element.focus();
-      }
-    },
-    [],
-  );
+  const focusItem = useCallback((index: number) => {
+    const element = focusRefs.current[index];
+    if (element) {
+      element.focus();
+    }
+  }, []);
 
   const registerFocus = useCallback(
     (index: number) => (element: HTMLAnchorElement | null) => {
       focusRefs.current[index] = element;
     },
-    [],
+    []
   );
 
   const handleResultKeyDown = useCallback(
@@ -664,7 +674,7 @@ export function GlobalSearchDialog({
         }
       }
     },
-    [focusItem, totalFocusCount],
+    [focusItem, totalFocusCount]
   );
 
   const handleInputKeyDown = useCallback(
@@ -677,7 +687,7 @@ export function GlobalSearchDialog({
         focusItem(totalFocusCount - 1);
       }
     },
-    [focusItem, totalFocusCount],
+    [focusItem, totalFocusCount]
   );
 
   useEffect(() => {
@@ -779,7 +789,9 @@ export function GlobalSearchDialog({
             {t("search.console.title", "Search console")}
           </span>
           <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-            <span className="hidden rounded-full border border-white/15 px-3 py-1 md:inline-flex">⌘K</span>
+            <span className="hidden rounded-full border border-white/15 px-3 py-1 md:inline-flex">
+              ⌘K
+            </span>
             <button
               type="button"
               onClick={onClose}
@@ -797,11 +809,14 @@ export function GlobalSearchDialog({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
-            placeholder={t("search.console.placeholder", "Search ikimina, quick actions, or SACCO registry")}
+            placeholder={t(
+              "search.console.placeholder",
+              "Search ikimina, quick actions, or SACCO registry"
+            )}
             className="w-full rounded-2xl border border-white/10 bg-white/10 py-3 pl-11 pr-4 text-sm text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
           />
           {query && (
-           <button
+            <button
               type="button"
               onClick={() => setQuery("")}
               className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 text-neutral-2 transition hover:text-neutral-0"
@@ -816,59 +831,71 @@ export function GlobalSearchDialog({
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
           <aside className="space-y-5">
             <section>
-              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">{t("search.console.navigate", "Navigate")}</header>
+              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                {t("search.console.navigate", "Navigate")}
+              </header>
               <ul className="space-y-2">
                 {filteredNav.length === 0 && (
-                  <li className="text-xs text-neutral-2">{t("search.console.noSections", "No sections found.")}</li>
+                  <li className="text-xs text-neutral-2">
+                    {t("search.console.noSections", "No sections found.")}
+                  </li>
                 )}
                 {filteredNav.map((item, idx) => {
                   const globalIndex = navOffset + idx;
                   return (
                     <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={onClose}
-                      ref={registerFocus(globalIndex)}
-                      onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
-                      tabIndex={-1}
-                      className="flex flex-col rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <span className="font-medium">{renderHighlighted(item.primary, query)}</span>
-                          <span className="block text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-                            {item.secondary}
-                          </span>
+                      <Link
+                        href={item.href}
+                        onClick={onClose}
+                        ref={registerFocus(globalIndex)}
+                        onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                        tabIndex={-1}
+                        className="flex flex-col rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <span className="font-medium">
+                              {renderHighlighted(item.primary, query)}
+                            </span>
+                            <span className="block text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                              {item.secondary}
+                            </span>
+                          </div>
+                          {item.badge && (
+                            <span
+                              className={cn(
+                                "inline-flex h-min items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
+                                BADGE_TONE_STYLES[item.badge.tone]
+                              )}
+                            >
+                              {item.badge.label}
+                            </span>
+                          )}
                         </div>
-                        {item.badge && (
-                          <span
-                            className={cn(
-                              "inline-flex h-min items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
-                              BADGE_TONE_STYLES[item.badge.tone],
-                            )}
-                          >
-                            {item.badge.label}
-                          </span>
-                        )}
-                      </div>
-                    </Link>
-                  </li>
+                      </Link>
+                    </li>
                   );
                 })}
               </ul>
             </section>
 
             <section>
-              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">{t("search.console.quickActions", "Quick actions")}</header>
+              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                {t("search.console.quickActions", "Quick actions")}
+              </header>
               <div className="space-y-3">
                 {filteredQuickActionGroups.length === 0 && (
-                  <p className="text-xs text-neutral-2">{t("search.console.tryAnother", "Try another phrase to find workflows.")}</p>
+                  <p className="text-xs text-neutral-2">
+                    {t("search.console.tryAnother", "Try another phrase to find workflows.")}
+                  </p>
                 )}
                 {filteredQuickActionGroups.map((group) => {
                   const baseIndex = actionIndexByGroup.get(group.id) ?? 0;
                   return (
                     <div key={group.id} className="space-y-2">
-                      <p className="text-[10px] uppercase tracking-[0.35em] text-neutral-3">{group.title}</p>
+                      <p className="text-[10px] uppercase tracking-[0.35em] text-neutral-3">
+                        {group.title}
+                      </p>
                       <ul className="space-y-2">
                         {group.actions.map((action, idx) => {
                           const globalIndex = actionOffset + baseIndex + idx;
@@ -882,7 +909,9 @@ export function GlobalSearchDialog({
                                 tabIndex={-1}
                                 className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
                               >
-                                <span className="font-medium">{renderHighlighted(action.primary, query)}</span>
+                                <span className="font-medium">
+                                  {renderHighlighted(action.primary, query)}
+                                </span>
                                 <span className="text-xs text-neutral-2">{action.description}</span>
                                 <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
                                   {action.secondary} · {action.secondaryDescription}
@@ -891,7 +920,7 @@ export function GlobalSearchDialog({
                                   <span
                                     className={cn(
                                       "mt-1 inline-flex w-max items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
-                                      BADGE_TONE_STYLES[action.badge.tone],
+                                      BADGE_TONE_STYLES[action.badge.tone]
                                     )}
                                   >
                                     {action.badge.label}
@@ -914,11 +943,16 @@ export function GlobalSearchDialog({
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
                 <span>{t("search.ikimina.title", "Ikimina search")}</span>
                 <span className="flex flex-col text-[10px] text-neutral-3">
-                  <span>{ikimina.length} {t("search.common.loadedSuffix", "loaded")}</span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-neutral-3/80">{t("search.common.lastSyncedPrefix", "Last synced")} · {lastSyncedLabel}</span>
+                  <span>
+                    {ikimina.length} {t("search.common.loadedSuffix", "loaded")}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-neutral-3/80">
+                    {t("search.common.lastSyncedPrefix", "Last synced")} · {lastSyncedLabel}
+                  </span>
                   {showRefreshBadge && (
                     <span className="mt-1 inline-flex items-center gap-1 self-start rounded-full bg-rw-blue/20 px-2 py-1 text-[9px] uppercase tracking-[0.3em] text-neutral-0">
-                      <span className="h-2 w-2 rounded-full bg-rw-yellow" /> {t("common.updated", "Updated")}
+                      <span className="h-2 w-2 rounded-full bg-rw-yellow" />{" "}
+                      {t("common.updated", "Updated")}
                     </span>
                   )}
                 </span>
@@ -932,7 +966,10 @@ export function GlobalSearchDialog({
                   <div className="px-4 py-6 text-sm text-red-300">{error}</div>
                 ) : filteredIkimina.length === 0 ? (
                   <div className="px-4 py-6 text-sm text-neutral-2">
-                    {t("search.ikimina.noMatch", "No ikimina match your search. Try refining the term or clear the search.")}
+                    {t(
+                      "search.ikimina.noMatch",
+                      "No ikimina match your search. Try refining the term or clear the search."
+                    )}
                   </div>
                 ) : (
                   <ul className="divide-y divide-white/5 text-sm text-neutral-0">
@@ -948,14 +985,14 @@ export function GlobalSearchDialog({
                             tabIndex={-1}
                             className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
                           >
-                          <div>
-                            <p className="font-medium">{renderHighlighted(item.name, query)}</p>
-                            <p className="text-xs text-neutral-2">
-                              Code · <span className="font-mono text-neutral-1">{item.code}</span>
-                              {item.saccoName ? ` • ${item.saccoName}` : ""}
-                            </p>
-                          </div>
-                          <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
+                            <div>
+                              <p className="font-medium">{renderHighlighted(item.name, query)}</p>
+                              <p className="text-xs text-neutral-2">
+                                Code · <span className="font-mono text-neutral-1">{item.code}</span>
+                                {item.saccoName ? ` • ${item.saccoName}` : ""}
+                              </p>
+                            </div>
+                            <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
                           </Link>
                         </li>
                       );
@@ -968,7 +1005,9 @@ export function GlobalSearchDialog({
             <div>
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
                 <span>{t("search.members.title", "Member search")}</span>
-                <span className="text-[10px] text-neutral-3">{members.length} {t("search.common.loadedSuffix", "loaded")}</span>
+                <span className="text-[10px] text-neutral-3">
+                  {members.length} {t("search.common.loadedSuffix", "loaded")}
+                </span>
               </header>
               <div className="max-h-72 overflow-y-auto rounded-2xl border border-white/10">
                 {membersLoading ? (
@@ -979,13 +1018,18 @@ export function GlobalSearchDialog({
                   <div className="px-4 py-6 text-sm text-red-300">{membersError}</div>
                 ) : filteredMembers.length === 0 ? (
                   <div className="px-4 py-6 text-sm text-neutral-2">
-                    {t("search.members.none", "No members match your search. Try another code, name, or phone number.")}
+                    {t(
+                      "search.members.none",
+                      "No members match your search. Try another code, name, or phone number."
+                    )}
                   </div>
                 ) : (
                   <ul className="divide-y divide-white/5 text-sm text-neutral-0">
                     {filteredMembers.map((member, idx) => {
                       const globalIndex = membersOffset + idx;
-                      const memberHref = member.ikiminaId ? `/ikimina/${member.ikiminaId}` : "/ikimina";
+                      const memberHref = member.ikiminaId
+                        ? `/ikimina/${member.ikiminaId}`
+                        : "/ikimina";
                       return (
                         <li key={member.id}>
                           <Link
@@ -997,25 +1041,24 @@ export function GlobalSearchDialog({
                             className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
                           >
                             <div>
-                              <p className="font-medium">{renderHighlighted(member.fullName, query)}</p>
+                              <p className="font-medium">
+                                {renderHighlighted(member.fullName, query)}
+                              </p>
                               <p className="text-xs text-neutral-2">
                                 {member.memberCode ? (
                                   <>
-                                    Code · <span className="font-mono text-neutral-1">{renderHighlighted(member.memberCode ?? "", query)}</span>
+                                    Code ·{" "}
+                                    <span className="font-mono text-neutral-1">
+                                      {renderHighlighted(member.memberCode ?? "", query)}
+                                    </span>
                                   </>
                                 ) : (
                                   <span>{t("search.members.noCode", "No member code")}</span>
                                 )}
                                 {member.msisdn && (
-                                  <>
-                                    {" "}• {renderHighlighted(member.msisdn ?? "", query)}
-                                  </>
+                                  <> • {renderHighlighted(member.msisdn ?? "", query)}</>
                                 )}
-                                {member.ikiminaName && (
-                                  <>
-                                    {" "}• {member.ikiminaName}
-                                  </>
-                                )}
+                                {member.ikiminaName && <> • {member.ikiminaName}</>}
                               </p>
                             </div>
                             <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
@@ -1031,24 +1074,32 @@ export function GlobalSearchDialog({
             <div>
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
                 <span>{t("search.payments.title", "Recent payments")}</span>
-                <span className="text-[10px] text-neutral-3">{payments.length} {t("search.common.loadedSuffix", "loaded")}</span>
+                <span className="text-[10px] text-neutral-3">
+                  {payments.length} {t("search.common.loadedSuffix", "loaded")}
+                </span>
               </header>
               <div className="max-h-72 overflow-y-auto rounded-2xl border border-white/10">
                 {paymentsLoading ? (
                   <div className="flex items-center gap-2 px-4 py-6 text-sm text-neutral-2">
-                    <Loader2 className="h-4 w-4 animate-spin" /> {t("search.payments.loading", "Loading payments…")}
+                    <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                    {t("search.payments.loading", "Loading payments…")}
                   </div>
                 ) : paymentsError ? (
                   <div className="px-4 py-6 text-sm text-red-300">{paymentsError}</div>
                 ) : filteredPayments.length === 0 ? (
                   <div className="px-4 py-6 text-sm text-neutral-2">
-                    {t("search.payments.none", "No payments match your search. Search by reference, member, or status.")}
+                    {t(
+                      "search.payments.none",
+                      "No payments match your search. Search by reference, member, or status."
+                    )}
                   </div>
                 ) : (
                   <ul className="divide-y divide-white/5 text-sm text-neutral-0">
                     {filteredPayments.map((payment, idx) => {
                       const globalIndex = paymentsOffset + idx;
-                      const paymentHref = payment.ikiminaId ? `/ikimina/${payment.ikiminaId}` : "/recon";
+                      const paymentHref = payment.ikiminaId
+                        ? `/ikimina/${payment.ikiminaId}`
+                        : "/recon";
                       return (
                         <li key={payment.id}>
                           <Link
@@ -1065,7 +1116,8 @@ export function GlobalSearchDialog({
                               </p>
                               <p className="text-xs text-neutral-2">
                                 {payment.memberName ? `${payment.memberName} • ` : ""}
-                                {payment.ikiminaName ?? t("search.payments.noIkimina", "No ikimina")}
+                                {payment.ikiminaName ??
+                                  t("search.payments.noIkimina", "No ikimina")}
                               </p>
                               {payment.reference && (
                                 <p className="text-[11px] font-mono text-neutral-2">
@@ -1073,7 +1125,8 @@ export function GlobalSearchDialog({
                                 </p>
                               )}
                               <p className="text-[11px] text-neutral-3">
-                                {formatRelativeDate(payment.occurredAt, dateTimeFormatter)} · {dateTimeFormatter.format(new Date(payment.occurredAt))}
+                                {formatRelativeDate(payment.occurredAt, dateTimeFormatter)} ·{" "}
+                                {dateTimeFormatter.format(new Date(payment.occurredAt))}
                               </p>
                             </div>
                             <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
@@ -1087,16 +1140,22 @@ export function GlobalSearchDialog({
             </div>
 
             <div>
-              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">{t("search.saccoPicker.title", "Semantic SACCO picker")}</header>
+              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                {t("search.saccoPicker.title", "Semantic SACCO picker")}
+              </header>
               <SaccoSearchCombobox
                 value={selectedSacco}
                 onChange={(value) => setSelectedSacco(value)}
-                placeholder={t("search.saccoPicker.placeholder", "Search Umurenge SACCOs by name or district")}
+                placeholder={t(
+                  "search.saccoPicker.placeholder",
+                  "Search Umurenge SACCOs by name or district"
+                )}
               />
               {selectedSacco && (
                 <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-0">
                   <p>
-                    <span className="font-semibold">{selectedSacco.name}</span> — {selectedSacco.district} · {selectedSacco.province}
+                    <span className="font-semibold">{selectedSacco.name}</span> —{" "}
+                    {selectedSacco.district} · {selectedSacco.province}
                   </p>
                   <p className="mt-1 text-neutral-2">{selectedSacco.category}</p>
                   {profile.role === "SYSTEM_ADMIN" ? (
@@ -1109,10 +1168,16 @@ export function GlobalSearchDialog({
                       }}
                       className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/25 hover:bg-white/10"
                     >
-                      {t("search.saccoPicker.manageInAdmin", "Manage in admin")} <ArrowUpRight className="h-3.5 w-3.5" />
+                      {t("search.saccoPicker.manageInAdmin", "Manage in admin")}{" "}
+                      <ArrowUpRight className="h-3.5 w-3.5" />
                     </button>
                   ) : (
-                    <p className="mt-3 text-[11px] text-neutral-2">{t("search.saccoPicker.contactAdmin", "Contact your system administrator to update SACCO metadata.")}</p>
+                    <p className="mt-3 text-[11px] text-neutral-2">
+                      {t(
+                        "search.saccoPicker.contactAdmin",
+                        "Contact your system administrator to update SACCO metadata."
+                      )}
+                    </p>
                   )}
                 </div>
               )}

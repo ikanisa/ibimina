@@ -119,13 +119,16 @@ Deno.serve(async (req) => {
       console.warn("Failed to send invitation email", inviteError);
     }
 
-    await serviceClient.schema("app").from("audit_logs").insert({
-      actor: requester.id,
-      action: "INVITE_USER",
-      entity: "users",
-      entity_id: created.user.id,
-      diff: { email, role, sacco_id: saccoId },
-    });
+    await serviceClient
+      .schema("app")
+      .from("audit_logs")
+      .insert({
+        actor: requester.id,
+        action: "INVITE_USER",
+        entity: "users",
+        entity_id: created.user.id,
+        diff: { email, role, sacco_id: saccoId },
+      });
 
     return new Response(
       JSON.stringify({
@@ -136,7 +139,7 @@ Deno.serve(async (req) => {
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      }
     );
   } catch (error) {
     console.error("Invite user error", error);

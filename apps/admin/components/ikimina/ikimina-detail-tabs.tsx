@@ -13,7 +13,7 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 
 const MEMBER_TABS = ["Overview", "Members", "Deposits", "Statements", "Settings"] as const;
 
-type TabKey = typeof MEMBER_TABS[number];
+type TabKey = (typeof MEMBER_TABS)[number];
 
 type MemberRow = Pick<
   Database["public"]["Views"]["ikimina_members_public"]["Row"],
@@ -105,7 +105,13 @@ const PAYMENT_STATUS_LABELS: Record<PaymentFilter, { primary: string; secondary:
   PENDING: { primary: "Pending", secondary: "Birategereje" },
 };
 
-export function IkiminaDetailTabs({ detail, members, payments, statements, history }: IkiminaDetailTabsProps) {
+export function IkiminaDetailTabs({
+  detail,
+  members,
+  payments,
+  statements,
+  history,
+}: IkiminaDetailTabsProps) {
   const { t } = useTranslation();
   const [tab, setTab] = useState<TabKey>("Overview");
   const [memberSearch, setMemberSearch] = useState("");
@@ -117,29 +123,47 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
     () => [
       {
         accessorKey: "full_name",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.name", "Name")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.name", "Name")}
+          </span>
+        ),
         cell: ({ row }) => (
           <div>
             <p className="font-medium text-neutral-0">{row.original.full_name}</p>
-            <p className="text-xs text-neutral-2">{t("reports.table.code", "Code")} · {row.original.member_code ?? "—"}</p>
+            <p className="text-xs text-neutral-2">
+              {t("reports.table.code", "Code")} · {row.original.member_code ?? "—"}
+            </p>
           </div>
         ),
         meta: { template: "minmax(220px, 2fr)" },
       },
       {
         accessorKey: "msisdn",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.members.msisdn", "MSISDN")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("ikimina.members.msisdn", "MSISDN")}
+          </span>
+        ),
         meta: { template: "minmax(180px, 1fr)" },
       },
       {
         accessorKey: "status",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.status", "Status")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.status", "Status")}
+          </span>
+        ),
         cell: ({ getValue }) => <StatusChip tone="neutral">{getValue() as string}</StatusChip>,
         meta: { template: "minmax(140px, 0.8fr)" },
       },
       {
         accessorKey: "joined_at",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.members.joined", "Joined")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("ikimina.members.joined", "Joined")}
+          </span>
+        ),
         cell: ({ getValue }) => {
           const value = getValue() as string | null;
           return value ? new Date(value).toLocaleDateString() : "—";
@@ -147,72 +171,105 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
         meta: { template: "minmax(140px, 0.9fr)" },
       },
     ],
-    [t],
+    [t]
   );
 
   const paymentColumns = useMemo<ColumnDef<PaymentRow, unknown>[]>(
     () => [
       {
         accessorKey: "occurred_at",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("payments.occurred", "Occurred")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("payments.occurred", "Occurred")}
+          </span>
+        ),
         cell: ({ getValue }) => dateFormatter.format(new Date(getValue() as string)),
         meta: { template: "minmax(180px, 1.2fr)" },
       },
       {
         accessorKey: "amount",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.table.amount", "Amount")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("reports.table.amount", "Amount")}
+          </span>
+        ),
         cell: ({ row }) => currencyFormatter.format(row.original.amount),
         meta: { align: "right", template: "minmax(150px, 0.8fr)", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "reference",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("payments.reference", "Reference")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("payments.reference", "Reference")}
+          </span>
+        ),
         cell: ({ getValue }) => (getValue() as string | null) ?? "—",
         meta: { template: "minmax(180px, 1.2fr)" },
       },
       {
         accessorKey: "status",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.status", "Status")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.status", "Status")}
+          </span>
+        ),
         cell: ({ getValue }) => <StatusChip tone="neutral">{getValue() as string}</StatusChip>,
         meta: { template: "minmax(140px, 0.8fr)" },
       },
     ],
-    [t],
+    [t]
   );
 
   const statementColumns = useMemo<ColumnDef<StatementSummary, unknown>[]>(
     () => [
       {
         accessorKey: "label",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.table.month", "Month")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("reports.table.month", "Month")}
+          </span>
+        ),
         meta: { template: "minmax(160px, 1fr)" },
       },
       {
         accessorKey: "postedTotal",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.posted", "Posted")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.posted", "Posted")}
+          </span>
+        ),
         cell: ({ getValue }) => currencyFormatter.format(Number(getValue() ?? 0)),
         meta: { align: "right", template: "minmax(150px, 0.8fr)", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "unallocatedTotal",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.unallocated", "Unallocated")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.unallocated", "Unallocated")}
+          </span>
+        ),
         cell: ({ getValue }) => currencyFormatter.format(Number(getValue() ?? 0)),
         meta: { align: "right", template: "minmax(150px, 0.8fr)" },
       },
       {
         accessorKey: "transactionCount",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.transactions", "Transactions")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.transactions", "Transactions")}
+          </span>
+        ),
         meta: { align: "right", template: "minmax(130px, 0.7fr)" },
       },
     ],
-    [t],
+    [t]
   );
 
   const filteredMembers = useMemo(() => {
     const query = deferredMemberSearch.trim().toLowerCase();
     if (!query) return members;
     return members.filter((member) => {
-      const target = `${member.full_name} ${member.member_code ?? ""} ${member.msisdn ?? ""}`.toLowerCase();
+      const target =
+        `${member.full_name} ${member.member_code ?? ""} ${member.msisdn ?? ""}`.toLowerCase();
       return target.includes(query);
     });
   }, [members, deferredMemberSearch]);
@@ -259,7 +316,11 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
           <OverviewCard
             title={t("ikimina.overview.lastDeposit", "Last deposit")}
             primary={relativeDate(detail.analytics.lastDepositAt)}
-            subtitle={detail.analytics.lastDepositAt ? dateFormatter.format(new Date(detail.analytics.lastDepositAt)) : t("ikimina.overview.noDeposits", "No deposits recorded")}
+            subtitle={
+              detail.analytics.lastDepositAt
+                ? dateFormatter.format(new Date(detail.analytics.lastDepositAt))
+                : t("ikimina.overview.noDeposits", "No deposits recorded")
+            }
           />
         </div>
       )}
@@ -269,7 +330,10 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
           <div className="max-w-sm">
             <Input
               label={t("ikimina.members.searchLabel", "Search members")}
-              placeholder={t("ikimina.members.searchPlaceholder", "Search by name, MSISDN, or code")}
+              placeholder={t(
+                "ikimina.members.searchPlaceholder",
+                "Search by name, MSISDN, or code"
+              )}
               value={memberSearch}
               onChange={(event) => setMemberSearch(event.target.value)}
             />
@@ -277,7 +341,15 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
           <VirtualTable
             data={filteredMembers}
             columns={memberColumns}
-            emptyState={<EmptyState title={t("ikimina.members.emptyTitle", "No members")} description={t("ikimina.members.emptyDescription", "Import members to get started.")} />}
+            emptyState={
+              <EmptyState
+                title={t("ikimina.members.emptyTitle", "No members")}
+                description={t(
+                  "ikimina.members.emptyDescription",
+                  "Import members to get started."
+                )}
+              />
+            }
           />
         </div>
       )}
@@ -294,7 +366,8 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
               value: option,
               label: t(
                 `payments.filter.${option.toLowerCase()}`,
-                PAYMENT_STATUS_LABELS[option as keyof typeof PAYMENT_STATUS_LABELS]?.primary ?? option,
+                PAYMENT_STATUS_LABELS[option as keyof typeof PAYMENT_STATUS_LABELS]?.primary ??
+                  option
               ),
             }))}
             aria-label={t("ikimina.deposits.filter", "Filter deposits")}
@@ -302,7 +375,15 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
           <VirtualTable
             data={filteredPayments}
             columns={paymentColumns}
-            emptyState={<EmptyState title={t("ikimina.deposits.emptyTitle", "No deposits")} description={t("ikimina.deposits.emptyDescription", "Recent transactions will appear here.")} />}
+            emptyState={
+              <EmptyState
+                title={t("ikimina.deposits.emptyTitle", "No deposits")}
+                description={t(
+                  "ikimina.deposits.emptyDescription",
+                  "Recent transactions will appear here."
+                )}
+              />
+            }
           />
         </div>
       )}
@@ -311,7 +392,15 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
         <VirtualTable
           data={statements}
           columns={statementColumns}
-          emptyState={<EmptyState title={t("ikimina.statements.emptyTitle", "No statements")} description={t("ikimina.statements.emptyDescription", "Statements will appear as transactions post.")} />}
+          emptyState={
+            <EmptyState
+              title={t("ikimina.statements.emptyTitle", "No statements")}
+              description={t(
+                "ikimina.statements.emptyDescription",
+                "Statements will appear as transactions post."
+              )}
+            />
+          }
         />
       )}
 
@@ -328,7 +417,15 @@ export function IkiminaDetailTabs({ detail, members, payments, statements, histo
   );
 }
 
-function OverviewCard({ title, primary, subtitle }: { title: string; primary: string; subtitle: string }) {
+function OverviewCard({
+  title,
+  primary,
+  subtitle,
+}: {
+  title: string;
+  primary: string;
+  subtitle: string;
+}) {
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-glass">
       <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{title}</p>

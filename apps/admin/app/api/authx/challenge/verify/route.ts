@@ -63,13 +63,16 @@ export async function POST(request: NextRequest) {
       const { data: rawRecord, error } = await supabase
         .from("users")
         .select(
-          "mfa_secret_enc, mfa_backup_hashes, last_mfa_step, failed_mfa_count, last_mfa_success_at, mfa_methods, mfa_passkey_enrolled",
+          "mfa_secret_enc, mfa_backup_hashes, last_mfa_step, failed_mfa_count, last_mfa_success_at, mfa_methods, mfa_passkey_enrolled"
         )
         .eq("id", user.id)
         .maybeSingle();
 
       if (error) {
-        logError("mfa.verify.load_failed", { error: error instanceof Error ? error.message : error, userId: user.id });
+        logError("mfa.verify.load_failed", {
+          error: error instanceof Error ? error.message : error,
+          userId: user.id,
+        });
         return NextResponse.json({ error: "configuration_error" }, { status: 500 });
       }
 
@@ -98,10 +101,14 @@ export async function POST(request: NextRequest) {
 
       const respondRateLimited = async (
         scope: "user" | "ip",
-        details: { retryAt?: Date | null; hashedIp?: string | null },
+        details: { retryAt?: Date | null; hashedIp?: string | null }
       ) => {
         const retryIso = details.retryAt?.toISOString() ?? null;
-        logWarn("mfa.verify.rate_limited", { scope, retryAt: retryIso, hashedIp: details.hashedIp ?? null });
+        logWarn("mfa.verify.rate_limited", {
+          scope,
+          retryAt: retryIso,
+          hashedIp: details.hashedIp ?? null,
+        });
         await audit(user.id, "MFA_RATE_LIMITED", {
           scope,
           retryAt: retryIso,
@@ -110,17 +117,23 @@ export async function POST(request: NextRequest) {
         });
         return NextResponse.json(
           { error: "rate_limited", scope, retryAt: retryIso, requestId: requestId ?? undefined },
-          { status: 429 },
+          { status: 429 }
         );
       };
 
-      const userRateLimit = await applyRateLimit(`authx-mfa:${user.id}`, { maxHits: 5, windowSeconds: 300 });
+      const userRateLimit = await applyRateLimit(`authx-mfa:${user.id}`, {
+        maxHits: 5,
+        windowSeconds: 300,
+      });
       if (!userRateLimit.ok) {
         return respondRateLimited("user", { retryAt: userRateLimit.retryAt ?? null });
       }
 
       if (hashedIp) {
-        const ipRateLimit = await applyRateLimit(`authx-mfa-ip:${hashedIp}`, { maxHits: 10, windowSeconds: 300 });
+        const ipRateLimit = await applyRateLimit(`authx-mfa-ip:${hashedIp}`, {
+          maxHits: 10,
+          windowSeconds: 300,
+        });
         if (!ipRateLimit.ok) {
           return respondRateLimited("ip", { retryAt: ipRateLimit.retryAt ?? null, hashedIp });
         }
@@ -165,7 +178,7 @@ export async function POST(request: NextRequest) {
             code: verification.code,
             ...(verification.payload ?? {}),
           },
-          { status: verification.status },
+          { status: verification.status }
         );
       }
 
@@ -188,10 +201,12 @@ export async function POST(request: NextRequest) {
       }
 
       if (verification.factor === "backup") {
-        updates.mfa_backup_hashes = verification.nextBackupHashes ?? safeRecord.mfa_backup_hashes ?? [];
+        updates.mfa_backup_hashes =
+          verification.nextBackupHashes ?? safeRecord.mfa_backup_hashes ?? [];
         updates.last_mfa_step = safeRecord.last_mfa_step ?? null;
       } else if (verification.factor === "totp") {
-        updates.last_mfa_step = verification.nextLastStep ?? verification.step ?? safeRecord.last_mfa_step ?? null;
+        updates.last_mfa_step =
+          verification.nextLastStep ?? verification.step ?? safeRecord.last_mfa_step ?? null;
       }
 
       updates.mfa_methods = Array.from(methods);
@@ -200,7 +215,8 @@ export async function POST(request: NextRequest) {
       const updateResult = await (supabase as any).from("users").update(updates).eq("id", user.id);
       if (updateResult.error) {
         logError("mfa.verify.persist_failed", {
-          error: updateResult.error instanceof Error ? updateResult.error.message : updateResult.error,
+          error:
+            updateResult.error instanceof Error ? updateResult.error.message : updateResult.error,
         });
         return NextResponse.json({ error: "configuration_error" }, { status: 500 });
       }
@@ -220,10 +236,16 @@ export async function POST(request: NextRequest) {
         methods: updates.mfa_methods,
       });
 
-      return NextResponse.json({ ok: true, factor: verification.factor, usedBackup: verification.usedBackup ?? false });
+      return NextResponse.json({
+        ok: true,
+        factor: verification.factor,
+        usedBackup: verification.usedBackup ?? false,
+      });
     });
   } catch (error) {
-    logError("mfa.verify.unexpected_error", { error: error instanceof Error ? error.message : error });
+    logError("mfa.verify.unexpected_error", {
+      error: error instanceof Error ? error.message : error,
+    });
     return NextResponse.json({ error: "failed" }, { status: 500 });
   }
 }

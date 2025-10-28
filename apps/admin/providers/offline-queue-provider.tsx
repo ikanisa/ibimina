@@ -1,8 +1,27 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { clearActions, enqueueAction, listActions, removeAction, updateAction, type OfflineAction } from "@/lib/offline/queue";
-import { notifyOfflineQueueUpdated, requestBackgroundSync, requestImmediateOfflineSync } from "@/lib/offline/sync";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  clearActions,
+  enqueueAction,
+  listActions,
+  removeAction,
+  updateAction,
+  type OfflineAction,
+} from "@/lib/offline/queue";
+import {
+  notifyOfflineQueueUpdated,
+  requestBackgroundSync,
+  requestImmediateOfflineSync,
+} from "@/lib/offline/sync";
 import { useToast } from "@/providers/toast-provider";
 import type { Database } from "@/lib/supabase/types";
 
@@ -34,7 +53,9 @@ async function safeListActions() {
 
 export function OfflineQueueProvider({ children }: { children: React.ReactNode }) {
   const toast = useToast();
-  const [isOnline, setIsOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine
+  );
   const [actions, setActions] = useState<OfflineAction[]>([]);
   const [processing, setProcessing] = useState(false);
   const lastBroadcastCount = useRef(0);
@@ -67,18 +88,21 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
 
   type QueueHandler = (action: OfflineAction) => Promise<void>;
 
-  const callPaymentsEndpoint = useCallback(async (path: string, payload: Record<string, unknown>) => {
-    const response = await fetch(path, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(body.error ?? "Request failed");
-    }
-  }, []);
+  const callPaymentsEndpoint = useCallback(
+    async (path: string, payload: Record<string, unknown>) => {
+      const response = await fetch(path, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(body.error ?? "Request failed");
+      }
+    },
+    []
+  );
 
   const handlers = useMemo<Record<string, QueueHandler>>(
     () => ({
@@ -119,7 +143,7 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
         await callPaymentsEndpoint("/api/admin/payments/assign", payload);
       },
     }),
-    [callPaymentsEndpoint],
+    [callPaymentsEndpoint]
   );
 
   const processQueue = useCallback(async () => {
@@ -214,7 +238,7 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
       }
       return record;
     },
-    [isOnline, processQueue, refresh, toast],
+    [isOnline, processQueue, refresh, toast]
   );
 
   const retryFailed = useCallback(async () => {
@@ -226,7 +250,7 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
       await removeAction(id);
       await refresh();
     },
-    [refresh],
+    [refresh]
   );
 
   const clearAll = useCallback(async () => {
@@ -248,7 +272,7 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
       retryFailed,
       clearAction,
     }),
-    [actions, clearAction, isOnline, processing, queueAction, retryFailed],
+    [actions, clearAction, isOnline, processing, queueAction, retryFailed]
   );
 
   useEffect(() => {

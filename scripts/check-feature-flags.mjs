@@ -25,7 +25,7 @@ const requiredFlags = Array.isArray(requiredConfig)
 
 if (requiredFlags.length === 0) {
   console.error(
-    "No required flags defined. Ensure config/required-flags.json exports an array or { \"flags\": [] }."
+    'No required flags defined. Ensure config/required-flags.json exports an array or { "flags": [] }.'
   );
   process.exit(1);
 }
@@ -39,7 +39,9 @@ if (!supabaseUrl) {
 }
 
 if (!serviceRoleKey) {
-  console.error("SUPABASE_SERVICE_ROLE_KEY environment variable is required to verify feature flags.");
+  console.error(
+    "SUPABASE_SERVICE_ROLE_KEY environment variable is required to verify feature flags."
+  );
   process.exit(1);
 }
 
@@ -51,8 +53,8 @@ try {
     headers: {
       apikey: serviceRoleKey,
       Authorization: `Bearer ${serviceRoleKey}`,
-      Accept: "application/json"
-    }
+      Accept: "application/json",
+    },
   });
 } catch (error) {
   console.error("Failed to contact Supabase to verify feature flags:", error);
@@ -86,7 +88,9 @@ const configurationRow = payload[0];
 const flags = configurationRow?.value ?? {};
 
 if (flags === null || typeof flags !== "object") {
-  console.error("Supabase returned an invalid feature flag payload. Expected an object map of flags.");
+  console.error(
+    "Supabase returned an invalid feature flag payload. Expected an object map of flags."
+  );
   process.exit(1);
 }
 
