@@ -7,7 +7,13 @@ type ProfileContextValue = AuthContext;
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
-export function ProfileProvider({ value, children }: { value: ProfileContextValue; children: React.ReactNode }) {
+export function ProfileProvider({
+  value,
+  children,
+}: {
+  value: ProfileContextValue;
+  children: React.ReactNode;
+}) {
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 

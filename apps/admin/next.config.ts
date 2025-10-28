@@ -67,7 +67,9 @@ try {
     buildExcludes: [/middleware-manifest\.json$/],
   });
 } catch {
-  console.warn("next-pwa not available during local build; proceeding without service worker bundling.");
+  console.warn(
+    "next-pwa not available during local build; proceeding without service worker bundling."
+  );
 }
 
 try {
@@ -101,7 +103,7 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
   },
   poweredByHeader: false,
-  transpilePackages: ['@ibimina/config', '@ibimina/ui'],
+  transpilePackages: ["@ibimina/config", "@ibimina/ui"],
   modularizeImports: {
     "lucide-react": {
       transform: "lucide-react/dist/esm/icons/{{member}}",

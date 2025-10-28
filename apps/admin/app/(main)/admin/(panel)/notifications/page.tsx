@@ -57,8 +57,8 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
   const saccoPromise = scope.includeAll
     ? saccoQuery
     : scope.saccoId
-    ? saccoQuery.eq("id", scope.saccoId)
-    : saccoQuery.limit(1);
+      ? saccoQuery.eq("id", scope.saccoId)
+      : saccoQuery.limit(1);
 
   let queueQuery = supabase
     .from("notification_queue")
@@ -106,7 +106,7 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
 
   const saccoLookup = new Map(saccoOptions.map((row) => [row.id, row.name] as const));
   const templateLookup = new Map(
-    templateRows.map((row) => [row.id, row.name ?? `Template ${row.id.slice(0, 6)}`] as const),
+    templateRows.map((row) => [row.id, row.name ?? `Template ${row.id.slice(0, 6)}`] as const)
   );
 
   const pendingCount = queueRows.filter((row) => !row.status || row.status === "pending").length;
@@ -122,7 +122,9 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
   return (
     <div className="space-y-8">
       <GradientHeader
-        title={<Trans i18nKey="admin.notifications.title" fallback="Notifications & communications" />}
+        title={
+          <Trans i18nKey="admin.notifications.title" fallback="Notifications & communications" />
+        }
         subtitle={
           <Trans
             i18nKey="admin.notifications.subtitle"
@@ -160,7 +162,9 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
             tone="critical"
           />
           <MetricTile
-            label={<Trans i18nKey="admin.notifications.metrics.templates" fallback="Active templates" />}
+            label={
+              <Trans i18nKey="admin.notifications.metrics.templates" fallback="Active templates" />
+            }
             value={activeTemplates}
             tone="info"
           />
@@ -168,7 +172,9 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
       </GlassCard>
 
       <GlassCard
-        title={<Trans i18nKey="admin.notifications.acksTitle" fallback="Channel acknowledgements" />}
+        title={
+          <Trans i18nKey="admin.notifications.acksTitle" fallback="Channel acknowledgements" />
+        }
         subtitle={
           <Trans
             i18nKey="admin.notifications.acksSubtitle"

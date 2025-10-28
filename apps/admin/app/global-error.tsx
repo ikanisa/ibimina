@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -13,7 +13,9 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       <body className="flex min-h-screen flex-col items-center justify-center gap-4 bg-nyungwe text-neutral-0">
         <h2 className="text-xl font-semibold">App error</h2>
         <p className="max-w-md text-center text-sm text-neutral-3">
-          We hit an unexpected failure while rendering this page. Refresh to retry the request. If you continue to see this screen, note the error digest from the console and contact support.
+          We hit an unexpected failure while rendering this page. Refresh to retry the request. If
+          you continue to see this screen, note the error digest from the console and contact
+          support.
         </p>
         <button
           type="button"

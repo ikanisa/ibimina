@@ -4,7 +4,8 @@ import { validateHmacRequest } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
 
 const decoder = new TextDecoder();
@@ -340,7 +341,11 @@ Deno.serve(async (req) => {
       modelUsed = model;
     }
 
-    console.log("Parse successful", { parseSource, confidence: parsed.confidence, model: modelUsed });
+    console.log("Parse successful", {
+      parseSource,
+      confidence: parsed.confidence,
+      model: modelUsed,
+    });
 
     return new Response(
       JSON.stringify({
@@ -353,7 +358,7 @@ Deno.serve(async (req) => {
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      },
+      }
     );
   } catch (error) {
     console.error("Parse error", error);
@@ -366,7 +371,7 @@ Deno.serve(async (req) => {
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      },
+      }
     );
   }
 });

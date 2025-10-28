@@ -50,11 +50,23 @@ interface OperationsSnapshotParams {
   saccoId: string | null;
 }
 
-type NotificationRow = Pick<Database["public"]["Tables"]["notification_queue"]["Row"], "id" | "status" | "scheduled_for" | "created_at">;
-type PaymentRow = Pick<Database["app"]["Tables"]["payments"]["Row"], "id" | "status" | "occurred_at" | "sacco_id">;
-type AuditRow = Pick<Database["app"]["Tables"]["audit_logs"]["Row"], "id" | "action" | "entity" | "entity_id" | "created_at" | "diff">;
+type NotificationRow = Pick<
+  Database["public"]["Tables"]["notification_queue"]["Row"],
+  "id" | "status" | "scheduled_for" | "created_at"
+>;
+type PaymentRow = Pick<
+  Database["app"]["Tables"]["payments"]["Row"],
+  "id" | "status" | "occurred_at" | "sacco_id"
+>;
+type AuditRow = Pick<
+  Database["app"]["Tables"]["audit_logs"]["Row"],
+  "id" | "action" | "entity" | "entity_id" | "created_at" | "diff"
+>;
 type AuditTimestampRow = Pick<Database["app"]["Tables"]["audit_logs"]["Row"], "created_at">;
-type UserRow = Pick<Database["public"]["Tables"]["users"]["Row"], "id" | "sacco_id" | "last_mfa_success_at">;
+type UserRow = Pick<
+  Database["public"]["Tables"]["users"]["Row"],
+  "id" | "sacco_id" | "last_mfa_success_at"
+>;
 
 const INCIDENT_ACTIONS = [
   "MFA_FAILED",
@@ -64,7 +76,9 @@ const INCIDENT_ACTIONS = [
   "SMS_GATEWAY_FAILURE",
 ];
 
-export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParams): Promise<OperationsSnapshot> {
+export async function getOperationsSnapshot({
+  saccoId,
+}: OperationsSnapshotParams): Promise<OperationsSnapshot> {
   const supabase = await createSupabaseServerClient();
 
   const notificationSince = new Date(Date.now() - TREND_WINDOW_HOURS * HOUR_IN_MS).toISOString();
@@ -80,7 +94,8 @@ export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParam
     notificationQuery = notificationQuery.eq("sacco_id", saccoId);
   }
 
-  const { data: notificationRows, count: notificationCount } = await notificationQuery.returns<NotificationRow[]>();
+  const { data: notificationRows, count: notificationCount } =
+    await notificationQuery.returns<NotificationRow[]>();
   const stalledThreshold = Date.now() - 30 * 60 * 1000;
   const notifications = notificationRows ?? [];
   const stalled = notifications.filter((row) => {
@@ -123,10 +138,11 @@ export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParam
     if (!row.last_mfa_success_at) return true;
     return new Date(row.last_mfa_success_at).getTime() < staleThreshold;
   }).length;
-  const lastSample = (mfaRows ?? [])
-    .map((row) => row.last_mfa_success_at)
-    .filter((value): value is string => Boolean(value))
-    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
+  const lastSample =
+    (mfaRows ?? [])
+      .map((row) => row.last_mfa_success_at)
+      .filter((value): value is string => Boolean(value))
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
 
   const incidentQuery = supabase
     .from("audit_logs")
@@ -173,14 +189,21 @@ export async function getOperationsSnapshot({ saccoId }: OperationsSnapshotParam
     },
     incidents,
     trends: {
-      notifications: buildHourlyTrend(notifications, (row) => row.scheduled_for ?? row.created_at ?? null),
+      notifications: buildHourlyTrend(
+        notifications,
+        (row) => row.scheduled_for ?? row.created_at ?? null
+      ),
       reconciliation: buildHourlyTrend(reconEntries, (row) => row.occurred_at ?? null),
       mfaSuccesses: buildDailyTrend(mfaAuditRows ?? [], (row) => row.created_at ?? null),
     },
   };
 }
 
-function buildHourlyTrend<T>(rows: T[], getTimestamp: (row: T) => string | null, hours = TREND_WINDOW_HOURS): TrendPoint[] {
+function buildHourlyTrend<T>(
+  rows: T[],
+  getTimestamp: (row: T) => string | null,
+  hours = TREND_WINDOW_HOURS
+): TrendPoint[] {
   const now = Date.now();
   const buckets = Array.from({ length: hours }).map((_, index) => {
     const start = now - (hours - 1 - index) * HOUR_IN_MS;
@@ -219,7 +242,11 @@ function buildHourlyTrend<T>(rows: T[], getTimestamp: (row: T) => string | null,
   });
 }
 
-function buildDailyTrend<T>(rows: T[], getTimestamp: (row: T) => string | null, days = TREND_WINDOW_DAYS): TrendPoint[] {
+function buildDailyTrend<T>(
+  rows: T[],
+  getTimestamp: (row: T) => string | null,
+  days = TREND_WINDOW_DAYS
+): TrendPoint[] {
   const now = Date.now();
   const buckets = Array.from({ length: days }).map((_, index) => {
     const start = now - (days - 1 - index) * DAY_IN_MS;

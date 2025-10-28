@@ -58,7 +58,13 @@ export function IkiminaDepositsTable({ data, tableHeight = 360 }: IkiminaDeposit
         accessorKey: "status",
         header: () => t("table.status", "Status"),
         cell: ({ getValue }) => (
-          <StatusChip tone={(getValue() as string) === "POSTED" || (getValue() as string) === "SETTLED" ? "success" : "warning"}>
+          <StatusChip
+            tone={
+              (getValue() as string) === "POSTED" || (getValue() as string) === "SETTLED"
+                ? "success"
+                : "warning"
+            }
+          >
             {getValue() as string}
           </StatusChip>
         ),
@@ -70,16 +76,14 @@ export function IkiminaDepositsTable({ data, tableHeight = 360 }: IkiminaDeposit
   const empty = (
     <EmptyState
       title={t("ikimina.deposits.emptyTitle", "No deposits")}
-      description={t("ikimina.deposits.emptyDescription", "Use the statement wizard to ingest CSV files.")}
+      description={t(
+        "ikimina.deposits.emptyDescription",
+        "Use the statement wizard to ingest CSV files."
+      )}
     />
   );
 
   return (
-    <VirtualTable
-      data={data}
-      columns={columns}
-      tableHeight={tableHeight}
-      emptyState={empty}
-    />
+    <VirtualTable data={data} columns={columns} tableHeight={tableHeight} emptyState={empty} />
   );
 }

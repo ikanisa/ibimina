@@ -41,8 +41,14 @@ export default async function StatementsPage({ params }: PageProps) {
       actions={<span className="text-xs text-neutral-2">Coming soon</span>}
     >
       <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-white/20 p-6 text-sm text-neutral-2">
-        <p>Statement generation is being redesigned to include running balances, branded headers, and QR-verifiable hashes.</p>
-        <p>Upload a statement via the bulk wizard to populate this view, or return once the ingestion workflow lands.</p>
+        <p>
+          Statement generation is being redesigned to include running balances, branded headers, and
+          QR-verifiable hashes.
+        </p>
+        <p>
+          Upload a statement via the bulk wizard to populate this view, or return once the ingestion
+          workflow lands.
+        </p>
       </div>
     </GlassCard>
   );

@@ -37,12 +37,15 @@ export function UserAccessTable({ users, saccos, onView }: UserAccessTableProps)
   const { success, error } = useToast();
   const [pending, startTransition] = useTransition();
 
-  const saccoOptions = useMemo(() => [{ id: "", name: t("sacco.all", "All SACCOs") }, ...saccos], [saccos, t]);
+  const saccoOptions = useMemo(
+    () => [{ id: "", name: t("sacco.all", "All SACCOs") }, ...saccos],
+    [saccos, t]
+  );
 
   const handleUpdate = (
     userId: string,
     role: Database["public"]["Enums"]["app_role"],
-    saccoId: string | null,
+    saccoId: string | null
   ) => {
     startTransition(async () => {
       const result = await updateUserAccess({ userId, role, saccoId });
@@ -74,11 +77,11 @@ export function UserAccessTable({ users, saccos, onView }: UserAccessTableProps)
           body: JSON.stringify({ reason: "lost device" }),
         });
         if (!response.ok) {
-          const { error: code } = (await response.json().catch(() => ({ error: "unknown" })));
+          const { error: code } = await response.json().catch(() => ({ error: "unknown" }));
           error(
             code === "forbidden"
               ? t("admin.users.resetForbidden", "Only administrators can reset 2FA")
-              : t("admin.users.resetFailed", "Failed to reset 2FA"),
+              : t("admin.users.resetFailed", "Failed to reset 2FA")
           );
           return;
         }

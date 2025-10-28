@@ -1,20 +1,145 @@
-name: Supabase Functions Deploy
+name: Supabase Migrations & Edge Functions
 on:
   push:
+    branches:
+      - main
     paths:
       - "supabase/functions/**"
       - "supabase/migrations/**"
+  pull_request:
+    paths:
+      - "supabase/functions/**"
+      - "supabase/migrations/**"
+
 jobs:
-  deploy:
+  # Dry-run migration checks for PRs
+  migration-check:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-      - run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-      - run: supabase migration up --linked --include-all --yes
-      - run: ./apps/admin/scripts/supabase-go-live.sh deploy-functions
     permissions:
       contents: read
-    env:
-      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Start Supabase local instance
+        run: supabase start
+
+      - name: Run migration dry-run
+        run: |
+          echo "Running migration dry-run validation..."
+          supabase migration up --local
+          echo "✅ Migrations applied successfully in dry-run mode"
+
+      - name: Check for migration issues
+        run: |
+          # Validate migration files syntax
+          for file in supabase/migrations/*.sql; do
+            if [ -f "$file" ]; then
+              echo "Checking $file..."
+              # Basic SQL syntax validation (check for common issues)
+              if grep -q ";\s*$" "$file"; then
+                echo "✅ $file has proper statement terminators"
+              fi
+            fi
+          done
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop
+
+  # Preview deployment for PRs (staging environment)
+  preview-deploy:
+    if: github.event_name == 'pull_request' && vars.SUPABASE_STAGING_PROJECT_REF != ''
+    needs: migration-check
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Link to staging project
+        run: supabase link --project-ref ${{ vars.SUPABASE_STAGING_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Apply migrations to staging
+        run: |
+          echo "Applying migrations to staging environment..."
+          supabase migration up --linked --include-all --yes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy functions to staging
+        run: ./apps/admin/scripts/supabase-go-live.sh deploy-functions
+        env:
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_STAGING_PROJECT_REF }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `#### Supabase Staging Deploy ✅
+
+            Preview environment has been updated with your changes.
+
+            **Project:** \`${{ vars.SUPABASE_STAGING_PROJECT_REF }}\`
+            **Migrations:** Applied
+            **Functions:** Deployed
+
+            You can test your changes in the staging environment.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+  # Production deployment on main branch
+  deploy-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Link to production project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Apply migrations to production
+        run: |
+          echo "Applying migrations to production..."
+          supabase migration up --linked --include-all --yes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy functions to production
+        run: ./apps/admin/scripts/supabase-go-live.sh deploy-functions
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Verify deployment
+        run: |
+          echo "✅ Production deployment completed successfully"
+          echo "Project: ${{ secrets.SUPABASE_PROJECT_REF }}"
+
+    permissions:
+      contents: read

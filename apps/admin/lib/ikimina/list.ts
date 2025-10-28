@@ -25,7 +25,7 @@ interface IkiminaDirectoryClients {
 
 async function fetchIkiminaDirectory(
   { saccoId, includeAll }: IkiminaDirectoryParams,
-  clients: IkiminaDirectoryClients,
+  clients: IkiminaDirectoryClients
 ): Promise<IkiminaDirectoryResult> {
   if (!includeAll && !saccoId) {
     return { rows: [], statusOptions: [], typeOptions: [], saccoOptions: [] };
@@ -39,7 +39,9 @@ async function fetchIkiminaDirectory(
     .order("updated_at", { ascending: false })
     .limit(500);
 
-  const { data, error } = includeAll ? await baseQuery : await baseQuery.eq("sacco_id", saccoId ?? "");
+  const { data, error } = includeAll
+    ? await baseQuery
+    : await baseQuery.eq("sacco_id", saccoId ?? "");
 
   if (error) {
     throw error;
@@ -61,7 +63,10 @@ async function fetchIkiminaDirectory(
   startOfWindow.setDate(now.getDate() - 60);
 
   const memberCounts = new Map<string, number>();
-  const aggregates = new Map<string, { monthTotal: number; lastPaymentAt: string | null; unallocated: number }>();
+  const aggregates = new Map<
+    string,
+    { monthTotal: number; lastPaymentAt: string | null; unallocated: number }
+  >();
 
   if (groupIds.length > 0) {
     const memberPromise = appSupabase
@@ -93,7 +98,10 @@ async function fetchIkiminaDirectory(
       memberCounts.set(row.ikimina_id, (memberCounts.get(row.ikimina_id) ?? 0) + 1);
     }
 
-    type PaymentRow = Pick<Database["app"]["Tables"]["payments"]["Row"], "ikimina_id" | "amount" | "status" | "occurred_at">;
+    type PaymentRow = Pick<
+      Database["app"]["Tables"]["payments"]["Row"],
+      "ikimina_id" | "amount" | "status" | "occurred_at"
+    >;
     for (const payment of (paymentResponse.data ?? []) as PaymentRow[]) {
       const groupId = payment.ikimina_id;
       if (!groupId) continue;
@@ -145,9 +153,7 @@ async function fetchIkiminaDirectory(
   const saccoOptions = includeAll
     ? Array.from(
         new Set(
-          rows
-            .map((row) => row.sacco_name)
-            .filter((value): value is string => Boolean(value))
+          rows.map((row) => row.sacco_name).filter((value): value is string => Boolean(value))
         )
       ).sort()
     : [];
@@ -155,9 +161,11 @@ async function fetchIkiminaDirectory(
   return { rows, statusOptions, typeOptions, saccoOptions };
 }
 
-export async function getIkiminaDirectorySummary(params: IkiminaDirectoryParams): Promise<IkiminaDirectoryResult> {
+export async function getIkiminaDirectorySummary(
+  params: IkiminaDirectoryParams
+): Promise<IkiminaDirectoryResult> {
   const { saccoId, includeAll } = params;
-  const keyParts = ["ikimina-directory", includeAll ? "all" : saccoId ?? "none"];
+  const keyParts = ["ikimina-directory", includeAll ? "all" : (saccoId ?? "none")];
   const supabase = await createSupabaseServerClient();
   const appSupabase = supabaseSrv();
   const cached = cacheWithTags(

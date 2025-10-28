@@ -152,9 +152,7 @@ export function AdminPanelShell({
             {nav}
           </aside>
           <div className="flex-1">
-            <div className="px-4 pb-12 pt-20 sm:px-6 lg:px-10">
-              {children}
-            </div>
+            <div className="px-4 pb-12 pt-20 sm:px-6 lg:px-10">{children}</div>
           </div>
         </div>
         <div className="lg:hidden">

@@ -10,7 +10,9 @@ export default async function MemberSaccosPage() {
       <section className="space-y-3">
         <header className="space-y-2">
           <h1 className="text-3xl font-semibold">My SACCOs</h1>
-          <p className="text-sm text-white/70">Link SACCOs to unlock their ibimina groups and balances.</p>
+          <p className="text-sm text-white/70">
+            Link SACCOs to unlock their ibimina groups and balances.
+          </p>
         </header>
         <MySaccos saccos={saccos} />
       </section>

@@ -19,7 +19,13 @@ interface AdminPanelTopBarProps {
   alertsBreakdown: { approvals: number; reconciliation: number };
 }
 
-export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggleNav, alertsBreakdown }: AdminPanelTopBarProps) {
+export function AdminPanelTopBar({
+  profile,
+  tenantOptions,
+  alertsCount,
+  onToggleNav,
+  alertsBreakdown,
+}: AdminPanelTopBarProps) {
   const [showSearch, setShowSearch] = useState(false);
   const navTargets = useMemo(
     () =>
@@ -47,7 +53,7 @@ export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggle
           badge: undefined,
         };
       }),
-    [alertsBreakdown],
+    [alertsBreakdown]
   );
 
   return (
@@ -75,7 +81,9 @@ export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggle
           >
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Search</span>
-            <kbd className="hidden rounded bg-neutral-900 px-2 py-0.5 text-[10px] font-semibold text-neutral-3 sm:inline">⌘K</kbd>
+            <kbd className="hidden rounded bg-neutral-900 px-2 py-0.5 text-[10px] font-semibold text-neutral-3 sm:inline">
+              ⌘K
+            </kbd>
           </button>
           <div className="relative inline-flex items-center">
             <Bell className="h-5 w-5 text-neutral-3" aria-hidden />
@@ -92,7 +100,10 @@ export function AdminPanelTopBar({ profile, tenantOptions, alertsCount, onToggle
               <p className="text-sm font-medium text-neutral-0">{profile.email}</p>
             </div>
             <div className="h-10 w-px bg-white/10" />
-            <SignOutButton variant="ghost" className="text-xs uppercase tracking-[0.3em] text-neutral-3" />
+            <SignOutButton
+              variant="ghost"
+              className="text-xs uppercase tracking-[0.3em] text-neutral-3"
+            />
           </div>
         </div>
       </div>

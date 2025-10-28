@@ -76,7 +76,9 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
       supabase
         .schema("app")
         .from("momo_codes")
-        .select("id, provider, district, code, account_name, description, metadata, created_at, updated_at")
+        .select(
+          "id, provider, district, code, account_name, description, metadata, created_at, updated_at"
+        )
         .order("district", { ascending: true }),
     ]);
 
@@ -87,22 +89,22 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
       throw momoCodesResponse.error;
     }
 
-    financialInstitutions = (institutionsResponse.data ?? []) as Database["app"]["Tables"]["financial_institutions"]["Row"][];
+    financialInstitutions = (institutionsResponse.data ??
+      []) as Database["app"]["Tables"]["financial_institutions"]["Row"][];
     momoCodes = (momoCodesResponse.data ?? []) as Database["app"]["Tables"]["momo_codes"]["Row"][];
 
-    districtMomoMap = momoCodes.reduce<Record<string, { code: string; provider: string; account_name: string | null }>>(
-      (acc, code) => {
-        const key = (code.district ?? "").toUpperCase();
-        if (!key) return acc;
-        acc[key] = {
-          code: code.code,
-          provider: code.provider,
-          account_name: code.account_name,
-        };
-        return acc;
-      },
-      {},
-    );
+    districtMomoMap = momoCodes.reduce<
+      Record<string, { code: string; provider: string; account_name: string | null }>
+    >((acc, code) => {
+      const key = (code.district ?? "").toUpperCase();
+      if (!key) return acc;
+      acc[key] = {
+        code: code.code,
+        provider: code.provider,
+        account_name: code.account_name,
+      };
+      return acc;
+    }, {});
 
     const districtSet = new Set<string>();
     saccos.forEach((row) => {
@@ -115,7 +117,9 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
       if (row.district) districtSet.add(row.district.toUpperCase());
     });
     districtOptions = Array.from(districtSet).sort((a, b) => a.localeCompare(b));
-    providerOptions = Array.from(new Set(momoCodes.map((row) => row.provider ?? ""))).filter(Boolean).sort();
+    providerOptions = Array.from(new Set(momoCodes.map((row) => row.provider ?? "")))
+      .filter(Boolean)
+      .sort();
   }
 
   return (
@@ -179,7 +183,12 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
           </GlassCard>
 
           <GlassCard
-            title={<Trans i18nKey="admin.financialInstitutions.title" fallback="Financial institutions" />}
+            title={
+              <Trans
+                i18nKey="admin.financialInstitutions.title"
+                fallback="Financial institutions"
+              />
+            }
             subtitle={
               <Trans
                 i18nKey="admin.financialInstitutions.subtitle"
@@ -215,16 +224,28 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
       ) : (
         <GlassCard
           title={<Trans i18nKey="admin.saccos.readonly" fallback="Tenant details" />}
-          subtitle={<Trans i18nKey="admin.saccos.readonlySubtitle" fallback="Read-only metadata for your assigned SACCO." className="text-xs text-neutral-3" />}
+          subtitle={
+            <Trans
+              i18nKey="admin.saccos.readonlySubtitle"
+              fallback="Read-only metadata for your assigned SACCO."
+              className="text-xs text-neutral-3"
+            />
+          }
         >
           <dl className="grid gap-4 sm:grid-cols-2">
             {saccos.map((sacco) => (
               <div key={sacco.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{sacco.sector_code}</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                  {sacco.sector_code}
+                </p>
                 <p className="mt-2 text-lg font-semibold text-neutral-0">{sacco.name}</p>
-                <p className="text-xs text-neutral-3">{sacco.district}, {sacco.province}</p>
+                <p className="text-xs text-neutral-3">
+                  {sacco.district}, {sacco.province}
+                </p>
                 <p className="text-xs text-neutral-2">{sacco.category}</p>
-                <StatusChip tone={sacco.status === "ACTIVE" ? "success" : "warning"}>{sacco.status}</StatusChip>
+                <StatusChip tone={sacco.status === "ACTIVE" ? "success" : "warning"}>
+                  {sacco.status}
+                </StatusChip>
               </div>
             ))}
           </dl>

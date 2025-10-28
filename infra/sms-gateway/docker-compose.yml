@@ -1,0 +1,84 @@
+version: "3.8"
+
+services:
+  # Gammu SMSD service for GSM modem interaction
+  gammu-smsd:
+    image: pajikos/gammu-smsd:latest
+    container_name: ibimina-gammu-smsd
+    restart: unless-stopped
+    devices:
+      # Mount the GSM modem device (update with your actual device path)
+      # Example: /dev/ttyUSB0 for USB modems
+      # Find your device with: ls -l /dev/tty* | grep USB
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+    volumes:
+      # Gammu configuration
+      - ./gammu-smsd.conf:/etc/gammu-smsdrc:ro
+      # SMS inbox directory (shared with forwarder)
+      - sms-inbox:/var/spool/gammu/inbox
+      # SMS outbox directory (for sending)
+      - sms-outbox:/var/spool/gammu/outbox
+      # SMS sent directory (archive)
+      - sms-sent:/var/spool/gammu/sent
+      # SMS error directory
+      - sms-error:/var/spool/gammu/error
+    environment:
+      # PIN for SIM card (if required)
+      - PIN=${GSM_SIM_PIN:-}
+    networks:
+      - sms-network
+    healthcheck:
+      test: ["CMD", "gammu", "identify"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # SMS Forwarder service
+  sms-forwarder:
+    build:
+      context: ./forwarder
+      dockerfile: Dockerfile
+    container_name: ibimina-sms-forwarder
+    restart: unless-stopped
+    depends_on:
+      gammu-smsd:
+        condition: service_healthy
+    volumes:
+      # Shared inbox directory (read-only)
+      - sms-inbox:/var/spool/gammu/inbox:ro
+      # Processed messages directory
+      - sms-processed:/var/spool/gammu/processed
+    environment:
+      # Inbox and processed paths
+      - INBOX_PATH=/var/spool/gammu/inbox
+      - PROCESSED_PATH=/var/spool/gammu/processed
+      # Supabase Edge Function endpoint
+      - SUPABASE_URL=${SUPABASE_URL:-https://your-project.supabase.co}
+      - SUPABASE_FUNCTION_URL=${SUPABASE_FUNCTION_URL:-https://your-project.supabase.co/functions/v1/sms-inbox}
+      # HMAC shared secret for request signing
+      - HMAC_SHARED_SECRET=${HMAC_SHARED_SECRET}
+      # Polling interval in seconds
+      - POLL_INTERVAL=${POLL_INTERVAL:-5}
+      # Log level (debug, info, warn, error)
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      # Optional: Modem port identifier
+      - MODEM_PORT=${MODEM_PORT:-/dev/ttyUSB0}
+    networks:
+      - sms-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  sms-network:
+    driver: bridge
+
+volumes:
+  sms-inbox:
+  sms-outbox:
+  sms-sent:
+  sms-error:
+  sms-processed:

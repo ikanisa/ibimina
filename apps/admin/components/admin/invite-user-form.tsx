@@ -80,7 +80,8 @@ export function InviteUserForm() {
       }
 
       const msg = data?.temporaryPassword
-        ? t("admin.invite.sentWithTemp", "Invitation sent. Temporary password: ") + data.temporaryPassword
+        ? t("admin.invite.sentWithTemp", "Invitation sent. Temporary password: ") +
+          data.temporaryPassword
         : t("admin.invite.sent", "Invitation sent successfully");
       setMessage(msg);
       notifySuccess(t("admin.invite.notice", "Invitation sent to staff"));
@@ -108,7 +109,9 @@ export function InviteUserForm() {
         </p>
       </div>
       <div>
-        <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.email", "Email")}</label>
+        <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
+          {t("common.email", "Email")}
+        </label>
         <input
           type="email"
           required
@@ -120,7 +123,9 @@ export function InviteUserForm() {
       </div>
 
       <div>
-        <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.invite.role", "Role")}</label>
+        <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
+          {t("admin.invite.role", "Role")}
+        </label>
         <select
           value={role}
           onChange={(event) => setRole(event.target.value as (typeof ROLES)[number])}
@@ -145,7 +150,9 @@ export function InviteUserForm() {
       )}
 
       {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
-      {message && <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{message}</p>}
+      {message && (
+        <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{message}</p>
+      )}
 
       <button
         type="submit"

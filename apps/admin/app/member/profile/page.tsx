@@ -10,7 +10,9 @@ export default async function MemberProfilePage() {
     <div className="space-y-6 text-neutral-0">
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold">Profile</h1>
-        <p className="text-sm text-white/70">Manage your contact info, documents, and notification preferences.</p>
+        <p className="text-sm text-white/70">
+          Manage your contact info, documents, and notification preferences.
+        </p>
       </header>
       <ProfileOverview profile={profile} email={session?.email ?? null} />
     </div>

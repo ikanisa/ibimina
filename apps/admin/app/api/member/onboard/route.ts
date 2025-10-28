@@ -85,9 +85,7 @@ export async function POST(request: NextRequest) {
       created_at: now,
       updated_at: now,
     };
-    const { error } = await legacyClient
-      .from("members_app_profiles")
-      .insert(insertPayload);
+    const { error } = await legacyClient.from("members_app_profiles").insert(insertPayload);
 
     if (error) {
       console.error("Failed to create profile", error);

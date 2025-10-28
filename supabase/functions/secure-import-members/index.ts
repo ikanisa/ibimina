@@ -43,10 +43,13 @@ Deno.serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
-      return new Response(JSON.stringify({ success: false, error: "Missing authorization header" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
-      });
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing authorization header" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        }
+      );
     }
 
     // Service client (for privileged reads/writes) and user-scoped client (to read current user)

@@ -141,7 +141,7 @@ async function loadMetrics(scope: ReturnType<typeof resolveTenantScope>): Promis
 
 async function computePendingInviteCount(
   supabase: SupabaseClient<Database>,
-  scope: ReturnType<typeof resolveTenantScope>,
+  scope: ReturnType<typeof resolveTenantScope>
 ): Promise<number> {
   try {
     if (scope.includeAll) {
@@ -169,7 +169,11 @@ async function computePendingInviteCount(
 
     const invites = (inviteRows ?? []) as Array<{ group_id: string | null }>;
     const groupIds = Array.from(
-      new Set(invites.map((row) => row.group_id).filter((id): id is string => typeof id === "string" && id.length > 0)),
+      new Set(
+        invites
+          .map((row) => row.group_id)
+          .filter((id): id is string => typeof id === "string" && id.length > 0)
+      )
     );
 
     if (groupIds.length === 0) {
@@ -187,7 +191,7 @@ async function computePendingInviteCount(
     }
 
     const saccoLookup = new Map<string, string | null>(
-      (groupRows ?? []).map((row) => [String(row.id), (row.sacco_id as string | null) ?? null]),
+      (groupRows ?? []).map((row) => [String(row.id), (row.sacco_id as string | null) ?? null])
     );
 
     return invites.filter((row) => {
@@ -218,7 +222,11 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
           className="text-xs text-neutral-3"
         />
       }
-      badge={<StatusChip tone="info">{scope.includeAll ? "Global" : profile.sacco?.name ?? "Scoped"}</StatusChip>}
+      badge={
+        <StatusChip tone="info">
+          {scope.includeAll ? "Global" : (profile.sacco?.name ?? "Scoped")}
+        </StatusChip>
+      }
     />
   );
 
@@ -236,7 +244,6 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
   let overviewError: unknown = null;
 
   try {
-
     const metricsPromise = loadMetrics(scope);
     const mfaInsightsPromise = scope.includeAll ? getMfaInsights() : Promise.resolve(null);
 
@@ -265,12 +272,8 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       auditQuery = auditQuery.eq("sacco_id", scope.saccoId);
     }
 
-    const [notificationResponse, telemetryResponse, auditResponse, mfaInsightsResult] = await Promise.all([
-      notificationQuery,
-      telemetryQuery,
-      auditQuery,
-      mfaInsightsPromise,
-    ]);
+    const [notificationResponse, telemetryResponse, auditResponse, mfaInsightsResult] =
+      await Promise.all([notificationQuery, telemetryQuery, auditQuery, mfaInsightsPromise]);
 
     if (notificationResponse.error && !isMissingRelationError(notificationResponse.error)) {
       const __err: any = notificationResponse.error as any;
@@ -305,8 +308,8 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       new Set(
         auditRows
           .map((row) => row.actor)
-          .filter((value): value is string => Boolean(value && value.length > 0)),
-      ),
+          .filter((value): value is string => Boolean(value && value.length > 0))
+      )
     );
 
     let actorLookup = new Map<string, string>();
@@ -327,7 +330,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       entity: row.entity,
       entityId: row.entity_id,
       diff: row.diff,
-      actorLabel: row.actor ? actorLookup.get(row.actor) ?? row.actor : "—",
+      actorLabel: row.actor ? (actorLookup.get(row.actor) ?? row.actor) : "—",
       createdAt: row.created_at ?? new Date().toISOString(),
     }));
   } catch (error) {
@@ -380,13 +383,19 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
           <MetricTile label="Members" value={metrics.members} tone="success" />
           <MetricTile label="Pending approvals" value={metrics.pendingApprovals} tone="warning" />
           <MetricTile label="Pending invites" value={metrics.pendingInvites} tone="warning" />
-          <MetricTile label="Reconciliation exceptions" value={metrics.reconciliationExceptions} tone="critical" />
+          <MetricTile
+            label="Reconciliation exceptions"
+            value={metrics.reconciliationExceptions}
+            tone="critical"
+          />
         </dl>
       </GlassCard>
 
       <div className="grid gap-8 xl:grid-cols-2">
         <GlassCard
-          title={<Trans i18nKey="admin.overview.telemetry.title" fallback="Operational telemetry" />}
+          title={
+            <Trans i18nKey="admin.overview.telemetry.title" fallback="Operational telemetry" />
+          }
           subtitle={
             <Trans
               i18nKey="admin.overview.telemetry.subtitle"
@@ -399,7 +408,9 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
         </GlassCard>
 
         <GlassCard
-          title={<Trans i18nKey="admin.overview.notifications.title" fallback="Notification queue" />}
+          title={
+            <Trans i18nKey="admin.overview.notifications.title" fallback="Notification queue" />
+          }
           subtitle={
             <Trans
               i18nKey="admin.overview.notifications.subtitle"
@@ -408,7 +419,11 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
             />
           }
         >
-          <NotificationQueueTable rows={notificationRows} saccoLookup={new Map()} templateLookup={new Map()} />
+          <NotificationQueueTable
+            rows={notificationRows}
+            saccoLookup={new Map()}
+            templateLookup={new Map()}
+          />
         </GlassCard>
       </div>
 

@@ -40,7 +40,13 @@ export default async function GroupsPage({ searchParams }: GroupsPageProps) {
 
       <GlassCard
         title={<Trans i18nKey="admin.groups.directory" fallback="Directory" />}
-        subtitle={<Trans i18nKey="admin.groups.directorySubtitle" fallback="Filter by status, type, and tenant." className="text-xs text-neutral-3" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.groups.directorySubtitle"
+            fallback="Filter by status, type, and tenant."
+            className="text-xs text-neutral-3"
+          />
+        }
       >
         <IkiminaTable
           rows={rows}

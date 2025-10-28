@@ -24,11 +24,13 @@ yarn-error.log*
 # Environment
 .env*
 !.env.example
+!.env.production.example
 !apps/admin/.env.example
 
 # TypeScript
 *.tsbuildinfo
 /next-env.d.ts
+**/dist/
 
 # Supabase local metadata
 supabase/.temp

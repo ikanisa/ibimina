@@ -100,7 +100,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
       });
       return template;
     },
-    [t],
+    [t]
   );
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileState | null>(null);
@@ -238,7 +238,10 @@ export function ProfileClient({ email }: ProfileClientProps) {
     }
 
     const friendlyName = window
-      .prompt(t("profile.passkeys.namePrompt", "Give this passkey a label (optional)"), t("profile.passkeys.defaultName", "Work laptop"))
+      .prompt(
+        t("profile.passkeys.namePrompt", "Give this passkey a label (optional)"),
+        t("profile.passkeys.defaultName", "Work laptop")
+      )
       ?.trim();
 
     try {
@@ -247,7 +250,9 @@ export function ProfileClient({ email }: ProfileClientProps) {
       const optionsResponse = await fetch("/api/mfa/passkeys/register/options", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ friendlyName: friendlyName && friendlyName.length > 0 ? friendlyName : null }),
+        body: JSON.stringify({
+          friendlyName: friendlyName && friendlyName.length > 0 ? friendlyName : null,
+        }),
       });
 
       if (!optionsResponse.ok) {
@@ -270,7 +275,11 @@ export function ProfileClient({ email }: ProfileClientProps) {
       const verifyResponse = await fetch("/api/mfa/passkeys/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ response: credential, stateToken, friendlyName: friendlyName && friendlyName.length > 0 ? friendlyName : null }),
+        body: JSON.stringify({
+          response: credential,
+          stateToken,
+          friendlyName: friendlyName && friendlyName.length > 0 ? friendlyName : null,
+        }),
       });
 
       if (!verifyResponse.ok) {
@@ -278,7 +287,9 @@ export function ProfileClient({ email }: ProfileClientProps) {
         if (code === "registration_failed") {
           error(t("profile.passkeys.registrationFailed", "Unable to verify the passkey."));
         } else {
-          error(t("profile.passkeys.registrationUnknown", "Passkey registration did not complete."));
+          error(
+            t("profile.passkeys.registrationUnknown", "Passkey registration did not complete.")
+          );
         }
         return;
       }
@@ -324,7 +335,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
         setUpdatingEmail(false);
       }
     },
-    [error, fetchProfile, success, t, updatingEmail],
+    [error, fetchProfile, success, t, updatingEmail]
   );
 
   const removePasskey = useCallback(
@@ -347,7 +358,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
       success(t("profile.passkeys.deleted", "Passkey removed."));
       await fetchProfile();
     },
-    [error, fetchProfile, success, t],
+    [error, fetchProfile, success, t]
   );
 
   const disableMfa = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -397,18 +408,27 @@ export function ProfileClient({ email }: ProfileClientProps) {
     () => ({
       PASSKEY: {
         label: t("profile.channels.passkey.label", "Passkey approval"),
-        description: t("profile.channels.passkey.desc", "Use device-bound approvals from compatible laptops or phones."),
+        description: t(
+          "profile.channels.passkey.desc",
+          "Use device-bound approvals from compatible laptops or phones."
+        ),
       },
       TOTP: {
         label: t("profile.channels.totp.label", "Authenticator app"),
-        description: t("profile.channels.totp.desc", "6-digit codes from Google Authenticator or similar."),
+        description: t(
+          "profile.channels.totp.desc",
+          "6-digit codes from Google Authenticator or similar."
+        ),
       },
       EMAIL: {
         label: t("profile.channels.email.label", "Email one-time code"),
-        description: t("profile.channels.email.desc", "6-digit code delivered to your staff inbox for sign-in."),
+        description: t(
+          "profile.channels.email.desc",
+          "6-digit code delivered to your staff inbox for sign-in."
+        ),
       },
     }),
-    [t],
+    [t]
   );
 
   const formatTimestamp = useCallback(
@@ -422,7 +442,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
       }
       return date.toLocaleString();
     },
-    [t],
+    [t]
   );
 
   const channelStatus = useCallback(
@@ -444,7 +464,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
         tone: "text-red-300",
       };
     },
-    [t],
+    [t]
   );
 
   const describeAuditAction = useCallback(
@@ -460,7 +480,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
       }
       return action;
     },
-    [t],
+    [t]
   );
 
   const summariseDiff = useCallback((diff: Record<string, unknown> | null) => {
@@ -482,8 +502,16 @@ export function ProfileClient({ email }: ProfileClientProps) {
       if (channel.id === "PASSKEY") {
         return (
           <div className="text-right text-[11px] text-neutral-3">
-            <p>{formatMessage("profile.channels.passkey.count", "{{count}} registered", { count: channel.passkeyCount ?? 0 })}</p>
-            <p>{formatMessage("profile.channels.passkey.lastUsed", "Last used: {{value}}", { value: formatTimestamp(channel.lastUsedAt ?? null) })}</p>
+            <p>
+              {formatMessage("profile.channels.passkey.count", "{{count}} registered", {
+                count: channel.passkeyCount ?? 0,
+              })}
+            </p>
+            <p>
+              {formatMessage("profile.channels.passkey.lastUsed", "Last used: {{value}}", {
+                value: formatTimestamp(channel.lastUsedAt ?? null),
+              })}
+            </p>
           </div>
         );
       }
@@ -492,14 +520,29 @@ export function ProfileClient({ email }: ProfileClientProps) {
         if (!channel.enrolled) {
           return (
             <div className="text-right text-[11px] text-neutral-3">
-              <p>{t("profile.channels.totp.notEnabled", "Authenticator codes are currently disabled.")}</p>
+              <p>
+                {t(
+                  "profile.channels.totp.notEnabled",
+                  "Authenticator codes are currently disabled."
+                )}
+              </p>
             </div>
           );
         }
         return (
           <div className="text-right text-[11px] text-neutral-3">
-            <p>{formatMessage("profile.channels.totp.enabled", "Enabled on {{value}}", { value: channel.enrolledAt ? formatTimestamp(channel.enrolledAt) : t("profile.channels.never", "Never recorded") })}</p>
-            <p>{formatMessage("profile.channels.totp.backups", "Backup codes: {{count}}", { count: channel.backupCodesRemaining ?? 0 })}</p>
+            <p>
+              {formatMessage("profile.channels.totp.enabled", "Enabled on {{value}}", {
+                value: channel.enrolledAt
+                  ? formatTimestamp(channel.enrolledAt)
+                  : t("profile.channels.never", "Never recorded"),
+              })}
+            </p>
+            <p>
+              {formatMessage("profile.channels.totp.backups", "Backup codes: {{count}}", {
+                count: channel.backupCodesRemaining ?? 0,
+              })}
+            </p>
           </div>
         );
       }
@@ -524,21 +567,27 @@ export function ProfileClient({ email }: ProfileClientProps) {
         <div className="text-right text-[11px] text-neutral-3">
           <p>
             {channel.destination
-              ? formatMessage("profile.channels.email.destination", "Delivered to {{email}}", { email: channel.destination })
+              ? formatMessage("profile.channels.email.destination", "Delivered to {{email}}", {
+                  email: channel.destination,
+                })
               : t("profile.channels.email.missing", "No email configured")}
           </p>
           <p>
-            {formatMessage("profile.channels.email.active", "Active codes: {{count}}", { count: channel.activeCodes ?? 0 })}
+            {formatMessage("profile.channels.email.active", "Active codes: {{count}}", {
+              count: channel.activeCodes ?? 0,
+            })}
           </p>
           <p>
             {formatMessage("profile.channels.email.lastIssued", "Last sent: {{value}}", {
-              value: channel.lastIssuedAt ? formatTimestamp(channel.lastIssuedAt) : t("profile.channels.never", "Never recorded"),
+              value: channel.lastIssuedAt
+                ? formatTimestamp(channel.lastIssuedAt)
+                : t("profile.channels.never", "Never recorded"),
             })}
           </p>
         </div>
       );
     },
-    [formatMessage, formatTimestamp, t],
+    [formatMessage, formatTimestamp, t]
   );
 
   const backupDownload = useMemo(() => {
@@ -565,9 +614,10 @@ export function ProfileClient({ email }: ProfileClientProps) {
     .map((key) => channelCopy[key as "PASSKEY" | "TOTP" | "EMAIL"]?.label ?? key)
     .filter(Boolean)
     .join(", ");
-  const recoverySummary = recoverySummaryRaw.length > 0
-    ? recoverySummaryRaw
-    : t("profile.channels.recoveryNone", "No alternate channel enabled yet.");
+  const recoverySummary =
+    recoverySummaryRaw.length > 0
+      ? recoverySummaryRaw
+      : t("profile.channels.recoveryNone", "No alternate channel enabled yet.");
 
   return (
     <div className="space-y-8">
@@ -578,7 +628,10 @@ export function ProfileClient({ email }: ProfileClientProps) {
             <span>{t("profile.security.title", "Account security")}</span>
           </div>
         }
-        subtitle={t("profile.security.subtitle", "Manage your password and authenticator preferences.")}
+        subtitle={t(
+          "profile.security.subtitle",
+          "Manage your password and authenticator preferences."
+        )}
         actions={
           <Link
             href="/dashboard"
@@ -617,7 +670,9 @@ export function ProfileClient({ email }: ProfileClientProps) {
             className="interactive-scale md:col-span-2 rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
             disabled={updatingPassword}
           >
-            {updatingPassword ? t("profile.password.updating", "Updating…") : t("profile.password.update", "Update password")}
+            {updatingPassword
+              ? t("profile.password.updating", "Updating…")
+              : t("profile.password.update", "Update password")}
           </button>
         </form>
       </GlassCard>
@@ -631,8 +686,14 @@ export function ProfileClient({ email }: ProfileClientProps) {
         }
         subtitle={
           profile.mfaEnabled
-            ? t("profile.mfa.enforced", "Multi-factor verification is required on every sign-in. Use any active channel below.")
-            : t("profile.mfa.prompt", "Turn on an authenticator app or email codes to protect your account.")
+            ? t(
+                "profile.mfa.enforced",
+                "Multi-factor verification is required on every sign-in. Use any active channel below."
+              )
+            : t(
+                "profile.mfa.prompt",
+                "Turn on an authenticator app or email codes to protect your account."
+              )
         }
       >
         <div className="space-y-6">
@@ -649,7 +710,9 @@ export function ProfileClient({ email }: ProfileClientProps) {
                 </p>
               </div>
               <p className="text-[11px] text-neutral-3">
-                {formatMessage("profile.channels.recovery", "Recovery options: {{channels}}", { channels: recoverySummary })}
+                {formatMessage("profile.channels.recovery", "Recovery options: {{channels}}", {
+                  channels: recoverySummary,
+                })}
               </p>
               <div className="mt-3 space-y-3">
                 {profile.channelSummary.channels.map((channel) => {
@@ -663,12 +726,18 @@ export function ProfileClient({ email }: ProfileClientProps) {
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-neutral-0">{channelCopy[channel.id].label}</p>
-                          <span className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${status.tone}`}>
+                          <p className="text-sm font-semibold text-neutral-0">
+                            {channelCopy[channel.id].label}
+                          </p>
+                          <span
+                            className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${status.tone}`}
+                          >
                             {status.label}
                           </span>
                         </div>
-                        <p className="text-[11px] text-neutral-3">{channelCopy[channel.id].description}</p>
+                        <p className="text-[11px] text-neutral-3">
+                          {channelCopy[channel.id].description}
+                        </p>
                       </div>
                       <div className="flex flex-col gap-2 text-right md:items-end">
                         {meta}
@@ -694,126 +763,160 @@ export function ProfileClient({ email }: ProfileClientProps) {
 
           {!totpEnabled ? (
             <div className="space-y-4">
-            {!enrollment ? (
-              <button
-                type="button"
-                onClick={beginEnrollment}
-                className="interactive-scale inline-flex items-center gap-2 rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
-                disabled={busy}
-              >
-                <BadgeCheck className="h-4 w-4" />
-                {t("profile.mfa.enable", "Enable authenticator")}
-              </button>
-            ) : (
-              <div className="space-y-4">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
-                  <p className="font-semibold">{t("profile.mfa.scanTitle", "Scan or tap to add authenticator")}</p>
-                  <div className="mt-3 flex flex-col gap-2 text-xs text-neutral-2">
-                    <a
-                      href={enrollment.otpauth}
-                      className="inline-flex w-max items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
-                    >
-                      {t("profile.mfa.openApp", "Open in authenticator app")}
-                    </a>
-                    <p>
-                      {t("profile.mfa.secretKey", "Secret key")}: <span className="font-mono text-neutral-0">{enrollment.secret}</span>
+              {!enrollment ? (
+                <button
+                  type="button"
+                  onClick={beginEnrollment}
+                  className="interactive-scale inline-flex items-center gap-2 rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
+                  disabled={busy}
+                >
+                  <BadgeCheck className="h-4 w-4" />
+                  {t("profile.mfa.enable", "Enable authenticator")}
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
+                    <p className="font-semibold">
+                      {t("profile.mfa.scanTitle", "Scan or tap to add authenticator")}
                     </p>
-                    <p className="text-[10px] text-neutral-3">{t("profile.mfa.codesHint", "Enter two consecutive codes to confirm.")}</p>
+                    <div className="mt-3 flex flex-col gap-2 text-xs text-neutral-2">
+                      <a
+                        href={enrollment.otpauth}
+                        className="inline-flex w-max items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
+                      >
+                        {t("profile.mfa.openApp", "Open in authenticator app")}
+                      </a>
+                      <p>
+                        {t("profile.mfa.secretKey", "Secret key")}:{" "}
+                        <span className="font-mono text-neutral-0">{enrollment.secret}</span>
+                      </p>
+                      <p className="text-[10px] text-neutral-3">
+                        {t("profile.mfa.codesHint", "Enter two consecutive codes to confirm.")}
+                      </p>
+                    </div>
                   </div>
+                  <form onSubmit={confirmEnrollment} className="grid gap-3 md:grid-cols-2">
+                    <Input
+                      label={t("auth.enroll.code1", "Code 1")}
+                      value={codeA}
+                      onChange={(event) => setCodeA(event.target.value.replace(/[^0-9]/g, ""))}
+                      inputMode="numeric"
+                      maxLength={6}
+                      required
+                    />
+                    <Input
+                      label={t("auth.enroll.code2", "Code 2")}
+                      value={codeB}
+                      onChange={(event) => setCodeB(event.target.value.replace(/[^0-9]/g, ""))}
+                      inputMode="numeric"
+                      maxLength={6}
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="interactive-scale md:col-span-2 rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-50"
+                      disabled={processingEnrollment}
+                    >
+                      {processingEnrollment
+                        ? t("auth.buttons.verifyCode", "Verify code")
+                        : t("auth.buttons.confirmSetup", "Confirm setup")}
+                    </button>
+                  </form>
                 </div>
-                <form onSubmit={confirmEnrollment} className="grid gap-3 md:grid-cols-2">
-                  <Input
-                    label={t("auth.enroll.code1", "Code 1")}
-                    value={codeA}
-                    onChange={(event) => setCodeA(event.target.value.replace(/[^0-9]/g, ""))}
-                    inputMode="numeric"
-                    maxLength={6}
-                    required
-                  />
-                  <Input
-                    label={t("auth.enroll.code2", "Code 2")}
-                    value={codeB}
-                    onChange={(event) => setCodeB(event.target.value.replace(/[^0-9]/g, ""))}
-                    inputMode="numeric"
-                    maxLength={6}
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="interactive-scale md:col-span-2 rounded-full bg-kigali px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-50"
-                    disabled={processingEnrollment}
-                  >
-                    {processingEnrollment ? t("auth.buttons.verifyCode", "Verify code") : t("auth.buttons.confirmSetup", "Confirm setup")}
-                  </button>
-                </form>
-              </div>
-            )}
+              )}
             </div>
           ) : (
             <div className="space-y-4">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
-                <p className="font-semibold">{t("profile.mfa.enabledTitle", "Authenticator enabled")}</p>
-                <p className="text-xs text-neutral-2">{t("profile.mfa.enabledOn", "Enabled on")} {profile.enrolledAt ? new Date(profile.enrolledAt).toLocaleString() : t("common.unknown", "unknown")}</p>
-              <p className="text-xs text-neutral-2">{t("profile.mfa.backupRemaining", "Backup codes remaining:")} {profile.backupCount}</p>
-            </div>
-
-            <form onSubmit={disableMfa} className="space-y-3">
-              <div className="grid gap-3 md:grid-cols-2">
-                <Input
-                  label={t("profile.mfa.disableInputLabel", "Authenticator or backup code")}
-                  value={disableCode}
-                  onChange={(event) => setDisableCode(event.target.value.replace(/\s+/g, ""))}
-                  required
-                  helperText={t("profile.mfa.disableHint", "Provide a valid code to disable two-factor")}
-                />
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("profile.mfa.codeType", "Code type")}</label>
-                  <select
-                    className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none"
-                    value={disableMethod}
-                    onChange={(event) => setDisableMethod(event.target.value as "totp" | "backup")}
-                  >
-                    <option value="totp">{t("profile.mfa.codeType.totp", "Authenticator code")}</option>
-                    <option value="backup">{t("profile.mfa.codeType.backup", "Backup code")}</option>
-                  </select>
-                </div>
+                <p className="font-semibold">
+                  {t("profile.mfa.enabledTitle", "Authenticator enabled")}
+                </p>
+                <p className="text-xs text-neutral-2">
+                  {t("profile.mfa.enabledOn", "Enabled on")}{" "}
+                  {profile.enrolledAt
+                    ? new Date(profile.enrolledAt).toLocaleString()
+                    : t("common.unknown", "unknown")}
+                </p>
+                <p className="text-xs text-neutral-2">
+                  {t("profile.mfa.backupRemaining", "Backup codes remaining:")}{" "}
+                  {profile.backupCount}
+                </p>
               </div>
-              <button
-                type="submit"
-                className="interactive-scale inline-flex items-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-red-100 disabled:opacity-50"
-                disabled={processingDisable}
-              >
-                <Trash2 className="h-4 w-4" />
-                {t("profile.mfa.disable", "Disable two-factor")}
-              </button>
-            </form>
-          </div>
-        )}
 
-        {backupCodes && backupCodes.length > 0 && (
-          <div className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
-            <div className="flex items-center justify-between">
-              <span>{t("profile.mfa.backup.title", "Backup codes")}</span>
-              {backupDownload && (
-                <a
-                  href={backupDownload}
-                  download="backup-codes.txt"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
+              <form onSubmit={disableMfa} className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <Input
+                    label={t("profile.mfa.disableInputLabel", "Authenticator or backup code")}
+                    value={disableCode}
+                    onChange={(event) => setDisableCode(event.target.value.replace(/\s+/g, ""))}
+                    required
+                    helperText={t(
+                      "profile.mfa.disableHint",
+                      "Provide a valid code to disable two-factor"
+                    )}
+                  />
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                      {t("profile.mfa.codeType", "Code type")}
+                    </label>
+                    <select
+                      className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none"
+                      value={disableMethod}
+                      onChange={(event) =>
+                        setDisableMethod(event.target.value as "totp" | "backup")
+                      }
+                    >
+                      <option value="totp">
+                        {t("profile.mfa.codeType.totp", "Authenticator code")}
+                      </option>
+                      <option value="backup">
+                        {t("profile.mfa.codeType.backup", "Backup code")}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="interactive-scale inline-flex items-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-red-100 disabled:opacity-50"
+                  disabled={processingDisable}
                 >
-                  {t("common.download", "Download")}
-                </a>
-              )}
+                  <Trash2 className="h-4 w-4" />
+                  {t("profile.mfa.disable", "Disable two-factor")}
+                </button>
+              </form>
             </div>
-            <p className="text-[11px] text-neutral-2">
-              {t("profile.mfa.backup.hint", "Each code can be used once. Store them securely and do not share.")}
-            </p>
-            <ul className="grid gap-2 md:grid-cols-2">
-              {backupCodes.map((code) => (
-                <li key={code} className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 font-mono text-neutral-0">
-                  {code}
-                </li>
-              ))}
-            </ul>
+          )}
+
+          {backupCodes && backupCodes.length > 0 && (
+            <div className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
+              <div className="flex items-center justify-between">
+                <span>{t("profile.mfa.backup.title", "Backup codes")}</span>
+                {backupDownload && (
+                  <a
+                    href={backupDownload}
+                    download="backup-codes.txt"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/30"
+                  >
+                    {t("common.download", "Download")}
+                  </a>
+                )}
+              </div>
+              <p className="text-[11px] text-neutral-2">
+                {t(
+                  "profile.mfa.backup.hint",
+                  "Each code can be used once. Store them securely and do not share."
+                )}
+              </p>
+              <ul className="grid gap-2 md:grid-cols-2">
+                {backupCodes.map((code) => (
+                  <li
+                    key={code}
+                    className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 font-mono text-neutral-0"
+                  >
+                    {code}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
@@ -826,7 +929,10 @@ export function ProfileClient({ email }: ProfileClientProps) {
                 {profile.emailAudit.map((entry) => {
                   const diffSummary = summariseDiff(entry.diff);
                   return (
-                    <div key={entry.id} className="rounded-xl border border-white/10 bg-white/10 p-3 text-[11px] text-neutral-2">
+                    <div
+                      key={entry.id}
+                      className="rounded-xl border border-white/10 bg-white/10 p-3 text-[11px] text-neutral-2"
+                    >
                       <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
                         <span className="font-semibold uppercase tracking-[0.2em] text-neutral-1">
                           {describeAuditAction(entry.action)}
@@ -850,7 +956,10 @@ export function ProfileClient({ email }: ProfileClientProps) {
             <span>{t("profile.passkeys.title", "Passkeys")}</span>
           </div>
         }
-        subtitle={t("profile.passkeys.subtitle", "Use device-bound approvals instead of typing codes.")}
+        subtitle={t(
+          "profile.passkeys.subtitle",
+          "Use device-bound approvals instead of typing codes."
+        )}
       >
         <div className="space-y-3">
           <button
@@ -859,28 +968,46 @@ export function ProfileClient({ email }: ProfileClientProps) {
             disabled={registeringPasskey}
             className="interactive-scale inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {registeringPasskey ? t("profile.passkeys.registering", "Waiting for approval…") : t("profile.passkeys.add", "Add passkey")}
+            {registeringPasskey
+              ? t("profile.passkeys.registering", "Waiting for approval…")
+              : t("profile.passkeys.add", "Add passkey")}
           </button>
 
           {profile.passkeys.length === 0 ? (
-            <p className="text-xs text-neutral-2">{t("profile.passkeys.empty", "No passkeys registered yet. Add one from a compatible device.")}</p>
+            <p className="text-xs text-neutral-2">
+              {t(
+                "profile.passkeys.empty",
+                "No passkeys registered yet. Add one from a compatible device."
+              )}
+            </p>
           ) : (
             <div className="space-y-3">
               {profile.passkeys.map((passkey) => (
-                <div key={passkey.id} className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center md:justify-between">
+                <div
+                  key={passkey.id}
+                  className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center md:justify-between"
+                >
                   <div className="space-y-1 text-xs text-neutral-2">
-                    <p className="font-semibold text-neutral-0">{passkey.label ?? t("profile.passkeys.unnamed", "Unnamed passkey")}</p>
-                    <p>
-                      {t("profile.passkeys.created", "Created")}: {new Date(passkey.createdAt).toLocaleString()}
+                    <p className="font-semibold text-neutral-0">
+                      {passkey.label ?? t("profile.passkeys.unnamed", "Unnamed passkey")}
                     </p>
                     <p>
-                      {t("profile.passkeys.lastUsed", "Last used")}: {passkey.lastUsedAt ? new Date(passkey.lastUsedAt).toLocaleString() : t("profile.passkeys.neverUsed", "Never used")}
+                      {t("profile.passkeys.created", "Created")}:{" "}
+                      {new Date(passkey.createdAt).toLocaleString()}
                     </p>
                     <p>
-                      {t("profile.passkeys.deviceType", "Device type")}: {passkey.deviceType ?? t("common.unknown", "Unknown")}
+                      {t("profile.passkeys.lastUsed", "Last used")}:{" "}
+                      {passkey.lastUsedAt
+                        ? new Date(passkey.lastUsedAt).toLocaleString()
+                        : t("profile.passkeys.neverUsed", "Never used")}
                     </p>
                     <p>
-                      {t("profile.passkeys.backedUp", "Backed up")}: {passkey.backedUp ? t("common.yes", "Yes") : t("common.no", "No")}
+                      {t("profile.passkeys.deviceType", "Device type")}:{" "}
+                      {passkey.deviceType ?? t("common.unknown", "Unknown")}
+                    </p>
+                    <p>
+                      {t("profile.passkeys.backedUp", "Backed up")}:{" "}
+                      {passkey.backedUp ? t("common.yes", "Yes") : t("common.no", "No")}
                     </p>
                   </div>
                   <button
@@ -906,16 +1033,33 @@ export function ProfileClient({ email }: ProfileClientProps) {
               <span>{t("profile.trusted.title", "Trusted devices")}</span>
             </div>
           }
-          subtitle={t("profile.trusted.subtitle", "Devices that can skip MFA when the trusted cookie is present.")}
+          subtitle={t(
+            "profile.trusted.subtitle",
+            "Devices that can skip MFA when the trusted cookie is present."
+          )}
         >
           <div className="space-y-3">
             {profile.trustedDevices.map((device) => (
-              <div key={device.deviceId} className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center">
+              <div
+                key={device.deviceId}
+                className="flex flex-col justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 md:flex-row md:items-center"
+              >
                 <div className="space-y-1 text-xs text-neutral-2">
-                  <p className="font-semibold text-neutral-0">{t("profile.trusted.deviceId", "Device ID")}: {device.deviceId}</p>
-                  <p>{t("profile.trusted.created", "Created")}: {new Date(device.createdAt).toLocaleString()}</p>
-                  <p>{t("profile.trusted.lastUsed", "Last used")}: {new Date(device.lastUsedAt).toLocaleString()}</p>
-                  <p>{t("profile.trusted.ipPrefix", "IP prefix")}: {device.ipPrefix ?? t("common.unknown", "Unknown")}</p>
+                  <p className="font-semibold text-neutral-0">
+                    {t("profile.trusted.deviceId", "Device ID")}: {device.deviceId}
+                  </p>
+                  <p>
+                    {t("profile.trusted.created", "Created")}:{" "}
+                    {new Date(device.createdAt).toLocaleString()}
+                  </p>
+                  <p>
+                    {t("profile.trusted.lastUsed", "Last used")}:{" "}
+                    {new Date(device.lastUsedAt).toLocaleString()}
+                  </p>
+                  <p>
+                    {t("profile.trusted.ipPrefix", "IP prefix")}:{" "}
+                    {device.ipPrefix ?? t("common.unknown", "Unknown")}
+                  </p>
                 </div>
                 <button
                   type="button"

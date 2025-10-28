@@ -45,12 +45,19 @@ export const sendEmailOtp = async (user: { id: string; email: string | null }) =
     .maybeSingle();
 
   if (latest) {
-    await authx
-      .from("otp_issues")
-      .insert({ user_id: user.id, channel: "email", legacy_code_id: latest.id, expires_at: latest.expires_at });
+    await authx.from("otp_issues").insert({
+      user_id: user.id,
+      channel: "email",
+      legacy_code_id: latest.id,
+      expires_at: latest.expires_at,
+    });
   }
 
-  return { channel: "email", sent: true, expiresAt: latest?.expires_at ?? result.expiresAt } as const;
+  return {
+    channel: "email",
+    sent: true,
+    expiresAt: latest?.expires_at ?? result.expiresAt,
+  } as const;
 };
 
 const extractWhatsappMsisdn = (enrollment: Record<string, unknown>): string | null => {
@@ -138,10 +145,12 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
     return { channel: "whatsapp", sent: false, error: "issue_failed" } as const;
   }
 
-  const activeRows = (activeRowsRaw ?? []).map((row: { created_at?: string | null; expires_at: string | null }) => ({
-    created_at: row.created_at ?? nowIso,
-    expires_at: row.expires_at,
-  }));
+  const activeRows = (activeRowsRaw ?? []).map(
+    (row: { created_at?: string | null; expires_at: string | null }) => ({
+      created_at: row.created_at ?? nowIso,
+      expires_at: row.expires_at,
+    })
+  );
 
   let rateLimited = false;
   const retryCandidates: Date[] = [];
@@ -158,10 +167,12 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
 
   if (activeRows.length >= WHATSAPP_MAX_ACTIVE) {
     rateLimited = true;
-    const expiryDates = activeRows.map((row: { expires_at: string | null }) => new Date(row.expires_at ?? nowIso));
+    const expiryDates = activeRows.map(
+      (row: { expires_at: string | null }) => new Date(row.expires_at ?? nowIso)
+    );
     const earliestExpiry = expiryDates.reduce(
       (earliest: Date, candidate: Date) => (candidate < earliest ? candidate : earliest),
-      expiryDates[0],
+      expiryDates[0]
     );
     retryCandidates.push(earliestExpiry);
   }
@@ -170,15 +181,13 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
     const seed = retryCandidates[0] ?? new Date(now.getTime() + WHATSAPP_RATE_LIMIT_SECONDS * 1000);
     const retryAt = retryCandidates.reduce(
       (latest, candidate) => (candidate > latest ? candidate : latest),
-      seed,
+      seed
     );
-    await authx
-      .from("audit")
-      .insert({
-        actor: user.id,
-        action: "MFA_WHATSAPP_RATE_LIMITED",
-        detail: { retryAt: retryAt.toISOString(), hashed: safeHash("whatsapp", user.id) },
-      });
+    await authx.from("audit").insert({
+      actor: user.id,
+      action: "MFA_WHATSAPP_RATE_LIMITED",
+      detail: { retryAt: retryAt.toISOString(), hashed: safeHash("whatsapp", user.id) },
+    });
     return {
       channel: "whatsapp",
       sent: false,
@@ -191,17 +200,18 @@ export const sendWhatsAppOtp = async (user: { id: string }) => {
   const hash = hashOneTimeCode(code);
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-  await authx
-    .from("otp_issues")
-    .insert({
-      user_id: user.id,
-      channel: "whatsapp",
-      code_hash: hash,
-      expires_at: expiresAt,
-      meta: { msisdn },
-    });
+  await authx.from("otp_issues").insert({
+    user_id: user.id,
+    channel: "whatsapp",
+    code_hash: hash,
+    expires_at: expiresAt,
+    meta: { msisdn },
+  });
 
-  await sendTwilioWhatsapp(msisdn, `Your SACCO+ security code is ${code}. It expires in 10 minutes.`);
+  await sendTwilioWhatsapp(
+    msisdn,
+    `Your SACCO+ security code is ${code}. It expires in 10 minutes.`
+  );
 
   return { channel: "whatsapp", sent: true, expiresAt } as const;
 };

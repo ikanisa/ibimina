@@ -20,7 +20,10 @@ export interface MaskedValue<TValue> {
   reason?: string;
 }
 
-const MEMBER_MASK_OPTIONS: Record<Exclude<ImportFieldKey, "occurredAt" | "txnId" | "amount" | "reference">, ValidationMask[]> = {
+const MEMBER_MASK_OPTIONS: Record<
+  Exclude<ImportFieldKey, "occurredAt" | "txnId" | "amount" | "reference">,
+  ValidationMask[]
+> = {
   full_name: [
     {
       id: "trim",
@@ -59,7 +62,10 @@ const MEMBER_MASK_OPTIONS: Record<Exclude<ImportFieldKey, "occurredAt" | "txnId"
   ],
 };
 
-const STATEMENT_MASK_OPTIONS: Record<Extract<ImportFieldKey, "occurredAt" | "txnId" | "msisdn" | "amount" | "reference">, ValidationMask[]> = {
+const STATEMENT_MASK_OPTIONS: Record<
+  Extract<ImportFieldKey, "occurredAt" | "txnId" | "msisdn" | "amount" | "reference">,
+  ValidationMask[]
+> = {
   occurredAt: [
     {
       id: "auto",
@@ -135,9 +141,7 @@ export function getMaskOptions(field: ImportFieldKey): ValidationMask[] {
 const MSISDN_REGEX = /^(?:\+?250)?0?7\d{8}$/;
 
 function normalizeWhitespace(value: string): string {
-  return value
-    .replace(/\s+/g, " ")
-    .trim();
+  return value.replace(/\s+/g, " ").trim();
 }
 
 function toTitleCase(value: string): string {
@@ -221,7 +225,9 @@ function parseDateValue(rawValue: string | null, maskId: string): DateParseResul
 
   const addDayFirstAttempt = () => {
     attempts.push(() => {
-      const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:[ T](\d{1,2})(?::(\d{1,2})(?::(\d{1,2}))?)?)?$/);
+      const match = raw.match(
+        /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:[ T](\d{1,2})(?::(\d{1,2})(?::(\d{1,2}))?)?)?$/
+      );
       if (!match) return null;
       const [, dd, mm, yyyy, hh = "0", min = "0", ss = "0"] = match;
       const year = Number(yyyy.length === 2 ? `20${yyyy}` : yyyy);
@@ -348,7 +354,10 @@ export interface ProcessedRow<TRecord> {
   cells: Record<string, ProcessedCell>;
 }
 
-export function processRow<TFields extends Record<string, string | null | undefined>, TResult extends Record<string, unknown>>(
+export function processRow<
+  TFields extends Record<string, string | null | undefined>,
+  TResult extends Record<string, unknown>,
+>(
   fields: { key: ImportFieldKey; maskId: string; columnKey?: string | null }[],
   row: TFields,
   buildRecord: (entries: Record<string, ProcessedCell>) => TResult
@@ -357,7 +366,9 @@ export function processRow<TFields extends Record<string, string | null | undefi
   const errors: string[] = [];
 
   for (const fieldConfig of fields) {
-    const raw = fieldConfig.columnKey ? (row[fieldConfig.columnKey as keyof TFields] ?? null) : null;
+    const raw = fieldConfig.columnKey
+      ? (row[fieldConfig.columnKey as keyof TFields] ?? null)
+      : null;
     const result = applyMask(fieldConfig.key, raw?.toString() ?? null, fieldConfig.maskId);
     if (!result.valid) {
       errors.push(`${fieldConfig.key}: ${result.reason ?? "Invalid value"}`);
