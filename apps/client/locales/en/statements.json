@@ -1,0 +1,36 @@
+{
+  "title": "Statements",
+  "filters": {
+    "period": "Period",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "custom": "Custom Range",
+    "all": "All Time"
+  },
+  "summary": {
+    "total": "Total",
+    "confirmed": "Confirmed",
+    "pending": "Pending"
+  },
+  "table": {
+    "date": "Date",
+    "group": "Group",
+    "amount": "Amount",
+    "status": "Status",
+    "reference": "Reference"
+  },
+  "export": {
+    "pdf": "Export PDF",
+    "csv": "Export CSV",
+    "success": "Statement exported successfully"
+  },
+  "empty": {
+    "title": "No transactions yet",
+    "description": "Your transaction history will appear here",
+    "action": "Make your first payment"
+  },
+  "help": {
+    "title": "About Statements",
+    "description": "Statements show your allocation-based transactions. Confirmed transactions have been verified and allocated to your group account."
+  }
+}

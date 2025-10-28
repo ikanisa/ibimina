@@ -1,0 +1,33 @@
+{
+  "title": "Make a Payment",
+  "ussdSheet": {
+    "title": "Payment Instructions",
+    "merchantCode": "Merchant Code",
+    "referenceToken": "Reference Number",
+    "dialUssd": "Dial USSD",
+    "markAsPaid": "I've Paid",
+    "pending": "Payment Pending",
+    "confirmed": "Payment Confirmed",
+    "steps": {
+      "title": "How to Pay",
+      "step1": "Copy the reference number",
+      "step2": "Dial the USSD code",
+      "step3": "Complete payment on your phone"
+    },
+    "tips": {
+      "title": "Tips",
+      "dualSim": "For dual SIM phones, make sure to select the correct SIM card",
+      "network": "Ensure you have network connectivity",
+      "balance": "Check your mobile money balance before paying"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": "How long does it take for my payment to be confirmed?",
+    "a1": "Most payments are confirmed within a few minutes.",
+    "q2": "What if I entered the wrong reference number?",
+    "a2": "Contact your SACCO administrator immediately.",
+    "q3": "Can I cancel a payment?",
+    "a3": "No, mobile money payments are instant and cannot be cancelled."
+  }
+}

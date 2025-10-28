@@ -1,0 +1,25 @@
+{
+  "title": "Groups",
+  "browse": "Browse Groups",
+  "myGroups": "My Groups",
+  "joinRequest": {
+    "title": "Join Group",
+    "note": "Add a note (optional)",
+    "notePlaceholder": "Tell the group why you want to join...",
+    "submit": "Send Request",
+    "pending": "Request Pending",
+    "approved": "Request Approved",
+    "rejected": "Request Rejected",
+    "success": "Your request has been sent"
+  },
+  "details": {
+    "members": "Members",
+    "savings": "Total Savings",
+    "description": "Description",
+    "joinedDate": "Joined"
+  },
+  "empty": {
+    "title": "No groups available",
+    "description": "Check back later for new groups"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "welcome": "Welcome back!",
+  "quickActions": "Quick Actions",
+  "myGroups": "My Groups",
+  "recentActivity": "Recent Activity",
+  "noGroups": "You haven't joined any groups yet",
+  "joinFirstGroup": "Join your first group to get started",
+  "totalSavings": "Total Savings",
+  "recentConfirmations": "Recent Confirmations",
+  "noActivity": "No recent activity",
+  "actions": {
+    "pay": "Make Payment",
+    "viewGroups": "Browse Groups",
+    "viewStatements": "View Statements",
+    "joinGroup": "Join a Group"
+  }
+}

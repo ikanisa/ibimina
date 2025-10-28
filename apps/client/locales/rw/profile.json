@@ -1,0 +1,35 @@
+{
+  "title": "Umwirondoro",
+  "sections": {
+    "personal": "Amakuru Bwite",
+    "contact": "Amakuru yo Guhamagara",
+    "preferences": "Ihitamo",
+    "support": "Ubufasha",
+    "legal": "Amategeko"
+  },
+  "fields": {
+    "name": "Izina",
+    "phone": "Telefoni",
+    "email": "Imeri",
+    "whatsapp": "WhatsApp",
+    "momo": "Mobile Money",
+    "language": "Ururimi",
+    "referenceToken": "Nomero y'Isubirwaho"
+  },
+  "language": {
+    "select": "Hitamo Ururimi",
+    "en": "Icyongereza",
+    "rw": "Ikinyarwanda",
+    "fr": "Igifaransa"
+  },
+  "support": {
+    "help": "Ikigo cy'Ubufasha",
+    "contact": "Twandikire",
+    "faq": "Ibibazo Bikunze Kubazwa"
+  },
+  "legal": {
+    "terms": "Amabwiriza y'Ikoreshwa",
+    "privacy": "Politiki y'Ibanga"
+  },
+  "version": "Verisiyo"
+}

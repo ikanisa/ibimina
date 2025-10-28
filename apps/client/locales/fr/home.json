@@ -1,0 +1,17 @@
+{
+  "welcome": "Bon retour!",
+  "quickActions": "Actions Rapides",
+  "myGroups": "Mes Groupes",
+  "recentActivity": "Activité Récente",
+  "noGroups": "Vous n'avez rejoint aucun groupe",
+  "joinFirstGroup": "Rejoignez votre premier groupe pour commencer",
+  "totalSavings": "Épargne Totale",
+  "recentConfirmations": "Confirmations Récentes",
+  "noActivity": "Aucune activité récente",
+  "actions": {
+    "pay": "Effectuer un Paiement",
+    "viewGroups": "Parcourir les Groupes",
+    "viewStatements": "Voir les Relevés",
+    "joinGroup": "Rejoindre un Groupe"
+  }
+}
