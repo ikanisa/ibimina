@@ -110,20 +110,23 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
 
   const automationStub = getAutomationHealthStub();
 
-  type PollerRow = Pick<
-    Database["app"]["Tables"]["momo_statement_pollers"]["Row"],
-    "id" | "display_name" | "status" | "last_polled_at" | "last_error" | "last_latency_ms"
-  >;
-  type SmsGatewayEndpointRow = Pick<
-    Database["app"]["Tables"]["sms_gateway_endpoints"]["Row"],
-    | "id"
-    | "display_name"
-    | "status"
-    | "last_status"
-    | "last_heartbeat_at"
-    | "last_error"
-    | "last_latency_ms"
-  >;
+  type PollerRow = {
+    id: string;
+    display_name: string | null;
+    status: string | null;
+    last_polled_at: string | null;
+    last_error: string | null;
+    last_latency_ms: number | null;
+  };
+  type SmsGatewayEndpointRow = {
+    id: string;
+    display_name: string | null;
+    status: string | null;
+    last_status: string | null;
+    last_heartbeat_at: string | null;
+    last_error: string | null;
+    last_latency_ms: number | null;
+  };
 
   let pollerIssues: Parameters<typeof AutomationHealthBanner>[0]["pollers"] = [];
   let gatewayIssues: Parameters<typeof AutomationHealthBanner>[0]["gateways"] = [];
@@ -151,54 +154,61 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
     const pollerStaleThreshold = now - 15 * 60 * 1000;
     const gatewayStaleThreshold = now - 10 * 60 * 1000;
 
-    const [pollerRows, gatewayRows] = await Promise.all([
-      supabase
-        .schema("app")
-        .from("momo_statement_pollers")
-        .select("id, display_name, status, last_polled_at, last_error, last_latency_ms")
-        .order("display_name", { ascending: true })
-        .returns<PollerRow[]>(),
-      supabase
-        .schema("app")
-        .from("sms_gateway_endpoints")
-        .select("id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms")
-        .order("display_name", { ascending: true })
-        .returns<SmsGatewayEndpointRow[]>(),
-    ]);
+    try {
+      const [pollerRows, gatewayRows] = await Promise.all([
+        supabase
+          .schema("app")
+          .from("momo_statement_pollers" as any)
+          .select("id, display_name, status, last_polled_at, last_error, last_latency_ms")
+          .order("display_name", { ascending: true })
+          .returns<PollerRow[]>(),
+        supabase
+          .schema("app")
+          .from("sms_gateway_endpoints" as any)
+          .select(
+            "id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms"
+          )
+          .order("display_name", { ascending: true })
+          .returns<SmsGatewayEndpointRow[]>(),
+      ]);
 
-    pollerIssues = (pollerRows?.data ?? [])
-      .filter((row) => {
-        const lastPolled = row.last_polled_at ? Date.parse(row.last_polled_at) : null;
-        const stale = lastPolled ? lastPolled < pollerStaleThreshold : true;
-        const hasError = Boolean(row.last_error);
-        const inactive = row.status !== "ACTIVE";
-        return stale || hasError || inactive;
-      })
-      .map((row) => ({
-        id: row.id,
-        name: row.display_name ?? "MoMo poller",
-        status: row.status ?? "UNKNOWN",
-        lastPolledAt: row.last_polled_at ?? null,
-        lastError: row.last_error ?? null,
-        latencyMs: row.last_latency_ms ?? null,
-      }));
+      pollerIssues = (pollerRows?.data ?? [])
+        .filter((row) => {
+          const lastPolled = row.last_polled_at ? Date.parse(row.last_polled_at) : null;
+          const stale = lastPolled ? lastPolled < pollerStaleThreshold : true;
+          const hasError = Boolean(row.last_error);
+          const inactive = row.status !== "ACTIVE";
+          return stale || hasError || inactive;
+        })
+        .map((row) => ({
+          id: row.id,
+          name: row.display_name ?? "MoMo poller",
+          status: row.status ?? "UNKNOWN",
+          lastPolledAt: row.last_polled_at ?? null,
+          lastError: row.last_error ?? null,
+          latencyMs: row.last_latency_ms ?? null,
+        }));
 
-    gatewayIssues = (gatewayRows?.data ?? [])
-      .filter((row) => {
-        const lastHeartbeat = row.last_heartbeat_at ? Date.parse(row.last_heartbeat_at) : null;
-        const stale = lastHeartbeat ? lastHeartbeat < gatewayStaleThreshold : true;
-        const unhealthy = row.last_status !== "UP" || Boolean(row.last_error);
-        const disabled = row.status !== "ACTIVE";
-        return stale || unhealthy || disabled;
-      })
-      .map((row) => ({
-        id: row.id,
-        name: row.display_name ?? row.id,
-        status: row.last_status ?? row.status ?? "UNKNOWN",
-        lastHeartbeatAt: row.last_heartbeat_at ?? null,
-        lastError: row.last_error ?? null,
-        latencyMs: row.last_latency_ms ?? null,
-      }));
+      gatewayIssues = (gatewayRows?.data ?? [])
+        .filter((row) => {
+          const lastHeartbeat = row.last_heartbeat_at ? Date.parse(row.last_heartbeat_at) : null;
+          const stale = lastHeartbeat ? lastHeartbeat < gatewayStaleThreshold : true;
+          const unhealthy = row.last_status !== "UP" || Boolean(row.last_error);
+          const disabled = row.status !== "ACTIVE";
+          return stale || unhealthy || disabled;
+        })
+        .map((row) => ({
+          id: row.id,
+          name: row.display_name ?? row.id,
+          status: row.last_status ?? row.status ?? "UNKNOWN",
+          lastHeartbeatAt: row.last_heartbeat_at ?? null,
+          lastError: row.last_error ?? null,
+          latencyMs: row.last_latency_ms ?? null,
+        }));
+    } catch (error) {
+      console.error("[admin/reconciliation] Failed to fetch automation health", error);
+      // Leave pollerIssues and gatewayIssues as empty arrays
+    }
   }
 
   const smsPanelItems = (smsEntries ?? []).map((item) => ({

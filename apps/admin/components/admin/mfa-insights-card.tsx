@@ -152,13 +152,10 @@ function MetricsGrid({ insights }: { insights: MfaInsights }) {
       {metrics.map((metric) => (
         <MetricCard
           key={metric.label}
+          label={metric.label}
+          value={numberFormatter.format(metric.value)}
           className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-4 shadow-glass backdrop-blur"
-        >
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{metric.label}</p>
-          <p className="mt-3 text-2xl font-semibold text-neutral-0">
-            {numberFormatter.format(metric.value)}
-          </p>
-        </MetricCard>
+        />
       ))}
     </div>
   );
@@ -166,6 +163,7 @@ function MetricsGrid({ insights }: { insights: MfaInsights }) {
 
 function SaccoCoverageTable({ insights }: { insights: MfaInsights }) {
   const { t } = useTranslation();
+  const numberFormatter = new Intl.NumberFormat("en-RW");
 
   if (insights.saccoCoverage.length === 0) {
     return (

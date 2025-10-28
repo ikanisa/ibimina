@@ -219,7 +219,7 @@ function AddStaffDrawer({ organizations, onClose }: AddStaffDrawerProps) {
                   value={selectedOrg}
                   onChange={(e) => setSelectedOrg(e.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                  required={role !== "SYSTEM_ADMIN"}
+                  required
                 >
                   <option value="">
                     {t("admin.staff.selectOrganization", "Select organization")}

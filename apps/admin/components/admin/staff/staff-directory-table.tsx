@@ -103,9 +103,7 @@ export function StaffDirectoryTable({ staff }: StaffDirectoryTableProps) {
                   <div className="font-medium text-neutral-0">
                     {member.full_name || t("admin.staff.noName", "—")}
                   </div>
-                  {member.phone && (
-                    <div className="text-xs text-neutral-3">{member.phone}</div>
-                  )}
+                  {member.phone && <div className="text-xs text-neutral-3">{member.phone}</div>}
                 </td>
                 <td className="py-4 text-neutral-1">{member.email}</td>
                 <td className="py-4">
@@ -138,14 +136,14 @@ export function StaffDirectoryTable({ staff }: StaffDirectoryTableProps) {
                         member.account_status === "ACTIVE"
                           ? "success"
                           : member.account_status === "SUSPENDED"
-                          ? "warning"
-                          : "neutral"
+                            ? "warning"
+                            : "neutral"
                       }
                     >
                       {member.account_status}
                     </StatusChip>
                     {member.pw_reset_required && (
-                      <StatusChip tone="info" className="text-xs">
+                      <StatusChip tone="info">
                         <Trans i18nKey="admin.staff.resetRequired" fallback="Reset required" />
                       </StatusChip>
                     )}

@@ -11,32 +11,32 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#0b1020",
     description: "A fast, installable PWA for Umurenge SACCO ibimina staff hosted on Node.",
     icons: [
-      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
-      { src: '/icons/icon-1024.png', sizes: '1024x1024', type: 'image/png', purpose: 'any' }
+      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icons/icon-1024.png", sizes: "1024x1024", type: "image/png", purpose: "any" },
     ],
     shortcuts: [
       {
-        name: 'Dashboard',
-        short_name: 'Dashboard',
-        description: 'View SACCO operations dashboard',
-        url: '/dashboard',
-        icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }]
+        name: "Dashboard",
+        short_name: "Dashboard",
+        description: "View SACCO operations dashboard",
+        url: "/dashboard",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }],
       },
       {
-        name: 'Groups',
-        short_name: 'Groups',
-        description: 'Manage Ikimina groups',
-        url: '/groups',
-        icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }]
+        name: "Groups",
+        short_name: "Groups",
+        description: "Manage Ikimina groups",
+        url: "/groups",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }],
       },
       {
-        name: 'Reports',
-        short_name: 'Reports',
-        description: 'View financial reports',
-        url: '/reports',
-        icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }]
-      }
-    ]
-  }
+        name: "Reports",
+        short_name: "Reports",
+        description: "View financial reports",
+        url: "/reports",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }],
+      },
+    ],
+  };
 }

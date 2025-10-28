@@ -1,5 +1,6 @@
-'use client';
+"use client";
 import { useTranslation } from "@/providers/i18n-provider";
+import { cn } from "@/lib/utils";
 
 type TelemetryMetric = {
   event: string;
@@ -26,7 +27,7 @@ function getMetricMeta(
       return {
         title: t("admin.telemetry.events.smsDuplicates", "SMS duplicates"),
         desc: t("admin.telemetry.desc.smsDuplicates", "Potential duplicates blocked from posting."),
-        accent: "amber" as const,
+        accent: "yellow" as const,
       };
     case "sms_reprocessed":
       return {
@@ -71,13 +72,13 @@ function getMetricMeta(
           "admin.telemetry.desc.reconEscalations",
           "Pending deposits escalated for follow-up."
         ),
-        accent: "amber" as const,
+        accent: "yellow" as const,
       };
     case "sms_flagged":
       return {
         title: t("admin.telemetry.events.smsFlagged", "SMS flagged"),
         desc: t("admin.telemetry.desc.smsFlagged", "Messages awaiting manual review."),
-        accent: "amber" as const,
+        accent: "yellow" as const,
       };
     default:
       return {
@@ -95,6 +96,13 @@ interface OperationalTelemetryProps {
 export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
   const { t } = useTranslation();
   const numberFormatter = new Intl.NumberFormat("en-RW");
+
+  const accentMap: Record<MetricAccent, string> = {
+    blue: "border-sky-500/30",
+    yellow: "border-yellow-500/30",
+    green: "border-emerald-500/30",
+    neutral: "border-white/10",
+  };
 
   if (!metrics.length) {
     return (
@@ -147,6 +155,7 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {sorted.map((metric) => {
         const meta = getMetricMeta(metric.event, t);
+        const accentClass = accentMap[meta.accent];
 
         return (
           <article
