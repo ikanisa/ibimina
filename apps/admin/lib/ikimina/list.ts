@@ -35,7 +35,7 @@ async function fetchIkiminaDirectory(
   const appSupabase = clients.app;
   const baseQuery = appSupabase
     .from("ikimina")
-    .select("id, name, code, status, type, sacco_id, created_at, updated_at, saccos(name)")
+    .select("id, name, code, status, type, sacco_id, created_at, updated_at")
     .order("updated_at", { ascending: false })
     .limit(500);
 
@@ -69,12 +69,10 @@ async function fetchIkiminaDirectory(
   >();
 
   if (groupIds.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const memberPromise = (supabase as unknown as any)
-      .from("ikimina_members_public")
-      .select("ikimina_id, count")
-      .in("ikimina_id", groupIds)
-      .group("ikimina_id");
+    const memberPromise = appSupabase
+      .from("members")
+      .select("ikimina_id")
+      .in("ikimina_id", groupIds);
 
     const paymentsPromise = appSupabase
       .from("payments")
@@ -94,10 +92,10 @@ async function fetchIkiminaDirectory(
       throw paymentResponse.error;
     }
 
-    type MemberCountRow = { ikimina_id: string | null; count: number | null };
+    type MemberCountRow = { ikimina_id: string | null };
     for (const row of (memberResponse.data ?? []) as MemberCountRow[]) {
       if (!row.ikimina_id) continue;
-      memberCounts.set(row.ikimina_id, Number(row.count ?? 0));
+      memberCounts.set(row.ikimina_id, (memberCounts.get(row.ikimina_id) ?? 0) + 1);
     }
 
     type PaymentRow = Pick<

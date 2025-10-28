@@ -17,6 +17,7 @@ import {
   SlidersHorizontal,
   UsersRound,
   UserSquare2,
+  UserCog,
   Wallet,
   X,
 } from "lucide-react";
@@ -47,6 +48,7 @@ const ICON_MAP: Record<PanelIconKey, React.ComponentType<{ className?: string }>
   saccos: Building2,
   groups: UsersRound,
   members: UserSquare2,
+  staff: UserCog,
   approvals: Inbox,
   reconciliation: Wallet,
   payments: SlidersHorizontal,

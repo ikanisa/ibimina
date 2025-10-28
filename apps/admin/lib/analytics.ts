@@ -201,7 +201,7 @@ async function computeExecutiveAnalytics(
     if (riskIkiminaIds.length > 0) {
       const { data: riskMetaRows } = await analyticsClient
         .from("ikimina")
-        .select("id, name, sacco_id, saccos(name)")
+        .select("id, name, sacco_id")
         .in("id", riskIkiminaIds);
       riskMetaLookup = new Map(
         ((riskMetaRows ?? []) as IkiminaMetaRow[]).map((row) => [

@@ -2,12 +2,14 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { supabaseSrv } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 import { logAudit } from "@/lib/audit";
 import { CACHE_TAGS } from "@/lib/performance/cache";
 import { instrumentServerAction } from "@/lib/observability/server-action";
 import { logError, logInfo, logWarn, updateLogContext } from "@/lib/observability/logger";
 import { guardAdminAction } from "@/lib/admin/guard";
+import crypto from "node:crypto";
 import { requireUserAndProfile } from "@/lib/auth";
 
 export type AdminActionResult = {
@@ -62,6 +64,162 @@ async function updateUserAccessInternal({
 export const updateUserAccess = instrumentServerAction(
   "admin.updateUserAccess",
   updateUserAccessInternal
+);
+
+async function resetUserPasswordInternal({
+  userId,
+  email,
+}: {
+  userId: string;
+  email?: string | null;
+}): Promise<AdminActionResult & { temporaryPassword?: string }> {
+  const guard = await guardAdminAction<AdminActionResult & { temporaryPassword?: string }>(
+    {
+      action: "admin_reset_user_password",
+      reason: "Only system administrators can reset staff passwords.",
+      logEvent: "admin_reset_user_password_denied",
+      metadata: { targetUserId: userId },
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+
+  if (guard.denied) return guard.result;
+
+  const { supabase, user: actor } = guard.context;
+  const temporaryPassword = crypto.randomBytes(12).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(0, 16);
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const admin = (supabase as any).auth.admin;
+    const { error: updateError } = await admin.updateUserById(userId, {
+      password: temporaryPassword,
+      user_metadata: { pw_reset_required: true },
+    });
+    if (updateError) {
+      return { status: "error", message: updateError.message ?? "Failed to reset password" };
+    }
+
+    // Attempt to send an email via webhook if configured (optional)
+    try {
+      const url = process.env.EMAIL_WEBHOOK_URL;
+      const key = process.env.EMAIL_WEBHOOK_KEY;
+      if (url && email) {
+        await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(key ? { Authorization: `Bearer ${key}` } : {}),
+          },
+          body: JSON.stringify({
+            to: email,
+            subject: "Your temporary password",
+            html: `<p>Hello,</p><p>Your password has been reset. Temporary password: <b>${temporaryPassword}</b></p><p>Please sign in and set a new password immediately.</p>`,
+          }),
+        }).catch(() => void 0);
+      }
+    } catch {
+      // ignore email failures; UI will still surface temporaryPassword
+    }
+
+    // Audit log (best effort)
+    try {
+      await logAudit({ action: "USER_PASSWORD_RESET", entity: "users", entityId: userId, diff: { reset: true } });
+    } catch {}
+
+    return { status: "success", message: "Password reset", temporaryPassword };
+  } catch (error) {
+    return { status: "error", message: error instanceof Error ? error.message : "Reset failed" };
+  }
+}
+
+export const resetUserPassword = instrumentServerAction("admin.resetUserPassword", resetUserPasswordInternal);
+
+async function toggleUserSuspensionInternal({
+  userId,
+  suspended,
+}: {
+  userId: string;
+  suspended?: boolean;
+}): Promise<AdminActionResult & { suspended?: boolean }> {
+  const guard = await guardAdminAction<AdminActionResult & { suspended?: boolean }>(
+    {
+      action: "admin_toggle_user_suspension",
+      reason: "Only system administrators can suspend staff.",
+      logEvent: "admin_toggle_user_suspension_denied",
+      metadata: { targetUserId: userId },
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+  if (guard.denied) return guard.result;
+
+  const { supabase, user: actor } = guard.context;
+
+  // Determine current value if not provided
+  let next = suspended;
+  if (typeof next !== "boolean") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).from("users").select("suspended").eq("id", userId).maybeSingle();
+    if (error) {
+      return { status: "error", message: error.message ?? "Unable to read suspension state" };
+    }
+    next = !Boolean(data?.suspended);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any).from("users").update({ suspended: next }).eq("id", userId);
+  if (updateError) {
+    return { status: "error", message: updateError.message ?? "Failed to update suspension" };
+  }
+
+  try {
+    await logAudit({ action: "USER_SUSPENSION_UPDATED", entity: "users", entityId: userId, diff: { suspended: next } });
+  } catch {}
+
+  return { status: "success", message: next ? "User suspended" : "User reactivated", suspended: next };
+}
+
+export const toggleUserSuspension = instrumentServerAction(
+  "admin.toggleUserSuspension",
+  toggleUserSuspensionInternal,
+);
+
+async function backfillOrgMembershipsInternal(): Promise<AdminActionResult & { count?: number }> {
+  const guard = await guardAdminAction<AdminActionResult & { count?: number }>(
+    {
+      action: "admin_backfill_org_memberships",
+      reason: "Only system administrators can run backfills.",
+      logEvent: "admin_backfill_org_memberships_denied",
+    },
+    (error) => ({ status: "error", message: error.message }),
+  );
+  if (guard.denied) return guard.result;
+
+  const { supabase } = guard.context;
+  // Load users with a SACCO assignment
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
+    .from("users")
+    .select("id, role, sacco_id")
+    .not("sacco_id", "is", null);
+  if (error) return { status: "error", message: error.message ?? "Failed to load users" };
+
+  const rows = (data ?? []) as Array<{ id: string; role: Database["public"]["Enums"]["app_role"]; sacco_id: string }>;
+  let count = 0;
+  for (const row of rows) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const res = await (supabase as any)
+      .schema("app")
+      .from("org_memberships")
+      .upsert({ user_id: row.id, org_id: row.sacco_id, role: row.role }, { onConflict: "user_id,org_id" });
+    if (!res.error) count += 1;
+  }
+
+  return { status: "success", message: "Backfill complete", count };
+}
+
+export const backfillOrgMemberships = instrumentServerAction(
+  "admin.backfillOrgMemberships",
+  backfillOrgMembershipsInternal,
 );
 
 async function queueNotificationInternal({
@@ -293,6 +451,54 @@ async function deleteSmsTemplateInternal({
   return { status: "success", message: "Template deleted" };
 }
 
+async function ensureDistrictOrganization(
+  supabase: SupabaseClient<Database>,
+  districtNameRaw: string | null | undefined,
+): Promise<{ ok: true; orgId: string } | { ok: false; message: string }> {
+  const districtName = (districtNameRaw ?? "").replace(/\s+/g, " ").trim();
+  if (!districtName) {
+    return { ok: false, message: "District name is required" };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const appSchema = (supabase as any).schema("app");
+  const lookup = await appSchema
+    .from("organizations")
+    .select("id")
+    .eq("type", "DISTRICT")
+    .ilike("name", districtName)
+    .maybeSingle();
+
+  if (lookup.error) {
+    return { ok: false, message: lookup.error.message ?? "Failed to look up district" };
+  }
+  if (lookup.data) {
+    return { ok: true, orgId: (lookup.data as { id: string }).id };
+  }
+
+  const districtCode = districtName.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
+  const insert = await appSchema
+    .from("organizations")
+    .insert({ name: districtName, type: "DISTRICT", district_code: districtCode })
+    .select("id")
+    .single();
+
+  if (insert.error) {
+    const retry = await appSchema
+      .from("organizations")
+      .select("id")
+      .eq("type", "DISTRICT")
+      .ilike("name", districtName)
+      .maybeSingle();
+    if (retry.data) {
+      return { ok: true, orgId: (retry.data as { id: string }).id };
+    }
+    return { ok: false, message: insert.error.message ?? "Failed to create district organization" };
+  }
+
+  return { ok: true, orgId: (insert.data as { id: string }).id };
+}
+
 async function upsertSaccoInternal({
   mode,
   sacco,
@@ -318,14 +524,35 @@ async function upsertSaccoInternal({
     return guard.result;
   }
   const { supabase } = guard.context;
+  // Normalize payload so we can inject a district org ID if the UI did not provide one
+  const payload = {
+    ...sacco,
+  } as (Database["app"]["Tables"]["saccos"]["Insert"] & Database["app"]["Tables"]["saccos"]["Update"] & { id?: string });
+
+  const payloadId = (payload as { id?: string }).id ?? null;
+  if (mode === "update" && !payloadId) {
+    return { status: "error", message: "SACCO id is required for updates" };
+  }
+
+  const currentDistrictOrgId = (payload as { district_org_id?: string | null }).district_org_id ?? null;
+  const districtName = (payload as { district?: string | null }).district ?? null;
+  let ensuredOrgId = currentDistrictOrgId;
+  if (!ensuredOrgId) {
+    const ensured = await ensureDistrictOrganization(supabase, districtName);
+    if (!ensured.ok) {
+      return { status: "error", message: ensured.message };
+    }
+    ensuredOrgId = ensured.orgId;
+    (payload as { district_org_id?: string | null }).district_org_id = ensuredOrgId;
+  }
+
   let result: Database["app"]["Tables"]["saccos"]["Row"] | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const appSchema = (supabase as any).schema("app").from("saccos");
 
   if (mode === "create") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
-      .schema("app")
-      .from("saccos")
-      .insert(sacco as Database["app"]["Tables"]["saccos"]["Insert"])
+    const { data, error } = await appSchema
+      .insert(payload as Database["app"]["Tables"]["saccos"]["Insert"])
       .select("*")
       .single();
     if (error) {
@@ -334,16 +561,13 @@ async function upsertSaccoInternal({
     }
     result = data as Database["app"]["Tables"]["saccos"]["Row"];
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any)
-      .schema("app")
-      .from("saccos")
-      .update(sacco as Database["app"]["Tables"]["saccos"]["Update"])
-      .eq("id", (sacco as unknown as { id: string }).id)
+    const { data, error } = await appSchema
+      .update(payload as Database["app"]["Tables"]["saccos"]["Update"])
+      .eq("id", payloadId)
       .select("*")
       .single();
     if (error) {
-      logError("admin_sacco_update_failed", { error, saccoId: (sacco as { id: string }).id });
+      logError("admin_sacco_update_failed", { error, saccoId: payloadId });
       return { status: "error", message: error.message ?? "Failed to update SACCO" };
     }
     result = data as Database["app"]["Tables"]["saccos"]["Row"];

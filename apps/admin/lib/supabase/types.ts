@@ -8,6 +8,77 @@ export type Database = {
   };
   app: {
     Tables: {
+      organizations: {
+        Row: {
+          id: string
+          type: Database["app"]["Enums"]["org_type"]
+          name: string
+          district_code: string | null
+          parent_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          type: Database["app"]["Enums"]["org_type"]
+          name: string
+          district_code?: string | null
+          parent_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          type?: Database["app"]["Enums"]["org_type"]
+          name?: string
+          district_code?: string | null
+          parent_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organizations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_memberships: {
+        Row: {
+          user_id: string
+          org_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          org_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          org_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_memberships_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           balance: number | null;
@@ -651,64 +722,75 @@ export type Database = {
       };
       saccos: {
         Row: {
-          brand_color: string | null;
-          category: string | null;
-          created_at: string;
-          district: string;
-          email: string | null;
-          id: string;
-          logo_url: string | null;
-          merchant_code: string | null;
-          metadata: Json;
-          name: string;
-          province: string | null;
-          search_document: unknown | null;
-          search_slug: string | null;
-          sector: string | null;
-          sector_code: string;
-          status: string;
-          updated_at: string;
-        };
+          brand_color: string | null
+          category: string | null
+          created_at: string
+          district: string
+          email: string | null
+          id: string
+          logo_url: string | null
+          merchant_code: string | null
+          metadata: Json
+          name: string
+          province: string | null
+          search_document: unknown | null
+          search_slug: string | null
+          sector: string | null
+          sector_code: string
+          status: string
+          district_org_id?: string | null
+          updated_at: string
+        }
         Insert: {
-          brand_color?: string | null;
-          category?: string | null;
-          created_at?: string;
-          district: string;
-          email?: string | null;
-          id?: string;
-          logo_url?: string | null;
-          merchant_code?: string | null;
-          metadata?: Json;
-          name: string;
-          province?: string | null;
-          search_document?: unknown | null;
-          search_slug?: string | null;
-          sector?: string | null;
-          sector_code: string;
-          status?: string;
-          updated_at?: string;
-        };
+          brand_color?: string | null
+          category?: string | null
+          created_at?: string
+          district: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          merchant_code?: string | null
+          metadata?: Json
+          name: string
+          province?: string | null
+          search_document?: unknown | null
+          search_slug?: string | null
+          sector?: string | null
+          sector_code: string
+          status?: string
+          district_org_id?: string | null
+          updated_at?: string
+        }
         Update: {
-          brand_color?: string | null;
-          category?: string | null;
-          created_at?: string;
-          district?: string;
-          email?: string | null;
-          id?: string;
-          logo_url?: string | null;
-          merchant_code?: string | null;
-          metadata?: Json;
-          name?: string;
-          province?: string | null;
-          search_document?: unknown | null;
-          search_slug?: string | null;
-          sector?: string | null;
-          sector_code?: string;
-          status?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          brand_color?: string | null
+          category?: string | null
+          created_at?: string
+          district?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          merchant_code?: string | null
+          metadata?: Json
+          name?: string
+          province?: string | null
+          search_document?: unknown | null
+          search_slug?: string | null
+          sector?: string | null
+          sector_code?: string
+          status?: string
+          district_org_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saccos_district_org_id_fkey"
+            columns: ["district_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sms_inbox: {
         Row: {
           confidence: number | null;
@@ -838,8 +920,9 @@ export type Database = {
       };
     };
     Enums: {
-      financial_institution_kind: "SACCO" | "MICROFINANCE" | "INSURANCE" | "OTHER";
-    };
+      financial_institution_kind: "SACCO" | "MICROFINANCE" | "INSURANCE" | "OTHER"
+      org_type: "SACCO" | "MFI" | "DISTRICT"
+    }
     CompositeTypes: {
       [_ in never]: never;
     };
@@ -2142,17 +2225,24 @@ export type Database = {
       };
     };
     Enums: {
-      app_role: "SYSTEM_ADMIN" | "SACCO_MANAGER" | "SACCO_STAFF" | "SACCO_VIEWER";
-      group_invite_status: "sent" | "accepted" | "expired";
-      invite_status: "sent" | "accepted" | "expired";
-      join_request_status: "pending" | "approved" | "rejected";
-      join_status: "pending" | "approved" | "rejected";
-      member_id_type: "NID" | "DL" | "PASSPORT";
-      notification_channel: "WHATSAPP" | "EMAIL";
-      notification_type: "new_member" | "payment_confirmed" | "invite_accepted";
-      notify_type: "new_member" | "payment_confirmed" | "invite_accepted";
-      payment_status: "pending" | "completed" | "failed";
-    };
+      app_role:
+        | "SYSTEM_ADMIN"
+        | "SACCO_MANAGER"
+        | "SACCO_STAFF"
+        | "SACCO_VIEWER"
+        | "DISTRICT_MANAGER"
+        | "MFI_MANAGER"
+        | "MFI_STAFF"
+      group_invite_status: "sent" | "accepted" | "expired"
+      invite_status: "sent" | "accepted" | "expired"
+      join_request_status: "pending" | "approved" | "rejected"
+      join_status: "pending" | "approved" | "rejected"
+      member_id_type: "NID" | "DL" | "PASSPORT"
+      notification_channel: "WHATSAPP" | "EMAIL"
+      notification_type: "new_member" | "payment_confirmed" | "invite_accepted"
+      notify_type: "new_member" | "payment_confirmed" | "invite_accepted"
+      payment_status: "pending" | "completed" | "failed"
+    }
     CompositeTypes: {
       [_ in never]: never;
     };
@@ -2283,7 +2373,15 @@ export const Constants = {
   },
   public: {
     Enums: {
-      app_role: ["SYSTEM_ADMIN", "SACCO_MANAGER", "SACCO_STAFF", "SACCO_VIEWER"],
+      app_role: [
+        "SYSTEM_ADMIN",
+        "SACCO_MANAGER",
+        "SACCO_STAFF",
+        "SACCO_VIEWER",
+        "DISTRICT_MANAGER",
+        "MFI_MANAGER",
+        "MFI_STAFF",
+      ],
       group_invite_status: ["sent", "accepted", "expired"],
       invite_status: ["sent", "accepted", "expired"],
       join_request_status: ["pending", "approved", "rejected"],

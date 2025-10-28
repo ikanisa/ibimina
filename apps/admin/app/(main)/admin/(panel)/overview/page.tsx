@@ -276,7 +276,13 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       await Promise.all([notificationQuery, telemetryQuery, auditQuery, mfaInsightsPromise]);
 
     if (notificationResponse.error && !isMissingRelationError(notificationResponse.error)) {
-      console.error("[admin/overview] notification query failed", notificationResponse.error);
+      const __err: any = notificationResponse.error as any;
+      console.error("[admin/overview] notification query failed", {
+        code: __err?.code,
+        message: __err?.message,
+        details: __err?.details,
+        hint: __err?.hint,
+      });
     }
     if (telemetryResponse.error && !isMissingRelationError(telemetryResponse.error)) {
       console.error("[admin/overview] telemetry query failed", telemetryResponse.error);
