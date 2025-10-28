@@ -1,5 +1,4 @@
 import { useTranslation } from "@/providers/i18n-provider";
-import { MetricCard } from "@ibimina/ui";
 
 type TelemetryMetric = {
   event: string;
@@ -11,7 +10,10 @@ type TelemetryMetric = {
 type MetricAccent = "blue" | "yellow" | "green" | "neutral";
 
 // Note: 'yellow' is used for warning states (previously 'amber') to align with design system tokens
-function getMetricMeta(event: string, t: (k: string, f?: string) => string): { title: string; desc: string; accent: MetricAccent } {
+function getMetricMeta(
+  event: string,
+  t: (k: string, f?: string) => string
+): { title: string; desc: string; accent: MetricAccent } {
   switch (event) {
     case "sms_ingested":
       return {
@@ -144,7 +146,7 @@ export function OperationalTelemetry({ metrics }: OperationalTelemetryProps) {
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {sorted.map((metric) => {
         const meta = getMetricMeta(metric.event, t);
-        
+
         return (
           <article
             key={metric.event}
