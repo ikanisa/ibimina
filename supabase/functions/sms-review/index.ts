@@ -71,7 +71,14 @@ Deno.serve(async (req) => {
     }
 
     const { parsed, parseSource, modelUsed } = parseResponse.data as {
-      parsed: { msisdn: string; confidence: number; reference?: string | null; txn_id: string; amount: number; timestamp: string };
+      parsed: {
+        msisdn: string;
+        confidence: number;
+        reference?: string | null;
+        txn_id: string;
+        amount: number;
+        timestamp: string;
+      };
       parseSource: string;
       modelUsed?: string | null;
     };
@@ -103,11 +110,24 @@ Deno.serve(async (req) => {
       diff: { parseSource },
     });
 
-    await recordMetric(supabase, "sms_reprocessed", 1, { saccoId: sms.sacco_id, parseSource, model: modelUsed ?? null });
-
-    return new Response(JSON.stringify({ success: true, status: "PARSED", parsed, parseSource, modelUsed: modelUsed ?? null }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    await recordMetric(supabase, "sms_reprocessed", 1, {
+      saccoId: sms.sacco_id,
+      parseSource,
+      model: modelUsed ?? null,
     });
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        status: "PARSED",
+        parsed,
+        parseSource,
+        modelUsed: modelUsed ?? null,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("sms-review error", error);
     const message = error instanceof Error ? error.message : "Unknown error";

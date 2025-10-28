@@ -194,7 +194,9 @@ type BackupCodeRecord = {
 const hashBackupCodeInternal = (code: string, salt?: string) => {
   const pepper = backupPepper();
   const effectiveSalt = salt ?? crypto.randomBytes(16).toString("base64");
-  const hash = crypto.pbkdf2Sync(`${pepper}${code}`, effectiveSalt, 250000, 32, "sha256").toString("base64");
+  const hash = crypto
+    .pbkdf2Sync(`${pepper}${code}`, effectiveSalt, 250000, 32, "sha256")
+    .toString("base64");
   return `${effectiveSalt}$${hash}`;
 };
 
@@ -208,7 +210,12 @@ const hashBackupCodeInternal = (code: string, salt?: string) => {
 export const generateBackupCodes = (count = 10): BackupCodeRecord[] => {
   const records: BackupCodeRecord[] = [];
   for (let i = 0; i < count; i += 1) {
-    const raw = crypto.randomBytes(8).toString("base64").replace(/[^A-Z0-9]/gi, "A").slice(0, 10).toUpperCase();
+    const raw = crypto
+      .randomBytes(8)
+      .toString("base64")
+      .replace(/[^A-Z0-9]/gi, "A")
+      .slice(0, 10)
+      .toUpperCase();
     records.push({ code: raw, hash: hashBackupCodeInternal(raw) });
   }
   return records;
@@ -236,8 +243,11 @@ export const previewSecret = (secret: string, visible = 4) => {
   return `${secret.slice(0, visible)}••••`;
 };
 
-export const encodePendingEnrollment = (payload: { userId: string; secret: string; issuedAt: number }) =>
-  encryptSensitiveString(JSON.stringify(payload));
+export const encodePendingEnrollment = (payload: {
+  userId: string;
+  secret: string;
+  issuedAt: number;
+}) => encryptSensitiveString(JSON.stringify(payload));
 
 export const decodePendingEnrollment = (token: string) => {
   const json = decryptSensitiveString(token);

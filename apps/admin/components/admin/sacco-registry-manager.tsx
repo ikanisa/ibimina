@@ -6,12 +6,20 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
 import { upsertSacco, removeSacco } from "@/app/(main)/admin/actions";
 
-
 import type { Database } from "@/lib/supabase/types";
 
 type RawSaccoRow = Pick<
   Database["app"]["Tables"]["saccos"]["Row"],
-  "id" | "name" | "district" | "province" | "sector" | "status" | "email" | "category" | "logo_url" | "sector_code"
+  | "id"
+  | "name"
+  | "district"
+  | "province"
+  | "sector"
+  | "status"
+  | "email"
+  | "category"
+  | "logo_url"
+  | "sector_code"
 >;
 
 type SaccoRow = {
@@ -72,7 +80,10 @@ function buildSectorCode(district: string, sector: string) {
 
 const DEFAULT_CATEGORY = "Deposit-Taking Microfinance Cooperative (UMURENGE SACCO)";
 
-export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: SaccoRegistryManagerProps) {
+export function SaccoRegistryManager({
+  initialSaccos,
+  districtMomoMap = {},
+}: SaccoRegistryManagerProps) {
   const { t } = useTranslation();
   const [saccos, setSaccos] = useState<SaccoRow[]>(() => initialSaccos.map(normalizeSacco));
   const [search, setSearch] = useState("");
@@ -88,7 +99,9 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
     if (!search.trim()) return saccos;
     const lowered = search.toLowerCase();
     return saccos.filter((sacco) =>
-      `${sacco.name} ${sacco.district} ${sacco.province} ${sacco.category ?? ""}`.toLowerCase().includes(lowered)
+      `${sacco.name} ${sacco.district} ${sacco.province} ${sacco.category ?? ""}`
+        .toLowerCase()
+        .includes(lowered)
     );
   }, [saccos, search]);
 
@@ -165,9 +178,13 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
       const result = await upsertSacco({
         mode: mode === "create" ? "create" : "update",
         // id is present in update mode
-        sacco: mode === "create"
-          ? basePayload
-          : ({ ...basePayload, id: editing.id } as unknown as Database["app"]["Tables"]["saccos"]["Update"] & { id: string }),
+        sacco:
+          mode === "create"
+            ? basePayload
+            : ({
+                ...basePayload,
+                id: editing.id,
+              } as unknown as Database["app"]["Tables"]["saccos"]["Update"] & { id: string }),
       });
       if (result.status === "error") {
         notifyError(result.message ?? t("common.operationFailed", "Operation failed"));
@@ -175,15 +192,24 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
       }
       if (result.sacco) {
         const normalized = normalizeSacco(result.sacco as RawSaccoRow);
-        setSaccos((prev) => (mode === "create" ? [...prev, normalized] : prev.map((s) => (s.id === editing.id ? normalized : s))));
+        setSaccos((prev) =>
+          mode === "create"
+            ? [...prev, normalized]
+            : prev.map((s) => (s.id === editing.id ? normalized : s))
+        );
       }
-      notifySuccess(mode === "create" ? t("admin.registry.created", "SACCO created") : t("admin.registry.updated", "SACCO updated"));
+      notifySuccess(
+        mode === "create"
+          ? t("admin.registry.created", "SACCO created")
+          : t("admin.registry.updated", "SACCO updated")
+      );
       resetForm();
     });
   };
 
   const handleDelete = (saccoId: string) => {
-    if (!confirm(t("admin.registry.deleteConfirm", "Delete this SACCO? This cannot be undone."))) return;
+    if (!confirm(t("admin.registry.deleteConfirm", "Delete this SACCO? This cannot be undone.")))
+      return;
     startTransition(async () => {
       const result = await removeSacco({ id: saccoId });
       if (result.status === "error") {
@@ -199,18 +225,18 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-       <input
-         type="search"
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        placeholder={t("admin.registry.searchPlaceholder", "Search name, district")}
-         className="w-full max-w-xs rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-       />
-       <button
-         type="button"
-         onClick={handleCreate}
-         className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
-       >
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder={t("admin.registry.searchPlaceholder", "Search name, district")}
+          className="w-full max-w-xs rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
+        />
+        <button
+          type="button"
+          onClick={handleCreate}
+          className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass"
+        >
           {t("admin.registry.new", "New SACCO")}
         </button>
       </div>
@@ -219,24 +245,12 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
         <table className="w-full border-collapse text-sm">
           <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-neutral-2">
             <tr>
-              <th className="px-4 py-3">
-                {t("table.name", "Name")}
-              </th>
-              <th className="px-4 py-3">
-                {t("table.district", "District")}
-              </th>
-              <th className="px-4 py-3">
-                {t("table.province", "Province")}
-              </th>
-              <th className="px-4 py-3">
-                {t("table.status", "Status")}
-              </th>
-              <th className="px-4 py-3">
-                {t("admin.registry.momoCode", "MoMo code")}
-              </th>
-              <th className="px-4 py-3 text-right">
-                {t("table.actions", "Actions")}
-              </th>
+              <th className="px-4 py-3">{t("table.name", "Name")}</th>
+              <th className="px-4 py-3">{t("table.district", "District")}</th>
+              <th className="px-4 py-3">{t("table.province", "Province")}</th>
+              <th className="px-4 py-3">{t("table.status", "Status")}</th>
+              <th className="px-4 py-3">{t("admin.registry.momoCode", "MoMo code")}</th>
+              <th className="px-4 py-3 text-right">{t("table.actions", "Actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -246,10 +260,14 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
                 <td className="px-4 py-3 text-neutral-2">{sacco.district}</td>
                 <td className="px-4 py-3 text-neutral-2">{sacco.province}</td>
                 <td className="px-4 py-3">
-                  <span className={cn(
-                    "rounded-full px-2 py-1 text-[11px] uppercase tracking-[0.2em]",
-                    sacco.status === "ACTIVE" ? "bg-emerald-500/20 text-emerald-200" : "bg-amber-500/20 text-amber-200"
-                  )}>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-1 text-[11px] uppercase tracking-[0.2em]",
+                      sacco.status === "ACTIVE"
+                        ? "bg-emerald-500/20 text-emerald-200"
+                        : "bg-amber-500/20 text-amber-200"
+                    )}
+                  >
                     {sacco.status}
                   </span>
                 </td>
@@ -263,10 +281,10 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-2">
-                   <button
-                     type="button"
-                     onClick={() => handleEdit(sacco)}
-                     className="text-xs text-neutral-2 underline-offset-2 hover:underline"
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(sacco)}
+                      className="text-xs text-neutral-2 underline-offset-2 hover:underline"
                     >
                       {t("common.edit", "Edit")}
                     </button>
@@ -297,9 +315,13 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                {mode === "create" ? t("admin.registry.createTitle", "Create SACCO") : t("admin.registry.editTitle", "Edit SACCO")}
+                {mode === "create"
+                  ? t("admin.registry.createTitle", "Create SACCO")
+                  : t("admin.registry.editTitle", "Edit SACCO")}
               </p>
-              <h3 className="text-lg font-semibold">{editing.name || t("admin.registry.new", "New SACCO")}</h3>
+              <h3 className="text-lg font-semibold">
+                {editing.name || t("admin.registry.new", "New SACCO")}
+              </h3>
             </div>
             <button
               type="button"
@@ -312,7 +334,9 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.name", "Name")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("table.name", "Name")}
+              </span>
               <input
                 type="text"
                 value={editing.name}
@@ -321,7 +345,9 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
               />
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.province", "Province")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("table.province", "Province")}
+              </span>
               <select
                 value={editing.province}
                 onChange={(event) => handleChange("province", event.target.value)}
@@ -335,7 +361,9 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
               </select>
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.district", "District")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("table.district", "District")}
+              </span>
               <input
                 type="text"
                 value={editing.district}
@@ -344,7 +372,9 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
               />
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.sector", "Sector")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("table.sector", "Sector")}
+              </span>
               <input
                 type="text"
                 value={editing.sector}
@@ -353,10 +383,14 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
               />
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.status", "Status")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("table.status", "Status")}
+              </span>
               <select
                 value={editing.status}
-                onChange={(event) => handleChange("status", event.target.value as SaccoRow["status"])}
+                onChange={(event) =>
+                  handleChange("status", event.target.value as SaccoRow["status"])
+                }
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
               >
                 {STATUS_OPTIONS.map((status) => (
@@ -367,7 +401,9 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
               </select>
             </label>
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.email", "Email")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("common.email", "Email")}
+              </span>
               <input
                 type="email"
                 value={editing.email ?? ""}
@@ -376,7 +412,9 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
               />
             </label>
             <label className="space-y-1 sm:col-span-2">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.registry.category", "Category")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("admin.registry.category", "Category")}
+              </span>
               <input
                 type="text"
                 value={editing.category}
@@ -394,7 +432,7 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
                   <p>
                     {t(
                       "admin.registry.momoInfoMissing",
-                      "No MoMo code configured for this district. Update the MoMo codes table to surface it here.",
+                      "No MoMo code configured for this district. Update the MoMo codes table to surface it here."
                     )}
                   </p>
                 );
@@ -402,8 +440,7 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
 
               return (
                 <p>
-                  <span className="font-semibold text-neutral-0">{info.code}</span>
-                  {" "}
+                  <span className="font-semibold text-neutral-0">{info.code}</span>{" "}
                   {info.provider && <span>· {info.provider}</span>}
                   {info.account_name && <span className="ml-2">({info.account_name})</span>}
                 </p>
@@ -425,7 +462,11 @@ export function SaccoRegistryManager({ initialSaccos, districtMomoMap = {} }: Sa
               disabled={pending}
               className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
             >
-              {pending ? t("common.saving", "Saving…") : mode === "create" ? t("common.create", "Create") : t("common.save", "Save")}
+              {pending
+                ? t("common.saving", "Saving…")
+                : mode === "create"
+                  ? t("common.create", "Create")
+                  : t("common.save", "Save")}
             </button>
           </div>
         </div>

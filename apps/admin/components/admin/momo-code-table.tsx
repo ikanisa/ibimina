@@ -26,7 +26,11 @@ type MomoCodeFormState = {
 
 const DEFAULT_PROVIDERS = ["MTN", "AIRTEL", "OTHER"];
 
-export function MomoCodeTable({ initialCodes, providerOptions, districtOptions }: MomoCodeTableProps) {
+export function MomoCodeTable({
+  initialCodes,
+  providerOptions,
+  districtOptions,
+}: MomoCodeTableProps) {
   const { t } = useTranslation();
   const { success, error } = useToast();
   const [codes, setCodes] = useState<MomoCodeRow[]>(initialCodes);
@@ -35,20 +39,23 @@ export function MomoCodeTable({ initialCodes, providerOptions, districtOptions }
   const [search, setSearch] = useState("");
   const [pending, startTransition] = useTransition();
 
-  const providers = providerOptions && providerOptions.length > 0 ? providerOptions : DEFAULT_PROVIDERS;
+  const providers =
+    providerOptions && providerOptions.length > 0 ? providerOptions : DEFAULT_PROVIDERS;
 
   const notifyError = (message: string) => error(message);
   const notifySuccess = (message: string) => success(message);
 
   const uniqueDistricts = useMemo(
     () => Array.from(new Set([...districtOptions, ...codes.map((code) => code.district)])),
-    [codes, districtOptions],
+    [codes, districtOptions]
   );
 
   const filtered = useMemo(() => {
     if (!search.trim()) return codes;
     const lowered = search.toLowerCase();
-    return codes.filter((row) => `${row.district} ${row.provider} ${row.code}`.toLowerCase().includes(lowered));
+    return codes.filter((row) =>
+      `${row.district} ${row.provider} ${row.code}`.toLowerCase().includes(lowered)
+    );
   }, [codes, search]);
 
   const beginCreate = () => {
@@ -123,14 +130,16 @@ export function MomoCodeTable({ initialCodes, providerOptions, districtOptions }
       notifySuccess(
         mode === "create"
           ? t("admin.momoCodes.created", "MoMo code created.")
-          : t("admin.momoCodes.updated", "MoMo code updated."),
+          : t("admin.momoCodes.updated", "MoMo code updated.")
       );
       resetForm();
     });
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm(t("admin.momoCodes.deleteConfirm", "Delete this MoMo code? This cannot be undone."))) {
+    if (
+      !confirm(t("admin.momoCodes.deleteConfirm", "Delete this MoMo code? This cannot be undone."))
+    ) {
       return;
     }
 
@@ -178,7 +187,9 @@ export function MomoCodeTable({ initialCodes, providerOptions, districtOptions }
               <th className="px-4 py-3 text-left">{t("admin.momoCodes.provider", "Provider")}</th>
               <th className="px-4 py-3 text-left">{t("common.district", "District")}</th>
               <th className="px-4 py-3 text-left">{t("admin.momoCodes.code", "Code")}</th>
-              <th className="px-4 py-3 text-left">{t("admin.momoCodes.accountName", "Account name")}</th>
+              <th className="px-4 py-3 text-left">
+                {t("admin.momoCodes.accountName", "Account name")}
+              </th>
               <th className="px-4 py-3 text-right">{t("common.actions", "Actions")}</th>
             </tr>
           </thead>
@@ -195,12 +206,17 @@ export function MomoCodeTable({ initialCodes, providerOptions, districtOptions }
                 .map((row) => (
                   <tr
                     key={row.id}
-                    className={cn("border-b border-white/5", editing?.id === row.id && "bg-white/8")}
+                    className={cn(
+                      "border-b border-white/5",
+                      editing?.id === row.id && "bg-white/8"
+                    )}
                   >
                     <td className="px-4 py-3 font-medium text-neutral-0">{row.provider}</td>
                     <td className="px-4 py-3 text-neutral-1">{row.district}</td>
                     <td className="px-4 py-3 text-neutral-1">{row.code}</td>
-                    <td className="px-4 py-3 text-neutral-1">{row.account_name ?? t("common.none", "None")}</td>
+                    <td className="px-4 py-3 text-neutral-1">
+                      {row.account_name ?? t("common.none", "None")}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"

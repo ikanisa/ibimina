@@ -1,13 +1,15 @@
 # Supabase CI/CD Pipeline
 
-This document describes the Supabase migrations and Edge Functions deployment pipeline configured in `.github/workflows/supabase-deploy.yml`.
+This document describes the Supabase migrations and Edge Functions deployment
+pipeline configured in `.github/workflows/supabase-deploy.yml`.
 
 ## Overview
 
 The pipeline supports three deployment scenarios:
 
 1. **Pull Request Validation**: Dry-run migration checks and staging preview
-2. **Staging Deployment**: Automatic deployment to staging environment for PR preview
+2. **Staging Deployment**: Automatic deployment to staging environment for PR
+   preview
 3. **Production Deployment**: Automatic deployment to production on main branch
 
 ## Workflow Jobs
@@ -17,15 +19,18 @@ The pipeline supports three deployment scenarios:
 Runs on every PR that modifies Supabase files.
 
 **Purpose**: Validate migrations without affecting production
+
 - Starts local Supabase instance
 - Applies migrations in dry-run mode
 - Validates SQL syntax
 - Checks for common migration issues
 
-**Triggers**: 
+**Triggers**:
+
 - Pull requests modifying `supabase/functions/**` or `supabase/migrations/**`
 
 **Steps**:
+
 ```yaml
 - Start Supabase local instance
 - Run migration dry-run (supabase migration up --local)
@@ -38,6 +43,7 @@ Runs on every PR that modifies Supabase files.
 Deploys changes to staging environment for testing.
 
 **Purpose**: Test changes in a production-like environment before merging
+
 - Requires `SUPABASE_STAGING_PROJECT_REF` variable
 - Depends on successful migration check
 - Comments on PR with deployment status
@@ -45,6 +51,7 @@ Deploys changes to staging environment for testing.
 **Environment**: `staging`
 
 **Steps**:
+
 ```yaml
 - Link to staging project
 - Apply migrations to staging
@@ -53,6 +60,7 @@ Deploys changes to staging environment for testing.
 ```
 
 **PR Comment Example**:
+
 ```
 #### Supabase Staging Deploy ✅
 
@@ -70,6 +78,7 @@ You can test your changes in the staging environment.
 Deploys to production automatically when changes are merged to main.
 
 **Purpose**: Deploy validated changes to production
+
 - Only runs on `main` branch
 - Applies migrations first, then deploys functions
 - Verifies deployment completion
@@ -77,9 +86,12 @@ Deploys to production automatically when changes are merged to main.
 **Environment**: `production`
 
 **Triggers**:
-- Push to `main` branch with changes to `supabase/functions/**` or `supabase/migrations/**`
+
+- Push to `main` branch with changes to `supabase/functions/**` or
+  `supabase/migrations/**`
 
 **Steps**:
+
 ```yaml
 - Link to production project
 - Apply migrations to production
@@ -91,20 +103,21 @@ Deploys to production automatically when changes are merged to main.
 
 ### Secrets (GitHub Repository Secrets)
 
-| Secret | Description | Used In |
-|--------|-------------|---------|
-| `SUPABASE_ACCESS_TOKEN` | Supabase CLI access token | All environments |
-| `SUPABASE_PROJECT_REF` | Production project reference | Production only |
+| Secret                  | Description                  | Used In          |
+| ----------------------- | ---------------------------- | ---------------- |
+| `SUPABASE_ACCESS_TOKEN` | Supabase CLI access token    | All environments |
+| `SUPABASE_PROJECT_REF`  | Production project reference | Production only  |
 
 ### Variables (GitHub Repository Variables)
 
-| Variable | Description | Used In |
-|----------|-------------|---------|
+| Variable                       | Description                          | Used In      |
+| ------------------------------ | ------------------------------------ | ------------ |
 | `SUPABASE_STAGING_PROJECT_REF` | Staging project reference (optional) | Staging only |
 
 ### Setting Up Secrets
 
 1. **Get Supabase Access Token**:
+
    ```bash
    supabase login
    # Copy the access token
@@ -130,6 +143,7 @@ Functions are deployed via `apps/admin/scripts/supabase-go-live.sh`:
 ```
 
 **Deployed Functions**:
+
 - admin-reset-mfa
 - analytics-forecast
 - bootstrap-admin
@@ -185,17 +199,19 @@ supabase migration up --linked --include-all --yes
 ### Writing Migrations
 
 1. **Create migration file**:
+
    ```bash
    supabase migration new your_migration_name
    ```
 
 2. **Write idempotent SQL**:
+
    ```sql
    -- Use IF NOT EXISTS when possible
    CREATE TABLE IF NOT EXISTS your_table (...);
-   
+
    -- Use DO blocks for conditional logic
-   DO $$ 
+   DO $$
    BEGIN
      IF NOT EXISTS (SELECT 1 FROM ...) THEN
        -- your changes
@@ -223,10 +239,12 @@ supabase migration up --linked --include-all --yes
 ### Migration Fails in CI
 
 **Check the dry-run output**:
+
 - View the "Run migration dry-run" step in GitHub Actions
 - Common issues: syntax errors, missing dependencies, constraint violations
 
 **Test locally**:
+
 ```bash
 supabase start
 supabase migration up --local
@@ -236,16 +254,19 @@ supabase migration up --local
 ### Function Deployment Fails
 
 **Check function logs**:
+
 ```bash
 supabase functions logs your-function-name
 ```
 
 **Common issues**:
+
 - Missing environment variables
 - Import errors
 - TypeScript compilation errors
 
 **Test function locally**:
+
 ```bash
 supabase functions serve your-function-name
 ```
@@ -253,6 +274,7 @@ supabase functions serve your-function-name
 ### Staging Deploy Doesn't Run
 
 **Requirements**:
+
 - `SUPABASE_STAGING_PROJECT_REF` variable must be set
 - Must be a pull request (not a push to main)
 - Migration check must pass first
@@ -260,6 +282,7 @@ supabase functions serve your-function-name
 ### Missing Permissions
 
 If you see permission errors:
+
 - Ensure `SUPABASE_ACCESS_TOKEN` has correct permissions
 - Check that GitHub Actions has permission to write comments (for PR comments)
 - Verify environment protection rules aren't blocking deployment
@@ -269,28 +292,33 @@ If you see permission errors:
 ### Verify Deployments
 
 **Check migrations**:
+
 ```bash
 supabase migration list --linked
 ```
 
 **Check functions**:
+
 ```bash
 supabase functions list
 ```
 
 **View logs**:
+
 ```bash
 supabase functions logs
 ```
 
 ### Rollback
 
-**Migrations**: 
+**Migrations**:
+
 - Migrations cannot be automatically rolled back
 - Create a new migration to undo changes
 - Test thoroughly before deploying
 
 **Functions**:
+
 - Previous version can be redeployed if needed
 - Keep function versions in Git for history
 

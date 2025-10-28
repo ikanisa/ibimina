@@ -49,10 +49,15 @@ export function TenantSettingsPanel({ saccos, canEdit, initialSaccoId }: TenantS
   const { t } = useTranslation();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
-  const [selected, setSelected] = useState<string | null>(initialSaccoId ?? saccos[0]?.saccoId ?? null);
+  const [selected, setSelected] = useState<string | null>(
+    initialSaccoId ?? saccos[0]?.saccoId ?? null
+  );
   const [state, setState] = useState<TenantSettingsState>(DEFAULT_STATE);
 
-  const selectedRecord = useMemo(() => saccos.find((item) => item.saccoId === selected) ?? null, [selected, saccos]);
+  const selectedRecord = useMemo(
+    () => saccos.find((item) => item.saccoId === selected) ?? null,
+    [selected, saccos]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -91,7 +96,10 @@ export function TenantSettingsPanel({ saccos, canEdit, initialSaccoId }: TenantS
     };
   }, [selectedRecord]);
 
-  const updateField = <K extends keyof TenantSettingsState>(key: K, value: TenantSettingsState[K]) => {
+  const updateField = <K extends keyof TenantSettingsState>(
+    key: K,
+    value: TenantSettingsState[K]
+  ) => {
     setState((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -164,7 +172,8 @@ export function TenantSettingsPanel({ saccos, canEdit, initialSaccoId }: TenantS
         </select>
         {state.updatedAt && (
           <span className="text-xs text-neutral-3">
-            {t("admin.settings.lastUpdated", "Last updated")}: {new Date(state.updatedAt).toLocaleString()}
+            {t("admin.settings.lastUpdated", "Last updated")}:{" "}
+            {new Date(state.updatedAt).toLocaleString()}
           </span>
         )}
       </div>
@@ -179,7 +188,10 @@ export function TenantSettingsPanel({ saccos, canEdit, initialSaccoId }: TenantS
             onChange={(event) => updateField("rules", event.target.value)}
             disabled={disableInputs}
             rows={6}
-            placeholder={t("admin.settings.rulesPlaceholder", "Document board-approved governance and guardrails.")}
+            placeholder={t(
+              "admin.settings.rulesPlaceholder",
+              "Document board-approved governance and guardrails."
+            )}
             className="w-full rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue disabled:opacity-50"
           />
         </label>
@@ -192,7 +204,10 @@ export function TenantSettingsPanel({ saccos, canEdit, initialSaccoId }: TenantS
             onChange={(event) => updateField("feePolicy", event.target.value)}
             disabled={disableInputs}
             rows={6}
-            placeholder={t("admin.settings.feesPlaceholder", "Summarise joining, contribution, and penalty fees.")}
+            placeholder={t(
+              "admin.settings.feesPlaceholder",
+              "Summarise joining, contribution, and penalty fees."
+            )}
             className="w-full rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue disabled:opacity-50"
           />
         </label>
@@ -292,7 +307,5 @@ function IntegrationToggle({
 
 function TransEmptyState() {
   const { t } = useTranslation();
-  return (
-    <>{t("admin.settings.noSacco", "No SACCO is in scope for this profile.")}</>
-  );
+  return <>{t("admin.settings.noSacco", "No SACCO is in scope for this profile.")}</>;
 }

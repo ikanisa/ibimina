@@ -1,7 +1,7 @@
 /**
  * Group Card Component
  * Displays a single group with metadata and join button
- * 
+ *
  * Features:
  * - Group name and code
  * - Total members count
@@ -25,14 +25,14 @@ interface GroupCardProps {
 /**
  * GroupCard Component
  * Displays group information in a card layout
- * 
+ *
  * @param props.group - Group data to display
- * 
+ *
  * @example
  * ```tsx
  * <GroupCard group={groupData} />
  * ```
- * 
+ *
  * @accessibility
  * - Uses semantic article element
  * - Descriptive button labels
@@ -53,7 +53,7 @@ export function GroupCard({ group }: GroupCardProps) {
   const handleJoinRequest = async () => {
     setIsJoining(true);
     setErrorMessage(null);
-    
+
     try {
       // Call the join request API route
       const response = await fetch(`/api/groups/${group.id}/join-request`, {
@@ -67,7 +67,7 @@ export function GroupCard({ group }: GroupCardProps) {
       });
 
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         setHasRequested(true);
         setErrorMessage(null);
@@ -103,9 +103,7 @@ export function GroupCard({ group }: GroupCardProps) {
     >
       {/* Group header */}
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          {group.name}
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">{group.name}</h3>
         <p className="text-sm text-gray-500">Code: {group.code}</p>
       </div>
 
@@ -173,14 +171,12 @@ export function GroupCard({ group }: GroupCardProps) {
             hasRequested
               ? "bg-green-100 text-green-700 cursor-default"
               : isJoining
-              ? "bg-gray-100 text-gray-400 cursor-wait"
-              : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                ? "bg-gray-100 text-gray-400 cursor-wait"
+                : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
           }
         `}
         aria-label={
-          hasRequested
-            ? `Join request sent for ${group.name}`
-            : `Ask to join ${group.name}`
+          hasRequested ? `Join request sent for ${group.name}` : `Ask to join ${group.name}`
         }
         aria-live="polite"
       >

@@ -9,10 +9,7 @@ export default defineConfig({
     timeout: 10_000,
   },
   retries: process.env.CI ? 1 : 0,
-  reporter: [
-    ["list"],
-    ["html", { outputFolder: ".reports/playwright", open: "never" }],
-  ],
+  reporter: [["list"], ["html", { outputFolder: ".reports/playwright", open: "never" }]],
   use: {
     baseURL,
     trace: "on-first-retry",

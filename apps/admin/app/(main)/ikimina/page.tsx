@@ -16,7 +16,13 @@ export default async function IkiminaPage() {
     <div className="space-y-8">
       <GradientHeader
         title={<Trans i18nKey="ikimina.list.title" fallback="Ikimina Directory" />}
-        subtitle={<Trans i18nKey="ikimina.list.subtitle" fallback="Browse, filter, and drill into every group under your SACCO." className="text-xs text-ink/70" />}
+        subtitle={
+          <Trans
+            i18nKey="ikimina.list.subtitle"
+            fallback="Browse, filter, and drill into every group under your SACCO."
+            className="text-xs text-ink/70"
+          />
+        }
       />
       <IkiminaTable
         rows={rows}

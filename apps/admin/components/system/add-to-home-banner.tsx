@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { cn } from "@/lib/utils";
 
 interface AddToHomeBannerProps {
@@ -54,7 +60,7 @@ export function AddToHomeBanner({
       }
 
       const focusable = [installButtonRef.current, dismissButtonRef.current].filter(
-        (element): element is HTMLButtonElement => Boolean(element),
+        (element): element is HTMLButtonElement => Boolean(element)
       );
 
       if (focusable.length === 0) {
@@ -73,7 +79,7 @@ export function AddToHomeBanner({
       focusable[nextIndex]?.focus();
       event.preventDefault();
     },
-    [onDismiss],
+    [onDismiss]
   );
 
   if (!open) return null;

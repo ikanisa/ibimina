@@ -5,11 +5,12 @@ type AsyncAction<TArgs extends unknown[], TResult> = (...args: TArgs) => Promise
 
 export function instrumentServerAction<TArgs extends unknown[], TResult>(
   name: string,
-  action: AsyncAction<TArgs, TResult>,
+  action: AsyncAction<TArgs, TResult>
 ): AsyncAction<TArgs, TResult> {
   return (async (...args: TArgs) => {
     const headerList = await headers();
-    const requestId = headerList.get("x-request-id") ?? headerList.get("x-correlation-id") ?? undefined;
+    const requestId =
+      headerList.get("x-request-id") ?? headerList.get("x-correlation-id") ?? undefined;
 
     const startedAt = Date.now();
 
@@ -28,7 +29,7 @@ export function instrumentServerAction<TArgs extends unknown[], TResult>(
           logError("server_action_failed", { name, durationMs: Date.now() - startedAt, error });
           throw error;
         }
-      },
+      }
     );
   }) as AsyncAction<TArgs, TResult>;
 }

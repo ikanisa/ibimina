@@ -10,7 +10,13 @@ export interface GradientHeaderProps {
   children?: ReactNode;
 }
 
-export function GradientHeader({ title, subtitle, badge, className, children }: GradientHeaderProps) {
+export function GradientHeader({
+  title,
+  subtitle,
+  badge,
+  className,
+  children,
+}: GradientHeaderProps) {
   return (
     <div className={cn("relative overflow-hidden rounded-3xl bg-kigali p-6 text-ink", className)}>
       <div className="glass relative z-10 rounded-2xl border-white/20 bg-white/20 p-6 shadow-glass">

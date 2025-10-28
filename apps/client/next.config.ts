@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
+import { createSecureHeaders } from "@ibimina/lib";
 
 /**
  * Next.js configuration for SACCO+ Client App
- * 
+ *
  * This configuration enables:
  * - React strict mode for better development experience
  * - Optimized production builds

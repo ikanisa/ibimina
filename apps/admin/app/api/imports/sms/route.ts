@@ -126,7 +126,10 @@ export async function POST(request: NextRequest) {
     const json = (await request.json().catch(() => null)) as unknown;
     const parsed = payloadSchema.safeParse(json);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid payload", details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
 
     const { saccoId: requestedSaccoId, entries } = parsed.data;
@@ -160,7 +163,11 @@ export async function POST(request: NextRequest) {
     for (const entry of entries) {
       try {
         const { data, error } = await adminClient.functions.invoke<SmsParseResponse>("parse-sms", {
-          body: { rawText: entry.rawText, receivedAt: entry.receivedAt, vendorMeta: entry.vendorMeta },
+          body: {
+            rawText: entry.rawText,
+            receivedAt: entry.receivedAt,
+            vendorMeta: entry.vendorMeta,
+          },
         });
 
         if (error || !data) {
@@ -232,14 +239,22 @@ export async function POST(request: NextRequest) {
 
     const txnIds = normalized.map((item) => item.txnId).filter(Boolean);
     const groupCodes = Array.from(
-      new Set(normalized.map((item) => item.refParts.groupCode).filter((code): code is string => Boolean(code))),
+      new Set(
+        normalized
+          .map((item) => item.refParts.groupCode)
+          .filter((code): code is string => Boolean(code))
+      )
     );
     const memberCodes = Array.from(
       new Set(
         normalized
-          .map((item) => (item.refParts.memberCode ? `${item.refParts.groupCode ?? ""}:${item.refParts.memberCode}` : null))
-          .filter((code): code is string => Boolean(code)),
-      ),
+          .map((item) =>
+            item.refParts.memberCode
+              ? `${item.refParts.groupCode ?? ""}:${item.refParts.memberCode}`
+              : null
+          )
+          .filter((code): code is string => Boolean(code))
+      )
     );
 
     const supabase = await createSupabaseServerClient();
@@ -269,7 +284,10 @@ export async function POST(request: NextRequest) {
         .returns<IkiminaRow[]>();
       if (groupError) {
         console.error("imports/sms ikimina lookup failed", groupError);
-        return NextResponse.json({ error: "Failed to resolve ikimina references" }, { status: 500 });
+        return NextResponse.json(
+          { error: "Failed to resolve ikimina references" },
+          { status: 500 }
+        );
       }
       groupRecords = groups ?? [];
     }
@@ -277,7 +295,7 @@ export async function POST(request: NextRequest) {
     let memberRecords: MemberRow[] = [];
     if (memberCodes.length > 0) {
       const memberCodeValues = Array.from(
-        new Set(memberCodes.map((entry) => entry.split(":")[1]).filter((code) => code)),
+        new Set(memberCodes.map((entry) => entry.split(":")[1]).filter((code) => code))
       );
       const groupIds = Array.from(new Set(groupRecords.map((group) => group.id)));
       const { data: members, error: memberError } = await supabase
@@ -300,12 +318,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const paymentMap = new Map(existingPayments.map((payment) => [payment.txn_id.toUpperCase(), payment] as const));
+    const paymentMap = new Map(
+      existingPayments.map((payment) => [payment.txn_id.toUpperCase(), payment] as const)
+    );
     const groupMap = new Map(groupRecords.map((group) => [group.code, group] as const));
     const memberMap = new Map(
       memberRecords
         .filter((member) => member.member_code && member.ikimina_id)
-        .map((member) => [`${member.ikimina_id}:${member.member_code}`, member] as const),
+        .map((member) => [`${member.ikimina_id}:${member.member_code}`, member] as const)
     );
 
     let parsedCount = 0;
@@ -336,7 +356,10 @@ export async function POST(request: NextRequest) {
       const confidence = clampConfidence(parsedTxn.confidence);
       const { groupCode, memberCode } = parseReference(reference);
 
-      const duplicate = Boolean(txnId && (paymentMap.has(txnId.toUpperCase()) || payloadDuplicateSet.has(txnId.toUpperCase())));
+      const duplicate = Boolean(
+        txnId &&
+          (paymentMap.has(txnId.toUpperCase()) || payloadDuplicateSet.has(txnId.toUpperCase()))
+      );
       if (duplicate) {
         duplicateCount += 1;
       }

@@ -39,11 +39,7 @@ export default async function ReportsAdminPage({ searchParams }: ReportsAdminPag
     category: row.category ?? "",
   }));
 
-  const ikiminaQuery = supabase
-    .schema("app")
-    .from("ikimina")
-    .select("id")
-    .limit(1_000);
+  const ikiminaQuery = supabase.schema("app").from("ikimina").select("id").limit(1_000);
 
   const { data: ikiminaRows } = scope.includeAll
     ? await ikiminaQuery
@@ -53,13 +49,13 @@ export default async function ReportsAdminPage({ searchParams }: ReportsAdminPag
     ? saccoOptions.length === 1
       ? saccoOptions[0]!
       : null
-    : saccoOptions.find((option) => option.id === scope.saccoId) ?? saccoOptions[0] ?? null;
+    : (saccoOptions.find((option) => option.id === scope.saccoId) ?? saccoOptions[0] ?? null);
 
   let subscriptionQuery = supabase
     .schema("app")
     .from("report_subscriptions")
     .select(
-      "id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at",
+      "id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -69,7 +65,7 @@ export default async function ReportsAdminPage({ searchParams }: ReportsAdminPag
 
   const { data: subscriptionRows } = await subscriptionQuery;
   const subscriptions: ReportSubscription[] = (subscriptionRows ?? []).map((row) =>
-    mapSubscriptionRow(row as Parameters<typeof mapSubscriptionRow>[0]),
+    mapSubscriptionRow(row as Parameters<typeof mapSubscriptionRow>[0])
   );
 
   return (

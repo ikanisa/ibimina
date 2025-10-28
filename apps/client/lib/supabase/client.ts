@@ -9,7 +9,7 @@ import type { Database } from "./types";
 /**
  * Creates a Supabase client for browser-side operations
  * Uses the public anon key for RLS-protected queries
- * 
+ *
  * @returns Supabase client instance
  */
 export function createSupabaseBrowserClient() {

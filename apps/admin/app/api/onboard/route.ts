@@ -23,16 +23,14 @@ export async function POST(req: NextRequest) {
 
   const { whatsapp_msisdn, momo_msisdn } = parsed.data;
 
-  const { error } = await client
-    .from("members_app_profiles")
-    .upsert(
-      {
-        user_id: user.id,
-        whatsapp_msisdn,
-        momo_msisdn,
-      },
-      { onConflict: "user_id" },
-    );
+  const { error } = await client.from("members_app_profiles").upsert(
+    {
+      user_id: user.id,
+      whatsapp_msisdn,
+      momo_msisdn,
+    },
+    { onConflict: "user_id" }
+  );
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

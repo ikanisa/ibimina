@@ -58,7 +58,8 @@ async function main() {
   const sharedAssets = new Set(initialAssets);
   const dashboardAssets = appManifest.pages?.["/(main)/dashboard/page"] ?? [];
   const dashboardSpecificAssets = dashboardAssets.filter((asset) => !sharedAssets.has(asset));
-  const dashboardTotal = dashboardSpecificAssets.length > 0 ? await sumAssetSizes(dashboardSpecificAssets) : null;
+  const dashboardTotal =
+    dashboardSpecificAssets.length > 0 ? await sumAssetSizes(dashboardSpecificAssets) : null;
 
   const checks = [
     {
@@ -81,9 +82,13 @@ async function main() {
   const failures = [];
   for (const check of checks) {
     if (check.value > check.limit) {
-      failures.push(`${check.label} ${formatBytes(check.value)} (limit ${formatBytes(check.limit)})`);
+      failures.push(
+        `${check.label} ${formatBytes(check.value)} (limit ${formatBytes(check.limit)})`
+      );
     } else {
-      console.log(`✅  ${check.label} ${formatBytes(check.value)} (limit ${formatBytes(check.limit)})`);
+      console.log(
+        `✅  ${check.label} ${formatBytes(check.value)} (limit ${formatBytes(check.limit)})`
+      );
     }
   }
 

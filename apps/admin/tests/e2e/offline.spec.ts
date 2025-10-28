@@ -15,7 +15,10 @@ test.describe("offline experience", () => {
     await expect(page.getByText(/support@ibimina\.rw/i)).toBeVisible();
   });
 
-  test("offline queue indicator exposes queued actions while offline", async ({ page, request }) => {
+  test("offline queue indicator exposes queued actions while offline", async ({
+    page,
+    request,
+  }) => {
     await setSession(request, page, "authenticated");
     await page.goto("/dashboard");
     await page.waitForSelector("text=/Quick actions/i");

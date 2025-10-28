@@ -11,7 +11,10 @@ const requestSchema = z.object({
   smsInboxId: z.string().uuid(),
 });
 
-const loadUserProfile = async (supabase: ReturnType<typeof createServiceClient>, userId: string) => {
+const loadUserProfile = async (
+  supabase: ReturnType<typeof createServiceClient>,
+  userId: string
+) => {
   const { data, error } = await supabase
     .schema("app")
     .from("user_profiles")
@@ -79,8 +82,8 @@ Deno.serve(async (req) => {
 
     if (auth.userId) {
       const profile = await loadUserProfile(supabase, auth.userId);
-      actingRole = profile?.role as string | null ?? actingRole;
-      actingSaccoId = actingSaccoId ?? (profile?.sacco_id as string | null ?? null);
+      actingRole = (profile?.role as string | null) ?? actingRole;
+      actingSaccoId = actingSaccoId ?? (profile?.sacco_id as string | null) ?? null;
 
       if (actingRole !== "SYSTEM_ADMIN") {
         if (!profile?.sacco_id) {
@@ -93,7 +96,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    const aiResult = await parseWithOpenAI(sms.raw_text as string, sms.received_at as string | undefined);
+    const aiResult = await parseWithOpenAI(
+      sms.raw_text as string,
+      sms.received_at as string | undefined
+    );
     const parsed = aiResult.parsed;
 
     const msisdnEncrypted = await encryptField(parsed.msisdn);

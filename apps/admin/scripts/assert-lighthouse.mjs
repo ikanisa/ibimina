@@ -35,10 +35,12 @@ async function main() {
 
     if (score < minimum) {
       failures.push(
-        `${category} scored ${formatScore(score)} (required ≥ ${Math.round(minimum * 100)}%)`,
+        `${category} scored ${formatScore(score)} (required ≥ ${Math.round(minimum * 100)}%)`
       );
     } else {
-      console.log(`✅  ${category} score ${formatScore(score)} (threshold ${Math.round(minimum * 100)}%)`);
+      console.log(
+        `✅  ${category} score ${formatScore(score)} (threshold ${Math.round(minimum * 100)}%)`
+      );
     }
   }
 

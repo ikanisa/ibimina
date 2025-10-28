@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
           code: result.code,
           ...(result.payload ?? {}),
         },
-        { status: result.status },
+        { status: result.status }
       );
     }
 

@@ -51,22 +51,23 @@ export default async function SettingsPage({ params }: PageProps) {
     actor: string | null;
   }>;
 
-  const actorIds = Array.from(new Set(typedHistory.map((row) => row.actor).filter((value): value is string => Boolean(value))));
+  const actorIds = Array.from(
+    new Set(typedHistory.map((row) => row.actor).filter((value): value is string => Boolean(value)))
+  );
   let actorMap = new Map<string, string | null>();
   if (actorIds.length > 0) {
-    const { data: actors } = await supabase
-      .from("users")
-      .select("id, email")
-      .in("id", actorIds);
+    const { data: actors } = await supabase.from("users").select("id, email").in("id", actorIds);
     if (actors) {
-      actorMap = new Map(actors.map((row: { id: string; email: string | null }) => [row.id, row.email]));
+      actorMap = new Map(
+        actors.map((row: { id: string; email: string | null }) => [row.id, row.email])
+      );
     }
   }
 
   const history = typedHistory.map((row) => ({
     id: row.id,
     action: row.action,
-    actorLabel: row.actor ? actorMap.get(row.actor) ?? row.actor : "System",
+    actorLabel: row.actor ? (actorMap.get(row.actor) ?? row.actor) : "System",
     createdAt: row.created_at ?? new Date().toISOString(),
     diff: (row.diff as Record<string, unknown> | null) ?? null,
   }));

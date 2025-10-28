@@ -49,7 +49,9 @@ function AutomationSummary({ analytics }: ExecutiveOverviewProps) {
           className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-4 shadow-glass backdrop-blur"
         >
           <span className="text-sm font-semibold text-neutral-0">{card.label}</span>
-          <p className="mt-2 text-2xl font-bold text-neutral-0">{numberFormatter.format(card.value)}</p>
+          <p className="mt-2 text-2xl font-bold text-neutral-0">
+            {numberFormatter.format(card.value)}
+          </p>
         </article>
       ))}
     </div>
@@ -60,7 +62,9 @@ function MonthlyTrend({ analytics }: ExecutiveOverviewProps) {
   const { t } = useTranslation();
   if (!analytics.monthlyTrend.length) {
     return (
-      <p className="text-sm text-neutral-2">{t("analytics.monthly.noDeposits", "No deposits recorded in the past six months.")}</p>
+      <p className="text-sm text-neutral-2">
+        {t("analytics.monthly.noDeposits", "No deposits recorded in the past six months.")}
+      </p>
     );
   }
 
@@ -90,7 +94,9 @@ function SaccoLeaders({ analytics }: ExecutiveOverviewProps) {
   const { t } = useTranslation();
   if (!analytics.saccoLeaders.length) {
     return (
-      <p className="text-sm text-neutral-2">{t("analytics.sacco.noData", "No SACCO contribution data yet.")}</p>
+      <p className="text-sm text-neutral-2">
+        {t("analytics.sacco.noData", "No SACCO contribution data yet.")}
+      </p>
     );
   }
 
@@ -109,7 +115,9 @@ function SaccoLeaders({ analytics }: ExecutiveOverviewProps) {
             <tr key={leader.saccoId ?? "all"}>
               <td className="px-4 py-3 font-medium text-neutral-0">{leader.saccoName}</td>
               <td className="px-4 py-3 text-right">{currency.format(leader.total)}</td>
-              <td className="px-4 py-3 text-right text-amber-200">{currency.format(leader.unallocated)}</td>
+              <td className="px-4 py-3 text-right text-amber-200">
+                {currency.format(leader.unallocated)}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -122,7 +130,9 @@ function RiskSignals({ analytics }: ExecutiveOverviewProps) {
   const { t } = useTranslation();
   if (!analytics.riskSignals.length) {
     return (
-      <p className="text-sm text-neutral-2">{t("analytics.risk.none", "All ikimina have contributed in the last month.")}</p>
+      <p className="text-sm text-neutral-2">
+        {t("analytics.risk.none", "All ikimina have contributed in the last month.")}
+      </p>
     );
   }
 
@@ -143,12 +153,22 @@ function RiskSignals({ analytics }: ExecutiveOverviewProps) {
               <p className="text-sm font-semibold text-neutral-0">{signal.name}</p>
               {signal.saccoName && <p className="text-[11px] text-neutral-2">{signal.saccoName}</p>}
             </div>
-            <span className={cn("rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.3em]", riskTone[signal.risk])}>
-              {signal.risk === "HIGH" ? t("analytics.risk.high", "High risk") : signal.risk === "MEDIUM" ? t("analytics.risk.medium", "Medium risk") : t("analytics.risk.low", "Low risk")}
+            <span
+              className={cn(
+                "rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.3em]",
+                riskTone[signal.risk]
+              )}
+            >
+              {signal.risk === "HIGH"
+                ? t("analytics.risk.high", "High risk")
+                : signal.risk === "MEDIUM"
+                  ? t("analytics.risk.medium", "Medium risk")
+                  : t("analytics.risk.low", "Low risk")}
             </span>
           </div>
           <p className="mt-2 text-[11px] text-neutral-2">
-            {t("analytics.risk.lastContributionPrefix", "Last contribution")} {signal.daysSince} {t("common.daysAgoSuffix", "days ago")}
+            {t("analytics.risk.lastContributionPrefix", "Last contribution")} {signal.daysSince}{" "}
+            {t("common.daysAgoSuffix", "days ago")}
           </p>
         </Link>
       ))}
@@ -162,37 +182,51 @@ export function ExecutiveOverview({ analytics }: ExecutiveOverviewProps) {
     <div className="space-y-8">
       <section className="space-y-4">
         <header>
-          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.forecast", "Forecast")}</span>
+          <span className="text-lg font-semibold text-neutral-0">
+            {t("analytics.sections.forecast", "Forecast")}
+          </span>
         </header>
         <article className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-glass">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("analytics.forecast.next", "Next month (estimate)")}</p>
-          <p className="mt-2 text-2xl font-semibold text-neutral-0">{currency.format(analytics.forecastNext)}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("analytics.forecast.next", "Next month (estimate)")}
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-neutral-0">
+            {currency.format(analytics.forecastNext)}
+          </p>
         </article>
       </section>
       <section className="space-y-4">
         <header>
-          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.automation", "Automation summary")}</span>
+          <span className="text-lg font-semibold text-neutral-0">
+            {t("analytics.sections.automation", "Automation summary")}
+          </span>
         </header>
         <AutomationSummary analytics={analytics} />
       </section>
 
       <section className="space-y-4">
         <header>
-          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.momentum", "Deposit momentum")}</span>
+          <span className="text-lg font-semibold text-neutral-0">
+            {t("analytics.sections.momentum", "Deposit momentum")}
+          </span>
         </header>
         <MonthlyTrend analytics={analytics} />
       </section>
 
       <section className="space-y-4">
         <header>
-          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.saccoLeaders", "SACCO leaders")}</span>
+          <span className="text-lg font-semibold text-neutral-0">
+            {t("analytics.sections.saccoLeaders", "SACCO leaders")}
+          </span>
         </header>
         <SaccoLeaders analytics={analytics} />
       </section>
 
       <section className="space-y-4">
         <header>
-          <span className="text-lg font-semibold text-neutral-0">{t("analytics.sections.risk", "Risk signals")}</span>
+          <span className="text-lg font-semibold text-neutral-0">
+            {t("analytics.sections.risk", "Risk signals")}
+          </span>
         </header>
         <RiskSignals analytics={analytics} />
       </section>

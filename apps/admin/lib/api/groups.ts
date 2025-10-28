@@ -1,10 +1,10 @@
 /**
  * Groups API Client
- * 
+ *
  * Provides typed client-side functions for interacting with group-related API endpoints.
  * This module handles join requests and member list fetching with proper error handling
  * and type safety.
- * 
+ *
  * @module lib/api/groups
  */
 
@@ -60,16 +60,16 @@ export interface ApiErrorResponse {
 
 /**
  * Submits a request to join a specific group
- * 
+ *
  * This function sends a POST request to the join-request API endpoint.
  * The request is authenticated using the current session cookie.
- * 
+ *
  * @param groupId - UUID of the group to request joining
  * @param payload - Optional join request payload containing a note
  * @returns Promise resolving to the API response or error
- * 
+ *
  * @throws {Error} When the request fails or returns a non-ok status
- * 
+ *
  * @example
  * ```typescript
  * try {
@@ -81,7 +81,7 @@ export interface ApiErrorResponse {
  *   console.error('Failed to submit join request:', error);
  * }
  * ```
- * 
+ *
  * @accessibility
  * Callers should provide appropriate user feedback for success/error states,
  * including screen reader announcements for status changes.
@@ -110,16 +110,16 @@ export async function submitJoinRequest(
 
 /**
  * Fetches the list of members for a specific group
- * 
+ *
  * This function sends a GET request to the members API endpoint.
  * Access is restricted by Row-Level Security (RLS) - only current members
  * of the group can view the members list. Non-members will receive a 403 error.
- * 
+ *
  * @param groupId - UUID of the group to fetch members for
  * @returns Promise resolving to the members list or error
- * 
+ *
  * @throws {Error} When the request fails, user is not authenticated, or access is denied
- * 
+ *
  * @example
  * ```typescript
  * try {
@@ -130,15 +130,13 @@ export async function submitJoinRequest(
  *   // Handle 403 case - user is not a member
  * }
  * ```
- * 
+ *
  * @accessibility
  * Member list results should be presented in an accessible table or list structure
  * with proper ARIA labels and roles. Consider adding sort and filter controls
  * with keyboard navigation support.
  */
-export async function fetchGroupMembers(
-  groupId: string
-): Promise<GroupMembersResponse> {
+export async function fetchGroupMembers(groupId: string): Promise<GroupMembersResponse> {
   const response = await fetch(`/api/groups/${groupId}/members`, {
     method: "GET",
     headers: {
@@ -148,7 +146,7 @@ export async function fetchGroupMembers(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: "Request failed" }));
-    
+
     // Provide specific error messages based on status code
     if (response.status === 401) {
       throw new Error("You must be logged in to view members");
@@ -156,10 +154,8 @@ export async function fetchGroupMembers(
     if (response.status === 403) {
       throw new Error("Access denied. Only group members can view the members list");
     }
-    
-    throw new Error(
-      typeof error.error === "string" ? error.error : "Failed to fetch members"
-    );
+
+    throw new Error(typeof error.error === "string" ? error.error : "Failed to fetch members");
   }
 
   return response.json();

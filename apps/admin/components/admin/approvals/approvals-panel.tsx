@@ -5,7 +5,12 @@ import { Loader2, MailCheck, RefreshCcw, ShieldCheck, ShieldX } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { AdminPanelShortcutDetail } from "@/components/admin/panel/shortcuts";
-import { decideJoinRequest, resendInvite, revokeInvite, sendInvite } from "@/app/(main)/admin/(panel)/approvals/actions";
+import {
+  decideJoinRequest,
+  resendInvite,
+  revokeInvite,
+  sendInvite,
+} from "@/app/(main)/admin/(panel)/approvals/actions";
 import type { ApprovalActionResult } from "@/app/(main)/admin/(panel)/approvals/actions";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
@@ -36,7 +41,9 @@ interface AdminApprovalsPanelProps {
 }
 
 export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPanelProps) {
-  const [requestedJoinId, setRequestedJoinId] = useState<string | null>(joinRequests[0]?.id ?? null);
+  const [requestedJoinId, setRequestedJoinId] = useState<string | null>(
+    joinRequests[0]?.id ?? null
+  );
   const [requestedInviteId, setRequestedInviteId] = useState<string | null>(invites[0]?.id ?? null);
   const [pendingAction, startTransition] = useTransition();
   const { success, error } = useToast();
@@ -69,7 +76,7 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
       }
       success(successMessage);
     },
-    [error, success],
+    [error, success]
   );
 
   const resolveJoinRequest = useCallback(
@@ -77,10 +84,13 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
       if (!selectedJoin) return;
       startTransition(async () => {
         const result = await decideJoinRequest({ requestId: selectedJoin, decision });
-        handleResult(result, decision === "approved" ? "Join request approved" : "Join request rejected");
+        handleResult(
+          result,
+          decision === "approved" ? "Join request approved" : "Join request rejected"
+        );
       });
     },
-    [selectedJoin, handleResult],
+    [selectedJoin, handleResult]
   );
 
   const handleInviteAction = useCallback(
@@ -92,7 +102,7 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
         handleResult(result, type === "resend" ? "Invite resent" : "Invite revoked");
       });
     },
-    [selectedInvite, handleResult],
+    [selectedInvite, handleResult]
   );
 
   useEffect(() => {
@@ -131,7 +141,9 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
       <section className="space-y-4">
         <header>
           <h2 className="text-lg font-semibold text-neutral-0">Join requests</h2>
-          <p className="text-xs text-neutral-3">Approve or reject pending requests. Keyboard shortcuts: A approve, R reject.</p>
+          <p className="text-xs text-neutral-3">
+            Approve or reject pending requests. Keyboard shortcuts: A approve, R reject.
+          </p>
         </header>
         <div className="overflow-hidden rounded-2xl border border-white/10">
           <ul className="divide-y divide-white/5">
@@ -142,15 +154,18 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
                   key={request.id}
                   className={cn(
                     "cursor-pointer bg-white/0 transition",
-                    isSelected ? "bg-white/10" : "hover:bg-white/5",
+                    isSelected ? "bg-white/10" : "hover:bg-white/5"
                   )}
                   onClick={() => setRequestedJoinId(request.id)}
                 >
                   <div className="flex items-center justify-between gap-4 px-4 py-3">
                     <div>
-                      <p className="font-medium text-neutral-0">{request.user_email ?? request.user_id ?? "Unknown"}</p>
+                      <p className="font-medium text-neutral-0">
+                        {request.user_email ?? request.user_id ?? "Unknown"}
+                      </p>
                       <p className="text-xs text-neutral-3">
-                        {request.group_name ?? "—"} · {request.created_at ? new Date(request.created_at).toLocaleString() : "—"}
+                        {request.group_name ?? "—"} ·{" "}
+                        {request.created_at ? new Date(request.created_at).toLocaleString() : "—"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -185,7 +200,9 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
       <aside className="space-y-6">
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-neutral-0">Invites</h2>
-          <p className="text-xs text-neutral-3">Resend or revoke pending invites. Keyboard shortcut: M to resend selected invite.</p>
+          <p className="text-xs text-neutral-3">
+            Resend or revoke pending invites. Keyboard shortcut: M to resend selected invite.
+          </p>
           <div className="overflow-hidden rounded-2xl border border-white/10">
             <ul className="divide-y divide-white/5">
               {invites.map((invite) => {
@@ -195,22 +212,35 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
                     key={invite.id}
                     className={cn(
                       "cursor-pointer transition",
-                      isSelected ? "bg-white/10" : "hover:bg-white/5",
+                      isSelected ? "bg-white/10" : "hover:bg-white/5"
                     )}
-                  onClick={() => setRequestedInviteId(invite.id)}
+                    onClick={() => setRequestedInviteId(invite.id)}
                   >
                     <div className="flex items-center justify-between gap-4 px-4 py-3">
                       <div>
-                        <p className="font-medium text-neutral-0">{invite.invitee_msisdn ?? "Unknown"}</p>
+                        <p className="font-medium text-neutral-0">
+                          {invite.invitee_msisdn ?? "Unknown"}
+                        </p>
                         <p className="text-xs text-neutral-3">
-                          {invite.group_name ?? "—"} · {invite.created_at ? new Date(invite.created_at).toLocaleString() : "—"}
+                          {invite.group_name ?? "—"} ·{" "}
+                          {invite.created_at ? new Date(invite.created_at).toLocaleString() : "—"}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button size="icon" variant="secondary" disabled={pending} onClick={() => handleInviteAction("resend")}>
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          disabled={pending}
+                          onClick={() => handleInviteAction("resend")}
+                        >
                           <RefreshCcw className="h-4 w-4" />
                         </Button>
-                        <Button size="icon" variant="ghost" disabled={pending} onClick={() => handleInviteAction("revoke")}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          disabled={pending}
+                          onClick={() => handleInviteAction("revoke")}
+                        >
                           <ShieldX className="h-4 w-4" />
                         </Button>
                       </div>
@@ -218,23 +248,36 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
                   </li>
                 );
               })}
-              {invites.length === 0 && <li className="px-4 py-6 text-sm text-neutral-3">No pending invites.</li>}
+              {invites.length === 0 && (
+                <li className="px-4 py-6 text-sm text-neutral-3">No pending invites.</li>
+              )}
             </ul>
           </div>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <h3 className="text-sm font-semibold text-neutral-0">Send invite</h3>
-          <p className="text-xs text-neutral-3">Send a new invite by providing group ID and MSISDN.</p>
+          <p className="text-xs text-neutral-3">
+            Send a new invite by providing group ID and MSISDN.
+          </p>
           <div className="mt-3 space-y-3">
-            <Input label="Group ID" value={inviteGroup} onChange={(event) => setInviteGroup(event.target.value)} />
-            <Input label="MSISDN" value={inviteMsisdn} onChange={(event) => setInviteMsisdn(event.target.value)} placeholder="2507…" />
-            <Button
-              onClick={submitInvite}
-              disabled={pending}
-              className="w-full"
-            >
-              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MailCheck className="mr-2 h-4 w-4" />}
+            <Input
+              label="Group ID"
+              value={inviteGroup}
+              onChange={(event) => setInviteGroup(event.target.value)}
+            />
+            <Input
+              label="MSISDN"
+              value={inviteMsisdn}
+              onChange={(event) => setInviteMsisdn(event.target.value)}
+              placeholder="2507…"
+            />
+            <Button onClick={submitInvite} disabled={pending} className="w-full">
+              {pending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MailCheck className="mr-2 h-4 w-4" />
+              )}
               Send invite
             </Button>
           </div>

@@ -1,9 +1,9 @@
 /**
  * Group Members Page
- * 
+ *
  * Displays the list of members for a specific group (Ikimina).
  * Access is restricted - only group members can view this page.
- * 
+ *
  * Features:
  * - Client-side data fetching via API routes
  * - Displays member information with masked sensitive data
@@ -11,14 +11,14 @@
  * - Accessibility-compliant UI following WCAG 2.1 AA standards
  * - Responsive table layout
  * - Semantic HTML structure
- * 
+ *
  * URL: /groups/[id]/members
- * 
+ *
  * Security:
  * - Client Component that fetches data from authenticated API route
  * - RLS policies enforce member-only access at the database level
  * - Masked phone numbers and national IDs
- * 
+ *
  * @accessibility
  * - Semantic HTML (table, thead, tbody, th, td)
  * - Proper heading hierarchy
@@ -151,7 +151,7 @@ export default function GroupMembersPage() {
               <span className="text-sm font-medium">Back to Groups</span>
             </button>
           </div>
-          
+
           {membersData && (
             <div className="mt-4">
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -187,9 +187,7 @@ export default function GroupMembersPage() {
           >
             <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
             <div>
-              <h2 className="text-lg font-semibold text-red-900 mb-1">
-                Unable to Load Members
-              </h2>
+              <h2 className="text-lg font-semibold text-red-900 mb-1">Unable to Load Members</h2>
               <p className="text-red-700">{error}</p>
               {error.includes("permission") && (
                 <p className="mt-2 text-sm text-red-600">
@@ -273,9 +271,7 @@ export default function GroupMembersPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" aria-hidden="true" />
-                            <time dateTime={member.joined_at}>
-                              {formatDate(member.joined_at)}
-                            </time>
+                            <time dateTime={member.joined_at}>{formatDate(member.joined_at)}</time>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
