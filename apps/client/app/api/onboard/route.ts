@@ -1,28 +1,28 @@
 /**
  * Onboarding API Route Handler
- * 
+ *
  * POST /api/onboard
- * 
+ *
  * This route handles member onboarding by saving user profile data to the
  * members_app_profiles table in Supabase.
- * 
+ *
  * Request body:
  * - whatsapp_msisdn: string (required) - WhatsApp phone number in E.164 format
  * - momo_msisdn: string (required) - Mobile Money phone number in E.164 format
  * - lang: string (optional) - Preferred language code (defaults to 'en')
- * 
+ *
  * Response:
  * - 201: Profile created successfully
  * - 400: Invalid request body or validation error
  * - 401: User not authenticated
  * - 409: Profile already exists for this user
  * - 500: Server error during profile creation
- * 
+ *
  * Security:
  * - Requires valid Supabase session (authenticated user)
  * - Row Level Security (RLS) policies enforce user can only create their own profile
  * - Input validation using Zod schema
- * 
+ *
  * Database:
  * - Table: public.members_app_profiles
  * - RLS Policy: "Members can insert own profile"
@@ -37,10 +37,12 @@ import { z } from "zod";
  * Ensures required fields are present and properly formatted
  */
 const onboardingSchema = z.object({
-  whatsapp_msisdn: z.string()
+  whatsapp_msisdn: z
+    .string()
     .min(1, "WhatsApp number is required")
     .regex(/^\+250[0-9]{9}$/, "Invalid Rwanda phone number format (must be +250XXXXXXXXX)"),
-  momo_msisdn: z.string()
+  momo_msisdn: z
+    .string()
     .min(1, "Mobile Money number is required")
     .regex(/^\+250[0-9]{9}$/, "Invalid Rwanda phone number format (must be +250XXXXXXXXX)"),
   lang: z.string().optional().default("en"),
@@ -56,8 +58,11 @@ export async function POST(request: Request) {
     const supabase = await createSupabaseServerClient();
 
     // Verify user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       return NextResponse.json(
         { error: "Authentication required", details: "Please sign in to continue" },
@@ -71,9 +76,9 @@ export async function POST(request: Request) {
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
+        {
           error: "Invalid request data",
-          details: validationResult.error.errors.map(e => e.message).join(", ")
+          details: validationResult.error.errors.map((e) => e.message).join(", "),
         },
         { status: 400 }
       );
@@ -90,9 +95,9 @@ export async function POST(request: Request) {
 
     if (existingProfile) {
       return NextResponse.json(
-        { 
+        {
           error: "Profile already exists",
-          details: "A profile has already been created for this account"
+          details: "A profile has already been created for this account",
         },
         { status: 409 }
       );
@@ -115,9 +120,9 @@ export async function POST(request: Request) {
     if (insertError) {
       console.error("Profile insertion error:", insertError);
       return NextResponse.json(
-        { 
+        {
           error: "Failed to create profile",
-          details: insertError.message
+          details: insertError.message,
         },
         { status: 500 }
       );
@@ -137,13 +142,12 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-
   } catch (error) {
     console.error("Onboarding error:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "An unexpected error occurred"
+        details: error instanceof Error ? error.message : "An unexpected error occurred",
       },
       { status: 500 }
     );

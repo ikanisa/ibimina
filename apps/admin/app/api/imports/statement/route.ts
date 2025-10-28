@@ -75,7 +75,10 @@ export async function POST(request: NextRequest) {
     const parsed = payloadSchema.safeParse(json);
 
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid payload", details: parsed.error.flatten() },
+        { status: 400 }
+      );
     }
 
     const { saccoId: requestedSaccoId, ikiminaId, rows, dryRun = false } = parsed.data;
@@ -116,7 +119,10 @@ export async function POST(request: NextRequest) {
 
       const typed = group as IkiminaRecord;
       if (typed.sacco_id !== saccoScope) {
-        return NextResponse.json({ error: "Ikimina does not belong to the selected SACCO" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Ikimina does not belong to the selected SACCO" },
+          { status: 400 }
+        );
       }
       ikiminaRecord = typed;
     }
@@ -129,7 +135,9 @@ export async function POST(request: NextRequest) {
 
     const normalizedRows = rows.map((row) => {
       const occurred = new Date(row.occurredAt);
-      const isoOccurred = Number.isNaN(occurred.getTime()) ? row.occurredAt : occurred.toISOString();
+      const isoOccurred = Number.isNaN(occurred.getTime())
+        ? row.occurredAt
+        : occurred.toISOString();
       return {
         occurredAt: isoOccurred,
         txnId: normalizeTxnId(row.txnId),
@@ -165,7 +173,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("imports/statement invoke failed", error);
-      return NextResponse.json({ error: error.message ?? "Statement import failed" }, { status: 502 });
+      return NextResponse.json(
+        { error: error.message ?? "Statement import failed" },
+        { status: 502 }
+      );
     }
 
     const summary = data ?? { inserted: 0, duplicates: 0, posted: 0, unallocated: 0 };

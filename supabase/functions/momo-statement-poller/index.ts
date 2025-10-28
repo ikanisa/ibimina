@@ -5,7 +5,8 @@ import { requireEnv } from "../_shared/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
 
 const MAX_BATCH = Math.max(parseInt(Deno.env.get("MOMO_POLL_MAX_BATCH") ?? "100", 10), 1);
@@ -146,15 +147,18 @@ Deno.serve(async (req) => {
           const { data: stagingRows, error: stagingError } = await supabase
             .schema("app")
             .from("momo_statement_staging")
-            .insert({
-              poller_id: poller.id,
-              sacco_id: poller.sacco_id,
-              external_id: statement.id,
-              payload: statement,
-              statement_date: statement.occurred_at ? statement.occurred_at.slice(0, 10) : null,
-              latency_ms: latency ?? null,
-              polled_at: nowIso(),
-            }, { returning: "representation", defaultToNull: true })
+            .insert(
+              {
+                poller_id: poller.id,
+                sacco_id: poller.sacco_id,
+                external_id: statement.id,
+                payload: statement,
+                statement_date: statement.occurred_at ? statement.occurred_at.slice(0, 10) : null,
+                latency_ms: latency ?? null,
+                polled_at: nowIso(),
+              },
+              { returning: "representation", defaultToNull: true }
+            )
             .select();
 
           if (stagingError) {
@@ -178,14 +182,17 @@ Deno.serve(async (req) => {
           const { data: jobRows, error: jobError } = await supabase
             .schema("app")
             .from("reconciliation_jobs")
-            .insert({
-              staging_id: stagingRow.id,
-              sacco_id: poller.sacco_id,
-              job_type: "STATEMENT_SYNC",
-              status: "PENDING",
-              queued_at: nowIso(),
-              meta: { pollerId: poller.id, provider: poller.provider ?? "unknown" },
-            }, { returning: "representation", defaultToNull: true })
+            .insert(
+              {
+                staging_id: stagingRow.id,
+                sacco_id: poller.sacco_id,
+                job_type: "STATEMENT_SYNC",
+                status: "PENDING",
+                queued_at: nowIso(),
+                meta: { pollerId: poller.id, provider: poller.provider ?? "unknown" },
+              },
+              { returning: "representation", defaultToNull: true }
+            )
             .select();
 
           if (jobError) {
@@ -203,7 +210,8 @@ Deno.serve(async (req) => {
           }
         }
 
-        const averageLatency = latencySamples > 0 ? Math.round(totalLatency / latencySamples) : null;
+        const averageLatency =
+          latencySamples > 0 ? Math.round(totalLatency / latencySamples) : null;
         await supabase
           .schema("app")
           .from("momo_statement_pollers")
@@ -233,7 +241,10 @@ Deno.serve(async (req) => {
         await supabase
           .schema("app")
           .from("momo_statement_pollers")
-          .update({ last_error: error instanceof Error ? error.message : String(error), last_polled_at: nowIso() })
+          .update({
+            last_error: error instanceof Error ? error.message : String(error),
+            last_polled_at: nowIso(),
+          })
           .eq("id", poller.id);
         await recordMetric(supabase, "momo_poll_failure", 1, { pollerId: poller.id });
       }
@@ -244,9 +255,15 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error("momo-statement-poller unhandled", error);
-    return new Response(JSON.stringify({ success: false, error: error instanceof Error ? error.message : String(error) }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
+    );
   }
 });

@@ -29,7 +29,15 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  background-image: var(--nyungwe, radial-gradient(1200px 800px at 20% 10%, rgba(0, 161, 222, 0.32), rgba(250, 210, 1, 0.18), rgba(32, 96, 61, 0.28)));
+  background-image: var(
+    --nyungwe,
+    radial-gradient(
+      1200px 800px at 20% 10%,
+      rgba(0, 161, 222, 0.32),
+      rgba(250, 210, 1, 0.18),
+      rgba(32, 96, 61, 0.28)
+    )
+  );
   background-attachment: fixed;
 }
 

@@ -7,7 +7,10 @@ export interface TenantScope {
 }
 
 export type TenantSearchParams = Record<string, string | string[] | undefined>;
-export type TenantScopeSearchParams = TenantSearchParams | URLSearchParams | ReadonlyURLSearchParams;
+export type TenantScopeSearchParams =
+  | TenantSearchParams
+  | URLSearchParams
+  | ReadonlyURLSearchParams;
 
 export type TenantScopeSearchParamsInput =
   | TenantScopeSearchParams
@@ -16,7 +19,7 @@ export type TenantScopeSearchParamsInput =
 
 export function resolveTenantScope(
   profile: ProfileRow,
-  searchParams?: TenantSearchParams,
+  searchParams?: TenantSearchParams
 ): TenantScope {
   const raw = valueFromRecord(searchParams?.sacco);
   const requested = raw && raw.length > 0 ? raw : null;
@@ -45,7 +48,7 @@ function valueFromRecord(value: unknown): string | null {
 }
 
 export function normalizeTenantSearchParams(
-  searchParams?: TenantScopeSearchParams,
+  searchParams?: TenantScopeSearchParams
 ): TenantSearchParams | undefined {
   if (!searchParams) {
     return undefined;
@@ -72,7 +75,7 @@ export function normalizeTenantSearchParams(
 }
 
 export async function resolveTenantScopeSearchParams(
-  input: TenantScopeSearchParamsInput,
+  input: TenantScopeSearchParamsInput
 ): Promise<TenantSearchParams | undefined> {
   if (!input) {
     return undefined;
@@ -98,7 +101,7 @@ function isSearchParamsObject(value: unknown): value is URLSearchParams | Readon
 }
 
 function isPromiseLike(
-  value: TenantScopeSearchParamsInput,
+  value: TenantScopeSearchParamsInput
 ): value is Promise<TenantScopeSearchParams | undefined> {
   return (
     typeof value === "object" &&

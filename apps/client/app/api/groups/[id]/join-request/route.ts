@@ -1,32 +1,32 @@
 /**
  * Join Request API Route Handler
- * 
+ *
  * POST /api/groups/[id]/join-request
- * 
+ *
  * This route handles join requests for groups (Ibimina). Users can request
  * to join a group, and the request will be stored for admin approval.
- * 
+ *
  * Request body:
  * - sacco_id: string (required) - SACCO UUID that the group belongs to
  * - note: string (optional) - Optional note to include with the request
- * 
+ *
  * Response:
  * - 201: Join request created successfully
  * - 400: Invalid request body or validation error
  * - 401: User not authenticated
  * - 409: Join request already exists for this user/group combination
  * - 500: Server error during request creation
- * 
+ *
  * Security:
  * - Requires valid Supabase session (authenticated user)
  * - Row Level Security (RLS) policies enforce user can only create their own requests
  * - Input validation using Zod schema
  * - Prevents duplicate requests
- * 
+ *
  * Database:
  * - Table: public.join_requests
  * - RLS Policy: "Members create join requests"
- * 
+ *
  * @accessibility
  * - Returns clear success/error messages for user feedback
  * - Supports status announcements for screen readers
@@ -48,21 +48,21 @@ const joinRequestSchema = z.object({
 /**
  * POST handler for creating group join requests
  * Allows authenticated users to request membership in a group
- * 
+ *
  * @param request - Next.js request object
  * @param context - Route context with group ID parameter
  */
-export async function POST(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     // Get the group ID from route parameters
     const params = await context.params;
     const groupId = params.id;
 
     // Validate group ID format
-    if (!groupId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId)) {
+    if (
+      !groupId ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId)
+    ) {
       return NextResponse.json(
         {
           error: "Invalid group ID",
@@ -76,8 +76,11 @@ export async function POST(
     const supabase = await createSupabaseServerClient();
 
     // Verify user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       return NextResponse.json(
         {
@@ -96,7 +99,7 @@ export async function POST(
       return NextResponse.json(
         {
           error: "Invalid request data",
-          details: validationResult.error.errors.map(e => e.message).join(", "),
+          details: validationResult.error.errors.map((e) => e.message).join(", "),
         },
         { status: 400 }
       );
@@ -155,10 +158,11 @@ export async function POST(
       .maybeSingle();
 
     if (existingRequest) {
-      const statusMessage = existingRequest.status === "approved"
-        ? "You are already a member of this group"
-        : "You have already requested to join this group. Please wait for approval.";
-      
+      const statusMessage =
+        existingRequest.status === "approved"
+          ? "You are already a member of this group"
+          : "You have already requested to join this group. Please wait for approval.";
+
       return NextResponse.json(
         {
           error: "Request already exists",
@@ -209,7 +213,6 @@ export async function POST(
       },
       { status: 201 }
     );
-
   } catch (error) {
     console.error("Join request error:", error);
     return NextResponse.json(

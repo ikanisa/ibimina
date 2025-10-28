@@ -51,10 +51,10 @@ async function checkManifest() {
 
 async function checkLayoutHead() {
   const layout = await readFile("app/layout.tsx", "utf8");
-  if (!layout.includes("manifest: \"/manifest.json\"")) {
+  if (!layout.includes('manifest: "/manifest.json"')) {
     throw new Error("Root layout is not advertising /manifest.json");
   }
-  if (!layout.includes("themeColor: \"#0b1020\"")) {
+  if (!layout.includes('themeColor: "#0b1020"')) {
     throw new Error("Root layout themeColor is not set to #0b1020");
   }
 }
@@ -80,7 +80,8 @@ async function runBuild() {
 
 async function runServerHealthcheck() {
   const port = 3100;
-  const nextBin = process.platform === "win32" ? "node_modules/.bin/next.cmd" : "node_modules/.bin/next";
+  const nextBin =
+    process.platform === "win32" ? "node_modules/.bin/next.cmd" : "node_modules/.bin/next";
   const server = spawn(nextBin, ["start", "-p", String(port), "-H", "127.0.0.1"], {
     env: { ...process.env },
     stdio: "inherit",
@@ -126,12 +127,12 @@ async function runServerHealthcheck() {
   if (!success) {
     if (exitCode !== null) {
       console.warn(
-        `⚠️  Could not verify /api/healthz locally (exit code ${exitCode}${exitSignal ? `, signal ${exitSignal}` : ""}). Double-check env vars and rerun.`,
+        `⚠️  Could not verify /api/healthz locally (exit code ${exitCode}${exitSignal ? `, signal ${exitSignal}` : ""}). Double-check env vars and rerun.`
       );
       return;
     }
     throw new Error("Failed to confirm /api/healthz within 45s");
-}
+  }
 }
 
 async function main() {

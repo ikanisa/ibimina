@@ -12,11 +12,14 @@ export async function POST(request: NextRequest) {
     return disabled();
   }
 
-  type VerifyState = {
-    totpSecret?: string | null;
-    lastStep?: number | null;
-    backupHashes?: string[] | null;
-  } | null | undefined;
+  type VerifyState =
+    | {
+        totpSecret?: string | null;
+        lastStep?: number | null;
+        backupHashes?: string[] | null;
+      }
+    | null
+    | undefined;
 
   type VerifyBody = {
     factor?: string;
@@ -42,7 +45,8 @@ export async function POST(request: NextRequest) {
   }
 
   if (factor === "totp") {
-    const secret: string | undefined = body?.plaintextTotpSecret ?? body?.state?.totpSecret ?? undefined;
+    const secret: string | undefined =
+      body?.plaintextTotpSecret ?? body?.state?.totpSecret ?? undefined;
     if (!secret) {
       return NextResponse.json({ ok: false, error: "missing_totp_secret" }, { status: 400 });
     }

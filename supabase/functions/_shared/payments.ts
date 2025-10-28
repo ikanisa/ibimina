@@ -12,7 +12,7 @@ export type ReferenceResolution = {
 export const resolveReference = async (
   supabase: AnyClient,
   reference: string | undefined | null,
-  fallbackSaccoId: string | null,
+  fallbackSaccoId: string | null
 ): Promise<ReferenceResolution> => {
   if (!reference) {
     return { saccoId: fallbackSaccoId, ikiminaId: null, memberId: null, status: "PENDING" };

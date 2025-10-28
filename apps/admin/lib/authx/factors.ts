@@ -26,13 +26,20 @@ export const listUserFactors = async (userId: string): Promise<FactorSummary> =>
   const authx = (supabase as any).schema("authx");
 
   const [{ data: mfaRow }, { data: userRow }, { count: passkeyCount }] = await Promise.all([
-    authx.from("user_mfa").select("preferred_factor,enrollment").eq("user_id", userId).maybeSingle(),
+    authx
+      .from("user_mfa")
+      .select("preferred_factor,enrollment")
+      .eq("user_id", userId)
+      .maybeSingle(),
     supabase
       .from("users")
       .select("mfa_secret_enc, mfa_backup_hashes, mfa_passkey_enrolled, mfa_enabled, email")
       .eq("id", userId)
       .maybeSingle(),
-    supabase.from("webauthn_credentials").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase
+      .from("webauthn_credentials")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId),
   ]);
 
   type UserRow = {
@@ -47,14 +54,17 @@ export const listUserFactors = async (userId: string): Promise<FactorSummary> =>
 
   const enrollment = parseEnrollment(mfaRow?.enrollment);
   const whatsappMeta = parseEnrollment(enrollment["whatsapp"]);
-  const preferred = typeof mfaRow?.preferred_factor === "string" ? mfaRow?.preferred_factor : "passkey";
+  const preferred =
+    typeof mfaRow?.preferred_factor === "string" ? mfaRow?.preferred_factor : "passkey";
 
   const totpEnrolled = Boolean(userData?.mfa_secret_enc);
   const passkeyEnrolled = Boolean(userData?.mfa_passkey_enrolled) || (passkeyCount ?? 0) > 0;
   const emailAvailable = true;
-  const whatsappMsisdn = typeof whatsappMeta["msisdn"] === "string" ? (whatsappMeta["msisdn"] as string) : null;
+  const whatsappMsisdn =
+    typeof whatsappMeta["msisdn"] === "string" ? (whatsappMeta["msisdn"] as string) : null;
   const whatsappEnrolled = Boolean(whatsappMsisdn);
-  const backupAvailable = Array.isArray(userData?.mfa_backup_hashes) && (userData?.mfa_backup_hashes?.length ?? 0) > 0;
+  const backupAvailable =
+    Array.isArray(userData?.mfa_backup_hashes) && (userData?.mfa_backup_hashes?.length ?? 0) > 0;
 
   return {
     preferred,

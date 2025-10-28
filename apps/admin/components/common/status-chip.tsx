@@ -14,5 +14,11 @@ const toneToVariant: Record<NonNullable<StatusChipProps["tone"]>, BadgeProps["va
 };
 
 export function StatusChip({ children, tone = "neutral" }: StatusChipProps) {
-  return <Badge variant={toneToVariant[tone]}>{children}</Badge>;
+  return (
+    <span
+      className={cn("rounded-full px-3 py-1 text-xs uppercase tracking-wide", toneClasses[tone])}
+    >
+      {children}
+    </span>
+  );
 }

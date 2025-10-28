@@ -6,12 +6,22 @@ import type { AuthContext, ProfileRow } from "@/lib/auth/service";
 
 export type { AuthContext, ProfileRow } from "@/lib/auth/service";
 
+// E2E testing stub authentication cookie name
 const STUB_COOKIE_NAME = "stub-auth";
 
+/**
+ * Check if E2E stub authentication is enabled
+ * Used during automated testing to bypass real Supabase authentication
+ */
 function isE2EStubEnabled() {
   return process.env.AUTH_E2E_STUB === "1";
 }
 
+/**
+ * Get stub authentication context for E2E testing
+ * Returns a mock user and profile when the stub-auth cookie is present
+ * This allows automated tests to simulate authenticated sessions without real credentials
+ */
 async function getStubContext(): Promise<AuthContext | null> {
   const cookieStore = await cookies();
   const marker = cookieStore.get(STUB_COOKIE_NAME);
@@ -65,6 +75,11 @@ async function getStubContext(): Promise<AuthContext | null> {
   return { user: stubUser, profile: stubProfile };
 }
 
+/**
+ * Retrieve the current user and their profile
+ * Returns null if not authenticated
+ * Uses stub authentication in E2E test mode, otherwise queries Supabase
+ */
 export async function getUserAndProfile(): Promise<AuthContext | null> {
   if (isE2EStubEnabled()) {
     return getStubContext();
@@ -72,6 +87,11 @@ export async function getUserAndProfile(): Promise<AuthContext | null> {
   return fetchUserAndProfile();
 }
 
+/**
+ * Require authentication, redirecting to login if not authenticated
+ * Use this in server components and API routes that need authentication
+ * @throws Redirects to /login if user is not authenticated
+ */
 export async function requireUserAndProfile(): Promise<AuthContext> {
   const context = await getUserAndProfile();
   if (!context) {
@@ -80,6 +100,11 @@ export async function requireUserAndProfile(): Promise<AuthContext> {
   return context;
 }
 
+/**
+ * Redirect authenticated users to the dashboard
+ * Use this on public pages (like login) to prevent authenticated users from accessing them
+ * @param destination - Where to redirect authenticated users (default: /dashboard)
+ */
 export async function redirectIfAuthenticated(destination = "/dashboard") {
   const context = await getUserAndProfile();
   if (!context) {

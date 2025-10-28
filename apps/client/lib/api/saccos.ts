@@ -34,30 +34,28 @@ export interface SaccoSearchParams {
 /**
  * Search for SACCOs using trigram-based semantic search (Server-side)
  * Uses the search_saccos database function for efficient searching
- * 
+ *
  * @param params - Search parameters including query text and filters
  * @returns Array of SACCO search results
- * 
+ *
  * @example
  * ```ts
- * const results = await searchSaccos({ 
+ * const results = await searchSaccos({
  *   query: 'Gasabo',
  *   limit: 20,
  *   district: 'Gasabo'
  * });
  * ```
- * 
+ *
  * @remarks
  * This function uses server-side Supabase client and should be called
  * from Server Components or API routes only
  */
-export async function searchSaccos(
-  params: SaccoSearchParams = {}
-): Promise<SaccoSearchResult[]> {
+export async function searchSaccos(params: SaccoSearchParams = {}): Promise<SaccoSearchResult[]> {
   const { query, limit = 20, district, sector } = params;
-  
+
   const supabase = await createSupabaseServerClient();
-  
+
   const { data, error } = await supabase.rpc("search_saccos", {
     query: query || null,
     limit_count: limit,
@@ -76,18 +74,18 @@ export async function searchSaccos(
 /**
  * Search for SACCOs using trigram-based semantic search (Client-side)
  * Uses the search_saccos database function for efficient searching
- * 
+ *
  * @param params - Search parameters including query text and filters
  * @returns Array of SACCO search results
- * 
+ *
  * @example
  * ```ts
- * const results = await searchSaccosClient({ 
+ * const results = await searchSaccosClient({
  *   query: 'Gasabo',
  *   limit: 20
  * });
  * ```
- * 
+ *
  * @remarks
  * This function uses browser-side Supabase client and should be called
  * from Client Components only
@@ -96,9 +94,9 @@ export async function searchSaccosClient(
   params: SaccoSearchParams = {}
 ): Promise<SaccoSearchResult[]> {
   const { query, limit = 20, district, sector } = params;
-  
+
   const supabase = createSupabaseBrowserClient();
-  
+
   const { data, error } = await supabase.rpc("search_saccos", {
     query: query || null,
     limit_count: limit,
@@ -116,13 +114,13 @@ export async function searchSaccosClient(
 
 /**
  * Get a single SACCO by ID (Server-side)
- * 
+ *
  * @param id - SACCO UUID
  * @returns SACCO data or null if not found
  */
 export async function getSaccoById(id: string): Promise<SaccoSearchResult | null> {
   const supabase = await createSupabaseServerClient();
-  
+
   const { data, error } = await supabase
     .from("saccos")
     .select("id, name, district, sector_code, merchant_code, province, category")

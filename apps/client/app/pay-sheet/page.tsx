@@ -1,14 +1,14 @@
 /**
  * USSD Pay Sheet Page
  * Displays payment instructions with USSD codes for member contributions
- * 
+ *
  * This page provides:
  * - List of pending and completed payments
  * - USSD codes for mobile money payments
  * - Payment amounts and due dates
  * - Payment status tracking
  * - Accessibility-compliant UI following WCAG 2.1 AA standards
- * 
+ *
  * Features:
  * - Tap-to-dial USSD codes for quick payment
  * - Clear status indicators with color and text
@@ -31,8 +31,8 @@ export default async function PaySheetPage() {
   // Fetch pay sheet data - show pending payments first
   let paySheetEntries: UssdPaySheetEntry[];
   try {
-    paySheetEntries = await getUssdPaySheet({ 
-      limit: 50 
+    paySheetEntries = await getUssdPaySheet({
+      limit: 50,
     });
   } catch (error) {
     // Handle authentication or other errors gracefully
@@ -41,18 +41,16 @@ export default async function PaySheetPage() {
   }
 
   // Separate pending and completed payments for better UX
-  const pendingPayments = paySheetEntries.filter(entry => entry.payment_status === "PENDING");
-  const completedPayments = paySheetEntries.filter(entry => entry.payment_status === "COMPLETED");
-  const failedPayments = paySheetEntries.filter(entry => entry.payment_status === "FAILED");
+  const pendingPayments = paySheetEntries.filter((entry) => entry.payment_status === "PENDING");
+  const completedPayments = paySheetEntries.filter((entry) => entry.payment_status === "COMPLETED");
+  const failedPayments = paySheetEntries.filter((entry) => entry.payment_status === "FAILED");
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Page header */}
       <header className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Payment Instructions
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">Payment Instructions</h1>
           <p className="mt-1 text-sm text-gray-600">
             Use the USSD codes below to make payments via mobile money
           </p>
@@ -92,10 +90,7 @@ export default async function PaySheetPage() {
         {/* Pending Payments Section */}
         {pendingPayments.length > 0 && (
           <section aria-labelledby="pending-payments-heading" className="mb-8">
-            <h2 
-              id="pending-payments-heading"
-              className="text-xl font-semibold text-gray-900 mb-4"
-            >
+            <h2 id="pending-payments-heading" className="text-xl font-semibold text-gray-900 mb-4">
               Pending Payments ({pendingPayments.length})
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -109,7 +104,7 @@ export default async function PaySheetPage() {
         {/* Completed Payments Section */}
         {completedPayments.length > 0 && (
           <section aria-labelledby="completed-payments-heading" className="mb-8">
-            <h2 
+            <h2
               id="completed-payments-heading"
               className="text-xl font-semibold text-gray-900 mb-4"
             >
@@ -126,10 +121,7 @@ export default async function PaySheetPage() {
         {/* Failed Payments Section */}
         {failedPayments.length > 0 && (
           <section aria-labelledby="failed-payments-heading" className="mb-8">
-            <h2 
-              id="failed-payments-heading"
-              className="text-xl font-semibold text-gray-900 mb-4"
-            >
+            <h2 id="failed-payments-heading" className="text-xl font-semibold text-gray-900 mb-4">
               Failed Payments ({failedPayments.length})
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -142,14 +134,12 @@ export default async function PaySheetPage() {
 
         {/* Help text */}
         {paySheetEntries.length > 0 && (
-          <div 
+          <div
             className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg"
             role="region"
             aria-label="Payment instructions help"
           >
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">
-              How to pay using USSD
-            </h3>
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">How to pay using USSD</h3>
             <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
               <li>Tap the USSD code on any payment card below</li>
               <li>Your phone will dial the code automatically</li>
@@ -166,9 +156,9 @@ export default async function PaySheetPage() {
 /**
  * Payment Card Component
  * Displays a single payment instruction with USSD code
- * 
+ *
  * @param props.entry - USSD pay sheet entry data
- * 
+ *
  * @accessibility
  * - Uses semantic HTML (article, dl, dt, dd)
  * - Provides descriptive aria-labels
@@ -240,62 +230,40 @@ function PaymentCard({ entry }: PaymentCardProps) {
       <dl className="space-y-3">
         {/* Group name */}
         <div>
-          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-            Group
-          </dt>
-          <dd className="mt-1 text-sm font-semibold text-gray-900">
-            {entry.ikimina_name}
-          </dd>
+          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Group</dt>
+          <dd className="mt-1 text-sm font-semibold text-gray-900">{entry.ikimina_name}</dd>
         </div>
 
         {/* SACCO name */}
         <div>
-          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-            SACCO
-          </dt>
-          <dd className="mt-1 text-sm text-gray-900">
-            {entry.sacco_name}
-          </dd>
+          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">SACCO</dt>
+          <dd className="mt-1 text-sm text-gray-900">{entry.sacco_name}</dd>
         </div>
 
         {/* Payment amount */}
         <div>
-          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-            Amount
-          </dt>
-          <dd className="mt-1 text-lg font-bold text-gray-900">
-            {formattedAmount}
-          </dd>
+          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</dt>
+          <dd className="mt-1 text-lg font-bold text-gray-900">{formattedAmount}</dd>
         </div>
 
         {/* Due date */}
         {formattedDueDate && (
           <div>
-            <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              Due Date
-            </dt>
-            <dd className="mt-1 text-sm text-gray-900">
-              {formattedDueDate}
-            </dd>
+            <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Due Date</dt>
+            <dd className="mt-1 text-sm text-gray-900">{formattedDueDate}</dd>
           </div>
         )}
 
         {/* Reference code */}
         <div>
-          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-            Reference
-          </dt>
-          <dd className="mt-1 text-sm text-gray-900 font-mono">
-            {entry.reference_code}
-          </dd>
+          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Reference</dt>
+          <dd className="mt-1 text-sm text-gray-900 font-mono">{entry.reference_code}</dd>
         </div>
 
         {/* USSD code - only show for pending payments */}
         {entry.payment_status === "PENDING" && (
           <div>
-            <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              USSD Code
-            </dt>
+            <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">USSD Code</dt>
             <dd className="mt-2">
               <a
                 href={`tel:${encodeURIComponent(entry.ussd_code)}`}
@@ -304,9 +272,7 @@ function PaymentCard({ entry }: PaymentCardProps) {
               >
                 {entry.ussd_code}
               </a>
-              <p className="mt-1 text-xs text-gray-500 text-center">
-                Tap to dial
-              </p>
+              <p className="mt-1 text-xs text-gray-500 text-center">Tap to dial</p>
             </dd>
           </div>
         )}

@@ -112,10 +112,14 @@ Canonical wording for high‑frequency UI terms to keep translations consistent.
   - fr: Type
 
 Checks
+
 - `npm run check:i18n:consistency` verifies the above keys match the glossary.
 - `npm run fix:i18n` fills missing keys in `rw`/`fr` from `en`.
 
 Contribution tips
+
 - Prefer adding new keys under existing sections (e.g., `reports.*`, `admin.*`).
-- Add English first, then run `npm run fix:i18n` to keep parity until translations are provided.
-- If you need to modify glossary terms, update this file and `scripts/check-i18n-consistency.mjs` together.
+- Add English first, then run `npm run fix:i18n` to keep parity until
+  translations are provided.
+- If you need to modify glossary terms, update this file and
+  `scripts/check-i18n-consistency.mjs` together.

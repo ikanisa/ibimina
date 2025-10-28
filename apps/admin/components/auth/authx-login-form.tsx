@@ -372,24 +372,27 @@ export function AuthxLoginForm({
 
   const parsedSeconds = useMemo(() => secondsRemaining ?? 0, [secondsRemaining]);
 
-  const resetAll = useCallback((options?: { clearCredentials?: boolean }) => {
-    setStep(mode === "mfa-only" ? "mfa" : "credentials");
-    setFormPending(false);
-    setResendPending(false);
-    setError(null);
-    setMessage(null);
-    setCode("");
-    setSecondsRemaining(null);
-    setMfaSummary(null);
-    setSelectedFactor(null);
-    setOtpExpiresAt(null);
-    setTrustDevice(true);
+  const resetAll = useCallback(
+    (options?: { clearCredentials?: boolean }) => {
+      setStep(mode === "mfa-only" ? "mfa" : "credentials");
+      setFormPending(false);
+      setResendPending(false);
+      setError(null);
+      setMessage(null);
+      setCode("");
+      setSecondsRemaining(null);
+      setMfaSummary(null);
+      setSelectedFactor(null);
+      setOtpExpiresAt(null);
+      setTrustDevice(true);
 
-    if (options?.clearCredentials) {
-      setEmail("");
-      setPassword("");
-    }
-  }, [mode]);
+      if (options?.clearCredentials) {
+        setEmail("");
+        setPassword("");
+      }
+    },
+    [mode]
+  );
 
   const availableFactors = useMemo<AuthxFactor[]>(() => {
     if (!mfaSummary) {
@@ -491,7 +494,9 @@ export function AuthxLoginForm({
         setResendPending(true);
         const initiation = await initiateAuthxFactor(factor, { rememberDevice });
         if (initiation.status === "error") {
-          setError(initiation.message || t(config.errors.general.key, config.errors.general.fallback));
+          setError(
+            initiation.message || t(config.errors.general.key, config.errors.general.fallback)
+          );
           return;
         }
 
@@ -515,7 +520,7 @@ export function AuthxLoginForm({
         setResendPending(false);
       }
     },
-    [config, t, trustDevice],
+    [config, t, trustDevice]
   );
 
   const transitionToMfa = useCallback(
@@ -530,7 +535,7 @@ export function AuthxLoginForm({
       setMessage(null);
       void prepareFactor(nextFactor, true);
     },
-    [prepareFactor],
+    [prepareFactor]
   );
 
   useEffect(() => {
@@ -555,7 +560,14 @@ export function AuthxLoginForm({
     return () => {
       cancelled = true;
     };
-  }, [config.errors.general.fallback, config.errors.general.key, config.logPrefix, mode, t, transitionToMfa]);
+  }, [
+    config.errors.general.fallback,
+    config.errors.general.key,
+    config.logPrefix,
+    mode,
+    t,
+    transitionToMfa,
+  ]);
 
   const handleCredentialsSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -589,7 +601,7 @@ export function AuthxLoginForm({
         setFormPending(false);
       }
     },
-    [completeLogin, config, email, formPending, password, t, transitionToMfa],
+    [completeLogin, config, email, formPending, password, t, transitionToMfa]
   );
 
   const handleResend = useCallback(async () => {
@@ -615,7 +627,7 @@ export function AuthxLoginForm({
         setError(
           initiation.status === "error"
             ? initiation.message || t(config.errors.general.key, config.errors.general.fallback)
-            : t(config.errors.general.key, config.errors.general.fallback),
+            : t(config.errors.general.key, config.errors.general.fallback)
         );
         return;
       }
@@ -634,7 +646,10 @@ export function AuthxLoginForm({
       });
 
       if (verification.status === "error") {
-        setError(verification.message || t(config.errors.verifyFailed.key, config.errors.verifyFailed.fallback));
+        setError(
+          verification.message ||
+            t(config.errors.verifyFailed.key, config.errors.verifyFailed.fallback)
+        );
         return;
       }
 
@@ -691,7 +706,10 @@ export function AuthxLoginForm({
         });
 
         if (verification.status === "error") {
-          setError(verification.message || t(config.errors.verifyFailed.key, config.errors.verifyFailed.fallback));
+          setError(
+            verification.message ||
+              t(config.errors.verifyFailed.key, config.errors.verifyFailed.fallback)
+          );
           return;
         }
 
@@ -703,7 +721,17 @@ export function AuthxLoginForm({
         setFormPending(false);
       }
     },
-    [code, completeLogin, config, factorIsOtp, factorRequiresCode, handlePasskey, selectedFactor, t, trustDevice],
+    [
+      code,
+      completeLogin,
+      config,
+      factorIsOtp,
+      factorRequiresCode,
+      handlePasskey,
+      selectedFactor,
+      t,
+      trustDevice,
+    ]
   );
 
   const switchAccount = useCallback(async () => {
@@ -738,7 +766,9 @@ export function AuthxLoginForm({
             priority
           />
           <h1 className="text-2xl font-semibold">{t(config.title.key, config.title.fallback)}</h1>
-          <p className="text-muted-foreground">{t(config.subtitle.key, config.subtitle.fallback)}</p>
+          <p className="text-muted-foreground">
+            {t(config.subtitle.key, config.subtitle.fallback)}
+          </p>
         </header>
       ) : null}
 
@@ -833,7 +863,11 @@ export function AuthxLoginForm({
 
           {factorRequiresCode && (
             <label className="flex flex-col gap-2 text-sm font-medium" htmlFor={config.ids.code}>
-              {factorIsOtp ? (secondsRemaining && secondsRemaining > 0 ? secondsLabel : factorLabel) : factorLabel}
+              {factorIsOtp
+                ? secondsRemaining && secondsRemaining > 0
+                  ? secondsLabel
+                  : factorLabel
+                : factorLabel}
               <input
                 id={config.ids.code}
                 ref={codeInputRef}
@@ -844,7 +878,11 @@ export function AuthxLoginForm({
                 required
                 disabled={formPending}
                 value={code}
-                onChange={(event) => setCode(factorIsOtp ? event.target.value.replace(otpPattern, "") : event.target.value)}
+                onChange={(event) =>
+                  setCode(
+                    factorIsOtp ? event.target.value.replace(otpPattern, "") : event.target.value
+                  )
+                }
                 maxLength={factorIsOtp ? 6 : 32}
                 className={`rounded border border-input bg-background px-3 py-2 ${
                   factorIsOtp ? "text-center text-lg tracking-[6px]" : "text-sm"
@@ -879,7 +917,9 @@ export function AuthxLoginForm({
                 onClick={handleResend}
                 className="text-primary underline-offset-2 hover:underline disabled:opacity-60"
               >
-                {resendPending ? t("auth.mfa.resending", "Sending…") : t("auth.mfa.resend", "Resend code")}
+                {resendPending
+                  ? t("auth.mfa.resending", "Sending…")
+                  : t("auth.mfa.resend", "Resend code")}
               </button>
             ) : (
               <span className="text-muted-foreground">{factorLabel}</span>
@@ -901,17 +941,17 @@ export function AuthxLoginForm({
               (selectedFactor === "passkey"
                 ? false
                 : factorRequiresCode && factorIsOtp
-                ? code.replace(otpPattern, "").length !== 6
-                : factorRequiresCode && !factorIsOtp
-                ? code.trim().length === 0
-                : false)
+                  ? code.replace(otpPattern, "").length !== 6
+                  : factorRequiresCode && !factorIsOtp
+                    ? code.trim().length === 0
+                    : false)
             }
           >
             {formPending
               ? t("auth.mfa.verifying", "Verifying…")
               : selectedFactor === "passkey"
-              ? t(config.passkeyCta.key, config.passkeyCta.fallback)
-              : t("auth.mfa.verify", "Verify & continue")}
+                ? t(config.passkeyCta.key, config.passkeyCta.fallback)
+                : t("auth.mfa.verify", "Verify & continue")}
           </button>
         </form>
       )}

@@ -2,11 +2,11 @@
 
 /**
  * Onboarding Form Component for SACCO+ Client App
- * 
+ *
  * This form collects essential user information for member onboarding:
  * - WhatsApp phone number (for notifications and communication)
  * - Mobile Money (MoMo) number (for transactions)
- * 
+ *
  * Features:
  * - Client-side validation using Zod schema
  * - Accessible form controls (WCAG 2.1 AA compliant)
@@ -14,7 +14,7 @@
  * - Keyboard navigation support
  * - Loading states for async operations
  * - Success/error feedback using toast notifications
- * 
+ *
  * Accessibility features:
  * - Proper label associations for all inputs
  * - Error messages linked via aria-describedby
@@ -24,7 +24,6 @@
  */
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { submitOnboardingData } from "@/lib/api/onboard";
 
 interface OnboardingFormProps {
@@ -33,7 +32,6 @@ interface OnboardingFormProps {
 }
 
 export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     whatsappNumber: "",
     momoNumber: "",
@@ -44,6 +42,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
     form?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   /**
    * Validates phone number format (Rwanda mobile numbers)
@@ -51,19 +50,19 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
    */
   const validatePhoneNumber = (value: string): string | undefined => {
     const cleaned = value.replace(/\s+/g, "");
-    
+
     // Rwanda phone patterns
     const patterns = [
-      /^07[2-9]\d{7}$/,           // Local format: 078XXXXXXX
-      /^2507[2-9]\d{7}$/,         // International: 250XXXXXXXXX
-      /^\+2507[2-9]\d{7}$/,       // International with +: +250XXXXXXXXX
+      /^07[2-9]\d{7}$/, // Local format: 078XXXXXXX
+      /^2507[2-9]\d{7}$/, // International: 250XXXXXXXXX
+      /^\+2507[2-9]\d{7}$/, // International with +: +250XXXXXXXXX
     ];
 
     if (!cleaned) {
       return "Phone number is required";
     }
 
-    const isValid = patterns.some(pattern => pattern.test(cleaned));
+    const isValid = patterns.some((pattern) => pattern.test(cleaned));
     if (!isValid) {
       return "Please enter a valid Rwanda mobile number (e.g., 078XXXXXXX)";
     }
@@ -76,10 +75,11 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
    */
   const handleChange = (field: "whatsappNumber" | "momoNumber", value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    setIsSuccess(false);
     
     // Clear error for this field when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -109,9 +109,9 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Clear previous form-level errors
-    setErrors(prev => ({ ...prev, form: undefined }));
+    setErrors((prev) => ({ ...prev, form: undefined }));
 
     // Validate form
     if (!validateForm()) {
@@ -119,6 +119,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
     }
 
     setIsSubmitting(true);
+    setIsSuccess(false);
 
     try {
       // Normalize phone numbers to E.164 format for storage
@@ -138,16 +139,17 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
       if (onSuccess) {
         onSuccess();
       } else {
-        // Default behavior: redirect to success page or home
-        router.push("/");
+        // Default behavior: show inline success state to avoid redirect loop
+        setIsSuccess(true);
       }
     } catch (error) {
       console.error("Onboarding submission error:", error);
       setErrors({
-        form: error instanceof Error 
-          ? error.message 
+        form: error instanceof Error
+          ? error.message
           : "An error occurred during onboarding. Please try again.",
       });
+      setIsSuccess(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -155,6 +157,16 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+      {/* Success message */}
+      {isSuccess && (
+        <div
+          role="status"
+          className="p-4 text-sm text-green-200 bg-green-900/20 border border-green-600 rounded-lg"
+        >
+          Profile submitted successfully. We will notify you once your account is ready.
+        </div>
+      )}
+
       {/* Form-level error message */}
       {errors.form && (
         <div
@@ -167,11 +179,11 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
 
       {/* WhatsApp Number Field */}
       <div>
-        <label
-          htmlFor="whatsapp-number"
-          className="block text-sm font-medium text-neutral-1 mb-2"
-        >
-          WhatsApp Number <span className="text-red-400" aria-label="required">*</span>
+        <label htmlFor="whatsapp-number" className="block text-sm font-medium text-neutral-1 mb-2">
+          WhatsApp Number{" "}
+          <span className="text-red-400" aria-label="required">
+            *
+          </span>
         </label>
         <input
           id="whatsapp-number"
@@ -186,7 +198,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
           value={formData.whatsappNumber}
           onChange={(e) => handleChange("whatsappNumber", e.target.value)}
           placeholder="078XXXXXXX"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isSuccess}
           className={`
             w-full px-4 py-3 rounded-lg
             bg-neutral-9/50 border
@@ -194,18 +206,11 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
             focus:outline-none focus:ring-2 focus:ring-rw-blue focus:border-transparent
             transition-all duration-interactive
             disabled:opacity-50 disabled:cursor-not-allowed
-            ${errors.whatsappNumber 
-              ? "border-red-500 focus:ring-red-500" 
-              : "border-neutral-2/30"
-            }
+            ${errors.whatsappNumber ? "border-red-500 focus:ring-red-500" : "border-neutral-2/30"}
           `}
         />
         {errors.whatsappNumber && (
-          <p
-            id="whatsapp-error"
-            role="alert"
-            className="mt-2 text-sm text-red-400"
-          >
+          <p id="whatsapp-error" role="alert" className="mt-2 text-sm text-red-400">
             {errors.whatsappNumber}
           </p>
         )}
@@ -216,11 +221,11 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
 
       {/* Mobile Money (MoMo) Number Field */}
       <div>
-        <label
-          htmlFor="momo-number"
-          className="block text-sm font-medium text-neutral-1 mb-2"
-        >
-          Mobile Money Number <span className="text-red-400" aria-label="required">*</span>
+        <label htmlFor="momo-number" className="block text-sm font-medium text-neutral-1 mb-2">
+          Mobile Money Number{" "}
+          <span className="text-red-400" aria-label="required">
+            *
+          </span>
         </label>
         <input
           id="momo-number"
@@ -235,7 +240,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
           value={formData.momoNumber}
           onChange={(e) => handleChange("momoNumber", e.target.value)}
           placeholder="078XXXXXXX"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isSuccess}
           className={`
             w-full px-4 py-3 rounded-lg
             bg-neutral-9/50 border
@@ -243,18 +248,11 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
             focus:outline-none focus:ring-2 focus:ring-rw-blue focus:border-transparent
             transition-all duration-interactive
             disabled:opacity-50 disabled:cursor-not-allowed
-            ${errors.momoNumber 
-              ? "border-red-500 focus:ring-red-500" 
-              : "border-neutral-2/30"
-            }
+            ${errors.momoNumber ? "border-red-500 focus:ring-red-500" : "border-neutral-2/30"}
           `}
         />
         {errors.momoNumber && (
-          <p
-            id="momo-error"
-            role="alert"
-            className="mt-2 text-sm text-red-400"
-          >
+          <p id="momo-error" role="alert" className="mt-2 text-sm text-red-400">
             {errors.momoNumber}
           </p>
         )}
@@ -266,19 +264,21 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || isSuccess}
         className={`
           w-full px-6 py-4 text-lg font-semibold rounded-xl
           transition-all duration-interactive
           focus-visible:ring-4 focus-visible:ring-rw-blue focus-visible:ring-opacity-50
-          ${isSubmitting
+          ${isSubmitting || isSuccess
             ? "bg-neutral-2/30 text-neutral-2 cursor-not-allowed"
             : "bg-rw-blue text-ink hover:bg-opacity-90"
           }
         `}
         aria-busy={isSubmitting}
       >
-        {isSubmitting ? (
+        {isSuccess ? (
+          "Submitted"
+        ) : isSubmitting ? (
           <span className="flex items-center justify-center gap-2">
             <svg
               className="animate-spin h-5 w-5"
@@ -310,8 +310,8 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
 
       {/* Privacy notice */}
       <p className="text-xs text-center text-neutral-2">
-        By continuing, you agree to our terms and privacy policy.
-        Your information is securely stored and protected.
+        By continuing, you agree to our terms and privacy policy. Your information is securely
+        stored and protected.
       </p>
     </form>
   );

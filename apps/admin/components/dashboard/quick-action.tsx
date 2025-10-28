@@ -15,7 +15,13 @@ interface QuickActionProps {
   eventProperties?: Record<string, unknown>;
 }
 
-export function QuickAction({ href, label, description, eventName, eventProperties }: QuickActionProps) {
+export function QuickAction({
+  href,
+  label,
+  description,
+  eventName,
+  eventProperties,
+}: QuickActionProps) {
   const handleClick = () => {
     if (eventName) {
       void track(eventName, eventProperties);
@@ -34,9 +40,7 @@ export function QuickAction({ href, label, description, eventName, eventProperti
       >
         <div>
           <span className="text-sm font-semibold text-neutral-0">{label}</span>
-          {description && (
-            <span className="mt-1 block text-xs text-neutral-2">{description}</span>
-          )}
+          {description && <span className="mt-1 block text-xs text-neutral-2">{description}</span>}
         </div>
         <span className="mt-4 inline-flex items-center text-xs font-semibold uppercase tracking-[0.3em] text-neutral-2 transition group-hover:text-neutral-0">
           Go →

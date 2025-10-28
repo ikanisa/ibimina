@@ -1,28 +1,28 @@
 /**
  * USSD Pay Sheet API Route Handler
- * 
+ *
  * GET /api/ussd-pay-sheet
- * 
+ *
  * This route provides USSD payment instructions for the authenticated member,
  * including merchant codes, reference codes, and payment amounts.
- * 
+ *
  * Query Parameters:
  * - status: string (optional) - Filter by payment status (PENDING, COMPLETED, FAILED)
  * - ikimina_id: string (optional) - Filter by specific group
  * - limit: number (optional) - Maximum number of results (default: 50, max: 100)
  * - offset: number (optional) - Pagination offset (default: 0)
- * 
+ *
  * Response:
  * - 200: Pay sheet data returned successfully
  * - 401: User not authenticated
  * - 400: Invalid query parameters
  * - 500: Server error during data retrieval
- * 
+ *
  * Security:
  * - Requires valid Supabase session (authenticated user)
  * - Row Level Security (RLS) policies ensure users only see their own data
  * - Query parameter validation using Zod schema
- * 
+ *
  * Accessibility:
  * - Returns structured data designed for accessible presentation
  * - Includes all necessary fields for screen reader friendly displays
@@ -47,7 +47,7 @@ const queryParamsSchema = z.object({
 /**
  * GET handler for USSD pay sheet
  * Returns payment instructions with USSD codes for the authenticated user
- * 
+ *
  * @param request - Next.js request object with URL search parameters
  * @returns JSON response with pay sheet entries or error
  */
@@ -68,7 +68,9 @@ export async function GET(request: Request) {
       return NextResponse.json(
         {
           error: "Invalid query parameters",
-          details: validationResult.error.errors.map(e => `${e.path.join(".")}: ${e.message}`).join(", ")
+          details: validationResult.error.errors
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", "),
         },
         { status: 400 }
       );
@@ -97,16 +99,15 @@ export async function GET(request: Request) {
       },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("USSD Pay Sheet API error:", error);
-    
+
     // Handle authentication errors specifically
     if (error instanceof Error && error.message.includes("Authentication required")) {
       return NextResponse.json(
         {
           error: "Authentication required",
-          details: "Please sign in to view your pay sheet"
+          details: "Please sign in to view your pay sheet",
         },
         { status: 401 }
       );
@@ -116,7 +117,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "An unexpected error occurred"
+        details: error instanceof Error ? error.message : "An unexpected error occurred",
       },
       { status: 500 }
     );

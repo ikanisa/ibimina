@@ -3,6 +3,7 @@
 ## Pre-deployment Validation
 
 ### 1. Migration Syntax Check ✓
+
 - [x] All SQL statements are syntactically correct
 - [x] All DO blocks are properly closed (9 blocks verified)
 - [x] All referenced functions exist in prior migrations
@@ -10,6 +11,7 @@
 - [x] All CREATE statements use IF NOT EXISTS for idempotency
 
 ### 2. Dependency Check ✓
+
 - [x] `public.set_updated_at()` exists (migration: 20251009121500)
 - [x] `app.is_admin()` exists (migration: 20251018010458)
 - [x] `app.current_sacco()` exists (migration: 20251018010458)
@@ -17,6 +19,7 @@
 - [x] `auth.jwt()` is Supabase built-in function
 
 ### 3. Backwards Compatibility ✓
+
 - [x] RLS policies check both `org_id` (new) and `sacco_id` (legacy)
 - [x] `org_id` columns are nullable
 - [x] Existing tests use `sacco_id` without `org_id` - will still work
@@ -25,13 +28,14 @@
 ## Post-deployment Validation
 
 ### 1. Migration Success
+
 ```bash
 # Check migration applied successfully
 SELECT * FROM public.organizations LIMIT 1;
 SELECT * FROM public.org_memberships LIMIT 1;
 
 # Verify org_id columns added
-SELECT column_name FROM information_schema.columns 
+SELECT column_name FROM information_schema.columns
 WHERE table_name IN ('saccos', 'ikimina', 'members', 'payments')
 AND column_name = 'org_id';
 
@@ -40,6 +44,7 @@ SELECT unnest(enum_range(NULL::public.app_role));
 ```
 
 ### 2. Load Seed Data
+
 ```bash
 # Execute seed file
 psql -U postgres -d dbname -f supabase/seed/seed_multitenancy.sql
@@ -54,6 +59,7 @@ psql -U postgres -d dbname -f supabase/seed/seed_multitenancy.sql
 ```
 
 ### 3. Run RLS Tests
+
 ```bash
 # Execute RLS test file
 psql -U postgres -d dbname -f supabase/tests/rls/multitenancy_isolation.test.sql
@@ -69,6 +75,7 @@ psql -U postgres -d dbname -f supabase/tests/rls/multitenancy_isolation.test.sql
 ```
 
 ### 4. Existing Tests Regression
+
 ```bash
 # Run existing RLS tests to ensure no breakage
 psql -U postgres -d dbname -f supabase/tests/rls/sacco_staff_access.test.sql
@@ -83,6 +90,7 @@ psql -U postgres -d dbname -f supabase/tests/rls/ops_tables_access.test.sql
 ### 5. Manual Verification
 
 #### Test System Admin Access
+
 ```sql
 -- As admin user (70000000-0000-0000-0000-000000000001)
 SELECT COUNT(*) FROM public.organizations; -- Should see 4
@@ -90,6 +98,7 @@ SELECT COUNT(*) FROM app.members; -- Should see 8
 ```
 
 #### Test District Manager Access
+
 ```sql
 -- As district manager (70000000-0000-0000-0000-000000000002)
 SELECT COUNT(*) FROM app.saccos; -- Should see 2 (both SACCOs in district)
@@ -97,6 +106,7 @@ SELECT COUNT(*) FROM app.members; -- Should see 8 (all members in district)
 ```
 
 #### Test SACCO Staff Isolation
+
 ```sql
 -- As Alpha staff (70000000-0000-0000-0000-000000000004)
 SELECT COUNT(*) FROM app.members WHERE org_id = '20000000-0000-0000-0000-000000000001'; -- Should see 5 (Alpha only)
@@ -104,6 +114,7 @@ SELECT COUNT(*) FROM app.members WHERE org_id = '20000000-0000-0000-0000-0000000
 ```
 
 #### Test Cross-tenant Write Prevention
+
 ```sql
 -- As Alpha staff, try to insert Beta member
 INSERT INTO app.members (ikimina_id, sacco_id, org_id, member_code, full_name, msisdn)
@@ -121,17 +132,20 @@ VALUES (
 ## Security Verification
 
 ### 1. No Cross-tenant Data Leakage
+
 - [ ] Alpha staff cannot see Beta members
 - [ ] Beta staff cannot see Alpha members
 - [ ] MFI staff cannot see SACCO members
 - [ ] No org can write to another org's data
 
 ### 2. Hierarchical Access Works
+
 - [ ] District manager sees all SACCOs in district
 - [ ] District manager sees all MFIs in district
 - [ ] District manager can access child org data
 
 ### 3. Admin Bypass Works
+
 - [ ] System admin sees all organizations
 - [ ] System admin sees all members
 - [ ] System admin can modify any data
@@ -170,14 +184,10 @@ DROP TABLE IF EXISTS public.organizations;
 
 ## Success Criteria
 
-✅ All migrations apply without errors
-✅ Seed data loads successfully
-✅ All 7 new RLS tests pass
-✅ All existing RLS tests still pass
-✅ No cross-tenant data leakage detected
-✅ District manager can access child orgs
-✅ System admin has full access
-✅ Backwards compatibility maintained
+✅ All migrations apply without errors ✅ Seed data loads successfully ✅ All 7
+new RLS tests pass ✅ All existing RLS tests still pass ✅ No cross-tenant data
+leakage detected ✅ District manager can access child orgs ✅ System admin has
+full access ✅ Backwards compatibility maintained
 
 ## Timeline
 

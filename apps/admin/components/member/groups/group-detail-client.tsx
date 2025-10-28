@@ -9,18 +9,18 @@ import { Users, ArrowRight, CheckCircle, AlertCircle } from "lucide-react";
 
 /**
  * Group Detail Client Component
- * 
+ *
  * Displays group information with interactive features including:
  * - Join request submission
  * - Navigation to members list
  * - Status feedback with ARIA announcements
- * 
+ *
  * @component
- * 
+ *
  * @param props - Component props
  * @param props.group - Group data
  * @param props.sacco - Associated SACCO data
- * 
+ *
  * @accessibility
  * - Uses semantic HTML with proper heading hierarchy
  * - Implements ARIA live regions for status updates
@@ -55,7 +55,7 @@ export function GroupDetailClient({ group, sacco }: GroupDetailClientProps) {
           type: "success",
           message: "Join request submitted successfully! You'll be notified when approved.",
         });
-        
+
         // Refresh server-side data after successful submission
         router.refresh();
       } catch (error) {
@@ -90,9 +90,15 @@ export function GroupDetailClient({ group, sacco }: GroupDetailClientProps) {
         >
           <div className="flex items-start gap-3">
             {joinStatus.type === "success" ? (
-              <CheckCircle className="h-5 w-5 text-emerald-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <CheckCircle
+                className="h-5 w-5 text-emerald-500 flex-shrink-0 mt-0.5"
+                aria-hidden="true"
+              />
             ) : (
-              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <AlertCircle
+                className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5"
+                aria-hidden="true"
+              />
             )}
             <p
               className={`text-sm ${
@@ -106,7 +112,10 @@ export function GroupDetailClient({ group, sacco }: GroupDetailClientProps) {
       )}
 
       {/* Group Summary Section */}
-      <section aria-labelledby="summary-heading" className="rounded-3xl border border-white/15 bg-white/8 p-6">
+      <section
+        aria-labelledby="summary-heading"
+        className="rounded-3xl border border-white/15 bg-white/8 p-6"
+      >
         <h2 id="summary-heading" className="text-2xl font-semibold">
           Summary
         </h2>
@@ -123,13 +132,18 @@ export function GroupDetailClient({ group, sacco }: GroupDetailClientProps) {
           </div>
           <div className="sm:col-span-2">
             <dt className="text-white/70">SACCO</dt>
-            <dd className="text-lg font-semibold">{sacco ? `${sacco.name} · ${sacco.district}` : "—"}</dd>
+            <dd className="text-lg font-semibold">
+              {sacco ? `${sacco.name} · ${sacco.district}` : "—"}
+            </dd>
           </div>
         </dl>
       </section>
 
       {/* Members Section with Actions */}
-      <section aria-labelledby="members-heading" className="rounded-3xl border border-white/15 bg-white/8 p-6">
+      <section
+        aria-labelledby="members-heading"
+        className="rounded-3xl border border-white/15 bg-white/8 p-6"
+      >
         <div className="flex items-center justify-between gap-4">
           <h2 id="members-heading" className="text-2xl font-semibold">
             Members
@@ -144,12 +158,12 @@ export function GroupDetailClient({ group, sacco }: GroupDetailClientProps) {
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
-        
+
         <div className="mt-4 space-y-3">
           <p className="text-sm text-white/70">
             View the full list of group members and their contact information.
           </p>
-          
+
           {/* Join Request Button */}
           <div>
             <button

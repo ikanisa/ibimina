@@ -1,7 +1,7 @@
 /**
  * USSD Pay Sheet API utilities
  * Provides functions for fetching USSD payment parameters and pay sheet data
- * 
+ *
  * USSD codes are used for mobile money payments in Rwanda via MTN MoMo
  * Format: *182*merchant_code*reference*amount#
  */
@@ -41,22 +41,22 @@ export interface UssdPaySheetParams {
 /**
  * Fetch USSD pay sheet entries (Server-side)
  * Retrieves payment instructions with USSD codes for the authenticated user
- * 
+ *
  * @param params - Optional filters for pay sheet entries
  * @returns Array of USSD pay sheet entries
- * 
+ *
  * @example
  * ```ts
- * const paySheet = await getUssdPaySheet({ 
+ * const paySheet = await getUssdPaySheet({
  *   status: 'PENDING',
  *   limit: 20
  * });
  * ```
- * 
+ *
  * @remarks
  * This function uses server-side Supabase client and should be called
  * from Server Components or API routes only
- * 
+ *
  * @accessibility
  * Returns structured data that can be presented in accessible formats
  * with proper ARIA labels and semantic HTML
@@ -65,12 +65,15 @@ export async function getUssdPaySheet(
   params: UssdPaySheetParams = {}
 ): Promise<UssdPaySheetEntry[]> {
   const { status, limit = 50, offset = 0 } = params;
-  
+
   const supabase = await createSupabaseServerClient();
-  
+
   // Get authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) {
     console.error("Authentication error in getUssdPaySheet:", authError);
     throw new Error("Authentication required to fetch pay sheet");
@@ -92,7 +95,7 @@ export async function getUssdPaySheet(
   // For demo purposes, we'll create mock data based on user's groups
   // In a real implementation, this would query a payments/contributions table
   // that tracks member dues, contribution schedules, and payment statuses
-  
+
   // This is a placeholder implementation that demonstrates the data structure
   // TODO: Replace with actual database query when payments schema is implemented
   const mockPaySheetEntries: UssdPaySheetEntry[] = [
@@ -114,7 +117,7 @@ export async function getUssdPaySheet(
   // Filter by status if provided and not null
   let filteredEntries = mockPaySheetEntries;
   if (status != null) {
-    filteredEntries = filteredEntries.filter(entry => entry.payment_status === status);
+    filteredEntries = filteredEntries.filter((entry) => entry.payment_status === status);
   }
 
   // Apply pagination with proper null handling
@@ -126,17 +129,17 @@ export async function getUssdPaySheet(
 /**
  * Fetch USSD pay sheet entries (Client-side)
  * Retrieves payment instructions with USSD codes for the authenticated user
- * 
+ *
  * @param params - Optional filters for pay sheet entries
  * @returns Array of USSD pay sheet entries
- * 
+ *
  * @example
  * ```ts
- * const paySheet = await getUssdPaySheetClient({ 
+ * const paySheet = await getUssdPaySheetClient({
  *   status: 'PENDING'
  * });
  * ```
- * 
+ *
  * @remarks
  * This function uses browser-side Supabase client and should be called
  * from Client Components only
@@ -145,12 +148,15 @@ export async function getUssdPaySheetClient(
   params: UssdPaySheetParams = {}
 ): Promise<UssdPaySheetEntry[]> {
   const { status, limit = 50, offset = 0 } = params;
-  
+
   const supabase = createSupabaseBrowserClient();
-  
+
   // Get authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) {
     console.error("Authentication error in getUssdPaySheetClient:", authError);
     throw new Error("Authentication required to fetch pay sheet");
@@ -189,7 +195,7 @@ export async function getUssdPaySheetClient(
   // Filter by status if provided and not null
   let filteredEntries = mockPaySheetEntries;
   if (status != null) {
-    filteredEntries = filteredEntries.filter(entry => entry.payment_status === status);
+    filteredEntries = filteredEntries.filter((entry) => entry.payment_status === status);
   }
 
   // Apply pagination with proper null handling
@@ -201,12 +207,12 @@ export async function getUssdPaySheetClient(
 /**
  * Generate USSD code for payment
  * Creates a properly formatted MTN MoMo USSD code
- * 
+ *
  * @param merchantCode - SACCO merchant code
  * @param referenceCode - Payment reference code
  * @param amount - Payment amount in RWF
  * @returns Formatted USSD code string
- * 
+ *
  * @example
  * ```ts
  * const code = generateUssdCode("7", "REF001", 5000);

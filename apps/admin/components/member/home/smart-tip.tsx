@@ -8,7 +8,9 @@ export function SmartTip() {
       </div>
       <div>
         <p className="text-lg font-semibold">Smart tip</p>
-        <p className="text-sm text-white/80">Set a monthly reminder to stay consistent with your contributions.</p>
+        <p className="text-sm text-white/80">
+          Set a monthly reminder to stay consistent with your contributions.
+        </p>
       </div>
     </div>
   );

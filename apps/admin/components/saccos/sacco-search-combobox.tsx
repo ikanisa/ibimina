@@ -42,7 +42,13 @@ function resolveSupabaseClient() {
   return cachedSupabaseClient;
 }
 
-export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, className }: SaccoSearchComboboxProps) {
+export function SaccoSearchCombobox({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  className,
+}: SaccoSearchComboboxProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SaccoSearchResult[]>([]);
@@ -92,7 +98,8 @@ export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, cl
         setError(error.message ?? t("common.searchFailed", "Search failed"));
         setResults([]);
       } else {
-        const rows = (data as Database["public"]["Functions"]["search_saccos"]["Returns"] | null) ?? [];
+        const rows =
+          (data as Database["public"]["Functions"]["search_saccos"]["Returns"] | null) ?? [];
         setResults(
           rows.map((row) => ({
             id: row.id,
@@ -120,7 +127,9 @@ export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, cl
   return (
     <div className={cn("w-full", className)}>
       <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-        <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("sacco.search.assignLabel", "Assign SACCO")}</label>
+        <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+          {t("sacco.search.assignLabel", "Assign SACCO")}
+        </label>
         <input
           type="search"
           value={query}
@@ -142,10 +151,16 @@ export function SaccoSearchCombobox({ value, onChange, placeholder, disabled, cl
           </div>
         )}
         <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border border-white/10">
-          {loading && <p className="px-3 py-2 text-xs text-neutral-2">{t("common.searching", "Searching…")}</p>}
+          {loading && (
+            <p className="px-3 py-2 text-xs text-neutral-2">
+              {t("common.searching", "Searching…")}
+            </p>
+          )}
           {error && <p className="px-3 py-2 text-xs text-red-300">{error}</p>}
           {!loading && !error && results.length === 0 && query && (
-            <p className="px-3 py-2 text-xs text-neutral-2">{t("sacco.search.none", "No matches")}</p>
+            <p className="px-3 py-2 text-xs text-neutral-2">
+              {t("sacco.search.none", "No matches")}
+            </p>
           )}
           <ul>
             {results.map((result) => (

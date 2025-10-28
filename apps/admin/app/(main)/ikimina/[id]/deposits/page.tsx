@@ -68,21 +68,27 @@ export default async function DepositsPage({ params }: PageProps) {
       subtitle={`${deposits?.length ?? 0} recent payments`}
       actions={
         allowImport ? (
-          <StatementImportWizard saccoId={resolvedGroup.sacco_id} ikiminaId={resolvedGroup.id} canImport />
+          <StatementImportWizard
+            saccoId={resolvedGroup.sacco_id}
+            ikiminaId={resolvedGroup.id}
+            canImport
+          />
         ) : (
           <span className="text-xs uppercase tracking-[0.3em] text-neutral-3">Read only</span>
         )
       }
     >
-      <IkiminaDepositsTable data={depositRows.map((row) => ({
-        id: row.id,
-        amount: row.amount,
-        currency: row.currency,
-        status: row.status,
-        occurred_at: row.occurred_at,
-        reference: row.reference,
-        msisdn: row.msisdn,
-      }))} />
+      <IkiminaDepositsTable
+        data={depositRows.map((row) => ({
+          id: row.id,
+          amount: row.amount,
+          currency: row.currency,
+          status: row.status,
+          occurred_at: row.occurred_at,
+          reference: row.reference,
+          msisdn: row.msisdn,
+        }))}
+      />
     </GlassCard>
   );
 }
