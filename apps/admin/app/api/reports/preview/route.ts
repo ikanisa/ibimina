@@ -65,7 +65,10 @@ export async function POST(request: NextRequest) {
 
   const parsed = payloadSchema.safeParse(payloadRaw);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", details: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const { saccoId: requestedSaccoId, from, to } = parsed.data;
@@ -94,7 +97,9 @@ export async function POST(request: NextRequest) {
   let paymentsQuery = supabase
     .schema("app")
     .from("payments")
-    .select("id, sacco_id, ikimina_id, amount, currency, status, occurred_at, group:ikimina(id, name, code)")
+    .select(
+      "id, sacco_id, ikimina_id, amount, currency, status, occurred_at, group:ikimina(id, name, code)"
+    )
     .gte("occurred_at", startDate.toISOString())
     .lte("occurred_at", endDate.toISOString())
     .order("occurred_at", { ascending: false })
@@ -106,7 +111,10 @@ export async function POST(request: NextRequest) {
 
   const { data: paymentRows, error: paymentsError } = await paymentsQuery;
   if (paymentsError) {
-    return NextResponse.json({ error: paymentsError.message ?? "Failed to load payments" }, { status: 500 });
+    return NextResponse.json(
+      { error: paymentsError.message ?? "Failed to load payments" },
+      { status: 500 }
+    );
   }
 
   const payments = (paymentRows ?? []) as PaymentRow[];
@@ -122,7 +130,12 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     const metadata = (saccoRow as { metadata?: Record<string, unknown> } | null)?.metadata ?? null;
     const candidate = typeof metadata?.brand_color === "string" ? metadata.brand_color : null;
-    brandColor = candidate && /^#?[0-9a-fA-F]{6}$/.test(candidate) ? (candidate.startsWith("#") ? candidate : `#${candidate}`) : null;
+    brandColor =
+      candidate && /^#?[0-9a-fA-F]{6}$/.test(candidate)
+        ? candidate.startsWith("#")
+          ? candidate
+          : `#${candidate}`
+        : null;
   }
 
   if (active.length === 0) {

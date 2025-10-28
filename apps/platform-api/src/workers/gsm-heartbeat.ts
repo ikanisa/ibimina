@@ -14,9 +14,13 @@ export async function runGsmHeartbeat() {
     throw new Error(`GSM heartbeat failed: ${result?.error ?? "unknown error"}`);
   }
 
-  const supabase = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const supabase = createClient(
+    requireEnv("SUPABASE_URL"),
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+    }
+  );
 
   const { data: gateways } = await supabase
     .schema("app")
@@ -34,7 +38,7 @@ export async function runGsmHeartbeat() {
         lastHeartbeatAt: gateway.last_heartbeat_at,
         latencyMs: gateway.last_latency_ms,
         error: gateway.last_error ?? "—",
-      })),
+      }))
     );
   }
 }

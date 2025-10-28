@@ -2,7 +2,7 @@ import type { Config } from "tailwindcss";
 
 /**
  * Tailwind CSS configuration for SACCO+ Client App
- * 
+ *
  * This configuration provides:
  * - Rwanda-themed color palette (blue, yellow, green)
  * - Responsive design utilities
@@ -10,11 +10,7 @@ import type { Config } from "tailwindcss";
  * - Accessibility-focused design tokens
  */
 const config: Config = {
-  content: [
-    "./app/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./lib/**/*.{ts,tsx}",
-  ],
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {

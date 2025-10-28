@@ -5,6 +5,7 @@ Mobile-first web application for Umurenge SACCO members.
 ## Overview
 
 The Client App provides member-facing features including:
+
 - Member onboarding with WhatsApp and Mobile Money registration
 - Identity document upload with OCR processing (stub)
 - Mobile banking services access
@@ -21,17 +22,19 @@ The Client App provides member-facing features including:
 ### Installation
 
 1. Install dependencies from the monorepo root:
+
    ```bash
    cd /path/to/ibimina
    pnpm install
    ```
 
 2. Set up environment variables:
+
    ```bash
    cd apps/client
    cp .env.example .env.local
    ```
-   
+
    Edit `.env.local` and add your Supabase credentials.
 
 ### Development
@@ -107,7 +110,8 @@ apps/client/
 
 ### OCR Upload (Stub)
 
-The OCR upload feature is currently a stub implementation that returns mocked data. To integrate a real OCR service:
+The OCR upload feature is currently a stub implementation that returns mocked
+data. To integrate a real OCR service:
 
 1. Update `/app/api/ocr/upload/route.ts`
 2. Integrate with OCR provider (Google Vision, AWS Textract, etc.)
@@ -155,6 +159,7 @@ Row Level Security (RLS) policies ensure users can only access their own data.
 Creates a member profile with contact information.
 
 **Request:**
+
 ```json
 {
   "whatsapp_msisdn": "+250788123456",
@@ -164,6 +169,7 @@ Creates a member profile with contact information.
 ```
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -182,10 +188,12 @@ Creates a member profile with contact information.
 Uploads identity document for OCR processing (stub).
 
 **Request:** multipart/form-data
+
 - `file`: Image file (JPEG, PNG, WebP)
 - `id_type`: "NID" | "DL" | "PASSPORT"
 
 **Response (200):**
+
 ```json
 {
   "success": true,

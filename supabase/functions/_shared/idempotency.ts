@@ -5,7 +5,9 @@ const DEFAULT_TTL_SECONDS = 60 * 60 * 24; // 24 hours
 
 export const hashPayload = (payload: unknown) => {
   const json = typeof payload === "string" ? payload : JSON.stringify(payload ?? {});
-  return createHash("sha256").update(json ?? "").digest("hex");
+  return createHash("sha256")
+    .update(json ?? "")
+    .digest("hex");
 };
 
 export interface IdempotencyOptions {
@@ -23,7 +25,7 @@ const table = "ops.idempotency";
 export const getIdempotentResponse = async <T>(
   supabase: AnyClient,
   userId: string,
-  key: string,
+  key: string
 ) => {
   const { data, error } = await supabase
     .schema("ops")
@@ -47,21 +49,18 @@ export const saveIdempotentResponse = async (
   key: string,
   requestHash: string,
   response: unknown,
-  options?: IdempotencyOptions,
+  options?: IdempotencyOptions
 ) => {
   const ttlSeconds = options?.ttlSeconds ?? DEFAULT_TTL_SECONDS;
   const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
 
-  const { error } = await supabase
-    .schema("ops")
-    .from("idempotency")
-    .upsert({
-      user_id: userId,
-      key,
-      request_hash: requestHash,
-      response,
-      expires_at: expiresAt,
-    });
+  const { error } = await supabase.schema("ops").from("idempotency").upsert({
+    user_id: userId,
+    key,
+    request_hash: requestHash,
+    response,
+    expires_at: expiresAt,
+  });
 
   if (error) {
     throw error;

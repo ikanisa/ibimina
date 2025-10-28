@@ -4,13 +4,13 @@ import assert from "node:assert/strict";
 import {
   computeRetryDelaySeconds,
   type NotificationJob,
-} from "../../../../supabase/functions/_shared/notifications.ts";
+} from "../../../../supabase/functions/_shared/notifications";
 import {
   processWhatsappJob,
   processEmailJob,
   type WhatsappJobDeps,
   type EmailJobDeps,
-} from "../../../../supabase/functions/_shared/notification-handlers.ts";
+} from "../../../../supabase/functions/_shared/notification-handlers";
 
 const baseJob: NotificationJob = {
   id: "job-1",
@@ -84,14 +84,19 @@ describe("notification dispatch helpers", () => {
         sent.push(payload);
         return { ok: true, status: 200 };
       },
-      audit: async (entry) => audits.push(entry.diff ?? {}),
+      audit: async (entry) => {
+        audits.push(entry.diff ?? {});
+      },
     };
 
     const outcome = await processWhatsappJob(job, deps);
     assert.equal(outcome.type, "success");
     assert.equal(sent.length, 1);
     assert.ok(sent[0].body.includes("Aline"));
-    assert.equal(audits.some((diff) => diff.event === "SMS_TEMPLATE_TEST"), true);
+    assert.equal(
+      audits.some((diff) => diff.event === "SMS_TEMPLATE_TEST"),
+      true
+    );
   });
 
   it("fails email jobs without recipient", async () => {

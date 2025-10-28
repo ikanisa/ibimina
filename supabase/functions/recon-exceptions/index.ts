@@ -65,7 +65,7 @@ const handleGet = async (req: Request) => {
       .schema("app")
       .from("recon_exceptions")
       .select(
-        `id, reason, status, note, created_at, payment:payments(id, sacco_id, status, amount, currency, reference, occurred_at, ikimina_id, member_id)`,
+        `id, reason, status, note, created_at, payment:payments(id, sacco_id, status, amount, currency, reference, occurred_at, ikimina_id, member_id)`
       )
       .eq("status", "OPEN")
       .order("created_at", { ascending: false });
@@ -252,7 +252,7 @@ const handlePost = async (req: Request) => {
       jsonResponse({
         paymentId: payment.id,
         status: nextStatus,
-      }),
+      })
     );
   } catch (error) {
     console.error("recon-exceptions POST error", error);

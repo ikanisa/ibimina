@@ -61,18 +61,14 @@ export function SignOutButton({ className, variant = "default" }: SignOutButtonP
         variant === "ghost"
           ? "border border-transparent text-neutral-3 hover:text-neutral-0"
           : "border border-white/10 text-neutral-0 hover:border-white/25 hover:text-neutral-0",
-        className,
+        className
       )}
       disabled={pending}
       aria-live="polite"
       aria-busy={pending}
     >
       <LogOut className="h-4 w-4" aria-hidden />
-      <span>
-        {pending
-          ? t("nav.signingOut", "Signing out…")
-          : t("nav.signOut", "Sign out")}
-      </span>
+      <span>{pending ? t("nav.signingOut", "Signing out…") : t("nav.signOut", "Sign out")}</span>
     </button>
   );
 }

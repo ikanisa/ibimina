@@ -19,7 +19,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { credential, firstPasskey } = await verifyRegistration(user, body.response, body.stateToken, body.friendlyName ?? null);
+    const { credential, firstPasskey } = await verifyRegistration(
+      user,
+      body.response,
+      body.stateToken,
+      body.friendlyName ?? null
+    );
     await markPasskeyEnrollment(user.id, firstPasskey);
 
     await logAudit({

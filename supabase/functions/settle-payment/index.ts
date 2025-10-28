@@ -36,7 +36,10 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const body = (await req.json()) as SettleRequest;
 
-    const allowed = await enforceRateLimit(supabase, `settle:${body.paymentId}`, { maxHits: 20, windowSeconds: 60 });
+    const allowed = await enforceRateLimit(supabase, `settle:${body.paymentId}`, {
+      maxHits: 20,
+      windowSeconds: 60,
+    });
 
     if (!allowed) {
       return new Response(JSON.stringify({ success: false, error: "Rate limit exceeded" }), {

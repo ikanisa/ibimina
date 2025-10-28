@@ -69,7 +69,10 @@ const normaliseEnrollment = (raw: unknown): FactorEnrollmentMap => {
   return parsed;
 };
 
-const choosePreferred = (summary: { preferred?: unknown; enrolled: FactorEnrollmentMap }): AuthxFactor => {
+const choosePreferred = (summary: {
+  preferred?: unknown;
+  enrolled: FactorEnrollmentMap;
+}): AuthxFactor => {
   const requested = parseFactor(summary.preferred);
   if (requested && summary.enrolled[requested]) {
     return requested;
@@ -106,12 +109,18 @@ export const listAuthxFactors = async (): Promise<AuthxFactorsSummary> => {
 
   const payload = await response.json();
   const enrolled = normaliseEnrollment((payload as Record<string, unknown>).enrolled);
-  const preferred = choosePreferred({ preferred: (payload as Record<string, unknown>).preferred, enrolled });
+  const preferred = choosePreferred({
+    preferred: (payload as Record<string, unknown>).preferred,
+    enrolled,
+  });
 
   return { preferred, enrolled };
 };
 
-export async function signInWithPassword(email: string, password: string): Promise<SignInSuccess | SignInFailure> {
+export async function signInWithPassword(
+  email: string,
+  password: string
+): Promise<SignInSuccess | SignInFailure> {
   const supabase = getSupabaseBrowserClient();
   const normalizedEmail = email.trim();
 
@@ -151,13 +160,18 @@ export async function signOut() {
 
 export type AuthxInitiationResult =
   | { status: "ready"; factor: AuthxFactor }
-  | { status: "passkey"; factor: "passkey"; options: PublicKeyCredentialRequestOptionsJSON; stateToken: string }
+  | {
+      status: "passkey";
+      factor: "passkey";
+      options: PublicKeyCredentialRequestOptionsJSON;
+      stateToken: string;
+    }
   | { status: "otp"; factor: "email" | "whatsapp"; expiresAt: string | null }
   | { status: "error"; factor: AuthxFactor; message: string; code?: string; retryAt?: string };
 
 export const initiateAuthxFactor = async (
   factor: AuthxFactor,
-  options: { rememberDevice?: boolean } = {},
+  options: { rememberDevice?: boolean } = {}
 ): Promise<AuthxInitiationResult> => {
   try {
     const response = await fetch("/api/authx/challenge/initiate", {

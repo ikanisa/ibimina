@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
     const { data: payment, error: paymentError } = await supabase
       .schema("app")
       .from("payments")
-      .select("id, amount, msisdn, msisdn_masked, reference, ikimina_id, sacco_id, occurred_at, member_id, currency")
+      .select(
+        "id, amount, msisdn, msisdn_masked, reference, ikimina_id, sacco_id, occurred_at, member_id, currency"
+      )
       .eq("id", paymentId)
       .maybeSingle();
 
@@ -56,14 +58,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
-    const paymentRecord = payment as Pick<PaymentRow, "id" | "amount" | "msisdn" | "reference" | "ikimina_id" | "sacco_id" | "occurred_at" | "currency" | "member_id">;
+    const paymentRecord = payment as Pick<
+      PaymentRow,
+      | "id"
+      | "amount"
+      | "msisdn"
+      | "reference"
+      | "ikimina_id"
+      | "sacco_id"
+      | "occurred_at"
+      | "currency"
+      | "member_id"
+    >;
 
     if (auth.profile.role !== "SYSTEM_ADMIN") {
       if (!auth.profile.sacco_id) {
-        return NextResponse.json({ error: "Assign yourself to a SACCO to request AI suggestions" }, { status: 403 });
+        return NextResponse.json(
+          { error: "Assign yourself to a SACCO to request AI suggestions" },
+          { status: 403 }
+        );
       }
       if (auth.profile.sacco_id !== paymentRecord.sacco_id) {
-        return NextResponse.json({ error: "You do not have access to this payment" }, { status: 403 });
+        return NextResponse.json(
+          { error: "You do not have access to this payment" },
+          { status: 403 }
+        );
       }
     }
 
@@ -90,13 +109,18 @@ export async function POST(request: NextRequest) {
     const referenceUpper = (paymentRecord.reference ?? "").toUpperCase();
 
     const candidateSummaries = (candidates ?? []).map((candidate) => {
-      const candidateRecord = candidate as Pick<MemberViewRow, "id" | "full_name" | "member_code" | "msisdn" | "ikimina_id" | "ikimina_name">;
+      const candidateRecord = candidate as Pick<
+        MemberViewRow,
+        "id" | "full_name" | "member_code" | "msisdn" | "ikimina_id" | "ikimina_name"
+      >;
       const candidateDigits = normalizeDigits(candidateRecord.msisdn ?? "");
       const candidateLast4 = candidateDigits.slice(-4) || null;
-      const lastFourMatch = paymentLast4 && candidateLast4 ? Number(paymentLast4 === candidateLast4) : 0;
-      const codeMatch = candidateRecord.member_code && referenceUpper
-        ? Number(referenceUpper.includes(candidateRecord.member_code.toUpperCase()))
-        : 0;
+      const lastFourMatch =
+        paymentLast4 && candidateLast4 ? Number(paymentLast4 === candidateLast4) : 0;
+      const codeMatch =
+        candidateRecord.member_code && referenceUpper
+          ? Number(referenceUpper.includes(candidateRecord.member_code.toUpperCase()))
+          : 0;
 
       return {
         id: candidateRecord.id,
@@ -113,7 +137,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (candidateSummaries.length === 0) {
-      return NextResponse.json({ suggestion: null, alternatives: [], payment: { id: paymentRecord.id } });
+      return NextResponse.json({
+        suggestion: null,
+        alternatives: [],
+        payment: { id: paymentRecord.id },
+      });
     }
 
     const schema = {

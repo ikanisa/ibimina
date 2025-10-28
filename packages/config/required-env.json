@@ -9,7 +9,5 @@
     "HMAC_SHARED_SECRET",
     "OPENAI_API_KEY"
   ],
-  "atLeastOne": [
-    ["KMS_DATA_KEY", "KMS_DATA_KEY_BASE64"]
-  ]
+  "atLeastOne": [["KMS_DATA_KEY", "KMS_DATA_KEY_BASE64"]]
 }

@@ -77,7 +77,7 @@ interface ClaimOptions {
 export const claimNotificationJobs = async (
   supabase: AnyClient,
   channel: NotificationChannel,
-  options: ClaimOptions = {},
+  options: ClaimOptions = {}
 ): Promise<NotificationJob[]> => {
   const limit = Math.max(1, Math.min(options.limit ?? 10, 25));
   const nowIso = new Date().toISOString();
@@ -155,11 +155,7 @@ export const markJobDelivered = async (supabase: AnyClient, jobId: string) => {
     .eq("id", jobId);
 };
 
-export const markJobFailed = async (
-  supabase: AnyClient,
-  jobId: string,
-  reason: string,
-) => {
+export const markJobFailed = async (supabase: AnyClient, jobId: string, reason: string) => {
   const nowIso = new Date().toISOString();
   await supabase
     .from("notification_queue")
@@ -176,7 +172,7 @@ export const scheduleJobRetry = async (
   supabase: AnyClient,
   jobId: string,
   retryAt: Date,
-  reason: string,
+  reason: string
 ) => {
   await supabase
     .from("notification_queue")
@@ -193,7 +189,7 @@ const tokenPattern = /\{([a-zA-Z0-9_]+)\}/g;
 
 export const renderTemplate = (
   body: string,
-  tokens: Record<string, string | number | null | undefined>,
+  tokens: Record<string, string | number | null | undefined>
 ) => {
   return body.replace(tokenPattern, (_, key: string) => {
     const replacement = tokens[key];

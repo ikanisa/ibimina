@@ -33,8 +33,12 @@ async function fetchOk(path) {
 }
 
 async function run() {
-  const nextBin = process.platform === "win32" ? "node_modules/.bin/next.cmd" : "node_modules/.bin/next";
-  const server = spawn(nextBin, ["dev", "-p", String(PORT), "-H", HOST], { stdio: "inherit", env: { ...process.env } });
+  const nextBin =
+    process.platform === "win32" ? "node_modules/.bin/next.cmd" : "node_modules/.bin/next";
+  const server = spawn(nextBin, ["dev", "-p", String(PORT), "-H", HOST], {
+    stdio: "inherit",
+    env: { ...process.env },
+  });
 
   let started = false;
   for (let i = 0; i < 20; i += 1) {
@@ -68,4 +72,3 @@ run().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-

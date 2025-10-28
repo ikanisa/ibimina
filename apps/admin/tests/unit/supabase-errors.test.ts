@@ -28,7 +28,7 @@ describe("isMissingRelationError", () => {
         details: "",
         hint: null,
       }),
-      true,
+      true
     );
     assert.equal(
       isMissingRelationError({
@@ -37,7 +37,7 @@ describe("isMissingRelationError", () => {
         details: "table app.foo does not exist",
         hint: null,
       }),
-      true,
+      true
     );
   });
 
@@ -48,7 +48,7 @@ describe("isMissingRelationError", () => {
         message: "violates foreign key constraint",
         code: "23503",
       }),
-      false,
+      false
     );
   });
 });

@@ -25,7 +25,10 @@ export async function POST(request: NextRequest) {
 
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", details: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const { ids, status, saccoId } = parsed.data;
@@ -39,12 +42,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  let query = supabase
-    .schema("app")
-    .from("payments")
-    .update({ status })
-    .in("id", ids)
-    .select("id");
+  let query = supabase.schema("app").from("payments").update({ status }).in("id", ids).select("id");
 
   if (!isSystemAdmin(userProfile)) {
     if (!userProfile.sacco_id) {
@@ -57,7 +55,10 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await query;
   if (error) {
-    return NextResponse.json({ error: error.message ?? "Failed to update payments" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message ?? "Failed to update payments" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ updated: data?.length ?? 0 });

@@ -19,7 +19,7 @@ export function AdminPanelShortcuts({ children }: { children: React.ReactNode })
       window.dispatchEvent(
         new CustomEvent("admin-panel:shortcut", {
           detail: { action },
-        }),
+        })
       );
     };
 

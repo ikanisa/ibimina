@@ -95,8 +95,8 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
     new Set(
       auditRows
         .map((row) => row.actor)
-        .filter((value): value is string => Boolean(value && value.length > 0)),
-    ),
+        .filter((value): value is string => Boolean(value && value.length > 0))
+    )
   );
 
   let actorLookup = new Map<string, string>();
@@ -157,7 +157,13 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
             className="text-xs text-neutral-3"
           />
         }
-        actions={<AuditExportButton filters={filters} saccoId={scope.saccoId ?? null} includeAll={scope.includeAll} />}
+        actions={
+          <AuditExportButton
+            filters={filters}
+            saccoId={scope.saccoId ?? null}
+            includeAll={scope.includeAll}
+          />
+        }
       >
         <AuditLogTable rows={entries} />
       </GlassCard>
@@ -167,7 +173,7 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
 
 function getParam(input: string | string[] | undefined): string {
   if (!input) return "";
-  return Array.isArray(input) ? input[0] ?? "" : input;
+  return Array.isArray(input) ? (input[0] ?? "") : input;
 }
 
 function deriveActorLabel(actor: string | null, lookup: Map<string, string>): string {

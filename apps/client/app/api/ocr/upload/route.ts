@@ -1,29 +1,29 @@
 /**
  * OCR Upload API Route Handler (Stub Implementation)
- * 
+ *
  * POST /api/ocr/upload
- * 
+ *
  * This is a stub implementation that simulates OCR (Optical Character Recognition)
  * processing of identity documents. In a production environment, this would integrate
  * with an actual OCR service to extract text from uploaded ID images.
- * 
+ *
  * Current behavior:
  * - Accepts file uploads (simulated)
  * - Returns mocked OCR data for development/testing
  * - Validates request structure
- * 
+ *
  * Request:
  * - Content-Type: multipart/form-data
  * - file: File (image of ID document)
  * - id_type: string (optional) - Type of ID: 'NID', 'DL', or 'PASSPORT'
- * 
+ *
  * Response:
  * - 200: OCR processing successful (mocked data)
  * - 400: Invalid request or missing file
  * - 401: User not authenticated
  * - 413: File too large
  * - 500: Server error
- * 
+ *
  * Mocked OCR Response Structure:
  * {
  *   success: true,
@@ -36,12 +36,12 @@
  *     extracted_fields: object
  *   }
  * }
- * 
+ *
  * Security:
  * - Requires valid Supabase session
  * - File size limits enforced (max 10MB)
  * - File type validation (images only)
- * 
+ *
  * TODO for production:
  * - Integrate with actual OCR service (e.g., Google Vision API, AWS Textract)
  * - Implement secure file upload to cloud storage
@@ -63,12 +63,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 /**
  * Allowed image MIME types for ID document uploads
  */
-const ALLOWED_MIME_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-];
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 /**
  * Generates mocked OCR data for testing
@@ -139,8 +134,11 @@ export async function POST(request: Request) {
     const supabase = await createSupabaseServerClient();
 
     // Verify user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       return NextResponse.json(
         { error: "Authentication required", details: "Please sign in to continue" },
@@ -164,9 +162,9 @@ export async function POST(request: Request) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { 
+        {
           error: "File too large",
-          details: `File size must not exceed ${MAX_FILE_SIZE / 1024 / 1024}MB`
+          details: `File size must not exceed ${MAX_FILE_SIZE / 1024 / 1024}MB`,
         },
         { status: 413 }
       );
@@ -175,9 +173,9 @@ export async function POST(request: Request) {
     // Validate file type
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { 
+        {
           error: "Invalid file type",
-          details: "Only JPEG, PNG, and WebP images are allowed"
+          details: "Only JPEG, PNG, and WebP images are allowed",
         },
         { status: 400 }
       );
@@ -187,9 +185,9 @@ export async function POST(request: Request) {
     const validIdTypes = ["NID", "DL", "PASSPORT"];
     if (!validIdTypes.includes(idType)) {
       return NextResponse.json(
-        { 
+        {
           error: "Invalid ID type",
-          details: `ID type must be one of: ${validIdTypes.join(", ")}`
+          details: `ID type must be one of: ${validIdTypes.join(", ")}`,
         },
         { status: 400 }
       );
@@ -203,7 +201,9 @@ export async function POST(request: Request) {
     const mockedOCRData = generateMockedOCRData(idType);
 
     // Log the stub operation
-    console.log(`[OCR STUB] User ${user.id} uploaded ${file.name} (${file.type}, ${file.size} bytes)`);
+    console.log(
+      `[OCR STUB] User ${user.id} uploaded ${file.name} (${file.type}, ${file.size} bytes)`
+    );
 
     // Return mocked success response
     return NextResponse.json(
@@ -220,13 +220,12 @@ export async function POST(request: Request) {
       },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("OCR upload error:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "An unexpected error occurred"
+        details: error instanceof Error ? error.message : "An unexpected error occurred",
       },
       { status: 500 }
     );
