@@ -28,6 +28,7 @@ export interface Group {
  * Options for filtering and pagination
  */
 export interface GroupListParams {
+  id?: string;
   saccoId?: string;
   status?: string;
   limit?: number;
@@ -57,10 +58,12 @@ export interface GroupListParams {
 export async function getGroups(
   params: GroupListParams = {}
 ): Promise<Group[]> {
-  const { saccoId, status, limit = 100, offset = 0 } = params;
-  
+  const { id, saccoId, status } = params;
+  const limit = params.limit ?? (id ? 1 : 100);
+  const offset = params.offset ?? 0;
+
   const supabase = await createSupabaseServerClient();
-  
+
   // Build the query for groups with SACCO information
   let query = supabase
     .from("ibimina")
@@ -77,16 +80,25 @@ export async function getGroups(
         name
       )
     `)
-    .order("updated_at", { ascending: false })
-    .range(offset, offset + limit - 1);
+    .order("updated_at", { ascending: false });
+
+  if (id) {
+    query = query.eq("id", id);
+  }
 
   // Apply filters
   if (saccoId) {
     query = query.eq("sacco_id", saccoId);
   }
-  
+
   if (status) {
     query = query.eq("status", status);
+  }
+
+  if (id) {
+    query = query.limit(limit);
+  } else {
+    query = query.range(offset, offset + limit - 1);
   }
 
   const { data: groupsData, error: groupsError } = await query;
@@ -162,10 +174,12 @@ export async function getGroups(
 export async function getGroupsClient(
   params: GroupListParams = {}
 ): Promise<Group[]> {
-  const { saccoId, status, limit = 100, offset = 0 } = params;
-  
+  const { id, saccoId, status } = params;
+  const limit = params.limit ?? (id ? 1 : 100);
+  const offset = params.offset ?? 0;
+
   const supabase = createSupabaseBrowserClient();
-  
+
   // Build the query for groups with SACCO information
   let query = supabase
     .from("ibimina")
@@ -182,16 +196,25 @@ export async function getGroupsClient(
         name
       )
     `)
-    .order("updated_at", { ascending: false })
-    .range(offset, offset + limit - 1);
+    .order("updated_at", { ascending: false });
+
+  if (id) {
+    query = query.eq("id", id);
+  }
 
   // Apply filters
   if (saccoId) {
     query = query.eq("sacco_id", saccoId);
   }
-  
+
   if (status) {
     query = query.eq("status", status);
+  }
+
+  if (id) {
+    query = query.limit(limit);
+  } else {
+    query = query.range(offset, offset + limit - 1);
   }
 
   const { data: groupsData, error: groupsError } = await query;
@@ -252,7 +275,6 @@ export async function getGroupsClient(
  * @returns Group data or null if not found
  */
 export async function getGroupById(id: string): Promise<Group | null> {
-  const groups = await getGroups({ limit: 1 });
-  const group = groups.find((g) => g.id === id);
-  return group || null;
+  const groups = await getGroups({ id, limit: 1 });
+  return groups[0] ?? null;
 }
