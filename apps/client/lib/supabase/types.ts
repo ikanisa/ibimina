@@ -60,8 +60,26 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
-    };
+      search_saccos: {
+        Args: {
+          district_filter?: string
+          limit_count?: number
+          province_filter?: string
+          query: string
+        }
+        Returns: {
+          category: string | null
+          district: string | null
+          email: string | null
+          id: string
+          name: string
+          province: string | null
+          rank_score: number
+          sector: string | null
+          similarity_score: number
+        }[]
+      }
+    }
     Enums: {
       [_ in never]: never;
     };
