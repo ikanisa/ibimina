@@ -11,7 +11,6 @@
 
 import { getGroups } from "@/lib/api/groups";
 import { GroupsGrid } from "@/components/groups/groups-grid";
-import { PageHeader } from "@/components/ui/page-header";
 
 export const metadata = {
   title: "Groups | Ibimina Client",
@@ -32,10 +31,14 @@ export default async function GroupsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Page header with title and description */}
-      <PageHeader
-        title="Savings Groups"
-        description="Browse and join savings groups (Ibimina) in your community"
-      />
+      <header className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 py-10">
+          <h1 className="text-3xl font-semibold text-gray-900">Savings Groups</h1>
+          <p className="mt-2 text-base text-gray-600">
+            Browse and join savings groups (Ibimina) in your community
+          </p>
+        </div>
+      </header>
 
       {/* Main content area */}
       <main className="container mx-auto px-4 py-8">
