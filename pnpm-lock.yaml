@@ -186,9 +186,6 @@ importers:
       '@ibimina/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@ibimina/lib':
-        specifier: workspace:*
-        version: link:../../packages/lib
       '@ibimina/ui':
         specifier: workspace:*
         version: link:../../packages/ui
