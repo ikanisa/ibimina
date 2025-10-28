@@ -158,7 +158,7 @@ function MetricsGrid({ insights }: { insights: MfaInsights }) {
           <p className="mt-3 text-2xl font-semibold text-neutral-0">
             {numberFormatter.format(metric.value)}
           </p>
-        </article>
+        </MetricCard>
       ))}
     </div>
   );
@@ -241,9 +241,7 @@ export function MfaInsightsCard({ insights }: MfaInsightsCardProps) {
       </section>
 
       <section className="space-y-3">
-        <SectionHeader
-          title={t("admin.security.sacco.title", "Coverage by SACCO")}
-        />
+        <SectionHeader title={t("admin.security.sacco.title", "Coverage by SACCO")} />
         <SaccoCoverageTable insights={insights} />
       </section>
     </div>

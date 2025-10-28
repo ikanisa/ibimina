@@ -124,8 +124,11 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     }
 
     // Verify the requesting user is an active member of this group
-    const { data: isMember, error: membershipError } = await (supabase as any)
-      .rpc("is_user_member_of_group", { gid: groupId });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: isMember, error: membershipError } = await (supabase as any).rpc(
+      "is_user_member_of_group",
+      { gid: groupId }
+    );
 
     if (membershipError) {
       console.error("Error verifying group membership:", membershipError);
@@ -150,11 +153,11 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
     // Fetch members using the public view with RLS enforcement
     // The RLS policies will automatically restrict access to authorized users
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const {
       data: members,
       error: membersError,
       count,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } = await (supabase as any)
       .from("ikimina_members_public")
       .select("id, member_code, full_name, status, joined_at, msisdn, national_id", {

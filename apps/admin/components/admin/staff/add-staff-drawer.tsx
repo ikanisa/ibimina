@@ -94,7 +94,7 @@ function AddStaffDrawer({ organizations, onClose }: AddStaffDrawerProps) {
     }
 
     startTransition(async () => {
-      const { data, error: inviteError } = await supabase.functions.invoke("admin-invite-staff", {
+      const { error: inviteError } = await supabase.functions.invoke("admin-invite-staff", {
         body: {
           email,
           fullName: fullName || null,
@@ -266,9 +266,7 @@ function AddStaffDrawer({ organizations, onClose }: AddStaffDrawerProps) {
           </div>
 
           {error && (
-            <div className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {error}
-            </div>
+            <div className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
           )}
 
           <div className="flex gap-3 pt-4">

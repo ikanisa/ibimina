@@ -18,15 +18,18 @@ interface StaffFiltersProps {
 }
 
 const ORG_TYPES = ["SACCO", "MFI", "DISTRICT"];
-const ROLES = ["SYSTEM_ADMIN", "DISTRICT_MANAGER", "MFI_MANAGER", "MFI_STAFF", "SACCO_MANAGER", "SACCO_STAFF", "SACCO_VIEWER"];
+const ROLES = [
+  "SYSTEM_ADMIN",
+  "DISTRICT_MANAGER",
+  "MFI_MANAGER",
+  "MFI_STAFF",
+  "SACCO_MANAGER",
+  "SACCO_STAFF",
+  "SACCO_VIEWER",
+];
 const STATUSES = ["ACTIVE", "SUSPENDED", "INACTIVE"];
 
-export function StaffFilters({
-  organizations,
-  currentOrgType,
-  currentRole,
-  currentStatus,
-}: StaffFiltersProps) {
+export function StaffFilters({ currentOrgType, currentRole, currentStatus }: StaffFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation();
@@ -52,9 +55,7 @@ export function StaffFilters({
           onChange={(e) => updateFilter("org_type", e.target.value)}
           className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
         >
-          <option value="">
-            {t("admin.staff.filters.allOrgTypes", "All types")}
-          </option>
+          <option value="">{t("admin.staff.filters.allOrgTypes", "All types")}</option>
           {ORG_TYPES.map((type) => (
             <option key={type} value={type}>
               {type}
@@ -72,9 +73,7 @@ export function StaffFilters({
           onChange={(e) => updateFilter("role", e.target.value)}
           className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
         >
-          <option value="">
-            {t("admin.staff.filters.allRoles", "All roles")}
-          </option>
+          <option value="">{t("admin.staff.filters.allRoles", "All roles")}</option>
           {ROLES.map((role) => (
             <option key={role} value={role}>
               {role.replace(/_/g, " ")}
@@ -92,9 +91,7 @@ export function StaffFilters({
           onChange={(e) => updateFilter("status", e.target.value)}
           className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
         >
-          <option value="">
-            {t("admin.staff.filters.allStatuses", "All statuses")}
-          </option>
+          <option value="">{t("admin.staff.filters.allStatuses", "All statuses")}</option>
           {STATUSES.map((status) => (
             <option key={status} value={status}>
               {status}
