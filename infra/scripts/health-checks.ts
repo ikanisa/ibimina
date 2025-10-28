@@ -216,9 +216,7 @@ async function main() {
   }
 }
 
-// Only run if this is the main module
-if (require.main === module) {
-  main();
-}
+// Run as main script
+main();
 
 export { HealthChecker };

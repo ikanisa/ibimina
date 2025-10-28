@@ -58,6 +58,10 @@ function hashRequest(payload: Record<string, unknown>): string {
  *
  * If a matching idempotency record exists and hasn't expired, returns the cached result.
  * Otherwise, executes the operation, stores the result, and returns it.
+ *
+ * Note: The idempotency table has a composite primary key of (user_id, key).
+ * The request_hash is stored but not part of the unique constraint, so ensure your
+ * key is unique per operation type to avoid collisions.
  */
 export async function withIdempotency<T>({
   key,
@@ -67,24 +71,35 @@ export async function withIdempotency<T>({
   ttlMinutes = 60,
 }: IdempotencyOptions<T>): Promise<IdempotencyResult<T>> {
   const supabase = await createSupabaseServerClient();
-  const requestHash = requestPayload ? hashRequest(requestPayload) : null;
+  const requestHash = requestPayload ? hashRequest(requestPayload) : "";
   const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000).toISOString();
 
   try {
     // Check for existing idempotency record
     const { data: existing, error: checkError } = await supabase
       .from("idempotency")
-      .select("response, expires_at")
+      .select("response, expires_at, request_hash")
       .eq("key", key)
       .eq("user_id", userId)
-      .eq("request_hash", requestHash ?? "")
-      .single();
+      .maybeSingle();
 
     if (!checkError && existing) {
+      // Verify request hash matches to ensure same operation
+      if (existing.request_hash !== requestHash) {
+        logError("idempotency_hash_mismatch", {
+          key,
+          userId,
+          expected: requestHash,
+          actual: existing.request_hash,
+        });
+        // Hash mismatch - different operation with same key
+        // Proceeding to execute new operation will overwrite
+      }
+
       // Check if the record has expired
       const isExpired = new Date(existing.expires_at) < new Date();
 
-      if (!isExpired) {
+      if (!isExpired && existing.request_hash === requestHash) {
         // Return cached result
         return {
           fromCache: true,
@@ -92,7 +107,7 @@ export async function withIdempotency<T>({
         };
       }
 
-      // Record expired, will execute and update
+      // Record expired or hash mismatch, will execute and update
     }
 
     // Execute the operation
@@ -103,12 +118,12 @@ export async function withIdempotency<T>({
       {
         key,
         user_id: userId,
-        request_hash: requestHash ?? "",
+        request_hash: requestHash,
         response: result as unknown as Record<string, unknown>,
         expires_at: expiresAt,
       },
       {
-        onConflict: "key,user_id,request_hash",
+        onConflict: "user_id,key",
       }
     );
 
@@ -144,22 +159,18 @@ export async function withIdempotency<T>({
 export async function invalidateIdempotency({
   key,
   userId,
-  requestPayload,
 }: {
   key: string;
   userId: string;
-  requestPayload?: Record<string, unknown>;
 }): Promise<void> {
   const supabase = await createSupabaseServerClient();
-  const requestHash = requestPayload ? hashRequest(requestPayload) : null;
 
   try {
     const { error } = await supabase
       .from("idempotency")
       .delete()
       .eq("key", key)
-      .eq("user_id", userId)
-      .eq("request_hash", requestHash ?? "");
+      .eq("user_id", userId);
 
     if (error) {
       logError("idempotency_invalidate_failed", {

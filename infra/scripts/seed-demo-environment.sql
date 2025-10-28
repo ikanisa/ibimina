@@ -1,6 +1,10 @@
 -- Enhanced demo environment seed for SACCO+ platform
 -- This seed creates a comprehensive demo with realistic data for presentations and testing
 --
+-- ⚠️ WARNING: FOR DEMO/TESTING ONLY - DO NOT USE IN PRODUCTION ⚠️
+-- This file contains hard-coded demo credentials and should NEVER be deployed to production.
+-- Demo passwords: DemoPass123! (for illustration purposes only)
+--
 -- Includes:
 -- - 1 District (Gasabo)
 -- - 2 SACCOs (Kigali Savings & Nyarugenge Cooperative)
@@ -9,6 +13,7 @@
 -- - Sample transactions and activities
 --
 -- Usage: Run this after the main multitenancy seed or independently
+--        psql $DATABASE_URL -f infra/scripts/seed-demo-environment.sql
 
 BEGIN;
 
