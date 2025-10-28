@@ -166,6 +166,7 @@ function MetricsGrid({ insights }: { insights: MfaInsights }) {
 
 function SaccoCoverageTable({ insights }: { insights: MfaInsights }) {
   const { t } = useTranslation();
+  const numberFormatter = new Intl.NumberFormat("en-RW");
 
   if (insights.saccoCoverage.length === 0) {
     return (
