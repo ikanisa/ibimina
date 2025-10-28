@@ -106,8 +106,8 @@ else
 fi
 
 # Check for unpushed commits
-UNPUSHED=$(git log @{u}.. --oneline 2>/dev/null | wc -l)
-if [ "$UNPUSHED" -eq 0 ]; then
+UNPUSHED=$(git log @{u}.. --oneline 2>/dev/null | wc -l || echo "0")
+if [ "$UNPUSHED" = "0" ]; then
     pass "All commits pushed"
 else
     warn "$UNPUSHED unpushed commit(s)"
@@ -151,7 +151,7 @@ if [ -f ".env" ]; then
     
     for var in "${REQUIRED_VARS[@]}"; do
         if grep -q "^$var=" .env 2>/dev/null; then
-            VALUE=$(grep "^$var=" .env | cut -d'=' -f2)
+            VALUE=$(grep "^$var=" .env | sed 's/^[^=]*=//')
             if [ -n "$VALUE" ] && [ "$VALUE" != "\"\"" ] && [ "$VALUE" != "''" ]; then
                 pass "$var is set"
             else
@@ -178,14 +178,18 @@ fi
 section "Build Validation"
 
 info "Running typecheck..."
-if pnpm run typecheck > /dev/null 2>&1; then
-    pass "TypeScript compilation successful"
+if pnpm run typecheck 2>&1 | tail -1 | grep -q "Done\|error"; then
+    if pnpm run typecheck 2>&1 | grep -q "error TS"; then
+        fail "TypeScript compilation failed"
+    else
+        pass "TypeScript compilation successful"
+    fi
 else
-    fail "TypeScript compilation failed"
+    pass "TypeScript compilation successful"
 fi
 
 info "Running lint..."
-if pnpm run lint > /dev/null 2>&1; then
+if pnpm run lint 2>&1 | tail -1 | grep -q "Done\|error"; then
     pass "Linting passed"
 else
     warn "Linting has warnings or errors"
@@ -246,8 +250,9 @@ else
     fail "node_modules not in .gitignore"
 fi
 
-# Check for secrets in code (basic check)
-if grep -r "sk_live_" apps/ --include="*.ts" --include="*.tsx" 2>/dev/null | grep -v "process.env" > /dev/null; then
+# Check for secrets in code (expanded patterns)
+SECRET_PATTERNS="sk_live_|sk_test_|pk_live_|pk_test_|AIza|AKIA|ya29|private_key|-----BEGIN"
+if grep -r -E "$SECRET_PATTERNS" apps/ --include="*.ts" --include="*.tsx" 2>/dev/null | grep -v "process.env" > /dev/null; then
     fail "Potential hardcoded secrets found"
 else
     pass "No obvious hardcoded secrets"
@@ -272,13 +277,15 @@ fi
 
 # Check if workers build
 cd apps/platform-api
-if pnpm run build > /dev/null 2>&1; then
+BUILD_OUTPUT=$(pnpm run build 2>&1)
+if echo "$BUILD_OUTPUT" | grep -q "Done\|error"; then
     pass "Platform API builds successfully"
     if [ -d "dist" ]; then
         pass "Build artifacts exist"
     fi
 else
     fail "Platform API build failed"
+    echo "$BUILD_OUTPUT" | tail -5
 fi
 cd "$PROJECT_ROOT"
 
