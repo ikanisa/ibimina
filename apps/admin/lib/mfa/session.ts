@@ -22,7 +22,8 @@ const parseExpiration = (envKey: string, fallbackSeconds: number) => {
 };
 
 export const sessionTtlSeconds = () => parseExpiration("MFA_SESSION_TTL_SECONDS", 12 * 60 * 60);
-export const trustedTtlSeconds = () => parseExpiration("TRUSTED_DEVICE_TTL_SECONDS", 30 * 24 * 60 * 60);
+export const trustedTtlSeconds = () =>
+  parseExpiration("TRUSTED_DEVICE_TTL_SECONDS", 30 * 24 * 60 * 60);
 
 type SessionPayload = {
   userId: string;
@@ -64,10 +65,16 @@ export const verifyMfaSessionToken = (token: string): SessionPayload | null => {
   return payload;
 };
 
-export const createTrustedDeviceToken = (userId: string, deviceId: string, ttlSeconds = trustedTtlSeconds()) => {
+export const createTrustedDeviceToken = (
+  userId: string,
+  deviceId: string,
+  ttlSeconds = trustedTtlSeconds()
+) => {
   const secret = trustedSecret();
   if (!secret) {
-    console.warn("Trusted device secret is not configured; skipping trusted device cookie issuance.");
+    console.warn(
+      "Trusted device secret is not configured; skipping trusted device cookie issuance."
+    );
     return null;
   }
 

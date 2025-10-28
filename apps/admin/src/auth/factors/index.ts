@@ -19,7 +19,9 @@ type PasskeyChallengeStarter = typeof baseStartPasskeyChallenge;
 let startPasskeyChallenge: PasskeyChallengeStarter = baseStartPasskeyChallenge;
 
 export function overrideVerifyHandlers(overrides: Partial<Record<Factor, VerifyHandler>>) {
-  for (const [factor, handler] of Object.entries(overrides) as Array<[Factor, VerifyHandler | undefined]>) {
+  for (const [factor, handler] of Object.entries(overrides) as Array<
+    [Factor, VerifyHandler | undefined]
+  >) {
     if (handler) {
       verifyHandlerOverrides.set(factor, handler);
     } else {
@@ -29,7 +31,9 @@ export function overrideVerifyHandlers(overrides: Partial<Record<Factor, VerifyH
 }
 
 export function overrideInitiateHandlers(overrides: Partial<Record<Factor, InitiateHandler>>) {
-  for (const [factor, handler] of Object.entries(overrides) as Array<[Factor, InitiateHandler | undefined]>) {
+  for (const [factor, handler] of Object.entries(overrides) as Array<
+    [Factor, InitiateHandler | undefined]
+  >) {
     if (handler) {
       initiateHandlerOverrides.set(factor, handler);
     } else {
@@ -97,7 +101,7 @@ export type FactorInitiateResult =
   | (FactorFailure & { ok: false });
 
 export const verifyFactor = async (
-  input: FactorVerifyInput,
+  input: FactorVerifyInput
 ): Promise<FactorSuccess | FactorFailure> => {
   const override = verifyHandlerOverrides.get(input.factor);
   if (override) {
@@ -120,9 +124,7 @@ export const verifyFactor = async (
   }
 };
 
-export const initiateFactor = async (
-  input: FactorInitiateInput,
-): Promise<FactorInitiateResult> => {
+export const initiateFactor = async (input: FactorInitiateInput): Promise<FactorInitiateResult> => {
   const override = initiateHandlerOverrides.get(input.factor);
   if (override) {
     return override(input);

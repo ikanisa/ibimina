@@ -19,7 +19,7 @@ function assertPdfFile(file: File | null): asserts file is File {
     throw new Error("Only PDF files are supported for OCR import");
   }
   if (file.size > MAX_FILE_BYTES) {
-    throw new Error("PDF exceeds the 8MB limit. Upload a smaller file or split it." );
+    throw new Error("PDF exceeds the 8MB limit. Upload a smaller file or split it.");
   }
 }
 
@@ -66,7 +66,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     if (auth.profile.role !== "SYSTEM_ADMIN" && !auth.profile.sacco_id) {
-      return NextResponse.json({ error: "SACCO assignment required for OCR import" }, { status: 403 });
+      return NextResponse.json(
+        { error: "SACCO assignment required for OCR import" },
+        { status: 403 }
+      );
     }
 
     const canImport =
@@ -75,7 +78,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       auth.profile.role === "SACCO_STAFF";
 
     if (!canImport) {
-      return NextResponse.json({ error: "Your role is read-only for member imports" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Your role is read-only for member imports" },
+        { status: 403 }
+      );
     }
 
     const formData = await request.formData();
@@ -157,10 +163,7 @@ Ignore headers, totals, or narrative text. Limit the result to 300 members.`;
   } catch (error) {
     console.error("member-ocr error", error);
     const status = (error as { status?: number }).status ?? 500;
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to process PDF";
+    const message = error instanceof Error ? error.message : "Failed to process PDF";
     return NextResponse.json({ error: message }, { status });
   }
 }

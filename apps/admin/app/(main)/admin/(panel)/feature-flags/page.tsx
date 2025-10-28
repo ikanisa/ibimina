@@ -20,11 +20,17 @@ export default async function FeatureFlagsPage() {
             className="text-xs text-neutral-3"
           />
         }
-        badge={<StatusChip tone={canEdit ? "success" : "info"}>{canEdit ? "Editable" : "Read only"}</StatusChip>}
+        badge={
+          <StatusChip tone={canEdit ? "success" : "info"}>
+            {canEdit ? "Editable" : "Read only"}
+          </StatusChip>
+        }
       />
 
       <GlassCard
-        title={<Trans i18nKey="admin.featureFlags.configuration" fallback="Platform configuration" />}
+        title={
+          <Trans i18nKey="admin.featureFlags.configuration" fallback="Platform configuration" />
+        }
         subtitle={
           <Trans
             i18nKey="admin.featureFlags.configurationSubtitle"

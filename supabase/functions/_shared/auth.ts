@@ -33,7 +33,7 @@ const buildMessage = (timestamp: string, context: string, body: Uint8Array) => {
 
 export const validateHmacRequest = async (
   req: Request,
-  options: HmacValidationOptions = {},
+  options: HmacValidationOptions = {}
 ): Promise<HmacValidationResult> => {
   const signatureHeader = options.signatureHeader ?? "x-signature";
   const timestampHeader = options.timestampHeader ?? "x-timestamp";
@@ -61,8 +61,7 @@ export const validateHmacRequest = async (
 
   const secret = requireEnv(options.secretEnv ?? "HMAC_SHARED_SECRET");
   const rawBody = options.rawBody ?? new Uint8Array(await req.arrayBuffer());
-  const context =
-    options.context ?? `${req.method.toUpperCase()}:${new URL(req.url).pathname}`;
+  const context = options.context ?? `${req.method.toUpperCase()}:${new URL(req.url).pathname}`;
   const message = buildMessage(timestamp, context, rawBody);
 
   if (!verifyHmacSignature(secret, message, signature)) {

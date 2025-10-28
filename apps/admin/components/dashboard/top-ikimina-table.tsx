@@ -26,7 +26,11 @@ export function TopIkiminaTable({ data, tableHeight = 260 }: TopIkiminaTableProp
     () => [
       {
         accessorKey: "name",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.table.ikimina", "Ikimina")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("reports.table.ikimina", "Ikimina")}
+          </span>
+        ),
         cell: ({ row }) => (
           <div>
             <p className="font-medium text-neutral-0">{row.original.name}</p>
@@ -36,7 +40,11 @@ export function TopIkiminaTable({ data, tableHeight = 260 }: TopIkiminaTableProp
       },
       {
         accessorKey: "updated_at",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.updated", "Updated")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("common.updated", "Updated")}
+          </span>
+        ),
         cell: ({ getValue }) => {
           const value = getValue() as string | null;
           return value ? new Date(value).toLocaleDateString() : "—";
@@ -44,34 +52,49 @@ export function TopIkiminaTable({ data, tableHeight = 260 }: TopIkiminaTableProp
       },
       {
         accessorKey: "month_total",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("dashboard.table.thisMonth", "This month")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("dashboard.table.thisMonth", "This month")}
+          </span>
+        ),
         cell: ({ getValue }) => formatCurrency(Number(getValue() ?? 0)),
         meta: { align: "right" as const },
       },
       {
         accessorKey: "member_count",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.members", "Members")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.members", "Members")}
+          </span>
+        ),
         cell: ({ getValue }) => <span className="text-neutral-0">{Number(getValue() ?? 0)}</span>,
       },
       {
         accessorKey: "status",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.status", "Status")}</span>,
-        cell: ({ getValue }) => <StatusChip tone="neutral">{String(getValue() ?? "UNKNOWN")}</StatusChip>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.status", "Status")}
+          </span>
+        ),
+        cell: ({ getValue }) => (
+          <StatusChip tone="neutral">{String(getValue() ?? "UNKNOWN")}</StatusChip>
+        ),
       },
     ],
     [t]
   );
 
   const empty = (
-    <EmptyState title={t("dashboard.top.emptyTitle", "No ikimina activity")} description={t("dashboard.top.emptyDescription", "Recent groups will show here once transactions start flowing.")} />
+    <EmptyState
+      title={t("dashboard.top.emptyTitle", "No ikimina activity")}
+      description={t(
+        "dashboard.top.emptyDescription",
+        "Recent groups will show here once transactions start flowing."
+      )}
+    />
   );
 
   return (
-    <VirtualTable
-      data={data}
-      columns={columns}
-      tableHeight={tableHeight}
-      emptyState={empty}
-    />
+    <VirtualTable data={data} columns={columns} tableHeight={tableHeight} emptyState={empty} />
   );
 }

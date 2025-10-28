@@ -18,7 +18,9 @@ export interface ReportFiltersChange {
 
 export function ReportFilters({ initialSacco, onChange }: ReportFiltersProps) {
   const { t } = useTranslation();
-  const [selectedSacco, setSelectedSacco] = useState<SaccoSearchResult | null>(initialSacco ?? null);
+  const [selectedSacco, setSelectedSacco] = useState<SaccoSearchResult | null>(
+    initialSacco ?? null
+  );
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
@@ -89,7 +91,7 @@ export function ReportFilters({ initialSacco, onChange }: ReportFiltersProps) {
       <p className="text-xs text-neutral-2">
         {t(
           "reports.filters.instructions",
-          "Choose a SACCO or leave blank for global scope (system admins only). Date range defaults to the last 30 days.",
+          "Choose a SACCO or leave blank for global scope (system admins only). Date range defaults to the last 30 days."
         )}
       </p>
     </div>

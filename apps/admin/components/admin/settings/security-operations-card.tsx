@@ -30,7 +30,7 @@ export function SecurityOperationsCard({ canReset }: SecurityOperationsCardProps
       toast.success(
         t("admin.settings.mfaResetSuccess", "Cleared MFA for {{count}} user(s).", {
           count: result.count ?? 0,
-        }),
+        })
       );
     });
   };
@@ -40,7 +40,7 @@ export function SecurityOperationsCard({ canReset }: SecurityOperationsCardProps
       <p className="text-sm text-neutral-2">
         {t(
           "admin.settings.securityDescription",
-          "Use these controls to recover access for staff when authenticators are unavailable.",
+          "Use these controls to recover access for staff when authenticators are unavailable."
         )}
       </p>
       <div className="flex flex-wrap items-center gap-3">
@@ -50,7 +50,9 @@ export function SecurityOperationsCard({ canReset }: SecurityOperationsCardProps
           disabled={!canReset || pending}
           className="interactive-scale rounded-full bg-rose-500/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0 shadow-glass disabled:opacity-60"
         >
-          {pending ? t("common.processing", "Processing…") : t("admin.settings.resetMfa", "Reset MFA for all")}
+          {pending
+            ? t("common.processing", "Processing…")
+            : t("admin.settings.resetMfa", "Reset MFA for all")}
         </button>
         {!canReset && (
           <span className="text-xs text-neutral-3">
@@ -67,13 +69,13 @@ export function SecurityOperationsCard({ canReset }: SecurityOperationsCardProps
         <li>
           {t(
             "admin.settings.securityHint.logs",
-            "Actions trigger an audit log with actor, timestamp, and reason.",
+            "Actions trigger an audit log with actor, timestamp, and reason."
           )}
         </li>
         <li>
           {t(
             "admin.settings.securityHint.notify",
-            "Notify affected users to re-enrol MFA immediately after a reset.",
+            "Notify affected users to re-enrol MFA immediately after a reset."
           )}
         </li>
       </ul>

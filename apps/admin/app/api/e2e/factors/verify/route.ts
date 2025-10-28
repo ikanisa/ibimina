@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json(
       { ok: false, error: "invalid_payload", issues: parsed.error.flatten() },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
           error: "secret_encryption_failed",
           details: error instanceof Error ? error.message : String(error),
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
   }

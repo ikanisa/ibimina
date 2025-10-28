@@ -27,7 +27,13 @@ interface ColumnMeta {
   cellClassName?: string;
 }
 
-export function VirtualTable<TData>({ data, columns, className, tableHeight = 480, emptyState }: VirtualTableProps<TData>) {
+export function VirtualTable<TData>({
+  data,
+  columns,
+  className,
+  tableHeight = 480,
+  emptyState,
+}: VirtualTableProps<TData>) {
   // TanStack Table cannot be memoized safely by React Compiler; this hook needs to run on every render.
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable<TData>({
@@ -63,20 +69,19 @@ export function VirtualTable<TData>({ data, columns, className, tableHeight = 48
       .join(" ");
   }, [table]);
 
-  const gridStyle = useMemo(() => ({
-    gridTemplateColumns: gridTemplate,
-  }), [gridTemplate]);
+  const gridStyle = useMemo(
+    () => ({
+      gridTemplateColumns: gridTemplate,
+    }),
+    [gridTemplate]
+  );
 
   const content = useMemo(() => {
     if (table.getRowModel().rows.length === 0 && emptyState) {
       return <div className="flex h-full items-center justify-center">{emptyState}</div>;
     }
     return (
-      <div
-        ref={parentRef}
-        className="relative overflow-auto"
-        style={{ height: tableHeight }}
-      >
+      <div ref={parentRef} className="relative overflow-auto" style={{ height: tableHeight }}>
         <div style={{ height: totalSize, position: "relative" }}>
           {virtualItems.map((virtualRow) => {
             const row = table.getRowModel().rows[virtualRow.index];
@@ -91,7 +96,10 @@ export function VirtualTable<TData>({ data, columns, className, tableHeight = 48
                   left: 0,
                   width: "100%",
                   transform: `translateY(${virtualRow.start}px)`,
-                  background: virtualRow.index % 2 === 0 ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)",
+                  background:
+                    virtualRow.index % 2 === 0
+                      ? "rgba(255,255,255,0.04)"
+                      : "rgba(255,255,255,0.02)",
                 }}
               >
                 {row.getVisibleCells().map((cell) => {
@@ -100,8 +108,8 @@ export function VirtualTable<TData>({ data, columns, className, tableHeight = 48
                     meta?.align === "right"
                       ? "text-right"
                       : meta?.align === "center"
-                      ? "text-center"
-                      : "text-left";
+                        ? "text-center"
+                        : "text-left";
                   return (
                     <div key={cell.id} className={cn("truncate", alignClass, meta?.cellClassName)}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -127,14 +135,20 @@ export function VirtualTable<TData>({ data, columns, className, tableHeight = 48
                 meta?.align === "right"
                   ? "text-right"
                   : meta?.align === "center"
-                  ? "text-center"
-                  : "text-left";
+                    ? "text-center"
+                    : "text-left";
               return (
                 <div
                   key={header.id}
-                  className={cn("truncate text-xs uppercase tracking-[0.2em] text-neutral-2", alignClass, meta?.headerClassName)}
+                  className={cn(
+                    "truncate text-xs uppercase tracking-[0.2em] text-neutral-2",
+                    alignClass,
+                    meta?.headerClassName
+                  )}
                 >
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
                 </div>
               );
             })

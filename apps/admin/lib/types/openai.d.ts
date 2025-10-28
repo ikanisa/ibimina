@@ -36,9 +36,7 @@ declare module "openai" {
   export default class OpenAI {
     constructor(config: { apiKey: string });
     responses: {
-      create: (
-        request: OpenAIResponsesCreateRequest
-      ) => Promise<OpenAIResponsesCreateResult>;
+      create: (request: OpenAIResponsesCreateRequest) => Promise<OpenAIResponsesCreateResult>;
     };
   }
 }

@@ -70,22 +70,21 @@ export async function getMfaInsights(): Promise<MfaInsights> {
     { count: trustedCount },
     { count: passkeyCount },
     emailCodesResult,
-  ] =
-    await Promise.all([
-      supabase
-        .from("users")
-        .select(
-          "id, email, mfa_enabled, mfa_methods, mfa_passkey_enrolled, last_mfa_success_at, failed_mfa_count, sacco_id, role, saccos(name)",
-        ),
-      supabase.from("trusted_devices").select("id", { count: "exact", head: true }),
-      supabase.from("webauthn_credentials").select("id", { count: "exact", head: true }),
-      supabase
-        .schema("app")
-        .from("mfa_email_codes")
-        .select("id", { count: "exact", head: true })
-        .is("consumed_at", null)
-        .gte("expires_at", new Date().toISOString()),
-    ]);
+  ] = await Promise.all([
+    supabase
+      .from("users")
+      .select(
+        "id, email, mfa_enabled, mfa_methods, mfa_passkey_enrolled, last_mfa_success_at, failed_mfa_count, sacco_id, role, saccos(name)"
+      ),
+    supabase.from("trusted_devices").select("id", { count: "exact", head: true }),
+    supabase.from("webauthn_credentials").select("id", { count: "exact", head: true }),
+    supabase
+      .schema("app")
+      .from("mfa_email_codes")
+      .select("id", { count: "exact", head: true })
+      .is("consumed_at", null)
+      .gte("expires_at", new Date().toISOString()),
+  ]);
 
   if (userError) {
     throw userError;
@@ -168,7 +167,10 @@ export async function getMfaInsights(): Promise<MfaInsights> {
         const disabled = entry.reason.some((reason) => reason.type === "disabled");
         const stale = entry.reason.some((reason) => reason.type === "stale");
         const failures = entry.reason.some((reason) => reason.type === "failures");
-        return [disabled ? 1 : 0, stale ? 1 : 0, failures ? 1 : 0].reduce((acc, flag, index) => acc + flag * (3 - index), 0);
+        return [disabled ? 1 : 0, stale ? 1 : 0, failures ? 1 : 0].reduce(
+          (acc, flag, index) => acc + flag * (3 - index),
+          0
+        );
       };
       const scoreDiff = score(b) - score(a);
       if (scoreDiff !== 0) return scoreDiff;
@@ -178,7 +180,9 @@ export async function getMfaInsights(): Promise<MfaInsights> {
     })
     .slice(0, 10);
 
-  const saccoCoverageList = Array.from(saccoCoverage.values()).sort((a, b) => b.mfaEnabled - a.mfaEnabled);
+  const saccoCoverageList = Array.from(saccoCoverage.values()).sort(
+    (a, b) => b.mfaEnabled - a.mfaEnabled
+  );
 
   return {
     totals: {
@@ -195,4 +199,3 @@ export async function getMfaInsights(): Promise<MfaInsights> {
     saccoCoverage: saccoCoverageList,
   };
 }
-

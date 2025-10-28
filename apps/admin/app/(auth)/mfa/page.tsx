@@ -17,7 +17,7 @@ export default function SmartMFA() {
         <p className="text-sm text-neutral-400">
           {t(
             "auth.mfa.description",
-            "Choose an available factor to finish signing in. Passkeys, authenticator apps, email, WhatsApp, and backup codes are supported.",
+            "Choose an available factor to finish signing in. Passkeys, authenticator apps, email, WhatsApp, and backup codes are supported."
           )}
         </p>
       </header>

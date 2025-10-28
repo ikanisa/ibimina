@@ -114,7 +114,11 @@ async function updateIkiminaSettingsInternal(
   const validation = validate(formData);
   if (validation.errors) {
     logWarn("ikimina_settings_validation_failed", { errors: Object.keys(validation.errors) });
-    return { status: "error", message: "Please correct the highlighted fields", fieldErrors: validation.errors };
+    return {
+      status: "error",
+      message: "Please correct the highlighted fields",
+      fieldErrors: validation.errors,
+    };
   }
 
   const { data } = validation;
@@ -146,8 +150,15 @@ async function updateIkiminaSettingsInternal(
     return { status: "error", message: "Ikimina not found" };
   }
 
-  if (profile.role !== "SYSTEM_ADMIN" && profile.sacco_id && profile.sacco_id !== typedExisting.sacco_id) {
-    logWarn("ikimina_settings_permission_denied", { ikiminaId: data.ikiminaId, role: profile.role });
+  if (
+    profile.role !== "SYSTEM_ADMIN" &&
+    profile.sacco_id &&
+    profile.sacco_id !== typedExisting.sacco_id
+  ) {
+    logWarn("ikimina_settings_permission_denied", {
+      ikiminaId: data.ikiminaId,
+      role: profile.role,
+    });
     return { status: "error", message: "You do not have permission to update this ikimina." };
   }
 
@@ -211,6 +222,9 @@ async function updateIkiminaSettingsInternal(
   };
 }
 
-export const updateIkiminaSettings = instrumentServerAction("ikimina.updateSettings", updateIkiminaSettingsInternal);
+export const updateIkiminaSettings = instrumentServerAction(
+  "ikimina.updateSettings",
+  updateIkiminaSettingsInternal
+);
 
 export { INITIAL_STATE as IKIMINA_SETTINGS_INITIAL_STATE };

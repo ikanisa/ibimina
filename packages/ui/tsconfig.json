@@ -6,21 +6,12 @@
     "declaration": true,
     "declarationMap": true,
     "noEmit": false,
-    "types": [
-      "node",
-      "react",
-      "react-dom"
-    ],
+    "types": ["node", "react", "react-dom"],
     "moduleResolution": "node",
     "module": "esnext",
     "baseUrl": "./src",
     "jsx": "react-jsx"
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules"]
 }

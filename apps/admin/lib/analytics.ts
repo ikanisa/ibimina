@@ -9,7 +9,12 @@ export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
 
 export interface ExecutiveAnalyticsSnapshot {
   monthlyTrend: Array<{ monthKey: string; label: string; total: number }>;
-  saccoLeaders: Array<{ saccoId: string | null; saccoName: string; total: number; unallocated: number }>;
+  saccoLeaders: Array<{
+    saccoId: string | null;
+    saccoName: string;
+    total: number;
+    unallocated: number;
+  }>;
   riskSignals: Array<{
     ikiminaId: string;
     name: string;
@@ -28,9 +33,15 @@ export interface ExecutiveAnalyticsSnapshot {
 
 const monthLabel = new Intl.DateTimeFormat("en-RW", { month: "short", year: "numeric" });
 
-type PaymentRow = Pick<Database["app"]["Tables"]["payments"]["Row"], "amount" | "status" | "occurred_at" | "sacco_id" | "ikimina_id">;
+type PaymentRow = Pick<
+  Database["app"]["Tables"]["payments"]["Row"],
+  "amount" | "status" | "occurred_at" | "sacco_id" | "ikimina_id"
+>;
 type SaccoRow = Pick<Database["app"]["Tables"]["saccos"]["Row"], "id" | "name">;
-type IkiminaMetaRow = Pick<Database["app"]["Tables"]["ikimina"]["Row"], "id" | "name" | "sacco_id"> & {
+type IkiminaMetaRow = Pick<
+  Database["app"]["Tables"]["ikimina"]["Row"],
+  "id" | "name" | "sacco_id"
+> & {
   saccos?: { name: string | null } | null;
 };
 
@@ -52,7 +63,7 @@ interface AnalyticsClients {
 
 async function computeExecutiveAnalytics(
   saccoId: string | null,
-  clients: AnalyticsClients,
+  clients: AnalyticsClients
 ): Promise<ExecutiveAnalyticsSnapshot> {
   const supabase = clients.user;
   const appSupabase = clients.app;
@@ -94,8 +105,10 @@ async function computeExecutiveAnalytics(
     for (const row of (paymentsData ?? []) as PaymentRow[]) {
       const occurred = new Date(row.occurred_at);
       const monthKey = `${occurred.getFullYear()}-${String(occurred.getMonth() + 1).padStart(2, "0")}`;
-      const monthEntry =
-        monthlyMap.get(monthKey) ?? { total: 0, date: new Date(occurred.getFullYear(), occurred.getMonth(), 1) };
+      const monthEntry = monthlyMap.get(monthKey) ?? {
+        total: 0,
+        date: new Date(occurred.getFullYear(), occurred.getMonth(), 1),
+      };
 
       if (ACTIVE_PAYMENT_STATUSES.has(row.status ?? "")) {
         monthEntry.total += row.amount ?? 0;
@@ -142,7 +155,9 @@ async function computeExecutiveAnalytics(
       forecastNext = Math.max(0, Math.round(totals[totals.length - 1] + avg));
     }
 
-    const saccoIds = Array.from(new Set(Array.from(saccoTotals.keys()).filter((value): value is string => Boolean(value))));
+    const saccoIds = Array.from(
+      new Set(Array.from(saccoTotals.keys()).filter((value): value is string => Boolean(value)))
+    );
 
     let saccoLookup = new Map<string, string>();
     if (saccoIds.length > 0) {
@@ -150,13 +165,15 @@ async function computeExecutiveAnalytics(
         .from("saccos")
         .select("id, name")
         .in("id", saccoIds);
-      saccoLookup = new Map(((saccoRows ?? []) as SaccoRow[]).map((row) => [row.id, row.name ?? row.id]));
+      saccoLookup = new Map(
+        ((saccoRows ?? []) as SaccoRow[]).map((row) => [row.id, row.name ?? row.id])
+      );
     }
 
     saccoLeaders = Array.from(saccoTotals.entries())
       .map(([id, entry]) => ({
         saccoId: id,
-        saccoName: id ? saccoLookup.get(id) ?? id : "All SACCOs",
+        saccoName: id ? (saccoLookup.get(id) ?? id) : "All SACCOs",
         total: Math.round(entry.total),
         unallocated: Math.round(entry.unallocated),
       }))
@@ -193,7 +210,7 @@ async function computeExecutiveAnalytics(
             name: row.name ?? "Unknown ikimina",
             saccoName: (row.saccos?.name ?? null) as string | null,
           },
-        ]),
+        ])
       );
     }
 
@@ -219,8 +236,9 @@ async function computeExecutiveAnalytics(
       const code = (error as { code?: string } | undefined)?.code;
       if (code === "PGRST205" && !attemptedRefresh) {
         attemptedRefresh = true;
-        const { error: refreshError } = await appSupabase
-          .rpc("analytics_refresh_dashboard_materialized_views" as never);
+        const { error: refreshError } = await appSupabase.rpc(
+          "analytics_refresh_dashboard_materialized_views" as never
+        );
         if (refreshError) {
           console.warn("[analytics] failed to refresh dashboard materialized views", refreshError);
           monthlyTrend = [];
@@ -282,7 +300,9 @@ async function computeExecutiveAnalytics(
   };
 }
 
-export async function getExecutiveAnalytics(saccoId: string | null): Promise<ExecutiveAnalyticsSnapshot> {
+export async function getExecutiveAnalytics(
+  saccoId: string | null
+): Promise<ExecutiveAnalyticsSnapshot> {
   const saccoKey = saccoId ?? "all";
   const supabase = createSupabaseServiceRoleClient("analytics:user");
   const appSupabase = createSupabaseServiceRoleClient("analytics:app");
@@ -290,7 +310,7 @@ export async function getExecutiveAnalytics(saccoId: string | null): Promise<Exe
     () => computeExecutiveAnalytics(saccoId, { user: supabase, app: appSupabase }),
     ["analytics", "executive", saccoKey],
     [CACHE_TAGS.analyticsExecutive(saccoId)],
-    REVALIDATION_SECONDS.fifteenMinutes,
+    REVALIDATION_SECONDS.fifteenMinutes
   );
   return cached();
 }

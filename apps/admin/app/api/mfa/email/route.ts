@@ -25,10 +25,7 @@ export async function POST() {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any)
-    .from("users")
-    .update(updatePayload)
-    .eq("id", user.id);
+  const { error } = await (supabase as any).from("users").update(updatePayload).eq("id", user.id);
   if (error) {
     console.error("Enable email MFA failed", error);
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
@@ -69,10 +66,7 @@ export async function DELETE() {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any)
-    .from("users")
-    .update(updatePayload)
-    .eq("id", user.id);
+  const { error } = await (supabase as any).from("users").update(updatePayload).eq("id", user.id);
   if (error) {
     console.error("Disable email MFA failed", error);
     return NextResponse.json({ error: "update_failed" }, { status: 500 });

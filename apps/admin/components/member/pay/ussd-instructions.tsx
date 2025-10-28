@@ -83,13 +83,24 @@ export function UssdInstructions({ groupId }: UssdInstructionsProps) {
         </p>
         {params.account_name ? (
           <p>
-            <span className="font-semibold text-neutral-0">Account name:</span> {params.account_name}
+            <span className="font-semibold text-neutral-0">Account name:</span>{" "}
+            {params.account_name}
           </p>
         ) : null}
       </div>
       <div className="space-y-3">
-        <CopyField label="Merchant" value={params.merchant} copy={copy} copied={copied === params.merchant} />
-        <CopyField label="Reference" value={params.reference} copy={copy} copied={copied === params.reference} />
+        <CopyField
+          label="Merchant"
+          value={params.merchant}
+          copy={copy}
+          copied={copied === params.merchant}
+        />
+        <CopyField
+          label="Reference"
+          value={params.reference}
+          copy={copy}
+          copied={copied === params.reference}
+        />
         {params.telUri ? (
           <a
             href={params.telUri}

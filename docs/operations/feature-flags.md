@@ -1,8 +1,11 @@
 # Feature Flag Operations
 
-Feature toggles are stored in Supabase under `public.configuration` (`key = 'feature_flags'`, JSONB payload). Each environment maintains its own row so toggles can be promoted safely.
+Feature toggles are stored in Supabase under `public.configuration`
+(`key = 'feature_flags'`, JSONB payload). Each environment maintains its own row
+so toggles can be promoted safely.
 
 ## Workflow
+
 1. **Inspect current flags**
    ```sql
    select value
@@ -22,6 +25,10 @@ Feature toggles are stored in Supabase under `public.configuration` (`key = 'fea
    - File a ticket if the flag requires follow-up cleanup.
 
 ## Testing & CI guardrails
-- `npm run lint` will fail if feature-flag-specific tests are missing once the follow-up CI rule is added (tracked separately).
-- Stage toggles prior to production promotion; validate against QA checklist actions.
-- Ensure toggles referenced in code have sensible defaults to avoid production breakage if the configuration row isn’t present.
+
+- `npm run lint` will fail if feature-flag-specific tests are missing once the
+  follow-up CI rule is added (tracked separately).
+- Stage toggles prior to production promotion; validate against QA checklist
+  actions.
+- Ensure toggles referenced in code have sensible defaults to avoid production
+  breakage if the configuration row isn’t present.

@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
-import { issueSessionCookies, verifyPasskey, type PasskeyVerificationPayload } from "@/lib/authx/verify";
+import {
+  issueSessionCookies,
+  verifyPasskey,
+  type PasskeyVerificationPayload,
+} from "@/lib/authx/verify";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
 import { logAudit } from "@/lib/audit";
@@ -32,7 +36,12 @@ export async function POST(request: NextRequest) {
   try {
     const result = await verifyPasskey({ id: user.id }, body);
     if (!result.ok) {
-      await logAudit({ action: "MFA_PASSKEY_FAILED", entity: "USER", entityId: user.id, diff: null });
+      await logAudit({
+        action: "MFA_PASSKEY_FAILED",
+        entity: "USER",
+        entityId: user.id,
+        diff: null,
+      });
       return NextResponse.json({ error: "verification_failed" }, { status: 401 });
     }
 

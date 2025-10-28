@@ -24,17 +24,16 @@ export function PwaProvider({ children }: PwaProviderProps) {
       return;
     }
 
-    navigator.serviceWorker
-      .getRegistration("/service-worker.js")
-      .then((registration) => {
+    (async () => {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration("/service-worker.js");
         if (!registration) {
-          return navigator.serviceWorker.register("/service-worker.js");
+          await navigator.serviceWorker.register("/service-worker.js");
         }
-        return registration;
-      })
-      .catch(() => {
+      } catch {
         // no-op; registration will be retried on navigation
-      });
+      }
+    })();
   }, []);
 
   useEffect(() => {

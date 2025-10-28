@@ -165,8 +165,8 @@ Deno.serve(async (req) => {
             .eq("occurred_at", parsed.timestamp)
             .maybeSingle();
 
-          paymentId = existing?.id as string ?? null;
-          resolvedSaccoId = existing?.sacco_id as string ?? resolvedSaccoId;
+          paymentId = (existing?.id as string) ?? null;
+          resolvedSaccoId = (existing?.sacco_id as string) ?? resolvedSaccoId;
         } else {
           throw paymentInsert.error;
         }
@@ -220,7 +220,7 @@ Deno.serve(async (req) => {
         status: responseStatus,
         paymentId,
         saccoId: resolvedSaccoId,
-      }),
+      })
     );
   } catch (error) {
     console.error("sms-inbox error:", error);

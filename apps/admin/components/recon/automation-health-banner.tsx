@@ -52,7 +52,7 @@ export function AutomationHealthBanner({ pollers, gateways }: AutomationHealthBa
       name: poller.name,
       description:
         poller.status === "ACTIVE"
-          ? t("admin.reconciliation.momoFailure", "Polling stalled; latest run failed." )
+          ? t("admin.reconciliation.momoFailure", "Polling stalled; latest run failed.")
           : t("admin.reconciliation.momoDisabled", "Polling paused for this integration."),
       detail: poller.lastError ?? null,
       since: poller.lastPolledAt,
@@ -82,11 +82,12 @@ export function AutomationHealthBanner({ pollers, gateways }: AutomationHealthBa
       role="alert"
       className={cn(
         "rounded-2xl border border-rose-500/40 bg-gradient-to-br from-rose-500/20 to-transparent p-4 text-sm text-rose-100 shadow-lg",
-        "ring-1 ring-inset ring-rose-500/10",
+        "ring-1 ring-inset ring-rose-500/10"
       )}
     >
       <header className="mb-3 flex items-center gap-2">
-        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-rose-600/70 text-xs font-bold">!
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-rose-600/70 text-xs font-bold">
+          !
         </span>
         <p className="font-semibold">
           <Trans

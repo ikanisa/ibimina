@@ -61,7 +61,7 @@ export async function GET() {
       return channel;
     }
     const activeCodes = emailCodes.filter(
-      (code) => !code.consumed_at && code.expires_at >= nowIso,
+      (code) => !code.consumed_at && code.expires_at >= nowIso
     ).length;
     return { ...channel, activeCodes };
   });

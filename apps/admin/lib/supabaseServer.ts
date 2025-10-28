@@ -10,7 +10,7 @@ function resolveServiceRoleKey(context: string): string {
   if (!rawKey || !rawKey.trim()) {
     console.error("supabase.service-role.missing", { context });
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY is not configured. Ensure the service role key is available in the server environment.",
+      "SUPABASE_SERVICE_ROLE_KEY is not configured. Ensure the service role key is available in the server environment."
     );
   }
 
@@ -25,7 +25,7 @@ const defaultOptions: NonNullable<ClientOptions> = {
 
 export function createSupabaseServiceRoleClient(
   context: string,
-  options?: ClientOptions,
+  options?: ClientOptions
 ): SupabaseClient<Database> {
   const { url } = requireSupabaseConfig(context);
   const serviceRoleKey = resolveServiceRoleKey(context);
