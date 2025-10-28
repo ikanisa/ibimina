@@ -26,20 +26,26 @@ AS $$
   -- Search SACCOs using trigram similarity on name and sector_code
   -- Returns top 20 results ordered by similarity score
   -- Filters out results with very low similarity (<= 0.05) for performance
+  WITH input AS (
+    SELECT
+      trim(q) AS query_text,
+      set_limit(0.05) AS similarity_threshold
+  )
   SELECT
     s.id,
     s.name,
     s.district,
     s.sector_code,
     greatest(
-      similarity(s.name, q),
-      similarity(s.sector_code, q)
+      similarity(s.name, input.query_text),
+      similarity(s.sector_code, input.query_text)
     ) AS similarity
-  FROM public.saccos s
-  WHERE coalesce(trim(q), '') <> ''
+  FROM input
+  JOIN public.saccos s ON true
+  WHERE input.query_text <> ''
     AND (
-      similarity(s.name, q) > 0.05
-      OR similarity(s.sector_code, q) > 0.05
+      s.name % input.query_text
+      OR s.sector_code % input.query_text
     )
   ORDER BY similarity DESC, s.name ASC
   LIMIT 20
