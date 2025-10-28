@@ -189,7 +189,7 @@ class SmsForwarder {
         return false;
       }
 
-      const result = await response.json();
+      const result = (await response.json()) as { id: string; status: string };
       this.logger.info("SMS forwarded successfully", {
         smsId: result.id,
         status: result.status,
