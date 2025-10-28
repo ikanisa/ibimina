@@ -37,7 +37,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", details: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const { logoUrl, brandColor } = parsed.data;
@@ -71,7 +74,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   if (brandColor !== undefined) {
     const normalized =
-      brandColor === null ? null : (brandColor.startsWith("#") ? brandColor : `#${brandColor}`).toUpperCase();
+      brandColor === null
+        ? null
+        : (brandColor.startsWith("#") ? brandColor : `#${brandColor}`).toUpperCase();
     if (normalized) {
       metadata = { ...metadata, brand_color: normalized };
     } else {
@@ -82,9 +87,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     updates.metadata = metadata;
   }
 
-  const { error: updateError } = await supabase.schema("app").from("saccos").update(updates).eq("id", saccoId);
+  const { error: updateError } = await supabase
+    .schema("app")
+    .from("saccos")
+    .update(updates)
+    .eq("id", saccoId);
   if (updateError) {
-    return NextResponse.json({ error: updateError.message ?? "Failed to update branding" }, { status: 500 });
+    return NextResponse.json(
+      { error: updateError.message ?? "Failed to update branding" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({

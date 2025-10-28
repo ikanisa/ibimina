@@ -62,7 +62,7 @@ export function ReportSubscriptionsCard({
 
   const saccoLookup = useMemo(
     () => new Map(saccoOptions.map((option) => [option.id, option.name])),
-    [saccoOptions],
+    [saccoOptions]
   );
 
   const derivedSaccoId = isSystemAdmin ? selectedSacco : defaultSaccoId;
@@ -81,11 +81,7 @@ export function ReportSubscriptionsCard({
     const [hourString] = time.split(":");
     const deliveryHour = Number.parseInt(hourString ?? "6", 10);
     const deliveryDay =
-      frequency === "WEEKLY"
-        ? weeklyDay
-        : frequency === "MONTHLY"
-        ? monthlyDay
-        : null;
+      frequency === "WEEKLY" ? weeklyDay : frequency === "MONTHLY" ? monthlyDay : null;
 
     startTransition(async () => {
       const result = await createReportSubscription({
@@ -103,7 +99,9 @@ export function ReportSubscriptionsCard({
       });
 
       if (result.status === "error" || !result.subscription) {
-        toast.error(result.message ?? t("reports.automations.createFailed", "Failed to create subscription"));
+        toast.error(
+          result.message ?? t("reports.automations.createFailed", "Failed to create subscription")
+        );
         return;
       }
 
@@ -115,16 +113,23 @@ export function ReportSubscriptionsCard({
 
   const handleToggle = (subscription: ReportSubscription) => {
     startTransition(async () => {
-      const result = await toggleReportSubscription({ id: subscription.id, isActive: !subscription.isActive });
+      const result = await toggleReportSubscription({
+        id: subscription.id,
+        isActive: !subscription.isActive,
+      });
       if (result.status === "error" || !result.subscription) {
-        toast.error(result.message ?? t("reports.automations.updateFailed", "Failed to update subscription"));
+        toast.error(
+          result.message ?? t("reports.automations.updateFailed", "Failed to update subscription")
+        );
         return;
       }
-      setItems((previous) => previous.map((item) => (item.id === subscription.id ? result.subscription! : item)));
+      setItems((previous) =>
+        previous.map((item) => (item.id === subscription.id ? result.subscription! : item))
+      );
       toast.success(
         result.subscription.isActive
           ? t("reports.automations.resumed", "Subscription resumed")
-          : t("reports.automations.paused", "Subscription paused"),
+          : t("reports.automations.paused", "Subscription paused")
       );
     });
   };
@@ -136,7 +141,9 @@ export function ReportSubscriptionsCard({
     startTransition(async () => {
       const result = await deleteReportSubscription({ id });
       if (result.status === "error") {
-        toast.error(result.message ?? t("reports.automations.deleteFailed", "Failed to delete subscription"));
+        toast.error(
+          result.message ?? t("reports.automations.deleteFailed", "Failed to delete subscription")
+        );
         return;
       }
       setItems((previous) => previous.filter((item) => item.id !== id));
@@ -150,10 +157,12 @@ export function ReportSubscriptionsCard({
     return (
       <div className="grid gap-2 text-[11px] text-neutral-3 sm:grid-cols-2">
         <span>
-          {t("reports.automations.nextRun", "Next run")}: {nextRun ? nextRun.toLocaleString() : t("common.notAvailable", "N/A")}
+          {t("reports.automations.nextRun", "Next run")}:{" "}
+          {nextRun ? nextRun.toLocaleString() : t("common.notAvailable", "N/A")}
         </span>
         <span>
-          {t("reports.automations.lastRun", "Last run")}: {lastRun ? lastRun.toLocaleString() : t("common.notAvailable", "N/A")}
+          {t("reports.automations.lastRun", "Last run")}:{" "}
+          {lastRun ? lastRun.toLocaleString() : t("common.notAvailable", "N/A")}
         </span>
       </div>
     );
@@ -176,7 +185,9 @@ export function ReportSubscriptionsCard({
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,280px)]">
         <div className="space-y-3">
           <label className="space-y-1 text-sm text-neutral-0">
-            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("common.email", "Email")}</span>
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+              {t("common.email", "Email")}
+            </span>
             <input
               type="email"
               value={email}
@@ -187,13 +198,17 @@ export function ReportSubscriptionsCard({
           </label>
           {isSystemAdmin && (
             <label className="space-y-1 text-sm text-neutral-0">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.sacco", "SACCO")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("table.sacco", "SACCO")}
+              </span>
               <select
                 value={selectedSacco ?? ""}
                 onChange={(event) => setSelectedSacco(event.target.value || null)}
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
               >
-                <option value="">{t("reports.automations.saccoPlaceholder", "Select SACCO")}</option>
+                <option value="">
+                  {t("reports.automations.saccoPlaceholder", "Select SACCO")}
+                </option>
                 {saccoOptions.map((sacco) => (
                   <option key={sacco.id} value={sacco.id}>
                     {sacco.name}
@@ -203,15 +218,22 @@ export function ReportSubscriptionsCard({
             </label>
           )}
           <p className="text-xs text-neutral-3">
-            {t("reports.automations.filtersHint", "Subscriptions reuse the filters above for SACCO and date range.")}
+            {t(
+              "reports.automations.filtersHint",
+              "Subscriptions reuse the filters above for SACCO and date range."
+            )}
           </p>
         </div>
         <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
           <label className="space-y-1">
-            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.automations.frequency", "Frequency")}</span>
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+              {t("reports.automations.frequency", "Frequency")}
+            </span>
             <select
               value={frequency}
-              onChange={(event) => setFrequency(event.target.value as ReportSubscription["frequency"])}
+              onChange={(event) =>
+                setFrequency(event.target.value as ReportSubscription["frequency"])
+              }
               className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
             >
               {FREQUENCY_OPTIONS.map((option) => (
@@ -223,7 +245,9 @@ export function ReportSubscriptionsCard({
           </label>
           {frequency === "WEEKLY" && (
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.automations.dayOfWeek", "Day of week")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("reports.automations.dayOfWeek", "Day of week")}
+              </span>
               <select
                 value={weeklyDay}
                 onChange={(event) => setWeeklyDay(Number.parseInt(event.target.value, 10))}
@@ -239,19 +263,27 @@ export function ReportSubscriptionsCard({
           )}
           {frequency === "MONTHLY" && (
             <label className="space-y-1">
-              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.automations.dayOfMonth", "Day of month")}</span>
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("reports.automations.dayOfMonth", "Day of month")}
+              </span>
               <input
                 type="number"
                 min={1}
                 max={28}
                 value={monthlyDay}
-                onChange={(event) => setMonthlyDay(Math.min(28, Math.max(1, Number.parseInt(event.target.value, 10) || 1)))}
+                onChange={(event) =>
+                  setMonthlyDay(
+                    Math.min(28, Math.max(1, Number.parseInt(event.target.value, 10) || 1))
+                  )
+                }
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
               />
             </label>
           )}
           <label className="space-y-1">
-            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("reports.automations.time", "Delivery time (UTC)")}</span>
+            <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+              {t("reports.automations.time", "Delivery time (UTC)")}
+            </span>
             <input
               type="time"
               value={time}
@@ -282,7 +314,9 @@ export function ReportSubscriptionsCard({
               disabled={pending}
               className="interactive-scale rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
             >
-              {pending ? t("common.saving", "Saving…") : t("reports.automations.create", "Create subscription")}
+              {pending
+                ? t("common.saving", "Saving…")
+                : t("reports.automations.create", "Create subscription")}
             </button>
           </div>
         </div>
@@ -293,11 +327,16 @@ export function ReportSubscriptionsCard({
           {items.length} {t("reports.automations.count", "subscription(s)")}
         </p>
         {items.length === 0 ? (
-          <p className="text-sm text-neutral-2">{t("reports.automations.empty", "No scheduled exports yet.")}</p>
+          <p className="text-sm text-neutral-2">
+            {t("reports.automations.empty", "No scheduled exports yet.")}
+          </p>
         ) : (
           <div className="space-y-3">
             {items.map((subscription) => (
-              <div key={subscription.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
+              <div
+                key={subscription.id}
+                className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h4 className="text-base font-semibold">{subscription.email}</h4>
@@ -305,7 +344,10 @@ export function ReportSubscriptionsCard({
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="rounded-full border border-white/15 px-2 py-1 text-neutral-0">
-                      {t(`common.frequency.${subscription.frequency.toLowerCase()}`, subscription.frequency)}
+                      {t(
+                        `common.frequency.${subscription.frequency.toLowerCase()}`,
+                        subscription.frequency
+                      )}
                     </span>
                     <span className="rounded-full border border-white/15 px-2 py-1 text-neutral-0">
                       {t(`common.format.${subscription.format.toLowerCase()}`, subscription.format)}
@@ -314,10 +356,14 @@ export function ReportSubscriptionsCard({
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-neutral-3">
                   <span>
-                    {subscription.isActive ? t("common.active", "Active") : t("reports.automations.statusPaused", "Paused")}
+                    {subscription.isActive
+                      ? t("common.active", "Active")
+                      : t("reports.automations.statusPaused", "Paused")}
                   </span>
                   <span>•</span>
-                  <span>{t("reports.automations.deliveryHour", "Hour")}: {subscription.deliveryHour}:00</span>
+                  <span>
+                    {t("reports.automations.deliveryHour", "Hour")}: {subscription.deliveryHour}:00
+                  </span>
                 </div>
                 <div className="mt-3 space-y-2">{renderSchedule(subscription)}</div>
                 <div className="mt-4 flex flex-wrap gap-3 text-xs">

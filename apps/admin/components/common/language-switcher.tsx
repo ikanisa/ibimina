@@ -23,7 +23,7 @@ export function LanguageSwitcher({ className, variant = "default" }: LanguageSwi
     (event: ChangeEvent<HTMLSelectElement>) => {
       setLocale(event.target.value as (typeof OPTIONS)[number]["value"]);
     },
-    [setLocale],
+    [setLocale]
   );
 
   const labelText = t("common.language", "Language");
@@ -33,7 +33,7 @@ export function LanguageSwitcher({ className, variant = "default" }: LanguageSwi
       className={cn(
         "flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-neutral-2",
         variant === "compact" && "gap-1 text-[10px]",
-        className,
+        className
       )}
     >
       {variant === "default" ? <span>{labelText}</span> : null}
@@ -42,7 +42,7 @@ export function LanguageSwitcher({ className, variant = "default" }: LanguageSwi
         onChange={handleChange}
         className={cn(
           "rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue",
-          variant === "compact" && "px-2",
+          variant === "compact" && "px-2"
         )}
       >
         {OPTIONS.map((option) => (

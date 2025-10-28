@@ -15,7 +15,7 @@ export function StickyActionBar({ children, label, className }: StickyActionBarP
     <div
       className={cn(
         "pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center md:hidden",
-        className,
+        className
       )}
     >
       <div

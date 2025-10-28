@@ -1,26 +1,106 @@
 @import "tailwindcss";
 
+/**
+ * Global styles for SACCO+ Client App
+ * 
+ * Features:
+ * - Dark mode optimized color scheme
+ * - Rwanda-themed background gradient
+ * - Accessible focus states (WCAG 2.1 AA compliant)
+ * - Reduced motion support for accessibility
+ * - Smooth scrollbar styling
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --bg: #0b1020;
+  --fg: #f5f5f7;
+  --neutral-0: #ffffff;
+  --neutral-1: #e5e5e7;
+  --neutral-2: #98989d;
+  --neutral-9: #1c1c1e;
+  --rw-blue: #00a1de;
+  --rw-yellow: #fad201;
+  --rw-green: #20603d;
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --focus-ring: 0 0 0 3px rgba(0, 161, 222, 0.35);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  margin: 0;
+  background: var(--bg);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(
+    1200px 800px at 20% 10%,
+    rgba(0, 161, 222, 0.32),
+    rgba(250, 210, 1, 0.18),
+    rgba(32, 96, 61, 0.28)
+  );
+  background-attachment: fixed;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Accessible selection highlighting */
+::selection {
+  background: rgba(0, 161, 222, 0.45);
+  color: var(--neutral-0);
+}
+
+/* WCAG 2.1 AA compliant focus states */
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Respect user's motion preferences (WCAG 2.1 Level AAA) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Accessible scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }

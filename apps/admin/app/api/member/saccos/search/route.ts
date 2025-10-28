@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   if (q.length < 2) {
     return NextResponse.json(
       { results: [] },
-      { headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=120" } },
+      { headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=120" } }
     );
   }
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       {
         status: 500,
         headers: { "Cache-Control": "public, max-age=30, stale-while-revalidate=60" },
-      },
+      }
     );
   }
 
@@ -45,6 +45,6 @@ export async function GET(request: NextRequest) {
     { results },
     {
       headers: { "Cache-Control": "public, max-age=300, stale-while-revalidate=600" },
-    },
+    }
   );
 }

@@ -9,7 +9,10 @@ type CookieRecord = { value: string };
 type CookieMap = Map<string, CookieRecord>;
 
 function createCookieStore(initial?: Record<string, string>) {
-  const entries = Object.entries(initial ?? {}).map<[string, CookieRecord]>(([key, value]) => [key, { value }]);
+  const entries = Object.entries(initial ?? {}).map<[string, CookieRecord]>(([key, value]) => [
+    key,
+    { value },
+  ]);
   const map: CookieMap = new Map(entries);
   return {
     get(name: string) {

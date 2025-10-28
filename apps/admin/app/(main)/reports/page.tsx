@@ -20,30 +20,35 @@ export default async function ReportsPage() {
       ? await ikiminaQuery
       : await ikiminaQuery.eq("sacco_id", profile.sacco_id ?? "");
 
-  const saccos = profile.role === "SYSTEM_ADMIN"
-    ? (((await supabase
-        .from("saccos")
-        .select("id, name, district, province, category")
-        .order("name", { ascending: true })).data ?? [])
-        .filter((row) => typeof row.id === "string" && (row.id?.length ?? 0) > 0)
-        .map((row) => ({
-          id: String(row.id),
-          name: row.name ?? "",
-          district: row.district ?? "",
-          province: row.province ?? "",
-          category: row.category ?? "",
-        })))
-    : profile.sacco && typeof profile.sacco.id === "string"
-    ? [
-        {
-          id: profile.sacco.id,
-          name: profile.sacco.name ?? "",
-          district: profile.sacco.district ?? "",
-          province: profile.sacco.province ?? "",
-          category: profile.sacco.category ?? "",
-        } satisfies SaccoSearchResult,
-      ]
-    : ([] as SaccoSearchResult[]);
+  const saccos =
+    profile.role === "SYSTEM_ADMIN"
+      ? (
+          (
+            await supabase
+              .from("saccos")
+              .select("id, name, district, province, category")
+              .order("name", { ascending: true })
+          ).data ?? []
+        )
+          .filter((row) => typeof row.id === "string" && (row.id?.length ?? 0) > 0)
+          .map((row) => ({
+            id: String(row.id),
+            name: row.name ?? "",
+            district: row.district ?? "",
+            province: row.province ?? "",
+            category: row.category ?? "",
+          }))
+      : profile.sacco && typeof profile.sacco.id === "string"
+        ? [
+            {
+              id: profile.sacco.id,
+              name: profile.sacco.name ?? "",
+              district: profile.sacco.district ?? "",
+              province: profile.sacco.province ?? "",
+              category: profile.sacco.category ?? "",
+            } satisfies SaccoSearchResult,
+          ]
+        : ([] as SaccoSearchResult[]);
 
   const initialSacco: SaccoSearchResult | null = saccos.length === 1 ? saccos[0]! : null;
 
@@ -52,7 +57,7 @@ export default async function ReportsPage() {
     .schema("app")
     .from("report_subscriptions")
     .select(
-      "id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at",
+      "id, sacco_id, email, frequency, format, delivery_hour, delivery_day, filters, is_active, last_run_at, next_run_at, created_at"
     )
     .order("created_at", { ascending: false });
 

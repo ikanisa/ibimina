@@ -10,7 +10,7 @@ import type {
 } from "./index";
 
 export const initiateEmailFactor = async (
-  input: FactorInitiateInput,
+  input: FactorInitiateInput
 ): Promise<FactorInitiateResult> => {
   if (!input.email) {
     return { ok: false, status: 400, error: "email_missing", code: "EMAIL_MISSING" };
@@ -52,7 +52,7 @@ export const initiateEmailFactor = async (
 };
 
 export const verifyEmailFactor = async (
-  input: FactorVerifyInput,
+  input: FactorVerifyInput
 ): Promise<FactorSuccess | FactorFailure> => {
   if (!input.token) {
     return { ok: false, status: 400, error: "token_required", code: "TOKEN_REQUIRED" };
@@ -74,7 +74,12 @@ export const verifyEmailFactor = async (
 
   if (!verification.ok) {
     authLog.warn("mfa_email_invalid", { userId: input.userId, reason: verification.reason });
-    return { ok: false, status: 401, error: verification.reason, code: verification.reason.toUpperCase() };
+    return {
+      ok: false,
+      status: 401,
+      error: verification.reason,
+      code: verification.reason.toUpperCase(),
+    };
   }
 
   authLog.info("mfa_email_verified", { userId: input.userId });

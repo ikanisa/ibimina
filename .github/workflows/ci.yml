@@ -39,8 +39,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Restore Next.js cache
         uses: actions/cache@v4
@@ -60,9 +60,9 @@ jobs:
         if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' }}
         run: pnpm run check:flags
 
-      - name: Skip feature flag verification (secrets unavailable)
+      - name: Skip feature flag check when secrets unavailable
         if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_SERVICE_ROLE_KEY == '' }}
-        run: echo "Skipping feature flag verification because Supabase secrets are not available."
+        run: echo "Required Supabase secrets are unavailable; skipping feature flag validation."
 
       - name: Lint
         run: pnpm run lint
@@ -78,6 +78,9 @@ jobs:
 
       - name: RLS policy tests
         run: pnpm run test:rls
+
+      - name: Check for dependency vulnerabilities
+        run: pnpm audit --audit-level=moderate
 
       - name: Verify i18n keys
         run: pnpm run check:i18n

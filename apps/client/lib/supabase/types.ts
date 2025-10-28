@@ -1,143 +1,72 @@
 /**
- * Supabase database types
- * Generated types for type-safe database access
+ * Supabase Database Type Definitions for Client App
+ *
+ * These types represent the database schema for the client-facing
+ * member onboarding and profile management features.
+ *
+ * Key tables:
+ * - members_app_profiles: User profile data for client app users
  */
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
-      saccos: {
+      members_app_profiles: {
         Row: {
-          id: string;
-          name: string;
-          district: string;
-          sector_code: string;
-          merchant_code: string | null;
-          province: string | null;
-          category: string | null;
-          status: string;
-          created_at: string;
-          updated_at: string;
+          user_id: string;
+          whatsapp_msisdn: string;
+          momo_msisdn: string;
+          id_type: "NID" | "DL" | "PASSPORT" | null;
+          id_number: string | null;
+          id_files: Json | null;
+          ocr_json: Json | null;
+          lang: string | null;
+          is_verified: boolean | null;
+          created_at: string | null;
+          updated_at: string | null;
         };
         Insert: {
-          id?: string;
-          name: string;
-          district: string;
-          sector_code: string;
-          merchant_code?: string | null;
-          province?: string | null;
-          category?: string | null;
-          status?: string;
-          created_at?: string;
-          updated_at?: string;
+          user_id: string;
+          whatsapp_msisdn: string;
+          momo_msisdn: string;
+          id_type?: "NID" | "DL" | "PASSPORT" | null;
+          id_number?: string | null;
+          id_files?: Json | null;
+          ocr_json?: Json | null;
+          lang?: string | null;
+          is_verified?: boolean | null;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
         Update: {
-          id?: string;
-          name?: string;
-          district?: string;
-          sector_code?: string;
-          merchant_code?: string | null;
-          province?: string | null;
-          category?: string | null;
-          status?: string;
-          created_at?: string;
-          updated_at?: string;
+          user_id?: string;
+          whatsapp_msisdn?: string;
+          momo_msisdn?: string;
+          id_type?: "NID" | "DL" | "PASSPORT" | null;
+          id_number?: string | null;
+          id_files?: Json | null;
+          ocr_json?: Json | null;
+          lang?: string | null;
+          is_verified?: boolean | null;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
+        Relationships: [];
       };
-      ibimina: {
-        Row: {
-          id: string;
-          sacco_id: string;
-          code: string;
-          name: string;
-          type: string;
-          settings_json: Json;
-          status: string;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          sacco_id: string;
-          code: string;
-          name: string;
-          type: string;
-          settings_json?: Json;
-          status?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          sacco_id?: string;
-          code?: string;
-          name?: string;
-          type?: string;
-          settings_json?: Json;
-          status?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-      ikimina_members: {
-        Row: {
-          id: string;
-          ikimina_id: string;
-          member_code: string | null;
-          full_name: string;
-          national_id: string | null;
-          msisdn: string;
-          joined_at: string;
-          status: string;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          ikimina_id: string;
-          member_code?: string | null;
-          full_name: string;
-          national_id?: string | null;
-          msisdn: string;
-          joined_at?: string;
-          status?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          ikimina_id?: string;
-          member_code?: string | null;
-          full_name?: string;
-          national_id?: string | null;
-          msisdn?: string;
-          joined_at?: string;
-          status?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
+    };
+    Views: {
+      [_ in never]: never;
     };
     Functions: {
-      search_saccos: {
-        Args: {
-          query?: string | null;
-          limit_count?: number;
-          district_filter?: string | null;
-          sector_filter?: string | null;
-        };
-        Returns: Array<{
-          id: string;
-          name: string;
-          district: string;
-          sector_code: string;
-          merchant_code: string | null;
-          province: string | null;
-          category: string | null;
-        }>;
-      };
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
-}
+};

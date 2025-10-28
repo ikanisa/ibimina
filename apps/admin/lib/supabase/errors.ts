@@ -14,6 +14,8 @@ export function isMissingRelationError(error: unknown): error is PostgrestError 
     return true;
   }
   if (candidate.code === "42P01") return true;
-  const fingerprint = [candidate.message, candidate.details, candidate.hint].filter(Boolean).join(" ");
+  const fingerprint = [candidate.message, candidate.details, candidate.hint]
+    .filter(Boolean)
+    .join(" ");
   return /(?:relation|table).+does not exist/i.test(fingerprint);
 }

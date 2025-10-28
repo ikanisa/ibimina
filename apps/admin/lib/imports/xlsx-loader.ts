@@ -1,5 +1,8 @@
 type XlsxRuntime = {
-  read: (data: ArrayBuffer, opts: unknown) => {
+  read: (
+    data: ArrayBuffer,
+    opts: unknown
+  ) => {
     SheetNames: string[];
     Sheets: Record<string, unknown>;
   };

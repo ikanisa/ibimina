@@ -1,13 +1,14 @@
 /**
  * Group Card Component
  * Displays a single group with metadata and join button
- * 
+ *
  * Features:
  * - Group name and code
  * - Total members count
  * - Creation date
  * - SACCO affiliation
  * - "Ask to Join" button with loading state
+ * - Integration with join request API
  * - Accessible with proper ARIA labels
  */
 
@@ -24,41 +25,58 @@ interface GroupCardProps {
 /**
  * GroupCard Component
  * Displays group information in a card layout
- * 
+ *
  * @param props.group - Group data to display
- * 
+ *
  * @example
  * ```tsx
  * <GroupCard group={groupData} />
  * ```
- * 
+ *
  * @accessibility
  * - Uses semantic article element
  * - Descriptive button labels
  * - Icon labels for screen readers
  * - Loading state announced to screen readers
  * - Focus visible styles for keyboard navigation
+ * - Error messages announced to assistive technology
  */
 export function GroupCard({ group }: GroupCardProps) {
   const [isJoining, setIsJoining] = useState(false);
   const [hasRequested, setHasRequested] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   /**
    * Handle "Ask to Join" button click
-   * Simulates join request (to be implemented with actual API)
+   * Calls the join request API route to submit membership request
    */
   const handleJoinRequest = async () => {
     setIsJoining(true);
-    
+    setErrorMessage(null);
+
     try {
-      // TODO: Implement actual API call to request group membership
-      // For now, simulate a network request
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      setHasRequested(true);
+      // Call the join request API route
+      const response = await fetch(`/api/groups/${group.id}/join-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sacco_id: group.sacco_id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setHasRequested(true);
+        setErrorMessage(null);
+      } else {
+        setErrorMessage(result.details || result.error || "Failed to submit join request");
+      }
     } catch (error) {
       console.error("Error requesting to join group:", error);
-      // TODO: Show error message to user
+      setErrorMessage("An unexpected error occurred. Please try again.");
     } finally {
       setIsJoining(false);
     }
@@ -85,9 +103,7 @@ export function GroupCard({ group }: GroupCardProps) {
     >
       {/* Group header */}
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          {group.name}
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">{group.name}</h3>
         <p className="text-sm text-gray-500">Code: {group.code}</p>
       </div>
 
@@ -133,6 +149,17 @@ export function GroupCard({ group }: GroupCardProps) {
         </div>
       </div>
 
+      {/* Error message */}
+      {errorMessage && (
+        <div
+          className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md"
+          role="alert"
+          aria-live="polite"
+        >
+          <p className="text-sm text-red-700">{errorMessage}</p>
+        </div>
+      )}
+
       {/* Action button */}
       <button
         onClick={handleJoinRequest}
@@ -144,14 +171,12 @@ export function GroupCard({ group }: GroupCardProps) {
             hasRequested
               ? "bg-green-100 text-green-700 cursor-default"
               : isJoining
-              ? "bg-gray-100 text-gray-400 cursor-wait"
-              : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                ? "bg-gray-100 text-gray-400 cursor-wait"
+                : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
           }
         `}
         aria-label={
-          hasRequested
-            ? `Join request sent for ${group.name}`
-            : `Ask to join ${group.name}`
+          hasRequested ? `Join request sent for ${group.name}` : `Ask to join ${group.name}`
         }
         aria-live="polite"
       >

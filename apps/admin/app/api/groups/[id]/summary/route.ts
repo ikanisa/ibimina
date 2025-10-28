@@ -30,10 +30,7 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const { data: totalData, error: totalError } = await client.rpc(
-    "sum_group_deposits",
-    { gid },
-  );
+  const { data: totalData, error: totalError } = await client.rpc("sum_group_deposits", { gid });
 
   if (totalError && !["42883", "PGRST301"].includes(totalError.code ?? "")) {
     return NextResponse.json({ error: totalError.message }, { status: 500 });

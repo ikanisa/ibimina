@@ -4,7 +4,6 @@
  */
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
  * Group data interface
@@ -38,19 +37,19 @@ export interface GroupListParams {
 /**
  * Fetch groups with metadata (Server-side)
  * Retrieves groups with member counts and SACCO information
- * 
+ *
  * @param params - Optional filters for groups list
  * @returns Array of groups with metadata
- * 
+ *
  * @example
  * ```ts
- * const groups = await getGroups({ 
+ * const groups = await getGroups({
  *   saccoId: 'uuid',
  *   status: 'ACTIVE',
  *   limit: 50
  * });
  * ```
- * 
+ *
  * @remarks
  * This function uses server-side Supabase client and should be called
  * from Server Components or API routes only
@@ -181,9 +180,11 @@ export async function getGroupsClient(
   const supabase = createSupabaseBrowserClient();
 
   // Build the query for groups with SACCO information
-  let query = supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query = (supabase as any)
     .from("ibimina")
-    .select(`
+    .select(
+      `
       id,
       name,
       code,
@@ -229,9 +230,11 @@ export async function getGroupsClient(
   }
 
   // Fetch member counts for each group
-  const groupIds = groupsData.map((g) => g.id);
-  
-  const { data: memberCounts, error: memberError } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const groupIds = groupsData.map((g: any) => g.id);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: memberCounts, error: memberError } = await (supabase as any)
     .from("ikimina_members")
     .select("ikimina_id")
     .in("ikimina_id", groupIds)
@@ -245,14 +248,16 @@ export async function getGroupsClient(
   // Count members per group
   const memberCountMap = new Map<string, number>();
   if (memberCounts) {
-    for (const member of memberCounts) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const member of memberCounts as any[]) {
       const count = memberCountMap.get(member.ikimina_id) || 0;
       memberCountMap.set(member.ikimina_id, count + 1);
     }
   }
 
   // Map the results to Group interface
-  const groups: Group[] = groupsData.map((group) => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const groups: Group[] = groupsData.map((group: any) => ({
     id: group.id,
     name: group.name,
     code: group.code,
@@ -270,7 +275,7 @@ export async function getGroupsClient(
 
 /**
  * Get a single group by ID (Server-side)
- * 
+ *
  * @param id - Group UUID
  * @returns Group data or null if not found
  */

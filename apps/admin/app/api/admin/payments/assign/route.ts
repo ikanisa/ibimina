@@ -1,3 +1,41 @@
+/**
+ * Admin Payment Assignment API Route
+ * 
+ * Allows staff to assign unallocated payments to specific ikimina (groups) and members.
+ * This is used during reconciliation when automated payment matching fails or when
+ * manual review identifies the correct recipient.
+ * 
+ * Use Cases:
+ * - SMS parsing couldn't identify the ikimina from reference code
+ * - Multiple members with similar names need manual disambiguation
+ * - Correcting mis-assigned payments
+ * - Bulk assignment of payments after importing statements
+ * 
+ * Authorization:
+ * - SYSTEM_ADMIN: Can assign payments in any SACCO
+ * - SACCO_MANAGER/STAFF: Can only assign payments in their assigned SACCO
+ * - Requires canReconcilePayments permission
+ * 
+ * Operation:
+ * 1. Validates user has reconciliation permissions
+ * 2. Verifies ikimina exists and belongs to authorized SACCO
+ * 3. Updates payment(s) with new ikimina_id and optional member_id
+ * 4. Returns count of successfully updated payments
+ * 
+ * @route POST /api/admin/payments/assign
+ * @access SACCO_STAFF, SACCO_MANAGER, SYSTEM_ADMIN (with reconciliation permission)
+ * 
+ * @example
+ * POST /api/admin/payments/assign
+ * {
+ *   "ids": ["payment-uuid-1", "payment-uuid-2"],
+ *   "ikiminaId": "ikimina-uuid",
+ *   "memberId": "member-uuid"  // optional
+ * }
+ * 
+ * Response:
+ * { "updated": 2 }
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUserAndProfile } from "@/lib/auth";
@@ -26,7 +64,10 @@ export async function POST(request: NextRequest) {
 
   const parsed = payloadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid payload", details: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload", details: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const { ids, ikiminaId, memberId, saccoId } = parsed.data;
@@ -37,6 +78,7 @@ export async function POST(request: NextRequest) {
   const userProfile = auth.profile;
   const supabase = createSupabaseServiceRoleClient("admin/payments/assign");
 
+  // Determine SACCO scope for authorization
   const saccoScope = saccoId ?? userProfile.sacco_id ?? null;
   if (!isSystemAdmin(userProfile)) {
     if (!saccoScope || !canReconcilePayments(userProfile, saccoScope)) {
@@ -44,6 +86,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Verify ikimina exists and user has access to its SACCO
   const { data: ikiminaRow, error: ikiminaError } = await supabase
     .schema("app")
     .from("ikimina")
@@ -52,18 +95,23 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (ikiminaError || !ikiminaRow) {
-    return NextResponse.json({ error: ikiminaError?.message ?? "Ikimina not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: ikiminaError?.message ?? "Ikimina not found" },
+      { status: 404 }
+    );
   }
 
   if (!isSystemAdmin(userProfile) && ikiminaRow.sacco_id !== userProfile.sacco_id) {
     return NextResponse.json({ error: "Ikimina belongs to a different SACCO" }, { status: 403 });
   }
 
+  // Build update payload - assign ikimina and optionally member
   const updatePayload: Record<string, unknown> = { ikimina_id: ikiminaId };
   if (memberId !== undefined) {
     updatePayload.member_id = memberId;
   }
 
+  // Update payments with SACCO scope enforcement
   let query = supabase
     .schema("app")
     .from("payments")
@@ -82,7 +130,10 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await query;
   if (error) {
-    return NextResponse.json({ error: error.message ?? "Failed to assign payments" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message ?? "Failed to assign payments" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ updated: data?.length ?? 0 });

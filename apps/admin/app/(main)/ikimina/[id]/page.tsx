@@ -17,7 +17,9 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
   const { data: group, error } = await supabase
     .schema("app")
     .from("ikimina")
-    .select("id, name, code, status, type, sacco_id, settings_json, saccos(name, district, province)")
+    .select(
+      "id, name, code, status, type, sacco_id, settings_json, saccos(name, district, province)"
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -71,7 +73,8 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
     .reduce((acc, payment) => acc + payment.amount, 0);
 
   const unallocatedCount = payments.filter((payment) => payment.status === "UNALLOCATED").length;
-  const onTimeRate = payments.length === 0 ? 100 : Math.round((postedPayments.length / payments.length) * 100);
+  const onTimeRate =
+    payments.length === 0 ? 100 : Math.round((postedPayments.length / payments.length) * 100);
   const lastDepositAt = postedPayments[0]?.occurred_at ?? null;
   const activeMembers = members.filter((member) => member.status === "ACTIVE").length;
 
@@ -109,7 +112,9 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
     monthlySummaryMap.set(monthKey, existing);
   });
 
-  const statements = Array.from(monthlySummaryMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+  const statements = Array.from(monthlySummaryMap.values()).sort(
+    (a, b) => b.timestamp - a.timestamp
+  );
 
   const recentTotal = postedPayments.reduce((acc, payment) => acc + payment.amount, 0);
 
@@ -130,22 +135,23 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
     actor: string | null;
   }>;
 
-  const actorIds = Array.from(new Set(typedHistory.map((row) => row.actor).filter((value): value is string => Boolean(value))));
+  const actorIds = Array.from(
+    new Set(typedHistory.map((row) => row.actor).filter((value): value is string => Boolean(value)))
+  );
   let actorMap = new Map<string, string | null>();
   if (actorIds.length > 0) {
-    const { data: actors } = await supabase
-      .from("users")
-      .select("id, email")
-      .in("id", actorIds);
+    const { data: actors } = await supabase.from("users").select("id, email").in("id", actorIds);
     if (actors) {
-      actorMap = new Map(actors.map((row: { id: string; email: string | null }) => [row.id, row.email]));
+      actorMap = new Map(
+        actors.map((row: { id: string; email: string | null }) => [row.id, row.email])
+      );
     }
   }
 
   const history = typedHistory.map((row) => ({
     id: row.id,
     action: row.action,
-    actorLabel: row.actor ? actorMap.get(row.actor) ?? row.actor : "System",
+    actorLabel: row.actor ? (actorMap.get(row.actor) ?? row.actor) : "System",
     createdAt: row.created_at ?? new Date().toISOString(),
     diff: (row.diff as Record<string, unknown> | null) ?? null,
   }));

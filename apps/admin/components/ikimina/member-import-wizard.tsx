@@ -21,7 +21,11 @@ const REQUIRED_FIELDS = [
   { key: "full_name", label: "Full name", hint: "Umuntu nyir'ikimina" },
   { key: "msisdn", label: "MSISDN", hint: "07########" },
   { key: "member_code", label: "Member code", hint: "Optional unique code" },
-] as const satisfies ReadonlyArray<{ key: "full_name" | "msisdn" | "member_code"; label: string; hint: string }>;
+] as const satisfies ReadonlyArray<{
+  key: "full_name" | "msisdn" | "member_code";
+  label: string;
+  hint: string;
+}>;
 
 const supabase = getSupabaseBrowserClient();
 
@@ -64,7 +68,10 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
     [mapping]
   );
 
-  const signature = useMemo(() => headers.map((header) => header.toLowerCase()).join("|"), [headers]);
+  const signature = useMemo(
+    () => headers.map((header) => header.toLowerCase()).join("|"),
+    [headers]
+  );
 
   useEffect(() => {
     if (!signature) {
@@ -78,7 +85,8 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
       return;
     }
     try {
-      const presets: Array<{ signature: string; mapping: Mapping; masks: typeof masks }> = JSON.parse(stored);
+      const presets: Array<{ signature: string; mapping: Mapping; masks: typeof masks }> =
+        JSON.parse(stored);
       const preset = presets.find((item) => item.signature === signature);
       if (preset) {
         setMapping(preset.mapping);
@@ -112,9 +120,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
         const msisdn = entries.msisdn.value?.toString() ?? "";
         const memberCodeValue = entries.member_code.value;
         const memberCode =
-          memberCodeValue == null || memberCodeValue === ""
-            ? null
-            : memberCodeValue.toString();
+          memberCodeValue == null || memberCodeValue === "" ? null : memberCodeValue.toString();
 
         return {
           full_name: fullName,
@@ -127,9 +133,15 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
     });
   }, [rows, masks, mapping, mappingComplete]);
 
-  const validRows = useMemo(() => processedRows.filter((row) => row.errors.length === 0), [processedRows]);
+  const validRows = useMemo(
+    () => processedRows.filter((row) => row.errors.length === 0),
+    [processedRows]
+  );
 
-  const invalidRows = useMemo(() => processedRows.filter((row) => row.errors.length > 0), [processedRows]);
+  const invalidRows = useMemo(
+    () => processedRows.filter((row) => row.errors.length > 0),
+    [processedRows]
+  );
 
   const reset = () => {
     setOpen(false);
@@ -144,35 +156,33 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
     setParsing(false);
   };
 
-  const handleFile = (file?: File) => {
+  const handleFile = async (file?: File) => {
     if (!file) return;
     setMessage(null);
     setError(null);
     setParsing(true);
     setFileName(file.name);
     setMasks({ ...DEFAULT_MEMBER_MASKS });
-    parseTabularFile(file)
-      .then(({ headers: nextHeaders, rows: nextRows }) => {
-        setHeaders(nextHeaders);
-        setRows(nextRows);
-        const autoMapping: Mapping = {};
-        for (const field of nextHeaders) {
-          const lower = field.toLowerCase();
-          if (lower.includes("name") && !autoMapping.full_name) autoMapping.full_name = field;
-          if ((lower.includes("msisdn") || lower.includes("phone")) && !autoMapping.msisdn) autoMapping.msisdn = field;
-          if ((lower.includes("code") || lower.includes("member")) && !autoMapping.member_code) autoMapping.member_code = field;
-        }
-        setMapping(autoMapping);
-        setStep(2);
-      })
-      .catch((parseError: unknown) => {
-        const message = parseError instanceof Error ? parseError.message : "Unable to parse file";
-        setError(message);
-        notifyError(message);
-      })
-      .finally(() => {
-        setParsing(false);
-      });
+    try {
+      const { headers: nextHeaders, rows: nextRows } = await parseTabularFile(file);
+      setHeaders(nextHeaders);
+      setRows(nextRows);
+      const autoMapping: Mapping = {};
+      for (const field of nextHeaders) {
+        const lower = field.toLowerCase();
+        if (lower.includes("name") && !autoMapping.full_name) autoMapping.full_name = field;
+        if ((lower.includes("msisdn") || lower.includes("phone")) && !autoMapping.msisdn) autoMapping.msisdn = field;
+        if ((lower.includes("code") || lower.includes("member")) && !autoMapping.member_code) autoMapping.member_code = field;
+      }
+      setMapping(autoMapping);
+      setStep(2);
+    } catch (parseError: unknown) {
+      const message = parseError instanceof Error ? parseError.message : "Unable to parse file";
+      setError(message);
+      notifyError(message);
+    } finally {
+      setParsing(false);
+    }
   };
 
   const handleConfirm = async () => {
@@ -216,7 +226,8 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
         if (typeof window !== "undefined" && signature) {
           try {
             const stored = window.localStorage.getItem("member-import-presets");
-            const presets: Array<{ signature: string; mapping: Mapping; masks: typeof masks }> = stored ? JSON.parse(stored) : [];
+            const presets: Array<{ signature: string; mapping: Mapping; masks: typeof masks }> =
+              stored ? JSON.parse(stored) : [];
             const next = presets.filter((preset) => preset.signature !== signature);
             next.push({ signature, mapping, masks });
             window.localStorage.setItem("member-import-presets", JSON.stringify(next));
@@ -255,21 +266,37 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
             )}
             <header className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("ikimina.import.title", "Ikimina import")}</p>
-                <h2 className="text-lg font-semibold">{t("ikimina.import.step", "Step")} {step} · {fileName ?? t("ikimina.import.uploadCsv", "Upload CSV")}</h2>
+                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                  {t("ikimina.import.title", "Ikimina import")}
+                </p>
+                <h2 className="text-lg font-semibold">
+                  {t("ikimina.import.step", "Step")} {step} ·{" "}
+                  {fileName ?? t("ikimina.import.uploadCsv", "Upload CSV")}
+                </h2>
               </div>
               <button className="text-sm text-neutral-2 hover:text-neutral-0" onClick={reset}>
                 {t("common.close", "Close")}
-                <span aria-hidden className="ml-1">✕</span>
+                <span aria-hidden className="ml-1">
+                  ✕
+                </span>
               </button>
             </header>
 
             {step === 1 && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>{t("ikimina.import.uploadHelp", "Upload a CSV exported from your SACCO system. Include column headers in the first row.")}</p>
+                <p>
+                  {t(
+                    "ikimina.import.uploadHelp",
+                    "Upload a CSV exported from your SACCO system. Include column headers in the first row."
+                  )}
+                </p>
                 <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 p-10 text-center transition hover:bg-white/10">
-                  <span className="text-sm font-semibold">{t("ikimina.import.dropOrBrowse", "Drop CSV here or click to browse")}</span>
-                  <span className="text-xs text-neutral-2">{t("ikimina.import.supported", "Supported: .csv, .xlsx")}</span>
+                  <span className="text-sm font-semibold">
+                    {t("ikimina.import.dropOrBrowse", "Drop CSV here or click to browse")}
+                  </span>
+                  <span className="text-xs text-neutral-2">
+                    {t("ikimina.import.supported", "Supported: .csv, .xlsx")}
+                  </span>
                   <input
                     type="file"
                     accept=".csv,.xlsx,.xls,.xlsm,.xlsb"
@@ -277,16 +304,33 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                     onChange={(event) => handleFile(event.target.files?.[0])}
                   />
                 </label>
-                {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
-                <p className="text-xs text-neutral-2">{t("ikimina.import.templateColumns", "Template columns: full_name, msisdn, member_code. You can adjust mapping in the next step.")}</p>
+                {error && (
+                  <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>
+                )}
+                <p className="text-xs text-neutral-2">
+                  {t(
+                    "ikimina.import.templateColumns",
+                    "Template columns: full_name, msisdn, member_code. You can adjust mapping in the next step."
+                  )}
+                </p>
               </div>
             )}
 
             {step === 2 && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>{t("ikimina.import.dragMapping", "Drag a CSV column chip into each required field below.")}</p>
+                <p>
+                  {t(
+                    "ikimina.import.dragMapping",
+                    "Drag a CSV column chip into each required field below."
+                  )}
+                </p>
                 {presetAvailable && (
-                  <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">{t("ikimina.import.previousMapping", "Previous mapping detected for this header set. Fields applied automatically.")}</p>
+                  <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">
+                    {t(
+                      "ikimina.import.previousMapping",
+                      "Previous mapping detected for this header set. Fields applied automatically."
+                    )}
+                  </p>
                 )}
                 <div className="flex flex-wrap gap-2">
                   {headers
@@ -309,7 +353,9 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                   const activeMask = maskOptions.find((mask) => mask.id === selectedMask);
                   return (
                     <div key={field.key} className="space-y-2">
-                      <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">{field.label}</label>
+                      <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                        {field.label}
+                      </label>
                       <div
                         onDragOver={(event) => event.preventDefault()}
                         onDrop={(event) => {
@@ -326,7 +372,9 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                             {assigned}
                           </span>
                         ) : (
-                          <span className="text-xs text-neutral-2">{t("ikimina.import.dropHere", "Drop a column here")}</span>
+                          <span className="text-xs text-neutral-2">
+                            {t("ikimina.import.dropHere", "Drop a column here")}
+                          </span>
                         )}
                         {assigned && (
                           <button
@@ -381,7 +429,11 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                       const stored = window.localStorage.getItem("member-import-presets");
                       if (!stored) return;
                       try {
-                        const presets: Array<{ signature: string; mapping: Mapping; masks: typeof masks }> = JSON.parse(stored);
+                        const presets: Array<{
+                          signature: string;
+                          mapping: Mapping;
+                          masks: typeof masks;
+                        }> = JSON.parse(stored);
                         const preset = presets.find((item) => item.signature === signature);
                         if (preset) {
                           setMapping(preset.mapping);
@@ -395,19 +447,25 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                   >
                     Apply preset
                   </button>
-                  <button className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2" onClick={() => setStep(1)}>
+                  <button
+                    className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
+                    onClick={() => setStep(1)}
+                  >
                     Back
                   </button>
                   <button
                     className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
                     disabled={!mappingComplete}
                     onClick={() => {
-      if (!mappingComplete) {
-        const msg = t("ikimina.import.mapAll", "Map all required fields before continuing.");
-        setError(msg);
-        notifyError(msg);
-        return;
-      }
+                      if (!mappingComplete) {
+                        const msg = t(
+                          "ikimina.import.mapAll",
+                          "Map all required fields before continuing."
+                        );
+                        setError(msg);
+                        notifyError(msg);
+                        return;
+                      }
                       setError(null);
                       setStep(3);
                     }}
@@ -441,19 +499,25 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                             <td className="px-4 py-2 text-neutral-0">
                               {fullNameCell?.value ?? ""}
                               {!fullNameCell?.valid && fullNameCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{fullNameCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {fullNameCell.reason}
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-2 text-neutral-2">
                               {msisdnCell?.value ?? ""}
                               {!msisdnCell?.valid && msisdnCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{msisdnCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {msisdnCell.reason}
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-2 text-neutral-2">
                               {memberCodeCell?.value ?? "—"}
                               {!memberCodeCell?.valid && memberCodeCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{memberCodeCell.reason}</p>
+                                <p className="mt-1 text-[10px] text-amber-200">
+                                  {memberCodeCell.reason}
+                                </p>
                               )}
                             </td>
                           </tr>
@@ -463,7 +527,10 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                   </table>
                 </div>
                 <div className="flex items-start justify-between gap-4">
-                  <button className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2" onClick={() => setStep(2)}>
+                  <button
+                    className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
+                    onClick={() => setStep(2)}
+                  >
                     {t("common.back", "Back")}
                   </button>
                   <div className="flex flex-1 flex-col gap-2 text-right">
@@ -473,25 +540,48 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                     <button
                       type="button"
                       onClick={handleConfirm}
-                      disabled={pending || !mappingComplete || validRows.length === 0 || invalidRows.length > 0}
+                      disabled={
+                        pending ||
+                        !mappingComplete ||
+                        validRows.length === 0 ||
+                        invalidRows.length > 0
+                      }
                       className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
                     >
-                      {pending ? t("ikimina.import.importing", "Importing…") : t("ikimina.import.confirmImport", "Confirm import")}
+                      {pending
+                        ? t("ikimina.import.importing", "Importing…")
+                        : t("ikimina.import.confirmImport", "Confirm import")}
                     </button>
-                    {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
-                    {message && <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">{message}</p>}
+                    {error && (
+                      <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                        {error}
+                      </p>
+                    )}
+                    {message && (
+                      <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                        {message}
+                      </p>
+                    )}
                     {invalidRows.length > 0 && (
                       <div className="rounded-xl bg-amber-500/10 px-3 py-2 text-left text-[11px] text-amber-200">
-                        <p>{invalidRows.length} {t("ikimina.import.rowsNeedFixes", "row(s) need fixes before importing.")}</p>
+                        <p>
+                          {invalidRows.length}{" "}
+                          {t("ikimina.import.rowsNeedFixes", "row(s) need fixes before importing.")}
+                        </p>
                         <ul className="mt-1 space-y-1">
                           {invalidRows.slice(0, 3).map((row) => (
-                            <li key={row.index}>Row {row.index + 1}: {row.errors[0]}</li>
+                            <li key={row.index}>
+                              Row {row.index + 1}: {row.errors[0]}
+                            </li>
                           ))}
                         </ul>
                       </div>
                     )}
                     <p className="text-[10px] text-neutral-2">
-                      {t("ikimina.import.payloadNote", "Payload is sent to the secure-import-members edge function. Ensure it is deployed and reachable.")}
+                      {t(
+                        "ikimina.import.payloadNote",
+                        "Payload is sent to the secure-import-members edge function. Ensure it is deployed and reachable."
+                      )}
                     </p>
                   </div>
                 </div>
