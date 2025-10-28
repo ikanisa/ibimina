@@ -381,69 +381,13 @@ const detectRateAnomalies = async (
       continue;
     }
 
-    const zeroActivityDetected =
-      detector.zeroWindow &&
-      zeroStreak >= detector.zeroWindow &&
-      baselineMean >= detector.minBaselineMean;
-
-    if (!zeroActivityDetected && detector.minDelta && latestDelta < detector.minDelta) {
-      continue;
-    }
-
     let anomaly: Anomaly | null = null;
 
-    const spikeThreshold =
-      baselineStd > 0
-        ? baselineMean + detector.zThreshold * baselineStd
-        : baselineMean * detector.spikeMultiplier;
-
     if (
-      baselineMean >= detector.minBaselineMean &&
-      latestDelta <= baselineMean * detector.dropTolerance
+      detector.zeroWindow &&
+      zeroStreak >= detector.zeroWindow &&
+      baselineMean >= detector.minBaselineMean
     ) {
-      anomaly = {
-        signal: detector.signal,
-        event: detector.event,
-        severity: baselineMean >= detector.minBaselineMean * 2 ? "critical" : "warning",
-        reason: `Activity drop: latest delta ${latestDelta.toFixed(2)} vs baseline ${baselineMean.toFixed(2)}`,
-        observed: latestDelta,
-        baselineMean,
-        baselineStd,
-        baselineSamples,
-        sampleWindowMinutes: detector.window * 5,
-        type: "rate_drop",
-      };
-    } else if (baselineStd > 0 && latestDelta >= spikeThreshold) {
-      anomaly = {
-        signal: detector.signal,
-        event: detector.event,
-        severity: latestDelta >= spikeThreshold * 1.5 ? "critical" : "warning",
-        reason: `Spike detected: latest delta ${latestDelta.toFixed(2)} vs baseline ${baselineMean.toFixed(2)}`,
-        observed: latestDelta,
-        baselineMean,
-        baselineStd,
-        baselineSamples,
-        sampleWindowMinutes: detector.window * 5,
-        type: "rate_spike",
-      };
-    } else if (
-      baselineStd === 0 &&
-      baselineMean > 0 &&
-      latestDelta >= baselineMean * detector.spikeMultiplier
-    ) {
-      anomaly = {
-        signal: detector.signal,
-        event: detector.event,
-        severity: "warning",
-        reason: `Spike detected without variance: latest ${latestDelta.toFixed(2)} vs baseline ${baselineMean.toFixed(2)}`,
-        observed: latestDelta,
-        baselineMean,
-        baselineStd,
-        baselineSamples,
-        sampleWindowMinutes: detector.window * 5,
-        type: "rate_spike",
-      };
-    } else if (zeroActivityDetected) {
       anomaly = {
         signal: detector.signal,
         event: detector.event,
@@ -456,6 +400,57 @@ const detectRateAnomalies = async (
         sampleWindowMinutes: detector.window * 5,
         type: "zero_activity",
       };
+    } else {
+      if (detector.minDelta && latestDelta < detector.minDelta) {
+        continue;
+      }
+
+      const spikeThreshold =
+        baselineStd > 0 ? baselineMean + detector.zThreshold * baselineStd : baselineMean * detector.spikeMultiplier;
+
+      if (
+        baselineMean >= detector.minBaselineMean &&
+        latestDelta <= baselineMean * detector.dropTolerance
+      ) {
+        anomaly = {
+          signal: detector.signal,
+          event: detector.event,
+          severity: baselineMean >= detector.minBaselineMean * 2 ? "critical" : "warning",
+          reason: `Activity drop: latest delta ${latestDelta.toFixed(2)} vs baseline ${baselineMean.toFixed(2)}`,
+          observed: latestDelta,
+          baselineMean,
+          baselineStd,
+          baselineSamples,
+          sampleWindowMinutes: detector.window * 5,
+          type: "rate_drop",
+        };
+      } else if (baselineStd > 0 && latestDelta >= spikeThreshold) {
+        anomaly = {
+          signal: detector.signal,
+          event: detector.event,
+          severity: latestDelta >= spikeThreshold * 1.5 ? "critical" : "warning",
+          reason: `Spike detected: latest delta ${latestDelta.toFixed(2)} vs baseline ${baselineMean.toFixed(2)}`,
+          observed: latestDelta,
+          baselineMean,
+          baselineStd,
+          baselineSamples,
+          sampleWindowMinutes: detector.window * 5,
+          type: "rate_spike",
+        };
+      } else if (baselineStd === 0 && baselineMean > 0 && latestDelta >= baselineMean * detector.spikeMultiplier) {
+        anomaly = {
+          signal: detector.signal,
+          event: detector.event,
+          severity: "warning",
+          reason: `Spike detected without variance: latest ${latestDelta.toFixed(2)} vs baseline ${baselineMean.toFixed(2)}`,
+          observed: latestDelta,
+          baselineMean,
+          baselineStd,
+          baselineSamples,
+          sampleWindowMinutes: detector.window * 5,
+          type: "rate_spike",
+        };
+      }
     }
 
     if (anomaly) {
