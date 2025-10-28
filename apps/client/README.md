@@ -1,6 +1,7 @@
 # SACCO+ Client App
 
-Mobile-first web application for Umurenge SACCO members.
+Mobile-first web application for Umurenge SACCO members, available as both a web
+app and native Android app.
 
 ## Overview
 
@@ -10,6 +11,15 @@ The Client App provides member-facing features including:
 - Identity document upload with OCR processing (stub)
 - Mobile banking services access
 - Group savings (Ikimina) management
+
+## Platform Support
+
+- **Web**: Progressive Web App (PWA) with offline support
+- **Android**: Native Android app via Capacitor (APK)
+- **iOS**: PWA installable via Safari (future: native app)
+
+For instructions on building the Android APK, see
+**[APK_BUILD_GUIDE.md](./APK_BUILD_GUIDE.md)**.
 
 ## Getting Started
 
