@@ -4,6 +4,7 @@
  */
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /**
  * Group data interface
@@ -11,15 +12,15 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  */
 export interface Group {
   id: string;
-  name: string;
-  code: string;
-  type: string;
-  status: string;
-  sacco_id: string;
+  name: string | null;
+  code: string | null;
+  type: string | null;
+  status: string | null;
+  sacco_id: string | null;
   sacco_name: string | null;
   total_members: number;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 /**
@@ -54,9 +55,7 @@ export interface GroupListParams {
  * This function uses server-side Supabase client and should be called
  * from Server Components or API routes only
  */
-export async function getGroups(
-  params: GroupListParams = {}
-): Promise<Group[]> {
+export async function getGroups(params: GroupListParams = {}): Promise<Group[]> {
   const { id, saccoId, status } = params;
   const limit = params.limit ?? (id ? 1 : 100);
   const offset = params.offset ?? 0;
@@ -66,7 +65,8 @@ export async function getGroups(
   // Build the query for groups with SACCO information
   let query = supabase
     .from("ibimina")
-    .select(`
+    .select(
+      `
       id,
       name,
       code,
@@ -78,7 +78,8 @@ export async function getGroups(
       saccos (
         name
       )
-    `)
+    `
+    )
     .order("updated_at", { ascending: false });
 
   if (id) {
@@ -113,7 +114,7 @@ export async function getGroups(
 
   // Fetch member counts for each group
   const groupIds = groupsData.map((g) => g.id);
-  
+
   const { data: memberCounts, error: memberError } = await supabase
     .from("ikimina_members")
     .select("ikimina_id")
@@ -129,8 +130,10 @@ export async function getGroups(
   const memberCountMap = new Map<string, number>();
   if (memberCounts) {
     for (const member of memberCounts) {
-      const count = memberCountMap.get(member.ikimina_id) || 0;
-      memberCountMap.set(member.ikimina_id, count + 1);
+      if (member.ikimina_id) {
+        const count = memberCountMap.get(member.ikimina_id) || 0;
+        memberCountMap.set(member.ikimina_id, count + 1);
+      }
     }
   }
 
@@ -154,25 +157,23 @@ export async function getGroups(
 /**
  * Fetch groups with metadata (Client-side)
  * Retrieves groups with member counts and SACCO information
- * 
+ *
  * @param params - Optional filters for groups list
  * @returns Array of groups with metadata
- * 
+ *
  * @example
  * ```ts
- * const groups = await getGroupsClient({ 
+ * const groups = await getGroupsClient({
  *   status: 'ACTIVE',
  *   limit: 50
  * });
  * ```
- * 
+ *
  * @remarks
  * This function uses browser-side Supabase client and should be called
  * from Client Components only
  */
-export async function getGroupsClient(
-  params: GroupListParams = {}
-): Promise<Group[]> {
+export async function getGroupsClient(params: GroupListParams = {}): Promise<Group[]> {
   const { id, saccoId, status } = params;
   const limit = params.limit ?? (id ? 1 : 100);
   const offset = params.offset ?? 0;
@@ -196,7 +197,8 @@ export async function getGroupsClient(
       saccos (
         name
       )
-    `)
+    `
+    )
     .order("updated_at", { ascending: false });
 
   if (id) {
@@ -250,8 +252,10 @@ export async function getGroupsClient(
   if (memberCounts) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const member of memberCounts as any[]) {
-      const count = memberCountMap.get(member.ikimina_id) || 0;
-      memberCountMap.set(member.ikimina_id, count + 1);
+      if (member.ikimina_id) {
+        const count = memberCountMap.get(member.ikimina_id) || 0;
+        memberCountMap.set(member.ikimina_id, count + 1);
+      }
     }
   }
 
