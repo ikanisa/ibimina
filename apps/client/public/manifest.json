@@ -1,10 +1,10 @@
 {
-  "name": "Ibimina Client",
+  "name": "Ibimina Client App",
   "short_name": "Ibimina",
-  "description": "Client application for Umurenge SACCO Ibimina members. Access your account, view contributions, and manage your savings.",
+  "description": "Member-facing app for Umurenge SACCO Ibimina. View contributions, request loans, and manage your ikimina membership.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b1020",
+  "background_color": "#ffffff",
   "theme_color": "#0b1020",
   "icons": [
     {
@@ -18,6 +18,44 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "View Contributions",
+      "short_name": "Contributions",
+      "description": "Check your contribution history",
+      "url": "/contributions",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Request Loan",
+      "short_name": "Loan",
+      "description": "Apply for a new loan",
+      "url": "/loans/new",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "My Profile",
+      "short_name": "Profile",
+      "description": "View your profile",
+      "url": "/profile",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

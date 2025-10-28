@@ -204,12 +204,33 @@ importers:
       next:
         specifier: 15.5.4
         version: 15.5.4(@babel/core@7.28.4)(@playwright/test@1.56.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      next-pwa:
+        specifier: ^5.6.0
+        version: 5.6.0(@babel/core@7.28.4)(next@15.5.4(@babel/core@7.28.4)(@playwright/test@1.56.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(webpack@5.102.1)
       react:
         specifier: 19.1.0
         version: 19.1.0
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
+      workbox-cacheable-response:
+        specifier: ^6.6.0
+        version: 6.6.0
+      workbox-core:
+        specifier: ^6.6.0
+        version: 6.6.0
+      workbox-expiration:
+        specifier: ^6.6.0
+        version: 6.6.0
+      workbox-precaching:
+        specifier: ^6.6.0
+        version: 6.6.0
+      workbox-routing:
+        specifier: ^6.6.0
+        version: 6.6.0
+      workbox-strategies:
+        specifier: ^6.6.0
+        version: 6.6.0
       zod:
         specifier: ^3.23.8
         version: 3.25.76
