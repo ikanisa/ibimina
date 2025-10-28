@@ -5,7 +5,7 @@
  * in accordance with Android's permission model.
  */
 
-import { Device } from "@capacitor/core";
+import { Device } from "@capacitor/device";
 import { Toast } from "@capacitor/toast";
 
 /**
@@ -94,7 +94,7 @@ export const PermissionExplanations: Record<PermissionType, string> = {
 /**
  * Check if a permission is granted
  */
-export async function checkPermission(type: PermissionType): Promise<PermissionStatus> {
+export async function checkPermission(): Promise<PermissionStatus> {
   const android = await isAndroid();
   if (!android) {
     return PermissionStatus.GRANTED;
@@ -110,7 +110,7 @@ export async function checkPermission(type: PermissionType): Promise<PermissionS
 export async function requestPermissions(
   types: PermissionType[]
 ): Promise<Record<PermissionType, PermissionStatus>> {
-  const results: Record<PermissionType, PermissionStatus> = {} as any;
+  const results = {} as Record<PermissionType, PermissionStatus>;
 
   for (const type of types) {
     results[type] = await requestPermission(type, PermissionExplanations[type]);
@@ -151,8 +151,8 @@ export async function handlePermissionDenied(type: PermissionType) {
  * Critical: Camera, SMS (for finance operations)
  */
 export async function checkCriticalPermissions(): Promise<boolean> {
-  const cameraStatus = await checkPermission(PermissionType.CAMERA);
-  const smsStatus = await checkPermission(PermissionType.SMS);
+  const cameraStatus = await checkPermission();
+  const smsStatus = await checkPermission();
 
   return cameraStatus === PermissionStatus.GRANTED && smsStatus === PermissionStatus.GRANTED;
 }
@@ -203,10 +203,10 @@ export async function requestPermissionWithRetry(
  * Get permission status summary for debugging
  */
 export async function getPermissionSummary(): Promise<Record<PermissionType, PermissionStatus>> {
-  const summary: Record<PermissionType, PermissionStatus> = {} as any;
+  const summary = {} as Record<PermissionType, PermissionStatus>;
 
   for (const type of Object.values(PermissionType)) {
-    summary[type] = await checkPermission(type);
+    summary[type] = await checkPermission();
   }
 
   return summary;
@@ -238,7 +238,7 @@ export async function checkRecommendedPermissions(): Promise<{
   const denied: PermissionType[] = [];
 
   for (const type of recommended) {
-    const status = await checkPermission(type);
+    const status = await checkPermission();
     if (status === PermissionStatus.GRANTED) {
       granted.push(type);
     } else {
@@ -253,7 +253,7 @@ export async function checkRecommendedPermissions(): Promise<{
  * Show permission setup guide to user
  */
 export async function showPermissionGuide(): Promise<void> {
-  const { granted, denied } = await checkRecommendedPermissions();
+  const { denied } = await checkRecommendedPermissions();
 
   if (denied.length === 0) {
     await Toast.show({
@@ -270,7 +270,7 @@ export async function showPermissionGuide(): Promise<void> {
   });
 }
 
-export default {
+const permissionsExport = {
   isAndroid,
   requestPermission,
   checkPermission,
@@ -288,3 +288,5 @@ export default {
   PermissionStatus,
   PermissionExplanations,
 };
+
+export default permissionsExport;

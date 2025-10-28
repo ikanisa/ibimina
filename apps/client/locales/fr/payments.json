@@ -1,0 +1,33 @@
+{
+  "title": "Effectuer un Paiement",
+  "ussdSheet": {
+    "title": "Instructions de Paiement",
+    "merchantCode": "Code Marchand",
+    "referenceToken": "Numéro de Référence",
+    "dialUssd": "Composer USSD",
+    "markAsPaid": "J'ai Payé",
+    "pending": "Paiement en Attente",
+    "confirmed": "Paiement Confirmé",
+    "steps": {
+      "title": "Comment Payer",
+      "step1": "Copiez le numéro de référence",
+      "step2": "Composez le code USSD",
+      "step3": "Terminez le paiement sur votre téléphone"
+    },
+    "tips": {
+      "title": "Conseils",
+      "dualSim": "Pour les téléphones double SIM, assurez-vous de sélectionner la bonne carte SIM",
+      "network": "Assurez-vous d'avoir une connexion réseau",
+      "balance": "Vérifiez votre solde mobile money avant de payer"
+    }
+  },
+  "faq": {
+    "title": "Questions Fréquemment Posées",
+    "q1": "Combien de temps faut-il pour que mon paiement soit confirmé?",
+    "a1": "La plupart des paiements sont confirmés en quelques minutes.",
+    "q2": "Que faire si j'ai entré le mauvais numéro de référence?",
+    "a2": "Contactez immédiatement l'administrateur de votre SACCO.",
+    "q3": "Puis-je annuler un paiement?",
+    "a3": "Non, les paiements mobile money sont instantanés et ne peuvent être annulés."
+  }
+}
