@@ -56,7 +56,7 @@ const FOCUSABLE_SELECTORS =
 const getFocusableElements = (container: HTMLElement | null) => {
   if (!container) return [] as HTMLElement[];
   return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter(
-    (element) => !element.hasAttribute("disabled") && element.offsetParent !== null,
+    (element) => !element.hasAttribute("disabled") && element.offsetParent !== null
   );
 };
 
@@ -99,7 +99,10 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
   const wasQuickActionsOpenRef = useRef(false);
   const { t } = useTranslation();
 
-  const saccoName = useMemo(() => profile.sacco?.name ?? t("sacco.all", "All SACCOs"), [profile.sacco?.name, t]);
+  const saccoName = useMemo(
+    () => profile.sacco?.name ?? t("sacco.all", "All SACCOs"),
+    [profile.sacco?.name, t]
+  );
 
   const navBadges = useMemo(() => {
     const badges: Record<string, { label: string; tone: keyof typeof BADGE_TONE_STYLES }> = {};
@@ -122,7 +125,10 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
   const quickActionGroups = useMemo<QuickActionGroupDefinition[]>(() => {
     const opsAlertBadge =
       (profile.failed_mfa_count ?? 0) > 0
-        ? { label: t("dashboard.quick.alerts", String(profile.failed_mfa_count ?? 0)), tone: "critical" as const }
+        ? {
+            label: t("dashboard.quick.alerts", String(profile.failed_mfa_count ?? 0)),
+            tone: "critical" as const,
+          }
         : undefined;
     const securityBadge = profile.mfa_enabled
       ? { label: t("dashboard.quick.secured", "Secured"), tone: "success" as const }
@@ -303,8 +309,8 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
 
     const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
     const getFocusable = () =>
-      Array.from(container.querySelectorAll<HTMLElement>(focusableSelector)).filter((element) =>
-        element.offsetParent !== null,
+      Array.from(container.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+        (element) => element.offsetParent !== null
       );
 
     const focusFirst = () => {
@@ -360,7 +366,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
         secondary: t(item.key),
         badge: navBadges[item.href],
       })),
-    [navBadges, t],
+    [navBadges, t]
   );
 
   const quickActionTargets = useMemo(
@@ -371,7 +377,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
         subtitle: group.subtitle,
         actions: group.actions,
       })),
-    [quickActionGroups],
+    [quickActionGroups]
   );
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
@@ -391,13 +397,18 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
 
       <header className="relative mx-auto w-full max-w-6xl px-4 pb-4 pt-6 md:px-8">
         <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 px-6 py-5 shadow-glass backdrop-blur">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5" aria-hidden />
+          <div
+            className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"
+            aria-hidden
+          />
           <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-2 md:text-[0.7rem]">
                 {t("brand.org", "Umurenge SACCO")}
               </p>
-              <span className="text-gradient text-2xl font-semibold leading-tight">{t("brand.consoleTitle", "Ibimina Staff Console")}</span>
+              <span className="text-gradient text-2xl font-semibold leading-tight">
+                {t("brand.consoleTitle", "Ibimina Staff Console")}
+              </span>
               <span className="text-sm text-neutral-2">{saccoName}</span>
             </div>
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-3">
@@ -412,22 +423,22 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                         "interactive-scale flex items-center gap-2 rounded-full px-4 py-2 text-left text-sm tracking-[0.08em] transition md:text-[0.9rem]",
                         isActive(href)
                           ? "bg-white/20 text-neutral-0"
-                          : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0",
+                          : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
                       )}
                       aria-current={isActive(href) ? "page" : undefined}
                     >
                       <Icon className="h-4 w-4" aria-hidden />
-                        <span className="leading-tight">{primary}</span>
-                        {badge && (
-                          <span
-                            className={cn(
-                              "ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium tracking-[0.12em]",
-                              BADGE_TONE_STYLES[badge.tone],
-                            )}
-                          >
-                            {badge.label}
-                          </span>
-                        )}
+                      <span className="leading-tight">{primary}</span>
+                      {badge && (
+                        <span
+                          className={cn(
+                            "ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium tracking-[0.12em]",
+                            BADGE_TONE_STYLES[badge.tone]
+                          )}
+                        >
+                          {badge.label}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -466,7 +477,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
               href={href}
               className={cn(
                 "interactive-scale relative flex flex-col items-center text-[0.8rem] font-semibold tracking-[0.05em]",
-                isActive(href) ? "text-neutral-0" : "text-neutral-2",
+                isActive(href) ? "text-neutral-0" : "text-neutral-2"
               )}
               aria-current={isActive(href) ? "page" : undefined}
             >
@@ -475,14 +486,14 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                 <span
                   className={cn(
                     "absolute right-3 top-1 h-2 w-2 rounded-full",
-                    BADGE_DOT_STYLES[badge.tone],
+                    BADGE_DOT_STYLES[badge.tone]
                   )}
                   aria-hidden
                 />
               )}
               <span className="mt-1 leading-tight">{t(key)}</span>
             </Link>
-        );
+          );
         })}
         <button
           type="button"
@@ -519,7 +530,9 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
           >
             <div className="mb-4 flex items-center gap-2 text-neutral-2">
               <ListPlus className="h-4 w-4" />
-              <span className="items-center gap-2 text-xs">{t("dashboard.quick.title", "Quick actions")}</span>
+              <span className="items-center gap-2 text-xs">
+                {t("dashboard.quick.title", "Quick actions")}
+              </span>
             </div>
             <div className="space-y-4">
               {quickActionGroups.map((group) => (
@@ -541,14 +554,18 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                             <div>
                               <p className="text-sm font-medium">{action.primary}</p>
                               <p className="text-xs text-neutral-2">{action.description}</p>
-                              <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">{action.secondary}</p>
-                              <p className="text-[11px] text-neutral-2">{action.secondaryDescription}</p>
+                              <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                                {action.secondary}
+                              </p>
+                              <p className="text-[11px] text-neutral-2">
+                                {action.secondaryDescription}
+                              </p>
                             </div>
                             {action.badge && (
                               <span
                                 className={cn(
                                   "inline-flex h-min items-center gap-1 rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.35em]",
-                                  BADGE_TONE_STYLES[action.badge.tone],
+                                  BADGE_TONE_STYLES[action.badge.tone]
                                 )}
                               >
                                 {action.badge.label}

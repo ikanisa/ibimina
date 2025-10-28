@@ -2,7 +2,10 @@ import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { StatementImportWizard } from "@/components/ikimina/statement-import-wizard";
-import { ReconciliationTable, type ReconciliationRow } from "@/components/recon/reconciliation-table";
+import {
+  ReconciliationTable,
+  type ReconciliationRow,
+} from "@/components/recon/reconciliation-table";
 import { SmsInboxPanel } from "@/components/recon/sms-inbox-panel";
 import { AutomationHealthBanner } from "@/components/recon/automation-health-banner";
 import { Trans } from "@/components/common/trans";
@@ -59,7 +62,9 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
   let paymentsQuery = supabase
     .schema("app")
     .from("payments")
-    .select("id, sacco_id, ikimina_id, member_id, msisdn, reference, amount, occurred_at, status, source:sms_inbox(raw_text, parsed_json, msisdn, received_at)")
+    .select(
+      "id, sacco_id, ikimina_id, member_id, msisdn, reference, amount, occurred_at, status, source:sms_inbox(raw_text, parsed_json, msisdn, received_at)"
+    )
     .in("status", EXCEPTION_STATUSES)
     .order("occurred_at", { ascending: false })
     .limit(50);
@@ -126,58 +131,25 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
       latencyMs: item.lastLatencyMs ?? null,
     }));
   } else {
-    // Define types for app schema tables not in generated types
-    type MomoStatementPoller = {
-      id: string;
-      display_name: string | null;
-      status: string | null;
-      last_polled_at: string | null;
-      last_error: string | null;
-      last_latency_ms: number | null;
-    };
+    // eslint-disable-next-line react-hooks/purity -- Server component: Date.now() is safe here
+    const now = Date.now();
+    const pollerStaleThreshold = now - 15 * 60 * 1000;
+    const gatewayStaleThreshold = now - 10 * 60 * 1000;
 
-    type SmsGatewayEndpoint = {
-      id: string;
-      display_name: string | null;
-      status: string | null;
-      last_status: string | null;
-      last_heartbeat_at: string | null;
-      last_error: string | null;
-      last_latency_ms: number | null;
-    };
-
-    type SupabaseAppSchemaResponse<T> = {
-      data: T[] | null;
-      error: unknown;
-    };
-
-    type SupabaseAppSchema = {
-      schema: (name: string) => {
-        from: (table: string) => {
-          select: (columns: string) => {
-            order: (column: string, options: { ascending: boolean }) => Promise<SupabaseAppSchemaResponse<unknown>>;
-          };
-        };
-      };
-    };
-    
     const [pollerRows, gatewayRows] = await Promise.all([
-      (supabase as unknown as SupabaseAppSchema)
+      supabase
         .schema("app")
         .from("momo_statement_pollers")
         .select("id, display_name, status, last_polled_at, last_error, last_latency_ms")
-        .order("display_name", { ascending: true }) as Promise<SupabaseAppSchemaResponse<MomoStatementPoller>>,
-      (supabase as unknown as SupabaseAppSchema)
+        .order("display_name", { ascending: true }),
+      supabase
         .schema("app")
         .from("sms_gateway_endpoints")
-        .select("id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms")
-        .order("display_name", { ascending: true }) as Promise<SupabaseAppSchemaResponse<SmsGatewayEndpoint>>,
+        .select(
+          "id, display_name, status, last_status, last_heartbeat_at, last_error, last_latency_ms"
+        )
+        .order("display_name", { ascending: true }),
     ]);
-
-    // Calculate thresholds at query time instead of render time
-    const currentTimestamp = new Date().getTime();
-    const pollerStaleThreshold = currentTimestamp - 15 * 60 * 1000;
-    const gatewayStaleThreshold = currentTimestamp - 10 * 60 * 1000;
 
     pollerIssues = (pollerRows?.data ?? [])
       .filter((row) => {
@@ -226,8 +198,12 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
   }));
 
   const saccoIdForWrites = scope.includeAll ? profile.sacco_id : scope.saccoId;
-  const allowStatementImport = saccoIdForWrites ? canImportStatements(profile, saccoIdForWrites) : isSystemAdmin(profile);
-  const allowReconciliationUpdates = saccoIdForWrites ? canReconcilePayments(profile, saccoIdForWrites) : isSystemAdmin(profile);
+  const allowStatementImport = saccoIdForWrites
+    ? canImportStatements(profile, saccoIdForWrites)
+    : isSystemAdmin(profile);
+  const allowReconciliationUpdates = saccoIdForWrites
+    ? canReconcilePayments(profile, saccoIdForWrites)
+    : isSystemAdmin(profile);
 
   return (
     <div className="space-y-8">
@@ -247,7 +223,13 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
 
       <GlassCard
         title={<Trans i18nKey="admin.reconciliation.momo" fallback="MoMo statement ingest" />}
-        subtitle={<Trans i18nKey="admin.reconciliation.momoSubtitle" fallback="Validate and upload statements with strict idempotency." className="text-xs text-neutral-3" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.reconciliation.momoSubtitle"
+            fallback="Validate and upload statements with strict idempotency."
+            className="text-xs text-neutral-3"
+          />
+        }
         actions={
           saccoIdForWrites ? (
             <StatementImportWizard
@@ -262,31 +244,56 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
         {saccoIdForWrites ? (
           <div className="space-y-2 text-sm text-neutral-2">
             <p className="text-xs text-neutral-3">
-              <Trans i18nKey="admin.reconciliation.momoNote1" fallback="Drag-and-drop MTN CSV exports. Parser feedback surfaces duplicates and validation errors before ingest." />
+              <Trans
+                i18nKey="admin.reconciliation.momoNote1"
+                fallback="Drag-and-drop MTN CSV exports. Parser feedback surfaces duplicates and validation errors before ingest."
+              />
             </p>
             <p className="text-xs text-neutral-3">
-              <Trans i18nKey="admin.reconciliation.momoNote2" fallback="Only validated rows reach Supabase; invalid entries remain quarantined for follow-up." />
+              <Trans
+                i18nKey="admin.reconciliation.momoNote2"
+                fallback="Only validated rows reach Supabase; invalid entries remain quarantined for follow-up."
+              />
             </p>
           </div>
         ) : (
           <p className="text-xs text-neutral-3">
-            <Trans i18nKey="admin.reconciliation.assignTenant" fallback="Select a SACCO to enable statement ingestion." />
+            <Trans
+              i18nKey="admin.reconciliation.assignTenant"
+              fallback="Select a SACCO to enable statement ingestion."
+            />
           </p>
         )}
       </GlassCard>
 
       <GlassCard
         title={<Trans i18nKey="admin.reconciliation.sms" fallback="SMS inbox" />}
-        subtitle={<Trans i18nKey="admin.reconciliation.smsSubtitle" fallback="Latest gateway messages awaiting parser review." className="text-xs text-neutral-3" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.reconciliation.smsSubtitle"
+            fallback="Latest gateway messages awaiting parser review."
+            className="text-xs text-neutral-3"
+          />
+        }
       >
         <SmsInboxPanel items={smsPanelItems} />
       </GlassCard>
 
       <GlassCard
         title={<Trans i18nKey="admin.reconciliation.exceptions" fallback="Exceptions" />}
-        subtitle={<Trans i18nKey="admin.reconciliation.exceptionsSubtitle" fallback="Resolve unmatched deposits and reconcile ledgers." className="text-xs text-neutral-3" />}
+        subtitle={
+          <Trans
+            i18nKey="admin.reconciliation.exceptionsSubtitle"
+            fallback="Resolve unmatched deposits and reconcile ledgers."
+            className="text-xs text-neutral-3"
+          />
+        }
       >
-        <ReconciliationTable rows={exceptionRows} saccoId={saccoIdForWrites} canWrite={allowReconciliationUpdates} />
+        <ReconciliationTable
+          rows={exceptionRows}
+          saccoId={saccoIdForWrites}
+          canWrite={allowReconciliationUpdates}
+        />
       </GlassCard>
     </div>
   );

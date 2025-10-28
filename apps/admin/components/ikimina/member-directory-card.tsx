@@ -108,7 +108,7 @@ export function MemberDirectoryCard({
         meta: { template: "minmax(140px, 0.8fr)" },
       },
     ],
-    [t],
+    [t]
   );
 
   const filteredMembers = useMemo(() => {
@@ -120,7 +120,8 @@ export function MemberDirectoryCard({
         (status === "inactive" && member.status !== "ACTIVE");
       if (!statusMatch) return false;
       if (lowerQuery.length === 0) return true;
-      const haystack = `${member.full_name} ${member.member_code ?? ""} ${member.msisdn ?? ""}`.toLowerCase();
+      const haystack =
+        `${member.full_name} ${member.member_code ?? ""} ${member.msisdn ?? ""}`.toLowerCase();
       return haystack.includes(lowerQuery);
     });
   }, [members, deferredQuery, status]);
@@ -148,7 +149,10 @@ export function MemberDirectoryCard({
             <div className="sm:max-w-xs">
               <Input
                 label={t("ikimina.members.searchLabel", "Search members")}
-                placeholder={t("ikimina.members.searchPlaceholder", "Search by name, MSISDN, or code")}
+                placeholder={t(
+                  "ikimina.members.searchPlaceholder",
+                  "Search by name, MSISDN, or code"
+                )}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
@@ -161,7 +165,10 @@ export function MemberDirectoryCard({
               }}
               options={STATUS_FILTERS.map((value) => ({
                 value,
-                label: t(`ikimina.members.filter.${value}`, value === "all" ? "All" : value === "active" ? "Active" : "Inactive"),
+                label: t(
+                  `ikimina.members.filter.${value}`,
+                  value === "all" ? "All" : value === "active" ? "Active" : "Inactive"
+                ),
               }))}
               aria-label={t("ikimina.members.filter.label", "Filter members")}
               className="sm:max-w-sm"
@@ -175,7 +182,10 @@ export function MemberDirectoryCard({
             emptyState={
               <EmptyState
                 title={t("ikimina.members.emptyTitle", "No members")}
-                description={t("ikimina.members.emptyDescription", "Import members to get started.")}
+                description={t(
+                  "ikimina.members.emptyDescription",
+                  "Import members to get started."
+                )}
               />
             }
           />

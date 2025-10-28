@@ -35,7 +35,11 @@ const bufferFromHex = (hex: string) => {
   return Buffer.from(clean, "hex");
 };
 
-export const verifyHmacSignature = (secret: string, body: Uint8Array, signature: string | null | undefined) => {
+export const verifyHmacSignature = (
+  secret: string,
+  body: Uint8Array,
+  signature: string | null | undefined
+) => {
   if (!signature) {
     return false;
   }
@@ -96,7 +100,7 @@ export const parseJwt = (authorizationHeader: string | null | undefined): JwtCon
   const userId = typeof payload?.sub === "string" ? payload.sub : null;
   const role =
     typeof payload?.app_metadata === "object" && payload?.app_metadata !== null
-      ? (payload.app_metadata as Record<string, unknown>)?.role as string | null ?? null
+      ? (((payload.app_metadata as Record<string, unknown>)?.role as string | null) ?? null)
       : null;
 
   return { rawToken: token, claims: payload, userId, role };

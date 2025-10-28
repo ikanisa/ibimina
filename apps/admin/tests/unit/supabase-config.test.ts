@@ -71,18 +71,18 @@ describe("supabase config helpers", () => {
         (error: unknown) => {
           assert.ok(error instanceof Error);
           assert.equal(error.name, "SupabaseConfigError");
-          assert.match(
-            error.message,
-            /NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY/,
-          );
+          assert.match(error.message, /NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY/);
           return true;
-        },
+        }
       );
     } finally {
       console.error = originalError;
     }
 
     assert.equal(errorLogs.length, 1);
-    assert.deepEqual(errorLogs[0], ["supabase.config.missing", { context: "unit-test", hasUrl: false, hasAnonKey: false }]);
+    assert.deepEqual(errorLogs[0], [
+      "supabase.config.missing",
+      { context: "unit-test", hasUrl: false, hasAnonKey: false },
+    ]);
   });
 });

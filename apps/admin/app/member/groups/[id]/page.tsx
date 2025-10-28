@@ -8,10 +8,10 @@ interface GroupDetailPageProps {
 
 /**
  * Group Detail Page
- * 
+ *
  * Server component that fetches group and SACCO data, then renders
  * the client component with interactive features.
- * 
+ *
  * @accessibility
  * - Uses semantic HTML structure
  * - Delegates interactive elements to client component

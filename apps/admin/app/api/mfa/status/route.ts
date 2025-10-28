@@ -35,12 +35,15 @@ export async function GET() {
     });
   }
 
-  const lastSuccessAt = profile.last_mfa_success_at ? Date.parse(profile.last_mfa_success_at) : null;
+  const lastSuccessAt = profile.last_mfa_success_at
+    ? Date.parse(profile.last_mfa_success_at)
+    : null;
   const sessionWindowMs = sessionTtlSeconds() * 1000;
   const sessionToken = await readCookieToken(MFA_SESSION_COOKIE);
   const sessionPayload = sessionToken ? verifyMfaSessionToken(sessionToken) : null;
   const sessionCookieValid = sessionPayload?.userId === user.id;
-  const profileSessionValid = lastSuccessAt !== null && Date.now() - lastSuccessAt <= sessionWindowMs;
+  const profileSessionValid =
+    lastSuccessAt !== null && Date.now() - lastSuccessAt <= sessionWindowMs;
 
   if (sessionCookieValid || profileSessionValid) {
     return NextResponse.json({
@@ -83,7 +86,10 @@ export async function GET() {
     .eq("device_id", trustedPayload.deviceId)
     .maybeSingle();
 
-  const record = rawRecord as Pick<Database["public"]["Tables"]["trusted_devices"]["Row"], "id" | "device_fingerprint_hash" | "user_agent_hash" | "ip_prefix"> | null;
+  const record = rawRecord as Pick<
+    Database["public"]["Tables"]["trusted_devices"]["Row"],
+    "id" | "device_fingerprint_hash" | "user_agent_hash" | "ip_prefix"
+  > | null;
 
   if (error || !record) {
     const failure = NextResponse.json({
@@ -119,7 +125,11 @@ export async function GET() {
     .eq("id", record.id);
 
   const renewedSession = createMfaSessionToken(user.id, sessionTtlSeconds());
-  const refreshedTrusted = createTrustedDeviceToken(user.id, trustedPayload.deviceId, trustedTtlSeconds());
+  const refreshedTrusted = createTrustedDeviceToken(
+    user.id,
+    trustedPayload.deviceId,
+    trustedTtlSeconds()
+  );
 
   const successResponse = NextResponse.json({
     mfaEnabled: true,

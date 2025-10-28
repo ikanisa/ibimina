@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const hasKmsKey = isValidBase64Key(kmsKey);
 
   const supabase = createSupabaseAdminClient();
-  const targetEmail = isAdmin && email ? email : user.email ?? null;
+  const targetEmail = isAdmin && email ? email : (user.email ?? null);
 
   if (!targetEmail) {
     return NextResponse.json({ error: "no_email" }, { status: 400 });

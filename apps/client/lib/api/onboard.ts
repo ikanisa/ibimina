@@ -1,14 +1,14 @@
 /**
  * Client-side API wrapper for onboarding operations
- * 
+ *
  * This module provides a type-safe interface for interacting with the
  * onboarding API endpoint. It handles request formatting, error handling,
  * and response parsing.
- * 
+ *
  * Usage:
  * ```typescript
  * import { submitOnboardingData } from '@/lib/api/onboard';
- * 
+ *
  * try {
  *   const result = await submitOnboardingData({
  *     whatsapp_msisdn: '+250788123456',
@@ -57,14 +57,14 @@ export interface OnboardingError {
 
 /**
  * Submits onboarding data to create a new member profile
- * 
+ *
  * This function sends a POST request to /api/onboard with the provided
  * contact information. The user must be authenticated before calling this.
- * 
+ *
  * @param data - Onboarding information including phone numbers
  * @returns Promise resolving to the created profile data
  * @throws Error if the request fails or returns an error response
- * 
+ *
  * @example
  * ```typescript
  * const profile = await submitOnboardingData({
@@ -75,9 +75,7 @@ export interface OnboardingError {
  * console.log('Profile ID:', profile.data.user_id);
  * ```
  */
-export async function submitOnboardingData(
-  data: OnboardingData
-): Promise<OnboardingResponse> {
+export async function submitOnboardingData(data: OnboardingData): Promise<OnboardingResponse> {
   try {
     const response = await fetch("/api/onboard", {
       method: "POST",
@@ -101,9 +99,11 @@ export async function submitOnboardingData(
   } catch (error) {
     // Re-throw with more context if it's a network error
     if (error instanceof TypeError) {
-      throw new Error("Network error: Unable to connect to the server. Please check your internet connection.");
+      throw new Error(
+        "Network error: Unable to connect to the server. Please check your internet connection."
+      );
     }
-    
+
     // Re-throw other errors as-is
     throw error;
   }
@@ -111,12 +111,12 @@ export async function submitOnboardingData(
 
 /**
  * Checks if a member profile already exists for the current user
- * 
+ *
  * This can be used to determine if the user should be redirected to
  * onboarding or allowed to proceed to the main app.
- * 
+ *
  * @returns Promise resolving to true if profile exists, false otherwise
- * 
+ *
  * Note: This is a placeholder function. Implement when profile check
  * endpoint is available.
  */

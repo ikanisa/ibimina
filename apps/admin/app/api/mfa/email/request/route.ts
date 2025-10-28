@@ -18,7 +18,7 @@ export async function POST() {
         retryAt: result.retryAt.toISOString(),
         reason: result.reason,
       },
-      { status: 429 },
+      { status: 429 }
     );
   }
 

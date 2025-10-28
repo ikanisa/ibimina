@@ -50,8 +50,16 @@ export function Sparkline({ series, ariaLabel, tone = "emerald", className }: Sp
         className={cn("h-full w-full", toneClasses[tone])}
       >
         <title>{ariaLabel}</title>
-        <polyline fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth={2} points={pointList} />
-        {lastPoint ? <circle cx={lastPoint.x} cy={lastPoint.y} r={2.5} fill="currentColor" /> : null}
+        <polyline
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth={2}
+          points={pointList}
+        />
+        {lastPoint ? (
+          <circle cx={lastPoint.x} cy={lastPoint.y} r={2.5} fill="currentColor" />
+        ) : null}
       </svg>
       <figcaption className="sr-only">
         {plotted.map((point) => `${point.label}: ${point.value}`).join("; ")}

@@ -36,35 +36,34 @@ export interface GroupListParams {
 /**
  * Fetch groups with metadata (Server-side)
  * Retrieves groups with member counts and SACCO information
- * 
+ *
  * @param params - Optional filters for groups list
  * @returns Array of groups with metadata
- * 
+ *
  * @example
  * ```ts
- * const groups = await getGroups({ 
+ * const groups = await getGroups({
  *   saccoId: 'uuid',
  *   status: 'ACTIVE',
  *   limit: 50
  * });
  * ```
- * 
+ *
  * @remarks
  * This function uses server-side Supabase client and should be called
  * from Server Components or API routes only
  */
-export async function getGroups(
-  params: GroupListParams = {}
-): Promise<Group[]> {
+export async function getGroups(params: GroupListParams = {}): Promise<Group[]> {
   const { saccoId, status, limit = 100, offset = 0 } = params;
-  
+
   const supabase = await createSupabaseServerClient();
-  
+
   // Build the query for groups with SACCO information
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase as any)
     .from("ibimina")
-    .select(`
+    .select(
+      `
       id,
       name,
       code,
@@ -76,7 +75,8 @@ export async function getGroups(
       saccos (
         name
       )
-    `)
+    `
+    )
     .order("updated_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -84,7 +84,7 @@ export async function getGroups(
   if (saccoId) {
     query = query.eq("sacco_id", saccoId);
   }
-  
+
   if (status) {
     query = query.eq("status", status);
   }
@@ -103,7 +103,7 @@ export async function getGroups(
   // Fetch member counts for each group
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groupIds = groupsData.map((g: any) => g.id);
-  
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: memberCounts, error: memberError } = await (supabase as any)
     .from("ikimina_members")
@@ -146,7 +146,7 @@ export async function getGroups(
 
 /**
  * Get a single group by ID (Server-side)
- * 
+ *
  * @param id - Group UUID
  * @returns Group data or null if not found
  */

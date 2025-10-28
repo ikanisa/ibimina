@@ -139,8 +139,7 @@
   "admin.telemetry.desc.smsFlagged": "Messages awaiting manual review.",
   "admin.audit.empty": "No audit records yet.",
   "admin.audit.actor": "Actor:",
-  "admin.audit.entityId": "Entity ID:"
-  ,
+  "admin.audit.entityId": "Entity ID:",
   "reports.title": "Reports",
   "reports.subtitle": "Generate branded exports for SACCO leadership, auditors, and members.",
   "reports.badge.pwa": "PWA-ready",
@@ -367,8 +366,7 @@
   "analytics.forecast.next": "Next month (estimate)",
   "table.sacco": "SACCO",
   "table.deposits": "Deposits",
-  "table.unallocated": "Unallocated"
-  ,
+  "table.unallocated": "Unallocated",
   "dashboard.quick.createIkimina.title": "Create Ikimina",
   "dashboard.quick.createIkimina.description": "Launch a new group with the configured policies.",
   "dashboard.quick.importMembers.title": "Import Members",
@@ -410,8 +408,7 @@
   "table.reference": "Reference",
   "table.msisdn": "MSISDN",
   "table.reasons": "Reasons",
-  "recon.empty": "No exceptions match your filters."
-  ,
+  "recon.empty": "No exceptions match your filters.",
   "ikimina.list.title": "Ikimina Directory",
   "ikimina.list.subtitle": "Browse, filter, and drill into every group under your SACCO.",
   "ikimina.list.searchLabel": "Search",
@@ -426,10 +423,8 @@
   "table.lastPayment": "Last payment",
   "table.exceptions": "Exceptions",
   "common.open": "Open",
-  "common.all": "All"
-  ,
-  "common.edit": "Edit"
-  ,
+  "common.all": "All",
+  "common.edit": "Edit",
   "recon.search.placeholder": "Reference, MSISDN, txn id",
   "recon.filters.duplicatesOnly": "Duplicates only",
   "recon.filters.lowConfidence": "Low confidence",
@@ -454,8 +449,7 @@
   "recon.action.paymentUpdated": "Payment updated",
   "recon.ai.missingIkimina": "Suggestion missing ikimina. Assign a group manually.",
   "recon.ai.upgradeRequired": "Upgrade access to apply AI suggestions.",
-  "recon.search.memberFailed": "Member search failed"
-  ,
+  "recon.search.memberFailed": "Member search failed",
   "recon.title": "Reconciliation",
   "recon.subtitle": "Resolve unknown references, duplicates, and mismatched deposits to keep ledgers clean.",
   "recon.momo.title": "MoMo statement ingest",
@@ -467,8 +461,7 @@
   "recon.sms.title": "SMS inbox",
   "recon.sms.subtitle": "Latest MoMo SMS messages captured by the gateway and ready for parsing.",
   "recon.exceptions.title": "Exceptions",
-  "recon.exceptions.subtitle": "Recent issues surfaced by the parser."
-  ,
+  "recon.exceptions.subtitle": "Recent issues surfaced by the parser.",
   "recon.detail.title": "Transaction Details",
   "recon.detail.confidence": "Confidence",
   "recon.detail.reasonTags": "Reason tags",
@@ -495,8 +488,7 @@
   "common.retry": "Retry",
   "common.readOnly": "Read-only access",
   "common.apply": "Apply",
-  "common.searching": "Searching…"
-  ,
+  "common.searching": "Searching…",
   "ikimina.import.button": "Spreadsheet import",
   "ikimina.import.title": "Ikimina import",
   "ikimina.import.step": "Step",
@@ -514,8 +506,7 @@
   "ikimina.import.confirmImport": "Confirm import",
   "ikimina.import.rowsNeedFixes": "row(s) need fixes before importing.",
   "ikimina.import.payloadNote": "Payload is sent to the secure-import-members edge function. Ensure it is deployed and reachable.",
-  "common.back": "Back"
-  ,
+  "common.back": "Back",
   "auth.errors.signIn": "Unable to sign in",
   "auth.errors.noSession": "Unable to establish a session",
   "auth.errors.status": "Unable to verify security requirements",
@@ -559,8 +550,7 @@
   "auth.buttons.signIn": "Sign in",
   "auth.buttons.confirmSetup": "Confirm setup",
   "auth.buttons.verifyCode": "Verify code",
-  "auth.buttons.cancelAndSignInAgain": "Cancel and sign in again"
-  ,
+  "auth.buttons.cancelAndSignInAgain": "Cancel and sign in again",
   "recon.detail.noParserOutput": "No parser output",
   "recon.detail.noSmsSource": "No SMS source",
   "recon.errors.suggestionFailed": "Suggestion lookup failed",

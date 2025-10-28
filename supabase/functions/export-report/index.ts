@@ -27,9 +27,14 @@ const parseDate = (value: string | undefined, fallback: Date) => {
   return parsed;
 };
 
-const formatCurrency = (amount: number) => new Intl.NumberFormat("rw-RW", { style: "currency", currency: "RWF", minimumFractionDigits: 0 }).format(amount);
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("rw-RW", {
+    style: "currency",
+    currency: "RWF",
+    minimumFractionDigits: 0,
+  }).format(amount);
 const csvEscape = (value: string) => {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
     return '"' + value.replace(/"/g, '""') + '"';
   }
   return value;
@@ -59,7 +64,8 @@ Deno.serve(async (req) => {
       if (contentType.includes("application/json")) {
         const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
         if (body && typeof body === "object") {
-          const readString = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : undefined);
+          const readString = (value: unknown) =>
+            typeof value === "string" && value.trim() ? value.trim() : undefined;
           const readFormat = (value: unknown): "csv" | "pdf" | undefined =>
             value === "csv" || value === "pdf" ? value : undefined;
           const readLocale = (value: unknown): "en" | "rw" | "fr" | undefined =>
@@ -141,7 +147,12 @@ Deno.serve(async (req) => {
     } as const;
 
     const numberLocale = locale === "en" ? "en-RW" : locale === "fr" ? "fr-RW" : "rw-RW";
-    const formatCurrency = (amount: number) => new Intl.NumberFormat(numberLocale, { style: "currency", currency: "RWF", minimumFractionDigits: 0 }).format(amount);
+    const formatCurrency = (amount: number) =>
+      new Intl.NumberFormat(numberLocale, {
+        style: "currency",
+        currency: "RWF",
+        minimumFractionDigits: 0,
+      }).format(amount);
     const sep = (params.separator ?? ",") as "," | ";";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -191,7 +202,10 @@ Deno.serve(async (req) => {
       .from("ikimina")
       .select("id, name, code, sacco_id");
 
-    const totalsByIkimina = new Map<string, { name: string; code: string; amount: number; count: number }>();
+    const totalsByIkimina = new Map<
+      string,
+      { name: string; code: string; amount: number; count: number }
+    >();
     let grandTotal = 0;
     let totalCount = 0;
 
@@ -199,7 +213,12 @@ Deno.serve(async (req) => {
       if (!payment.ikimina_id || !["POSTED", "SETTLED"].includes(payment.status)) continue;
       const match = (ibiminaRows ?? []).find((row) => row.id === payment.ikimina_id);
       if (!match) continue;
-      const current = totalsByIkimina.get(payment.ikimina_id) ?? { name: match.name, code: match.code, amount: 0, count: 0 };
+      const current = totalsByIkimina.get(payment.ikimina_id) ?? {
+        name: match.name,
+        code: match.code,
+        amount: 0,
+        count: 0,
+      };
       current.amount += payment.amount;
       current.count += 1;
       totalsByIkimina.set(payment.ikimina_id, current);
@@ -208,12 +227,20 @@ Deno.serve(async (req) => {
     }
 
     const sortedTotals = Array.from(totalsByIkimina.values()).sort((a, b) => b.amount - a.amount);
-    const csvLimit = Math.max(1, Math.min(typeof params.limit === "number" ? Math.floor(params.limit) : Number.POSITIVE_INFINITY, 100));
-    const limitedForCsv = Number.isFinite(csvLimit) ? sortedTotals.slice(0, csvLimit) : sortedTotals;
+    const csvLimit = Math.max(
+      1,
+      Math.min(
+        typeof params.limit === "number" ? Math.floor(params.limit) : Number.POSITIVE_INFINITY,
+        100
+      )
+    );
+    const limitedForCsv = Number.isFinite(csvLimit)
+      ? sortedTotals.slice(0, csvLimit)
+      : sortedTotals;
 
     // Build daily totals sparkline data (last 14 days within the requested period)
     const dailyMap = new Map<string, number>();
-    for (const row of (payments ?? [])) {
+    for (const row of payments ?? []) {
       if (!["POSTED", "SETTLED"].includes(row.status)) continue;
       const day = (row.occurred_at as string).slice(0, 10);
       dailyMap.set(day, (dailyMap.get(day) ?? 0) + (row.amount as number));
@@ -229,9 +256,18 @@ Deno.serve(async (req) => {
       let csv = header + "\n";
       for (const row of limitedForCsv) {
         const share = grandTotal > 0 ? Math.round((row.amount / grandTotal) * 100) : 0;
-        csv += [csvEscape(row.name), csvEscape(row.code), String(row.count), String(row.amount), `${share}%`].join(sep) + "\n";
+        csv +=
+          [
+            csvEscape(row.name),
+            csvEscape(row.code),
+            String(row.count),
+            String(row.amount),
+            `${share}%`,
+          ].join(sep) + "\n";
       }
-      csv += [labels[locale].csvTotal, "", String(totalCount), String(grandTotal), "100%"].join(sep) + "\n";
+      csv +=
+        [labels[locale].csvTotal, "", String(totalCount), String(grandTotal), "100%"].join(sep) +
+        "\n";
 
       return new Response(csv, {
         headers: {
@@ -263,11 +299,11 @@ Deno.serve(async (req) => {
         saccoName = (saccoRow as { name: string | null }).name ?? null;
         const brand = (saccoRow as { brand_color?: string | null }).brand_color ?? null;
         if (brand && /^#?[0-9a-fA-F]{6}$/.test(brand)) {
-          const hex = brand.startsWith('#') ? brand.slice(1) : brand;
-          const r = parseInt(hex.slice(0,2),16)/255;
-          const g = parseInt(hex.slice(2,4),16)/255;
-          const b = parseInt(hex.slice(4,6),16)/255;
-          titleColor = rgb(r,g,b);
+          const hex = brand.startsWith("#") ? brand.slice(1) : brand;
+          const r = parseInt(hex.slice(0, 2), 16) / 255;
+          const g = parseInt(hex.slice(2, 4), 16) / 255;
+          const b = parseInt(hex.slice(4, 6), 16) / 255;
+          titleColor = rgb(r, g, b);
         }
         const logoUrl = (saccoRow as { logo_url?: string | null }).logo_url ?? null;
         if (logoUrl) {
@@ -291,24 +327,65 @@ Deno.serve(async (req) => {
       const maxWidth = 472 - (xStart - 48);
       const width = bold.widthOfTextAtSize(headerTitle, 20);
       if (width <= maxWidth) {
-        page.drawText(headerTitle, { x: xStart, y: height - 72, size: 20, font: bold, color: titleColor });
+        page.drawText(headerTitle, {
+          x: xStart,
+          y: height - 72,
+          size: 20,
+          font: bold,
+          color: titleColor,
+        });
         return;
       }
       // Attempt to split at em dash into two lines
-      const parts = headerTitle.split(' — ');
+      const parts = headerTitle.split(" — ");
       if (parts.length === 2) {
         const [left, right] = parts;
-        const line1 = bold.widthOfTextAtSize(left, 20) <= maxWidth ? left : left.slice(0, Math.max(1, Math.floor(left.length * (maxWidth / bold.widthOfTextAtSize(left, 20))))) + '…';
-        const line2 = bold.widthOfTextAtSize(`— ${right}`, 16) <= maxWidth ? `— ${right}` : '— ' + right.slice(0, Math.max(1, Math.floor(right.length * (maxWidth / bold.widthOfTextAtSize(right, 16))))) + '…';
-        page.drawText(line1, { x: xStart, y: height - 68, size: 20, font: bold, color: titleColor });
-        page.drawText(line2, { x: xStart, y: height - 88, size: 16, font: bold, color: titleColor });
+        const line1 =
+          bold.widthOfTextAtSize(left, 20) <= maxWidth
+            ? left
+            : left.slice(
+                0,
+                Math.max(1, Math.floor(left.length * (maxWidth / bold.widthOfTextAtSize(left, 20))))
+              ) + "…";
+        const line2 =
+          bold.widthOfTextAtSize(`— ${right}`, 16) <= maxWidth
+            ? `— ${right}`
+            : "— " +
+              right.slice(
+                0,
+                Math.max(
+                  1,
+                  Math.floor(right.length * (maxWidth / bold.widthOfTextAtSize(right, 16)))
+                )
+              ) +
+              "…";
+        page.drawText(line1, {
+          x: xStart,
+          y: height - 68,
+          size: 20,
+          font: bold,
+          color: titleColor,
+        });
+        page.drawText(line2, {
+          x: xStart,
+          y: height - 88,
+          size: 16,
+          font: bold,
+          color: titleColor,
+        });
         cursorY = height - 106;
         return;
       }
       // Fallback truncate headerTitle
       const factor = maxWidth / width;
       const cut = Math.max(1, Math.floor(headerTitle.length * factor) - 1);
-      page.drawText(headerTitle.slice(0, cut) + '…', { x: xStart, y: height - 72, size: 20, font: bold, color: titleColor });
+      page.drawText(headerTitle.slice(0, cut) + "…", {
+        x: xStart,
+        y: height - 72,
+        size: 20,
+        font: bold,
+        color: titleColor,
+      });
     };
 
     if (logoBytes) {
@@ -316,7 +393,12 @@ Deno.serve(async (req) => {
         const isPng = logoBytes[0] === 0x89 && logoBytes[1] === 0x50; // crude check
         const img = isPng ? await pdf.embedPng(logoBytes) : await pdf.embedJpg(logoBytes);
         const scaled = img.scale(60 / img.height);
-        page.drawImage(img, { x: 48, y: height - 72 - scaled.height + 8, width: scaled.width, height: scaled.height });
+        page.drawImage(img, {
+          x: 48,
+          y: height - 72 - scaled.height + 8,
+          width: scaled.width,
+          height: scaled.height,
+        });
         await drawHeaderTitle(48 + scaled.width + 12);
       } catch {
         await drawHeaderTitle(48);
@@ -327,8 +409,18 @@ Deno.serve(async (req) => {
     // If wrapped, cursorY might be reduced
     const summaryY = Math.min(cursorY - 16, height - 96);
     page.drawText(labels[locale].summary, { x: 48, y: summaryY, size: 12, font });
-    page.drawText(`${labels[locale].period}: ${toDateOnly(start)} → ${toDateOnly(end)}`, { x: 48, y: summaryY - 18, size: 10, font });
-    page.drawText(`${labels[locale].totalPosted}: ${formatCurrency(grandTotal)}`, { x: 48, y: summaryY - 36, size: 10, font });
+    page.drawText(`${labels[locale].period}: ${toDateOnly(start)} → ${toDateOnly(end)}`, {
+      x: 48,
+      y: summaryY - 18,
+      size: 10,
+      font,
+    });
+    page.drawText(`${labels[locale].totalPosted}: ${formatCurrency(grandTotal)}`, {
+      x: 48,
+      y: summaryY - 36,
+      size: 10,
+      font,
+    });
 
     cursorY = Math.min(summaryY - 40, height - 168);
     const rowHeight = 18;
@@ -341,14 +433,28 @@ Deno.serve(async (req) => {
       const chartX = 48;
       const maxVal = Math.max(...lastDays.map((d) => d.amount), 1);
       const barGap = 4;
-      const barWidth = Math.max(6, Math.floor((chartWidth - (barGap * (lastDays.length - 1))) / lastDays.length));
+      const barWidth = Math.max(
+        6,
+        Math.floor((chartWidth - barGap * (lastDays.length - 1)) / lastDays.length)
+      );
       // Label
-      page.drawText(labels[locale].dailyTotals, { x: chartX, y: cursorY, size: 10, font, color: rgb(0.35, 0.45, 0.5) });
+      page.drawText(labels[locale].dailyTotals, {
+        x: chartX,
+        y: cursorY,
+        size: 10,
+        font,
+        color: rgb(0.35, 0.45, 0.5),
+      });
       const baseY = cursorY - 10;
       // Adjust sparkline bar color for contrast if brand is too dark
-      const luminance = (c: { r: number; g: number; b: number }) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+      const luminance = (c: { r: number; g: number; b: number }) =>
+        0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
       let barColor = titleColor;
-      const t = { r: (titleColor as any).r ?? 0, g: (titleColor as any).g ?? 0, b: (titleColor as any).b ?? 0 };
+      const t = {
+        r: (titleColor as any).r ?? 0,
+        g: (titleColor as any).g ?? 0,
+        b: (titleColor as any).b ?? 0,
+      };
       if (luminance(t) < 0.5) {
         const mix = (v: number) => Math.min(1, v * 0.5 + 0.5);
         barColor = rgb(mix(t.r), mix(t.g), mix(t.b));
@@ -373,14 +479,14 @@ Deno.serve(async (req) => {
 
     // Utility to fit text into column with ellipsis
     const fitText = (text: string, maxWidth: number, fnt: typeof font, size = 10) => {
-      let t = text ?? '';
+      let t = text ?? "";
       const widthOf = (s: string) => fnt.widthOfTextAtSize(s, size);
       if (widthOf(t) <= maxWidth) return t;
-      const ell = '…';
+      const ell = "…";
       // binary shrink
       let lo = 0;
       let hi = t.length;
-      let best = '';
+      let best = "";
       while (lo <= hi) {
         const mid = Math.floor((lo + hi) / 2);
         const candidate = t.slice(0, mid) + ell;
@@ -406,8 +512,18 @@ Deno.serve(async (req) => {
         page.drawText("…", { x: 48, y: cursorY, size: 11, font });
         break;
       }
-      page.drawText(fitText(row.name, nameColWidth, font), { x: nameX, y: cursorY, size: 10, font });
-      page.drawText(fitText(row.code, codeColWidth, font), { x: codeX, y: cursorY, size: 10, font });
+      page.drawText(fitText(row.name, nameColWidth, font), {
+        x: nameX,
+        y: cursorY,
+        size: 10,
+        font,
+      });
+      page.drawText(fitText(row.code, codeColWidth, font), {
+        x: codeX,
+        y: cursorY,
+        size: 10,
+        font,
+      });
       page.drawText(String(row.count ?? 0), { x: txnX, y: cursorY, size: 10, font });
       page.drawText(formatCurrency(row.amount), { x: amtX, y: cursorY, size: 10, font });
       const share = grandTotal > 0 ? Math.round((row.amount / grandTotal) * 100) : 0;
@@ -415,14 +531,30 @@ Deno.serve(async (req) => {
       cursorY -= rowHeight;
     }
 
-    page.drawRectangle({ x: 48, y: cursorY - 1, width: 472, height: 0.75, color: rgb(0.12, 0.25, 0.2) });
+    page.drawRectangle({
+      x: 48,
+      y: cursorY - 1,
+      width: 472,
+      height: 0.75,
+      color: rgb(0.12, 0.25, 0.2),
+    });
     cursorY -= rowHeight;
-    page.drawText(`${labels[locale].grandTotal}: ${formatCurrency(grandTotal)}`, { x: 48, y: cursorY, size: 11, font: bold });
+    page.drawText(`${labels[locale].grandTotal}: ${formatCurrency(grandTotal)}`, {
+      x: 48,
+      y: cursorY,
+      size: 11,
+      font: bold,
+    });
     page.drawText(`Txn: ${totalCount}`, { x: 310, y: cursorY, size: 11, font: bold });
 
     // Footer
-    page.drawText(`${labels[locale].generated} ${new Date().toISOString().slice(0,10)}`,
-      { x: 48, y: 48, size: 9, font, color: rgb(0.35,0.45,0.5) });
+    page.drawText(`${labels[locale].generated} ${new Date().toISOString().slice(0, 10)}`, {
+      x: 48,
+      y: 48,
+      size: 9,
+      font,
+      color: rgb(0.35, 0.45, 0.5),
+    });
 
     const pdfBytes = await pdf.save();
 

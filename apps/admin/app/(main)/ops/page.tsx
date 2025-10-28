@@ -81,10 +81,10 @@ function computeDelta(series: TrendPoint[]): number {
 
 export default async function OperationsPage() {
   const { profile } = await requireUserAndProfile();
-  const saccoScope = profile.role === "SYSTEM_ADMIN" ? null : profile.sacco_id ?? null;
+  const saccoScope = profile.role === "SYSTEM_ADMIN" ? null : (profile.sacco_id ?? null);
   const snapshot = await getOperationsSnapshot({ saccoId: saccoScope });
   const scopeLabel =
-    profile.role === "SYSTEM_ADMIN" ? "All SACCOs" : profile.sacco?.name ?? "Assigned SACCO";
+    profile.role === "SYSTEM_ADMIN" ? "All SACCOs" : (profile.sacco?.name ?? "Assigned SACCO");
 
   const notificationDelta = computeDelta(snapshot.trends.notifications);
   const reconciliationDelta = computeDelta(snapshot.trends.reconciliation);
@@ -128,13 +128,17 @@ export default async function OperationsPage() {
               <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                 <Trans i18nKey="ops.notifications.next" fallback="Next scheduled" />
               </dt>
-              <dd className="mt-1 text-sm text-neutral-0">{formatRelativeTime(snapshot.notifications.nextScheduledFor)}</dd>
+              <dd className="mt-1 text-sm text-neutral-0">
+                {formatRelativeTime(snapshot.notifications.nextScheduledFor)}
+              </dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                 <Trans i18nKey="ops.notifications.stalled" fallback="Stalled" />
               </dt>
-              <dd className="mt-1 text-sm text-neutral-0">{numberFormatter.format(snapshot.notifications.stalled)}</dd>
+              <dd className="mt-1 text-sm text-neutral-0">
+                {numberFormatter.format(snapshot.notifications.stalled)}
+              </dd>
             </div>
           </dl>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -180,19 +184,25 @@ export default async function OperationsPage() {
               <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                 <Trans i18nKey="ops.recon.open" fallback="Open" />
               </dt>
-              <dd className="mt-1 text-2xl font-semibold text-neutral-0">{numberFormatter.format(snapshot.reconciliation.open)}</dd>
+              <dd className="mt-1 text-2xl font-semibold text-neutral-0">
+                {numberFormatter.format(snapshot.reconciliation.open)}
+              </dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                 <Trans i18nKey="ops.recon.oldest" fallback="Oldest item" />
               </dt>
-              <dd className="mt-1 text-sm text-neutral-0">{formatRelativeTime(snapshot.reconciliation.oldestOpen)}</dd>
+              <dd className="mt-1 text-sm text-neutral-0">
+                {formatRelativeTime(snapshot.reconciliation.oldestOpen)}
+              </dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                 <Trans i18nKey="ops.recon.escalated" fallback="Escalated" />
               </dt>
-              <dd className="mt-1 text-sm text-neutral-0">{numberFormatter.format(snapshot.reconciliation.escalated)}</dd>
+              <dd className="mt-1 text-sm text-neutral-0">
+                {numberFormatter.format(snapshot.reconciliation.escalated)}
+              </dd>
             </div>
           </dl>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -205,7 +215,9 @@ export default async function OperationsPage() {
                   <Trans i18nKey="ops.trend.flat" fallback="No change" />
                 ) : (
                   <>
-                    <span className={reconciliationDelta > 0 ? "text-amber-300" : "text-emerald-300"}>
+                    <span
+                      className={reconciliationDelta > 0 ? "text-amber-300" : "text-emerald-300"}
+                    >
                       {reconciliationDelta > 0 ? "+" : "−"}
                       {numberFormatter.format(Math.abs(reconciliationDelta))}
                     </span>{" "}
@@ -238,19 +250,25 @@ export default async function OperationsPage() {
               <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                 <Trans i18nKey="ops.mfa.enabled" fallback="Enabled" />
               </dt>
-              <dd className="mt-1 text-2xl font-semibold text-neutral-0">{numberFormatter.format(snapshot.mfa.enabled)}</dd>
+              <dd className="mt-1 text-2xl font-semibold text-neutral-0">
+                {numberFormatter.format(snapshot.mfa.enabled)}
+              </dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                 <Trans i18nKey="ops.mfa.stale" fallback="Stale" />
               </dt>
-              <dd className="mt-1 text-sm text-neutral-0">{numberFormatter.format(snapshot.mfa.stale)}</dd>
+              <dd className="mt-1 text-sm text-neutral-0">
+                {numberFormatter.format(snapshot.mfa.stale)}
+              </dd>
             </div>
             <div>
               <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                 <Trans i18nKey="ops.mfa.last" fallback="Last success" />
               </dt>
-              <dd className="mt-1 text-sm text-neutral-0">{formatRelativeTime(snapshot.mfa.lastSuccessSample)}</dd>
+              <dd className="mt-1 text-sm text-neutral-0">
+                {formatRelativeTime(snapshot.mfa.lastSuccessSample)}
+              </dd>
             </div>
           </dl>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -294,7 +312,10 @@ export default async function OperationsPage() {
       >
         {snapshot.incidents.length === 0 ? (
           <p className="text-sm text-neutral-2">
-            <Trans i18nKey="ops.incidents.empty" fallback="No incidents recorded in the last 24 hours." />
+            <Trans
+              i18nKey="ops.incidents.empty"
+              fallback="No incidents recorded in the last 24 hours."
+            />
           </p>
         ) : (
           <div className="overflow-hidden rounded-2xl border border-white/10">
@@ -320,7 +341,9 @@ export default async function OperationsPage() {
                       <td className="px-4 py-3 text-neutral-2">
                         {incident.entity}:{incident.entityId}
                       </td>
-                      <td className="px-4 py-3 text-neutral-2">{formatRelativeTime(incident.occurredAt)}</td>
+                      <td className="px-4 py-3 text-neutral-2">
+                        {formatRelativeTime(incident.occurredAt)}
+                      </td>
                     </tr>
                     <tr>
                       <td colSpan={3} className="px-0">
@@ -344,7 +367,10 @@ export default async function OperationsPage() {
                                 </pre>
                               ) : (
                                 <p className="mt-2 text-neutral-2">
-                                  <Trans i18nKey="ops.incidents.noDiff" fallback="No diff captured for this event." />
+                                  <Trans
+                                    i18nKey="ops.incidents.noDiff"
+                                    fallback="No diff captured for this event."
+                                  />
                                 </p>
                               )}
                             </div>

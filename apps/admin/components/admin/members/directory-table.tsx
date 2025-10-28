@@ -8,7 +8,14 @@ import { StatusChip } from "@/components/common/status-chip";
 
 export type MemberDirectoryRow = Pick<
   Database["public"]["Views"]["ikimina_members_public"]["Row"],
-  "id" | "full_name" | "member_code" | "msisdn" | "status" | "joined_at" | "ikimina_id" | "ikimina_name"
+  | "id"
+  | "full_name"
+  | "member_code"
+  | "msisdn"
+  | "status"
+  | "joined_at"
+  | "ikimina_id"
+  | "ikimina_name"
 >;
 
 interface AdminMembersDirectoryProps {
@@ -38,7 +45,8 @@ export function AdminMembersDirectory({ rows }: AdminMembersDirectoryProps) {
       if (status && row.status !== status) return false;
       if (group && row.ikimina_name !== group) return false;
       if (!normalizedQuery) return true;
-      const haystack = `${row.full_name ?? ""} ${row.member_code ?? ""} ${row.msisdn ?? ""} ${row.ikimina_name ?? ""}`.toLowerCase();
+      const haystack =
+        `${row.full_name ?? ""} ${row.member_code ?? ""} ${row.msisdn ?? ""} ${row.ikimina_name ?? ""}`.toLowerCase();
       return haystack.includes(normalizedQuery);
     });
   }, [rows, deferredSearch, status, group]);
@@ -46,7 +54,12 @@ export function AdminMembersDirectory({ rows }: AdminMembersDirectoryProps) {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 md:grid-cols-4">
-        <Input label="Search" placeholder="Search name, code, or MSISDN" value={search} onChange={(event) => setSearch(event.target.value)} />
+        <Input
+          label="Search"
+          placeholder="Search name, code, or MSISDN"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
         <Select
           label="Group"
           value={group}
@@ -63,7 +76,9 @@ export function AdminMembersDirectory({ rows }: AdminMembersDirectoryProps) {
         />
         <div className="flex flex-col justify-end">
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-3">Total</p>
-          <p className="text-2xl font-semibold text-neutral-0">{filtered.length.toLocaleString()}</p>
+          <p className="text-2xl font-semibold text-neutral-0">
+            {filtered.length.toLocaleString()}
+          </p>
         </div>
       </div>
 
@@ -71,18 +86,32 @@ export function AdminMembersDirectory({ rows }: AdminMembersDirectoryProps) {
         <table className="min-w-full divide-y divide-white/10 text-sm text-neutral-1">
           <thead>
             <tr className="text-xs uppercase tracking-[0.25em] text-neutral-3">
-              <th scope="col" className="px-3 py-2 text-left">Name</th>
-              <th scope="col" className="px-3 py-2 text-left">Group</th>
-              <th scope="col" className="px-3 py-2 text-left">Member code</th>
-              <th scope="col" className="px-3 py-2 text-left">MSISDN</th>
-              <th scope="col" className="px-3 py-2 text-left">Joined</th>
-              <th scope="col" className="px-3 py-2 text-left">Status</th>
+              <th scope="col" className="px-3 py-2 text-left">
+                Name
+              </th>
+              <th scope="col" className="px-3 py-2 text-left">
+                Group
+              </th>
+              <th scope="col" className="px-3 py-2 text-left">
+                Member code
+              </th>
+              <th scope="col" className="px-3 py-2 text-left">
+                MSISDN
+              </th>
+              <th scope="col" className="px-3 py-2 text-left">
+                Joined
+              </th>
+              <th scope="col" className="px-3 py-2 text-left">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {filtered.map((member) => (
-              <tr key={member.id ?? `${member.ikimina_id}-${member.member_code}`}
-                className="transition hover:bg-white/5">
+              <tr
+                key={member.id ?? `${member.ikimina_id}-${member.member_code}`}
+                className="transition hover:bg-white/5"
+              >
                 <td className="px-3 py-2">
                   <div className="flex flex-col">
                     <span className="font-medium text-neutral-0">{member.full_name ?? "—"}</span>
@@ -92,13 +121,17 @@ export function AdminMembersDirectory({ rows }: AdminMembersDirectoryProps) {
                 <td className="px-3 py-2">
                   <span className="text-neutral-1">{member.ikimina_name ?? "—"}</span>
                 </td>
-                <td className="px-3 py-2 font-mono text-xs text-neutral-2">{member.member_code ?? "—"}</td>
+                <td className="px-3 py-2 font-mono text-xs text-neutral-2">
+                  {member.member_code ?? "—"}
+                </td>
                 <td className="px-3 py-2 text-neutral-1">{member.msisdn ?? "—"}</td>
                 <td className="px-3 py-2 text-neutral-1">
                   {member.joined_at ? new Date(member.joined_at).toLocaleDateString() : "—"}
                 </td>
                 <td className="px-3 py-2">
-                  <StatusChip tone={member.status === "ACTIVE" ? "success" : "warning"}>{member.status ?? "UNKNOWN"}</StatusChip>
+                  <StatusChip tone={member.status === "ACTIVE" ? "success" : "warning"}>
+                    {member.status ?? "UNKNOWN"}
+                  </StatusChip>
                 </td>
               </tr>
             ))}

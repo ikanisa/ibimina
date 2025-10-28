@@ -19,7 +19,7 @@ const fallbackBucket = (value?: string | null) => {
 export const enforceRateLimit = async (
   supabase: AnyClient,
   bucketKey: string,
-  options?: RateLimitOptions,
+  options?: RateLimitOptions
 ) => {
   const maxHits = options?.maxHits ?? defaultMax;
   const windowSeconds = options?.windowSeconds ?? defaultWindow;
@@ -43,7 +43,7 @@ export const enforceIpRateLimit = async (
   supabase: AnyClient,
   ipAddress: string | null | undefined,
   route: string,
-  options?: RateLimitOptions,
+  options?: RateLimitOptions
 ) => {
   return enforceRateLimit(supabase, `ip:${fallbackBucket(ipAddress)}`, {
     ...options,
@@ -55,7 +55,7 @@ export const enforceIdentityRateLimit = async (
   supabase: AnyClient,
   userId: string | null | undefined,
   route: string,
-  options?: RateLimitOptions,
+  options?: RateLimitOptions
 ) => {
   return enforceRateLimit(supabase, `user:${fallbackBucket(userId)}`, {
     ...options,

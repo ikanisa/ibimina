@@ -22,7 +22,10 @@ export function AuditFilters({ initial }: AuditFiltersProps) {
   const [pending, startTransition] = useTransition();
   const [state, setState] = useState<AuditFiltersState>(initial);
 
-  const canReset = useMemo(() => Object.values(state).some((value) => value.trim().length > 0), [state]);
+  const canReset = useMemo(
+    () => Object.values(state).some((value) => value.trim().length > 0),
+    [state]
+  );
 
   const update = <K extends keyof AuditFiltersState>(key: K, value: AuditFiltersState[K]) => {
     setState((prev) => ({ ...prev, [key]: value }));

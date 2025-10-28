@@ -17,11 +17,12 @@ const parseDate = (value: string | null, fallback: Date) => {
 
 const toDateOnly = (value: Date) => value.toISOString().slice(0, 10);
 
-const formatCurrency = (amount: number) => new Intl.NumberFormat("rw-RW", {
-  style: "currency",
-  currency: "RWF",
-  minimumFractionDigits: 0,
-}).format(amount);
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("rw-RW", {
+    style: "currency",
+    currency: "RWF",
+    minimumFractionDigits: 0,
+  }).format(amount);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -85,7 +86,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const start = parseDate(url.searchParams.get("start"), new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
+    const start = parseDate(
+      url.searchParams.get("start"),
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    );
     const end = parseDate(url.searchParams.get("end"), new Date());
 
     const { data: ikimina, error: ikiminaError } = await serviceClient
@@ -100,9 +104,10 @@ Deno.serve(async (req) => {
 
     const isSystemAdmin = requesterProfile.role === "SYSTEM_ADMIN";
     const isSameSacco = Boolean(
-      requesterProfile.sacco_id && requesterProfile.sacco_id === ikimina.sacco_id,
+      requesterProfile.sacco_id && requesterProfile.sacco_id === ikimina.sacco_id
     );
-    const hasSaccoPrivileges = requesterProfile.role === "SACCO_MANAGER" || requesterProfile.role === "SACCO_STAFF";
+    const hasSaccoPrivileges =
+      requesterProfile.role === "SACCO_MANAGER" || requesterProfile.role === "SACCO_STAFF";
 
     if (!isSystemAdmin && !(isSameSacco && hasSaccoPrivileges)) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
@@ -158,9 +163,20 @@ Deno.serve(async (req) => {
     const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
     const { height } = page.getSize();
 
-    page.drawText("Ikimina Statement", { x: 48, y: height - 72, size: 18, font: bold, color: rgb(0, 0.63, 0.87) });
+    page.drawText("Ikimina Statement", {
+      x: 48,
+      y: height - 72,
+      size: 18,
+      font: bold,
+      color: rgb(0, 0.63, 0.87),
+    });
     page.drawText(`${ikimina.name} (${ikimina.code})`, { x: 48, y: height - 96, size: 12, font });
-    page.drawText(`Period ${toDateOnly(start)} → ${toDateOnly(end)}`, { x: 48, y: height - 114, size: 10, font });
+    page.drawText(`Period ${toDateOnly(start)} → ${toDateOnly(end)}`, {
+      x: 48,
+      y: height - 114,
+      size: 10,
+      font,
+    });
 
     let cursorY = height - 150;
     const rowHeight = 18;
@@ -177,7 +193,12 @@ Deno.serve(async (req) => {
         page.drawText("…", { x: 48, y: cursorY, size: 11, font });
         break;
       }
-      page.drawText(new Date(row.occurred).toISOString().replace("T", " ").slice(0, 16), { x: 48, y: cursorY, size: 10, font });
+      page.drawText(new Date(row.occurred).toISOString().replace("T", " ").slice(0, 16), {
+        x: 48,
+        y: cursorY,
+        size: 10,
+        font,
+      });
       page.drawText(row.txnId, { x: 170, y: cursorY, size: 10, font });
       page.drawText(row.reference, { x: 280, y: cursorY, size: 10, font });
       page.drawText(formatCurrency(row.amount), { x: 400, y: cursorY, size: 10, font });
@@ -185,9 +206,20 @@ Deno.serve(async (req) => {
       cursorY -= rowHeight;
     }
 
-    page.drawRectangle({ x: 48, y: cursorY - 1, width: 472, height: 0.75, color: rgb(0.12, 0.25, 0.2) });
+    page.drawRectangle({
+      x: 48,
+      y: cursorY - 1,
+      width: 472,
+      height: 0.75,
+      color: rgb(0.12, 0.25, 0.2),
+    });
     cursorY -= rowHeight;
-    page.drawText(`Closing balance: ${formatCurrency(running)}`, { x: 48, y: cursorY, size: 11, font: bold });
+    page.drawText(`Closing balance: ${formatCurrency(running)}`, {
+      x: 48,
+      y: cursorY,
+      size: 11,
+      font: bold,
+    });
 
     const pdfBytes = await pdf.save();
 

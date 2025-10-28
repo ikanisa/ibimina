@@ -14,10 +14,14 @@ import { processWhatsappJob } from "../_shared/notification-handlers.ts";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
-  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
+  "access-control-allow-headers":
+    "authorization, x-client-info, apikey, content-type, x-signature, x-timestamp",
 };
 
-const fetchTemplate = async (supabase: ReturnType<typeof createServiceClient>, templateId: string) => {
+const fetchTemplate = async (
+  supabase: ReturnType<typeof createServiceClient>,
+  templateId: string
+) => {
   const { data, error } = await supabase
     .from("sms_templates")
     .select("id, body, sacco_id, tokens, is_active")
@@ -30,7 +34,10 @@ const fetchTemplate = async (supabase: ReturnType<typeof createServiceClient>, t
   return data ?? null;
 };
 
-const fetchPayment = async (supabase: ReturnType<typeof createServiceClient>, paymentId: string) => {
+const fetchPayment = async (
+  supabase: ReturnType<typeof createServiceClient>,
+  paymentId: string
+) => {
   const { data, error } = await supabase
     .from("payments")
     .select("id, sacco_id, msisdn, amount, currency, reference, occurred_at")
@@ -123,8 +130,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(
-    JSON.stringify({ success: true, processed: jobs.length, results }),
-    { headers: { ...corsHeaders, "content-type": "application/json" } },
-  );
+  return new Response(JSON.stringify({ success: true, processed: jobs.length, results }), {
+    headers: { ...corsHeaders, "content-type": "application/json" },
+  });
 });

@@ -13,15 +13,15 @@
 
 :root {
   color-scheme: dark;
-  --bg: #0B1020;
-  --fg: #F5F5F7;
-  --neutral-0: #FFFFFF;
-  --neutral-1: #E5E5E7;
-  --neutral-2: #98989D;
-  --neutral-9: #1C1C1E;
-  --rw-blue: #00A1DE;
-  --rw-yellow: #FAD201;
-  --rw-green: #20603D;
+  --bg: #0b1020;
+  --fg: #f5f5f7;
+  --neutral-0: #ffffff;
+  --neutral-1: #e5e5e7;
+  --neutral-2: #98989d;
+  --neutral-9: #1c1c1e;
+  --rw-blue: #00a1de;
+  --rw-yellow: #fad201;
+  --rw-green: #20603d;
   --background: var(--bg);
   --foreground: var(--fg);
   --focus-ring: 0 0 0 3px rgba(0, 161, 222, 0.35);
@@ -42,9 +42,17 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-image: radial-gradient(1200px 800px at 20% 10%, rgba(0, 161, 222, 0.32), rgba(250, 210, 1, 0.18), rgba(32, 96, 61, 0.28));
+  background-image: radial-gradient(
+    1200px 800px at 20% 10%,
+    rgba(0, 161, 222, 0.32),
+    rgba(250, 210, 1, 0.18),
+    rgba(32, 96, 61, 0.28)
+  );
   background-attachment: fixed;
 }
 

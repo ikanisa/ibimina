@@ -37,7 +37,7 @@ declare module "@playwright/test" {
 
   export type TestFn = (
     title: string,
-    callback: (fixtures: TestFixtures) => Promise<unknown> | unknown,
+    callback: (fixtures: TestFixtures) => Promise<unknown> | unknown
   ) => void;
 
   export type Page = PlaywrightPage;

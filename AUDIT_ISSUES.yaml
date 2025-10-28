@@ -30,7 +30,12 @@
 - id: REL-004
   area: reliability
   title: "Dual MFA stacks risk inconsistent state"
-  files: ["components/auth/login-form.tsx", "app/api/authx/challenge/verify/route.ts", "app/api/authx/challenge/verify/route.ts"]
+  files:
+    [
+      "components/auth/login-form.tsx",
+      "app/api/authx/challenge/verify/route.ts",
+      "app/api/authx/challenge/verify/route.ts",
+    ]
   risk: high
   evidence: "Login posts to /api/mfa/* while AuthX endpoints skip failure counters and set different cookies, creating divergent MFA states."
   fix: "Unify flows behind AuthX facade, migrate UI to new endpoints, and remove legacy routes after parity tests."

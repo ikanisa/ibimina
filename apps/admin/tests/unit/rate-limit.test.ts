@@ -5,7 +5,9 @@ import assert from "node:assert/strict";
 
 type LimitsModule = typeof import("@/src/auth/limits");
 type RateLimitModule = typeof import("@/lib/rate-limit");
-type ClientFactory = NonNullable<Parameters<RateLimitModule["__setRateLimitClientFactoryForTests"]>[0]>;
+type ClientFactory = NonNullable<
+  Parameters<RateLimitModule["__setRateLimitClientFactoryForTests"]>[0]
+>;
 type SupabaseClientLike = Awaited<ReturnType<ClientFactory>>;
 
 type SupabaseRpc = (fn: string, args: Record<string, unknown>) => Promise<unknown>;
@@ -28,9 +30,10 @@ let resetRateLimitCaches: LimitsModule["__resetRateLimitCachesForTests"];
 let setClientFactory: RateLimitModule["__setRateLimitClientFactoryForTests"];
 
 const createClientFactory = (impl: SupabaseRpc): ClientFactory => {
-  return async () => ({
-    rpc: impl,
-  } as unknown as SupabaseClientLike);
+  return async () =>
+    ({
+      rpc: impl,
+    }) as unknown as SupabaseClientLike;
 };
 
 before(async () => {
@@ -71,7 +74,9 @@ describe("rate limit helpers", () => {
   });
 
   it("falls back to in-memory enforcement when Supabase RPC fails", async () => {
-    setClientFactory(createClientFactory(async () => ({ data: null, error: new Error("db down") })));
+    setClientFactory(
+      createClientFactory(async () => ({ data: null, error: new Error("db down") }))
+    );
 
     const first = await applyRateLimit("fallback", { maxHits: 1, windowSeconds: 1 });
     assert.deepEqual(first, { ok: true });

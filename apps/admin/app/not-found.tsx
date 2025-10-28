@@ -24,14 +24,14 @@ export default function NotFound() {
           <span className="mx-auto inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-neutral-2">
             404 • Page Not Found
           </span>
-          <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
-            Twarabuze iyo paji
-          </h1>
+          <h1 className="text-4xl font-semibold leading-tight md:text-5xl">Twarabuze iyo paji</h1>
           <p className="text-sm text-neutral-2 md:text-base">
-            The link you followed is unavailable. Choose a destination below or head back to the dashboard. If you believe this is a mistake, contact SACCO support and quote the URL you tried to open.
+            The link you followed is unavailable. Choose a destination below or head back to the
+            dashboard. If you believe this is a mistake, contact SACCO support and quote the URL you
+            tried to open.
           </p>
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link href="/dashboard" className={cn(primaryButtonClasses, "w-full sm:w-auto")}> 
+            <Link href="/dashboard" className={cn(primaryButtonClasses, "w-full sm:w-auto")}>
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to dashboard
             </Link>
@@ -45,7 +45,10 @@ export default function NotFound() {
           </div>
         </header>
 
-        <section className="glass space-y-6 rounded-3xl p-8 shadow-glass" aria-labelledby="quick-links-heading">
+        <section
+          className="glass space-y-6 rounded-3xl p-8 shadow-glass"
+          aria-labelledby="quick-links-heading"
+        >
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-neutral-0">
               <Compass className="h-6 w-6" aria-hidden="true" />
@@ -78,9 +81,14 @@ export default function NotFound() {
         </section>
 
         <footer className="rounded-3xl border border-white/10 bg-black/30 p-6 text-center text-xs text-neutral-3">
-          Having trouble with access? Email <a className="font-semibold text-neutral-0 underline decoration-dotted underline-offset-2" href={`mailto:${supportEmail}`}>
+          Having trouble with access? Email{" "}
+          <a
+            className="font-semibold text-neutral-0 underline decoration-dotted underline-offset-2"
+            href={`mailto:${supportEmail}`}
+          >
             {supportEmail}
-          </a> and include screenshots plus the route you expected.
+          </a>{" "}
+          and include screenshots plus the route you expected.
         </footer>
       </div>
     </main>
