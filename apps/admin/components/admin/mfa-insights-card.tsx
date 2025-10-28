@@ -5,6 +5,8 @@ import { useTranslation } from "@/providers/i18n-provider";
 import type { MfaInsights, MfaRiskAccount, MfaRiskReason } from "@/lib/mfa/insights";
 import { Badge, MetricCard, SectionHeader } from "@ibimina/ui";
 
+const numberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+
 interface MfaInsightsCardProps {
   insights: MfaInsights;
 }
@@ -145,8 +147,6 @@ function MetricsGrid({ insights }: { insights: MfaInsights }) {
     [insights.totals, t]
   );
 
-  const numberFormatter = new Intl.NumberFormat("en-RW");
-
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {metrics.map((metric) => (
@@ -163,7 +163,6 @@ function MetricsGrid({ insights }: { insights: MfaInsights }) {
 
 function SaccoCoverageTable({ insights }: { insights: MfaInsights }) {
   const { t } = useTranslation();
-  const numberFormatter = new Intl.NumberFormat("en-RW");
 
   if (insights.saccoCoverage.length === 0) {
     return (
