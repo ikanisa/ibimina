@@ -36,7 +36,7 @@ export type AnalyticsEvent = (typeof AnalyticsEvents)[keyof typeof AnalyticsEven
 /**
  * Track an analytics event
  */
-export function trackEvent(event: AnalyticsEvent, properties?: Record<string, any>) {
+export function trackEvent(event: AnalyticsEvent, properties?: Record<string, unknown>) {
   if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     posthog.capture(event, properties);
   }
@@ -45,7 +45,7 @@ export function trackEvent(event: AnalyticsEvent, properties?: Record<string, an
 /**
  * Identify a user
  */
-export function identifyUser(userId: string, traits?: Record<string, any>) {
+export function identifyUser(userId: string, traits?: Record<string, unknown>) {
   if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     posthog.identify(userId, traits);
   }
@@ -63,8 +63,9 @@ export function resetUser() {
 /**
  * Track payment flow funnel
  */
-export function trackPaymentFunnel(step: string, properties?: Record<string, any>) {
-  trackEvent(AnalyticsEvents.PAYMENT_MARKED_PAID, {
+export function trackPaymentFunnel(step: string, properties?: Record<string, unknown>) {
+  trackEvent(step as AnalyticsEvent, {
+    funnel: "payment",
     funnel_step: step,
     ...properties,
   });
@@ -73,8 +74,9 @@ export function trackPaymentFunnel(step: string, properties?: Record<string, any
 /**
  * Track join flow funnel
  */
-export function trackJoinFunnel(step: string, properties?: Record<string, any>) {
-  trackEvent(AnalyticsEvents.JOIN_REQUEST_SENT, {
+export function trackJoinFunnel(step: string, properties?: Record<string, unknown>) {
+  trackEvent(step as AnalyticsEvent, {
+    funnel: "join",
     funnel_step: step,
     ...properties,
   });
@@ -83,8 +85,9 @@ export function trackJoinFunnel(step: string, properties?: Record<string, any>) 
 /**
  * Track statement flow funnel
  */
-export function trackStatementFunnel(step: string, properties?: Record<string, any>) {
-  trackEvent(AnalyticsEvents.STATEMENT_VIEWED, {
+export function trackStatementFunnel(step: string, properties?: Record<string, unknown>) {
+  trackEvent(step as AnalyticsEvent, {
+    funnel: "statement",
     funnel_step: step,
     ...properties,
   });

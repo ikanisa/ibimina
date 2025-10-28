@@ -29,6 +29,10 @@ public class MoMoNotificationListener extends NotificationListenerService {
     public static final String EXTRA_APP_PACKAGE = "app_package";
     
     // MoMo app package names to monitor
+    // Note: These package names should be verified against actual app installations
+    // MTN MoMo Rwanda: Package name may vary
+    // Airtel Money Rwanda: Package name may vary
+    // TODO: Verify actual package names on target devices
     private static final String MTN_MOMO_PACKAGE = "rw.mtn.momo";
     private static final String AIRTEL_MONEY_PACKAGE = "com.airtel.money";
     

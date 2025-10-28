@@ -21,7 +21,7 @@ Sentry.init({
   ],
 
   // You can remove this option if you're not planning to use the Sentry Session Replay feature:
-  beforeSend(event, hint) {
+  beforeSend(event) {
     // Filter out PII and sensitive data
     if (event.request) {
       delete event.request.cookies;

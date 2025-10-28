@@ -233,7 +233,10 @@ function parseAirtel(text: string): ParsedSMS | null {
 function parseAmount(amountStr: string): number {
   // Remove commas and spaces
   const cleaned = amountStr.replace(/[,\s]/g, "");
-  return parseFloat(cleaned);
+  const result = parseFloat(cleaned);
+
+  // Return 0 if parsing fails
+  return isNaN(result) ? 0 : result;
 }
 
 /**
