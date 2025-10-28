@@ -108,7 +108,7 @@ try {
 const nextConfig = {
   output: "standalone",
   reactStrictMode: true,
-  outputFileTracingRoot: path.join(__dirname, "./"),
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   env: {
     NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
   },
@@ -128,13 +128,6 @@ const nextConfig = {
   // Performance: Transpile workspace packages
   transpilePackages: ["@ibimina/config", "@ibimina/ui"],
 
-  // Performance: Tree-shaking for lucide-react
-  modularizeImports: {
-    "lucide-react": {
-      transform: "lucide-react/dist/esm/icons/{{member}}",
-    },
-  },
-
   // Performance: Optimize builds
   compiler: {
     removeConsole:
@@ -145,8 +138,9 @@ const nextConfig = {
         : false,
   },
 
-  eslint: {
-    ignoreDuringBuilds: true,
+  // Enable Turbopack for Next.js 16
+  turbopack: {
+    root: path.join(__dirname, "../../"),
   },
 
   // Performance: HTTP caching headers
