@@ -74,8 +74,8 @@ BEGIN
     
     -- Create test account
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'app' AND table_name = 'accounts') THEN
-      INSERT INTO app.accounts (id, sacco_id, account_type, owner_type)
-      VALUES (gen_random_uuid(), test_sacco_id, 'MEMBER_SAVINGS', 'MEMBER')
+      INSERT INTO app.accounts (id, sacco_id, owner_type, owner_id)
+      VALUES (gen_random_uuid(), test_sacco_id, 'SACCO', test_sacco_id)
       RETURNING id INTO test_account_id;
       
       -- Call account_balance (should return 0 for new account)
