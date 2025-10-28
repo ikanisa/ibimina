@@ -80,7 +80,8 @@ export function AdminPanelShell({
     return "/admin";
   }, [pathname]);
 
-  const saccoFilter = useMemo(() => searchParams?.get("sacco") ?? null, [searchParams]);
+  const saccoFilterValue = searchParams.get("sacco");
+  const saccoFilter = useMemo(() => saccoFilterValue ?? null, [saccoFilterValue]);
 
   const navItems: PanelNavItem[] = useMemo(() => {
     return ADMIN_NAV_LINKS.map((item) => {

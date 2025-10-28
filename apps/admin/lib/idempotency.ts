@@ -25,6 +25,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/observability/logger";
 import crypto from "crypto";
 
+type IdempotencyRecord = {
+  response: Record<string, unknown>;
+  expires_at: string;
+  request_hash: string;
+};
+
 export interface IdempotencyOptions<T> {
   /** Unique key for the operation type (e.g., 'payment-processing', 'member-approval') */
   key: string;
@@ -76,12 +82,12 @@ export async function withIdempotency<T>({
 
   try {
     // Check for existing idempotency record
-    const { data: existing, error: checkError } = await supabase
-      .from("idempotency")
+    const { data: existing, error: checkError } = (await supabase
+      .from("idempotency" as any)
       .select("response, expires_at, request_hash")
       .eq("key", key)
       .eq("user_id", userId)
-      .maybeSingle();
+      .maybeSingle()) as { data: IdempotencyRecord | null; error: any };
 
     if (!checkError && existing) {
       // Verify request hash matches to ensure same operation
@@ -114,7 +120,7 @@ export async function withIdempotency<T>({
     const result = await operation();
 
     // Store the result
-    const { error: insertError } = await supabase.from("idempotency").upsert(
+    const { error: insertError } = await supabase.from("idempotency" as any).upsert(
       {
         key,
         user_id: userId,
@@ -167,7 +173,7 @@ export async function invalidateIdempotency({
 
   try {
     const { error } = await supabase
-      .from("idempotency")
+      .from("idempotency" as any)
       .delete()
       .eq("key", key)
       .eq("user_id", userId);
@@ -201,7 +207,7 @@ export async function cleanupExpiredIdempotency(): Promise<{
 
   try {
     const { error, count } = await supabase
-      .from("idempotency")
+      .from("idempotency" as any)
       .delete()
       .lt("expires_at", new Date().toISOString());
 
