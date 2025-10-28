@@ -15,6 +15,8 @@ export default [
       "apps/admin/.next/**",
       "apps/admin/public/**/*",
       "apps/admin/.turbo/**",
+      "apps/client/.next/**",
+      "apps/client/public/**/*",
       "pnpm-lock.yaml",
     ],
     linterOptions: {
@@ -29,6 +31,8 @@ export default [
       "apps/admin/providers/**/*.{js,jsx,ts,tsx}",
       "apps/admin/scripts/**/*.{js,jsx,ts,tsx}",
       "apps/admin/tests/**/*.{js,jsx,ts,tsx}",
+      "apps/client/**/*.{js,jsx,ts,tsx}",
+      "packages/lib/**/*.{js,jsx,ts,tsx}",
     ],
     languageOptions: {
       parser: tsParser,

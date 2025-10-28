@@ -20,6 +20,7 @@
     "react-dom": "19.1.0",
     "zod": "^3.23.8",
     "@ibimina/config": "workspace:*",
+    "@ibimina/lib": "workspace:*",
     "@ibimina/ui": "workspace:*"
   },
   "devDependencies": {
