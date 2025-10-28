@@ -339,7 +339,8 @@ cd android
 ```bash
 cd apps/client
 pnpm run build
-CAPACITOR_SERVER_URL=https://client.ibimina.rw pnpm cap sync android
+export CAPACITOR_SERVER_URL=https://client.ibimina.rw
+pnpm cap sync android
 cd android
 ./gradlew assembleRelease
 ```
@@ -437,10 +438,14 @@ console.log("Location:", position.coords.latitude, position.coords.longitude);
 The Ibimina Client Android app is now fully equipped as a finance super app
 with:
 
-✅ All necessary permissions (25+) ✅ Essential Capacitor plugins (16) ✅
-Android dependencies configured ✅ Comprehensive documentation ✅ Code examples
-and utilities ✅ Security verified (0 vulnerabilities) ✅ Testing guidelines ✅
-Deployment procedures
+- ✅ All necessary permissions (25+)
+- ✅ Essential Capacitor plugins (16)
+- ✅ Android dependencies configured
+- ✅ Comprehensive documentation
+- ✅ Code examples and utilities
+- ✅ Security verified (0 vulnerabilities)
+- ✅ Testing guidelines
+- ✅ Deployment procedures
 
 The app is ready for:
 
