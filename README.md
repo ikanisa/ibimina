@@ -364,6 +364,12 @@ you’re ready to release to your local or on-prem infrastructure.
 
 - Run `pnpm run check:deploy` (or `make ready`) to execute the same
   lint/type/test/build/Playwright/Lighthouse/log-drain gates that CI enforces.
-- Walk through the [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) before
-  tagging a release to confirm secrets, Supabase migrations, smoke tests, and
-  observability wiring are complete.
+- Run `pnpm run validate:production` to verify production readiness prerequisites.
+- Walk through the [Production Go-Live Checklist](PRODUCTION_CHECKLIST.md) for
+  comprehensive pre-deployment validation.
+- Review the [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) for standard
+  release procedures.
+- Follow [Post-Deployment Validation](docs/POST_DEPLOYMENT_VALIDATION.md) after
+  each deployment.
+- Keep [Disaster Recovery Procedures](docs/DISASTER_RECOVERY.md) accessible for
+  emergency response.
