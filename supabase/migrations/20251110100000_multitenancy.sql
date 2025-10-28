@@ -268,6 +268,11 @@ CREATE POLICY sacco_modify_multitenancy
     public.is_platform_admin()
     OR (org_id IS NOT NULL AND public.user_can_access_org(org_id))
     OR (org_id IS NULL AND app.is_admin())
+  )
+  WITH CHECK (
+    public.is_platform_admin()
+    OR (org_id IS NOT NULL AND public.user_can_access_org(org_id))
+    OR (org_id IS NULL AND app.is_admin())
   );
 
 -- New RLS policies for app.ikimina
@@ -287,6 +292,11 @@ CREATE POLICY ikimina_modify_multitenancy
     public.is_platform_admin()
     OR (org_id IS NOT NULL AND public.user_can_access_org(org_id))
     OR (org_id IS NULL AND (app.is_admin() OR sacco_id = app.current_sacco()))
+  )
+  WITH CHECK (
+    public.is_platform_admin()
+    OR (org_id IS NOT NULL AND public.user_can_access_org(org_id))
+    OR (org_id IS NULL AND (app.is_admin() OR sacco_id = app.current_sacco()))
   );
 
 -- New RLS policies for app.members
@@ -303,6 +313,11 @@ CREATE POLICY members_modify_multitenancy
   ON app.members
   FOR ALL
   USING (
+    public.is_platform_admin()
+    OR (org_id IS NOT NULL AND public.user_can_access_org(org_id))
+    OR (org_id IS NULL AND (app.is_admin() OR sacco_id = app.current_sacco()))
+  )
+  WITH CHECK (
     public.is_platform_admin()
     OR (org_id IS NOT NULL AND public.user_can_access_org(org_id))
     OR (org_id IS NULL AND (app.is_admin() OR sacco_id = app.current_sacco()))
