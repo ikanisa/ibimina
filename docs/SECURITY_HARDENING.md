@@ -576,15 +576,19 @@ Save and run this script for a quick security check:
 #!/bin/bash
 # quick-security-check.sh
 
+# Configuration - set your domain here
+DOMAIN=${PRODUCTION_DOMAIN:-your-domain.com}
+
 echo "=== Quick Security Check ==="
+echo "Domain: $DOMAIN"
 echo ""
 
 echo "1. Checking SSL/TLS..."
-curl -I https://your-domain.com 2>&1 | grep -i "HTTP/2\|HTTP/1.1"
+curl -I https://$DOMAIN 2>&1 | grep -i "HTTP/2\|HTTP/1.1"
 
 echo ""
 echo "2. Checking security headers..."
-curl -I https://your-domain.com 2>&1 | grep -E "Strict-Transport|X-Frame|X-Content-Type|Content-Security-Policy"
+curl -I https://$DOMAIN 2>&1 | grep -E "Strict-Transport|X-Frame|X-Content-Type|Content-Security-Policy"
 
 echo ""
 echo "3. Checking for vulnerabilities..."

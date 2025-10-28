@@ -134,7 +134,7 @@ supabase secrets set --env-file supabase/.env.production
 # Application
 APP_ENV=production
 NODE_ENV=production
-PORT=3000
+PORT=3000  # Default port, can be overridden
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -240,8 +240,7 @@ psql $SUPABASE_DB_URL -c "SELECT COUNT(*) FROM saccos;"
 
 | Endpoint | Purpose | Expected |
 |----------|---------|----------|
-| `/api/health` | Application health | HTTP 200, `{"status":"ok"}` |
-| `/api/health` | Service health | Includes version, commit |
+| `/api/health` | Application and service health | HTTP 200, `{"status":"ok"}`, includes version and commit |
 | Supabase REST API | Database connectivity | HTTP 200 |
 | Prometheus | Metrics | `ibimina_*` gauges populated |
 | Grafana | Dashboards | "Ibimina Operations" showing data |
