@@ -50,36 +50,7 @@ export const FeatureFlagContext = createContext<FeatureFlagContextType | undefin
  */
 export function FeatureFlagProvider({ children }: { children: ReactNode }) {
   const flags = useMemo(() => {
-    // Parse feature flags from environment variables
-    const envFlags: FeatureFlags = {};
-
-    // In Next.js, only NEXT_PUBLIC_* variables are available client-side
-    if (typeof window !== "undefined") {
-      Object.keys(process.env).forEach((key) => {
-        if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-          const flagName = key
-            .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
-            .toLowerCase()
-            .replace(/_/g, "-");
-          const value = process.env[key];
-          envFlags[flagName] = value === "true" || value === "1";
-        }
-      });
-    } else {
-      // Server-side: Parse from process.env directly
-      Object.keys(process.env).forEach((key) => {
-        if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-          const flagName = key
-            .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
-            .toLowerCase()
-            .replace(/_/g, "-");
-          const value = process.env[key];
-          envFlags[flagName] = value === "true" || value === "1";
-        }
-      });
-    }
-
-    return envFlags;
+    return parseFeatureFlagsFromEnv();
   }, []);
 
   const value = useMemo(
@@ -93,4 +64,29 @@ export function FeatureFlagProvider({ children }: { children: ReactNode }) {
   );
 
   return <FeatureFlagContext.Provider value={value}>{children}</FeatureFlagContext.Provider>;
+}
+
+/**
+ * Parse feature flags from environment variables
+ *
+ * Extracts all NEXT_PUBLIC_FEATURE_FLAG_* environment variables,
+ * converts them to kebab-case, and parses their boolean values.
+ *
+ * @returns Object mapping flag names to boolean values
+ */
+function parseFeatureFlagsFromEnv(): FeatureFlags {
+  const envFlags: FeatureFlags = {};
+
+  Object.keys(process.env).forEach((key) => {
+    if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
+      const flagName = key
+        .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
+        .toLowerCase()
+        .replace(/_/g, "-");
+      const value = process.env[key];
+      envFlags[flagName] = value === "true" || value === "1";
+    }
+  });
+
+  return envFlags;
 }

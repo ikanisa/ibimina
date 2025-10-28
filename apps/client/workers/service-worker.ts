@@ -249,7 +249,10 @@ self.addEventListener("push", (event) => {
 
     event.waitUntil(self.registration.showNotification(title, options));
   } catch (error) {
-    console.error("Error displaying push notification:", error);
+    console.error("Failed to parse or display push notification:", error, {
+      hasData: !!event.data,
+      dataType: event.data ? typeof event.data : "none",
+    });
   }
 });
 
