@@ -16,10 +16,11 @@ Commits specification.
 
 All commits now follow the Conventional Commits format:
 
-- Type prefix (chore, feat, fix, docs, style, refactor, perf, test, build, ci,
+- Type prefix (feat, fix, docs, style, refactor, perf, test, build, ci, chore,
   revert)
 - Colon after type
-- Descriptive subject line in lowercase
+- Descriptive subject line (lowercase or sentence-case allowed, but not
+  pascal-case or upper-case)
 - Optional body with more details
 
 Example: `chore: update plan for commit message format fix`
