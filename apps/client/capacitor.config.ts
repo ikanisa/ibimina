@@ -44,6 +44,29 @@ const config: CapacitorConfig = {
       androidSpinnerStyle: "large",
       spinnerColor: "#ffffff",
     },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#488AFF",
+      sound: "beep.wav",
+    },
+    Camera: {
+      quality: 90,
+      allowEditing: true,
+      resultType: "uri",
+      saveToGallery: false,
+    },
+    StatusBar: {
+      style: "dark",
+      backgroundColor: "#0b1020",
+    },
+    Keyboard: {
+      resize: "body",
+      style: "dark",
+      resizeOnFullScreen: true,
+    },
   },
 };
 
