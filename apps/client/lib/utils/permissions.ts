@@ -5,7 +5,7 @@
  * in accordance with Android's permission model.
  */
 
-import { Device } from "@capacitor/core";
+import { Device } from "@capacitor/device";
 import { Toast } from "@capacitor/toast";
 
 /**
