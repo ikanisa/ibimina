@@ -53,7 +53,13 @@ const relativeDate = (value: string | null) => {
   return target.toLocaleDateString();
 };
 
-export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, showSaccoColumn = false }: IkiminaTableProps) {
+export function IkiminaTable({
+  rows,
+  statusOptions,
+  typeOptions,
+  saccoOptions,
+  showSaccoColumn = false,
+}: IkiminaTableProps) {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("");
@@ -65,7 +71,8 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
       const matchesSearch = deferredSearch
-        ? row.name.toLowerCase().includes(deferredSearch.toLowerCase()) || row.code.toLowerCase().includes(deferredSearch.toLowerCase())
+        ? row.name.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+          row.code.toLowerCase().includes(deferredSearch.toLowerCase())
         : true;
       const matchesStatus = status ? row.status === status : true;
       const matchesType = type ? row.type === type : true;
@@ -79,7 +86,11 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
       showSaccoColumn
         ? {
             accessorKey: "sacco_name",
-            header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.sacco", "SACCO")}</span>,
+            header: () => (
+              <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("table.sacco", "SACCO")}
+              </span>
+            ),
             cell: (info: CellContext<IkiminaTableRow, unknown>) => {
               const value = info.getValue<string | null>();
               return <span className="text-sm text-neutral-2">{value ?? "—"}</span>;
@@ -89,7 +100,11 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
         : undefined,
       {
         accessorKey: "name",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.name", "Name")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.name", "Name")}
+          </span>
+        ),
         cell: (info: CellContext<IkiminaTableRow, unknown>) => (
           <div>
             <p className="font-medium text-neutral-0">{info.row.original.name}</p>
@@ -100,31 +115,60 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
       },
       {
         accessorKey: "type",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.type", "Type")}</span>,
-        cell: (info: CellContext<IkiminaTableRow, unknown>) => <span className="text-sm text-neutral-0">{String(info.getValue() ?? "—")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.type", "Type")}
+          </span>
+        ),
+        cell: (info: CellContext<IkiminaTableRow, unknown>) => (
+          <span className="text-sm text-neutral-0">{String(info.getValue() ?? "—")}</span>
+        ),
         meta: { template: "minmax(120px, 0.8fr)" },
       },
       {
         accessorKey: "members_count",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.members", "Members")}</span>,
-        cell: (info: CellContext<IkiminaTableRow, unknown>) => <span className="font-semibold text-neutral-0">{String(info.getValue() ?? 0)}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.members", "Members")}
+          </span>
+        ),
+        cell: (info: CellContext<IkiminaTableRow, unknown>) => (
+          <span className="font-semibold text-neutral-0">{String(info.getValue() ?? 0)}</span>
+        ),
         meta: { align: "right", template: "minmax(110px, 0.7fr)", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "month_total",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.mtdVolume", "MTD volume")}</span>,
-        cell: (info: CellContext<IkiminaTableRow, unknown>) => currencyFormatter.format(Number(info.getValue() ?? 0)),
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.mtdVolume", "MTD volume")}
+          </span>
+        ),
+        cell: (info: CellContext<IkiminaTableRow, unknown>) =>
+          currencyFormatter.format(Number(info.getValue() ?? 0)),
         meta: { align: "right", template: "minmax(140px, 0.9fr)", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "last_payment_at",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.lastPayment", "Last payment")}</span>,
-        cell: (info: CellContext<IkiminaTableRow, unknown>) => <span className="text-sm text-neutral-0">{relativeDate(info.getValue<string | null>() ?? null)}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.lastPayment", "Last payment")}
+          </span>
+        ),
+        cell: (info: CellContext<IkiminaTableRow, unknown>) => (
+          <span className="text-sm text-neutral-0">
+            {relativeDate(info.getValue<string | null>() ?? null)}
+          </span>
+        ),
         meta: { template: "minmax(150px, 0.9fr)" },
       },
       {
         accessorKey: "unallocated_count",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.exceptions", "Exceptions")}</span>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.exceptions", "Exceptions")}
+          </span>
+        ),
         cell: (info: CellContext<IkiminaTableRow, unknown>) => {
           const value = Number(info.getValue() ?? 0);
           return (
@@ -142,8 +186,14 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
       },
       {
         accessorKey: "status",
-        header: () => <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("table.status", "Status")}</span>,
-        cell: (info: CellContext<IkiminaTableRow, unknown>) => <StatusChip tone="neutral">{String(info.getValue() ?? "")}</StatusChip>,
+        header: () => (
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("table.status", "Status")}
+          </span>
+        ),
+        cell: (info: CellContext<IkiminaTableRow, unknown>) => (
+          <StatusChip tone="neutral">{String(info.getValue() ?? "")}</StatusChip>
+        ),
         meta: { template: "minmax(120px, 0.7fr)" },
       },
       {
@@ -214,7 +264,15 @@ export function IkiminaTable({ rows, statusOptions, typeOptions, saccoOptions, s
       <VirtualTable
         data={filteredRows}
         columns={columns}
-        emptyState={<EmptyState title={t("ikimina.list.emptyTitle", "No ikimina")} description={t("ikimina.list.emptyDescription", "Try adjusting filters or create a new group.")} />}
+        emptyState={
+          <EmptyState
+            title={t("ikimina.list.emptyTitle", "No ikimina")}
+            description={t(
+              "ikimina.list.emptyDescription",
+              "Try adjusting filters or create a new group."
+            )}
+          />
+        }
       />
     </div>
   );

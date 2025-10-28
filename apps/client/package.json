@@ -1,0 +1,41 @@
+{
+  "name": "@ibimina/client",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "lint": "pnpm exec eslint --max-warnings=0 .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run test:unit",
+    "test:unit": "tsx --test tests/unit/*.test.ts"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.74.0",
+    "lucide-react": "^0.545.0",
+    "next": "15.5.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "zod": "^3.23.8",
+    "@ibimina/config": "workspace:*",
+    "@ibimina/lib": "workspace:*",
+    "@ibimina/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.4",
+    "tailwindcss": "^4",
+    "tsx": "^4.20.6",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

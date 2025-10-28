@@ -17,25 +17,28 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const [srMessage, setSrMessage] = useState("");
 
-  const value = useMemo<ToastContextValue>(() => ({
-    notify: (message, options) => {
-      setSrMessage(message);
-      toast(message, options);
-    },
-    info: (message, options) => {
-      setSrMessage(message);
-      toast(message, options);
-    },
-    success: (message, options) => {
-      setSrMessage(message || t("toast.genericSuccess"));
-      toast.success(message || t("toast.genericSuccess"), options);
-    },
-    error: (message, options) => {
-      const text = message || t("toast.genericError");
-      setSrMessage(text);
-      toast.error(text, options);
-    },
-  }), [t]);
+  const value = useMemo<ToastContextValue>(
+    () => ({
+      notify: (message, options) => {
+        setSrMessage(message);
+        toast(message, options);
+      },
+      info: (message, options) => {
+        setSrMessage(message);
+        toast(message, options);
+      },
+      success: (message, options) => {
+        setSrMessage(message || t("toast.genericSuccess"));
+        toast.success(message || t("toast.genericSuccess"), options);
+      },
+      error: (message, options) => {
+        const text = message || t("toast.genericError");
+        setSrMessage(text);
+        toast.error(text, options);
+      },
+    }),
+    [t]
+  );
 
   return (
     <ToastContext.Provider value={value}>

@@ -38,7 +38,10 @@ export function RiskSignalsVirtualized({ signals }: RiskSignalsVirtualizedProps)
   const virtualItems = rowVirtualizer.getVirtualItems();
 
   return (
-    <div ref={parentRef} className="max-h-[420px] overflow-y-auto rounded-2xl border border-white/10 bg-white/5">
+    <div
+      ref={parentRef}
+      className="max-h-[420px] overflow-y-auto rounded-2xl border border-white/10 bg-white/5"
+    >
       <div className="relative" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
         {virtualItems.map((virtualRow) => {
           const signal = signals[virtualRow.index];
@@ -55,9 +58,16 @@ export function RiskSignalsVirtualized({ signals }: RiskSignalsVirtualizedProps)
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold text-neutral-0">{signal.name}</p>
-                  {signal.saccoName && <p className="text-[11px] text-neutral-2">{signal.saccoName}</p>}
+                  {signal.saccoName && (
+                    <p className="text-[11px] text-neutral-2">{signal.saccoName}</p>
+                  )}
                 </div>
-                <span className={cn("rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.3em]", riskTone[signal.risk])}>
+                <span
+                  className={cn(
+                    "rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.3em]",
+                    riskTone[signal.risk]
+                  )}
+                >
                   {signal.risk === "HIGH"
                     ? t("analytics.risk.high", "High risk")
                     : signal.risk === "MEDIUM"
@@ -66,7 +76,8 @@ export function RiskSignalsVirtualized({ signals }: RiskSignalsVirtualizedProps)
                 </span>
               </div>
               <p className="mt-2 text-[11px] text-neutral-2">
-                {t("analytics.risk.lastContributionPrefix", "Last contribution")} {signal.daysSince} {t("common.daysAgoSuffix", "days ago")}
+                {t("analytics.risk.lastContributionPrefix", "Last contribution")} {signal.daysSince}{" "}
+                {t("common.daysAgoSuffix", "days ago")}
               </p>
             </Link>
           );

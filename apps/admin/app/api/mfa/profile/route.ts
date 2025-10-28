@@ -3,13 +3,22 @@ import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
-import { buildChannelSummary, type EmailCodeRecord, type PasskeySummaryRecord } from "@/lib/mfa/channels";
+import {
+  buildChannelSummary,
+  type EmailCodeRecord,
+  type PasskeySummaryRecord,
+} from "@/lib/mfa/channels";
 
 export async function GET() {
   const { user, profile } = await requireUserAndProfile();
   const supabase = await createSupabaseServerClient();
 
-  type AuditRow = { id: string; action: string; created_at: string | null; diff_json: Record<string, unknown> | null };
+  type AuditRow = {
+    id: string;
+    action: string;
+    created_at: string | null;
+    diff_json: Record<string, unknown> | null;
+  };
 
   const [{ data: devices }, { data: userRowRaw }, { data: passkeyRows }] = await Promise.all([
     supabase
@@ -35,11 +44,23 @@ export async function GET() {
   > | null;
 
   const deviceRecords = (devices ?? []) as Array<
-    Pick<Database["public"]["Tables"]["trusted_devices"]["Row"], "device_id" | "created_at" | "last_used_at" | "ip_prefix">
+    Pick<
+      Database["public"]["Tables"]["trusted_devices"]["Row"],
+      "device_id" | "created_at" | "last_used_at" | "ip_prefix"
+    >
   >;
 
   const credentialRecords = (passkeyRows ?? []) as Array<
-    Pick<Database["public"]["Tables"]["webauthn_credentials"]["Row"], "id" | "credential_id" | "friendly_name" | "created_at" | "last_used_at" | "device_type" | "backed_up">
+    Pick<
+      Database["public"]["Tables"]["webauthn_credentials"]["Row"],
+      | "id"
+      | "credential_id"
+      | "friendly_name"
+      | "created_at"
+      | "last_used_at"
+      | "device_type"
+      | "backed_up"
+    >
   >;
 
   const admin = createSupabaseAdminClient();
@@ -76,7 +97,11 @@ export async function GET() {
     activeMethods: profile.mfa_methods ?? [],
   });
 
-  const emailAuditActions = ["MFA_EMAIL_CODE_SENT", "MFA_EMAIL_VERIFIED", "MFA_EMAIL_FAILED"] as const;
+  const emailAuditActions = [
+    "MFA_EMAIL_CODE_SENT",
+    "MFA_EMAIL_VERIFIED",
+    "MFA_EMAIL_FAILED",
+  ] as const;
   const { data: auditRows, error: auditError } = await admin
     .from("audit_logs")
     .select("id, action, created_at, diff_json")

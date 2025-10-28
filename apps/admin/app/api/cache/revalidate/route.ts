@@ -12,6 +12,22 @@ const bodySchema = z.object({
 
 const expectedToken = process.env.ANALYTICS_CACHE_TOKEN;
 
+type RevalidateTag = (tag: string) => Promise<void> | void;
+
+const globalScope = globalThis as typeof globalThis & {
+  __analyticsCacheRevalidateOverride?: RevalidateTag;
+};
+
+const invokeRevalidateTag = async (tag: string) => {
+  const override = globalScope.__analyticsCacheRevalidateOverride;
+  if (typeof override === "function") {
+    await override(tag);
+    return;
+  }
+
+  await revalidateTag(tag);
+};
+
 const extractToken = (headerValue: string | null) => {
   if (!headerValue) return null;
   const parts = headerValue.split(" ");
@@ -37,7 +53,9 @@ export async function POST(request: NextRequest) {
   try {
     parsed = bodySchema.parse(await request.json());
   } catch (error) {
-    logWarn("cache.revalidate.invalid_payload", { error: error instanceof Error ? error.message : String(error) });
+    logWarn("cache.revalidate.invalid_payload", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
   }
 
@@ -45,14 +63,14 @@ export async function POST(request: NextRequest) {
     CACHE_TAGS.dashboardSummary,
     CACHE_TAGS.analyticsExecutive(parsed.saccoId ?? null),
     parsed.saccoId ? CACHE_TAGS.sacco(parsed.saccoId) : null,
-    ...(parsed.tags ?? []),
+    ...(parsed.tags ?? [])
   );
 
   const results: Record<string, "ok" | "error"> = {};
   await Promise.all(
     tags.map(async (tag) => {
       try {
-        await revalidateTag(tag);
+        await invokeRevalidateTag(tag);
         results[tag] = "ok";
       } catch (error) {
         results[tag] = "error";
@@ -63,7 +81,7 @@ export async function POST(request: NextRequest) {
           error: error instanceof Error ? error.message : String(error),
         });
       }
-    }),
+    })
   );
 
   logInfo("cache.revalidate.completed", {

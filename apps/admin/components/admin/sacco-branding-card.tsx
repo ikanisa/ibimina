@@ -43,7 +43,7 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
       }
       return body as { logoUrl: string | null; brandColor: string | null };
     },
-    [sacco.id, t],
+    [sacco.id, t]
   );
 
   const updateLogo = async (logoUrl: string | null) => {
@@ -58,12 +58,16 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
   const handleLogoUpload = (file: File) => {
     startTransition(async () => {
       const storagePath = `saccos/${sacco.id}/${crypto.randomUUID()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage.from("branding").upload(storagePath, file, {
-        cacheControl: "3600",
-        upsert: true,
-      });
+      const { error: uploadError } = await supabase.storage
+        .from("branding")
+        .upload(storagePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
       if (uploadError) {
-        notifyError(uploadError.message ?? t("admin.branding.logoUploadFailed", "Failed to upload logo"));
+        notifyError(
+          uploadError.message ?? t("admin.branding.logoUploadFailed", "Failed to upload logo")
+        );
         return;
       }
       const {
@@ -93,7 +97,9 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
         success(t("admin.branding.colorUpdated", "Brand color updated"));
         setBrandColor(result.brandColor ?? hex);
       } catch (err) {
-        notifyError(err instanceof Error ? err.message : t("common.operationFailed", "Operation failed"));
+        notifyError(
+          err instanceof Error ? err.message : t("common.operationFailed", "Operation failed")
+        );
       }
     });
   };
@@ -102,7 +108,9 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
     <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-0">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.branding.profile", "SACCO Profile")}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("admin.branding.profile", "SACCO Profile")}
+          </p>
           <h3 className="text-lg font-semibold">{sacco.name}</h3>
           <p className="text-xs text-neutral-2">
             {sacco.district}, {sacco.province}
@@ -147,10 +155,15 @@ export function SaccoBrandingCard({ sacco }: SaccoBrandingCardProps) {
         <label className="flex items-center gap-3 text-sm text-neutral-0">
           <span
             className="inline-block h-6 w-6 rounded"
-            style={{ backgroundColor: brandColor || "#009fdc", border: "1px solid rgba(255,255,255,0.2)" }}
+            style={{
+              backgroundColor: brandColor || "#009fdc",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
             aria-hidden
           />
-          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">{t("admin.branding.brandColor", "Brand color")}</span>
+          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+            {t("admin.branding.brandColor", "Brand color")}
+          </span>
         </label>
         <div className="flex items-center gap-2">
           <input

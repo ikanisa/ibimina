@@ -46,10 +46,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   const saccoId = parsed.data.saccoId;
 
   // Load group and verify sacco match
-  const {
-    data: group,
-    error: groupError,
-  } = await legacyClient
+  const { data: group, error: groupError } = await legacyClient
     .schema("app")
     .from("ikimina")
     .select("sacco_id")
@@ -81,10 +78,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   }
 
   // If a request already exists, return its status
-  const {
-    data: existing,
-    error: existingError,
-  } = await legacyClient
+  const { data: existing, error: existingError } = await legacyClient
     .from("join_requests")
     .select("id, status")
     .eq("user_id", user.id)
@@ -109,9 +103,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     sacco_id: saccoId,
   };
 
-  const { error } = await legacyClient
-    .from("join_requests")
-    .insert(insertPayload);
+  const { error } = await legacyClient.from("join_requests").insert(insertPayload);
 
   if (error) {
     console.error("Failed to create join request", error);

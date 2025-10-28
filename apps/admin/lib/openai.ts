@@ -75,7 +75,8 @@ function extractStructuredJson<T>(payload: unknown): T {
     }
   }
 
-  const parsed = (candidate as { response?: { output_text?: string[] } }).response?.output_text ?? [];
+  const parsed =
+    (candidate as { response?: { output_text?: string[] } }).response?.output_text ?? [];
   for (const entry of parsed) {
     if (typeof entry !== "string") continue;
     try {
@@ -111,9 +112,7 @@ export async function requestStructuredJson<T>(options: StructuredJsonOptions): 
   const body = {
     model,
     input: [
-      ...(systemContent.length > 0
-        ? [{ role: "system", content: systemContent }]
-        : []),
+      ...(systemContent.length > 0 ? [{ role: "system", content: systemContent }] : []),
       { role: "user", content: userContent },
     ],
     response_format: {
@@ -145,4 +144,3 @@ export async function requestStructuredJson<T>(options: StructuredJsonOptions): 
   const payload = await response.json();
   return extractStructuredJson<T>(payload);
 }
-

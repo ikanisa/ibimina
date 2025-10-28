@@ -1,0 +1,72 @@
+import type { Config } from "tailwindcss";
+
+/**
+ * Tailwind CSS configuration for SACCO+ Client App
+ *
+ * This configuration provides:
+ * - Rwanda-themed color palette (blue, yellow, green)
+ * - Responsive design utilities
+ * - Custom animations and transitions
+ * - Accessibility-focused design tokens
+ */
+const config: Config = {
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        ink: "#0B1020",
+        foreground: "var(--fg)",
+        background: "var(--bg)",
+        neutral: {
+          0: "var(--neutral-0)",
+          1: "var(--neutral-1)",
+          2: "var(--neutral-2)",
+          9: "var(--neutral-9)",
+        },
+        rw: {
+          blue: "#00A1DE",
+          yellow: "#FAD201",
+          green: "#20603D",
+        },
+      },
+      backgroundImage: {
+        kigali: "linear-gradient(135deg, var(--rw-blue), var(--rw-yellow) 50%, var(--rw-green))",
+      },
+      borderRadius: {
+        xl: "16px",
+        "2xl": "28px",
+      },
+      boxShadow: {
+        glass: "0 8px 24px rgba(0, 0, 0, 0.25)",
+        subtle: "0 2px 10px rgba(0, 0, 0, 0.35)",
+      },
+      fontFamily: {
+        sans: ["system-ui", "-apple-system", "sans-serif"],
+      },
+      fontSize: {
+        xs: ["0.75rem", { lineHeight: "1rem" }],
+        sm: ["0.875rem", { lineHeight: "1.25rem" }],
+        base: ["1rem", { lineHeight: "1.5rem" }],
+        md: ["1.125rem", { lineHeight: "1.6rem" }],
+        lg: ["1.25rem", { lineHeight: "1.75rem" }],
+        xl: ["1.5rem", { lineHeight: "1.9rem" }],
+        "2xl": ["1.75rem", { lineHeight: "2.1rem" }],
+      },
+      spacing: {
+        3: "12px",
+        4: "16px",
+        6: "24px",
+        8: "32px",
+      },
+      transitionDuration: {
+        interactive: "200ms",
+      },
+      transitionTimingFunction: {
+        interactive: "cubic-bezier(0.22, 1, 0.36, 1)",
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;

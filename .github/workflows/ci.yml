@@ -24,6 +24,8 @@ jobs:
       NEXT_TELEMETRY_DISABLED: "1"
       CI: "true"
       RLS_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:6543/ibimina_test
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,8 +39,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Restore Next.js cache
         uses: actions/cache@v4
@@ -54,6 +56,14 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 
+      - name: Verify required feature flags
+        if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' }}
+        run: pnpm run check:flags
+
+      - name: Skip feature flag verification (secrets unavailable)
+        if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_SERVICE_ROLE_KEY == '' }}
+        run: echo "Skipping feature flag verification because Supabase secrets are not available."
+
       - name: Lint
         run: pnpm run lint
 
@@ -68,6 +78,9 @@ jobs:
 
       - name: RLS policy tests
         run: pnpm run test:rls
+
+      - name: Check for dependency vulnerabilities
+        run: pnpm audit --audit-level=moderate
 
       - name: Verify i18n keys
         run: pnpm run check:i18n

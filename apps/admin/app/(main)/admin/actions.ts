@@ -31,7 +31,7 @@ async function updateUserAccessInternal({
       logEvent: "admin_update_access_denied",
       metadata: { targetUserId: userId },
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -59,16 +59,21 @@ async function updateUserAccessInternal({
   return { status: "success", message: "User access updated" };
 }
 
-export const updateUserAccess = instrumentServerAction("admin.updateUserAccess", updateUserAccessInternal);
+export const updateUserAccess = instrumentServerAction(
+  "admin.updateUserAccess",
+  updateUserAccessInternal
+);
 
 async function queueNotificationInternal({
   saccoId,
   templateId,
   event = "SMS_TEMPLATE_TEST",
+  testMsisdn,
 }: {
   saccoId: string;
   templateId: string;
   event?: string;
+  testMsisdn?: string | null;
 }): Promise<AdminActionResult> {
   const guard = await guardAdminAction<AdminActionResult>(
     {
@@ -77,7 +82,7 @@ async function queueNotificationInternal({
       logEvent: "admin_queue_notification_denied",
       metadata: { saccoId, templateId, event },
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -85,11 +90,26 @@ async function queueNotificationInternal({
   }
 
   const { supabase, user } = guard.context;
+
+  let normalizedRecipient: string | null = null;
+  if (testMsisdn && testMsisdn.trim().length > 0) {
+    const digits = testMsisdn.replace(/[^0-9+]/g, "");
+    if (digits.startsWith("+")) {
+      normalizedRecipient = digits;
+    } else if (digits.startsWith("2507")) {
+      normalizedRecipient = `+${digits}`;
+    } else if (digits.startsWith("07")) {
+      normalizedRecipient = `+250${digits.slice(2)}`;
+    } else {
+      normalizedRecipient = digits;
+    }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from("notification_queue").insert({
     event,
+    channel: "WHATSAPP",
     sacco_id: saccoId,
-    payload: { templateId, queuedBy: user.id },
+    payload: { templateId, queuedBy: user.id, to: normalizedRecipient },
     scheduled_for: new Date().toISOString(),
   });
 
@@ -116,7 +136,7 @@ async function queueMfaReminderInternal({
       logEvent: "admin_queue_mfa_reminder_denied",
       metadata: { targetUserId: userId },
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -127,6 +147,7 @@ async function queueMfaReminderInternal({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from("notification_queue").insert({
     event: "MFA_REMINDER",
+    channel: "EMAIL",
     payload: { userId, email, queuedBy: user.id },
     scheduled_for: new Date().toISOString(),
   });
@@ -152,15 +173,19 @@ async function createSmsTemplateInternal({
   body: string;
   description?: string | null;
   tokens?: string[];
-}): Promise<AdminActionResult & { template?: Database["public"]["Tables"]["sms_templates"]["Row"] }> {
-  const guard = await guardAdminAction<AdminActionResult & { template?: Database["public"]["Tables"]["sms_templates"]["Row"] }>(
+}): Promise<
+  AdminActionResult & { template?: Database["public"]["Tables"]["sms_templates"]["Row"] }
+> {
+  const guard = await guardAdminAction<
+    AdminActionResult & { template?: Database["public"]["Tables"]["sms_templates"]["Row"] }
+  >(
     {
       action: "admin_template_create",
       reason: "Only system administrators can create templates.",
       logEvent: "admin_template_create_denied",
       metadata: { saccoId },
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -170,7 +195,11 @@ async function createSmsTemplateInternal({
   const { supabase } = guard.context;
 
   if (!name.trim() || !body.trim()) {
-    logWarn("admin_template_create_invalid_payload", { saccoId, hasName: Boolean(name.trim()), hasBody: Boolean(body.trim()) });
+    logWarn("admin_template_create_invalid_payload", {
+      saccoId,
+      hasName: Boolean(name.trim()),
+      hasBody: Boolean(body.trim()),
+    });
     return { status: "error", message: "Template name and body are required." };
   }
   const payload: Database["public"]["Tables"]["sms_templates"]["Insert"] = {
@@ -193,7 +222,10 @@ async function createSmsTemplateInternal({
     return { status: "error", message: error.message ?? "Failed to create template" };
   }
   await revalidatePath("/admin");
-  logInfo("admin_template_create_success", { saccoId, templateId: (data as { id?: string } | null)?.id });
+  logInfo("admin_template_create_success", {
+    saccoId,
+    templateId: (data as { id?: string } | null)?.id,
+  });
   return { status: "success", message: "Template created", template: data };
 }
 
@@ -211,7 +243,7 @@ async function setSmsTemplateActiveInternal({
       logEvent: "admin_template_toggle_denied",
       metadata: { templateId, isActive },
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -234,7 +266,9 @@ async function setSmsTemplateActiveInternal({
 
 async function deleteSmsTemplateInternal({
   templateId,
-}: { templateId: string }): Promise<AdminActionResult> {
+}: {
+  templateId: string;
+}): Promise<AdminActionResult> {
   const guard = await guardAdminAction<AdminActionResult>(
     {
       action: "admin_template_delete",
@@ -243,7 +277,7 @@ async function deleteSmsTemplateInternal({
       metadata: { templateId },
       clientFactory: () => supabaseSrv(),
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
   if (guard.denied) {
     return guard.result;
@@ -264,9 +298,13 @@ async function upsertSaccoInternal({
   sacco,
 }: {
   mode: "create" | "update";
-  sacco: Database["app"]["Tables"]["saccos"]["Insert"] | (Database["app"]["Tables"]["saccos"]["Update"] & { id: string });
+  sacco:
+    | Database["app"]["Tables"]["saccos"]["Insert"]
+    | (Database["app"]["Tables"]["saccos"]["Update"] & { id: string });
 }): Promise<AdminActionResult & { sacco?: Database["app"]["Tables"]["saccos"]["Row"] }> {
-  const guard = await guardAdminAction<AdminActionResult & { sacco?: Database["app"]["Tables"]["saccos"]["Row"] }>(
+  const guard = await guardAdminAction<
+    AdminActionResult & { sacco?: Database["app"]["Tables"]["saccos"]["Row"] }
+  >(
     {
       action: "admin_sacco_upsert",
       reason: "Only system administrators can modify SACCO registry.",
@@ -274,7 +312,7 @@ async function upsertSaccoInternal({
       metadata: { mode },
       clientFactory: () => supabaseSrv(),
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
   if (guard.denied) {
     return guard.result;
@@ -332,7 +370,7 @@ async function removeSaccoInternal({ id }: { id: string }): Promise<AdminActionR
       metadata: { saccoId: id },
       clientFactory: () => supabaseSrv(),
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
   if (guard.denied) {
     return guard.result;
@@ -367,8 +405,8 @@ async function resetMfaForAllEnabledInternal({
     (error) => ({
       status: "error",
       message: error.message,
-      count: Number(((error.extras as { count?: unknown } | undefined)?.count ?? 0)),
-    }),
+      count: Number((error.extras as { count?: unknown } | undefined)?.count ?? 0),
+    })
   );
 
   if (guard.denied) {
@@ -383,7 +421,11 @@ async function resetMfaForAllEnabledInternal({
 
   if (selectError) {
     logError("admin_mfa_bulk_reset_select_failed", { error: selectError });
-    return { status: "error", message: selectError.message ?? "Failed to enumerate users", count: 0 };
+    return {
+      status: "error",
+      message: selectError.message ?? "Failed to enumerate users",
+      count: 0,
+    };
   }
 
   const ids = (rows ?? []).map((r) => (r as { id: string }).id);
@@ -427,10 +469,22 @@ async function resetMfaForAllEnabledInternal({
   return { status: "success", message: "2FA reset for all enabled users", count: ids.length };
 }
 
-export const queueNotification = instrumentServerAction("admin.queueNotification", queueNotificationInternal);
-export const queueMfaReminder = instrumentServerAction("admin.queueMfaReminder", queueMfaReminderInternal);
-export const createSmsTemplate = instrumentServerAction("admin.createSmsTemplate", createSmsTemplateInternal);
-export const setSmsTemplateActive = instrumentServerAction("admin.setSmsTemplateActive", setSmsTemplateActiveInternal);
+export const queueNotification = instrumentServerAction(
+  "admin.queueNotification",
+  queueNotificationInternal
+);
+export const queueMfaReminder = instrumentServerAction(
+  "admin.queueMfaReminder",
+  queueMfaReminderInternal
+);
+export const createSmsTemplate = instrumentServerAction(
+  "admin.createSmsTemplate",
+  createSmsTemplateInternal
+);
+export const setSmsTemplateActive = instrumentServerAction(
+  "admin.setSmsTemplateActive",
+  setSmsTemplateActiveInternal
+);
 async function updateTenantSettingsInternal({
   saccoId,
   settings,
@@ -450,7 +504,7 @@ async function updateTenantSettingsInternal({
       logEvent: "admin_settings_update_denied",
       metadata: { saccoId },
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -515,7 +569,11 @@ async function updateTenantSettingsInternal({
   await revalidateTag(CACHE_TAGS.sacco(saccoId));
 
   logInfo("admin_settings_update_success", { saccoId });
-  return { status: "success", message: "Settings updated", metadata: updateResult?.metadata ?? nextMetadata };
+  return {
+    status: "success",
+    message: "Settings updated",
+    metadata: updateResult?.metadata ?? nextMetadata,
+  };
 }
 
 async function resolveOcrReviewInternal({
@@ -535,7 +593,7 @@ async function resolveOcrReviewInternal({
       metadata: { memberUserId, decision },
       allowedRoles: ["SYSTEM_ADMIN", "SACCO_MANAGER"],
     },
-    (error) => ({ status: "error", message: error.message }),
+    (error) => ({ status: "error", message: error.message })
   );
 
   if (guard.denied) {
@@ -591,18 +649,30 @@ async function resolveOcrReviewInternal({
 
   await revalidatePath("/admin/ocr");
   logInfo("admin_ocr_review_success", { memberUserId, decision });
-  return { status: "success", message: decision === "accept" ? "Document approved" : "Rescan requested" };
+  return {
+    status: "success",
+    message: decision === "accept" ? "Document approved" : "Rescan requested",
+  };
 }
 
-export const deleteSmsTemplate = instrumentServerAction("admin.deleteSmsTemplate", deleteSmsTemplateInternal);
+export const deleteSmsTemplate = instrumentServerAction(
+  "admin.deleteSmsTemplate",
+  deleteSmsTemplateInternal
+);
 export const upsertSacco = instrumentServerAction("admin.upsertSacco", upsertSaccoInternal);
 export const removeSacco = instrumentServerAction("admin.removeSacco", removeSaccoInternal);
 export const resetMfaForAllEnabled = instrumentServerAction(
   "admin.resetMfaForAllEnabled",
-  resetMfaForAllEnabledInternal,
+  resetMfaForAllEnabledInternal
 );
-export const updateTenantSettings = instrumentServerAction("admin.updateTenantSettings", updateTenantSettingsInternal);
-export const resolveOcrReview = instrumentServerAction("admin.resolveOcrReview", resolveOcrReviewInternal);
+export const updateTenantSettings = instrumentServerAction(
+  "admin.updateTenantSettings",
+  updateTenantSettingsInternal
+);
+export const resolveOcrReview = instrumentServerAction(
+  "admin.resolveOcrReview",
+  resolveOcrReviewInternal
+);
 
 // ---------- Financial institution management ----------
 
@@ -615,7 +685,9 @@ type FinancialInstitutionPayload = {
   metadata?: Record<string, unknown> | null;
 };
 
-async function upsertFinancialInstitutionInternal(payload: FinancialInstitutionPayload): Promise<
+async function upsertFinancialInstitutionInternal(
+  payload: FinancialInstitutionPayload
+): Promise<
   AdminActionResult & { record?: Database["app"]["Tables"]["financial_institutions"]["Row"] }
 > {
   const { profile, user } = await requireUserAndProfile();
@@ -623,7 +695,10 @@ async function upsertFinancialInstitutionInternal(payload: FinancialInstitutionP
 
   if (profile.role !== "SYSTEM_ADMIN") {
     logWarn("admin_financial_institution_denied", { actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can manage financial institutions." };
+    return {
+      status: "error",
+      message: "Only system administrators can manage financial institutions.",
+    };
   }
 
   const supabase = supabaseSrv();
@@ -633,7 +708,8 @@ async function upsertFinancialInstitutionInternal(payload: FinancialInstitutionP
     kind: payload.kind,
     district: payload.district.trim().toUpperCase(),
     sacco_id: payload.saccoId ?? null,
-    metadata: (payload.metadata ?? {}) as Database["app"]["Tables"]["financial_institutions"]["Row"]["metadata"],
+    metadata: (payload.metadata ??
+      {}) as Database["app"]["Tables"]["financial_institutions"]["Row"]["metadata"],
   };
 
   let result;
@@ -646,10 +722,7 @@ async function upsertFinancialInstitutionInternal(payload: FinancialInstitutionP
       .maybeSingle();
   } else {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    result = await (table as any)
-      .insert(basePayload)
-      .select("*")
-      .single();
+    result = await (table as any).insert(basePayload).select("*").single();
   }
 
   if (result.error) {
@@ -663,7 +736,12 @@ async function upsertFinancialInstitutionInternal(payload: FinancialInstitutionP
     action: payload.id ? "FINANCIAL_INSTITUTION_UPDATED" : "FINANCIAL_INSTITUTION_CREATED",
     entity: "financial_institutions",
     entityId: institutionId,
-    diff: { name: payload.name, kind: payload.kind, district: payload.district, saccoId: payload.saccoId ?? null },
+    diff: {
+      name: payload.name,
+      kind: payload.kind,
+      district: payload.district,
+      saccoId: payload.saccoId ?? null,
+    },
   });
 
   await revalidatePath("/admin");
@@ -674,17 +752,28 @@ async function upsertFinancialInstitutionInternal(payload: FinancialInstitutionP
   };
 }
 
-async function deleteFinancialInstitutionInternal({ id }: { id: string }): Promise<AdminActionResult> {
+async function deleteFinancialInstitutionInternal({
+  id,
+}: {
+  id: string;
+}): Promise<AdminActionResult> {
   const { profile, user } = await requireUserAndProfile();
   updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
 
   if (profile.role !== "SYSTEM_ADMIN") {
     logWarn("admin_financial_institution_delete_denied", { actorRole: profile.role });
-    return { status: "error", message: "Only system administrators can manage financial institutions." };
+    return {
+      status: "error",
+      message: "Only system administrators can manage financial institutions.",
+    };
   }
 
   const supabase = supabaseSrv();
-  const { error } = await supabase.schema("app").from("financial_institutions").delete().eq("id", id);
+  const { error } = await supabase
+    .schema("app")
+    .from("financial_institutions")
+    .delete()
+    .eq("id", id);
 
   if (error) {
     logError("admin_financial_institution_delete_failed", { error, id });
@@ -704,11 +793,11 @@ async function deleteFinancialInstitutionInternal({ id }: { id: string }): Promi
 
 export const upsertFinancialInstitution = instrumentServerAction(
   "admin.upsertFinancialInstitution",
-  upsertFinancialInstitutionInternal,
+  upsertFinancialInstitutionInternal
 );
 export const deleteFinancialInstitution = instrumentServerAction(
   "admin.deleteFinancialInstitution",
-  deleteFinancialInstitutionInternal,
+  deleteFinancialInstitutionInternal
 );
 
 // ---------- MoMo code management ----------
@@ -722,9 +811,9 @@ type MomoCodePayload = {
   description?: string | null;
 };
 
-async function upsertMomoCodeInternal(payload: MomoCodePayload): Promise<
-  AdminActionResult & { record?: Database["app"]["Tables"]["momo_codes"]["Row"] }
-> {
+async function upsertMomoCodeInternal(
+  payload: MomoCodePayload
+): Promise<AdminActionResult & { record?: Database["app"]["Tables"]["momo_codes"]["Row"] }> {
   const { profile, user } = await requireUserAndProfile();
   updateLogContext({ userId: user.id, saccoId: profile.sacco_id ?? null });
 
@@ -753,10 +842,7 @@ async function upsertMomoCodeInternal(payload: MomoCodePayload): Promise<
       .maybeSingle();
   } else {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    result = await (table as any)
-      .insert(basePayload)
-      .select("*")
-      .single();
+    result = await (table as any).insert(basePayload).select("*").single();
   }
 
   if (result.error) {
@@ -815,5 +901,11 @@ async function deleteMomoCodeInternal({ id }: { id: string }): Promise<AdminActi
   return { status: "success", message: "MoMo code removed" };
 }
 
-export const upsertMomoCode = instrumentServerAction("admin.upsertMomoCode", upsertMomoCodeInternal);
-export const deleteMomoCode = instrumentServerAction("admin.deleteMomoCode", deleteMomoCodeInternal);
+export const upsertMomoCode = instrumentServerAction(
+  "admin.upsertMomoCode",
+  upsertMomoCodeInternal
+);
+export const deleteMomoCode = instrumentServerAction(
+  "admin.deleteMomoCode",
+  deleteMomoCodeInternal
+);

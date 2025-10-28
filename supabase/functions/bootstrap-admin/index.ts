@@ -28,10 +28,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (existing) {
-      return new Response(
-        JSON.stringify({ message: "Admin user already exists" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ message: "Admin user already exists" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Create the admin user
@@ -56,18 +56,18 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        message: "Admin user created successfully. You can now login."
+        message: "Admin user created successfully. You can now login.",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Bootstrap error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

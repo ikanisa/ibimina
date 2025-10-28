@@ -1,4 +1,10 @@
-import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, SupportedLocale, normaliseLocaleTag, isSupportedLocale } from "./locales";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE_NAME,
+  SupportedLocale,
+  normaliseLocaleTag,
+  isSupportedLocale,
+} from "./locales";
 
 interface CookieStoreLike {
   get(name: string): { value: string } | undefined;

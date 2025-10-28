@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
-import { decodePendingEnrollment, encryptSensitiveString, generateBackupCodes, verifyTotp } from "@/lib/mfa";
+import {
+  decodePendingEnrollment,
+  encryptSensitiveString,
+  generateBackupCodes,
+  verifyTotp,
+} from "@/lib/mfa";
 import { logAudit } from "@/lib/audit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
@@ -60,7 +65,10 @@ export async function POST(request: NextRequest) {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error: updateError } = await (supabase as any).from("users").update(updatePayload).eq("id", user.id);
+  const { error: updateError } = await (supabase as any)
+    .from("users")
+    .update(updatePayload)
+    .eq("id", user.id);
 
   if (updateError) {
     console.error(updateError);

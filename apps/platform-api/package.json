@@ -8,11 +8,18 @@
     "build": "tsc -p tsconfig.json",
     "lint": "echo 'TODO: add linting'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo 'TODO: add tests'"
+    "test": "pnpm run test:unit && pnpm run test:integration",
+    "test:unit": "tsx --test tests/unit/*.test.ts",
+    "test:integration": "tsx --test tests/integration/*.test.ts",
+    "worker:momo": "node dist/workers/momo-poller.js",
+    "worker:gsm": "node dist/workers/gsm-heartbeat.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@supabase/supabase-js": "^2.74.0"
+  },
   "devDependencies": {
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "@types/node": "20.19.21"
   }

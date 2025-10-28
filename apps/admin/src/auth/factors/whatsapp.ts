@@ -17,7 +17,12 @@ type OtpIssueRow = {
   expires_at: string;
 };
 
-const toFailure = (status: number, error: string, code: string, payload?: Record<string, unknown>) => ({
+const toFailure = (
+  status: number,
+  error: string,
+  code: string,
+  payload?: Record<string, unknown>
+) => ({
   ok: false as const,
   status,
   error,
@@ -26,7 +31,7 @@ const toFailure = (status: number, error: string, code: string, payload?: Record
 });
 
 export const initiateWhatsAppFactor = async (
-  input: FactorInitiateInput,
+  input: FactorInitiateInput
 ): Promise<FactorInitiateResult> => {
   try {
     const result = await sendWhatsAppOtp({ id: input.userId });
@@ -54,7 +59,8 @@ export const initiateWhatsAppFactor = async (
             ? "WHATSAPP_MISSING_MSISDN"
             : "WHATSAPP_SEND_FAILED";
 
-      const status = result.error === "not_enrolled" || result.error === "missing_msisdn" ? 400 : 500;
+      const status =
+        result.error === "not_enrolled" || result.error === "missing_msisdn" ? 400 : 500;
       await recordMfaAudit("MFA_FAILED", input.userId, {
         channel: "WHATSAPP",
         reason: result.error ?? "send_failed",
@@ -95,7 +101,7 @@ export const initiateWhatsAppFactor = async (
 };
 
 export const verifyWhatsAppFactor = async (
-  input: FactorVerifyInput,
+  input: FactorVerifyInput
 ): Promise<FactorSuccess | FactorFailure> => {
   if (!input.token) {
     return toFailure(400, "token_required", "TOKEN_REQUIRED");
@@ -146,7 +152,9 @@ export const verifyWhatsAppFactor = async (
     return toFailure(401, "invalid_code", "INVALID_CODE");
   }
 
-  const matched = rows.find((row) => row.code_hash && verifyOneTimeCode(input.token as string, row.code_hash));
+  const matched = rows.find(
+    (row) => row.code_hash && verifyOneTimeCode(input.token as string, row.code_hash)
+  );
 
   if (!matched) {
     authLog.warn("mfa_whatsapp_invalid_code", { userId: input.userId });

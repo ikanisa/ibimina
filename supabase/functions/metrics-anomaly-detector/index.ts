@@ -10,7 +10,10 @@ const corsHeaders = {
 };
 
 const SAMPLE_RETENTION_HOURS = parseInt(Deno.env.get("METRIC_SAMPLE_RETENTION_HOURS") ?? "168", 10); // 7 days
-const ALERT_SUPPRESSION_MINUTES = parseInt(Deno.env.get("ANOMALY_ALERT_SUPPRESSION_MINUTES") ?? "60", 10);
+const ALERT_SUPPRESSION_MINUTES = parseInt(
+  Deno.env.get("ANOMALY_ALERT_SUPPRESSION_MINUTES") ?? "60",
+  10
+);
 
 interface MetricRow {
   event: string;
@@ -97,7 +100,9 @@ const RATE_DETECTORS: RateDetector[] = [
   },
 ];
 
-const buildThresholdDetectors = (supabase: ReturnType<typeof createClient>): ThresholdDetector[] => [
+const buildThresholdDetectors = (
+  supabase: ReturnType<typeof createClient>
+): ThresholdDetector[] => [
   {
     signal: "sms_queue_backlog",
     title: "SMS backlog",
@@ -151,7 +156,9 @@ const buildThresholdDetectors = (supabase: ReturnType<typeof createClient>): Thr
   },
 ];
 
-const calculateStats = (samples: SampleRow[]): {
+const calculateStats = (
+  samples: SampleRow[]
+): {
   latestDelta: number;
   baselineMean: number;
   baselineStd: number;
@@ -179,9 +186,7 @@ const calculateStats = (samples: SampleRow[]): {
   const baselineSamples = baseline.length;
 
   const baselineMean =
-    baseline.length > 0
-      ? baseline.reduce((sum, value) => sum + value, 0) / baseline.length
-      : 0;
+    baseline.length > 0 ? baseline.reduce((sum, value) => sum + value, 0) / baseline.length : 0;
 
   const variance =
     baseline.length > 1
@@ -205,7 +210,7 @@ const calculateStats = (samples: SampleRow[]): {
 
 const shouldSuppressAlert = async (
   supabase: ReturnType<typeof createClient>,
-  signal: string,
+  signal: string
 ): Promise<boolean> => {
   const cutoff = new Date(Date.now() - ALERT_SUPPRESSION_MINUTES * 60 * 1000).toISOString();
   const { data, error } = await supabase
@@ -224,10 +229,7 @@ const shouldSuppressAlert = async (
   return Boolean(data && data.length > 0);
 };
 
-const enqueueAlert = async (
-  supabase: ReturnType<typeof createClient>,
-  anomaly: Anomaly,
-) => {
+const enqueueAlert = async (supabase: ReturnType<typeof createClient>, anomaly: Anomaly) => {
   if (await shouldSuppressAlert(supabase, anomaly.signal)) {
     return;
   }
@@ -256,10 +258,7 @@ const enqueueAlert = async (
   }
 };
 
-const recordAnomalyMetric = async (
-  supabase: ReturnType<typeof createClient>,
-  anomaly: Anomaly,
-) => {
+const recordAnomalyMetric = async (supabase: ReturnType<typeof createClient>, anomaly: Anomaly) => {
   const metricEvent = `anomaly_detected.${anomaly.signal}`;
   await recordMetric(supabase, metricEvent, 1, {
     signal: anomaly.signal,
@@ -279,7 +278,7 @@ const collectSample = async (
   supabase: ReturnType<typeof createClient>,
   event: string,
   total: number,
-  window: number,
+  window: number
 ) => {
   const { error: insertError } = await supabase
     .from("system_metric_samples")
@@ -342,7 +341,7 @@ const cleanupStaleSamples = async (supabase: ReturnType<typeof createClient>) =>
 
 const detectRateAnomalies = async (
   supabase: ReturnType<typeof createClient>,
-  metricsByEvent: Map<string, MetricRow>,
+  metricsByEvent: Map<string, MetricRow>
 ): Promise<Anomaly[]> => {
   const anomalies: Anomaly[] = [];
 
@@ -376,13 +375,7 @@ const detectRateAnomalies = async (
       continue;
     }
 
-    const {
-      latestDelta,
-      baselineMean,
-      baselineStd,
-      baselineSamples,
-      zeroStreak,
-    } = stats;
+    const { latestDelta, baselineMean, baselineStd, baselineSamples, zeroStreak } = stats;
 
     if (baselineSamples < detector.minBaselineSamples) {
       continue;
@@ -469,7 +462,7 @@ const detectRateAnomalies = async (
 };
 
 const detectThresholdAnomalies = async (
-  supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof createClient>
 ): Promise<Anomaly[]> => {
   const anomalies: Anomaly[] = [];
   const detectors = buildThresholdDetectors(supabase);

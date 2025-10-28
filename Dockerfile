@@ -6,8 +6,9 @@ ARG OPENAI_RESPONSES_MODEL
 
 FROM node:20-bookworm-slim AS deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
+RUN corepack enable \
+  && pnpm fetch
 
 FROM node:20-bookworm-slim AS builder
 WORKDIR /app
@@ -22,15 +23,19 @@ ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
 ENV SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
 ENV OPENAI_API_KEY=${OPENAI_API_KEY}
 ENV OPENAI_RESPONSES_MODEL=${OPENAI_RESPONSES_MODEL}
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /root/.local/share/pnpm /root/.local/share/pnpm
 COPY . .
-RUN npm run build
+RUN corepack enable \
+  && pnpm install --frozen-lockfile --offline \
+  && pnpm run build
 
 FROM node:20-bookworm-slim AS prod-deps
 WORKDIR /app
 ENV NODE_ENV=production
-COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
+COPY --from=deps /root/.local/share/pnpm /root/.local/share/pnpm
+RUN corepack enable \
+  && pnpm install --frozen-lockfile --prod --offline
 
 FROM node:20-bookworm-slim AS runner
 WORKDIR /app
@@ -51,7 +56,8 @@ EXPOSE 3000
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY next.config.ts ./next.config.ts
 COPY service-worker.js ./service-worker.js
-CMD ["npm", "run", "start"]
+RUN corepack enable
+CMD ["pnpm", "run", "start"]
