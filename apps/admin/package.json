@@ -28,6 +28,8 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@ibimina/config": "workspace:*",
+    "@ibimina/ui": "workspace:*",
     "@simplewebauthn/browser": "^13.2.2",
     "@simplewebauthn/server": "^13.2.2",
     "@simplewebauthn/types": "^12.0.0",
@@ -52,9 +54,7 @@
     "workbox-precaching": "^6.6.0",
     "workbox-routing": "^6.6.0",
     "workbox-strategies": "^6.6.0",
-    "zod": "^3.23.8",
-    "@ibimina/config": "workspace:*",
-    "@ibimina/ui": "workspace:*"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
