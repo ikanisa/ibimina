@@ -1,0 +1,293 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/**
+ * Next.js configuration for SACCO+ Client App
+ *
+ * This configuration enables:
+ * - React strict mode for better development experience
+ * - Optimized production builds with tree-shaking
+ * - PWA capabilities with service worker and aggressive caching
+ * - Performance optimizations for images and bundles
+ */
+
+// Security headers
+const SECURITY_HEADERS = [
+  { key: "X-DNS-Prefetch-Control", value: "on" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+];
+
+// PWA configuration
+let withPWA = (config) => config;
+try {
+  const withPWAInit = (await import("next-pwa")).default;
+  withPWA = withPWAInit({
+    dest: "public",
+    disable: process.env.NODE_ENV === "development" || process.env.DISABLE_PWA === "1",
+    register: true,
+    skipWaiting: true,
+    sw: "service-worker.js",
+    swSrc: "workers/service-worker.ts",
+    buildExcludes: [/middleware-manifest\.json$/],
+    // Performance: Aggressive caching strategy for offline-first experience
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "google-fonts-webfonts",
+          expiration: {
+            maxEntries: 4,
+            maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
+          },
+        },
+      },
+      {
+        urlPattern: /^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "google-fonts-stylesheets",
+          expiration: {
+            maxEntries: 4,
+            maxAgeSeconds: 7 * 24 * 60 * 60, // 1 week
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "static-font-assets",
+          expiration: {
+            maxEntries: 4,
+            maxAgeSeconds: 7 * 24 * 60 * 60, // 1 week
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "static-image-assets",
+          expiration: {
+            maxEntries: 64,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /\/_next\/image\?url=.+$/i,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "next-image",
+          expiration: {
+            maxEntries: 64,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:mp3|wav|ogg)$/i,
+        handler: "CacheFirst",
+        options: {
+          rangeRequests: true,
+          cacheName: "static-audio-assets",
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:mp4)$/i,
+        handler: "CacheFirst",
+        options: {
+          rangeRequests: true,
+          cacheName: "static-video-assets",
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:js)$/i,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "static-js-assets",
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:css|less)$/i,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "static-style-assets",
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /\/_next\/data\/.+\/.+\.json$/i,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "next-data",
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:json|xml|csv)$/i,
+        handler: "NetworkFirst",
+        options: {
+          cacheName: "static-data-assets",
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: ({ url }) => {
+          const isSameOrigin = self.origin === url.origin;
+          if (!isSameOrigin) return false;
+          const pathname = url.pathname;
+          // Exclude /api/ and /_next/webpack-hmr
+          if (pathname.startsWith("/api/") || pathname.includes("/_next/webpack-hmr")) return false;
+          return true;
+        },
+        handler: "NetworkFirst",
+        options: {
+          cacheName: "others",
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+          networkTimeoutSeconds: 10,
+        },
+      },
+    ],
+  });
+} catch {
+  console.warn(
+    "next-pwa not available during local build; proceeding without service worker bundling."
+  );
+}
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  poweredByHeader: false,
+
+  // Performance: Enable Next.js image optimization with responsive loading
+  images: {
+    formats: ["image/avif", "image/webp"],
+    unoptimized: false, // Enable Next.js image optimization
+    minimumCacheTTL: 3600,
+    deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+
+  // Performance: Transpile workspace packages
+  transpilePackages: ["@ibimina/config", "@ibimina/ui"],
+
+  // Performance: Tree-shaking for lucide-react
+  modularizeImports: {
+    "lucide-react": {
+      transform: "lucide-react/dist/esm/icons/{{member}}",
+    },
+  },
+
+  // Performance: Optimize builds
+  swcMinify: true,
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"],
+          }
+        : false,
+  },
+
+  // Performance: HTTP caching headers for static assets
+  async headers() {
+    const baseHeaders = [...SECURITY_HEADERS];
+
+    const immutableAssetHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+    ];
+
+    const manifestHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
+    ];
+
+    const serviceWorkerHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+    ];
+
+    const staticAssetHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+    ];
+
+    const assetLinksHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=86400, must-revalidate" },
+      { key: "Content-Type", value: "application/json" },
+    ];
+
+    return [
+      {
+        source: "/_next/static/:path*",
+        headers: staticAssetHeaders,
+      },
+      {
+        source: "/icons/:path*",
+        headers: immutableAssetHeaders,
+      },
+      {
+        source: "/fonts/:path*",
+        headers: immutableAssetHeaders,
+      },
+      {
+        source: "/manifest.json",
+        headers: manifestHeaders,
+      },
+      {
+        source: "/service-worker.js",
+        headers: serviceWorkerHeaders,
+      },
+      {
+        source: "/.well-known/assetlinks.json",
+        headers: assetLinksHeaders,
+      },
+      {
+        source: "/:path*",
+        headers: baseHeaders,
+      },
+    ];
+  },
+
+  // Performance: Experimental features
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+    webpackBuildWorker: true,
+  },
+};
+
+export default withPWA(nextConfig);

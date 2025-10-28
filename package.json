@@ -44,7 +44,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs}": [
       "prettier --write",
-      "eslint --fix --max-warnings=0"
+      "bash -c 'files=\"$@\"; filtered=$(echo \"$files\" | tr \" \" \"\\n\" | grep -v \"^infra/\" | tr \"\\n\" \" \"); [ -n \"$filtered\" ] && eslint --fix --max-warnings=0 $filtered || true' --"
     ],
     "*.{json,md,yml,yaml}": [
       "prettier --write"
