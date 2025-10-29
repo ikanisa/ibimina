@@ -62,24 +62,24 @@ export type Database = {
     Functions: {
       search_saccos: {
         Args: {
-          district_filter?: string
-          limit_count?: number
-          province_filter?: string
-          query: string
-        }
+          district_filter?: string | null;
+          limit_count?: number;
+          province_filter?: string | null;
+          query: string | null;
+        };
         Returns: {
-          category: string | null
-          district: string | null
-          email: string | null
-          id: string
-          name: string
-          province: string | null
-          rank_score: number
-          sector: string | null
-          similarity_score: number
-        }[]
-      }
-    }
+          category: string | null;
+          district: string | null;
+          email: string | null;
+          id: string;
+          name: string;
+          province: string | null;
+          rank_score: number;
+          sector: string | null;
+          similarity_score: number;
+        }[];
+      };
+    };
     Enums: {
       [_ in never]: never;
     };
