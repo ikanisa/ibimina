@@ -222,15 +222,20 @@ pnpm --filter @ibimina/client typecheck
 ### Android Development
 
 ```bash
-# Sync web assets to Android
-pnpm --filter @ibimina/client cap:sync
+# Sync web assets to Android (hosted PWA mode)
+cd apps/client
+CAPACITOR_SERVER_URL=https://client.ibimina.rw pnpm cap:sync
 
 # Open in Android Studio
-pnpm --filter @ibimina/client cap:open:android
+pnpm cap:open:android
 
 # Run on device/emulator
-pnpm --filter @ibimina/client cap:run:android
+pnpm cap:run:android
 ```
+
+**Note**: The client app uses a "hosted PWA approach" where the Android app
+connects to the production server. Set `CAPACITOR_SERVER_URL` when running
+`cap:sync` for production builds.
 
 ## Key Features Implemented
 
