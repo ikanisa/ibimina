@@ -51,8 +51,8 @@ CREATE POLICY analytics_events_staff_policy
 CREATE POLICY analytics_events_service_policy
   ON public.analytics_events
   FOR ALL
-  USING (auth.uid() IS NULL OR auth.jwt()->>'role' = 'service_role')
-  WITH CHECK (auth.uid() IS NULL OR auth.jwt()->>'role' = 'service_role');
+  USING (auth.jwt()->>'role' = 'service_role')
+  WITH CHECK (auth.jwt()->>'role' = 'service_role');
 
 -- Helper function to log an analytics event
 CREATE OR REPLACE FUNCTION public.log_analytics_event(
@@ -94,7 +94,7 @@ BEGIN
   ) RETURNING id INTO v_event_id;
 
   -- Also increment the system_metrics counter for backwards compatibility
-  PERFORM public.increment_system_metric(p_event_type, 1, p_metadata);
+  PERFORM public.increment_metric(p_event_type, 1, p_metadata);
 
   RETURN v_event_id;
 END;
