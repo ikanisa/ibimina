@@ -27,7 +27,7 @@ District (e.g., Gasabo)
 
 ## Files
 
-### 1. Migration: `supabase/migrations/20251110100000_multitenancy.sql`
+### 1. Migration: [`supabase/migrations/20251110100000_multitenancy.sql`](./migrations/20251110100000_multitenancy.sql)
 
 Creates the core multi-tenancy infrastructure:
 - `organizations` table with hierarchical structure
@@ -58,6 +58,8 @@ Comprehensive tests verifying:
 ### Step 1: Apply Migration
 
 Apply the migration to create the multi-tenancy tables and RLS policies:
+
+> **Note:** The migration SQL is version-controlled in this repository at [`supabase/migrations/20251110100000_multitenancy.sql`](./migrations/20251110100000_multitenancy.sql). Make sure your checkout includes that file (run `ls supabase/migrations/*multitenancy*.sql`) before executing the commands below so that `supabase db push` can pick it up.
 
 ```bash
 # Via Supabase CLI
