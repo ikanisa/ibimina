@@ -40,11 +40,12 @@ export function StaffDirectoryTable({ staff }: StaffDirectoryTableProps) {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
 
+  const searchLower = search.toLowerCase();
   const filteredStaff = staff.filter((member) => {
-    const searchLower = search.toLowerCase();
+    const fullName = member.full_name?.toLowerCase() ?? "";
     return (
       member.email.toLowerCase().includes(searchLower) ||
-      member.full_name?.toLowerCase().includes(searchLower) ||
+      fullName.includes(searchLower) ||
       member.role.toLowerCase().includes(searchLower)
     );
   });
