@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { createSecureHeaders } from "@ibimina/lib";
+import { HSTS_HEADER, createSecureHeaders } from "@ibimina/lib";
 
 /**
  * Next.js configuration for SACCO+ Client App
@@ -25,43 +25,48 @@ try {
     buildExcludes: [/middleware-manifest\.json$/],
   });
 } catch {
-  console.warn("next-pwa not available during local build; proceeding without service worker bundling.");
+  console.warn(
+    "next-pwa not available during local build; proceeding without service worker bundling."
+  );
 }
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  
+
   // Enable optimized image handling
   images: {
-    formats: ['image/avif', 'image/webp'],
+    formats: ["image/avif", "image/webp"],
     unoptimized: true,
     minimumCacheTTL: 3600,
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
   },
-  
+
   async headers() {
+    const securityHeaders = createSecureHeaders();
+    const dnsPrefetchHeader = { key: "X-DNS-Prefetch-Control", value: "on" } as const;
+
     const baseHeaders = [
-      { key: "X-DNS-Prefetch-Control", value: "on" },
-      { key: "X-Frame-Options", value: "SAMEORIGIN" },
-      { key: "X-Content-Type-Options", value: "nosniff" },
+      ...securityHeaders,
+      dnsPrefetchHeader,
+      ...(process.env.NODE_ENV === "production" ? [HSTS_HEADER] : []),
     ];
-    
+
     const immutableAssetHeaders = [
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
     ];
-    
+
     const manifestHeaders = [
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
     ];
-    
+
     const serviceWorkerHeaders = [
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
     ];
-    
+
     return [
       {
         source: "/icons/:path*",
