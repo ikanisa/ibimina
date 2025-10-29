@@ -79,7 +79,7 @@ try {
     enabled: process.env.ANALYZE_BUNDLE === "1",
     openAnalyzer: false,
     analyzerMode: "static",
-    reportFilename: "client.html",
+    reportFilename: "admin.html",
     generateStatsFile: true,
     statsFilename: "bundle-stats.json",
     defaultSizes: "gzip",
@@ -91,26 +91,34 @@ try {
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
-  outputFileTracingRoot: path.join(__dirname, "./"),
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   env: {
     NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
   },
+  // Performance: Optimize images
   images: {
     remotePatterns,
-    unoptimized: true,
+    unoptimized: false, // Enable Next.js image optimization
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 3600,
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   poweredByHeader: false,
+  // Performance: Transpile workspace packages
   transpilePackages: ["@ibimina/config", "@ibimina/ui"],
-  modularizeImports: {
-    "lucide-react": {
-      transform: "lucide-react/dist/esm/icons/{{member}}",
-    },
+  // Performance: Optimize builds
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"],
+          }
+        : false,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
+  // Enable Turbopack for Next.js 16
+  turbopack: {
+    root: path.join(__dirname, "../../"),
   },
   async headers() {
     const baseHeaders = [...SECURITY_HEADERS];
@@ -129,9 +137,21 @@ const nextConfig: NextConfig = {
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
     ];
+    const staticAssetHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+    ];
     return [
       {
+        source: "/_next/static/:path*",
+        headers: staticAssetHeaders,
+      },
+      {
         source: "/icons/:path*",
+        headers: immutableAssetHeaders,
+      },
+      {
+        source: "/fonts/:path*",
         headers: immutableAssetHeaders,
       },
       {
@@ -147,6 +167,11 @@ const nextConfig: NextConfig = {
         headers: baseHeaders,
       },
     ];
+  },
+  // Performance: Experimental features
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+    webpackBuildWorker: true,
   },
 };
 
