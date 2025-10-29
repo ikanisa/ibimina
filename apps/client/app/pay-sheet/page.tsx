@@ -18,6 +18,8 @@
 
 import { getUssdPaySheet, type UssdPaySheetEntry } from "@/lib/api/ussd-pay-sheet";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Pay Sheet | SACCO+ Client",
   description: "View your payment instructions and USSD codes for group contributions",
