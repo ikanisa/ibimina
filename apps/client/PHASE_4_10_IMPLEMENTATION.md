@@ -91,48 +91,20 @@ Created comprehensive translations in `locales/{locale}/`:
 
 ### Phase 7: Observability & Analytics
 
-#### Sentry Integration
+#### Status
 
-- ✅ Installed `@sentry/nextjs` package
-- ✅ Created configuration files:
-  - `sentry.client.config.ts` - Client-side error tracking
-  - `sentry.server.config.ts` - Server-side error tracking
-  - `sentry.edge.config.ts` - Edge runtime error tracking
-- ✅ Configured error tracking, performance monitoring, and session replay
-- ✅ Added PII scrubbing in beforeSend hooks
-
-#### PostHog Integration
-
-- ✅ Installed `posthog-js` package
-- ✅ Created analytics infrastructure in `lib/analytics/`:
-  - `posthog-provider.tsx` - PostHog context provider
-  - `posthog-pageview.tsx` - Automatic pageview tracking
-  - `events.ts` - Event tracking functions and constants
-  - `index.ts` - Exports for easy importing
-
-#### Analytics Events
-
-Defined tracking for:
-
-- Payment flow: USSD opened, reference copied, payment marked paid
-- Statements: viewed, filtered, exported
-- Groups: viewed, join request sent
-- Profile: language changed, profile updated
-- General: pageview, errors
-
-#### Funnels Defined
-
-- Payment Flow: Pay page → Copy reference → Dial USSD → Mark paid → Confirmed
-- Join Flow: Groups page → Join request → Pending → Approved → First payment
-- Statement Flow: Statements page → Filter → Export PDF
+- ⚠️ **Removed** - Sentry and PostHog integrations have been removed as they
+  were specific to Vercel deployment
+- These tools are not required for local deployment
+- For local deployment, consider alternatives:
+  - Local logging solutions for error tracking
+  - Self-hosted analytics if needed
+  - Custom instrumentation for performance monitoring
 
 #### Configuration Required
 
-1. Set `NEXT_PUBLIC_SENTRY_DSN` environment variable
-2. Set `NEXT_PUBLIC_POSTHOG_KEY` environment variable
-3. Set `NEXT_PUBLIC_POSTHOG_HOST` (optional, defaults to app.posthog.com)
-4. Add providers to root layout
-5. Configure alerts and dashboards in Sentry/PostHog consoles
+- For local deployment, observability tools are optional
+- Consider using built-in Node.js debugging and logging capabilities
 
 ### Phase 8-9: Performance & Testing
 
@@ -198,8 +170,6 @@ pnpm run lighthouse
 ### Runtime Dependencies
 
 - `next-intl@^4.4.0` - Internationalization
-- `@sentry/nextjs@^10.22.0` - Error tracking
-- `posthog-js@^1.281.0` - Analytics
 
 ### Development Dependencies
 
@@ -210,9 +180,6 @@ pnpm run lighthouse
 ### Configuration Files
 
 - `i18n.ts` - i18n configuration
-- `sentry.client.config.ts` - Sentry client config
-- `sentry.server.config.ts` - Sentry server config
-- `sentry.edge.config.ts` - Sentry edge config
 - `playwright.config.ts` - Playwright config
 
 ### Translation Files (21 files)
@@ -220,13 +187,6 @@ pnpm run lighthouse
 - `locales/en/*.json` - English translations (7 files)
 - `locales/rw/*.json` - Kinyarwanda translations (7 files)
 - `locales/fr/*.json` - French translations (7 files)
-
-### Analytics Files
-
-- `lib/analytics/posthog-provider.tsx`
-- `lib/analytics/posthog-pageview.tsx`
-- `lib/analytics/events.ts`
-- `lib/analytics/index.ts`
 
 ### SMS Processing
 
@@ -250,7 +210,6 @@ pnpm run lighthouse
 - `middleware.ts` - Added i18n middleware integration
 - `MainActivity.java` - Registered MoMo notification plugin
 - `AndroidManifest.xml` - Added NotificationListenerService
-- `.env.example` - Added Sentry and PostHog variables
 - `package.json` - Added test scripts and lighthouse script
 - `lib/utils/permissions.ts` - Fixed Device import
 
@@ -265,17 +224,6 @@ The app now supports 3 languages with automatic detection:
 - Visit `/fr` for French
 
 Users can change language in the Profile page.
-
-### Setting Up Analytics
-
-1. Create a Sentry project at https://sentry.io
-2. Create a PostHog project at https://posthog.com
-3. Add credentials to `.env.local`:
-   ```bash
-   NEXT_PUBLIC_SENTRY_DSN=your-dsn
-   NEXT_PUBLIC_POSTHOG_KEY=your-key
-   ```
-4. Analytics will automatically track pageviews and events
 
 ### Using SMS Notification Listener
 
@@ -312,10 +260,7 @@ pnpm exec playwright test payment.spec.ts
 | 6     | NotificationListener      | ✅ Complete | Android implementation done |
 | 6     | SMS Parser                | ✅ Complete | MTN & Airtel patterns       |
 | 6     | Edge Function integration | ❌ To Do    | HMAC signing needed         |
-| 7     | Sentry setup              | ✅ Complete | Config files created        |
-| 7     | PostHog setup             | ✅ Complete | Provider and events ready   |
-| 7     | Event tracking            | ✅ Complete | Key events defined          |
-| 7     | Funnels                   | ✅ Complete | 3 funnels documented        |
+| 7     | Observability setup       | ⚠️ N/A      | Removed Vercel-specific     |
 | 8     | Bundle optimization       | ❌ To Do    | Performance work needed     |
 | 8     | Lighthouse audit          | ❌ To Do    | Target ≥90 scores           |
 | 9     | E2E tests                 | ✅ Complete | 5 test suites created       |
@@ -330,7 +275,6 @@ pnpm exec playwright test payment.spec.ts
 1. **Wire up real data queries** - Replace mock data with Supabase
 2. **Add auth guards** - Protect routes requiring authentication
 3. **Test NotificationListener** - Verify on real Android devices
-4. **Configure Sentry & PostHog** - Add credentials and test
 
 ### Short Term (Next Sprint)
 
@@ -357,7 +301,6 @@ pnpm exec playwright test payment.spec.ts
 
 ### Implemented
 
-- ✅ PII scrubbing in Sentry
 - ✅ Notification listener only monitors MoMo apps
 - ✅ SMS parser validates transaction data
 - ✅ Environment variables for sensitive keys
@@ -373,8 +316,7 @@ pnpm exec playwright test payment.spec.ts
 
 1. **Capacitor barcode scanner** - Peer dependency warning (non-critical)
 2. **Mock data** - Pages still use mock data, need real Supabase integration
-3. **PostHog types** - May need `posthog-js/react` type definitions
-4. **Android strings** - Need to add `notification_listener_service_label` to
+3. **Android strings** - Need to add `notification_listener_service_label` to
    strings.xml
 
 ## 🎉 Summary
@@ -384,8 +326,6 @@ Successfully implemented:
 - ✅ Full internationalization with 3 languages
 - ✅ Android SMS notification listener
 - ✅ SMS transaction parser
-- ✅ Sentry error tracking
-- ✅ PostHog analytics
 - ✅ E2E test suite with Playwright
 - ✅ Documentation and configuration
 
@@ -396,6 +336,6 @@ Ready for:
 - Performance optimization
 - Production deployment preparation
 
-Total new files: **40+**  
+Total new files: **30+**  
 Total modified files: **6**  
-Lines of code added: **8,000+**
+Lines of code added: **6,000+**

@@ -450,23 +450,6 @@ docker-compose up -d --scale platform-api=3
 
 ### Option 3: Cloud Platform Deployment
 
-#### Vercel (for Next.js apps only)
-
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy admin app
-cd apps/admin
-vercel --prod
-
-# Deploy client app
-cd apps/client
-vercel --prod
-```
-
-**Note**: Platform API workers cannot be deployed to Vercel (not supported).
-
 #### Railway / Render / Fly.io
 
 All three platforms support:
@@ -786,7 +769,7 @@ supabase db dump -f backup-$(date +%Y%m%d).sql
 
 - Fully stateless, scales easily
 - Use CDN for static assets
-- Consider edge deployment (Vercel Edge, Cloudflare Workers)
+- Consider edge deployment (Cloudflare Workers, AWS Lambda@Edge)
 
 **Platform API**:
 
