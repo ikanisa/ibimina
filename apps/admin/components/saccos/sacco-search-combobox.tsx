@@ -87,7 +87,7 @@ export function SaccoSearchCombobox({
       }
       setLoading(true);
       setError(null);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const { data, error } = await (supabase as any).rpc("search_saccos", {
         query: query.trim(),
         limit_count: 12,

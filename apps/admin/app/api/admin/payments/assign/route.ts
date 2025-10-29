@@ -1,30 +1,30 @@
 /**
  * Admin Payment Assignment API Route
- * 
+ *
  * Allows staff to assign unallocated payments to specific ikimina (groups) and members.
  * This is used during reconciliation when automated payment matching fails or when
  * manual review identifies the correct recipient.
- * 
+ *
  * Use Cases:
  * - SMS parsing couldn't identify the ikimina from reference code
  * - Multiple members with similar names need manual disambiguation
  * - Correcting mis-assigned payments
  * - Bulk assignment of payments after importing statements
- * 
+ *
  * Authorization:
  * - SYSTEM_ADMIN: Can assign payments in any SACCO
  * - SACCO_MANAGER/STAFF: Can only assign payments in their assigned SACCO
  * - Requires canReconcilePayments permission
- * 
+ *
  * Operation:
  * 1. Validates user has reconciliation permissions
  * 2. Verifies ikimina exists and belongs to authorized SACCO
  * 3. Updates payment(s) with new ikimina_id and optional member_id
  * 4. Returns count of successfully updated payments
- * 
+ *
  * @route POST /api/admin/payments/assign
  * @access SACCO_STAFF, SACCO_MANAGER, SYSTEM_ADMIN (with reconciliation permission)
- * 
+ *
  * @example
  * POST /api/admin/payments/assign
  * {
@@ -32,7 +32,7 @@
  *   "ikiminaId": "ikimina-uuid",
  *   "memberId": "member-uuid"  // optional
  * }
- * 
+ *
  * Response:
  * { "updated": 2 }
  */

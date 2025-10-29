@@ -1,20 +1,6 @@
 import { issueEmailOtp } from "@/lib/mfa/email";
 import { createAuthenticationOptions } from "@/lib/mfa/passkeys";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { randDigits } from "@/lib/authx/crypto";
-import { listUserFactors } from "@/lib/authx/factors";
-import { hashOneTimeCode, hashRateLimitKey } from "@/src/auth/util/crypto";
-
-const safeHash = (...parts: Parameters<typeof hashRateLimitKey>) => {
-  try {
-    return hashRateLimitKey(...parts);
-  } catch (error) {
-    console.warn("rate_limit_hash_unavailable", {
-      message: error instanceof Error ? error.message : String(error),
-    });
-    return null;
-  }
-};
 
 export const startPasskeyChallenge = async (user: { id: string }) => {
   const { options, stateToken } = await createAuthenticationOptions({ id: user.id });
@@ -27,7 +13,7 @@ export const sendEmailOtp = async (user: { id: string; email: string | null }) =
   }
 
   const supabase = createSupabaseAdminClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- authx schema is unmanaged by generated types.
+
   const authx = (supabase as any).schema("authx");
   const result = await issueEmailOtp(user.id, user.email);
   if (result.status !== "issued") {
@@ -58,16 +44,6 @@ export const sendEmailOtp = async (user: { id: string; email: string | null }) =
     sent: true,
     expiresAt: latest?.expires_at ?? result.expiresAt,
   } as const;
-};
-
-const extractWhatsappMsisdn = (enrollment: Record<string, unknown>): string | null => {
-  const whatsapp = enrollment["whatsapp"];
-  if (!whatsapp || typeof whatsapp !== "object") {
-    return null;
-  }
-
-  const msisdn = (whatsapp as Record<string, unknown>)["msisdn"];
-  return typeof msisdn === "string" && msisdn.length > 0 ? msisdn : null;
 };
 
 // WhatsApp OTP temporarily disabled - Meta WhatsApp Business API integration pending

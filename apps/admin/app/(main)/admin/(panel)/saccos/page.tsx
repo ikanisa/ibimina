@@ -29,7 +29,9 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
   let saccoQuery = supabase
     .schema("app")
     .from("saccos")
-    .select("id, name, district, province, sector, status, email, category, logo_url, sector_code, district_org_id")
+    .select(
+      "id, name, district, province, sector, status, email, category, logo_url, sector_code, district_org_id"
+    )
     .order("name", { ascending: true });
 
   if (!scope.includeAll && scope.saccoId) {
@@ -45,7 +47,17 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
   const saccos = (saccoRows ?? []) as Array<
     Pick<
       Database["app"]["Tables"]["saccos"]["Row"],
-      "id" | "name" | "district" | "province" | "category" | "status" | "email" | "sector_code" | "sector" | "logo_url" | "district_org_id"
+      | "id"
+      | "name"
+      | "district"
+      | "province"
+      | "category"
+      | "status"
+      | "email"
+      | "sector_code"
+      | "sector"
+      | "logo_url"
+      | "district_org_id"
     >
   >;
 
@@ -145,24 +157,35 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
               .slice(0, 8)
               .map((s) => (
                 <li key={s.id} className="flex items-center gap-3">
-                  <span className="flex-1">{s.name ?? s.id} {s.district ? `• District: ${s.district}` : ""}</span>
+                  <span className="flex-1">
+                    {s.name ?? s.id} {s.district ? `• District: ${s.district}` : ""}
+                  </span>
                   <form
                     action={async () => {
-                      'use server';
-                      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/admin/saccos/fix-district`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sacco_id: s.id }),
-                      });
+                      "use server";
+                      await fetch(
+                        `${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/admin/saccos/fix-district`,
+                        {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ sacco_id: s.id }),
+                        }
+                      );
                     }}
                   >
-                    <button type="submit" className="rounded-lg border border-amber-300/40 px-2 py-1 text-xs text-amber-100">Fix</button>
+                    <button
+                      type="submit"
+                      className="rounded-lg border border-amber-300/40 px-2 py-1 text-xs text-amber-100"
+                    >
+                      Fix
+                    </button>
                   </form>
                 </li>
               ))}
           </ul>
           <p className="text-xs opacity-90">
-            Use the District field in the registry editor below; we auto-create and link the hidden organization entry when you save.
+            Use the District field in the registry editor below; we auto-create and link the hidden
+            organization entry when you save.
           </p>
         </div>
       )}

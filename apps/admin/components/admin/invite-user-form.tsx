@@ -3,7 +3,10 @@
 import { useState, useTransition } from "react";
 import type { Database } from "@/lib/supabase/types";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { SaccoSearchCombobox, type SaccoSearchResult } from "@/components/saccos/sacco-search-combobox";
+import {
+  SaccoSearchCombobox,
+  type SaccoSearchResult,
+} from "@/components/saccos/sacco-search-combobox";
 import { OrgSearchCombobox, type OrgSearchResult } from "@/components/admin/org-search-combobox";
 import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
@@ -40,7 +43,8 @@ export function InviteUserForm() {
 
     // For non-admin roles, require an organization selection
     if (role !== "SYSTEM_ADMIN") {
-      const requiresSacco = role === "SACCO_MANAGER" || role === "SACCO_STAFF" || role === "SACCO_VIEWER";
+      const requiresSacco =
+        role === "SACCO_MANAGER" || role === "SACCO_STAFF" || role === "SACCO_VIEWER";
       const requiresDistrict = role === "DISTRICT_MANAGER";
       const requiresMfi = role === "MFI_MANAGER" || role === "MFI_STAFF";
       if (requiresSacco && !sacco) {
@@ -58,8 +62,15 @@ export function InviteUserForm() {
     }
 
     startTransition(async () => {
-      const orgType = role === "DISTRICT_MANAGER" ? "DISTRICT" : (role === "MFI_MANAGER" || role === "MFI_STAFF") ? "MFI" : role === "SYSTEM_ADMIN" ? null : "SACCO";
-      const orgId = orgType === "SACCO" ? sacco?.id ?? null : org?.id ?? null;
+      const orgType =
+        role === "DISTRICT_MANAGER"
+          ? "DISTRICT"
+          : role === "MFI_MANAGER" || role === "MFI_STAFF"
+            ? "MFI"
+            : role === "SYSTEM_ADMIN"
+              ? null
+              : "SACCO";
+      const orgId = orgType === "SACCO" ? (sacco?.id ?? null) : (org?.id ?? null);
       const { data, error } = await supabase.functions.invoke("invite-user", {
         body: {
           email,
@@ -139,9 +150,10 @@ export function InviteUserForm() {
         </select>
       </div>
 
-      {role !== "SYSTEM_ADMIN" && (role === "SACCO_MANAGER" || role === "SACCO_STAFF" || role === "SACCO_VIEWER") && (
-        <SaccoSearchCombobox value={sacco} onChange={setSacco} />
-      )}
+      {role !== "SYSTEM_ADMIN" &&
+        (role === "SACCO_MANAGER" || role === "SACCO_STAFF" || role === "SACCO_VIEWER") && (
+          <SaccoSearchCombobox value={sacco} onChange={setSacco} />
+        )}
       {role === "DISTRICT_MANAGER" && (
         <OrgSearchCombobox type="DISTRICT" value={org} onChange={setOrg} />
       )}

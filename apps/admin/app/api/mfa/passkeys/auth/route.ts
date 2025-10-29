@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { requireUserAndProfile } from "@/lib/auth";
 import {
@@ -94,5 +93,3 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ success: true, method: "passkey" });
 }
-
-/* eslint-enable @typescript-eslint/no-explicit-any */

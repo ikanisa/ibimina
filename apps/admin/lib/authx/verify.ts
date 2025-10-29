@@ -87,7 +87,6 @@ export const issueSessionCookies = async (userId: string, rememberDevice: boolea
       last_used_at: new Date().toISOString(),
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase as any)
       .from("trusted_devices")
       .upsert(trustedInsert, { onConflict: "user_id,device_id" });

@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import { guardAdminAction } from "@/lib/admin/guard";
 import type { Database } from "@/lib/supabase/types";
 import { supabaseSrv } from "@/lib/supabase/server";
-import { isMissingRelationError } from "@/lib/supabase/errors";
 
 export async function PATCH(request: Request) {
-  const { user_id: userId, role, sacco_id: saccoId, org_id: orgId } = (await request.json().catch(() => ({}))) as {
+  const {
+    user_id: userId,
+    role,
+    sacco_id: saccoId,
+    org_id: orgId,
+  } = (await request.json().catch(() => ({}))) as {
     user_id?: string;
     role?: Database["public"]["Enums"]["app_role"];
     sacco_id?: string | null;
@@ -23,7 +27,7 @@ export async function PATCH(request: Request) {
       logEvent: "admin_staff_assign_role_denied",
       metadata: { targetUserId: userId },
     },
-    (error) => NextResponse.json({ error: error.message }, { status: 403 }),
+    (error) => NextResponse.json({ error: error.message }, { status: 403 })
   );
   if (guard.denied) return guard.result;
 
@@ -40,25 +44,28 @@ export async function PATCH(request: Request) {
   let resolvedOrgId: string | null = null;
   if (!isSaccoRole && (isDistrictRole || isMfiRole)) {
     if (!orgId) return NextResponse.json({ error: "org_id is required" }, { status: 400 });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const { data: org, error: orgError } = await (supabase as any)
       .schema("app")
       .from("organizations")
       .select("id, type")
       .eq("id", orgId)
       .maybeSingle();
-    if (orgError) return NextResponse.json({ error: orgError.message ?? "Lookup failed" }, { status: 500 });
+    if (orgError)
+      return NextResponse.json({ error: orgError.message ?? "Lookup failed" }, { status: 500 });
     if (!org) return NextResponse.json({ error: "Organization not found" }, { status: 400 });
-    if (isDistrictRole && org.type !== "DISTRICT") return NextResponse.json({ error: "Role/org mismatch" }, { status: 400 });
-    if (isMfiRole && org.type !== "MFI") return NextResponse.json({ error: "Role/org mismatch" }, { status: 400 });
+    if (isDistrictRole && org.type !== "DISTRICT")
+      return NextResponse.json({ error: "Role/org mismatch" }, { status: 400 });
+    if (isMfiRole && org.type !== "MFI")
+      return NextResponse.json({ error: "Role/org mismatch" }, { status: 400 });
     resolvedOrgId = org.id as string;
   }
 
   // Phase 1: update users table directly
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error } = await (supabase as any)
     .from("users")
-    .update({ role, sacco_id: isSaccoRole ? saccoId ?? null : null })
+    .update({ role, sacco_id: isSaccoRole ? (saccoId ?? null) : null })
     .eq("id", userId);
   if (error) {
     return NextResponse.json({ error: error.message ?? "Failed to update role" }, { status: 500 });
@@ -66,7 +73,6 @@ export async function PATCH(request: Request) {
 
   // Phase 2: reflect in org_memberships
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (isSaccoRole && saccoId) {
       await (supabase as any)
         .schema("app")

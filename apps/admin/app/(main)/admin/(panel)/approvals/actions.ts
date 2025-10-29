@@ -141,7 +141,6 @@ async function resendInviteInternal({
     return { status: "error", message: "You are not allowed to resend this invite." };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .from("group_invites")
     .update({
@@ -209,7 +208,6 @@ async function revokeInviteInternal({
     return { status: "error", message: "You are not allowed to revoke this invite." };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .from("group_invites")
     .update({ status: "expired" })
@@ -286,7 +284,7 @@ async function sendInviteInternal({
   }
 
   const token = randomBytes(24).toString("hex");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error: insertError, data } = await (supabase as any)
     .from("group_invites")
     .insert({

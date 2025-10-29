@@ -4,7 +4,12 @@ import { useMemo, useTransition } from "react";
 import type { Database } from "@/lib/supabase/types";
 import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
-import { queueMfaReminder, updateUserAccess, resetUserPassword, toggleUserSuspension } from "@/app/(main)/admin/actions";
+import {
+  queueMfaReminder,
+  updateUserAccess,
+  resetUserPassword,
+  toggleUserSuspension,
+} from "@/app/(main)/admin/actions";
 
 const ROLES: Array<Database["public"]["Enums"]["app_role"]> = [
   "SYSTEM_ADMIN",
@@ -97,24 +102,12 @@ export function UserAccessTable({ users, saccos, onView }: UserAccessTableProps)
       <table className="w-full border-collapse text-sm">
         <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-neutral-2">
           <tr>
-            <th className="px-4 py-3">
-              {t("common.email", "Email")}
-            </th>
-            <th className="px-4 py-3">
-              {t("admin.invite.role", "Role")}
-            </th>
-            <th className="px-4 py-3">
-              {t("nav.ikimina", "Ikimina")}
-            </th>
-            <th className="px-4 py-3">
-              {t("common.created", "Created")}
-            </th>
-            <th className="px-4 py-3">
-              2FA
-            </th>
-            <th className="px-4 py-3">
-              {t("common.security", "Security")}
-            </th>
+            <th className="px-4 py-3">{t("common.email", "Email")}</th>
+            <th className="px-4 py-3">{t("admin.invite.role", "Role")}</th>
+            <th className="px-4 py-3">{t("nav.ikimina", "Ikimina")}</th>
+            <th className="px-4 py-3">{t("common.created", "Created")}</th>
+            <th className="px-4 py-3">2FA</th>
+            <th className="px-4 py-3">{t("common.security", "Security")}</th>
             <th className="px-4 py-3">Actions</th>
           </tr>
         </thead>
@@ -127,7 +120,10 @@ export function UserAccessTable({ users, saccos, onView }: UserAccessTableProps)
                   value={user.role}
                   onChange={(event) => {
                     const nextRole = event.target.value as Database["public"]["Enums"]["app_role"];
-                    const isSaccoRole = nextRole === "SACCO_MANAGER" || nextRole === "SACCO_STAFF" || nextRole === "SACCO_VIEWER";
+                    const isSaccoRole =
+                      nextRole === "SACCO_MANAGER" ||
+                      nextRole === "SACCO_STAFF" ||
+                      nextRole === "SACCO_VIEWER";
                     const nextSacco = isSaccoRole ? user.sacco_id : null;
                     handleUpdate(user.id, nextRole, nextSacco);
                   }}
@@ -146,8 +142,11 @@ export function UserAccessTable({ users, saccos, onView }: UserAccessTableProps)
                   value={user.sacco_id ?? ""}
                   onChange={(event) => handleUpdate(user.id, user.role, event.target.value || null)}
                   disabled={
-                    pending || !(
-                      user.role === "SACCO_MANAGER" || user.role === "SACCO_STAFF" || user.role === "SACCO_VIEWER"
+                    pending ||
+                    !(
+                      user.role === "SACCO_MANAGER" ||
+                      user.role === "SACCO_STAFF" ||
+                      user.role === "SACCO_VIEWER"
                     )
                   }
                   className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
@@ -188,7 +187,9 @@ export function UserAccessTable({ users, saccos, onView }: UserAccessTableProps)
               <td className="px-4 py-3 text-neutral-2">
                 <div className="flex flex-col gap-1 text-[11px]">
                   {user.suspended ? (
-                    <span className="text-amber-200">{t("admin.users.suspended", "Suspended")}</span>
+                    <span className="text-amber-200">
+                      {t("admin.users.suspended", "Suspended")}
+                    </span>
                   ) : (
                     <span className="text-emerald-200">{t("admin.users.active", "Active")}</span>
                   )}
@@ -197,12 +198,21 @@ export function UserAccessTable({ users, saccos, onView }: UserAccessTableProps)
                       type="button"
                       onClick={() => {
                         startTransition(async () => {
-                          const result = await resetUserPassword({ userId: user.id, email: user.email });
+                          const result = await resetUserPassword({
+                            userId: user.id,
+                            email: user.email,
+                          });
                           if (result.status === "error") {
-                            error(result.message ?? t("admin.users.resetPasswordFailed", "Password reset failed"));
+                            error(
+                              result.message ??
+                                t("admin.users.resetPasswordFailed", "Password reset failed")
+                            );
                           } else {
                             const msg = result.temporaryPassword
-                              ? t("admin.users.resetPasswordSuccessTemp", "Password reset. Temporary: ") + result.temporaryPassword
+                              ? t(
+                                  "admin.users.resetPasswordSuccessTemp",
+                                  "Password reset. Temporary: "
+                                ) + result.temporaryPassword
                               : t("admin.users.resetPasswordSuccess", "Password reset");
                             success(msg);
                           }
@@ -217,9 +227,14 @@ export function UserAccessTable({ users, saccos, onView }: UserAccessTableProps)
                       type="button"
                       onClick={() => {
                         startTransition(async () => {
-                          const result = await toggleUserSuspension({ userId: user.id, suspended: !Boolean(user.suspended) });
+                          const result = await toggleUserSuspension({
+                            userId: user.id,
+                            suspended: !Boolean(user.suspended),
+                          });
                           if (result.status === "error") {
-                            error(result.message ?? t("admin.users.suspendFailed", "Operation failed"));
+                            error(
+                              result.message ?? t("admin.users.suspendFailed", "Operation failed")
+                            );
                           } else {
                             success(result.message ?? t("admin.users.suspendSuccess", "Updated"));
                           }
@@ -228,7 +243,9 @@ export function UserAccessTable({ users, saccos, onView }: UserAccessTableProps)
                       disabled={pending}
                       className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-neutral-0 hover:border-white/30"
                     >
-                      {user.suspended ? t("admin.users.activate", "Activate") : t("admin.users.suspend", "Suspend")}
+                      {user.suspended
+                        ? t("admin.users.activate", "Activate")
+                        : t("admin.users.suspend", "Suspend")}
                     </button>
                   </div>
                 </div>

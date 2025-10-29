@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { AuthxLoginForm } from "@/components/auth/authx-login-form";
 import { OptimizedImage } from "@/components/ui/optimized-image";

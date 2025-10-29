@@ -13,8 +13,12 @@ export async function GET(request: Request) {
 
   const supabase = supabaseSrv();
   const orgType = type as unknown as Database["app"]["Enums"]["org_type"];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query: any = supabase.schema("app").from("organizations").select("id, name, type, district_code").eq("type", orgType);
+
+  let query: any = supabase
+    .schema("app")
+    .from("organizations")
+    .select("id, name, type, district_code")
+    .eq("type", orgType);
   if (q) {
     query = query.ilike("name", `%${q}%`);
   }
@@ -22,5 +26,11 @@ export async function GET(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message ?? "Search failed" }, { status: 500 });
   }
-  return NextResponse.json({ organizations: (data ?? []).map((o) => ({ id: o.id as string, name: o.name as string, district_code: (o as any).district_code ?? null })) });
+  return NextResponse.json({
+    organizations: (data ?? []).map((o) => ({
+      id: o.id as string,
+      name: o.name as string,
+      district_code: (o as any).district_code ?? null,
+    })),
+  });
 }

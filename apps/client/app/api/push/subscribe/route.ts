@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
     const validatedData = SubscriptionSchema.parse(body);
 
     // Store the subscription in the database
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error: insertError } = await supabase.from("push_subscriptions" as any).upsert(
       {
         user_id: user.id,

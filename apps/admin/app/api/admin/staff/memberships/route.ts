@@ -9,12 +9,12 @@ export async function GET(request: Request) {
 
   const guard = await guardAdminAction(
     { action: "admin_staff_memberships_list", reason: "Admins only" },
-    (error) => NextResponse.json({ error: error.message }, { status: 403 }),
+    (error) => NextResponse.json({ error: error.message }, { status: 403 })
   );
   if (guard.denied) return guard.result;
 
   const supabase = supabaseSrv();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { data, error } = await (supabase as any)
     .schema("app")
     .from("org_memberships")
@@ -26,21 +26,26 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { user_id: userId, org_id: orgId, role } = (await request.json().catch(() => ({}))) as {
+  const {
+    user_id: userId,
+    org_id: orgId,
+    role,
+  } = (await request.json().catch(() => ({}))) as {
     user_id?: string;
     org_id?: string;
     role?: string;
   };
-  if (!userId || !orgId || !role) return NextResponse.json({ error: "user_id, org_id, role required" }, { status: 400 });
+  if (!userId || !orgId || !role)
+    return NextResponse.json({ error: "user_id, org_id, role required" }, { status: 400 });
 
   const guard = await guardAdminAction(
     { action: "admin_staff_memberships_add", reason: "Admins only" },
-    (error) => NextResponse.json({ error: error.message }, { status: 403 }),
+    (error) => NextResponse.json({ error: error.message }, { status: 403 })
   );
   if (guard.denied) return guard.result;
 
   const supabase = supabaseSrv();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error } = await (supabase as any)
     .schema("app")
     .from("org_memberships")
@@ -53,16 +58,17 @@ export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("user_id");
   const orgId = searchParams.get("org_id");
-  if (!userId || !orgId) return NextResponse.json({ error: "user_id and org_id required" }, { status: 400 });
+  if (!userId || !orgId)
+    return NextResponse.json({ error: "user_id and org_id required" }, { status: 400 });
 
   const guard = await guardAdminAction(
     { action: "admin_staff_memberships_remove", reason: "Admins only" },
-    (error) => NextResponse.json({ error: error.message }, { status: 403 }),
+    (error) => NextResponse.json({ error: error.message }, { status: 403 })
   );
   if (guard.denied) return guard.result;
 
   const supabase = supabaseSrv();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error } = await (supabase as any)
     .schema("app")
     .from("org_memberships")
@@ -72,4 +78,3 @@ export async function DELETE(request: Request) {
   if (error) return NextResponse.json({ error: error.message ?? "Failed" }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
-

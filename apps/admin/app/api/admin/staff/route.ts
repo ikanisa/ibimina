@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       reason: "Only system administrators can list staff.",
       logEvent: "admin_staff_list_denied",
     },
-    (error) => NextResponse.json({ error: error.message }, { status: 403 }),
+    (error) => NextResponse.json({ error: error.message }, { status: 403 })
   );
 
   if (guard.denied) return guard.result;
@@ -30,7 +30,6 @@ export async function GET(request: Request) {
 
   let scopedUserIds: string[] | null = null;
   if (orgTypeParam) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let membershipQuery: any = supabase
       .schema("app")
       .from("org_memberships")
@@ -43,7 +42,7 @@ export async function GET(request: Request) {
     if (membershipResult.error && !isMissingRelationError(membershipResult.error)) {
       return NextResponse.json(
         { error: membershipResult.error.message ?? "Failed to load memberships" },
-        { status: 500 },
+        { status: 500 }
       );
     }
     const rows = (membershipResult.data ?? []) as Array<{ user_id: string | null }>;
@@ -51,16 +50,18 @@ export async function GET(request: Request) {
       new Set(
         rows
           .map((row) => row.user_id)
-          .filter((value): value is string => typeof value === "string" && value.length > 0),
-      ),
+          .filter((value): value is string => typeof value === "string" && value.length > 0)
+      )
     );
     if (ids.length === 0) {
       return NextResponse.json({ users: [] });
     }
     scopedUserIds = ids;
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query: any = supabase.from("users").select("id, email, role, sacco_id, created_at, suspended, saccos: saccos(name)");
+
+  let query: any = supabase
+    .from("users")
+    .select("id, email, role, sacco_id, created_at, suspended, saccos: saccos(name)");
 
   if (role) query = query.eq("role", role);
   if (saccoId) query = query.eq("sacco_id", saccoId);
@@ -72,10 +73,21 @@ export async function GET(request: Request) {
 
   const result = await query;
   if (result.error && !isMissingRelationError(result.error)) {
-    return NextResponse.json({ error: result.error.message ?? "Failed to load staff" }, { status: 500 });
+    return NextResponse.json(
+      { error: result.error.message ?? "Failed to load staff" },
+      { status: 500 }
+    );
   }
 
-  let rows = (result.data ?? []) as Array<{ id: string; email: string; role: string; sacco_id: string | null; created_at: string | null; suspended?: boolean | null; saccos?: { name: string | null } | null }>;
+  let rows = (result.data ?? []) as Array<{
+    id: string;
+    email: string;
+    role: string;
+    sacco_id: string | null;
+    created_at: string | null;
+    suspended?: boolean | null;
+    saccos?: { name: string | null } | null;
+  }>;
   if (q) {
     rows = rows.filter((r) => (r.email ?? "").toLowerCase().includes(q));
   }

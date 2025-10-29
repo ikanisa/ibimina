@@ -174,7 +174,7 @@ export function SmsTemplatePanel({ saccos }: SmsTemplatePanelProps) {
         version: (template.version ?? 1) + 1,
         is_active: false,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const { data, error: insertError } = await (supabase as any)
         .from("sms_templates")
         .insert(payload)

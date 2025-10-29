@@ -313,7 +313,7 @@ export async function POST(request: Request) {
     const fileName = `${user.id}/${Date.now()}_${idType}.${fileExt}`;
     const fileBuffer = await file.arrayBuffer();
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("id-documents")
       .upload(fileName, fileBuffer, {
         contentType: file.type,
@@ -345,6 +345,7 @@ export async function POST(request: Request) {
         console.error("[OCR] Service error:", error);
         // Fall back to mock data if OCR service fails
         ocrResult = generateMockedOCRData(idType);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (ocrResult as any).ocr_service_error =
           error instanceof Error ? error.message : String(error);
       }
@@ -354,6 +355,7 @@ export async function POST(request: Request) {
     }
 
     // Store OCR result in database
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error: profileError } = await supabase.from("members_app_profiles" as any).upsert(
       {
         user_id: user.id,

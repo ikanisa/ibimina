@@ -33,7 +33,6 @@ export const logAudit = async ({ action, entity, entityId, diff }: AuditPayload)
     data: { user },
   } = await supabase.auth.getUser();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from("app.audit_logs").insert({
     action,
     entity,

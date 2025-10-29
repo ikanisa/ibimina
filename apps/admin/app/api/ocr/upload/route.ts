@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   const srv = supabaseSrv();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Extend Supabase types to cover client app tables.
+
   const db = srv as any;
   const {
     data: { user },

@@ -16,7 +16,9 @@ export function BackfillButton() {
           if (result.status === "error") {
             error(result.message ?? "Backfill failed");
           } else {
-            success(result.message ?? `Backfill complete${result.count ? ` (${result.count})` : ""}`);
+            success(
+              result.message ?? `Backfill complete${result.count ? ` (${result.count})` : ""}`
+            );
           }
         });
       }}
@@ -27,4 +29,3 @@ export function BackfillButton() {
     </button>
   );
 }
-

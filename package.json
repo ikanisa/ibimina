@@ -25,6 +25,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@types/node": "20.19.21",
@@ -40,7 +41,9 @@
     "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vercel": "^48.6.7",
+    "wrangler": "^4.45.2"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs}": [

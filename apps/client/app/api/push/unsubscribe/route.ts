@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
     if (validatedData.topics && validatedData.topics.length > 0) {
       // Remove specific topics - fetch current subscription first
       const { data: subscription, error: fetchError } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from("push_subscriptions" as any)
         .select("topics")
         .eq("user_id", user.id)
@@ -57,13 +58,14 @@ export async function POST(request: NextRequest) {
       }
 
       // Filter out the topics to remove
-      const currentTopics = ((subscription as any).topics as string[]) || [];
+      const currentTopics = ((subscription as any).topics as string[]) || []; // eslint-disable-line @typescript-eslint/no-explicit-any
       const remainingTopics = currentTopics.filter(
         (topic: string) => !validatedData.topics?.includes(topic)
       );
 
       // Update with remaining topics
       const { error: updateError } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from("push_subscriptions" as any)
         .update({
           topics: remainingTopics,
@@ -96,6 +98,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Remove entire subscription
       const { error: deleteError } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from("push_subscriptions" as any)
         .delete()
         .eq("user_id", user.id)

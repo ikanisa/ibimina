@@ -42,11 +42,14 @@ export default function FirstLoginResetPage() {
     <div className="mx-auto max-w-md px-4 py-12">
       <h1 className="mb-2 text-2xl font-semibold text-neutral-0">Set a new password</h1>
       <p className="mb-6 text-neutral-2">
-        {email ? `Welcome ${email}. ` : "Welcome. "}For your security, please set a new password to continue.
+        {email ? `Welcome ${email}. ` : "Welcome. "}For your security, please set a new password to
+        continue.
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">New password</label>
+          <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
+            New password
+          </label>
           <input
             type="password"
             required
@@ -56,7 +59,9 @@ export default function FirstLoginResetPage() {
           />
         </div>
         <div>
-          <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">Confirm password</label>
+          <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
+            Confirm password
+          </label>
           <input
             type="password"
             required
@@ -65,7 +70,9 @@ export default function FirstLoginResetPage() {
             className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
           />
         </div>
-        {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
+        {error && (
+          <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>
+        )}
         <button
           type="submit"
           disabled={pending}
@@ -77,4 +84,3 @@ export default function FirstLoginResetPage() {
     </div>
   );
 }
-

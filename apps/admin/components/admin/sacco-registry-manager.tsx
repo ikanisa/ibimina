@@ -9,7 +9,17 @@ import type { Database } from "@/lib/supabase/types";
 
 type RawSaccoRow = Pick<
   Database["app"]["Tables"]["saccos"]["Row"],
-  "id" | "name" | "district" | "province" | "sector" | "status" | "email" | "category" | "logo_url" | "sector_code" | "district_org_id"
+  | "id"
+  | "name"
+  | "district"
+  | "province"
+  | "sector"
+  | "status"
+  | "email"
+  | "category"
+  | "logo_url"
+  | "sector_code"
+  | "district_org_id"
 >;
 
 type SaccoRow = {
@@ -369,13 +379,18 @@ export function SaccoRegistryManager({
                 onChange={(event) => {
                   const nextValue = event.target.value;
                   handleChange("district", nextValue);
-                  setEditing((current) => (current ? { ...current, district_org_id: null } : current));
+                  setEditing((current) =>
+                    current ? { ...current, district_org_id: null } : current
+                  );
                 }}
                 className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                 placeholder={t("admin.registry.districtHelper", "ex: Kicukiro")}
               />
               <p className="text-[11px] text-neutral-3">
-                {t("admin.registry.districtHelperText", "We auto-link the hidden District org for RLS when you save.")}
+                {t(
+                  "admin.registry.districtHelperText",
+                  "We auto-link the hidden District org for RLS when you save."
+                )}
               </p>
             </label>
             <label className="space-y-1">
