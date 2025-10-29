@@ -4,7 +4,10 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+# npm ci requires a lockfile, which this package does not ship. Use npm install
+# with production-only dependencies so the image build succeeds without a
+# package-lock.json.
+RUN npm install --omit=dev
 
 # Copy application code
 COPY index.ts ./
