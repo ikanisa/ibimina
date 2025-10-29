@@ -23,7 +23,7 @@ three applications in the Ibimina/SACCO+ system:
 - **Supabase Project**: Database, Auth, Storage, Edge Functions
 - **Domain/SSL**: HTTPS required for production (PWA requirement)
 - **OCR Service**: Google Vision API or AWS Textract (optional for client app)
-- **SMS Gateway**: Twilio or local GSM modem (for platform API)
+- **WhatsApp Business API**: Meta direct integration for notifications
 
 ---
 
@@ -123,10 +123,11 @@ MOMO_API_SECRET=your-momo-api-secret
 # SMS Gateway
 GSM_MODEM_PORT=/dev/ttyUSB0
 GSM_MODEM_BAUDRATE=115200
-# OR
-TWILIO_ACCOUNT_SID=your-twilio-sid
-TWILIO_AUTH_TOKEN=your-twilio-token
-TWILIO_PHONE_NUMBER=+250788123456
+
+# WhatsApp Business API (Meta direct integration)
+META_WHATSAPP_ACCESS_TOKEN=your-meta-access-token
+META_WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id
+META_WHATSAPP_BUSINESS_ACCOUNT_ID=your-business-account-id
 ```
 
 ---

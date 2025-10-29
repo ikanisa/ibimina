@@ -816,9 +816,9 @@ export async function sendAlert({ severity, message, details }) {
     });
   }
 
-  // Option 3: SMS for critical alerts
-  if (severity === "critical" && process.env.TWILIO_ENABLED) {
-    await sendSms({
+  // Option 3: WhatsApp for critical alerts
+  if (severity === "critical" && process.env.META_WHATSAPP_ACCESS_TOKEN) {
+    await sendWhatsApp({
       to: process.env.ALERT_PHONE_NUMBER,
       body: `[CRITICAL] ${message}`,
     });
