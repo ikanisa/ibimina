@@ -51,24 +51,27 @@ const fetchPayment = async (
 };
 
 const sendWhatsapp = async ({ to, body }: { to: string; body: string }) => {
-  const sid = requireEnv("TWILIO_ACCOUNT_SID");
-  const token = requireEnv("TWILIO_AUTH_TOKEN");
-  const from = requireEnv("TWILIO_WHATSAPP_FROM");
+  const accessToken = requireEnv("META_WHATSAPP_ACCESS_TOKEN");
+  const phoneNumberId = requireEnv("META_WHATSAPP_PHONE_NUMBER_ID");
 
-  const credentials = btoa(`${sid}:${token}`);
-  const params = new URLSearchParams({
-    From: from,
-    To: to.startsWith("whatsapp:") ? to : `whatsapp:${to}`,
-    Body: body,
-  });
+  // Meta WhatsApp Business API endpoint
+  const apiUrl = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
 
-  const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
+  // Format phone number (remove whatsapp: prefix if present)
+  const recipientPhone = to.startsWith("whatsapp:") ? to.slice(9) : to;
+
+  const response = await fetch(apiUrl, {
     method: "POST",
     headers: {
-      Authorization: `Basic ${credentials}`,
-      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
     },
-    body: params,
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to: recipientPhone,
+      type: "text",
+      text: { body },
+    }),
   });
 
   const error = response.ok ? undefined : await response.text().catch(() => "");
