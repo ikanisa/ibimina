@@ -66,6 +66,8 @@ export type CspOptions = {
   nonce: string;
   isDev?: boolean;
   supabaseUrl?: string;
+  appendDirectives?: Partial<Record<string, string[]>>;
+  skipUpgradeInsecureRequests?: boolean;
 };
 
 /**
@@ -154,6 +156,8 @@ export function createContentSecurityPolicy({
   nonce,
   isDev = false,
   supabaseUrl,
+  appendDirectives,
+  skipUpgradeInsecureRequests = false,
 }: CspOptions): string {
   const directives: DirectiveMap = JSON.parse(JSON.stringify(baseDirectives));
 
@@ -179,12 +183,24 @@ export function createContentSecurityPolicy({
     }
   }
 
+  if (appendDirectives) {
+    for (const [directive, values] of Object.entries(appendDirectives)) {
+      if (!values?.length) continue;
+      if (!Array.isArray(directives[directive])) {
+        directives[directive] = [];
+      }
+      directives[directive].push(...values);
+    }
+  }
+
   // Add additional style and image sources
   directives["style-src"].push("https://rsms.me/inter/inter.css");
   directives["img-src"].push("https://avatars.githubusercontent.com");
 
   // Force upgrade insecure requests in production
-  directives["upgrade-insecure-requests"] = [""];
+  if (!skipUpgradeInsecureRequests) {
+    directives["upgrade-insecure-requests"] = [""];
+  }
 
   return serializeDirectives(directives);
 }

@@ -1,11 +1,15 @@
 {
   "name": "Ibimina Client App",
   "short_name": "Ibimina",
+  "lang": "en",
+  "id": "/",
   "description": "Member-facing app for Umurenge SACCO Ibimina. View contributions, request loans, and manage your ikimina membership.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0b1020",
+  "categories": ["finance", "productivity"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
