@@ -331,7 +331,20 @@ export ANDROID_HOME=$HOME/Android/Sdk
 
 ### Capacitor Sync Issues
 
-Force a clean sync:
+**Error: "ENOENT: no such file or directory, open
+'android/app/src/main/assets/capacitor.config.json'"**
+
+This error occurs if the `assets` directory doesn't exist. The directory should
+be tracked in git via `.gitkeep`. If you encounter this error:
+
+```bash
+cd apps/client
+mkdir -p android/app/src/main/assets
+touch android/app/src/main/assets/.gitkeep
+CAPACITOR_SERVER_URL=https://client.ibimina.rw pnpm cap:sync
+```
+
+**Force a clean sync:**
 
 ```bash
 cd apps/client
