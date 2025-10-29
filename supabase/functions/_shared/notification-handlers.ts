@@ -313,6 +313,7 @@ export const processEmailJob = async (
   deps: EmailJobDeps,
 ): Promise<JobOutcome> => {
   const now = deps.now?.() ?? new Date();
+  const tokens = tokensFromPayload(job.payload);
 
   const ensureAudit = async (action: string, diff: Record<string, unknown>) => {
     await deps.audit({
@@ -359,6 +360,14 @@ export const processEmailJob = async (
         "",
         actor ? `Requested by user ${actor}.` : "— SACCO+ Security",
       ].join("\n");
+  }
+
+  const tokenValues = tokens as Record<string, string | number | null | undefined>;
+  if (subject) {
+    subject = renderTemplate(subject, tokenValues);
+  }
+  if (text) {
+    text = renderTemplate(text, tokenValues);
   }
 
   if (!subject || !text) {
