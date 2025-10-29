@@ -32,6 +32,16 @@ semantic SACCO search.
   variables reference
 - [**packages/README.md**](packages/README.md) - Shared packages documentation
 
+### Deployment Documentation
+
+- [**docs/CLOUDFLARE_DEPLOYMENT.md**](docs/CLOUDFLARE_DEPLOYMENT.md) -
+  Comprehensive guide for deploying to Cloudflare Pages
+- [**CLOUDFLARE_DEPLOYMENT_CHECKLIST.md**](CLOUDFLARE_DEPLOYMENT_CHECKLIST.md) -
+  Step-by-step deployment checklist
+- [**.env.cloudflare.template**](.env.cloudflare.template) - Environment
+  variables template for Cloudflare
+- [**DEPLOYMENT_GUIDE.md**](DEPLOYMENT_GUIDE.md) - General deployment guide
+
 ## Overview
 
 **Ibimina** (Kinyarwanda for "groups") is a comprehensive SACCO management
