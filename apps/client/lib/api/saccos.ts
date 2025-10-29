@@ -28,7 +28,7 @@ export interface SaccoSearchParams {
   query?: string;
   limit?: number;
   district?: string | null;
-  sector?: string | null;
+  province?: string | null;
 }
 
 /**
@@ -52,7 +52,7 @@ export interface SaccoSearchParams {
  * from Server Components or API routes only
  */
 export async function searchSaccos(params: SaccoSearchParams = {}): Promise<SaccoSearchResult[]> {
-  const { query, limit = 20, district, sector } = params;
+  const { query, limit = 20, district, province } = params;
 
   const supabase = await createSupabaseServerClient();
 
@@ -60,7 +60,7 @@ export async function searchSaccos(params: SaccoSearchParams = {}): Promise<Sacc
     query: query || null,
     limit_count: limit,
     district_filter: district || null,
-    sector_filter: sector || null,
+    province_filter: province || null,
   });
 
   if (error) {
@@ -93,7 +93,7 @@ export async function searchSaccos(params: SaccoSearchParams = {}): Promise<Sacc
 export async function searchSaccosClient(
   params: SaccoSearchParams = {}
 ): Promise<SaccoSearchResult[]> {
-  const { query, limit = 20, district, sector } = params;
+  const { query, limit = 20, district, province } = params;
 
   const supabase = createSupabaseBrowserClient();
 
@@ -101,7 +101,7 @@ export async function searchSaccosClient(
     query: query || null,
     limit_count: limit,
     district_filter: district || null,
-    sector_filter: sector || null,
+    province_filter: province || null,
   });
 
   if (error) {
