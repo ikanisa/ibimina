@@ -39,7 +39,10 @@ export default async function AdminStaffPage() {
     suspended: (u as any).suspended ?? false,
   }));
 
-  const saccos = (saccosResult.data ?? []).map((s) => ({ id: s.id as string, name: s.name ?? "Unnamed SACCO" }));
+  const saccos = (saccosResult.data ?? []).map((s) => ({
+    id: s.id as string,
+    name: s.name ?? "Unnamed SACCO",
+  }));
 
   return (
     <div className="space-y-6">

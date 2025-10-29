@@ -31,7 +31,7 @@ async function fetchIkiminaDirectory(
     return { rows: [], statusOptions: [], typeOptions: [], saccoOptions: [] };
   }
 
-  const supabase = clients.user;
+  const _supabase = clients.user;
   const appSupabase = clients.app;
   const baseQuery = appSupabase
     .from("ikimina")

@@ -52,7 +52,6 @@ export default async function ReportsPage() {
 
   const initialSacco: SaccoSearchResult | null = saccos.length === 1 ? saccos[0]! : null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: subscriptionRows } = await (supabase as any)
     .schema("app")
     .from("report_subscriptions")

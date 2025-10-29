@@ -48,7 +48,7 @@ async function updateUserAccessInternal({
 
   // The Supabase JS client currently narrows update payloads to `never` when schema includes
   // custom views; cast locally until the generated types catch up.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error } = await (supabase as any).from("users").update(updatePayload).eq("id", userId);
 
   if (error) {
@@ -85,7 +85,7 @@ async function resetUserPasswordInternal({
 
   if (guard.denied) return guard.result;
 
-  const { supabase, user: actor } = guard.context;
+  const { supabase, user: _actor } = guard.context;
   const temporaryPassword = crypto
     .randomBytes(12)
     .toString("base64")
@@ -93,7 +93,6 @@ async function resetUserPasswordInternal({
     .slice(0, 16);
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const admin = (supabase as any).auth.admin;
     const { error: updateError } = await admin.updateUserById(userId, {
       password: temporaryPassword,
@@ -164,12 +163,11 @@ async function toggleUserSuspensionInternal({
   );
   if (guard.denied) return guard.result;
 
-  const { supabase, user: actor } = guard.context;
+  const { supabase, user: _actor } = guard.context;
 
   // Determine current value if not provided
   let next = suspended;
   if (typeof next !== "boolean") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from("users")
       .select("suspended")
@@ -181,7 +179,6 @@ async function toggleUserSuspensionInternal({
     next = !Boolean(data?.suspended);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .from("users")
     .update({ suspended: next })
@@ -224,7 +221,7 @@ async function backfillOrgMembershipsInternal(): Promise<AdminActionResult & { c
 
   const { supabase } = guard.context;
   // Load users with a SACCO assignment
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { data, error } = await (supabase as any)
     .from("users")
     .select("id, role, sacco_id")
@@ -238,7 +235,6 @@ async function backfillOrgMembershipsInternal(): Promise<AdminActionResult & { c
   }>;
   let count = 0;
   for (const row of rows) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const res = await (supabase as any)
       .schema("app")
       .from("org_memberships")
@@ -297,7 +293,7 @@ async function queueNotificationInternal({
       normalizedRecipient = digits;
     }
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error } = await (supabase as any).from("notification_queue").insert({
     event,
     channel: "WHATSAPP",
@@ -337,7 +333,7 @@ async function queueMfaReminderInternal({
   }
 
   const { supabase, user } = guard.context;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error } = await (supabase as any).from("notification_queue").insert({
     event: "MFA_REMINDER",
     channel: "EMAIL",
@@ -404,7 +400,7 @@ async function createSmsTemplateInternal({
     version: 1,
     is_active: false,
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { data, error } = await (supabase as any)
     .from("sms_templates")
     .insert(payload)
@@ -443,7 +439,7 @@ async function setSmsTemplateActiveInternal({
     return guard.result;
   }
   const { supabase } = guard.context;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error } = await (supabase as any)
     .from("sms_templates")
     .update({ is_active: isActive })
@@ -495,7 +491,6 @@ async function ensureDistrictOrganization(
     return { ok: false, message: "District name is required" };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const appSchema = (supabase as any).schema("app");
   const lookup = await appSchema
     .from("organizations")
@@ -584,7 +579,7 @@ async function upsertSaccoInternal({
   }
 
   let result: Database["app"]["Tables"]["saccos"]["Row"] | null = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const appSchema = (supabase as any).schema("app").from("saccos");
 
   if (mode === "create") {
@@ -696,7 +691,7 @@ async function resetMfaForAllEnabledInternal({
   }
 
   // Reset MFA flags for all matching users
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error: updateError } = await (supabase as any)
     .from("users")
     .update({
@@ -800,7 +795,6 @@ async function updateTenantSettingsInternal({
     },
   } satisfies Record<string, unknown>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: updateResult, error: updateError } = await (supabase as any)
     .schema("app")
     .from("saccos")
@@ -863,7 +857,6 @@ async function resolveOcrReviewInternal({
 
   const { supabase, user } = guard.context;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const legacyClient = supabase as any;
   const { data: profileRow, error: loadError } = await legacyClient
     .from("members_app_profiles")
@@ -975,14 +968,12 @@ async function upsertFinancialInstitutionInternal(
 
   let result;
   if (payload.id) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result = await (table as any)
       .update(basePayload)
       .eq("id", payload.id)
       .select("*")
       .maybeSingle();
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result = await (table as any).insert(basePayload).select("*").single();
   }
 
@@ -1095,14 +1086,12 @@ async function upsertMomoCodeInternal(
 
   let result;
   if (payload.id) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result = await (table as any)
       .update(basePayload)
       .eq("id", payload.id)
       .select("*")
       .maybeSingle();
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result = await (table as any).insert(basePayload).select("*").single();
   }
 

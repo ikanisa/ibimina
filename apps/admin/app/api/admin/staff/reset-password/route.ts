@@ -20,22 +20,28 @@ export async function POST(request: Request) {
       logEvent: "admin_staff_reset_password_denied",
       metadata: { targetUserId: userId },
     },
-    (error) => NextResponse.json({ error: error.message }, { status: 403 }),
+    (error) => NextResponse.json({ error: error.message }, { status: 403 })
   );
 
   if (guard.denied) return guard.result;
 
   const supabase = supabaseSrv();
-  const temporaryPassword = crypto.randomBytes(12).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(0, 16);
+  const temporaryPassword = crypto
+    .randomBytes(12)
+    .toString("base64")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(0, 16);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const admin = (supabase as any).auth.admin;
   const { error: updateError } = await admin.updateUserById(userId, {
     password: temporaryPassword,
     user_metadata: { pw_reset_required: true },
   });
   if (updateError) {
-    return NextResponse.json({ error: updateError.message ?? "Failed to reset password" }, { status: 500 });
+    return NextResponse.json(
+      { error: updateError.message ?? "Failed to reset password" },
+      { status: 500 }
+    );
   }
 
   // Optional: email webhook
@@ -49,11 +55,14 @@ export async function POST(request: Request) {
           "Content-Type": "application/json",
           ...(key ? { Authorization: `Bearer ${key}` } : {}),
         },
-        body: JSON.stringify({ to: email, subject: "Your temporary password", html: `<p>Temporary password: <b>${temporaryPassword}</b></p><p>Set a new password at first login.</p>` }),
+        body: JSON.stringify({
+          to: email,
+          subject: "Your temporary password",
+          html: `<p>Temporary password: <b>${temporaryPassword}</b></p><p>Set a new password at first login.</p>`,
+        }),
       }).catch(() => void 0);
     }
   } catch {}
 
   return NextResponse.json({ ok: true, temporary_password: temporaryPassword });
 }
-

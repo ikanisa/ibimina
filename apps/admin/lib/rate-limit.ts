@@ -25,9 +25,7 @@ const getClientFactoryOverride = () => getGlobalWithFactory()[CLIENT_FACTORY_TOK
  * Allows tests to inject a mock client without modifying production code
  * @param factory - Factory function that returns a Supabase client, or null to reset
  */
-export const __setRateLimitClientFactoryForTests = (
-  factory: ClientFactory | null,
-) => {
+export const __setRateLimitClientFactoryForTests = (factory: ClientFactory | null) => {
   setClientFactoryOverride(factory);
 };
 
@@ -46,24 +44,27 @@ const resolveSupabaseClient = () => {
 /**
  * Enforce rate limiting using Supabase's consume_rate_limit RPC
  * Throws an error if the rate limit is exceeded
- * 
+ *
  * Rate limiting is implemented using minute buckets stored in ops.rate_limits table.
  * Each bucket is identified by a key (e.g., "ip:192.168.1.1" or "user:uuid") and tracks
  * the number of requests within a sliding window.
- * 
+ *
  * @param key - Unique identifier for the rate limit bucket (e.g., "ip:127.0.0.1", "user:uuid")
  * @param options - Rate limit configuration
  * @param options.maxHits - Maximum number of requests allowed (default: 5)
  * @param options.windowSeconds - Time window in seconds (default: 300 = 5 minutes)
  * @throws Error with message "rate_limit_exceeded" if limit is reached
- * 
+ *
  * @example
  * // Limit to 20 requests per minute for a specific user
  * await enforceRateLimit(`user:${userId}`, { maxHits: 20, windowSeconds: 60 });
  */
-export const enforceRateLimit = async (key: string, options?: { maxHits?: number; windowSeconds?: number }) => {
+export const enforceRateLimit = async (
+  key: string,
+  options?: { maxHits?: number; windowSeconds?: number }
+) => {
   const supabase = await resolveSupabaseClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { data, error } = await (supabase as any).rpc("consume_rate_limit", {
     p_key: key,
     p_max_hits: options?.maxHits ?? 5,

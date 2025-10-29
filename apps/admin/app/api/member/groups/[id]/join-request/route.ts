@@ -13,7 +13,7 @@ interface RouteContext {
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
   const supabase = await createSupabaseServerClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Member app tables are optional snapshots not present in local schema
+
   const legacyClient = supabase as any;
 
   const {

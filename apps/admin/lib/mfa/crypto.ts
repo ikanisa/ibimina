@@ -1,15 +1,15 @@
 /**
  * Multi-Factor Authentication (MFA) Cryptography Utilities
- * 
+ *
  * This module provides cryptographic functions for TOTP (Time-based One-Time Password)
  * generation and verification, as well as secure encryption for MFA backup codes.
- * 
+ *
  * Key features:
  * - TOTP generation and verification (RFC 6238)
  * - Base32 secret generation
  * - AES-256-GCM encryption for backup codes
  * - Secure key management using environment variables
- * 
+ *
  * @module lib/mfa/crypto
  */
 
@@ -63,7 +63,7 @@ export const generateTotpSecret = () => generateBase32Secret(20);
 /**
  * Creates an otpauth:// URI for TOTP configuration
  * This URI can be encoded as a QR code for easy setup in authenticator apps
- * 
+ *
  * @param issuer - Service name (e.g., "Ibimina SACCO+")
  * @param account - User identifier (typically email or username)
  * @param secret - Base32-encoded TOTP secret
@@ -85,7 +85,7 @@ export const createOtpAuthUri = (issuer: string, account: string, secret: string
 /**
  * Generates an HMAC-based One-Time Password at a specific counter value
  * This is the core HOTP algorithm (RFC 4226) used by TOTP
- * 
+ *
  * @param secret - Base32-encoded secret
  * @param counter - Counter value (for TOTP, this is the time step)
  * @returns 6-digit OTP string
@@ -110,7 +110,7 @@ export const currentStep = (now = Date.now()) => Math.floor(now / 1000 / PERIOD_
 
 /**
  * Verifies a TOTP token against a secret with time window tolerance
- * 
+ *
  * @param secret - Base32-encoded TOTP secret
  * @param token - User-provided TOTP token (6 digits)
  * @param window - Time window tolerance (number of steps before/after current, default 1)
@@ -179,14 +179,14 @@ type BackupCodeRecord = {
 
 /**
  * Internal function to hash a backup code using PBKDF2 with pepper and salt
- * 
+ *
  * Security considerations:
  * - Uses PBKDF2 with 250,000 iterations (OWASP recommendation)
  * - SHA-256 hash algorithm
  * - 32-byte output length
  * - Combines pepper (from env) with per-code salt
  * - Returns format: "{salt}${hash}" for storage
- * 
+ *
  * @param code - Plain text backup code to hash
  * @param salt - Optional salt (if not provided, generates new 16-byte random salt)
  * @returns Salted hash string in format "salt$hash" (both base64 encoded)
@@ -203,7 +203,7 @@ const hashBackupCodeInternal = (code: string, salt?: string) => {
 /**
  * Generates a set of one-time backup codes for MFA recovery
  * Each code is 10 characters (uppercase alphanumeric) and cryptographically hashed
- * 
+ *
  * @param count - Number of backup codes to generate (default: 10)
  * @returns Array of backup code records with plaintext code and secure hash
  */

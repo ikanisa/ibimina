@@ -149,7 +149,6 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
       latencyMs: item.lastLatencyMs ?? null,
     }));
   } else {
-    // eslint-disable-next-line react-hooks/purity -- Server component: Date.now() is safe here
     const now = Date.now();
     const pollerStaleThreshold = now - 15 * 60 * 1000;
     const gatewayStaleThreshold = now - 10 * 60 * 1000;

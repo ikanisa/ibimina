@@ -55,7 +55,6 @@ let withPWA = (config: NextConfig) => config;
 let withBundleAnalyzer = (config: NextConfig) => config;
 
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withPWAInit = require("next-pwa");
   withPWA = withPWAInit({
     dest: "public",
@@ -73,7 +72,6 @@ try {
 }
 
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withBundleAnalyzerInit = require("@next/bundle-analyzer");
   withBundleAnalyzer = withBundleAnalyzerInit({
     enabled: process.env.ANALYZE_BUNDLE === "1",

@@ -98,7 +98,7 @@ export const verifyWhatsAppFactor = async (
   }
 
   const supabase = createSupabaseAdminClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- authx schema not in generated types.
+
   const authx = (supabase as any).schema("authx");
   const nowIso = new Date().toISOString();
 

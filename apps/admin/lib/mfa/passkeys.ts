@@ -1,26 +1,25 @@
 /**
  * WebAuthn Passkey Management Module
- * 
+ *
  * This module implements WebAuthn/FIDO2 passkey authentication for multi-factor
  * authentication (MFA). It provides server-side functions for passkey registration
  * and verification using the SimpleWebAuthn library.
- * 
+ *
  * Key features:
  * - Passkey registration (credential creation)
  * - Passkey authentication (credential verification)
  * - Secure credential storage with encrypted private data
  * - Support for multiple passkeys per user
  * - Device attestation and verification
- * 
+ *
  * Environment variables:
  * - MFA_RP_ID: Relying Party ID (defaults to hostname from SITE_URL)
  * - MFA_RP_NAME: Relying Party display name (defaults to "SACCO+")
  * - MFA_ORIGIN: Expected origin for WebAuthn ceremonies
- * 
+ *
  * @module lib/mfa/passkeys
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   generateAuthenticationOptions,
   generateRegistrationOptions,
@@ -433,5 +432,3 @@ export const deletePasskeyCredential = async (userId: string, credentialId: stri
 
   return true;
 };
-
-/* eslint-enable @typescript-eslint/no-explicit-any */

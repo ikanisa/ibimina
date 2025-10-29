@@ -1,11 +1,12 @@
 // Minimal type shims so TS can typecheck Deno/URL imports used by Supabase edge code
 
 declare module "https://esm.sh/@supabase/supabase-js@2" {
-  export interface SupabaseClient<T = any, S = any, U = any> {}
+  export interface SupabaseClient<_T = any, _S = any, _U = any> {}
   export function createClient(
     url: string,
     key: string,
-    options?: any,
+
+    options?: any
   ): SupabaseClient<any, any, any>;
 }
 
@@ -15,4 +16,3 @@ declare const Deno: {
     get(key: string): string | undefined;
   };
 };
-

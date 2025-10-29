@@ -19,16 +19,15 @@ export async function PATCH(request: Request) {
       logEvent: "admin_staff_suspend_toggle_denied",
       metadata: { targetUserId: userId },
     },
-    (error) => NextResponse.json({ error: error.message }, { status: 403 }),
+    (error) => NextResponse.json({ error: error.message }, { status: 403 })
   );
   if (guard.denied) return guard.result;
 
   const supabase = supabaseSrv();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const { error } = await (supabase as any).from("users").update({ suspended }).eq("id", userId);
   if (error) {
     return NextResponse.json({ error: error.message ?? "Failed to update" }, { status: 500 });
   }
   return NextResponse.json({ ok: true, suspended });
 }
-

@@ -178,7 +178,6 @@ async function updateIkiminaSettingsInternal(
     },
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .schema("app")
     .from("ikimina")
@@ -190,7 +189,6 @@ async function updateIkiminaSettingsInternal(
     return { status: "error", message: updateError.message ?? "Unable to update settings" };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: auditError } = await (supabase as any).schema("app").from("audit_logs").insert({
     actor: user.id,
     action: "IKIMINA_SETTINGS_UPDATE",

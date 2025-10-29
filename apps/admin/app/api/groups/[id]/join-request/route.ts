@@ -4,7 +4,7 @@ import { JoinRequestReq } from "@/lib/validators";
 
 export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
   const srv = supabaseSrv();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Extend Supabase types to cover client app tables.
+
   const client = srv as any;
   const {
     data: { user },

@@ -11,7 +11,9 @@ export default async function MainLayout({
   const auth = await requireUserAndProfile();
 
   // Enforce first-login password reset if flagged in user metadata
-  const needsReset = Boolean((auth.user.user_metadata as Record<string, unknown> | null)?.pw_reset_required);
+  const needsReset = Boolean(
+    (auth.user.user_metadata as Record<string, unknown> | null)?.pw_reset_required
+  );
   if (needsReset) {
     // Redirect to the first-login reset screen in auth flow
     // Note: this layout only wraps (main) routes, so /auth/* remains reachable
