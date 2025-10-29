@@ -3,18 +3,19 @@
 **Version**: 1.0  
 **Last Updated**: 2025-10-28
 
-This document provides a quick reference for production deployment. For detailed procedures, see the full documentation.
+This document provides a quick reference for production deployment. For detailed
+procedures, see the full documentation.
 
 ## 📚 Documentation Index
 
-| Document | Purpose | When to Use |
-|----------|---------|-------------|
-| [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md) | Comprehensive go-live checklist | Before every production deployment |
-| [DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md) | Standard release procedures | Regular deployments and releases |
-| [POST_DEPLOYMENT_VALIDATION.md](POST_DEPLOYMENT_VALIDATION.md) | Post-deploy verification | Immediately after each deployment |
-| [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md) | Emergency procedures | During incidents and disasters |
-| [SECURITY_HARDENING.md](SECURITY_HARDENING.md) | Security configuration checklist | During initial setup and audits |
-| [go-live-checklist.md](go-live-checklist.md) | Supabase-specific setup | Initial Supabase configuration |
+| Document                                                       | Purpose                          | When to Use                        |
+| -------------------------------------------------------------- | -------------------------------- | ---------------------------------- |
+| [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md)          | Comprehensive go-live checklist  | Before every production deployment |
+| [DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)          | Standard release procedures      | Regular deployments and releases   |
+| [POST_DEPLOYMENT_VALIDATION.md](POST_DEPLOYMENT_VALIDATION.md) | Post-deploy verification         | Immediately after each deployment  |
+| [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md)                   | Emergency procedures             | During incidents and disasters     |
+| [SECURITY_HARDENING.md](SECURITY_HARDENING.md)                 | Security configuration checklist | During initial setup and audits    |
+| [go-live-checklist.md](go-live-checklist.md)                   | Supabase-specific setup          | Initial Supabase configuration     |
 
 ## 🚀 Quick Start: First Production Deployment
 
@@ -38,7 +39,8 @@ make ready
    - Set up MFA
    - Enable audit logging
 
-2. **Infrastructure**: Check [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md) Sections 6-8
+2. **Infrastructure**: Check
+   [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md) Sections 6-8
    - Server provisioned
    - SSL configured
    - Reverse proxy set up
@@ -90,29 +92,42 @@ curl https://your-domain.com/api/health
 ## 📝 Essential Commands
 
 ### Development
+
 ```bash
 pnpm dev                    # Start dev server
-pnpm build                  # Production build
+pnpm build                  # Production build (Expected: ~5s cached, ~2min fresh)
 pnpm start                  # Start production server
 ```
 
 ### Testing
+
 ```bash
-pnpm run lint              # Lint code
-pnpm run typecheck         # Type check
-pnpm run test              # All tests
-pnpm run test:e2e          # E2E tests
-pnpm run test:rls          # RLS tests
+pnpm run lint              # Lint code (Expected: ~8s)
+pnpm run typecheck         # Type check (Expected: ~12s)
+pnpm run test              # All tests (Expected: 84 tests pass in ~6s)
+pnpm run test:unit         # Unit tests only (Expected: ~6s)
+pnpm run test:e2e          # E2E tests (Expected: ~30s)
+pnpm run test:rls          # RLS tests (Expected: ~10s)
+pnpm run test:auth         # Auth security tests (Expected: ~5s)
 ```
 
 ### Validation
+
 ```bash
-pnpm run validate:production  # Production readiness check
-pnpm run check:deploy        # Comprehensive deployment check
+pnpm run validate:production  # Production readiness check (Expected: ~30s)
+pnpm run check:deploy        # Comprehensive deployment check (Expected: ~5-7min)
 make ready                   # Same as check:deploy
 ```
 
+### Package Management
+
+```bash
+pnpm install               # Install dependencies (Expected: ~62s fresh, ~15s cached)
+pnpm -r run build          # Build all packages in order (Expected: ~90s fresh)
+```
+
 ### Supabase
+
 ```bash
 # Link project
 supabase link --project-ref $SUPABASE_PROJECT_REF
@@ -130,6 +145,7 @@ supabase secrets set --env-file supabase/.env.production
 ## 🔑 Required Environment Variables
 
 ### Critical (Must Have)
+
 ```bash
 # Application
 APP_ENV=production
@@ -155,6 +171,7 @@ MFA_RP_NAME=SACCO+
 ```
 
 ### Optional but Recommended
+
 ```bash
 # Analytics
 ANALYTICS_CACHE_TOKEN=random-token
@@ -189,6 +206,7 @@ Before going live, verify:
 ## 🚨 Emergency Procedures
 
 ### Application Down
+
 ```bash
 # 1. Check logs
 pm2 logs --lines 100
@@ -205,6 +223,7 @@ curl https://your-domain.com/api/health
 ```
 
 ### Rollback Required
+
 ```bash
 # 1. Stop application
 pm2 stop all
@@ -225,6 +244,7 @@ curl https://your-domain.com/api/health
 ```
 
 ### Database Issue
+
 ```bash
 # Check Supabase status
 curl https://your-project.supabase.co/rest/v1/
@@ -238,57 +258,61 @@ psql $SUPABASE_DB_URL -c "SELECT COUNT(*) FROM saccos;"
 
 ## 📊 Monitoring Endpoints
 
-| Endpoint | Purpose | Expected |
-|----------|---------|----------|
-| `/api/health` | Application and service health | HTTP 200, `{"status":"ok"}`, includes version and commit |
-| Supabase REST API | Database connectivity | HTTP 200 |
-| Prometheus | Metrics | `ibimina_*` gauges populated |
-| Grafana | Dashboards | "Ibimina Operations" showing data |
+| Endpoint          | Purpose                        | Expected                                                 |
+| ----------------- | ------------------------------ | -------------------------------------------------------- |
+| `/api/health`     | Application and service health | HTTP 200, `{"status":"ok"}`, includes version and commit |
+| Supabase REST API | Database connectivity          | HTTP 200                                                 |
+| Prometheus        | Metrics                        | `ibimina_*` gauges populated                             |
+| Grafana           | Dashboards                     | "Ibimina Operations" showing data                        |
 
 ## 📞 Emergency Contacts Template
 
-| Role | Name | Contact | Availability |
-|------|------|---------|--------------|
-| Technical Lead | _______ | _______ | 24/7 |
-| DevOps/SRE | _______ | _______ | 24/7 |
-| Security Lead | _______ | _______ | On-call |
-| Database Admin | _______ | _______ | On-call |
+| Role           | Name       | Contact    | Availability |
+| -------------- | ---------- | ---------- | ------------ |
+| Technical Lead | **\_\_\_** | **\_\_\_** | 24/7         |
+| DevOps/SRE     | **\_\_\_** | **\_\_\_** | 24/7         |
+| Security Lead  | **\_\_\_** | **\_\_\_** | On-call      |
+| Database Admin | **\_\_\_** | **\_\_\_** | On-call      |
 
 ## 📈 Key Performance Indicators
 
 Monitor these metrics post-deployment:
 
-| Metric | Target | Alert Threshold |
-|--------|--------|-----------------|
-| Application Uptime | >99.9% | <99% |
-| Response Time (p95) | <2s | >3s |
-| Error Rate | <0.1% | >1% |
-| Database Connections | <80% pool | >90% pool |
-| SMS Queue Backlog | 0 | >25 |
-| CPU Usage | <50% | >80% |
-| Memory Usage | <70% | >85% |
-| Disk Space Free | >20% | <15% |
+| Metric               | Target    | Alert Threshold |
+| -------------------- | --------- | --------------- |
+| Application Uptime   | >99.9%    | <99%            |
+| Response Time (p95)  | <2s       | >3s             |
+| Error Rate           | <0.1%     | >1%             |
+| Database Connections | <80% pool | >90% pool       |
+| SMS Queue Backlog    | 0         | >25             |
+| CPU Usage            | <50%      | >80%            |
+| Memory Usage         | <70%      | >85%            |
+| Disk Space Free      | >20%      | <15%            |
 
 ## 🔄 Regular Maintenance Schedule
 
 ### Daily
+
 - [ ] Check monitoring dashboards
 - [ ] Review error logs
 - [ ] Verify backup completion
 
 ### Weekly
+
 - [ ] Review security alerts
 - [ ] Check dependency updates
 - [ ] Test backup restoration
 - [ ] Review performance metrics
 
 ### Monthly
+
 - [ ] Security audit
 - [ ] Access review
 - [ ] Update documentation
 - [ ] Capacity planning
 
 ### Quarterly
+
 - [ ] Disaster recovery drill
 - [ ] Secret rotation
 - [ ] Security training
@@ -296,14 +320,14 @@ Monitor these metrics post-deployment:
 
 ## 🛠️ Troubleshooting Quick Reference
 
-| Symptom | Likely Cause | Quick Fix |
-|---------|--------------|-----------|
-| 502/503 errors | App not running | Restart application |
-| Slow responses | Database queries | Check connection pool, query performance |
-| Login fails | MFA misconfiguration | Verify MFA_RP_ID matches domain |
-| PWA not working | HTTPS issue | Verify SSL certificate, check service worker |
-| Data not showing | RLS policies | Run `pnpm run test:rls`, check policies |
-| High memory | Memory leak | Restart app, investigate with profiler |
+| Symptom          | Likely Cause         | Quick Fix                                    |
+| ---------------- | -------------------- | -------------------------------------------- |
+| 502/503 errors   | App not running      | Restart application                          |
+| Slow responses   | Database queries     | Check connection pool, query performance     |
+| Login fails      | MFA misconfiguration | Verify MFA_RP_ID matches domain              |
+| PWA not working  | HTTPS issue          | Verify SSL certificate, check service worker |
+| Data not showing | RLS policies         | Run `pnpm run test:rls`, check policies      |
+| High memory      | Memory leak          | Restart app, investigate with profiler       |
 
 ## 📋 Pre-Deployment Checklist Summary
 
@@ -373,6 +397,7 @@ curl https://your-domain.com/api/health
 
 ---
 
-**Remember**: This is a quick reference. Always follow the complete checklists for production deployments.
+**Remember**: This is a quick reference. Always follow the complete checklists
+for production deployments.
 
 **Last Updated**: 2025-10-28
