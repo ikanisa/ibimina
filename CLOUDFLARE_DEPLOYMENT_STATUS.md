@@ -19,9 +19,13 @@ documented below)
 - All configs include:
   - Pages output directory (`.vercel/output/static`)
   - Node.js compatibility flags (`nodejs_compat`)
-  - Minimal configuration for Cloudflare Pages (no `[build]` or `[observability]` sections)
-  
-**Note**: For Cloudflare Pages, build commands and environment variables are configured in the Cloudflare dashboard, not in wrangler.toml. The configuration file only contains essential settings like project name, compatibility date, and compatibility flags.
+  - Minimal configuration for Cloudflare Pages (no `[build]` or
+    `[observability]` sections)
+
+**Note**: For Cloudflare Pages, build commands and environment variables are
+configured in the Cloudflare dashboard, not in wrangler.toml. The configuration
+file only contains essential settings like project name, compatibility date, and
+compatibility flags.
 
 ### 2. TypeScript Edge Runtime Configuration ✅
 
