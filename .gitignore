@@ -48,3 +48,6 @@ test-results/
 
 # Vercel local artifacts
 apps/admin/.vercel/
+
+# Vercel local artifacts
+apps/admin/.vercel/
