@@ -1,60 +1,60 @@
 [
   {
     "name": "vc.builder.install",
-    "duration": 1285224,
-    "timestamp": 1046820681,
-    "id": "f264cbae-511c-46cd-baa2-7b90d5529d1b",
-    "parentId": "a5f23b6e-95bc-469d-84ae-b621b20eef8d",
+    "duration": 1249920,
+    "timestamp": 1775102390,
+    "id": "787f073e-2d18-4f99-a4d6-17ae47001cff",
+    "parentId": "8615d4c7-68f1-406a-849c-082449fd4938",
     "tags": {
       "cliType": "pnpm",
       "lockfileVersion": "9",
       "packageJsonPackageManager": "pnpm@10.19.0",
       "detectedPackageManager": "pnpm@9.x"
     },
-    "startTime": 1761840911306
+    "startTime": 1761841639588
   },
   {
     "name": "vc.builder.build",
-    "duration": 3005417,
-    "timestamp": 1048107253,
-    "id": "54bb2e6e-4168-4759-9473-383e69d2c8a8",
-    "parentId": "a5f23b6e-95bc-469d-84ae-b621b20eef8d",
+    "duration": 26182223,
+    "timestamp": 1776353652,
+    "id": "c876bd7a-557d-41a4-b2bb-308f6af24a49",
+    "parentId": "8615d4c7-68f1-406a-849c-082449fd4938",
     "tags": { "buildScriptName": "build" },
-    "startTime": 1761840912593
+    "startTime": 1761841640839
   },
   {
     "name": "vc.builder",
-    "duration": 4406469,
-    "timestamp": 1046706222,
-    "id": "a5f23b6e-95bc-469d-84ae-b621b20eef8d",
-    "parentId": "7a59f865-96ac-46ea-b3b8-c3872103f1b1",
+    "duration": 27927094,
+    "timestamp": 1774990581,
+    "id": "8615d4c7-68f1-406a-849c-082449fd4938",
+    "parentId": "4b308b2a-9adf-4563-a760-c86897fceec6",
     "tags": { "name": "@vercel/next", "install": "true", "build": "true" },
-    "startTime": 1761840911192
+    "startTime": 1761841639476
   },
   {
     "name": "vc.builder.diagnostics",
-    "duration": 3686,
-    "timestamp": 1051112742,
-    "id": "34a00ea9-a4d7-4e43-b4d1-a92cf256c830",
-    "parentId": "a5f23b6e-95bc-469d-84ae-b621b20eef8d",
+    "duration": 1416,
+    "timestamp": 1802917729,
+    "id": "47070bad-bd23-4c14-9cd5-ab7ce4ecfe7c",
+    "parentId": "8615d4c7-68f1-406a-849c-082449fd4938",
     "tags": {},
-    "startTime": 1761840915599
+    "startTime": 1761841667404
   },
   {
     "name": "vc.doBuild",
-    "duration": 4576060,
-    "timestamp": 1046543290,
-    "id": "7a59f865-96ac-46ea-b3b8-c3872103f1b1",
-    "parentId": "9ad5816f-8c1a-4039-aa60-cef833d37022",
+    "duration": 28111576,
+    "timestamp": 1774808367,
+    "id": "4b308b2a-9adf-4563-a760-c86897fceec6",
+    "parentId": "378c1da3-9c03-4adf-b101-ca92ec5c9d68",
     "tags": {},
-    "startTime": 1761840911029
+    "startTime": 1761841639294
   },
   {
     "name": "vc",
-    "duration": 4603804,
-    "timestamp": 1046515849,
-    "id": "9ad5816f-8c1a-4039-aa60-cef833d37022",
+    "duration": 28125649,
+    "timestamp": 1774794426,
+    "id": "378c1da3-9c03-4adf-b101-ca92ec5c9d68",
     "tags": {},
-    "startTime": 1761840911002
+    "startTime": 1761841639280
   }
 ]

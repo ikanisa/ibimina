@@ -74,7 +74,7 @@ try {
 try {
   const withBundleAnalyzerInit = require("@next/bundle-analyzer");
   withBundleAnalyzer = withBundleAnalyzerInit({
-    enabled: process.env.ANALYZE_BUNDLE === "1",
+    enabled: process.env.ANALYZE_BUNDLE === "1" && process.env.CLOUDFLARE_BUILD !== "1",
     openAnalyzer: false,
     analyzerMode: "static",
     reportFilename: "admin.html",
@@ -90,10 +90,8 @@ const nextConfig: NextConfig = {
   // Use standalone for Docker/Node deployments, but not for Cloudflare
   output: process.env.CLOUDFLARE_BUILD === "1" ? undefined : "standalone",
   reactStrictMode: true,
-  // Only use outputFileTracingRoot for standalone builds
-  ...(process.env.CLOUDFLARE_BUILD !== "1" && {
-    outputFileTracingRoot: path.join(__dirname, "../../"),
-  }),
+  // For monorepo: always set to match turbopack.root
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   env: {
     NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
   },
@@ -118,9 +116,8 @@ const nextConfig: NextConfig = {
           }
         : false,
   },
-  // Enable Turbopack for Next.js 16
+  // Enable Turbopack for Next.js 16 - always use monorepo root for dependencies
   turbopack: {
-    // Always use monorepo root to find dependencies
     root: path.join(__dirname, "../../"),
   },
   async headers() {
@@ -175,7 +172,14 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
     webpackBuildWorker: true,
+    // Force webpack for Cloudflare builds (Turbopack has issues with monorepos)
+    ...(process.env.CLOUDFLARE_BUILD === "1" && {
+      turbo: false,
+    }),
   },
 };
 
-export default withBundleAnalyzer(withPWA(nextConfig));
+// For Cloudflare builds, skip PWA and bundle analyzer wrappers as they add webpack config
+export default process.env.CLOUDFLARE_BUILD === "1"
+  ? nextConfig
+  : withBundleAnalyzer(withPWA(nextConfig));
