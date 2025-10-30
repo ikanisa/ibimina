@@ -468,7 +468,10 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
       </div>
       <OfflineQueueIndicator />
 
-      <nav className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-3xl border border-white/10 bg-ink/90 px-4 py-3 text-sm backdrop-blur md:hidden">
+      <nav
+        className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-3xl border border-white/10 bg-ink/90 px-4 py-3 text-sm backdrop-blur md:hidden"
+        aria-label={t("nav.mobile", "Mobile navigation")}
+      >
         {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
           const badge = navBadges[href];
           return (
@@ -476,12 +479,13 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
               key={href}
               href={href}
               className={cn(
-                "interactive-scale relative flex flex-col items-center text-[0.8rem] font-semibold tracking-[0.05em]",
+                "interactive-scale relative flex min-h-[48px] min-w-[48px] flex-col items-center justify-center text-[0.8rem] font-semibold tracking-[0.05em]",
                 isActive(href) ? "text-neutral-0" : "text-neutral-2"
               )}
               aria-current={isActive(href) ? "page" : undefined}
+              aria-label={t(key)}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-5 w-5" aria-hidden />
               {badge && (
                 <span
                   className={cn(
@@ -489,21 +493,25 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                     BADGE_DOT_STYLES[badge.tone]
                   )}
                   aria-hidden
+                  aria-label={`${badge.label} notifications`}
                 />
               )}
-              <span className="mt-1 leading-tight">{t(key)}</span>
+              <span className="mt-1 text-[0.7rem] leading-tight" aria-hidden>
+                {t(key)}
+              </span>
             </Link>
           );
         })}
         <button
           type="button"
           onClick={() => setShowActions((v) => !v)}
-          className="interactive-scale absolute left-1/2 top-0 flex -translate-y-1/2 -translate-x-1/2 items-center gap-2 rounded-full bg-kigali px-5 py-3 text-sm font-semibold tracking-[0.08em] text-ink shadow-glass"
+          className="interactive-scale absolute left-1/2 top-0 flex min-h-[48px] -translate-y-1/2 -translate-x-1/2 items-center gap-2 rounded-full bg-kigali px-5 py-3 text-sm font-semibold tracking-[0.08em] text-ink shadow-glass"
           aria-expanded={showActions}
           aria-controls="quick-actions"
+          aria-label={t("dashboard.quick.actions", "Quick actions menu")}
           ref={quickActionsTriggerRef}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" aria-hidden />
           <span className="flex flex-col text-left leading-none">
             <span>{t("dashboard.quick.newPrimary", "New")}</span>
             <span className="text-[0.65rem] font-medium tracking-[0.12em] text-ink/70">
