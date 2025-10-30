@@ -5,23 +5,10 @@ name = "ibimina-client"
 compatibility_date = "2025-10-30"
 pages_build_output_dir = ".vercel/output/static"
 
-# Custom domain configuration
-# Set this in Cloudflare dashboard or via wrangler CLI
-# routes = [
-#   { pattern = "sacco.ikanisa.com", custom_domain = true }
-# ]
-
-[build]
-command = "pnpm install --frozen-lockfile && pnpm --filter @ibimina/client build:cloudflare"
-
-[observability]
-enabled = true
-
 # Node.js compatibility for API routes
 compatibility_flags = ["nodejs_compat"]
 
-# Environment variables for build time (non-sensitive)
-# Add sensitive variables via Cloudflare dashboard
-[vars]
-NODE_ENV = "production"
-NEXT_TELEMETRY_DISABLED = "1"
+# Note: For Cloudflare Pages, build configuration and environment variables
+# should be set in the Cloudflare dashboard under:
+# Pages > [Project] > Settings > Build & deployments
+# Pages > [Project] > Settings > Environment variables
