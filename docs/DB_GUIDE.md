@@ -233,19 +233,99 @@ supabase db diff
 
 ### Schema Verification
 
+#### Automated Schema Drift Detection
+
+**Overview**: The `scripts/verify-schema.sh` script ensures your local migrations stay in sync with remote databases.
+
+**What it does**:
+
+1. Builds a local schema snapshot from migration files
+2. Pulls the remote schema from Supabase (no data)
+3. Compares normalized SQL and fails if drift detected
+4. Optionally refreshes `supabase/schema.sql` for version control
+5. Dry-runs migrations to ensure they apply cleanly
+
+**One-time setup** (local):
+
+```bash
+# 1) Install/update Supabase CLI
+brew install supabase/tap/supabase || brew upgrade supabase
+
+# 2) Link your project (once per environment)
+supabase link --project-ref <YOUR_SUPABASE_REF>
+
+# 3) Ensure standard paths exist
+mkdir -p supabase/migrations
+# supabase/config.toml should point to these defaults
+```
+
+**Running the verification**:
+
+```bash
+# Run locally
+ENV_NAME=local scripts/verify-schema.sh
+
+# Run for staging
+ENV_NAME=staging PROJECT_REF=your-staging-ref scripts/verify-schema.sh
+
+# Run for production
+ENV_NAME=production PROJECT_REF=your-prod-ref scripts/verify-schema.sh
+```
+
+**Exit codes**:
+- `0` - Success: No drift, migrations apply cleanly
+- `1` - Supabase CLI not found or project not linked
+- `2` - Schema drift detected between local and remote
+- `3` - schema.sql was stale (CI only)
+
+**Common failures and fixes**:
+
+| Issue | Solution |
+|-------|----------|
+| "Schema drift detected" | Run locally to see diff. If remote is ahead, create a corrective migration. If local is ahead, apply migrations to remote first. |
+| "schema.sql was stale" (CI) | Run guard locally to refresh `supabase/schema.sql`, commit, and push. |
+| Dry-run fails | Fix the offending migration (bad dependency order, missing table reference, etc.), regenerate, and rerun. |
+
+#### Pre-commit Hook (Optional)
+
+Enable automatic schema verification before each commit:
+
+```bash
+# Enable git hooks
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
+
+The pre-commit hook runs `scripts/verify-schema.sh` and automatically stages `supabase/schema.sql` if updated.
+
+#### GitHub Actions Integration
+
+The `db-guard.yml` workflow runs on all PRs to `main`:
+
+- Installs Supabase CLI
+- Runs `scripts/verify-schema.sh`
+- Fails the build if schema drift is detected
+- Ensures schema.sql is up-to-date
+
+**Workflow location**: `.github/workflows/db-guard.yml`
+
+To require this check before merging, add it as a required status check in your repository settings.
+
 #### Keeping latest_schema.sql Updated
 
-**Requirement**: Update `supabase/latest_schema.sql` after every migration
+**Requirement**: Update `supabase/schema.sql` after every migration
+
+The verification script automatically updates this file when run locally. You can also generate it manually:
 
 ```bash
 # Generate latest schema dump
-supabase db dump -f supabase/latest_schema.sql
+supabase db dump -f supabase/schema.sql
 
 # Review changes
-git diff supabase/latest_schema.sql
+git diff supabase/schema.sql
 
 # Commit with migration
-git add supabase/latest_schema.sql
+git add supabase/schema.sql
 ```
 
 **Why**:
@@ -254,14 +334,16 @@ git add supabase/latest_schema.sql
 - Enables schema comparison
 - CI can detect drift
 - Helps with debugging
+- Code reviews can see the full schema impact
 
 #### Schema Validation in CI
 
-The `validate-production-readiness.sh` script checks:
+Multiple scripts work together to ensure schema quality:
 
-- Migration files have proper format
-- RLS is enabled on user tables
-- latest_schema.sql exists and is recent
+1. **`scripts/verify-schema.sh`**: Detects drift, updates schema.sql
+2. **`validate-production-readiness.sh`**: Checks migration format, RLS enabled
+3. **`.github/workflows/db-guard.yml`**: Runs verification in CI
+4. **`.github/workflows/supabase-deploy.yml`**: Applies migrations to environments
 
 ## 🔒 Row Level Security (RLS)
 
@@ -729,6 +811,73 @@ Error: new row violates row-level security policy
 3. Optimize JOIN conditions
 4. Consider materialized views for analytics
 
+## 📋 Daily Operational Habits
+
+Follow these practices to maintain database integrity:
+
+### 1. Never Hand-Edit Production
+
+❌ **Never**:
+- Make manual changes directly in production database
+- Run ad-hoc SQL in production without proper migration
+- Skip the migration process "just this once"
+
+✅ **Always**:
+- Create a migration for every schema change
+- Test migrations locally first
+- Apply via CI/CD or `supabase migration up --linked`
+
+### 2. Every DB Change = Migration
+
+All schema changes must go through migrations:
+
+```bash
+# Create migration
+supabase migration new descriptive_name
+
+# Edit migration file
+# Apply locally
+supabase migration up
+
+# Test
+pnpm run test:rls
+
+# Commit
+git add supabase/migrations/
+git commit -m "feat(db): descriptive change"
+```
+
+### 3. Run Guard Scripts
+
+Run verification before committing:
+
+```bash
+# Before commit
+ENV_NAME=local scripts/verify-schema.sh
+
+# Or use pre-commit hook (automatic)
+git config core.hooksPath .githooks
+```
+
+### 4. Monitor CI/CD
+
+- ✅ Ensure `db-guard.yml` passes on all PRs
+- ✅ Review schema.sql changes in PRs
+- ✅ Check `supabase-deploy.yml` succeeds on merge
+
+### 5. Regular Maintenance
+
+```bash
+# Weekly: Check migration status
+supabase migration list
+
+# Weekly: Verify no drift
+ENV_NAME=staging scripts/verify-schema.sh
+
+# Monthly: Review unused indexes
+# Monthly: Check slow queries
+```
+
 ## 🔗 Related Documentation
 
 - [Ground Rules](GROUND_RULES.md) - Database standards enforcement
@@ -740,8 +889,9 @@ Error: new row violates row-level security policy
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [Supabase Database Documentation](https://supabase.com/docs/guides/database)
 - [pgTAP Testing Framework](https://pgtap.org/)
+- [Supabase CLI Reference](https://supabase.com/docs/reference/cli)
 
 ---
 
-**Last Updated**: 2025-10-29  
+**Last Updated**: 2025-10-30  
 **Maintainers**: Database Team
