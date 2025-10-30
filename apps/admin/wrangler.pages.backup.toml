@@ -2,7 +2,7 @@
 # Domain: adminsacco.ikanisa.com
 
 name = "ibimina-admin"
-compatibility_date = "2024-10-01"
+compatibility_date = "2025-10-30"
 pages_build_output_dir = ".vercel/output/static"
 
 # Custom domain configuration
@@ -12,7 +12,7 @@ pages_build_output_dir = ".vercel/output/static"
 # ]
 
 [build]
-command = "pnpm install --frozen-lockfile && pnpm --filter @ibimina/admin build"
+command = "pnpm install --frozen-lockfile && pnpm --filter @ibimina/admin build:cloudflare"
 
 [observability]
 enabled = true

@@ -1,23 +1,23 @@
-# Cloudflare Pages configuration for Client App
-# Domain: sacco.ikanisa.com
+# Cloudflare Pages configuration for Admin App
+# Domain: adminsacco.ikanisa.com
 
-name = "ibimina-client"
+name = "ibimina-admin"
 compatibility_date = "2025-10-30"
 pages_build_output_dir = ".vercel/output/static"
 
 # Custom domain configuration
 # Set this in Cloudflare dashboard or via wrangler CLI
 # routes = [
-#   { pattern = "sacco.ikanisa.com", custom_domain = true }
+#   { pattern = "adminsacco.ikanisa.com", custom_domain = true }
 # ]
 
 [build]
-command = "pnpm install --frozen-lockfile && pnpm --filter @ibimina/client build:cloudflare"
+command = "pnpm install --frozen-lockfile && pnpm --filter @ibimina/admin build:cloudflare"
 
 [observability]
 enabled = true
 
-# Node.js compatibility for API routes
+# Node.js compatibility for API routes and server-side code
 compatibility_flags = ["nodejs_compat"]
 
 # Environment variables for build time (non-sensitive)

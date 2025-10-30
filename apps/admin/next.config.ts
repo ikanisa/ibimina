@@ -87,9 +87,13 @@ try {
 }
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Use standalone for Docker/Node deployments, but not for Cloudflare
+  output: process.env.CLOUDFLARE_BUILD === "1" ? undefined : "standalone",
   reactStrictMode: true,
-  outputFileTracingRoot: path.join(__dirname, "../../"),
+  // Only use outputFileTracingRoot for standalone builds
+  ...(process.env.CLOUDFLARE_BUILD !== "1" && {
+    outputFileTracingRoot: path.join(__dirname, "../../"),
+  }),
   env: {
     NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
   },
@@ -116,6 +120,7 @@ const nextConfig: NextConfig = {
   },
   // Enable Turbopack for Next.js 16
   turbopack: {
+    // Always use monorepo root to find dependencies
     root: path.join(__dirname, "../../"),
   },
   async headers() {

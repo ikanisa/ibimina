@@ -22,10 +22,12 @@
     "check:flags": "node scripts/check-feature-flags.mjs",
     "check:deploy": "pnpm run check:flags && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse",
     "validate:production": "bash scripts/validate-production-readiness.sh",
+    "validate:cloudflare": "bash scripts/validate-cloudflare-deployment.sh",
     "prepare": "husky"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",
+    "@cloudflare/workers-types": "^4.20241127.0",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@types/node": "20.19.21",
