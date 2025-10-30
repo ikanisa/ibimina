@@ -28,6 +28,8 @@ semantic SACCO search.
   troubleshooting
 - [**docs/DB_GUIDE.md**](docs/DB_GUIDE.md) - Database procedures and migration
   guide
+- [**docs/SCHEMA_VERIFICATION.md**](docs/SCHEMA_VERIFICATION.md) - Schema drift
+  detection and verification system
 - [**docs/ENV_VARIABLES.md**](docs/ENV_VARIABLES.md) - Complete environment
   variables reference
 - [**packages/README.md**](packages/README.md) - Shared packages documentation
