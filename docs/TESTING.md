@@ -1,10 +1,12 @@
 # Testing Guide
 
-This document describes the testing approach, conventions, and infrastructure for the Ibimina monorepo.
+This document describes the testing approach, conventions, and infrastructure
+for the Ibimina monorepo.
 
 ## Overview
 
 The project uses a comprehensive testing strategy covering:
+
 - **Unit tests**: Testing individual functions and modules in isolation
 - **Integration tests**: Testing interactions between components and services
 - **End-to-end (E2E) tests**: Testing complete user workflows (admin app only)
@@ -12,7 +14,10 @@ The project uses a comprehensive testing strategy covering:
 ## Test Infrastructure
 
 ### Test Runner
-We use Node.js's built-in test runner (`node:test`) with TypeScript support via `tsx`:
+
+We use Node.js's built-in test runner (`node:test`) with TypeScript support via
+`tsx`:
+
 - Fast and lightweight
 - No additional dependencies beyond tsx
 - Native TypeScript support
@@ -72,6 +77,7 @@ packages/
 ```
 
 ### Naming Convention
+
 - Unit test files: `*.test.ts`
 - E2E test files: `*.spec.ts`
 - Test files should be placed in a `tests/` directory parallel to `src/`
@@ -80,9 +86,11 @@ packages/
 
 ### Unit Tests
 
-Unit tests focus on testing individual functions in isolation by mocking dependencies.
+Unit tests focus on testing individual functions in isolation by mocking
+dependencies.
 
 **Example: Testing a utility function**
+
 ```typescript
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -102,6 +110,7 @@ describe("cn utility", () => {
 ```
 
 **Example: Testing with mocked fetch**
+
 ```typescript
 import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
@@ -132,9 +141,11 @@ describe("invokeEdge", () => {
 
 ### Integration Tests
 
-Integration tests validate interactions between multiple components with minimal mocking.
+Integration tests validate interactions between multiple components with minimal
+mocking.
 
 **Example: Worker integration test**
+
 ```typescript
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
@@ -159,7 +170,7 @@ describe("MoMo poller worker integration", () => {
 
   it("invokes edge function and queries polling status", async () => {
     const { runMomoPoller } = await import("../../src/workers/momo-poller.js");
-    
+
     globalThis.fetch = async (input, init) => {
       if (input.toString().includes("momo-statement-poller")) {
         return new Response(JSON.stringify({ success: true }));
@@ -178,6 +189,7 @@ describe("MoMo poller worker integration", () => {
 E2E tests use Playwright to test complete user workflows in the admin app.
 
 **Example: E2E test**
+
 ```typescript
 import { test, expect } from "@playwright/test";
 
@@ -193,29 +205,38 @@ test("user can login", async ({ page }) => {
 ## Best Practices
 
 ### General
-1. **Test behavior, not implementation**: Focus on what the code does, not how it does it
+
+1. **Test behavior, not implementation**: Focus on what the code does, not how
+   it does it
 2. **One assertion per test**: Keep tests focused and easy to debug
-3. **Descriptive test names**: Use clear, descriptive names that explain what is being tested
-4. **Arrange-Act-Assert**: Structure tests with clear setup, execution, and verification phases
+3. **Descriptive test names**: Use clear, descriptive names that explain what is
+   being tested
+4. **Arrange-Act-Assert**: Structure tests with clear setup, execution, and
+   verification phases
 
 ### Mocking
+
 1. **Mock external dependencies**: Mock fetch, database calls, and external APIs
 2. **Reset mocks after each test**: Use `afterEach` to clean up global state
-3. **Minimal mocking in integration tests**: Only mock truly external dependencies
+3. **Minimal mocking in integration tests**: Only mock truly external
+   dependencies
 
 ### Test Data
+
 1. **Use realistic test data**: Use data that resembles production data
 2. **Avoid hardcoded IDs**: Use meaningful identifiers in tests
 3. **Clean up test data**: Reset state between tests
 
 ### Performance
+
 1. **Keep unit tests fast**: Unit tests should run in milliseconds
 2. **Parallelize when possible**: Tests should be independent and parallelizable
 3. **Use timeouts appropriately**: Set reasonable timeouts for async operations
 
 ## CI/CD Integration
 
-Tests are automatically run in CI/CD pipelines on every push and pull request. The CI workflow (`.github/workflows/ci.yml`) includes:
+Tests are automatically run in CI/CD pipelines on every push and pull request.
+The CI workflow (`.github/workflows/ci.yml`) includes:
 
 ```yaml
 - name: Unit tests
@@ -237,17 +258,19 @@ See `.github/workflows/ci.yml` for the complete CI configuration.
 
 ### Current Coverage (as of this PR)
 
-| Package | Unit Tests | Integration Tests | E2E Tests | Total |
-|---------|-----------|-------------------|-----------|-------|
-| admin | 65 | Yes (auth, RLS) | 6 specs | 65+ |
-| platform-api | 10 | 5 | - | 15 |
-| client | 8 | - | - | 8 |
-| ui | 14 | - | - | 14 |
-| **Total** | **97** | **5+** | **6** | **102+** |
+| Package      | Unit Tests | Integration Tests | E2E Tests | Total    |
+| ------------ | ---------- | ----------------- | --------- | -------- |
+| admin        | 65         | Yes (auth, RLS)   | 6 specs   | 65+      |
+| platform-api | 10         | 5                 | -         | 15       |
+| client       | 8          | -                 | -         | 8        |
+| ui           | 14         | -                 | -         | 14       |
+| **Total**    | **97**     | **5+**            | **6**     | **102+** |
 
-*Note: These are actual test counts as implemented. The "+" indicates additional tests in integration/e2e suites that aren't counted individually.*
+_Note: These are actual test counts as implemented. The "+" indicates additional
+tests in integration/e2e suites that aren't counted individually._
 
 ### Coverage Goals
+
 - **Unit tests**: Aim for >80% coverage of utility functions and business logic
 - **Integration tests**: Cover critical workflows and service interactions
 - **E2E tests**: Cover main user journeys and critical paths
@@ -257,16 +280,19 @@ See `.github/workflows/ci.yml` for the complete CI configuration.
 ### Common Issues
 
 **Tests fail with module resolution errors**
+
 - Ensure `tsx` is installed: `pnpm add -D tsx`
 - Check that `tsconfig.json` has correct `moduleResolution` settings
 - Use `.js` extensions in imports for ES modules
 
 **Tests timeout**
+
 - Increase timeout in async tests: `{ timeout: 5000 }`
 - Check for unhandled promises
 - Ensure mocks are properly configured
 
 **State leaks between tests**
+
 - Use `beforeEach`/`afterEach` to reset global state
 - Don't rely on test execution order
 - Clear environment variables and mocks
@@ -280,6 +306,7 @@ See `.github/workflows/ci.yml` for the complete CI configuration.
 ## Contributing
 
 When adding new features:
+
 1. Write tests first (TDD approach recommended)
 2. Ensure tests pass locally before committing
 3. Add integration tests for new API endpoints or workflows

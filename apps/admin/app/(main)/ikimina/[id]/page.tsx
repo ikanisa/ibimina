@@ -17,7 +17,9 @@ export default async function IkiminaDetailPage({ params }: PageProps) {
   const { data: group, error } = await supabase
     .schema("app")
     .from("ikimina")
-    .select("id, name, code, status, type, sacco_id, settings_json")
+    .select(
+      "id, name, code, status, type, sacco_id, settings_json, saccos(name, district, province)"
+    )
     .eq("id", id)
     .maybeSingle();
 

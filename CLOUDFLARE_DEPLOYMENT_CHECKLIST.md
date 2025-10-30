@@ -333,13 +333,13 @@ If issues occur, refer to:
 
 ## Sign-Off
 
-- [ ] Technical lead approved: ******\_\_\_\_****** Date: **\_\_\_\_**
-- [ ] Security review completed: ******\_\_****** Date: **\_\_\_\_**
-- [ ] Product owner approved: ******\_\_\_\_****** Date: **\_\_\_\_**
+- [ ] Technical lead approved: **\*\***\_\_\_\_**\*\*** Date: **\_\_\_\_**
+- [ ] Security review completed: **\*\***\_\_**\*\*** Date: **\_\_\_\_**
+- [ ] Product owner approved: **\*\***\_\_\_\_**\*\*** Date: **\_\_\_\_**
 
 ---
 
-**Deployment Date**: ******\_\_\_\_******  
-**Deployed By**: ******\_\_\_\_******  
-**Deployment ID**: ******\_\_\_\_******  
-**Notes**: **********************\_\_\_\_**********************
+**Deployment Date**: **\*\***\_\_\_\_**\*\***  
+**Deployed By**: **\*\***\_\_\_\_**\*\***  
+**Deployment ID**: **\*\***\_\_\_\_**\*\***  
+**Notes**: \***\*\*\*\*\***\*\*\***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***\*\*\***\*\*\*\*\***

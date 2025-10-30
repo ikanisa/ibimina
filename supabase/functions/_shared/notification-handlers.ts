@@ -209,23 +209,35 @@ export const processWhatsappJob = async (
   if (["INVITE_ACCEPTED", "JOIN_APPROVED", "PAYMENT_CONFIRMED"].includes(job.event)) {
     const recipient = ensureRecipient(job.payload["to"]);
     if (!recipient) {
-      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", { reason: "missing_recipient", event: job.event });
+      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", {
+        reason: "missing_recipient",
+        event: job.event,
+      });
       return { type: "failed", detail: "missing_recipient" };
     }
 
     const templateId = job.template_id;
     if (!templateId) {
-      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", { reason: "missing_template", event: job.event });
+      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", {
+        reason: "missing_template",
+        event: job.event,
+      });
       return { type: "failed", detail: "missing_template" };
     }
 
     const template = await deps.fetchTemplate(templateId);
     if (!template) {
-      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", { reason: "template_not_found", templateId, event: job.event });
+      await ensureAudit("NOTIFICATION_WHATSAPP_FAILED", {
+        reason: "template_not_found",
+        templateId,
+        event: job.event,
+      });
       return { type: "failed", detail: "template_not_found" };
     }
 
-    const allowed = await deps.rateLimit(`whatsapp:${recipient}`, { route: "notifications:whatsapp" });
+    const allowed = await deps.rateLimit(`whatsapp:${recipient}`, {
+      route: "notifications:whatsapp",
+    });
     if (!allowed) {
       await ensureAudit("NOTIFICATION_WHATSAPP_RATE_LIMIT", { to: recipient, event: job.event });
       return resolveRetry(job, "rate_limited", now);
@@ -244,7 +256,9 @@ export const processWhatsappJob = async (
         retryable: shouldRetry,
         event: job.event,
       });
-      return shouldRetry ? resolveRetry(job, "upstream_error", now) : { type: "failed", detail: "send_failed" };
+      return shouldRetry
+        ? resolveRetry(job, "upstream_error", now)
+        : { type: "failed", detail: "send_failed" };
     }
 
     await ensureAudit("NOTIFICATION_WHATSAPP_SENT", { to: recipient, event: job.event });

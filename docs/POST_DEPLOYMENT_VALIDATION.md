@@ -13,8 +13,8 @@
   curl -i https://your-domain.com/api/health
   # Expected: HTTP 200, JSON with status: "ok"
   ```
-  
 - [ ] Response includes correct version/commit
+
   ```bash
   curl -s https://your-domain.com/api/health | jq '.version, .commit'
   ```
@@ -32,6 +32,7 @@
   - Query response times normal (<100ms)
 
 - [ ] Supabase connection working
+
   ```bash
   curl -i https://your-project.supabase.co/rest/v1/
   # Expected: HTTP 200
@@ -46,12 +47,14 @@
 ### 3. SSL/TLS Configuration
 
 - [ ] HTTPS enforced (HTTP redirects to HTTPS)
+
   ```bash
   curl -I http://your-domain.com/
   # Expected: 301 or 302 redirect to https://
   ```
 
 - [ ] SSL certificate valid
+
   ```bash
   echo | openssl s_client -connect your-domain.com:443 -servername your-domain.com 2>/dev/null | openssl x509 -noout -dates
   ```
@@ -91,6 +94,7 @@
 ### 5. Core User Journeys
 
 #### Dashboard Access
+
 - [ ] Dashboard loads successfully
   - Visit: `https://your-domain.com/dashboard`
   - Metrics display correctly
@@ -98,6 +102,7 @@
   - Charts/graphs render
 
 #### SACCO Search & Navigation
+
 - [ ] Global search works
   - Open command palette (Cmd/Ctrl + K)
   - Search for a SACCO name
@@ -110,6 +115,7 @@
   - Filters function
 
 #### Ikimina (Groups)
+
 - [ ] Ikimina list displays
   - Groups load correctly
   - Member counts accurate
@@ -121,6 +127,7 @@
   - Analytics display
 
 #### Payments & Reconciliation
+
 - [ ] Payment list loads
   - Recent payments visible
   - Filters work
@@ -132,6 +139,7 @@
   - Actions available (mark posted, etc.)
 
 #### Reports
+
 - [ ] Reports page loads
   - Report types listed
   - Date range picker works
@@ -143,6 +151,7 @@
   - Report downloads successfully
 
 #### Admin Panel
+
 - [ ] Admin section accessible (for admin users)
   - Settings load
   - User management accessible
@@ -155,6 +164,7 @@
   - Service worker active and running
 
 - [ ] PWA manifest accessible
+
   ```bash
   curl -I https://your-domain.com/manifest.json
   # Expected: HTTP 200, Content-Type: application/json
@@ -165,6 +175,7 @@
   - Installation works
 
 - [ ] PWA icons load correctly
+
   ```bash
   curl -I https://your-domain.com/icons/icon-192.png
   curl -I https://your-domain.com/icons/icon-512.png
@@ -203,6 +214,7 @@
   - Detail pages: < 1 second
 
 - [ ] API response times normal
+
   ```bash
   time curl -s https://your-domain.com/api/health
   # Should be < 500ms
@@ -237,6 +249,7 @@
 ### 10. Error Monitoring
 
 - [ ] No errors in application logs
+
   ```bash
   # Check recent logs (last 100 lines)
   pm2 logs --lines 100 | grep -i error
@@ -266,6 +279,7 @@
   ```
 
 Expected headers:
+
 - `Strict-Transport-Security: max-age=31536000; includeSubDomains`
 - `X-Frame-Options: DENY`
 - `X-Content-Type-Options: nosniff`
@@ -381,18 +395,19 @@ Expected headers:
 
 ## Sign-Off
 
-| Check | Status | Notes | Verified By | Time |
-|-------|--------|-------|-------------|------|
-| Application Health | ☐ Pass ☐ Fail | | | |
-| Authentication | ☐ Pass ☐ Fail | | | |
-| Core Features | ☐ Pass ☐ Fail | | | |
-| Performance | ☐ Pass ☐ Fail | | | |
-| Security | ☐ Pass ☐ Fail | | | |
-| Monitoring | ☐ Pass ☐ Fail | | | |
+| Check              | Status        | Notes | Verified By | Time |
+| ------------------ | ------------- | ----- | ----------- | ---- |
+| Application Health | ☐ Pass ☐ Fail |       |             |      |
+| Authentication     | ☐ Pass ☐ Fail |       |             |      |
+| Core Features      | ☐ Pass ☐ Fail |       |             |      |
+| Performance        | ☐ Pass ☐ Fail |       |             |      |
+| Security           | ☐ Pass ☐ Fail |       |             |      |
+| Monitoring         | ☐ Pass ☐ Fail |       |             |      |
 
 **Overall Status**: ☐ PASS ☐ FAIL ☐ PASS WITH ISSUES
 
 **Deployment Notes**:
+
 ```
 _____________________________________________________________________________
 _____________________________________________________________________________
@@ -400,46 +415,58 @@ _____________________________________________________________________________
 ```
 
 **Action Items** (if any):
-- [ ] _________________________________________________________
-- [ ] _________________________________________________________
-- [ ] _________________________________________________________
 
-**Approved For Production**: _________________ Date: ____________
+- [ ] ***
+- [ ] ***
+- [ ] ***
+
+**Approved For Production**: **\*\*\*\***\_**\*\*\*\***
+Date: \***\*\_\_\_\_\*\***
 
 ---
 
 ## Troubleshooting Common Issues
 
 ### Issue: Health check fails
-**Solution**: 
+
+**Solution**:
+
 1. Check application logs
 2. Verify environment variables
 3. Check database connectivity
 4. Restart application if needed
 
 ### Issue: Authentication not working
+
 **Solution**:
+
 1. Verify MFA secrets set correctly
 2. Check MFA_RP_ID matches domain
 3. Check Supabase credentials
 4. Clear browser cache/cookies
 
 ### Issue: PWA not installing
+
 **Solution**:
+
 1. Verify HTTPS enabled
 2. Check manifest.json accessible
 3. Verify service worker registered
 4. Check browser console for errors
 
 ### Issue: Slow performance
+
 **Solution**:
+
 1. Check database query performance
 2. Verify caching working
 3. Check connection pool
 4. Review server resources
 
 ### Issue: Data not displaying
+
 **Solution**:
+
 1. Check database migrations applied
 2. Verify RLS policies correct
 3. Check API responses
@@ -450,17 +477,20 @@ _____________________________________________________________________________
 ## Post-Deployment Monitoring Schedule
 
 **First Hour**:
+
 - Check metrics every 5 minutes
 - Monitor error logs continuously
 - Watch for user reports
 
 **First 24 Hours**:
+
 - Check metrics every 30 minutes
 - Review logs every 2 hours
 - Monitor performance trends
 - Track error rates
 
 **First Week**:
+
 - Daily metrics review
 - Compare to baseline
 - Track user feedback
@@ -472,9 +502,9 @@ _____________________________________________________________________________
 
 **Test Users** (for validation only - deactivate after deployment):
 
-| Username | Role | Purpose |
-|----------|------|---------|
-| test.staff@example.com | Staff | Basic staff access testing |
+| Username               | Role  | Purpose                     |
+| ---------------------- | ----- | --------------------------- |
+| test.staff@example.com | Staff | Basic staff access testing  |
 | test.admin@example.com | Admin | Admin functionality testing |
 
 **Note**: Deactivate or remove test accounts after validation is complete.

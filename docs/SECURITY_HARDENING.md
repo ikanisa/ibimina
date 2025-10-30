@@ -16,6 +16,7 @@
 - [ ] Emergency secret rotation procedure documented
 
 **Verify**:
+
 ```bash
 # Ensure no secrets in git history
 git log --all --full-history -- .env*
@@ -45,6 +46,7 @@ grep -E "\.env|secrets|\.pem|\.key" .gitignore
 - [ ] TLS 1.2+ enforced for all connections
 
 **Verify**:
+
 ```sql
 -- Check that sensitive fields are encrypted (appear as ciphertext)
 SELECT msisdn, national_id FROM members LIMIT 5;
@@ -69,6 +71,7 @@ SELECT msisdn_hash, national_id_hash FROM members LIMIT 5;
 - [ ] No shared accounts (each user has unique credentials)
 
 **Verify**:
+
 ```bash
 # Check MFA configuration
 echo $MFA_SESSION_SECRET | wc -c  # Should be 64 (32 bytes hex = 64 chars)
@@ -91,6 +94,7 @@ echo $MFA_ORIGIN  # Should be https://your-domain.com
 - [ ] Anonymous access disabled or severely restricted
 
 **Verify**:
+
 ```sql
 -- Check RLS is enabled on all tables
 SELECT schemaname, tablename, rowsecurity
@@ -126,6 +130,7 @@ ORDER BY policy_count;
   - [ ] Infrastructure level (CloudFlare, AWS WAF, etc.)
 
 **Verify**:
+
 ```bash
 # Test HTTPS enforcement
 curl -I http://your-domain.com
@@ -153,6 +158,7 @@ All security headers must be present and properly configured:
 - [ ] `X-XSS-Protection: 1; mode=block` (for older browsers)
 
 **Verify**:
+
 ```bash
 # Check all security headers
 curl -I https://your-domain.com/ | grep -E "Strict-Transport-Security|X-Frame-Options|X-Content-Type-Options|Content-Security-Policy|Referrer-Policy|Permissions-Policy"
@@ -161,6 +167,7 @@ curl -I https://your-domain.com/ | grep -E "Strict-Transport-Security|X-Frame-Op
 ```
 
 **Expected headers**:
+
 ```
 Strict-Transport-Security: max-age=31536000; includeSubDomains
 X-Frame-Options: DENY
@@ -183,6 +190,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 - [ ] CSP tested in report-only mode before enforcing
 
 **Verify**:
+
 ```bash
 # Get CSP header
 curl -I https://your-domain.com/ | grep Content-Security-Policy
@@ -205,6 +213,7 @@ curl -I https://your-domain.com/ | grep Content-Security-Policy | grep -E "unsaf
 - [ ] Rate limit counters monitored
 
 **Verify**:
+
 ```bash
 # Test rate limiting (should get 429 after threshold)
 for i in {1..10}; do
@@ -234,6 +243,7 @@ done
 - [ ] Anomalous activity alerts configured
 
 **Verify**:
+
 ```sql
 -- Check audit logging is working
 SELECT COUNT(*) FROM audit_logs WHERE created_at > NOW() - INTERVAL '1 day';
@@ -262,6 +272,7 @@ FROM audit_logs;
 - [ ] License compliance verified
 
 **Verify**:
+
 ```bash
 # Check for vulnerabilities
 pnpm audit --audit-level=moderate
@@ -291,10 +302,11 @@ cat renovate.json
 - [ ] API input size limits enforced
 
 **Verify**:
+
 ```typescript
 // Check that Supabase queries use parameterized queries
 // Example: ✅ Good
-supabase.from('users').select('*').eq('id', userId)
+supabase.from("users").select("*").eq("id", userId);
 
 // Example: ❌ Bad (never do this)
 // supabase.raw(`SELECT * FROM users WHERE id = ${userId}`)
@@ -312,6 +324,7 @@ supabase.from('users').select('*').eq('id', userId)
 - [ ] Logout invalidates session completely
 
 **Verify**:
+
 ```bash
 # Check cookie attributes
 curl -c cookies.txt https://your-domain.com/login
@@ -331,6 +344,7 @@ cat cookies.txt
 - [ ] Error logging doesn't include sensitive data
 
 **Verify**:
+
 ```bash
 # Test error pages
 curl https://your-domain.com/nonexistent-page
@@ -353,6 +367,7 @@ curl https://your-domain.com/nonexistent-page
 - [ ] Database monitoring enabled
 
 **Verify**:
+
 ```bash
 # Attempt to connect to database from external IP
 psql "postgresql://user:pass@your-db-host:5432/dbname"
@@ -374,6 +389,7 @@ psql $DATABASE_URL -c "SHOW ssl;"
 - [ ] Sensitive operations require additional authentication (e.g., MFA)
 
 **Verify**:
+
 ```bash
 # Test CORS configuration
 curl -H "Origin: https://malicious-site.com" \
@@ -394,8 +410,8 @@ curl https://your-domain.com/api/protected-endpoint
 - [ ] HMAC signatures used for webhook verification
   ```typescript
   // Example: verify Supabase edge function webhook
-  const signature = headers.get('x-signature');
-  const timestamp = headers.get('x-timestamp');
+  const signature = headers.get("x-signature");
+  const timestamp = headers.get("x-timestamp");
   // Verify signature matches HMAC(secret, timestamp + body)
   ```
 - [ ] Third-party services use minimum required permissions
@@ -403,6 +419,7 @@ curl https://your-domain.com/api/protected-endpoint
 - [ ] Fallback/circuit breaker for third-party failures
 
 **Verify**:
+
 ```bash
 # Check webhook signature validation exists
 grep -r "x-signature" apps/admin/
@@ -428,6 +445,7 @@ echo $HMAC_SHARED_SECRET | wc -c
 - [ ] fail2ban or similar intrusion prevention installed
 
 **Verify**:
+
 ```bash
 # Check for outdated packages
 sudo apt update && sudo apt list --upgradable
@@ -454,6 +472,7 @@ find /path/to/app -perm -002
 - [ ] Docker daemon secured (TLS, socket permissions)
 
 **Verify**:
+
 ```bash
 # Scan image for vulnerabilities
 docker scan your-image:tag
@@ -481,6 +500,7 @@ docker history your-image:tag
 - [ ] Logs forwarded to SIEM (if applicable)
 
 **Verify**:
+
 ```bash
 # Test security alert (trigger failed logins)
 for i in {1..10}; do
@@ -547,24 +567,25 @@ done
 
 ### 25. Security Checklist Sign-Off
 
-| Security Domain | Status | Verified By | Date | Notes |
-|----------------|---------|-------------|------|-------|
-| Secrets Management | ☐ | _______ | _______ | _______ |
-| Encryption | ☐ | _______ | _______ | _______ |
-| Authentication | ☐ | _______ | _______ | _______ |
-| RLS Policies | ☐ | _______ | _______ | _______ |
-| Network Security | ☐ | _______ | _______ | _______ |
-| Security Headers | ☐ | _______ | _______ | _______ |
-| Rate Limiting | ☐ | _______ | _______ | _______ |
-| Audit Logging | ☐ | _______ | _______ | _______ |
-| Dependencies | ☐ | _______ | _______ | _______ |
-| Database Security | ☐ | _______ | _______ | _______ |
-| API Security | ☐ | _______ | _______ | _______ |
-| Server Hardening | ☐ | _______ | _______ | _______ |
-| Monitoring | ☐ | _______ | _______ | _______ |
-| Compliance | ☐ | _______ | _______ | _______ |
+| Security Domain    | Status | Verified By | Date       | Notes      |
+| ------------------ | ------ | ----------- | ---------- | ---------- |
+| Secrets Management | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Encryption         | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Authentication     | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| RLS Policies       | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Network Security   | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Security Headers   | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Rate Limiting      | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Audit Logging      | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Dependencies       | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Database Security  | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| API Security       | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Server Hardening   | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Monitoring         | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
+| Compliance         | ☐      | **\_\_\_**  | **\_\_\_** | **\_\_\_** |
 
-**Final Security Approval**: _____________________ Date: _________
+**Final Security Approval**: \***\*\*\*\*\***\_\***\*\*\*\*\***
+Date: \***\*\_\*\***
 
 ---
 
@@ -610,4 +631,5 @@ echo "=== Security Check Complete ==="
 
 ---
 
-**Remember**: Security is an ongoing process, not a one-time checklist. Review and update security measures regularly.
+**Remember**: Security is an ongoing process, not a one-time checklist. Review
+and update security measures regularly.

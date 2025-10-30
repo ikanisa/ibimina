@@ -1,15 +1,15 @@
 /**
  * SACCO Add API Route Handler
- * 
+ *
  * POST /api/saccos/add
- * 
+ *
  * This route allows authenticated users to add a SACCO to their profile.
  * The association is stored in the user_saccos table, enabling users to
  * view groups from SACCOs they've added.
- * 
+ *
  * Request body:
  * - sacco_id: string (required) - UUID of the SACCO to add
- * 
+ *
  * Response:
  * - 201: SACCO added successfully
  * - 400: Invalid request body or validation error
@@ -17,17 +17,17 @@
  * - 404: SACCO not found
  * - 409: SACCO already added by this user
  * - 500: Server error during addition
- * 
+ *
  * Security:
  * - Requires valid Supabase session (authenticated user)
  * - Row Level Security (RLS) policies enforce user can only add to their own profile
  * - Input validation using Zod schema
  * - Prevents duplicate associations
- * 
+ *
  * Database:
  * - Table: public.user_saccos
  * - RLS Policy: "Members manage their SACCO list"
- * 
+ *
  * @accessibility
  * - Returns clear success/error messages for user feedback
  * - Supports status announcements for screen readers
@@ -48,7 +48,7 @@ const addSaccoSchema = z.object({
 /**
  * POST handler for adding a SACCO to user's profile
  * Creates an association between the authenticated user and a SACCO
- * 
+ *
  * @param request - Next.js request object
  * @returns JSON response with success status or error
  */
@@ -58,13 +58,16 @@ export async function POST(request: Request) {
     const supabase = await createSupabaseServerClient();
 
     // Verify user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       return NextResponse.json(
         {
           error: "Authentication required",
-          details: "Please sign in to add a SACCO"
+          details: "Please sign in to add a SACCO",
         },
         { status: 401 }
       );
@@ -78,7 +81,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "Invalid request data",
-          details: validationResult.error.errors.map(e => e.message).join(", ")
+          details: validationResult.error.errors.map((e) => e.message).join(", "),
         },
         { status: 400 }
       );
@@ -98,7 +101,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "SACCO not found",
-          details: "The specified SACCO does not exist"
+          details: "The specified SACCO does not exist",
         },
         { status: 404 }
       );
@@ -108,7 +111,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "SACCO not active",
-          details: "This SACCO is not currently accepting new members"
+          details: "This SACCO is not currently accepting new members",
         },
         { status: 400 }
       );
@@ -127,7 +130,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "SACCO already added",
-          details: "You have already added this SACCO to your profile"
+          details: "You have already added this SACCO to your profile",
         },
         { status: 409 }
       );
@@ -150,7 +153,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "Failed to add SACCO",
-          details: insertError.message
+          details: insertError.message,
         },
         { status: 500 }
       );
@@ -170,13 +173,12 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-
   } catch (error) {
     console.error("Add SACCO error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "An unexpected error occurred"
+        details: error instanceof Error ? error.message : "An unexpected error occurred",
       },
       { status: 500 }
     );
