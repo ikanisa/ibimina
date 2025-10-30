@@ -20,7 +20,7 @@ interface InviteRequestBody {
   email: string;
   role: AllowedRole;
   saccoId?: string | null; // legacy
-  org_type?: 'SACCO' | 'MFI' | 'DISTRICT' | null;
+  org_type?: "SACCO" | "MFI" | "DISTRICT" | null;
   org_id?: string | null;
 }
 
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     let requestedOrgId = body?.org_id ?? null;
     const saccoIdLegacy = body?.saccoId || null;
     if (!requestedType && saccoIdLegacy) {
-      requestedType = 'SACCO';
+      requestedType = "SACCO";
       requestedOrgId = saccoIdLegacy;
     }
 
@@ -101,19 +101,29 @@ Deno.serve(async (req) => {
       });
     }
 
-    const requiresSacco = role === 'SACCO_MANAGER' || role === 'SACCO_STAFF' || role === 'SACCO_VIEWER';
-    const requiresDistrict = role === 'DISTRICT_MANAGER';
-    const requiresMfi = role === 'MFI_MANAGER' || role === 'MFI_STAFF';
+    const requiresSacco =
+      role === "SACCO_MANAGER" || role === "SACCO_STAFF" || role === "SACCO_VIEWER";
+    const requiresDistrict = role === "DISTRICT_MANAGER";
+    const requiresMfi = role === "MFI_MANAGER" || role === "MFI_STAFF";
 
-    if (role !== 'SYSTEM_ADMIN') {
-      if (requiresSacco && (requestedType !== 'SACCO' || !requestedOrgId)) {
-        return new Response(JSON.stringify({ error: "SACCO assignment required for this role" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (role !== "SYSTEM_ADMIN") {
+      if (requiresSacco && (requestedType !== "SACCO" || !requestedOrgId)) {
+        return new Response(JSON.stringify({ error: "SACCO assignment required for this role" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-      if (requiresDistrict && (requestedType !== 'DISTRICT' || !requestedOrgId)) {
-        return new Response(JSON.stringify({ error: "District assignment required for this role" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (requiresDistrict && (requestedType !== "DISTRICT" || !requestedOrgId)) {
+        return new Response(
+          JSON.stringify({ error: "District assignment required for this role" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
-      if (requiresMfi && (requestedType !== 'MFI' || !requestedOrgId)) {
-        return new Response(JSON.stringify({ error: "MFI assignment required for this role" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (requiresMfi && (requestedType !== "MFI" || !requestedOrgId)) {
+        return new Response(JSON.stringify({ error: "MFI assignment required for this role" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 
@@ -146,7 +156,10 @@ Deno.serve(async (req) => {
         const res = await serviceClient
           .schema("app")
           .from("org_memberships")
-          .upsert({ user_id: created.user.id, org_id: requestedOrgId, role }, { onConflict: "user_id,org_id" });
+          .upsert(
+            { user_id: created.user.id, org_id: requestedOrgId, role },
+            { onConflict: "user_id,org_id" }
+          );
         if (res.error) {
           console.warn("org_memberships upsert failed", res.error);
         }
@@ -203,7 +216,7 @@ Deno.serve(async (req) => {
       role,
       org_type: requestedType,
       org_id: requestedOrgId ?? null,
-      sacco_id: requiresSacco ? requestedOrgId ?? null : null,
+      sacco_id: requiresSacco ? (requestedOrgId ?? null) : null,
     };
 
     await serviceClient.schema("app").from("audit_logs").insert({

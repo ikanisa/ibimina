@@ -35,7 +35,9 @@ async function fetchIkiminaDirectory(
   const appSupabase = clients.app;
   const baseQuery = appSupabase
     .from("ikimina")
-    .select("id, name, code, status, type, sacco_id, created_at, updated_at")
+    .select(
+      "id, name, code, status, type, sacco_id, created_at, updated_at, saccos(name, district, province)"
+    )
     .order("updated_at", { ascending: false })
     .limit(500);
 
@@ -48,7 +50,7 @@ async function fetchIkiminaDirectory(
   }
 
   type IkiminaRow = Database["app"]["Tables"]["ikimina"]["Row"] & {
-    saccos: { name: string | null } | null;
+    saccos: { name: string | null; district: string | null; province: string | null } | null;
   };
 
   const rawRows = Array.isArray(data) ? (data as unknown as IkiminaRow[]) : [];

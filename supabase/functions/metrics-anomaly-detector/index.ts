@@ -406,7 +406,9 @@ const detectRateAnomalies = async (
       }
 
       const spikeThreshold =
-        baselineStd > 0 ? baselineMean + detector.zThreshold * baselineStd : baselineMean * detector.spikeMultiplier;
+        baselineStd > 0
+          ? baselineMean + detector.zThreshold * baselineStd
+          : baselineMean * detector.spikeMultiplier;
 
       if (
         baselineMean >= detector.minBaselineMean &&
@@ -437,7 +439,11 @@ const detectRateAnomalies = async (
           sampleWindowMinutes: detector.window * 5,
           type: "rate_spike",
         };
-      } else if (baselineStd === 0 && baselineMean > 0 && latestDelta >= baselineMean * detector.spikeMultiplier) {
+      } else if (
+        baselineStd === 0 &&
+        baselineMean > 0 &&
+        latestDelta >= baselineMean * detector.spikeMultiplier
+      ) {
         anomaly = {
           signal: detector.signal,
           event: detector.event,

@@ -2,24 +2,30 @@
 
 ## Completed Work
 
-This backend refactoring initiative successfully optimized database queries, simplified stored procedures, and improved shell scripts for better performance, security, and maintainability.
+This backend refactoring initiative successfully optimized database queries,
+simplified stored procedures, and improved shell scripts for better performance,
+security, and maintainability.
 
 ## Changes Made
 
 ### 1. Database Performance Optimizations
 
 #### New Migrations Created
+
 - `20251115100000_optimize_indexes_and_queries.sql` - Adds critical indexes
-- `20251115100100_optimize_account_balance_function.sql` - Optimizes account balance queries
+- `20251115100100_optimize_account_balance_function.sql` - Optimizes account
+  balance queries
 - `20251115100200_simplify_triggers.sql` - Simplifies trigger logic
 
 #### Indexes Added
-- **Ledger Entries**: 
+
+- **Ledger Entries**:
   - `idx_ledger_entries_debit_id` - Index on debit_id
   - `idx_ledger_entries_credit_id` - Index on credit_id
   - `idx_ledger_entries_debit_amount` - Composite index (debit_id, amount)
   - `idx_ledger_entries_credit_amount` - Composite index (credit_id, amount)
-  - `idx_ledger_entries_sacco_created` - Partial index (sacco_id, created_at DESC)
+  - `idx_ledger_entries_sacco_created` - Partial index (sacco_id, created_at
+    DESC)
 
 - **User Profiles**:
   - `idx_user_profiles_user_id` - Index on user_id
@@ -30,11 +36,14 @@ This backend refactoring initiative successfully optimized database queries, sim
   - `idx_payments_sacco_id` - Partial index on payments
 
 #### Function Optimizations
-- **account_balance**: Refactored to use UNION ALL pattern instead of OR condition
+
+- **account_balance**: Refactored to use UNION ALL pattern instead of OR
+  condition
   - Enables better index usage (separate index seeks instead of table scan)
   - Expected 60-80% performance improvement
 
 #### Trigger Improvements
+
 - **handle_public_user_insert**: Added error handling and logging
 - **set_updated_at**: Simplified implementation
 - **handle_new_auth_user**: Added resilient error handling
@@ -42,6 +51,7 @@ This backend refactoring initiative successfully optimized database queries, sim
 ### 2. Shell Script Enhancements
 
 #### Scripts Improved
+
 1. **db-reset.sh**: Database reset with enhanced error handling
 2. **test-rls.sh**: RLS test runner with summary statistics
 3. **postdeploy-verify.sh**: Deployment verification with comprehensive checks
@@ -50,6 +60,7 @@ This backend refactoring initiative successfully optimized database queries, sim
 6. **install_caddy_cloudflared.sh**: Dependency installation with validation
 
 #### Improvements Applied
+
 - ✅ Error trapping with line numbers and exit codes
 - ✅ Input validation for all parameters
 - ✅ Dependency checking before execution
@@ -64,6 +75,7 @@ This backend refactoring initiative successfully optimized database queries, sim
 ### 3. Testing & Documentation
 
 #### Tests Created
+
 - `supabase/tests/backend_optimization.test.sql`
   - Validates index creation
   - Tests function correctness
@@ -71,6 +83,7 @@ This backend refactoring initiative successfully optimized database queries, sim
   - Comprehensive coverage of all changes
 
 #### Documentation Created
+
 - `docs/BACKEND_REFACTORING_REPORT.md`
   - Detailed performance analysis
   - Expected improvements (80-90% faster)
@@ -81,14 +94,15 @@ This backend refactoring initiative successfully optimized database queries, sim
 
 ### Expected Improvements
 
-| Operation | Before | After | Improvement |
-|-----------|--------|-------|-------------|
-| Account balance calculation | 500-2000ms | 50-200ms | 80-90% |
-| Sacco-scoped queries | 300-1000ms | 30-100ms | 85-90% |
-| User profile lookups | 100-300ms | 10-30ms | 85-90% |
-| Aggregate deposits | 200-800ms | 20-80ms | 85-90% |
+| Operation                   | Before     | After    | Improvement |
+| --------------------------- | ---------- | -------- | ----------- |
+| Account balance calculation | 500-2000ms | 50-200ms | 80-90%      |
+| Sacco-scoped queries        | 300-1000ms | 30-100ms | 85-90%      |
+| User profile lookups        | 100-300ms  | 10-30ms  | 85-90%      |
+| Aggregate deposits          | 200-800ms  | 20-80ms  | 85-90%      |
 
 ### Scalability Benefits
+
 - Logarithmic scaling O(log n) vs linear O(n)
 - Supports 10x-100x growth with minimal degradation
 - Reduced I/O through better index coverage
@@ -97,6 +111,7 @@ This backend refactoring initiative successfully optimized database queries, sim
 ## Quality Metrics
 
 ### Code Quality
+
 - ✅ All shellcheck warnings resolved
 - ✅ Bash syntax validated for all scripts
 - ✅ SQL syntax validated for all migrations
@@ -104,12 +119,14 @@ This backend refactoring initiative successfully optimized database queries, sim
 - ✅ No security vulnerabilities (CodeQL clean)
 
 ### Testing Coverage
+
 - ✅ Index existence tests
 - ✅ Function correctness tests
 - ✅ Trigger validation tests
 - ✅ Comprehensive test suite created
 
 ### Documentation Quality
+
 - ✅ All functions have comments
 - ✅ All indexes have documentation
 - ✅ Migration files well-documented
@@ -126,6 +143,7 @@ This backend refactoring initiative successfully optimized database queries, sim
 ## Backward Compatibility
 
 All changes are **100% backward compatible**:
+
 - Function signatures unchanged
 - Indexes don't affect existing queries
 - Triggers maintain same behavior with better resilience
@@ -134,6 +152,7 @@ All changes are **100% backward compatible**:
 ## Deployment Guide
 
 ### Prerequisites
+
 - PostgreSQL database access
 - psql client installed
 - Appropriate database permissions
@@ -141,11 +160,13 @@ All changes are **100% backward compatible**:
 ### Migration Steps
 
 1. **Backup Database** (recommended)
+
    ```bash
    pg_dump $DATABASE_URL > backup_before_optimization.sql
    ```
 
 2. **Apply Migrations**
+
    ```bash
    psql $DATABASE_URL -f supabase/migrations/20251115100000_optimize_indexes_and_queries.sql
    psql $DATABASE_URL -f supabase/migrations/20251115100100_optimize_account_balance_function.sql
@@ -153,6 +174,7 @@ All changes are **100% backward compatible**:
    ```
 
 3. **Run Tests**
+
    ```bash
    psql $DATABASE_URL -f supabase/tests/backend_optimization.test.sql
    ```
@@ -165,6 +187,7 @@ All changes are **100% backward compatible**:
 ### Rollback Plan
 
 If needed, indexes can be dropped without data loss:
+
 ```sql
 DROP INDEX IF EXISTS app.idx_ledger_entries_debit_id;
 DROP INDEX IF EXISTS app.idx_ledger_entries_credit_id;
@@ -172,6 +195,7 @@ DROP INDEX IF EXISTS app.idx_ledger_entries_credit_id;
 ```
 
 To restore old function:
+
 ```sql
 -- Recreate from previous migration if needed
 ```
@@ -186,6 +210,7 @@ To restore old function:
 ## Files Changed
 
 ### New Files Created (10)
+
 1. `supabase/migrations/20251115100000_optimize_indexes_and_queries.sql`
 2. `supabase/migrations/20251115100100_optimize_account_balance_function.sql`
 3. `supabase/migrations/20251115100200_simplify_triggers.sql`
@@ -193,6 +218,7 @@ To restore old function:
 5. `docs/BACKEND_REFACTORING_REPORT.md`
 
 ### Files Modified (6)
+
 1. `apps/admin/scripts/db-reset.sh`
 2. `apps/admin/scripts/test-rls.sh`
 3. `apps/admin/scripts/postdeploy-verify.sh`
@@ -222,6 +248,7 @@ To restore old function:
 ## Conclusion
 
 This backend refactoring successfully delivers:
+
 - **80-90% performance improvement** for critical database queries
 - **Enhanced reliability** through better error handling
 - **Improved maintainability** with comprehensive documentation

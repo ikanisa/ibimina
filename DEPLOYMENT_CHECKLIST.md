@@ -1,15 +1,21 @@
 # Deployment Checklist
 
-**For comprehensive production go-live procedures, see [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)**
+**For comprehensive production go-live procedures, see
+[PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)**
 
 Use this checklist before every release to ensure the SACCO+ console is
 production-ready.
 
 > 📚 **Related Documentation**:
-> - [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) - Comprehensive production deployment checklist
-> - [docs/POST_DEPLOYMENT_VALIDATION.md](docs/POST_DEPLOYMENT_VALIDATION.md) - Post-deployment verification
-> - [docs/DISASTER_RECOVERY.md](docs/DISASTER_RECOVERY.md) - Emergency procedures and rollback
-> - [docs/SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md) - Security configuration checklist
+>
+> - [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) - Comprehensive
+>   production deployment checklist
+> - [docs/POST_DEPLOYMENT_VALIDATION.md](docs/POST_DEPLOYMENT_VALIDATION.md) -
+>   Post-deployment verification
+> - [docs/DISASTER_RECOVERY.md](docs/DISASTER_RECOVERY.md) - Emergency
+>   procedures and rollback
+> - [docs/SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md) - Security
+>   configuration checklist
 > - [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) - Quick reference guide
 
 ## 1. Environment & Secrets

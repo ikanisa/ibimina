@@ -70,11 +70,11 @@ const computeBalances = async (
 
 /**
  * Payment Application Edge Function
- * 
+ *
  * Processes incoming mobile money payments and posts them to the ledger.
  * This is the primary entry point for payment ingestion from SMS parsing,
  * manual entry, and third-party integrations.
- * 
+ *
  * Key features:
  * - Idempotency: Duplicate requests with the same idempotency key return cached response
  * - PII Encryption: Phone numbers are encrypted using AES-256-GCM before storage
@@ -82,12 +82,12 @@ const computeBalances = async (
  * - Ledger Posting: Creates double-entry bookkeeping records
  * - Rate Limiting: Enforces 20 requests per minute per user
  * - Audit Trail: Records all payment actions in audit_logs
- * 
+ *
  * Authorization:
  * - SYSTEM_ADMIN: Can post payments to any SACCO
  * - SACCO_STAFF/MANAGER: Can only post to their assigned SACCO
  * - Service role: Can post to any SACCO (used by automated systems)
- * 
+ *
  * @see docs/API-EDGE.md for full API documentation
  */
 Deno.serve(async (req) => {

@@ -18,7 +18,9 @@
 
 ## Overview
 
-This document outlines procedures for recovering the SACCO+ Ibimina Staff Console from various disaster scenarios. These procedures should be reviewed quarterly and updated as the system evolves.
+This document outlines procedures for recovering the SACCO+ Ibimina Staff
+Console from various disaster scenarios. These procedures should be reviewed
+quarterly and updated as the system evolves.
 
 ### Scope
 
@@ -34,22 +36,22 @@ This document outlines procedures for recovering the SACCO+ Ibimina Staff Consol
 
 ### Primary Response Team
 
-| Role | Name | Primary Contact | Secondary Contact | Availability |
-|------|------|-----------------|-------------------|--------------|
-| Incident Commander | _______ | _______ | _______ | 24/7 |
-| Technical Lead | _______ | _______ | _______ | 24/7 |
-| DevOps/SRE | _______ | _______ | _______ | 24/7 |
-| Database Admin | _______ | _______ | _______ | On-call |
-| Security Lead | _______ | _______ | _______ | On-call |
+| Role               | Name       | Primary Contact | Secondary Contact | Availability |
+| ------------------ | ---------- | --------------- | ----------------- | ------------ |
+| Incident Commander | **\_\_\_** | **\_\_\_**      | **\_\_\_**        | 24/7         |
+| Technical Lead     | **\_\_\_** | **\_\_\_**      | **\_\_\_**        | 24/7         |
+| DevOps/SRE         | **\_\_\_** | **\_\_\_**      | **\_\_\_**        | 24/7         |
+| Database Admin     | **\_\_\_** | **\_\_\_**      | **\_\_\_**        | On-call      |
+| Security Lead      | **\_\_\_** | **\_\_\_**      | **\_\_\_**        | On-call      |
 
 ### External Contacts
 
-| Service | Contact | Purpose |
-|---------|---------|---------|
-| Supabase Support | support@supabase.com | Database/hosting issues |
-| DNS Provider | _______ | Domain/DNS issues |
-| SSL Certificate Provider | _______ | Certificate issues |
-| Cloud Infrastructure | _______ | Server/VM issues |
+| Service                  | Contact              | Purpose                 |
+| ------------------------ | -------------------- | ----------------------- |
+| Supabase Support         | support@supabase.com | Database/hosting issues |
+| DNS Provider             | **\_\_\_**           | Domain/DNS issues       |
+| SSL Certificate Provider | **\_\_\_**           | Certificate issues      |
+| Cloud Infrastructure     | **\_\_\_**           | Server/VM issues        |
 
 ---
 
@@ -157,10 +159,11 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
 **Recovery Steps**:
 
 1. **Assess the situation** (2-5 minutes)
+
    ```bash
    # Check application status
    curl https://your-domain.com/api/health
-   
+
    # Check server resources
    ssh user@server
    top
@@ -169,29 +172,32 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
    ```
 
 2. **Check logs** (5 minutes)
+
    ```bash
    # Application logs
    pm2 logs --lines 100
    # or
    docker-compose logs --tail=100
-   
+
    # System logs
    tail -100 /var/log/syslog
    ```
 
 3. **Attempt quick restart** (2 minutes)
+
    ```bash
    # PM2
    pm2 restart all
-   
+
    # Docker
    docker-compose restart
-   
+
    # Systemd
    sudo systemctl restart ibimina-admin
    ```
 
 4. **Verify recovery** (2 minutes)
+
    ```bash
    curl https://your-domain.com/api/health
    # Test login and critical paths
@@ -215,10 +221,11 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
 **Recovery Steps**:
 
 1. **Assess database health** (5 minutes)
+
    ```bash
    # Check Supabase status
    curl https://your-project.supabase.co/rest/v1/
-   
+
    # Check database connections
    psql $SUPABASE_DB_URL -c "SELECT count(*) FROM pg_stat_activity;"
    ```
@@ -230,18 +237,18 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
    - **Performance issue**: Analyze slow queries
 
 3. **For data corruption - Restore from backup** (30-60 minutes)
-   
+
    ```bash
    # Step 1: Take snapshot of current state
    supabase db dump -f corrupted-$(date +%Y%m%d-%H%M%S).sql
-   
+
    # Step 2: Restore from latest good backup
    # Via Supabase dashboard: Database → Backups → Restore
-   
+
    # Step 3: Verify restoration
    psql $SUPABASE_DB_URL -c "SELECT COUNT(*) FROM saccos;"
    psql $SUPABASE_DB_URL -c "SELECT MAX(created_at) FROM audit_logs;"
-   
+
    # Step 4: Reapply any recent migrations if needed
    supabase migration up --linked
    ```
@@ -253,10 +260,11 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
    - Wait for completion (15-45 minutes depending on size)
 
 5. **Verify application connectivity**
+
    ```bash
    # Test database queries
    curl https://your-domain.com/api/health
-   
+
    # Test critical user journeys
    # - Login
    # - Dashboard load
@@ -279,33 +287,35 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
    - Check monitoring alerts
 
 2. **Provision new infrastructure** (30-60 minutes)
+
    ```bash
    # Option A: Spin up new VM/container
    # Follow infrastructure-as-code playbook
-   
+
    # Option B: Failover to standby server
    # Update DNS to point to standby
    ```
 
 3. **Deploy application** (20-30 minutes)
+
    ```bash
    # Clone repository
    git clone https://github.com/ikanisa/ibimina.git
    cd ibimina
    git checkout [latest-production-tag]
-   
+
    # Install dependencies
    nvm use
    npm install -g pnpm@10.19.0
    pnpm install --frozen-lockfile
-   
+
    # Restore environment configuration
    # (from encrypted backup)
    gpg -d config-backup-YYYYMMDD.tar.gz.gpg | tar -xzf -
-   
+
    # Build application
    pnpm run build
-   
+
    # Start application
    pm2 start ecosystem.config.js
    # or
@@ -313,6 +323,7 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
    ```
 
 4. **Configure reverse proxy** (10 minutes)
+
    ```bash
    # Nginx configuration
    sudo cp nginx.conf /etc/nginx/sites-available/ibimina
@@ -347,14 +358,15 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
    - Notify Legal/Compliance (if PII involved)
 
 2. **Contain the breach** (< 30 minutes)
+
    ```bash
    # Option 1: Take application offline temporarily
    pm2 stop all
    # or enable maintenance mode
-   
+
    # Option 2: Block suspicious IPs at firewall level
    sudo ufw deny from <suspicious-ip>
-   
+
    # Option 3: Revoke compromised credentials
    # Rotate all API keys, secrets, and tokens
    ```
@@ -372,6 +384,7 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
    - Review and tighten security policies
 
 5. **Restore secure state** (1-2 hours)
+
    ```bash
    # Restore from clean backup if necessary
    # Deploy patched version
@@ -394,7 +407,8 @@ gpg -c config-backup-$(date +%Y%m%d).tar.gz
 
 ### Scenario 5: Data Center/Region Outage
 
-**Symptoms**: Complete regional outage, natural disaster, extended provider downtime
+**Symptoms**: Complete regional outage, natural disaster, extended provider
+downtime
 
 **Recovery Steps**:
 
@@ -444,34 +458,34 @@ Rollback if any of the following occur within 2 hours of deployment:
    pm2 stop all
    # or
    docker-compose down
-   
+
    # Step 2: Checkout previous version
    cd /path/to/ibimina
    git fetch --tags
    git checkout [previous-production-tag]
-   
+
    # Step 3: Restore dependencies
    pnpm install --frozen-lockfile
-   
+
    # Step 4: Rebuild (if needed)
    pnpm run build
-   
+
    # Step 5: Rollback database migrations (if applied)
    # Check migration status first
    supabase migration list --linked
-   
+
    # Rollback to previous migration
    supabase migration down --linked --to-version [timestamp]
-   
+
    # Step 6: Restore previous environment config
    # (if changed)
    cp .env.production.backup .env.production
-   
+
    # Step 7: Restart application
    pm2 start ecosystem.config.js
    # or
    docker-compose up -d
-   
+
    # Step 8: Verify health
    curl https://your-domain.com/api/health
    ```
@@ -520,15 +534,18 @@ Conduct full disaster recovery drills quarterly:
 ### Backup Testing
 
 **Weekly**:
+
 - Automated backup verification
 - Random backup restoration test (staging)
 
 **Monthly**:
+
 - Full database restoration test
 - Application rebuild from scratch
 - Secrets restoration test
 
 **Quarterly**:
+
 - End-to-end DR drill
 - Cross-region restoration (if applicable)
 
@@ -584,36 +601,41 @@ Conduct full disaster recovery drills quarterly:
 ```markdown
 # Incident Report: [Title]
 
-**Date**: YYYY-MM-DD
-**Severity**: P0/P1/P2/P3
-**Duration**: X hours Y minutes
+**Date**: YYYY-MM-DD **Severity**: P0/P1/P2/P3 **Duration**: X hours Y minutes
 **Status**: Resolved/Ongoing
 
 ## Summary
+
 [Brief description of incident]
 
 ## Impact
+
 - Users affected: [number/percentage]
 - Services affected: [list]
 - Data loss: [yes/no, details]
 - Estimated cost: [if applicable]
 
 ## Timeline
+
 - HH:MM - [Event]
 - HH:MM - [Response action]
 - ...
 - HH:MM - [Resolution]
 
 ## Root Cause
+
 [Detailed explanation]
 
 ## Resolution
+
 [What was done to fix]
 
 ## Prevention
+
 [Steps taken to prevent recurrence]
 
 ## Action Items
+
 - [ ] [Action item 1 - Owner - Due date]
 - [ ] [Action item 2 - Owner - Due date]
 ```
@@ -673,21 +695,22 @@ Print and keep accessible:
 
 ### Appendix C: Critical System Information
 
-| Component | Details |
-|-----------|---------|
-| **Primary Domain** | https://_____________________ |
-| **Database Provider** | Supabase |
-| **Hosting Provider** | _____________________ |
-| **DNS Provider** | _____________________ |
-| **SSL Certificate** | _____________________ |
-| **Code Repository** | https://github.com/ikanisa/ibimina |
-| **Backup Location** | _____________________ |
-| **Monitoring Dashboard** | https://_____________________ |
-| **Status Page** | https://_____________________ |
+| Component                | Details                                    |
+| ------------------------ | ------------------------------------------ |
+| **Primary Domain**       | https://\***\*\*\*\*\***\_\***\*\*\*\*\*** |
+| **Database Provider**    | Supabase                                   |
+| **Hosting Provider**     | \***\*\*\*\*\***\_\***\*\*\*\*\***         |
+| **DNS Provider**         | \***\*\*\*\*\***\_\***\*\*\*\*\***         |
+| **SSL Certificate**      | \***\*\*\*\*\***\_\***\*\*\*\*\***         |
+| **Code Repository**      | https://github.com/ikanisa/ibimina         |
+| **Backup Location**      | \***\*\*\*\*\***\_\***\*\*\*\*\***         |
+| **Monitoring Dashboard** | https://\***\*\*\*\*\***\_\***\*\*\*\*\*** |
+| **Status Page**          | https://\***\*\*\*\*\***\_\***\*\*\*\*\*** |
 
 ---
 
 **Document Control**:
-- Next Review Date: _____________
-- Reviewed By: _____________
-- Approved By: _____________
+
+- Next Review Date: **\*\***\_**\*\***
+- Reviewed By: **\*\***\_**\*\***
+- Approved By: **\*\***\_**\*\***

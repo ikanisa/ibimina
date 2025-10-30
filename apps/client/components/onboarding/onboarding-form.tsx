@@ -74,9 +74,9 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
    * Handles form field changes with real-time validation
    */
   const handleChange = (field: "whatsappNumber" | "momoNumber", value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setIsSuccess(false);
-    
+
     // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -145,9 +145,10 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
     } catch (error) {
       console.error("Onboarding submission error:", error);
       setErrors({
-        form: error instanceof Error
-          ? error.message
-          : "An error occurred during onboarding. Please try again.",
+        form:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during onboarding. Please try again.",
       });
       setIsSuccess(false);
     } finally {
@@ -269,9 +270,10 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
           w-full px-6 py-4 text-lg font-semibold rounded-xl
           transition-all duration-interactive
           focus-visible:ring-4 focus-visible:ring-rw-blue focus-visible:ring-opacity-50
-          ${isSubmitting || isSuccess
-            ? "bg-neutral-2/30 text-neutral-2 cursor-not-allowed"
-            : "bg-rw-blue text-ink hover:bg-opacity-90"
+          ${
+            isSubmitting || isSuccess
+              ? "bg-neutral-2/30 text-neutral-2 cursor-not-allowed"
+              : "bg-rw-blue text-ink hover:bg-opacity-90"
           }
         `}
         aria-busy={isSubmitting}

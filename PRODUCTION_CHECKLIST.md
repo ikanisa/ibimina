@@ -2,7 +2,8 @@
 
 **Last Updated**: 2025-10-28
 
-This comprehensive checklist consolidates all requirements for production deployment. Complete all items in order before going live.
+This comprehensive checklist consolidates all requirements for production
+deployment. Complete all items in order before going live.
 
 ## Pre-Deployment Phase
 
@@ -41,7 +42,8 @@ This comprehensive checklist consolidates all requirements for production deploy
 
 ### 3. Database & Supabase Setup 🗄️
 
-- [ ] Supabase project linked: `supabase link --project-ref $SUPABASE_PROJECT_REF`
+- [ ] Supabase project linked:
+      `supabase link --project-ref $SUPABASE_PROJECT_REF`
 - [ ] All migrations applied: `supabase migration up --linked --include-all`
 - [ ] Database schema matches expected state
 - [ ] Row Level Security (RLS) policies verified: `pnpm run test:rls`
@@ -53,8 +55,10 @@ This comprehensive checklist consolidates all requirements for production deploy
 
 ### 4. Edge Functions & Background Jobs 🔄
 
-- [ ] All edge functions deployed: `./apps/admin/scripts/supabase-go-live.sh deploy-functions`
-- [ ] Supabase secrets set: `supabase secrets set --env-file supabase/.env.production`
+- [ ] All edge functions deployed:
+      `./apps/admin/scripts/supabase-go-live.sh deploy-functions`
+- [ ] Supabase secrets set:
+      `supabase secrets set --env-file supabase/.env.production`
 - [ ] Edge function secrets validated:
   - [ ] `SUPABASE_SERVICE_ROLE_KEY`
   - [ ] `OPENAI_API_KEY`
@@ -312,8 +316,8 @@ This comprehensive checklist consolidates all requirements for production deploy
   - [ ] Backup retention policy: 30 days minimum
   - [ ] Backup storage location secure and redundant
 - [ ] Backup restoration tested successfully
-- [ ] Recovery Time Objective (RTO) documented: _____ hours
-- [ ] Recovery Point Objective (RPO) documented: _____ hours
+- [ ] Recovery Time Objective (RTO) documented: **\_** hours
+- [ ] Recovery Point Objective (RPO) documented: **\_** hours
 - [ ] Disaster recovery plan documented
 - [ ] Failover procedures tested
 
@@ -443,48 +447,52 @@ curl https://your-project.supabase.co/functions/v1/metrics-exporter \
 
 ### Appendix C: Emergency Contacts
 
-| Role | Name | Contact | Availability |
-|------|------|---------|--------------|
-| Technical Lead | _______ | _______ | 24/7 |
-| DevOps/SRE | _______ | _______ | 24/7 |
-| Security Lead | _______ | _______ | On-call |
-| Product Owner | _______ | _______ | Business hours |
-| Database Admin | _______ | _______ | On-call |
+| Role           | Name       | Contact    | Availability   |
+| -------------- | ---------- | ---------- | -------------- |
+| Technical Lead | **\_\_\_** | **\_\_\_** | 24/7           |
+| DevOps/SRE     | **\_\_\_** | **\_\_\_** | 24/7           |
+| Security Lead  | **\_\_\_** | **\_\_\_** | On-call        |
+| Product Owner  | **\_\_\_** | **\_\_\_** | Business hours |
+| Database Admin | **\_\_\_** | **\_\_\_** | On-call        |
 
 ### Appendix D: Common Issues & Solutions
 
-| Issue | Symptoms | Solution |
-|-------|----------|----------|
-| App won't start | Health check fails | Check environment variables, logs |
-| High memory usage | Gradual increase over time | Restart app, investigate memory leak |
-| Database connection errors | Intermittent failures | Check connection pool settings |
-| MFA not working | Users can't log in | Verify MFA secrets, check domain settings |
-| Service worker issues | PWA features broken | Clear cache, verify HTTPS |
-| Slow response times | >3s response | Check database queries, connection pool |
+| Issue                      | Symptoms                   | Solution                                  |
+| -------------------------- | -------------------------- | ----------------------------------------- |
+| App won't start            | Health check fails         | Check environment variables, logs         |
+| High memory usage          | Gradual increase over time | Restart app, investigate memory leak      |
+| Database connection errors | Intermittent failures      | Check connection pool settings            |
+| MFA not working            | Users can't log in         | Verify MFA secrets, check domain settings |
+| Service worker issues      | PWA features broken        | Clear cache, verify HTTPS                 |
+| Slow response times        | >3s response               | Check database queries, connection pool   |
 
 ### Appendix E: Rollback Procedure
 
-**When to Rollback**: Critical bug affecting >50% users, data corruption risk, security vulnerability discovered
+**When to Rollback**: Critical bug affecting >50% users, data corruption risk,
+security vulnerability discovered
 
 **Steps**:
+
 1. Assess impact and make rollback decision (< 15 minutes)
 2. Notify stakeholders immediately
 3. Execute rollback:
+
    ```bash
    # Stop current application
    pm2 stop all  # or docker-compose down
-   
+
    # Deploy previous version
    git checkout [previous-tag]
    pnpm install --frozen-lockfile
    pnpm run build
-   
+
    # Revert database migrations if needed
    supabase migration down --linked --to-version [timestamp]
-   
+
    # Restart application
    pnpm run start  # or docker-compose up -d
    ```
+
 4. Verify health check and critical paths
 5. Monitor for 30 minutes
 6. Document incident and root cause
@@ -494,20 +502,23 @@ curl https://your-project.supabase.co/functions/v1/metrics-exporter \
 
 ## Checklist Sign-Off
 
-| Phase | Completed By | Date | Sign-Off |
-|-------|--------------|------|----------|
-| Pre-Deployment | _______ | _______ | _______ |
-| Infrastructure | _______ | _______ | _______ |
-| Monitoring & Observability | _______ | _______ | _______ |
-| Security Hardening | _______ | _______ | _______ |
-| Testing & Validation | _______ | _______ | _______ |
-| Deployment | _______ | _______ | _______ |
-| Documentation & Handoff | _______ | _______ | _______ |
-| Business Continuity | _______ | _______ | _______ |
-| Compliance & Governance | _______ | _______ | _______ |
+| Phase                      | Completed By | Date       | Sign-Off   |
+| -------------------------- | ------------ | ---------- | ---------- |
+| Pre-Deployment             | **\_\_\_**   | **\_\_\_** | **\_\_\_** |
+| Infrastructure             | **\_\_\_**   | **\_\_\_** | **\_\_\_** |
+| Monitoring & Observability | **\_\_\_**   | **\_\_\_** | **\_\_\_** |
+| Security Hardening         | **\_\_\_**   | **\_\_\_** | **\_\_\_** |
+| Testing & Validation       | **\_\_\_**   | **\_\_\_** | **\_\_\_** |
+| Deployment                 | **\_\_\_**   | **\_\_\_** | **\_\_\_** |
+| Documentation & Handoff    | **\_\_\_**   | **\_\_\_** | **\_\_\_** |
+| Business Continuity        | **\_\_\_**   | **\_\_\_** | **\_\_\_** |
+| Compliance & Governance    | **\_\_\_**   | **\_\_\_** | **\_\_\_** |
 
-**Final Go-Live Approval**: _____________________ Date: _________
+**Final Go-Live Approval**: \***\*\*\*\*\***\_\***\*\*\*\*\***
+Date: \***\*\_\*\***
 
 ---
 
-**Note**: This checklist should be reviewed and updated regularly. After each deployment, conduct a retrospective and update this document with lessons learned.
+**Note**: This checklist should be reviewed and updated regularly. After each
+deployment, conduct a retrospective and update this document with lessons
+learned.

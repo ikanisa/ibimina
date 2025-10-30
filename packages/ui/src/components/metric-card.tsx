@@ -16,7 +16,13 @@ const accentMap: Record<NonNullable<MetricCardProps["accent"]>, string> = {
   neutral: "from-white/10 to-transparent",
 };
 
-export function MetricCard({ label, value, trend, accent = "neutral", className }: MetricCardProps) {
+export function MetricCard({
+  label,
+  value,
+  trend,
+  accent = "neutral",
+  className,
+}: MetricCardProps) {
   return (
     <article
       className={cn(
