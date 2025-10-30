@@ -205,7 +205,8 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
           latencyMs: row.last_latency_ms ?? null,
         }));
     } catch (error) {
-      console.error("[admin/reconciliation] Failed to fetch automation health", error);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.error(`[admin/reconciliation] Failed to fetch automation health: ${errMsg}`);
       // Leave pollerIssues and gatewayIssues as empty arrays
     }
   }
