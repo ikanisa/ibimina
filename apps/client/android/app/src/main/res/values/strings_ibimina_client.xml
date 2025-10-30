@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Label for any notification listener service referenced in AndroidManifest -->
+    <string name="notification_listener_service_label">Ibimina Notifications</string>
+
+    <!-- Optional description (harmless if unused) -->
+    <string name="notification_listener_service_description">
+        Allows Ibimina Client to access notifications for in-app features.
+    </string>
+</resources>

@@ -20,6 +20,7 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: "https",
     cleartext: true,
+    allowNavigation: ["client.ibimina.rw", "*.ibimina.rw", "ibimina.rw"],
     // For production builds, set CAPACITOR_SERVER_URL
     // For development, defaults to localhost
     ...(process.env.CAPACITOR_SERVER_URL && {
