@@ -1,0 +1,60 @@
+[
+  {
+    "name": "vc.builder.install",
+    "duration": 1249920,
+    "timestamp": 1775102390,
+    "id": "787f073e-2d18-4f99-a4d6-17ae47001cff",
+    "parentId": "8615d4c7-68f1-406a-849c-082449fd4938",
+    "tags": {
+      "cliType": "pnpm",
+      "lockfileVersion": "9",
+      "packageJsonPackageManager": "pnpm@10.19.0",
+      "detectedPackageManager": "pnpm@9.x"
+    },
+    "startTime": 1761841639588
+  },
+  {
+    "name": "vc.builder.build",
+    "duration": 26182223,
+    "timestamp": 1776353652,
+    "id": "c876bd7a-557d-41a4-b2bb-308f6af24a49",
+    "parentId": "8615d4c7-68f1-406a-849c-082449fd4938",
+    "tags": { "buildScriptName": "build" },
+    "startTime": 1761841640839
+  },
+  {
+    "name": "vc.builder",
+    "duration": 27927094,
+    "timestamp": 1774990581,
+    "id": "8615d4c7-68f1-406a-849c-082449fd4938",
+    "parentId": "4b308b2a-9adf-4563-a760-c86897fceec6",
+    "tags": { "name": "@vercel/next", "install": "true", "build": "true" },
+    "startTime": 1761841639476
+  },
+  {
+    "name": "vc.builder.diagnostics",
+    "duration": 1416,
+    "timestamp": 1802917729,
+    "id": "47070bad-bd23-4c14-9cd5-ab7ce4ecfe7c",
+    "parentId": "8615d4c7-68f1-406a-849c-082449fd4938",
+    "tags": {},
+    "startTime": 1761841667404
+  },
+  {
+    "name": "vc.doBuild",
+    "duration": 28111576,
+    "timestamp": 1774808367,
+    "id": "4b308b2a-9adf-4563-a760-c86897fceec6",
+    "parentId": "378c1da3-9c03-4adf-b101-ca92ec5c9d68",
+    "tags": {},
+    "startTime": 1761841639294
+  },
+  {
+    "name": "vc",
+    "duration": 28125649,
+    "timestamp": 1774794426,
+    "id": "378c1da3-9c03-4adf-b101-ca92ec5c9d68",
+    "tags": {},
+    "startTime": 1761841639280
+  }
+]
