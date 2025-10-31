@@ -102,9 +102,9 @@ cd ibimina
 # Install all workspace dependencies
 pnpm install
 
-# Build shared packages
+# Build shared packages (only those with build scripts)
+pnpm --filter @ibimina/core run build
 pnpm --filter @ibimina/config run build
-pnpm --filter @ibimina/lib run build
 pnpm --filter @ibimina/ui run build
 ```
 
@@ -187,26 +187,35 @@ adb shell pm list packages | grep ibimina
 ### Same Steps as Admin, Different Directory
 
 ```bash
-# 1. Navigate to client app
+# 1. Install dependencies (from project root)
+cd ibimina  # or wherever you cloned the repo
+pnpm install
+
+# 2. Build shared packages
+pnpm --filter @ibimina/core run build
+pnpm --filter @ibimina/config run build
+pnpm --filter @ibimina/ui run build
+
+# 3. Navigate to client app
 cd apps/client
 
-# 2. Build Next.js (static export)
+# 4. Build Next.js (static export)
 pnpm run build
 
-# 3. Set production URL (optional)
+# 5. Set production URL (optional)
 export CAPACITOR_SERVER_URL=https://client.ibimina.rw
 
-# 4. Sync to Android
+# 6. Sync to Android
 npx cap sync android
 
-# 5. Build APK
+# 7. Build APK
 cd android
 ./gradlew assembleDebug
 
-# 6. Locate APK
+# 8. Locate APK
 ls -lh app/build/outputs/apk/debug/app-debug.apk
 
-# 7. Install
+# 9. Install
 ./gradlew installDebug
 ```
 
@@ -393,22 +402,31 @@ echo ""
 echo "🔨 Building $APP_NAME ($BUILD_NAME)..."
 echo ""
 
-# Step 1: Build Next.js app
-echo "1/4: Building Next.js app..."
+# Step 1: Install dependencies
+echo "1/5: Installing dependencies..."
+pnpm install
+
+# Step 2: Build shared packages
+echo "2/5: Building shared packages..."
+pnpm --filter @ibimina/core run build
+pnpm --filter @ibimina/config run build
+pnpm --filter @ibimina/ui run build
+
+# Step 3: Build Next.js app
+echo "3/5: Building Next.js app..."
 cd $APP_DIR
 pnpm run build
 
-# Step 2: Sync Capacitor
-echo "2/4: Syncing Capacitor..."
+# Step 4: Sync Capacitor
+echo "4/5: Syncing Capacitor..."
 npx cap sync android
 
-# Step 3: Build Android APK
-echo "3/4: Building Android APK..."
+# Step 5: Build Android APK
+echo "5/5: Building Android APK..."
 cd android
 ./gradlew clean $BUILD_TYPE
 
-# Step 4: Locate APK
-echo "4/4: Locating APK..."
+# Locate APK
 APK_PATH="app/build/outputs/apk/$BUILD_NAME/"
 echo ""
 echo "✅ Build complete!"

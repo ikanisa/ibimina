@@ -72,8 +72,8 @@ pnpm install
 
 # Step 2: Build shared packages
 echo -e "${YELLOW}2/5: Building shared packages...${NC}"
+pnpm --filter @ibimina/core run build
 pnpm --filter @ibimina/config run build
-pnpm --filter @ibimina/lib run build  
 pnpm --filter @ibimina/ui run build
 
 # Step 3: Build Next.js app
