@@ -1,44 +1,50 @@
 # SACCO+ Client App
 
-World-class Android "supa app" for Umurenge SACCO members. Intermediation-only:
-USSD contributions, reference tokens, and allocation-based statements. No funds
-handling, no SACCO core integration.
+World-class African fintech "supa app" for Umurenge SACCO members. Intermediation-only platform featuring USSD contributions, reference tokens, allocation-based statements, loans, wallet/tokens, NFC, and AI agent support. No funds handling, no SACCO core integration.
 
-## 🎉 Status: Phase 1-3 Complete
+## 🎉 Status: Supa App Features Implemented
 
 **Delivered:**
 
-- ✅ 12 world-class UI components (WCAG 2.1 AA)
-- ✅ 5 complete pages with full functionality
-- ✅ Bottom navigation with mobile-first design
-- ✅ USSD payment flow with tap-to-dial
-- ✅ Allocation-based statements
-- ✅ 3,100+ lines of production code
-- ✅ 1,700+ lines of comprehensive documentation
+- ✅ 15+ world-class UI components (WCAG 2.1 AA)
+- ✅ 8+ complete pages with full functionality
+- ✅ Feature toggle matrix with regulatory tier support (P0/P1/P2)
+- ✅ Loan application flow (intermediated)
+- ✅ Wallet/token management (non-custodial)
+- ✅ AI agent support (multi-channel ticketing)
+- ✅ NFC tag management infrastructure
+- ✅ Bottom navigation with feature-flagged items
+- ✅ 5 comprehensive database migrations
+- ✅ Full RLS policies for multi-tenant isolation
 
-**Next:** Phase 4 (i18n) → Phase 10 (Production) = 12 weeks
+**Next:** AI agent RAG implementation, WhatsApp bot, NFC Android integration
 
 ## 📚 Documentation
 
 Start here to understand the implementation:
 
-1. **[COMPLETION_SUMMARY.md](./COMPLETION_SUMMARY.md)** - What was accomplished
-   in Phase 1-3
-2. **[IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)** - 12-week
-   roadmap to production
-3. **[SMS_INGESTION_GUIDE.md](./SMS_INGESTION_GUIDE.md)** - Complete Android SMS
-   implementation
-4. **[APK_BUILD_GUIDE.md](./APK_BUILD_GUIDE.md)** - How to build Android APK
+1. **[SUPA_APP_FEATURES.md](../../docs/SUPA_APP_FEATURES.md)** - Complete feature implementation guide
+2. **[COMPLETION_SUMMARY.md](./COMPLETION_SUMMARY.md)** - What was accomplished in Phase 1-3
+3. **[IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)** - 12-week roadmap to production
+4. **[SMS_INGESTION_GUIDE.md](./SMS_INGESTION_GUIDE.md)** - Complete Android SMS implementation
+5. **[APK_BUILD_GUIDE.md](./APK_BUILD_GUIDE.md)** - How to build Android APK
 
 ## Overview
 
-The Client App provides member-facing features:
+The Client App provides member-facing features across multiple domains:
 
+### Core Features (Always Available)
 - **Home**: Dashboard with group widgets and recent confirmations
 - **Groups**: Browse and join savings groups (ibimina)
 - **Pay**: USSD payment instructions with tap-to-dial
 - **Statements**: Allocation-based transaction history with filtering
 - **Profile**: Contact info, language toggle, help & support
+
+### Feature-Flagged Features (Opt-in)
+- **Loans**: Browse and apply for loans from SACCO/MFI partners (P0+)
+- **Wallet**: Vouchers, loyalty points, and token management (P0+)
+- **Support**: AI-powered chat support with ticketing (P0+)
+- **NFC**: Tap-to-pay reference tokens and voucher redemption (P0+)
 
 ### Key Features
 
