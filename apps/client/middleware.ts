@@ -21,18 +21,17 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export function middleware(request: NextRequest) {
-  // Run i18n middleware first
-  const intlResponse = intlMiddleware(request);
+  // TEMPORARY: Disable i18n middleware to fix routing
+  // TODO: Restructure app with [locale] folders or fix locale detection
+  // const intlResponse = intlMiddleware(request);
 
   const nonce = createNonce();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-csp-nonce", nonce);
 
-  const response =
-    intlResponse ||
-    NextResponse.next({
-      request: { headers: requestHeaders },
-    });
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   const csp = createContentSecurityPolicy({ nonce, isDev, supabaseUrl });
   response.headers.set("Content-Security-Policy", csp);
