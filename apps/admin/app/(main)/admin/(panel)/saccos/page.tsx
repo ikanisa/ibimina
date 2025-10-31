@@ -29,7 +29,9 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
   let saccoQuery = supabase
     .schema("app")
     .from("saccos")
-    .select("id, name, district, province, sector, status, email, category, logo_url, sector_code")
+    .select(
+      "id, name, district, province, sector, status, email, category, logo_url, sector_code, district_org_id"
+    )
     .order("name", { ascending: true });
 
   if (!scope.includeAll && scope.saccoId) {
@@ -55,6 +57,7 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
       | "sector_code"
       | "sector"
       | "logo_url"
+      | "district_org_id"
     >
   >;
 
@@ -144,6 +147,48 @@ export default async function SaccosPage({ searchParams }: SaccosPageProps) {
         }
         badge={<StatusChip tone="info">{scope.includeAll ? saccos.length : 1} tenants</StatusChip>}
       />
+
+      {profile.role === "SYSTEM_ADMIN" && saccos.some((s) => !s.district_org_id) && (
+        <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+          <p className="mb-2 font-medium">Some SACCOs are missing a formal District assignment</p>
+          <ul className="mb-3 list-inside list-disc space-y-1">
+            {saccos
+              .filter((s) => !s.district_org_id)
+              .slice(0, 8)
+              .map((s) => (
+                <li key={s.id} className="flex items-center gap-3">
+                  <span className="flex-1">
+                    {s.name ?? s.id} {s.district ? `• District: ${s.district}` : ""}
+                  </span>
+                  <form
+                    action={async () => {
+                      "use server";
+                      await fetch(
+                        `${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/admin/saccos/fix-district`,
+                        {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ sacco_id: s.id }),
+                        }
+                      );
+                    }}
+                  >
+                    <button
+                      type="submit"
+                      className="rounded-lg border border-amber-300/40 px-2 py-1 text-xs text-amber-100"
+                    >
+                      Fix
+                    </button>
+                  </form>
+                </li>
+              ))}
+          </ul>
+          <p className="text-xs opacity-90">
+            Use the District field in the registry editor below; we auto-create and link the hidden
+            organization entry when you save.
+          </p>
+        </div>
+      )}
 
       {profile.role === "SYSTEM_ADMIN" ? (
         <>

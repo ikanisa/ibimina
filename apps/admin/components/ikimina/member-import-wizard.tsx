@@ -171,8 +171,10 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
       for (const field of nextHeaders) {
         const lower = field.toLowerCase();
         if (lower.includes("name") && !autoMapping.full_name) autoMapping.full_name = field;
-        if ((lower.includes("msisdn") || lower.includes("phone")) && !autoMapping.msisdn) autoMapping.msisdn = field;
-        if ((lower.includes("code") || lower.includes("member")) && !autoMapping.member_code) autoMapping.member_code = field;
+        if ((lower.includes("msisdn") || lower.includes("phone")) && !autoMapping.msisdn)
+          autoMapping.msisdn = field;
+        if ((lower.includes("code") || lower.includes("member")) && !autoMapping.member_code)
+          autoMapping.member_code = field;
       }
       setMapping(autoMapping);
       setStep(2);

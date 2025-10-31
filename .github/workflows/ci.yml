@@ -26,6 +26,15 @@ jobs:
       RLS_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:6543/ibimina_test
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # Required environment variables for Next.js build (with fallback placeholders)
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://placeholder.supabase.co' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+      BACKUP_PEPPER: ${{ secrets.BACKUP_PEPPER || 'placeholder-backup-pepper-32-bytes-min' }}
+      MFA_SESSION_SECRET: ${{ secrets.MFA_SESSION_SECRET || 'placeholder-mfa-session-secret-32b' }}
+      TRUSTED_COOKIE_SECRET: ${{ secrets.TRUSTED_COOKIE_SECRET || 'placeholder-trusted-cookie-secret' }}
+      HMAC_SHARED_SECRET: ${{ secrets.HMAC_SHARED_SECRET || 'placeholder-hmac-shared-secret-32' }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'placeholder-openai-api-key' }}
+      KMS_DATA_KEY_BASE64: ${{ secrets.KMS_DATA_KEY_BASE64 || 'cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ==' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,7 +42,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.19.0
           run_install: false
 
       - name: Setup Node.js
@@ -60,9 +69,9 @@ jobs:
         if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' }}
         run: pnpm run check:flags
 
-      - name: Skip feature flag verification (secrets unavailable)
+      - name: Skip feature flag check when secrets unavailable
         if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_SERVICE_ROLE_KEY == '' }}
-        run: echo "Skipping feature flag verification because Supabase secrets are not available."
+        run: echo "Required Supabase secrets are unavailable; skipping feature flag validation."
 
       - name: Lint
         run: pnpm run lint

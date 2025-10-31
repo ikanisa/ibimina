@@ -11,7 +11,7 @@ describe("getBlurDataURL", () => {
   it("generates a data URL with custom dimensions", () => {
     const result = getBlurDataURL({ width: 800, height: 600 });
     assert.ok(result.startsWith("data:image/svg+xml;base64,"));
-    
+
     // Decode to verify dimensions are present
     const base64 = result.split(",")[1];
     const decoded = Buffer.from(base64, "base64").toString();
@@ -22,7 +22,7 @@ describe("getBlurDataURL", () => {
   it("generates a data URL with custom accent color", () => {
     const result = getBlurDataURL({ accent: "#ff0000" });
     assert.ok(result.startsWith("data:image/svg+xml;base64,"));
-    
+
     // Decode to verify accent color is present
     const base64 = result.split(",")[1];
     const decoded = Buffer.from(base64, "base64").toString();
@@ -48,7 +48,7 @@ describe("getBlurDataURL", () => {
   it("caches results for the same parameters", () => {
     const result1 = getBlurDataURL({ width: 300, height: 200, accent: "#123456" });
     const result2 = getBlurDataURL({ width: 300, height: 200, accent: "#123456" });
-    
+
     // Should return the exact same string (cached)
     assert.equal(result1, result2);
   });
@@ -56,7 +56,7 @@ describe("getBlurDataURL", () => {
   it("returns different results for different parameters", () => {
     const result1 = getBlurDataURL({ width: 300, height: 200 });
     const result2 = getBlurDataURL({ width: 400, height: 200 });
-    
+
     assert.notEqual(result1, result2);
   });
 
@@ -64,7 +64,7 @@ describe("getBlurDataURL", () => {
     const result = getBlurDataURL({ width: 256, height: 128 });
     const base64 = result.split(",")[1];
     const decoded = Buffer.from(base64, "base64").toString();
-    
+
     // Verify it contains essential SVG elements
     assert.ok(decoded.includes("<svg"));
     assert.ok(decoded.includes("xmlns="));

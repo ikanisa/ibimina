@@ -16,6 +16,17 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NEXT_TELEMETRY_DISABLED: "1"
+      CI: "true"
+      # Required environment variables for Next.js build
+      NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key"
+      SUPABASE_SERVICE_ROLE_KEY: "placeholder-service-role-key"
+      BACKUP_PEPPER: "placeholder-backup-pepper-32-bytes-min"
+      MFA_SESSION_SECRET: "placeholder-mfa-session-secret-32b"
+      TRUSTED_COOKIE_SECRET: "placeholder-trusted-cookie-secret"
+      HMAC_SHARED_SECRET: "placeholder-hmac-shared-secret-32"
+      OPENAI_API_KEY: "placeholder-openai-api-key"
+      KMS_DATA_KEY_BASE64: "cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ=="
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

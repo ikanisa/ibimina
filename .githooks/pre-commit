@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -e
+ENV_NAME=local scripts/verify-schema.sh
+git add supabase/schema.sql || true

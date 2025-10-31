@@ -17,6 +17,7 @@ import {
   SlidersHorizontal,
   UsersRound,
   UserSquare2,
+  UserCog,
   Wallet,
   X,
 } from "lucide-react";
@@ -47,6 +48,7 @@ const ICON_MAP: Record<PanelIconKey, React.ComponentType<{ className?: string }>
   saccos: Building2,
   groups: UsersRound,
   members: UserSquare2,
+  staff: UserCog,
   approvals: Inbox,
   reconciliation: Wallet,
   payments: SlidersHorizontal,
@@ -78,7 +80,8 @@ export function AdminPanelShell({
     return "/admin";
   }, [pathname]);
 
-  const saccoFilter = useMemo(() => searchParams?.get("sacco") ?? null, [searchParams]);
+  const saccoFilterValue = searchParams.get("sacco");
+  const saccoFilter = useMemo(() => saccoFilterValue ?? null, [saccoFilterValue]);
 
   const navItems: PanelNavItem[] = useMemo(() => {
     return ADMIN_NAV_LINKS.map((item) => {

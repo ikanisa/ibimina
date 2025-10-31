@@ -20,7 +20,7 @@ const onboardSchema = z.object({
 export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
   // Member app tables are optional; use untyped client to accommodate missing local schema
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const legacyClient = supabase as any;
   const {
     data: { user },

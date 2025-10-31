@@ -32,7 +32,6 @@ export async function POST(request: NextRequest, { params }: Params) {
   const reason =
     (await request.json().catch(() => ({}) as { reason?: string })).reason ?? "manual_reset";
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .from("users")
     .update({

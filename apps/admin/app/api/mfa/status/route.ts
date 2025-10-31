@@ -118,7 +118,6 @@ export async function GET() {
     return failure;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase as any)
     .from("trusted_devices")
     .update({ last_used_at: new Date().toISOString(), ip_prefix: ipPrefix })

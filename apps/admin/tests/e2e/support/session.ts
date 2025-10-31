@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-/* eslint-enable @typescript-eslint/ban-ts-comment */
 
 import type { APIRequestContext, Page } from "@playwright/test";
 

@@ -115,8 +115,8 @@ export default async function NotificationsPage({ searchParams }: NotificationsP
   const activeTemplates = templateRows.filter((row) => row.is_active).length;
 
   const channelAcks = {
-    whatsapp: Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_WHATSAPP_FROM),
-    email: Boolean(env.RESEND_API_KEY && env.MFA_EMAIL_FROM),
+    whatsapp: Boolean(env.META_WHATSAPP_ACCESS_TOKEN && env.META_WHATSAPP_PHONE_NUMBER_ID),
+    email: Boolean(process.env.RESEND_API_KEY && env.MFA_EMAIL_FROM),
   } as const;
 
   return (

@@ -1,4 +1,5 @@
 # Test Coverage Report - Ibimina SACCO+ Platform
+
 **Date:** October 27, 2025  
 **Analysis Focus:** Unit Tests, E2E Tests, RLS Tests
 
@@ -6,12 +7,12 @@
 
 ## Overall Coverage Summary
 
-| Category | Status | Tests | Coverage |
-|----------|--------|-------|----------|
-| Unit Tests | ✅ Passing | 65/65 | ~40% (apps/admin only) |
-| E2E Tests | ⚠️ Infrastructure Ready | 6 suites | Requires runtime |
-| RLS Tests | ✅ Comprehensive | 6 suites | Database policies |
-| Integration Tests | ❌ Missing | 0 | 0% |
+| Category          | Status                  | Tests    | Coverage               |
+| ----------------- | ----------------------- | -------- | ---------------------- |
+| Unit Tests        | ✅ Passing              | 65/65    | ~40% (apps/admin only) |
+| E2E Tests         | ⚠️ Infrastructure Ready | 6 suites | Requires runtime       |
+| RLS Tests         | ✅ Comprehensive        | 6 suites | Database policies      |
+| Integration Tests | ❌ Missing              | 0        | 0%                     |
 
 ---
 
@@ -137,12 +138,12 @@
 
 **Status:** ❌ **No test coverage for any package**
 
-| Package | Status | Priority |
-|---------|--------|----------|
-| packages/config | ❌ No tests | Medium |
-| packages/core | ❌ No tests | High |
-| packages/testing | ❌ No tests | Medium |
-| packages/ui | ❌ No tests | High |
+| Package          | Status      | Priority |
+| ---------------- | ----------- | -------- |
+| packages/config  | ❌ No tests | Medium   |
+| packages/core    | ❌ No tests | High     |
+| packages/testing | ❌ No tests | Medium   |
+| packages/ui      | ❌ No tests | High     |
 
 ---
 
@@ -290,14 +291,15 @@
 
 ### 5.1 Current Coverage (Estimated)
 
-| Package | Lines | Branches | Functions | Statements |
-|---------|-------|----------|-----------|------------|
-| apps/admin | ~40% | ~35% | ~45% | ~40% |
-| apps/client | 0% | 0% | 0% | 0% |
-| apps/platform-api | 0% | 0% | 0% | 0% |
-| packages/* | 0% | 0% | 0% | 0% |
+| Package           | Lines | Branches | Functions | Statements |
+| ----------------- | ----- | -------- | --------- | ---------- |
+| apps/admin        | ~40%  | ~35%     | ~45%      | ~40%       |
+| apps/client       | 0%    | 0%       | 0%        | 0%         |
+| apps/platform-api | 0%    | 0%       | 0%        | 0%         |
+| packages/\*       | 0%    | 0%       | 0%        | 0%         |
 
-*Note: Coverage metrics are estimates based on test file analysis. Actual coverage reporting not configured.*
+_Note: Coverage metrics are estimates based on test file analysis. Actual
+coverage reporting not configured._
 
 ### 5.2 Recommendations
 
@@ -338,6 +340,7 @@
 ### Priority 1 (Immediate)
 
 1. **Add test coverage reporting:**
+
    ```bash
    pnpm add -D c8
    # Update package.json scripts:
@@ -363,6 +366,7 @@
 ### Priority 3 (Medium-term)
 
 1. **Set up coverage thresholds:**
+
    ```json
    {
      "c8": {
@@ -390,12 +394,12 @@
 
 ### Current Tools
 
-| Tool | Purpose | Status |
-|------|---------|--------|
-| tsx + Node test runner | Unit tests | ✅ Active |
-| Playwright | E2E tests | ✅ Active |
-| pgTAP | RLS tests | ✅ Active |
-| c8/Istanbul | Coverage | ❌ Not configured |
+| Tool                   | Purpose    | Status            |
+| ---------------------- | ---------- | ----------------- |
+| tsx + Node test runner | Unit tests | ✅ Active         |
+| Playwright             | E2E tests  | ✅ Active         |
+| pgTAP                  | RLS tests  | ✅ Active         |
+| c8/Istanbul            | Coverage   | ❌ Not configured |
 
 ### Recommended Additions
 
@@ -428,5 +432,5 @@ TAP version 13
 
 ---
 
-*Report generated from test execution and codebase analysis*  
-*Last updated: October 27, 2025*
+_Report generated from test execution and codebase analysis_  
+_Last updated: October 27, 2025_

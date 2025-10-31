@@ -18,24 +18,18 @@ describe("requireEnv", () => {
   it("throws an error when environment variable is missing", () => {
     process.env = { ...originalEnv };
     delete process.env.MISSING_VAR;
-    assert.throws(
-      () => requireEnv("MISSING_VAR"),
-      {
-        name: "Error",
-        message: "Missing required environment variable: MISSING_VAR",
-      }
-    );
+    assert.throws(() => requireEnv("MISSING_VAR"), {
+      name: "Error",
+      message: "Missing required environment variable: MISSING_VAR",
+    });
   });
 
   it("throws an error when environment variable is empty string", () => {
     process.env = { ...originalEnv, EMPTY_VAR: "" };
-    assert.throws(
-      () => requireEnv("EMPTY_VAR"),
-      {
-        name: "Error",
-        message: "Missing required environment variable: EMPTY_VAR",
-      }
-    );
+    assert.throws(() => requireEnv("EMPTY_VAR"), {
+      name: "Error",
+      message: "Missing required environment variable: EMPTY_VAR",
+    });
   });
 });
 
@@ -131,10 +125,7 @@ describe("invokeEdge", () => {
       });
     };
 
-    await assert.rejects(
-      invokeEdge("slow-function", { timeoutMs: 50 }),
-      /abort/i
-    );
+    await assert.rejects(invokeEdge("slow-function", { timeoutMs: 50 }), /abort/i);
     assert.ok(aborted);
   });
 

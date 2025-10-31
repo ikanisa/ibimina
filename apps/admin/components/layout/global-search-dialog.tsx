@@ -830,9 +830,11 @@ export function GlobalSearchDialog({
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
           <aside className="space-y-5">
-            <section>
+            <section role="region" aria-labelledby="navigation-heading">
               <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                {t("search.console.navigate", "Navigate")}
+                <h3 id="navigation-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.console.navigate", "Navigate")}
+                </h3>
               </header>
               <ul className="space-y-2">
                 {filteredNav.length === 0 && (
@@ -879,9 +881,11 @@ export function GlobalSearchDialog({
               </ul>
             </section>
 
-            <section>
+            <section role="region" aria-labelledby="quick-actions-heading">
               <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                {t("search.console.quickActions", "Quick actions")}
+                <h3 id="quick-actions-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.console.quickActions", "Quick actions")}
+                </h3>
               </header>
               <div className="space-y-3">
                 {filteredQuickActionGroups.length === 0 && (
@@ -938,11 +942,13 @@ export function GlobalSearchDialog({
             </section>
           </aside>
 
-          <section className="space-y-5">
+          <section className="space-y-5" aria-labelledby="ikimina-search-heading">
             <div>
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <span>{t("search.ikimina.title", "Ikimina search")}</span>
-                <span className="flex flex-col text-[10px] text-neutral-3">
+                <h3 id="ikimina-search-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.ikimina.title", "Ikimina search")}
+                </h3>
+                <span className="flex flex-col text-[10px] text-neutral-3" aria-live="polite">
                   <span>
                     {ikimina.length} {t("search.common.loadedSuffix", "loaded")}
                   </span>
@@ -1002,10 +1008,12 @@ export function GlobalSearchDialog({
               </div>
             </div>
 
-            <div>
+            <div role="region" aria-labelledby="members-search-heading">
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <span>{t("search.members.title", "Member search")}</span>
-                <span className="text-[10px] text-neutral-3">
+                <h3 id="members-search-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.members.title", "Member search")}
+                </h3>
+                <span className="text-[10px] text-neutral-3" aria-live="polite">
                   {members.length} {t("search.common.loadedSuffix", "loaded")}
                 </span>
               </header>
@@ -1071,10 +1079,15 @@ export function GlobalSearchDialog({
               </div>
             </div>
 
-            <div>
+            <div role="region" aria-labelledby="payments-search-heading">
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <span>{t("search.payments.title", "Recent payments")}</span>
-                <span className="text-[10px] text-neutral-3">
+                <h3
+                  id="payments-search-heading"
+                  className="text-[11px] uppercase tracking-[0.35em]"
+                >
+                  {t("search.payments.title", "Recent payments")}
+                </h3>
+                <span className="text-[10px] text-neutral-3" aria-live="polite">
                   {payments.length} {t("search.common.loadedSuffix", "loaded")}
                 </span>
               </header>
@@ -1139,9 +1152,11 @@ export function GlobalSearchDialog({
               </div>
             </div>
 
-            <div>
+            <div role="region" aria-labelledby="sacco-picker-heading">
               <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                {t("search.saccoPicker.title", "Semantic SACCO picker")}
+                <h3 id="sacco-picker-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.saccoPicker.title", "Semantic SACCO picker")}
+                </h3>
               </header>
               <SaccoSearchCombobox
                 value={selectedSacco}

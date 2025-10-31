@@ -121,7 +121,6 @@ export async function DELETE(request: NextRequest) {
     last_mfa_success_at: null,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .from("users")
     .update(updatePayload)

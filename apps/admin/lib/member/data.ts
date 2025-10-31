@@ -42,7 +42,7 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
   const supabase = await createSupabaseServerClient();
   const appSupabase = supabaseSrv();
   // Member application tables are optional snapshots; fall back to untyped client access
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const legacyClient = supabase as any;
   const {
     data: { user },

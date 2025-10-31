@@ -8,7 +8,9 @@
 
 ## Overview
 
-This roadmap provides a prioritized, actionable plan based on the comprehensive codebase analysis conducted in Phase 1 of the refactoring initiative. Each task includes specific actions, expected outcomes, and acceptance criteria.
+This roadmap provides a prioritized, actionable plan based on the comprehensive
+codebase analysis conducted in Phase 1 of the refactoring initiative. Each task
+includes specific actions, expected outcomes, and acceptance criteria.
 
 ---
 
@@ -21,8 +23,10 @@ This roadmap provides a prioritized, actionable plan based on the comprehensive 
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Fix React purity violation in reconciliation page (line 142)
-  - Replace `const now = Date.now()` with `const now = useMemo(() => Date.now(), [])`
+  - Replace `const now = Date.now()` with
+    `const now = useMemo(() => Date.now(), [])`
   - Test that reconciliation page renders correctly
   - Verify no behavioral changes
 
@@ -32,9 +36,11 @@ This roadmap provides a prioritized, actionable plan based on the comprehensive 
   - Verify TypeScript compilation
 
 **Files to Modify:**
+
 - `apps/admin/app/(main)/admin/(panel)/reconciliation/page.tsx`
 
 **Acceptance Criteria:**
+
 - [ ] `pnpm lint` passes with zero errors
 - [ ] All existing tests pass
 - [ ] Manual testing of reconciliation page shows no regressions
@@ -46,6 +52,7 @@ This roadmap provides a prioritized, actionable plan based on the comprehensive 
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Regenerate Supabase types from database schema
   - Run: `supabase gen types typescript --local > lib/supabase/types.ts`
   - Update imports in affected files
@@ -57,10 +64,12 @@ This roadmap provides a prioritized, actionable plan based on the comprehensive 
   - Remove type casting where possible
 
 **Files to Modify:**
+
 - `apps/client/lib/api/saccos.ts`
 - `lib/supabase/types.ts` (regenerate)
 
 **Acceptance Criteria:**
+
 - [ ] `pnpm typecheck` passes with zero errors
 - [ ] Client app builds successfully
 - [ ] API calls work as expected
@@ -76,11 +85,13 @@ This roadmap provides a prioritized, actionable plan based on the comprehensive 
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Update eslint-plugin-react-hooks (7.0.0 → 7.0.1)
 - [ ] Update eslint (9.37.0 → 9.38.0)
 - [ ] Test that linting still works correctly
 
 **Commands:**
+
 ```bash
 pnpm update eslint-plugin-react-hooks eslint
 pnpm lint
@@ -88,6 +99,7 @@ pnpm test
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Dependencies updated successfully
 - [ ] No breaking changes introduced
 - [ ] All tests pass
@@ -99,12 +111,14 @@ pnpm test
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Review @types/node v24 changelog
 - [ ] Test compatibility with Node.js 18+
 - [ ] Create a branch for testing the update
 - [ ] Update if compatible, document if not
 
 **Decision Point:**
+
 - If compatible: Update to v24
 - If not compatible: Document reasons and revisit later
 
@@ -119,13 +133,15 @@ pnpm test
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Set up test infrastructure (tsx + Node test runner)
-- [ ] Add unit tests for API functions (lib/api/*)
+- [ ] Add unit tests for API functions (lib/api/\*)
 - [ ] Add unit tests for utility functions
 - [ ] Add E2E tests for critical user flows
 - [ ] Aim for 60%+ coverage
 
 **New Files:**
+
 ```
 apps/client/tests/
   ├── unit/
@@ -136,6 +152,7 @@ apps/client/tests/
 ```
 
 **Acceptance Criteria:**
+
 - [ ] At least 60% code coverage
 - [ ] All critical paths tested
 - [ ] Tests run in CI
@@ -147,6 +164,7 @@ apps/client/tests/
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Install c8 coverage tool: `pnpm add -D c8`
 - [ ] Configure coverage thresholds
 - [ ] Add coverage scripts to package.json
@@ -154,6 +172,7 @@ apps/client/tests/
 - [ ] Generate HTML coverage reports
 
 **Configuration:**
+
 ```json
 {
   "c8": {
@@ -162,16 +181,13 @@ apps/client/tests/
     "functions": 60,
     "branches": 50,
     "statements": 60,
-    "exclude": [
-      "**/*.test.ts",
-      "**/*.spec.ts",
-      "**/node_modules/**"
-    ]
+    "exclude": ["**/*.test.ts", "**/*.spec.ts", "**/node_modules/**"]
   }
 }
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Coverage reports generated on each test run
 - [ ] CI fails if coverage drops below thresholds
 - [ ] HTML reports accessible for review
@@ -183,6 +199,7 @@ apps/client/tests/
 **Owner:** TBD
 
 #### Focus Areas:
+
 1. **packages/core** (HIGHEST priority)
    - Test database helpers
    - Test domain logic
@@ -198,6 +215,7 @@ apps/client/tests/
    - Test validation
 
 **Acceptance Criteria:**
+
 - [ ] packages/core: 70%+ coverage
 - [ ] packages/ui: 60%+ coverage
 - [ ] packages/config: 80%+ coverage
@@ -213,6 +231,7 @@ apps/client/tests/
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Create shared ESLint config in workspace root
 - [ ] Add ESLint to packages/config
 - [ ] Add ESLint to packages/core
@@ -221,6 +240,7 @@ apps/client/tests/
 - [ ] Add ESLint to apps/platform-api
 
 **Shared Config Example:**
+
 ```javascript
 // eslint.config.shared.mjs
 export default {
@@ -228,11 +248,12 @@ export default {
   rules: {
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": "error",
-  }
+  },
 };
 ```
 
 **Acceptance Criteria:**
+
 - [ ] All packages have consistent linting
 - [ ] `pnpm lint` runs successfully for all packages
 - [ ] No new ESLint errors introduced
@@ -244,12 +265,14 @@ export default {
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Install husky: `pnpm add -D husky`
 - [ ] Configure pre-commit hook
 - [ ] Add lint-staged for efficient linting
 - [ ] Document in README
 
 **Configuration:**
+
 ```json
 {
   "lint-staged": {
@@ -259,6 +282,7 @@ export default {
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Pre-commit hook runs on every commit
 - [ ] Only staged files are linted
 - [ ] Documentation updated
@@ -274,6 +298,7 @@ export default {
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Document API and purpose
 - [ ] Implement core domain logic
 - [ ] Add comprehensive tests
@@ -281,6 +306,7 @@ export default {
 - [ ] Export public API
 
 **Target Structure:**
+
 ```
 packages/core/
   ├── src/
@@ -292,6 +318,7 @@ packages/core/
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Clear README with usage examples
 - [ ] 70%+ test coverage
 - [ ] Zero linting errors
@@ -304,6 +331,7 @@ packages/core/
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Document component library
 - [ ] Implement core components
 - [ ] Add Storybook (optional)
@@ -311,12 +339,14 @@ packages/core/
 - [ ] Ensure mobile responsiveness
 
 **Target Components:**
+
 - Button, Input, Select
 - Card, Modal, Dialog
 - Table, DataGrid
 - Form components
 
 **Acceptance Criteria:**
+
 - [ ] Component documentation exists
 - [ ] 60%+ test coverage
 - [ ] Accessibility audit passes
@@ -329,12 +359,14 @@ packages/core/
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Implement config loader
 - [ ] Add environment validation
 - [ ] Add type-safe config access
 - [ ] Document configuration options
 
 **Acceptance Criteria:**
+
 - [ ] Type-safe config access
 - [ ] Runtime validation
 - [ ] 80%+ test coverage
@@ -351,16 +383,19 @@ packages/core/
 **Owner:** TBD
 
 #### Options:
+
 1. **Dependabot** (GitHub native)
 2. **Renovate** (more configurable)
 
 #### Tasks:
+
 - [ ] Choose tool (recommend Renovate)
 - [ ] Configure update schedules
 - [ ] Set up auto-merge rules
 - [ ] Configure grouping strategies
 
 **Example Config (.github/renovate.json):**
+
 ```json
 {
   "extends": ["config:base"],
@@ -377,6 +412,7 @@ packages/core/
 ```
 
 **Acceptance Criteria:**
+
 - [ ] Automated PRs for dependency updates
 - [ ] Patch updates auto-merge
 - [ ] Major updates require review
@@ -388,6 +424,7 @@ packages/core/
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Add coverage thresholds to CI
 - [ ] Add bundle size monitoring
 - [ ] Add performance budgets
@@ -395,12 +432,14 @@ packages/core/
 - [ ] Cache dependencies effectively
 
 **CI Stages:**
+
 1. Lint → TypeCheck → Test → Build
 2. E2E Tests (parallel)
 3. Coverage Check
 4. Security Scan
 
 **Acceptance Criteria:**
+
 - [ ] CI runs < 10 minutes
 - [ ] Coverage enforced
 - [ ] Security checks automated
@@ -416,18 +455,21 @@ packages/core/
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Set up test database
 - [ ] Create API integration tests
 - [ ] Test cross-service scenarios
 - [ ] Test error conditions
 
 **Scope:**
+
 - Authentication flows
 - Database operations
 - Edge function calls
 - External API integrations
 
 **Acceptance Criteria:**
+
 - [ ] 20+ integration tests
 - [ ] All critical paths covered
 - [ ] Tests run in CI
@@ -439,17 +481,20 @@ packages/core/
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Set up k6 for load testing
 - [ ] Define performance budgets
 - [ ] Create load test scenarios
 - [ ] Monitor in production
 
 **Key Metrics:**
+
 - Response time p95 < 500ms
 - Error rate < 1%
 - Throughput > 100 req/s
 
 **Acceptance Criteria:**
+
 - [ ] Load tests defined
 - [ ] Baseline metrics established
 - [ ] Performance regression detection
@@ -465,28 +510,35 @@ packages/core/
 **Owner:** Each package maintainer
 
 #### Tasks:
+
 - [ ] Add README.md to each package
 - [ ] Document public APIs
 - [ ] Add code examples
 - [ ] Document architecture decisions
 
 **Template:**
+
 ```markdown
 # Package Name
 
 ## Purpose
+
 Brief description
 
 ## Installation
+
 npm install commands
 
 ## Usage
+
 Code examples
 
 ## API
+
 Public API documentation
 
 ## Development
+
 Setup and testing instructions
 ```
 
@@ -497,6 +549,7 @@ Setup and testing instructions
 **Owner:** TBD
 
 #### Tasks:
+
 - [ ] Create CONTRIBUTING.md
 - [ ] Document development workflow
 - [ ] Define code review process
@@ -507,18 +560,21 @@ Setup and testing instructions
 ## Success Metrics
 
 ### Code Quality Metrics
+
 - [ ] Zero ESLint errors across all packages
 - [ ] Zero TypeScript errors
 - [ ] 60%+ overall test coverage
 - [ ] 80%+ coverage for critical paths
 
 ### Process Metrics
+
 - [ ] All packages have tests
 - [ ] All packages have linting
 - [ ] All packages have documentation
 - [ ] Automated dependency updates active
 
 ### Performance Metrics
+
 - [ ] CI pipeline < 10 minutes
 - [ ] Build time < 5 minutes
 - [ ] Test execution < 3 minutes
@@ -545,16 +601,16 @@ Setup and testing instructions
 
 ## Timeline Summary
 
-| Phase | Duration | Dependencies |
-|-------|----------|-------------|
-| Phase 1: Critical Fixes | Week 1 | None |
-| Phase 2: Dependencies | Week 1-2 | None |
-| Phase 3: Test Coverage | Week 2-4 | Phase 1 |
-| Phase 4: Linting | Week 3-4 | Phase 1 |
-| Phase 5: Packages | Week 5-8 | Phase 3, 4 |
-| Phase 6: Automation | Week 6-8 | Phase 3 |
-| Phase 7: Integration | Week 8-10 | Phase 5 |
-| Phase 8: Documentation | Ongoing | All |
+| Phase                   | Duration  | Dependencies |
+| ----------------------- | --------- | ------------ |
+| Phase 1: Critical Fixes | Week 1    | None         |
+| Phase 2: Dependencies   | Week 1-2  | None         |
+| Phase 3: Test Coverage  | Week 2-4  | Phase 1      |
+| Phase 4: Linting        | Week 3-4  | Phase 1      |
+| Phase 5: Packages       | Week 5-8  | Phase 3, 4   |
+| Phase 6: Automation     | Week 6-8  | Phase 3      |
+| Phase 7: Integration    | Week 8-10 | Phase 5      |
+| Phase 8: Documentation  | Ongoing   | All          |
 
 **Total Duration:** 10-12 weeks
 
@@ -563,25 +619,30 @@ Setup and testing instructions
 ## Review Points
 
 ### Week 2 Review
+
 - [ ] Critical fixes completed
 - [ ] Dependencies updated
 - [ ] Test coverage plan approved
 
 ### Week 4 Review
+
 - [ ] Test coverage improving
 - [ ] Linting standardized
 - [ ] No regressions introduced
 
 ### Week 8 Review
+
 - [ ] Packages completed
 - [ ] Automation in place
 - [ ] Documentation updated
 
 ### Week 10 Review (Final)
+
 - [ ] All phases completed
 - [ ] Metrics achieved
 - [ ] Lessons learned documented
 
 ---
 
-*This roadmap is a living document. Update as priorities change or new issues are discovered.*
+_This roadmap is a living document. Update as priorities change or new issues
+are discovered._

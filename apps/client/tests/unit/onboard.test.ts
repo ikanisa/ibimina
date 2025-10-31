@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from "node:test";
+import { describe, it, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { submitOnboardingData, checkProfileExists } from "../../lib/api/onboard.js";
 import type { OnboardingData, OnboardingResponse, OnboardingError } from "../../lib/api/onboard.js";
@@ -42,13 +42,13 @@ describe("submitOnboardingData", () => {
     assert.equal(requests[0].input, "/api/onboard");
     assert.equal(requests[0].init?.method, "POST");
     assert.equal(requests[0].init?.credentials, "include");
-    
+
     const headers = new Headers(requests[0].init?.headers);
     assert.equal(headers.get("content-type"), "application/json");
-    
+
     const body = JSON.parse(requests[0].init?.body as string);
     assert.deepEqual(body, data);
-    
+
     assert.deepEqual(result, mockResponse);
   });
 
@@ -91,13 +91,10 @@ describe("submitOnboardingData", () => {
       momo_msisdn: "invalid",
     };
 
-    await assert.rejects(
-      submitOnboardingData(data),
-      {
-        name: "Error",
-        message: "Invalid phone number format",
-      }
-    );
+    await assert.rejects(submitOnboardingData(data), {
+      name: "Error",
+      message: "Invalid phone number format",
+    });
   });
 
   it("throws an error when server returns 409 (conflict)", async () => {
@@ -118,13 +115,10 @@ describe("submitOnboardingData", () => {
       momo_msisdn: "+250788123456",
     };
 
-    await assert.rejects(
-      submitOnboardingData(data),
-      {
-        name: "Error",
-        message: "Profile already exists for this user",
-      }
-    );
+    await assert.rejects(submitOnboardingData(data), {
+      name: "Error",
+      message: "Profile already exists for this user",
+    });
   });
 
   it("handles network errors gracefully", async () => {
@@ -137,13 +131,10 @@ describe("submitOnboardingData", () => {
       momo_msisdn: "+250788123456",
     };
 
-    await assert.rejects(
-      submitOnboardingData(data),
-      {
-        name: "Error",
-        message: /Network error: Unable to connect to the server/,
-      }
-    );
+    await assert.rejects(submitOnboardingData(data), {
+      name: "Error",
+      message: /Network error: Unable to connect to the server/,
+    });
   });
 
   it("throws original error for non-TypeError exceptions", async () => {
@@ -156,13 +147,10 @@ describe("submitOnboardingData", () => {
       momo_msisdn: "+250788123456",
     };
 
-    await assert.rejects(
-      submitOnboardingData(data),
-      {
-        name: "Error",
-        message: "Custom error",
-      }
-    );
+    await assert.rejects(submitOnboardingData(data), {
+      name: "Error",
+      message: "Custom error",
+    });
   });
 
   it("handles error response without details", async () => {
@@ -183,13 +171,10 @@ describe("submitOnboardingData", () => {
       momo_msisdn: "+250788123456",
     };
 
-    await assert.rejects(
-      submitOnboardingData(data),
-      {
-        name: "Error",
-        message: "unknown_error",
-      }
-    );
+    await assert.rejects(submitOnboardingData(data), {
+      name: "Error",
+      message: "unknown_error",
+    });
   });
 });
 

@@ -24,7 +24,6 @@
  */
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { submitOnboardingData } from "@/lib/api/onboard";
 
 interface OnboardingFormProps {
@@ -33,7 +32,6 @@ interface OnboardingFormProps {
 }
 
 export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     whatsappNumber: "",
     momoNumber: "",
@@ -44,6 +42,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
     form?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   /**
    * Validates phone number format (Rwanda mobile numbers)
@@ -76,6 +75,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
    */
   const handleChange = (field: "whatsappNumber" | "momoNumber", value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setIsSuccess(false);
 
     // Clear error for this field when user starts typing
     if (errors[field]) {
@@ -119,6 +119,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
     }
 
     setIsSubmitting(true);
+    setIsSuccess(false);
 
     try {
       // Normalize phone numbers to E.164 format for storage
@@ -138,8 +139,8 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
       if (onSuccess) {
         onSuccess();
       } else {
-        // Default behavior: redirect to success page or home
-        router.push("/");
+        // Default behavior: show inline success state to avoid redirect loop
+        setIsSuccess(true);
       }
     } catch (error) {
       console.error("Onboarding submission error:", error);
@@ -149,6 +150,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
             ? error.message
             : "An error occurred during onboarding. Please try again.",
       });
+      setIsSuccess(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -156,6 +158,16 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+      {/* Success message */}
+      {isSuccess && (
+        <div
+          role="status"
+          className="p-4 text-sm text-green-200 bg-green-900/20 border border-green-600 rounded-lg"
+        >
+          Profile submitted successfully. We will notify you once your account is ready.
+        </div>
+      )}
+
       {/* Form-level error message */}
       {errors.form && (
         <div
@@ -187,7 +199,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
           value={formData.whatsappNumber}
           onChange={(e) => handleChange("whatsappNumber", e.target.value)}
           placeholder="078XXXXXXX"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isSuccess}
           className={`
             w-full px-4 py-3 rounded-lg
             bg-neutral-9/50 border
@@ -229,7 +241,7 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
           value={formData.momoNumber}
           onChange={(e) => handleChange("momoNumber", e.target.value)}
           placeholder="078XXXXXXX"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isSuccess}
           className={`
             w-full px-4 py-3 rounded-lg
             bg-neutral-9/50 border
@@ -253,20 +265,22 @@ export function OnboardingForm({ onSuccess }: OnboardingFormProps) {
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || isSuccess}
         className={`
           w-full px-6 py-4 text-lg font-semibold rounded-xl
           transition-all duration-interactive
           focus-visible:ring-4 focus-visible:ring-rw-blue focus-visible:ring-opacity-50
           ${
-            isSubmitting
+            isSubmitting || isSuccess
               ? "bg-neutral-2/30 text-neutral-2 cursor-not-allowed"
               : "bg-rw-blue text-ink hover:bg-opacity-90"
           }
         `}
         aria-busy={isSubmitting}
       >
-        {isSubmitting ? (
+        {isSuccess ? (
+          "Submitted"
+        ) : isSubmitting ? (
           <span className="flex items-center justify-center gap-2">
             <svg
               className="animate-spin h-5 w-5"

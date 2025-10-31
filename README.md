@@ -14,9 +14,42 @@ semantic SACCO search.
 - [**docs/**](docs/) - Additional documentation on architecture, deployment, and
   operations
 
+### Essential Documentation
+
+- [**docs/GROUND_RULES.md**](docs/GROUND_RULES.md) - Mandatory standards and
+  best practices
+- [**docs/QUICK_REFERENCE.md**](docs/QUICK_REFERENCE.md) - Quick command
+  reference with timings
+- [**docs/PROJECT_STRUCTURE.md**](docs/PROJECT_STRUCTURE.md) - Project structure
+  and dependency graph
+- [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) - Common issues and
+  solutions
+- [**docs/CI_WORKFLOWS.md**](docs/CI_WORKFLOWS.md) - CI/CD workflows and
+  troubleshooting
+- [**docs/DB_GUIDE.md**](docs/DB_GUIDE.md) - Database procedures and migration
+  guide
+- [**docs/SCHEMA_VERIFICATION.md**](docs/SCHEMA_VERIFICATION.md) - Schema drift
+  detection and verification system
+- [**docs/ENV_VARIABLES.md**](docs/ENV_VARIABLES.md) - Complete environment
+  variables reference
+- [**packages/README.md**](packages/README.md) - Shared packages documentation
+
+### Deployment Documentation
+
+- [**docs/CLOUDFLARE_DEPLOYMENT.md**](docs/CLOUDFLARE_DEPLOYMENT.md) -
+  Comprehensive guide for deploying to Cloudflare Pages
+- [**CLOUDFLARE_DEPLOYMENT_CHECKLIST.md**](CLOUDFLARE_DEPLOYMENT_CHECKLIST.md) -
+  Step-by-step deployment checklist
+- [**.env.cloudflare.template**](.env.cloudflare.template) - Environment
+  variables template for Cloudflare
+- [**DEPLOYMENT_GUIDE.md**](DEPLOYMENT_GUIDE.md) - General deployment guide
+
 ## Overview
 
-**Ibimina** (Kinyarwanda for "groups") is a comprehensive SACCO management platform designed for Rwanda's Umurenge SACCOs. The system manages group savings (ikimina), member accounts, mobile money payments, and reconciliation workflows. Built with security, observability, and offline-first capabilities in mind.
+**Ibimina** (Kinyarwanda for "groups") is a comprehensive SACCO management
+platform designed for Rwanda's Umurenge SACCOs. The system manages group savings
+(ikimina), member accounts, mobile money payments, and reconciliation workflows.
+Built with security, observability, and offline-first capabilities in mind.
 
 ## Branching model
 
@@ -32,6 +65,7 @@ semantic SACCO search.
 ## Tech stack
 
 ### Frontend
+
 - **Next.js 15** (App Router with typed routes)
 - **TypeScript 5.9** for type safety
 - **Tailwind CSS** with custom design tokens (`styles/tokens.css`)
@@ -39,6 +73,7 @@ semantic SACCO search.
 - **PWA** (Progressive Web App) with manifest & service worker
 
 ### Backend
+
 - **Supabase** for authentication, database, and Edge Functions
   - PostgreSQL with Row-Level Security (RLS)
   - Real-time subscriptions
@@ -46,11 +81,13 @@ semantic SACCO search.
 - **@supabase/ssr** for SSR-compatible auth
 
 ### Infrastructure
+
 - **Prometheus + Grafana** for observability (in `infra/metrics/`)
 - **Docker** for containerized deployments
 - **pg_cron** for scheduled database jobs
 
 ### Key Features
+
 - Multi-factor authentication (TOTP, Passkeys/WebAuthn, Email OTP)
 - End-to-end encryption for PII (AES-256-GCM)
 - Offline-first capabilities with service workers
@@ -102,18 +139,19 @@ cp .env.example .env
 
 Edit `.env` and populate the following **required** variables:
 
-| Variable | Purpose | How to obtain |
-|----------|---------|---------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | From your Supabase project settings |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key | From your Supabase project API settings |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server-only) | From your Supabase project API settings |
-| `KMS_DATA_KEY_BASE64` | 32-byte base64 encryption key | Generate with: `openssl rand -base64 32` |
-| `BACKUP_PEPPER` | Salt for backup codes | Generate with: `openssl rand -hex 32` |
-| `MFA_SESSION_SECRET` | MFA session signing key | Generate with: `openssl rand -hex 32` |
-| `TRUSTED_COOKIE_SECRET` | Trusted device cookie key | Generate with: `openssl rand -hex 32` |
-| `HMAC_SHARED_SECRET` | HMAC for edge function auth | Generate with: `openssl rand -hex 32` |
+| Variable                        | Purpose                        | How to obtain                            |
+| ------------------------------- | ------------------------------ | ---------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL           | From your Supabase project settings      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key                | From your Supabase project API settings  |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Service role key (server-only) | From your Supabase project API settings  |
+| `KMS_DATA_KEY_BASE64`           | 32-byte base64 encryption key  | Generate with: `openssl rand -base64 32` |
+| `BACKUP_PEPPER`                 | Salt for backup codes          | Generate with: `openssl rand -hex 32`    |
+| `MFA_SESSION_SECRET`            | MFA session signing key        | Generate with: `openssl rand -hex 32`    |
+| `TRUSTED_COOKIE_SECRET`         | Trusted device cookie key      | Generate with: `openssl rand -hex 32`    |
+| `HMAC_SHARED_SECRET`            | HMAC for edge function auth    | Generate with: `openssl rand -hex 32`    |
 
-See `.env.example` for additional optional configuration (logging, email, analytics, etc.).
+See `.env.example` for additional optional configuration (logging, email,
+analytics, etc.).
 
 ### 3. Start local Supabase (optional)
 
@@ -142,7 +180,9 @@ pnpm --filter @ibimina/admin dev
 
 The admin console will be available at `http://localhost:3000`.
 
-`.env` stays out of version control and is loaded automatically by the admin app. See [`docs/local-hosting.md`](docs/local-hosting.md) for a detailed Mac-hosting walkthrough plus health-check steps.
+`.env` stays out of version control and is loaded automatically by the admin
+app. See [`docs/local-hosting.md`](docs/local-hosting.md) for a detailed
+Mac-hosting walkthrough plus health-check steps.
 
 - `pnpm start` (and the `apps/admin/scripts/start.sh` wrapper) boots the
   `.next/standalone` output by default. Set `ADMIN_USE_STANDALONE_START=0` (or
@@ -364,6 +404,13 @@ you’re ready to release to your local or on-prem infrastructure.
 
 - Run `pnpm run check:deploy` (or `make ready`) to execute the same
   lint/type/test/build/Playwright/Lighthouse/log-drain gates that CI enforces.
-- Walk through the [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) before
-  tagging a release to confirm secrets, Supabase migrations, smoke tests, and
-  observability wiring are complete.
+- Run `pnpm run validate:production` to verify production readiness
+  prerequisites.
+- Walk through the [Production Go-Live Checklist](PRODUCTION_CHECKLIST.md) for
+  comprehensive pre-deployment validation.
+- Review the [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) for standard
+  release procedures.
+- Follow [Post-Deployment Validation](docs/POST_DEPLOYMENT_VALIDATION.md) after
+  each deployment.
+- Keep [Disaster Recovery Procedures](docs/DISASTER_RECOVERY.md) accessible for
+  emergency response.

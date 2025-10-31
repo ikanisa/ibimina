@@ -17,6 +17,7 @@ export default [
       "apps/admin/.turbo/**",
       "apps/client/.next/**",
       "apps/client/public/**/*",
+      "infra/scripts/**",
       "pnpm-lock.yaml",
     ],
     linterOptions: {

@@ -1,0 +1,171 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/admin/**"
+      - "apps/client/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "Which app to deploy"
+        required: true
+        type: choice
+        options:
+          - all
+          - admin
+          - staff
+          - client
+
+jobs:
+  deploy-admin:
+    name: Deploy Admin App to Cloudflare
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.inputs.app == 'all' || github.event.inputs.app == 'admin'
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for Cloudflare Pages
+        run: pnpm --filter @ibimina/admin build:cloudflare
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_PEPPER: ${{ secrets.BACKUP_PEPPER }}
+          MFA_SESSION_SECRET: ${{ secrets.MFA_SESSION_SECRET }}
+          TRUSTED_COOKIE_SECRET: ${{ secrets.TRUSTED_COOKIE_SECRET }}
+          HMAC_SHARED_SECRET: ${{ secrets.HMAC_SHARED_SECRET }}
+          KMS_DATA_KEY_BASE64: ${{ secrets.KMS_DATA_KEY_BASE64 }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ibimina-admin
+          directory: apps/admin/.vercel/output/static
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-staff:
+    name: Deploy Staff App to Cloudflare
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.inputs.app == 'all' || github.event.inputs.app == 'staff'
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for Cloudflare Pages
+        run: pnpm --filter @ibimina/admin build:cloudflare
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_PEPPER: ${{ secrets.BACKUP_PEPPER }}
+          MFA_SESSION_SECRET: ${{ secrets.MFA_SESSION_SECRET }}
+          TRUSTED_COOKIE_SECRET: ${{ secrets.TRUSTED_COOKIE_SECRET }}
+          HMAC_SHARED_SECRET: ${{ secrets.HMAC_SHARED_SECRET }}
+          KMS_DATA_KEY_BASE64: ${{ secrets.KMS_DATA_KEY_BASE64 }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ibimina-staff
+          directory: apps/admin/.vercel/output/static
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-client:
+    name: Deploy Client App to Cloudflare
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.inputs.app == 'all' || github.event.inputs.app == 'client'
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for Cloudflare Pages
+        run: pnpm --filter @ibimina/client build:cloudflare
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_PEPPER: ${{ secrets.BACKUP_PEPPER }}
+          MFA_SESSION_SECRET: ${{ secrets.MFA_SESSION_SECRET }}
+          TRUSTED_COOKIE_SECRET: ${{ secrets.TRUSTED_COOKIE_SECRET }}
+          HMAC_SHARED_SECRET: ${{ secrets.HMAC_SHARED_SECRET }}
+          KMS_DATA_KEY_BASE64: ${{ secrets.KMS_DATA_KEY_BASE64 }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ibimina-client
+          directory: apps/client/.vercel/output/static
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

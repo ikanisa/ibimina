@@ -25,7 +25,7 @@ const invokeRevalidateTag = async (tag: string) => {
     return;
   }
 
-  await revalidateTag(tag);
+  await revalidateTag(tag, {});
 };
 
 const extractToken = (headerValue: string | null) => {

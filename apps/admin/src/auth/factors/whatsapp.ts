@@ -37,30 +37,22 @@ export const initiateWhatsAppFactor = async (
     const result = await sendWhatsAppOtp({ id: input.userId });
 
     if (!result.sent) {
-      if (result.error === "rate_limited") {
-        const retryAt = result.retryAt ? new Date(result.retryAt) : null;
-        await recordMfaAudit("MFA_RATE_LIMITED", input.userId, {
+      // WhatsApp OTP is temporarily disabled
+      if (result.error === "whatsapp_disabled") {
+        await recordMfaAudit("MFA_FAILED", input.userId, {
           channel: "WHATSAPP",
-          retryAt: retryAt ? retryAt.toISOString() : null,
+          reason: "whatsapp_disabled",
         });
-        authLog.warn("mfa_whatsapp_rate_limited", {
+        authLog.warn("mfa_whatsapp_disabled", {
           userId: input.userId,
-          retryAt: retryAt ? retryAt.toISOString() : null,
         });
-        return toFailure(429, "rate_limited", "WHATSAPP_RATE_LIMITED", {
-          retryAt: retryAt ? retryAt.toISOString() : null,
+        return toFailure(503, "whatsapp_disabled", "WHATSAPP_DISABLED", {
+          message: "WhatsApp OTP temporarily disabled - use passkey, TOTP, email, or backup codes",
         });
       }
 
-      const code =
-        result.error === "not_enrolled"
-          ? "WHATSAPP_NOT_ENROLLED"
-          : result.error === "missing_msisdn"
-            ? "WHATSAPP_MISSING_MSISDN"
-            : "WHATSAPP_SEND_FAILED";
-
-      const status =
-        result.error === "not_enrolled" || result.error === "missing_msisdn" ? 400 : 500;
+      const code = "WHATSAPP_SEND_FAILED";
+      const status = 500;
       await recordMfaAudit("MFA_FAILED", input.userId, {
         channel: "WHATSAPP",
         reason: result.error ?? "send_failed",
@@ -72,18 +64,16 @@ export const initiateWhatsAppFactor = async (
       return toFailure(status, result.error ?? "send_failed", code);
     }
 
-    await recordMfaAudit("MFA_WHATSAPP_SENT", input.userId, {
-      expiresAt: result.expiresAt ?? null,
-    });
+    // This branch won't be reached with current implementation
+    await recordMfaAudit("MFA_WHATSAPP_SENT", input.userId, {});
     authLog.info("mfa_whatsapp_issued", {
       userId: input.userId,
-      expiresAt: result.expiresAt ?? null,
     });
 
     return {
       ok: true as const,
       status: 200,
-      payload: { channel: "whatsapp", expiresAt: result.expiresAt },
+      payload: { channel: "whatsapp" },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -108,7 +98,7 @@ export const verifyWhatsAppFactor = async (
   }
 
   const supabase = createSupabaseAdminClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- authx schema not in generated types.
+
   const authx = (supabase as any).schema("authx");
   const nowIso = new Date().toISOString();
 

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme -->
+    <style name="Theme.TapMoMo" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/tapmomo_primary</item>
+        <item name="colorPrimaryVariant">@color/tapmomo_primary_dark</item>
+        <item name="colorOnPrimary">@color/tapmomo_on_primary</item>
+        <item name="colorSecondary">@color/tapmomo_secondary</item>
+        <item name="colorSecondaryVariant">@color/tapmomo_secondary_dark</item>
+        <item name="colorOnSecondary">@color/tapmomo_on_secondary</item>
+        <item name="android:statusBarColor">@color/tapmomo_primary</item>
+    </style>
+</resources>

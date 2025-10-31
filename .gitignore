@@ -40,3 +40,13 @@ supabase/.temp
 
 # Playwright artifacts
 test-results/
+
+# Android keystore (never commit)
+/apps/client/android/app/*.keystore
+/apps/client/android/app/*.jks
+/apps/client/android/keystore.properties
+/apps/admin/android/app/*.keystore
+/apps/admin/android/app/*.jks
+/apps/admin/android/keystore.properties
+*.keystore
+*.jks

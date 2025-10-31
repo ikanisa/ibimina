@@ -27,7 +27,7 @@ export function RiskSignalsVirtualized({ signals }: RiskSignalsVirtualizedProps)
   }, [signals.length]);
 
   // TanStack's virtualizer exposes mutable APIs that React Compiler cannot memoize safely.
-  // eslint-disable-next-line react-hooks/incompatible-library
+
   const rowVirtualizer = useVirtualizer({
     count: signals.length,
     getScrollElement: () => parentRef.current,

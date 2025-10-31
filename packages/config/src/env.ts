@@ -5,6 +5,8 @@ import requiredEnvConfig from "../required-env.json" with { type: "json" };
 type ProcessEnvSource = Partial<Record<string, string | undefined>>;
 
 function buildRawEnv(source: ProcessEnvSource) {
+  const analyticsCacheToken = source.ANALYTICS_CACHE_TOKEN?.trim();
+
   return {
     NODE_ENV: source.NODE_ENV ?? "development",
     APP_ENV: source.APP_ENV ?? source.NODE_ENV ?? "development",
@@ -28,7 +30,8 @@ function buildRawEnv(source: ProcessEnvSource) {
     MFA_RP_NAME: source.MFA_RP_NAME ?? "SACCO+",
     MFA_EMAIL_LOCALE: source.MFA_EMAIL_LOCALE ?? "en",
     MFA_EMAIL_FROM: source.MFA_EMAIL_FROM ?? "security@example.com",
-    ANALYTICS_CACHE_TOKEN: source.ANALYTICS_CACHE_TOKEN,
+    ANALYTICS_CACHE_TOKEN:
+      analyticsCacheToken && analyticsCacheToken.length > 0 ? analyticsCacheToken : undefined,
     REPORT_SIGNING_KEY: source.REPORT_SIGNING_KEY,
     OPENAI_API_KEY: source.OPENAI_API_KEY,
     OPENAI_OCR_MODEL: source.OPENAI_OCR_MODEL ?? "gpt-4.1-mini",
@@ -49,9 +52,9 @@ function buildRawEnv(source: ProcessEnvSource) {
     HMAC_SHARED_SECRET: source.HMAC_SHARED_SECRET,
     KMS_DATA_KEY: source.KMS_DATA_KEY,
     KMS_DATA_KEY_BASE64: source.KMS_DATA_KEY_BASE64,
-    TWILIO_ACCOUNT_SID: source.TWILIO_ACCOUNT_SID,
-    TWILIO_AUTH_TOKEN: source.TWILIO_AUTH_TOKEN,
-    TWILIO_WHATSAPP_FROM: source.TWILIO_WHATSAPP_FROM ?? "whatsapp:+14155238886",
+    META_WHATSAPP_ACCESS_TOKEN: source.META_WHATSAPP_ACCESS_TOKEN,
+    META_WHATSAPP_PHONE_NUMBER_ID: source.META_WHATSAPP_PHONE_NUMBER_ID,
+    META_WHATSAPP_BUSINESS_ACCOUNT_ID: source.META_WHATSAPP_BUSINESS_ACCOUNT_ID,
     SITE_URL: source.SITE_URL,
     EDGE_URL: source.EDGE_URL,
     DISABLE_PWA: source.DISABLE_PWA,
@@ -147,9 +150,9 @@ const schema = z
       .min(1, "HMAC_SHARED_SECRET is required"),
     KMS_DATA_KEY: optionalString,
     KMS_DATA_KEY_BASE64: optionalString,
-    TWILIO_ACCOUNT_SID: optionalString,
-    TWILIO_AUTH_TOKEN: optionalString,
-    TWILIO_WHATSAPP_FROM: z.string().trim().min(1),
+    META_WHATSAPP_ACCESS_TOKEN: optionalString,
+    META_WHATSAPP_PHONE_NUMBER_ID: optionalString,
+    META_WHATSAPP_BUSINESS_ACCOUNT_ID: optionalString,
     SITE_URL: optionalString,
     EDGE_URL: optionalString,
     DISABLE_PWA: optionalString,
