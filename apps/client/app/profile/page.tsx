@@ -42,10 +42,11 @@ export default async function ProfilePage() {
   return (
     <div className="min-h-screen bg-neutral-50 pb-20">
       {/* Header */}
-      <header className="bg-gradient-to-br from-atlas-blue via-atlas-blue-light to-atlas-blue-dark px-4 py-8 text-white">
-        <div className="mx-auto max-w-screen-xl">
-          <h1 className="mb-2 text-3xl font-bold">{profile.name}</h1>
-          <p className="text-sm text-white/90">
+      <header className="relative bg-gradient-to-br from-atlas-blue via-atlas-blue-light to-atlas-blue-dark px-4 py-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        <div className="relative mx-auto max-w-screen-xl">
+          <h1 className="mb-2 text-3xl font-bold text-white drop-shadow-sm">{profile.name}</h1>
+          <p className="text-sm text-white drop-shadow-sm">
             Member since {new Date(profile.createdAt).toLocaleDateString()}
           </p>
         </div>

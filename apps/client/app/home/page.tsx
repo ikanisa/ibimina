@@ -66,13 +66,13 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 pb-20">
-      {/* Header - Atlas inspired gradient */}
-      <header className="relative bg-gradient-to-br from-atlas-blue via-atlas-blue-light to-atlas-blue-dark text-white px-4 py-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+      {/* Header - Atlas inspired gradient with proper text visibility */}
+      <header className="relative bg-gradient-to-br from-atlas-blue via-atlas-blue-light to-atlas-blue-dark px-4 py-10 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30" />
         <div className="relative max-w-screen-xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2 tracking-tight">Welcome Back!</h1>
-          <p className="text-white/90 text-base">Manage your ibimina savings</p>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2 tracking-tight text-white drop-shadow-sm">Welcome Back!</h1>
+          <p className="text-base text-white drop-shadow-sm">Manage your ibimina savings</p>
         </div>
       </header>
 
