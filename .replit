@@ -18,6 +18,14 @@ author = "agent"
 task = "workflow.run"
 args = "admin-app"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "client-app"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "website"
+
 [[workflows.workflow]]
 name = "admin-app"
 author = "agent"
@@ -30,9 +38,41 @@ task = "shell.exec"
 args = "cd apps/admin && npx next dev -p 5000 -H 0.0.0.0"
 waitForPort = 5000
 
+[[workflows.workflow]]
+name = "client-app"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd apps/client && npx next dev -p 3000 -H 0.0.0.0"
+waitForPort = 3000
+
+[[workflows.workflow]]
+name = "website"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd apps/website && npx next dev -p 3001 -H 0.0.0.0"
+waitForPort = 3001
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
+localPort = 3001
+externalPort = 3001
 
 [deployment]
 deploymentTarget = "autoscale"
