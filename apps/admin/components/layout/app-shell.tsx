@@ -396,71 +396,117 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
       </div>
 
       <header className="relative mx-auto w-full max-w-6xl px-4 pb-4 pt-6 md:px-8">
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 px-6 py-5 shadow-glass backdrop-blur">
+        <nav
+          className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent px-6 py-6 shadow-2xl backdrop-blur-xl"
+          aria-label={t("nav.main", "Main navigation")}
+        >
+          {/* Subtle gradient overlay for depth */}
           <div
-            className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"
-            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/5"
+            aria-hidden="true"
           />
-          <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-2 md:text-[0.7rem]">
+
+          {/* Main content container */}
+          <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-8">
+            {/* Brand section */}
+            <div className="flex flex-col space-y-1.5">
+              <p className="text-[0.65rem] font-bold uppercase tracking-[0.25em] text-neutral-2/90 md:text-[0.7rem]">
                 {t("brand.org", "Umurenge SACCO")}
               </p>
-              <span className="text-gradient text-2xl font-semibold leading-tight">
+              <h1 className="text-gradient text-2xl font-bold leading-tight tracking-tight md:text-3xl">
                 {t("brand.consoleTitle", "Ibimina Staff Console")}
-              </span>
-              <span className="text-sm text-neutral-2">{saccoName}</span>
+              </h1>
+              <p className="text-sm font-medium text-neutral-2/80">{saccoName}</p>
             </div>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-3">
-              <nav className="hidden items-center gap-2 text-sm font-semibold md:flex">
-                {navTargets.map(({ href, primary, badge }, idx) => {
-                  const Icon = NAV_ITEMS[idx].icon;
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      className={cn(
-                        "interactive-scale flex items-center gap-2 rounded-full px-4 py-2 text-left text-sm tracking-[0.08em] transition md:text-[0.9rem]",
-                        isActive(href)
-                          ? "bg-white/20 text-neutral-0"
-                          : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
-                      )}
-                      aria-current={isActive(href) ? "page" : undefined}
-                    >
-                      <Icon className="h-4 w-4" aria-hidden />
-                      <span className="leading-tight">{primary}</span>
-                      {badge && (
-                        <span
+
+            {/* Navigation and actions container */}
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
+              {/* Desktop Navigation Links */}
+              <nav
+                className="hidden items-center gap-1.5 md:flex"
+                aria-label={t("nav.sections", "Section navigation")}
+              >
+                <ul className="flex items-center gap-1.5">
+                  {navTargets.map(({ href, primary, badge }, idx) => {
+                    const Icon = NAV_ITEMS[idx].icon;
+                    return (
+                      <li key={href}>
+                        <Link
+                          href={href}
                           className={cn(
-                            "ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium tracking-[0.12em]",
-                            BADGE_TONE_STYLES[badge.tone]
+                            "group relative flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold tracking-tight transition-all duration-200",
+                            isActive(href)
+                              ? "bg-white/25 text-neutral-0 shadow-lg"
+                              : "text-neutral-2 hover:bg-white/15 hover:text-neutral-0 hover:shadow-md"
                           )}
+                          aria-current={isActive(href) ? "page" : undefined}
                         >
-                          {badge.label}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
+                          {/* Active indicator glow */}
+                          {isActive(href) && (
+                            <span
+                              className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-rw-blue/20 to-rw-yellow/10 opacity-50"
+                              aria-hidden="true"
+                            />
+                          )}
+
+                          <Icon
+                            className="relative h-4 w-4 transition-transform group-hover:scale-110"
+                            aria-hidden="true"
+                          />
+                          <span className="relative leading-none">{primary}</span>
+
+                          {badge && (
+                            <span
+                              className={cn(
+                                "relative ml-1.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                                BADGE_TONE_STYLES[badge.tone]
+                              )}
+                              aria-label={`${badge.label} notification`}
+                            >
+                              {badge.label}
+                            </span>
+                          )}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
               </nav>
-              <div className="flex flex-wrap items-center gap-3">
-                <LanguageSwitcher className="hidden text-[0.7rem] font-semibold md:flex" />
-                <SignOutButton className="px-4 py-2 text-xs uppercase tracking-[0.3em] md:text-sm md:tracking-[0.1em]" />
+
+              {/* Action buttons */}
+              <div
+                className="flex flex-wrap items-center gap-2.5"
+                role="group"
+                aria-label={t("nav.actions", "Navigation actions")}
+              >
+                {/* Language switcher */}
+                <div className="hidden md:block">
+                  <LanguageSwitcher className="text-xs font-semibold" />
+                </div>
+
+                {/* Sign out button */}
+                <SignOutButton className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-md backdrop-blur-sm transition-all hover:bg-white/20 hover:shadow-lg" />
+
+                {/* Search button */}
                 <button
                   type="button"
                   onClick={() => setShowGlobalSearch(true)}
-                  className="interactive-scale inline-flex items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold tracking-[0.1em] text-neutral-0 transition hover:border-white/25 hover:text-neutral-0 md:text-xs md:uppercase md:tracking-[0.3em]"
+                  className="group inline-flex items-center gap-2 rounded-xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-0 shadow-md backdrop-blur-sm transition-all hover:border-white/30 hover:from-white/20 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-ink"
                   aria-haspopup="dialog"
                   aria-expanded={showGlobalSearch}
+                  aria-label={t("common.search", "Search")}
                   ref={globalSearchTriggerRef}
                 >
-                  <Search className="h-4 w-4" aria-hidden />
-                  <span className="items-center">{t("common.search", "Search")}</span>
+                  <Search
+                    className="h-4 w-4 transition-transform group-hover:scale-110"
+                    aria-hidden="true"
+                  />
+                  <span>{t("common.search", "Search")}</span>
                 </button>
               </div>
             </div>
           </div>
-        </div>
+        </nav>
       </header>
 
       <div className="relative mx-auto flex w-full max-w-6xl flex-1 px-4 pb-28 md:px-8">
@@ -469,7 +515,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
       <OfflineQueueIndicator />
 
       <nav
-        className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-3xl border border-white/10 bg-ink/90 px-4 py-3 text-sm backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-2xl border border-white/25 bg-gradient-to-br from-ink/95 to-ink/90 px-3 py-3.5 shadow-2xl backdrop-blur-xl md:hidden"
         aria-label={t("nav.mobile", "Mobile navigation")}
       >
         {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
@@ -479,42 +525,47 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
               key={href}
               href={href}
               className={cn(
-                "interactive-scale relative flex min-h-[48px] min-w-[48px] flex-col items-center justify-center text-[0.8rem] font-semibold tracking-[0.05em]",
-                isActive(href) ? "text-neutral-0" : "text-neutral-2"
+                "group relative flex flex-col items-center gap-1 rounded-lg px-2.5 py-2 text-[0.7rem] font-semibold transition-all",
+                isActive(href)
+                  ? "text-neutral-0"
+                  : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
               )}
               aria-current={isActive(href) ? "page" : undefined}
               aria-label={t(key)}
             >
-              <Icon className="h-5 w-5" aria-hidden />
+              <Icon
+                className={cn(
+                  "h-5 w-5 transition-all",
+                  isActive(href) && "drop-shadow-[0_0_8px_rgba(0,161,222,0.5)]"
+                )}
+                aria-hidden="true"
+              />
               {badge && (
                 <span
                   className={cn(
-                    "absolute right-3 top-1 h-2 w-2 rounded-full",
+                    "absolute right-1 top-1 h-2 w-2 rounded-full ring-2 ring-ink",
                     BADGE_DOT_STYLES[badge.tone]
                   )}
-                  aria-hidden
-                  aria-label={`${badge.label} notifications`}
+                  aria-label={`${badge.label} notification`}
                 />
               )}
-              <span className="mt-1 text-[0.7rem] leading-tight" aria-hidden>
-                {t(key)}
-              </span>
+              <span className="leading-none">{t(key)}</span>
             </Link>
           );
         })}
         <button
           type="button"
           onClick={() => setShowActions((v) => !v)}
-          className="interactive-scale absolute left-1/2 top-0 flex min-h-[48px] -translate-y-1/2 -translate-x-1/2 items-center gap-2 rounded-full bg-kigali px-5 py-3 text-sm font-semibold tracking-[0.08em] text-ink shadow-glass"
+          className="group absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-xl bg-kigali px-5 py-3 text-sm font-bold tracking-tight text-ink shadow-2xl transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(0,161,222,0.3)]"
           aria-expanded={showActions}
           aria-controls="quick-actions"
-          aria-label={t("dashboard.quick.actions", "Quick actions menu")}
+          aria-label={t("dashboard.quick.title", "Quick actions")}
           ref={quickActionsTriggerRef}
         >
-          <Plus className="h-4 w-4" aria-hidden />
+          <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" aria-hidden="true" />
           <span className="flex flex-col text-left leading-none">
             <span>{t("dashboard.quick.newPrimary", "New")}</span>
-            <span className="text-[0.65rem] font-medium tracking-[0.12em] text-ink/70">
+            <span className="text-[0.65rem] font-semibold text-ink/70">
               {t("dashboard.quick.newSecondary", "New")}
             </span>
           </span>
@@ -523,12 +574,13 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
 
       {showActions && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-end bg-black/40 backdrop-blur-sm md:items-center"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-md md:items-center md:justify-end md:pr-6"
           onClick={() => setShowActions(false)}
+          role="presentation"
         >
           <div
             id="quick-actions"
-            className="glass interactive-scale m-6 max-w-sm rounded-3xl p-6 text-sm text-neutral-0 shadow-2xl"
+            className="m-6 w-full max-w-md rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
             role="dialog"
             aria-modal="true"
             aria-label={t("dashboard.quick.title", "Quick actions")}
@@ -536,45 +588,55 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
             ref={quickActionsRef}
             tabIndex={-1}
           >
-            <div className="mb-4 flex items-center gap-2 text-neutral-2">
-              <ListPlus className="h-4 w-4" />
-              <span className="items-center gap-2 text-xs">
+            {/* Header */}
+            <div className="mb-6 flex items-center gap-2.5 border-b border-white/10 pb-4">
+              <ListPlus className="h-5 w-5 text-rw-blue" aria-hidden="true" />
+              <h2 className="text-base font-bold uppercase tracking-wider text-neutral-0">
                 {t("dashboard.quick.title", "Quick actions")}
-              </span>
+              </h2>
             </div>
-            <div className="space-y-4">
+
+            {/* Action groups */}
+            <div className="space-y-6">
               {quickActionGroups.map((group) => (
-                <section key={group.id} className="space-y-2">
-                  <header className="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-neutral-2">
-                    <span>{group.title}</span>
-                    <span className="text-[10px] text-neutral-3">{group.subtitle}</span>
+                <section key={group.id} className="space-y-3">
+                  <header className="flex items-baseline justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-0">
+                      {group.title}
+                    </h3>
+                    <p className="text-[10px] font-medium text-neutral-3">{group.subtitle}</p>
                   </header>
-                  <ul className="space-y-3">
+                  <ul className="space-y-2.5">
                     {group.actions.map((action) => (
                       <li key={`${group.id}-${action.primary}`}>
                         <Link
                           href={action.href}
                           onClick={() => setShowActions(false)}
-                          className="interactive-scale block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-neutral-0 transition hover:bg-white/10"
+                          className="group block rounded-xl border border-white/15 bg-gradient-to-br from-white/10 to-white/5 px-4 py-3.5 text-left transition-all hover:border-white/25 hover:from-white/15 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-transparent"
                           data-quick-focus
                         >
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-medium">{action.primary}</p>
-                              <p className="text-xs text-neutral-2">{action.description}</p>
-                              <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 space-y-1">
+                              <p className="text-sm font-bold text-neutral-0 group-hover:text-white">
+                                {action.primary}
+                              </p>
+                              <p className="text-xs leading-relaxed text-neutral-2">
+                                {action.description}
+                              </p>
+                              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-3">
                                 {action.secondary}
                               </p>
-                              <p className="text-[11px] text-neutral-2">
+                              <p className="text-[11px] leading-relaxed text-neutral-3">
                                 {action.secondaryDescription}
                               </p>
                             </div>
                             {action.badge && (
                               <span
                                 className={cn(
-                                  "inline-flex h-min items-center gap-1 rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.35em]",
+                                  "inline-flex h-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
                                   BADGE_TONE_STYLES[action.badge.tone]
                                 )}
+                                aria-label={`${action.badge.label} notification`}
                               >
                                 {action.badge.label}
                               </span>
@@ -587,13 +649,15 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                 </section>
               ))}
             </div>
+
+            {/* Close button */}
             <button
               type="button"
               onClick={() => setShowActions(false)}
-              className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
               data-quick-focus
             >
-              <Settings2 className="h-3.5 w-3.5" />
+              <Settings2 className="h-4 w-4" aria-hidden="true" />
               {t("common.close", "Close")}
             </button>
           </div>
