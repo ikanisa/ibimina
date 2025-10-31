@@ -41,7 +41,7 @@ export const lookupMemberTool = tool({
   parameters: z.object({
     query: z.string().describe("Member name, ID, or phone number to search for"),
   }),
-  execute: async ({ query }) => {
+  execute: async (_params) => {
     // In production, this would query the database with proper RLS
     return {
       found: true,

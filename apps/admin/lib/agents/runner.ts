@@ -102,7 +102,7 @@ export async function runAgent(
   }
 
   // Add user message
-  const userMessage = addMessage(sessionId, {
+  addMessage(sessionId, {
     role: "user",
     content: userInput,
   });
@@ -124,7 +124,7 @@ export async function runAgent(
     console.error("Error running agent:", error);
 
     // Add error message
-    const errorMessage = addMessage(sessionId, {
+    addMessage(sessionId, {
       role: "assistant",
       content:
         "I apologize, but I encountered an error processing your request. Please try again or contact support if the issue persists.",

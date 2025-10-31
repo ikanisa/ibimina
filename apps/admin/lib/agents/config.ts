@@ -6,7 +6,6 @@
  */
 
 import { Agent } from "@openai/agents";
-import { z } from "zod";
 import { allTools } from "./tools";
 
 /**
@@ -57,28 +56,6 @@ If you encounter:
 - Requests for features not yet available
 Then inform the user that you'll escalate to the appropriate specialist.
 `;
-
-/**
- * Schema for member lookup tool
- */
-const MemberLookupSchema = z.object({
-  query: z.string().describe("Member name, ID, or phone number to search for"),
-});
-
-/**
- * Schema for SACCO information tool
- */
-const SaccoInfoSchema = z.object({
-  saccoName: z.string().optional().describe("Name of the SACCO to get information about"),
-});
-
-/**
- * Schema for transaction inquiry tool
- */
-const TransactionInquirySchema = z.object({
-  transactionId: z.string().optional().describe("Transaction ID to inquire about"),
-  memberName: z.string().optional().describe("Member name to look up transactions for"),
-});
 
 /**
  * Create the main customer support agent

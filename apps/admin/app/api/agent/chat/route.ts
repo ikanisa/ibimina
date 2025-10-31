@@ -5,13 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import {
-  createSession,
-  getSession,
-  runAgent,
-  addMessage,
-  getSessionStats,
-} from "@/lib/agents/runner";
+import { createSession, getSession, runAgent, getSessionStats } from "@/lib/agents/runner";
 import { z } from "zod";
 
 /**
