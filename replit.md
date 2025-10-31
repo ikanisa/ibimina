@@ -29,10 +29,14 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
 - **Build Tools**: pnpm 10.19, TypeScript (strict mode), ESLint 9, Prettier, Playwright (E2E), tsx (unit tests), pgTAP (database).
 
 **Core Applications:**
-1.  **Admin App (`apps/admin`)**: Staff-facing PWA for member management, loan processing, reports, and analytics. Runs on port 5000.
-2.  **Client App (`apps/client`)**: Member-facing PWA and Android app for account balance, transactions, loan applications, and payments. Runs on port 5001.
-3.  **Website (`apps/website`)**: Public marketing website. Runs on port 5002.
+1.  **Admin App (`apps/admin`)**: Staff-facing PWA for member management, loan processing, reports, and analytics. Runs on port 3000. Includes Android mobile app configuration.
+2.  **Client App (`apps/client`)**: Member-facing PWA and Android app for account balance, transactions, loan applications, and payments. Runs on port 5000.
+3.  **Website (`apps/website`)**: Public marketing website. Runs on port 3001.
 4.  **Platform API (`apps/platform-api`)**: Backend API for external integrations like mobile money webhooks and SMS ingestion.
+
+**Mobile Apps:**
+1.  **Staff Mobile App**: Android app built with Capacitor from Admin PWA. Package: `rw.ibimina.staff`. Fully configured at `apps/admin/android/` with 6 native plugins (camera, push notifications, haptics, preferences, device, app lifecycle).
+2.  **Client Mobile App**: Android app built with Capacitor from Client PWA. Package: `rw.ibimina.client`. Member-facing mobile banking experience.
 
 **Key Features Implemented:**
 -   Multi-factor Authentication (MFA) with passkeys
@@ -68,6 +72,41 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
 -   **Workbox**: Used for PWA offline capabilities.
 
 ## Recent Changes
+
+### 2025-10-31: Staff Mobile App (Android) Implementation - COMPLETE
+
+**Staff Android App Setup:**
+- ✅ **Capacitor Configuration**: Fully configured Android project at `apps/admin/android/`
+- ✅ **Native Plugins**: Installed 6 Capacitor plugins (app@7.1.0, camera@7.0.2, device@7.0.2, haptics@7.0.2, preferences@7.0.2, push-notifications@7.0.3)
+- ✅ **App Identity**: Package ID `rw.ibimina.staff`, App Name "Ibimina Staff"
+- ✅ **Build Configuration**: Gradle wrapper, Android manifest, splash screen, app icons
+- ✅ **Server Connection**: Configured to connect to Replit dev server (customizable for production)
+- ✅ **Atlas Branding**: Splash screen with Atlas Blue (#0066FF) theme
+- ✅ **Documentation**: Created comprehensive build guides:
+  - `apps/admin/BUILD_APK_INSTRUCTIONS.md` - Local build instructions
+  - `apps/admin/STAFF_MOBILE_APP_README.md` - Complete app documentation
+  - `.github/workflows/build-android-staff-apk.yml` - CI/CD build automation
+
+**Build Options Provided:**
+1. **Local Build**: Step-by-step Gradle build instructions for Windows/Mac/Linux
+2. **GitHub Actions**: Automated CI/CD workflow for continuous APK generation
+3. **Cloud Build**: Integration guides for Codemagic, Bitrise, App Center
+
+**Technical Specifications:**
+- Min SDK: 22 (Android 5.1+)
+- Target SDK: 34 (Android 14)
+- Architecture: Hybrid (web + native plugins)
+- Security: HTTPS enforced, cleartext disabled, mixed content blocked
+- Build Type: Debug APK ready, Release APK configuration included
+
+**APK Location** (after building):
+```
+apps/admin/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+**Note**: Full Android SDK required for APK compilation. Documentation provides multiple build pathways since Android SDK is too large for Replit environment.
+
+
 
 ### 2025-10-31: Phase 2 - Atlas Design System Rollout (Admin & Client PWAs) - COMPLETE
 
