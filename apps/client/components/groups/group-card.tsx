@@ -15,6 +15,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Group } from "@/lib/api/groups";
 import { Users, Calendar, Building2 } from "lucide-react";
 
@@ -42,15 +43,24 @@ interface GroupCardProps {
  * - Error messages announced to assistive technology
  */
 export function GroupCard({ group }: GroupCardProps) {
+  const router = useRouter();
   const [isJoining, setIsJoining] = useState(false);
   const [hasRequested, setHasRequested] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   /**
+   * Handle card click to view group details
+   */
+  const handleCardClick = () => {
+    router.push(`/groups/${group.id}/members`);
+  };
+
+  /**
    * Handle "Ask to Join" button click
    * Calls the join request API route to submit membership request
    */
-  const handleJoinRequest = async () => {
+  const handleJoinRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); // Prevent card click when clicking button
     setIsJoining(true);
     setErrorMessage(null);
 
@@ -98,8 +108,17 @@ export function GroupCard({ group }: GroupCardProps) {
 
   return (
     <article
-      className="flex flex-col w-full rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
+      onClick={handleCardClick}
+      className="flex flex-col w-full rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
       aria-label={`${group.name} group details`}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
     >
       {/* Group header */}
       <div className="mb-4">

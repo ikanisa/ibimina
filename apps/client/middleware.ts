@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import createIntlMiddleware from "next-intl/middleware";
 import {
   HSTS_HEADER,
   SECURITY_HEADERS,
@@ -8,26 +7,18 @@ import {
   createNonce,
   createRequestId,
 } from "@ibimina/lib";
-import { locales, defaultLocale } from "./i18n";
+import { defaultLocale } from "./i18n";
 
 const isDev = process.env.NODE_ENV !== "production";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-// Create next-intl middleware
-const intlMiddleware = createIntlMiddleware({
-  locales,
-  defaultLocale,
-  localePrefix: "as-needed", // Don't prefix default locale
-});
-
 export function middleware(request: NextRequest) {
-  // TEMPORARY: Disable i18n middleware to fix routing
-  // TODO: Restructure app with [locale] folders or fix locale detection
-  // const intlResponse = intlMiddleware(request);
-
   const nonce = createNonce();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-csp-nonce", nonce);
+
+  // Set default locale in request headers for next-intl
+  requestHeaders.set("x-next-intl-locale", defaultLocale);
 
   const response = NextResponse.next({
     request: { headers: requestHeaders },
