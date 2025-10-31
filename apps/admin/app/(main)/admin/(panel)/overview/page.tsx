@@ -250,7 +250,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
 
     let notificationQuery = supabase
       .from("notification_queue")
-      .select("id, event, sacco_id, template_id, status, scheduled_for, created_at, channel")
+      .select("id, event, sacco_id, template_id, status, scheduled_for, created_at")
       .order("created_at", { ascending: false })
       .limit(20);
     if (!scope.includeAll && scope.saccoId) {
