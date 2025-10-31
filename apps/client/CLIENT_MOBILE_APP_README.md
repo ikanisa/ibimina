@@ -1,18 +1,28 @@
-# Ibimina Client Mobile App (Android)
+# Ibimina Client Mobile Apps (Android & iOS)
 
 ## ✅ Project Status: Ready to Build
 
-The Android mobile app for members is **fully configured and ready to build**. The Capacitor Android project has been set up with all necessary plugins and configurations.
+The mobile apps for members are **fully configured and ready to build** on both platforms:
+- **Android**: Build on any platform (Windows, macOS, Linux)
+- **iOS**: Build on macOS with Xcode only
 
 ## 📱 App Configuration
 
+### Android
 - **App Name**: Ibimina
 - **Package ID**: `rw.ibimina.client`
-- **App ID**: `rw.ibimina.client`
-- **Platform**: Android
 - **Min SDK**: 22 (Android 5.1 Lollipop)
 - **Target SDK**: 34 (Android 14)
-- **Current Server**: `https://4095a3b5-fbd8-407c-bbf4-c6a12f21341e-00-2ss8fo7up7zir.kirk.replit.dev`
+
+### iOS
+- **App Name**: Ibimina
+- **Bundle ID**: `rw.ibimina.client`
+- **Minimum iOS**: 13.0
+- **Target iOS**: 17.0
+
+### Server
+- **Current URL**: `https://4095a3b5-fbd8-407c-bbf4-c6a12f21341e-00-2ss8fo7up7zir.kirk.replit.dev`
+- **Easily customizable** for production
 
 ## 🎯 What's Included
 
@@ -59,7 +69,9 @@ The Android mobile app for members is **fully configured and ready to build**. T
 
 ## 🏗️ Building Options
 
-### Option 1: Local Build (5 minutes)
+### Android Builds
+
+#### Option 1: Local Build (5 minutes)
 **Best for**: Immediate APK creation, full control
 
 See [BUILD_APK_INSTRUCTIONS.md](./BUILD_APK_INSTRUCTIONS.md) for detailed steps.
@@ -77,7 +89,7 @@ cd android
 - Java JDK 17
 - Android SDK (or Android Studio)
 
-### Option 2: GitHub Actions (Automated)
+#### Option 2: GitHub Actions (Automated)
 **Best for**: CI/CD, team collaboration, release automation
 
 We've created `.github/workflows/build-android-client-apk.yml` for you.
@@ -95,7 +107,7 @@ We've created `.github/workflows/build-android-client-apk.yml` for you.
 - ✅ Configurable server URL
 - ✅ Both debug & release builds
 
-### Option 3: Cloud Build Service
+#### Option 3: Cloud Build Service
 **Best for**: No local setup needed
 
 Use services like:
@@ -104,6 +116,46 @@ Use services like:
 - **App Center**: https://appcenter.ms (Microsoft)
 
 Connect your repo and they'll build automatically.
+
+---
+
+### iOS Builds
+
+⚠️ **macOS with Xcode required for iOS builds**
+
+#### Option 1: Local Build on macOS (Recommended)
+**Best for**: Full control, testing, development
+
+See [BUILD_IOS_INSTRUCTIONS.md](./BUILD_IOS_INSTRUCTIONS.md) for detailed steps.
+
+**Quick Start:**
+```bash
+pnpm install
+cd apps/client
+npx cap add ios
+cd ios/App && pod install && cd ../..
+npx cap open ios
+# Click ▶️ in Xcode
+```
+
+#### Option 2: GitHub Actions (Automated)
+**Best for**: CI/CD, TestFlight distribution
+
+Workflow: `.github/workflows/build-ios-client-app.yml` ✅ Already created
+
+**Features:**
+- ✅ Builds on macOS runners
+- ✅ Simulator builds (free)
+- ✅ TestFlight uploads (requires Apple Developer account)
+
+#### Option 3: Cloud Mac Service
+**Best for**: No Mac available
+
+Rent macOS by the hour:
+- [MacinCloud](https://www.macincloud.com) - $1/hour
+- [Codemagic](https://codemagic.io) - Free tier for iOS
+
+---
 
 ## 📂 Project Structure
 

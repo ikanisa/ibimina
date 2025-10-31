@@ -26,6 +26,11 @@ const config: CapacitorConfig = {
     backgroundColor: "#0066FF",
     webContentsDebuggingEnabled: true,
   },
+  ios: {
+    contentInset: "always",
+    backgroundColor: "#0066FF",
+    scheme: "Ibimina",
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
