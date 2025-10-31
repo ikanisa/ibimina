@@ -1,33 +1,17 @@
--- === ENUMS (safe to re-run) ====================================
+-- === ENUMS =====================================================
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace
                  WHERE n.nspname='public' AND t.typname='notification_channel') THEN
     EXECUTE 'CREATE TYPE public.notification_channel AS ENUM (''IN_APP'',''EMAIL'',''WHATSAPP'')';
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid=e.enumtypid
-                 JOIN pg_namespace n ON n.oid=t.typnamespace
-                 WHERE n.nspname='public' AND t.typname='notification_channel' AND e.enumlabel='IN_APP') THEN
-    EXECUTE 'ALTER TYPE public.notification_channel ADD VALUE ''IN_APP''';
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid=e.enumtypid
-                 JOIN pg_namespace n ON n.oid=t.typnamespace
-                 WHERE n.nspname='public' AND t.typname='notification_channel' AND e.enumlabel='EMAIL') THEN
-    EXECUTE 'ALTER TYPE public.notification_channel ADD VALUE ''EMAIL''';
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid=e.enumtypid
-                 JOIN pg_namespace n ON n.oid=t.typnamespace
-                 WHERE n.nspname='public' AND t.typname='notification_channel' AND e.enumlabel='WHATSAPP') THEN
-    EXECUTE 'ALTER TYPE public.notification_channel ADD VALUE ''WHATSAPP''';
-  END IF;
-
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace
                  WHERE n.nspname='public' AND t.typname='notification_type') THEN
     EXECUTE 'CREATE TYPE public.notification_type AS ENUM (''invite_accepted'',''new_member'',''payment_confirmed'')';
   END IF;
 END $$;
 
--- === USERS VIEW (authoritative shape) ==========================
+-- === USERS VIEW ===============================================
 DROP VIEW IF EXISTS public.users;
 CREATE VIEW public.users
   (id,email,role,sacco_id,status,pw_reset_required,last_login_at,suspended_at,
@@ -61,12 +45,12 @@ FROM app.user_profiles p
 JOIN auth.users au ON au.id = p.user_id;
 ALTER VIEW public.users SET (security_barrier = true);
 
--- === OTP table unique (one active per phone) ===================
+-- === OTP: one active code per phone ===========================
 CREATE UNIQUE INDEX IF NOT EXISTS ux_whatsapp_otp_active
   ON app.whatsapp_otp_codes (phone_number)
   WHERE consumed_at IS NULL;
 
--- === Telco table columns + unique ==============================
+-- === Telco timestamps + unique ================================
 ALTER TABLE public.telco_providers
   ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('UTC', now()),
   ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('UTC', now());
@@ -86,7 +70,7 @@ BEGIN
   END IF;
 END $$;
 
--- === Helper: is_platform_admin() ===============================
+-- === Helper: is_platform_admin() ==============================
 CREATE OR REPLACE FUNCTION public.is_platform_admin()
 RETURNS boolean
 LANGUAGE sql
