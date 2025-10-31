@@ -2,238 +2,7 @@
 
 ## Overview
 
-**Project**: Ibimina - SACCO (Savings and Credit Cooperative) Management Platform  
-**Repository**: https://github.com/ikanisa/ibimina  
-**Migration Date**: October 31, 2025  
-**Status**: In Migration to Replit Environment
-
-## Purpose
-
-Ibimina is a comprehensive digital platform for managing Savings and Credit Cooperatives (SACCOs) in Rwanda and across Africa. The platform provides:
-
-- **Staff/Admin PWA**: For SACCO administrators to manage members, loans, transactions, and reports
-- **Client PWA & Mobile Apps**: For SACCO members to view balances, apply for loans, make payments
-- **Website**: Public-facing marketing and information website
-- **Backend API**: For external integrations, mobile money webhooks, SMS processing
-
-## Technology Stack
-
-### Frontend Applications
-- **Framework**: Next.js 15+ (App Router) with React 19
-- **Language**: TypeScript 5.9
-- **Styling**: Tailwind CSS v4
-- **Mobile**: Capacitor 7 (Android apps in Kotlin/Java)
-- **PWA**: Service Workers with Workbox for offline support
-
-### Backend & Database
-- **Database**: PostgreSQL (via Supabase)
-- **API**: Next.js API routes + Supabase Edge Functions (Deno)
-- **Authentication**: Supabase Auth with MFA, passkeys, biometrics
-- **Real-time**: Supabase Realtime subscriptions
-
-### Build Tools
-- **Package Manager**: pnpm 10.19 (workspaces)
-- **Monorepo**: pnpm workspaces with 3 apps + 7 shared packages
-- **Type Checking**: TypeScript with strict mode
-- **Linting**: ESLint 9 + Prettier
-- **Testing**: Playwright (E2E), tsx (unit tests), pgTAP (database)
-
-## Project Structure
-
-```
-ibimina/
-├── apps/
-│   ├── admin/          # Staff/Admin PWA (Next.js) - PORT 5000
-│   ├── client/         # Client PWA + Android app - PORT 5001
-│   ├── platform-api/   # Backend API for integrations
-│   └── website/        # Marketing website - PORT 5002
-├── packages/
-│   ├── config/         # Environment configuration & validation
-│   ├── core/           # Core business logic & domain models
-│   ├── lib/            # Shared utilities (security, logging, PII)
-│   ├── ui/             # Shared React components
-│   ├── providers/      # Payment provider adapters (MTN, Airtel)
-│   ├── locales/        # Internationalization (en, fr, rw)
-│   ├── ai-agent/       # AI-powered support agent
-│   └── testing/        # Test utilities & fixtures
-├── supabase/
-│   ├── migrations/     # 80+ database migrations
-│   ├── functions/      # 30+ Edge Functions (Deno)
-│   └── tests/          # Database & RLS tests
-├── feature-tapmomo/    # NFC payment feature (Android module)
-├── infra/              # Infrastructure code (Terraform, Docker, Caddy)
-├── docs/               # Comprehensive documentation
-└── scripts/            # Build & deployment automation
-```
-
-## Applications
-
-### 1. Admin App (`apps/admin`)
-- **Purpose**: Staff-facing administration panel
-- **Port**: 5000 (development)
-- **Features**: Member management, loan processing, reports, analytics, MFA
-- **Entry**: `apps/admin/app/page.tsx`
-- **Run**: `cd apps/admin && pnpm dev`
-
-### 2. Client App (`apps/client`)
-- **Purpose**: Member-facing PWA and mobile apps
-- **Port**: 5001 (development)
-- **Features**: Account balance, transactions, loan applications, payments
-- **Mobile**: Android APK via Capacitor (`android/` directory)
-- **Entry**: `apps/client/app/page.tsx`
-- **Run**: `cd apps/client && pnpm dev`
-
-### 3. Website (`apps/website`)
-- **Purpose**: Public marketing website
-- **Port**: 5002 (development)
-- **Features**: About, features, pricing, contact, SACCO directory
-- **Entry**: `apps/website/app/page.tsx`
-- **Run**: `cd apps/website && pnpm dev`
-
-### 4. Platform API (`apps/platform-api`)
-- **Purpose**: Backend API for external services
-- **Features**: Mobile money webhooks, SMS ingestion, scheduled jobs
-- **Entry**: `apps/platform-api/src/index.ts`
-
-## Database
-
-### PostgreSQL via Replit Database
-- **Schema**: 80+ migrations defining tables, RLS policies, functions
-- **Key Tables**:
-  - `auth.users` - User accounts (Supabase Auth)
-  - `public.saccos` - SACCO organizations
-  - `public.ikimina_members` - SACCO members
-  - `public.ledger_entries` - Financial transactions
-  - `public.payments` - Payment records
-  - `public.loans` - Loan applications
-  - `authx.*` - MFA, passkeys, trusted devices
-
-### Migrations
-- Located in: `supabase/migrations/`
-- Must be run in chronological order
-- Use PostgreSQL transaction blocks
-
-## Environment Variables
-
-### Required Secrets (User Must Provide)
-1. **Supabase Configuration**:
-   - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Public/anonymous key
-   - `SUPABASE_SERVICE_ROLE_KEY` - Service role key (server-only)
-
-2. **Encryption Keys** (Generate with `openssl rand -base64 32`):
-   - `KMS_DATA_KEY` - Master encryption key
-   - `BACKUP_PEPPER` - Password hashing pepper
-   - `MFA_SESSION_SECRET` - MFA session signing
-   - `TRUSTED_COOKIE_SECRET` - Trusted device tokens
-   - `HMAC_SHARED_SECRET` - Webhook signatures
-
-3. **Optional Services**:
-   - `OPENAI_API_KEY` - For AI-powered features
-   - `RESEND_API_KEY` - For email sending
-   - Web Push VAPID keys (for notifications)
-
-### Configuration Files
-- `.env` - Local development (never commit)
-- `.env.example` - Template with all variables
-- `packages/config/src/env.ts` - Zod validation schema
-
-## Development Workflow
-
-### Initial Setup
-```bash
-# 1. Install dependencies
-pnpm install
-
-# 2. Build shared packages
-pnpm --filter @ibimina/core run build
-pnpm --filter @ibimina/config run build
-pnpm --filter @ibimina/lib run build
-pnpm --filter @ibimina/ui run build
-
-# 3. Set up database (migrations already run)
-# 4. Configure .env file
-# 5. Start admin app
-cd apps/admin && pnpm dev
-```
-
-### Running Applications
-- **Admin**: `pnpm --filter @ibimina/admin run dev` (port 5000)
-- **Client**: `pnpm --filter @ibimina/client run dev` (port 5001)
-- **Website**: `pnpm --filter @ibimina/website run dev` (port 5002)
-
-### Building for Production
-```bash
-pnpm run build  # Builds all apps and packages
-```
-
-## Android Mobile Apps
-
-### Client App (Android)
-- **Location**: `apps/client/android/`
-- **Technology**: Capacitor 7 + Kotlin/Java
-- **Build**:
-  1. `cd apps/client`
-  2. `pnpm run cap:sync` - Sync web assets to native
-  3. `pnpm run android:build:debug` - Build debug APK
-  4. `pnpm run android:build:release` - Build release APK
-
-### Admin App (Android)
-- **Location**: `apps/admin/android/`
-- **Similar build process to Client app**
-
-### TapMoMo Feature (NFC Payments)
-- **Location**: `feature-tapmomo/`
-- **Technology**: Kotlin with NFC support
-- **Purpose**: Contactless mobile money payments
-
-## Key Features Implemented
-
-✅ Multi-factor Authentication (MFA) with passkeys  
-✅ Progressive Web Apps (PWAs) with offline support  
-✅ Mobile money integration (MTN, Airtel)  
-✅ SMS transaction parsing and automation  
-✅ Loan application and approval workflows  
-✅ Real-time analytics and reporting  
-✅ Multi-language support (English, French, Kinyarwanda)  
-✅ Device authentication and biometrics  
-✅ AI-powered support agent  
-✅ Web push notifications  
-✅ NFC contactless payments (TapMoMo)  
-✅ Multi-country support (Rwanda, Senegal expansion ready)
-
-## Replit-Specific Configuration
-
-### Workflows
-- **Primary**: Admin app on port 5000 (staff interface)
-- **Secondary**: Client app on port 5001 (member interface)
-- **Tertiary**: Website on port 5002 (public site)
-
-### Database
-- Using Replit's built-in PostgreSQL database
-- Connection via `DATABASE_URL` environment variable
-
-### Deployment
-- Configured for Cloudflare Pages deployment
-- Alternative: Vercel, Netlify
-- Database: Supabase (production) or Replit Database (development)
-
-## Documentation
-
-### Key Documents (in `docs/`)
-- `PROJECT_STRUCTURE.md` - Detailed architecture
-- `ENV_VARIABLES.md` - Environment variable reference
-- `GROUND_RULES.md` - Development best practices
-- `AUTHENTICATION_GUIDE.md` - Auth implementation
-- `DB_GUIDE.md` - Database procedures
-- `TESTING.md` - Testing strategy
-- `DEPLOYMENT_TODO.md` - Production checklist
-
-### Implementation Guides
-- `ANDROID_IMPLEMENTATION_GUIDE.md` - Android app setup
-- `SMS_INGESTION_GUIDE.md` - SMS processing
-- `DEVICE_AUTHENTICATION.md` - Device auth system
-- `MULTI_COUNTRY_ARCHITECTURE.md` - Multi-country expansion
+Ibimina is a comprehensive digital platform designed for managing Savings and Credit Cooperatives (SACCOs) across Africa. Its purpose is to provide robust tools for SACCO administrators and members, fostering financial inclusion and efficient cooperative operations. The platform includes a Staff/Admin PWA, a Client PWA & Mobile Apps, a public-facing Website, and a Backend API for integrations. The project aims to digitize SACCO operations, improve member access to financial services, and facilitate growth in the cooperative sector.
 
 ## User Preferences
 
@@ -250,83 +19,50 @@ pnpm run build  # Builds all apps and packages
 - CDN: Cloudflare
 - Monitoring: Log drain + analytics
 
-## Recent Changes
+## System Architecture
 
-### 2025-10-31: Navigation Improvements and i18n Fix
-- ✅ Fixed Client PWA navigation - all pages now load correctly
-- ✅ Made group cards clickable to navigate to group detail pages
-- ✅ Added bottom padding (pb-20) to all pages to prevent content from being hidden behind bottom navigation
-- ✅ Simplified i18n middleware to fix 404 routing errors
-- ✅ All 5 main navigation pages functional: Home, Groups, Pay, Statements, Profile
-- ⚠️ Temporarily disabled server-side locale routing (hard-coded to "rw" default locale)
+The Ibimina platform is a monorepo built with pnpm workspaces, consisting of three main applications and several shared packages.
 
-### 2025-10-31: Migration to Replit (Earlier)
-- Cloned repository from GitHub (ikanisa/ibimina)
-- Set up Replit environment
-- Configured PostgreSQL database
-- Installed dependencies and built packages
-- Set up workflows for development
+**Technology Stack:**
+- **Frontend**: Next.js 15+ (App Router), React 19, TypeScript 5.9, Tailwind CSS v4, Capacitor 7 (for mobile apps), Workbox (PWA offline support).
+- **Backend & Database**: PostgreSQL (via Supabase), Next.js API routes, Supabase Edge Functions (Deno), Supabase Auth (MFA, passkeys, biometrics), Supabase Realtime.
+- **Build Tools**: pnpm 10.19, TypeScript (strict mode), ESLint 9, Prettier, Playwright (E2E), tsx (unit tests), pgTAP (database).
 
-## Next Steps
+**Core Applications:**
+1.  **Admin App (`apps/admin`)**: Staff-facing PWA for member management, loan processing, reports, and analytics. Runs on port 5000.
+2.  **Client App (`apps/client`)**: Member-facing PWA and Android app for account balance, transactions, loan applications, and payments. Runs on port 5001.
+3.  **Website (`apps/website`)**: Public marketing website. Runs on port 5002.
+4.  **Platform API (`apps/platform-api`)**: Backend API for external integrations like mobile money webhooks and SMS ingestion.
 
-1. ✅ Repository cloned
-2. ⏳ Install dependencies (pnpm install)
-3. ⏳ Set up PostgreSQL database
-4. ⏳ Run database migrations
-5. ⏳ Configure environment variables
-6. ⏳ Build shared packages
-7. ⏳ Start Admin app workflow
-8. ⏳ Verify all features functional
-9. ⏳ Configure deployment settings
-10. ⏳ Test Android app builds
+**Key Features Implemented:**
+-   Multi-factor Authentication (MFA) with passkeys
+-   Progressive Web Apps (PWAs) with offline support
+-   Mobile money integration (MTN, Airtel)
+-   SMS transaction parsing and automation
+-   Loan application and approval workflows
+-   Real-time analytics and reporting
+-   Multi-language support (English, French, Kinyarwanda)
+-   Device authentication and biometrics
+-   AI-powered support agent
+-   Web push notifications
+-   NFC contactless payments (TapMoMo)
+-   Multi-country support (Rwanda, Senegal expansion ready)
 
-## Technical Debt
+**System Design Choices:**
+-   **Monorepo Structure**: Facilitates shared code, consistent tooling, and efficient development across multiple applications.
+-   **Supabase Integration**: Leverages Supabase for PostgreSQL, authentication, real-time capabilities, and edge functions, providing a scalable and secure backend.
+-   **PWA First**: Emphasizes offline capabilities and native-like experiences for both staff and members.
+-   **Modular Design**: Shared packages (`config`, `core`, `lib`, `ui`, `providers`, `locales`, `ai-agent`, `testing`) promote code reusability and maintainability.
+-   **Comprehensive Testing**: Utilizes Playwright for E2E, tsx for unit, and pgTAP for database testing to ensure reliability.
+-   **Internationalization**: Supports multiple languages to cater to diverse user bases.
 
-### Client PWA - Internationalization Restructuring
-**Priority**: Medium  
-**Status**: Tracked, not blocking  
-**Issue**: App currently uses simplified i18n middleware that hard-codes locale to "rw" (Kinyarwanda)
+## External Dependencies
 
-**Current State**:
-- Pages exist directly in `app/` directory (e.g., `app/home/page.tsx`)
-- Middleware sets `x-next-intl-locale` header to default locale "rw"
-- Translations load correctly for default locale
-- Locale switching not currently supported
-
-**Target State**:
-- Restructure app with `[locale]` folders: `app/[locale]/home/page.tsx`
-- Re-enable `createIntlMiddleware` for proper server-side locale routing
-- Support locale prefixes: `/en/home`, `/fr/home`, `/home` (default "rw")
-- Enable browser-based locale detection and manual language switching
-
-**Files to Restructure** (when implementing):
-- `apps/client/middleware.ts` - Re-enable createIntlMiddleware
-- `apps/client/app/` - Move all pages into `[locale]` folder
-- `apps/client/i18n.ts` - Already configured correctly
-
-**Testing Requirements**:
-- Verify locale switching works (en, rw, fr)
-- Test deep linking with locale prefixes
-- Ensure security headers (CSP) remain intact
-- Add automated i18n smoke tests
-
-## Notes
-
-- The project uses pnpm workspaces - always use `pnpm` not `npm`
-- Database migrations must run in order (chronological filenames)
-- RLS (Row Level Security) is critical - never bypass in client code
-- Admin app is the primary interface - prioritize this for setup
-- Android apps require Java/Kotlin toolchain (Gradle + Android SDK)
-- All apps configured on different ports: Admin (5000), Client (3000), Website (3001)
-
-## Support
-
-- **Repository**: https://github.com/ikanisa/ibimina
-- **Documentation**: `docs/` directory
-- **Issues**: Check `docs/TROUBLESHOOTING.md`
-
----
-
-**Last Updated**: 2025-10-31  
-**Migrated By**: Replit Agent  
-**Environment**: Replit Development
+-   **Supabase**: Provides PostgreSQL database, authentication services (Supabase Auth), real-time subscriptions, and Edge Functions.
+-   **OpenAI**: Used for AI-powered features within the platform (requires `OPENAI_API_KEY`).
+-   **Resend**: Email sending service (requires `RESEND_API_KEY`).
+-   **Cloudflare Pages**: Intended deployment target for frontend applications.
+-   **Cloudflare**: Used as a CDN.
+-   **MTN & Airtel**: Payment provider adapters for mobile money integration.
+-   **Capacitor**: Enables building native Android mobile apps from web code.
+-   **Workbox**: Used for PWA offline capabilities.

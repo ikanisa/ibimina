@@ -31,12 +31,12 @@ export default async function GroupsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Page header with title and description */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-10">
-          <h1 className="text-3xl font-semibold text-gray-900">Savings Groups</h1>
-          <p className="mt-2 text-base text-gray-600">
+    <div className="min-h-screen bg-neutral-50 pb-20">
+      {/* Page header with title and description - Atlas redesigned */}
+      <header className="bg-white border-b border-neutral-200">
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">Savings Groups</h1>
+          <p className="mt-2 text-base text-neutral-600">
             Browse and join savings groups (Ibimina) in your community
           </p>
         </div>
