@@ -45,33 +45,10 @@ CREATE TRIGGER notification_preferences_set_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION public.set_updated_at();
 
--- Ensure notification channel enum exists for queue/channel data
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_type
-    WHERE typname = 'notification_channel'
-      AND pg_type.typnamespace = 'public'::regnamespace
-  ) THEN
-    CREATE TYPE public.notification_channel AS ENUM ('IN_APP', 'EMAIL', 'WHATSAPP');
-  END IF;
-END;
-$$;
-
--- Add channel, sacco_id and template_id to notification_queue if not exists
+-- Add sacco_id and template_id to notification_queue if not exists
 ALTER TABLE public.notification_queue
-  ADD COLUMN IF NOT EXISTS channel public.notification_channel NOT NULL DEFAULT 'IN_APP',
   ADD COLUMN IF NOT EXISTS sacco_id UUID REFERENCES public.saccos(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS template_id UUID REFERENCES public.sms_templates(id) ON DELETE SET NULL;
-
--- Backfill default channel for existing records and drop default to avoid future implicit values
-UPDATE public.notification_queue
-SET channel = 'IN_APP'
-WHERE channel IS NULL;
-
-ALTER TABLE public.notification_queue
-  ALTER COLUMN channel DROP DEFAULT;
 
 -- Create index for notification queue lookups
 CREATE INDEX IF NOT EXISTS idx_notification_queue_event 
