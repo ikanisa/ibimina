@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   BarChartBig,
+  Bot,
   Building2,
   Flag,
   Inbox,
@@ -58,6 +59,7 @@ const ICON_MAP: Record<PanelIconKey, React.ComponentType<{ className?: string }>
   settings: Settings2,
   audit: ScrollText,
   "feature-flags": Flag,
+  support: Bot,
 };
 
 export function AdminPanelShell({
