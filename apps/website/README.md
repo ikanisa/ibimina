@@ -1,36 +1,51 @@
-# Ibimina Website
+# SACCO+ Website
 
-Marketing and promotional website for the Ibimina SACCO management platform.
+Promotional and informational website for the SACCO+ intermediation platform.
 
 ## Overview
 
-This is a static Next.js website that provides information about the Ibimina
-platform, its features, and contact information for potential customers.
+The SACCO+ website provides information about the digital ibimina platform for
+Umurenge SACCOs in Rwanda. It serves multiple audiences:
+
+- **Members**: How to contribute via USSD, view statements, join groups
+- **SACCOs**: Staff workflows, data privacy, pilot information
+- **Stakeholders**: Project objectives, timeline, contact information
 
 ## Key Features
 
-- **Static Site**: Built with Next.js static export for optimal performance
-- **SEO Optimized**: Comprehensive meta tags, Open Graph, and Twitter Card
-  support
-- **Responsive Design**: Mobile-first design that works on all devices
-- **Cloudflare Ready**: Configured for deployment to Cloudflare Pages
+- 🎨 Rwanda-themed design with animated gradient background
+- 💎 Glass-morphism UI components
+- 📱 Fully responsive design (mobile-first)
+- ♿ WCAG 2.1 AA compliant
+- 🖨️ Printable USSD instruction cards
+- 🌍 Multilingual ready (Kinyarwanda, English, French)
+- 🔍 SEO optimized with proper metadata
+- 📄 Comprehensive legal pages (Terms, Privacy)
 
 ## Pages
 
-- **Home** (`/`) - Hero section, features overview, and CTA
-- **Features** (`/features`) - Detailed list of platform capabilities
-- **About** (`/about`) - Information about the platform and mission
-- **Contact** (`/contact`) - Contact form and information
-- **Privacy** (`/privacy`) - Privacy policy
-- **Terms** (`/terms`) - Terms of service
+### Public Pages
+
+- **Home** (`/`) - Hero, features, how it works, pilot CTA
+- **For Members** (`/members`) - USSD guide, reference cards, FAQ
+- **For SACCOs** (`/saccos`) - Staff workflow, data privacy, sample CSV
+- **Pilot: Nyamagabe** (`/pilot-nyamagabe`) - Objectives, timeline, KPIs
+- **FAQ** (`/faq`) - Comprehensive Q&A for all audiences
+- **Contact** (`/contact`) - Contact form and office information
+
+### Legal Pages
+
+- **Terms of Service** (`/legal/terms`) - Platform terms and conditions
+- **Privacy Policy** (`/legal/privacy`) - Data handling and security
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router with static export)
+- **Framework**: Next.js 15.5.4 (App Router)
 - **Language**: TypeScript 5.9
 - **Styling**: Tailwind CSS 4
-- **Icons**: lucide-react
-- **Deployment**: Cloudflare Pages
+- **Icons**: Lucide React
+- **SEO**: next-seo
+- **i18n**: next-intl (planned)
 
 ## Getting Started
 
@@ -41,12 +56,11 @@ platform, its features, and contact information for potential customers.
 
 ### Installation
 
-1. Install dependencies from the monorepo root:
+From the monorepo root:
 
-   ```bash
-   cd /path/to/ibimina
-   pnpm install
-   ```
+```bash
+pnpm install
+```
 
 ### Development
 
@@ -60,13 +74,11 @@ The website will be available at http://localhost:3002
 
 ### Building
 
-Build for production (static export):
+Build for production:
 
 ```bash
 pnpm --filter @ibimina/website build
 ```
-
-The static files will be in the `out/` directory.
 
 ### Linting and Type Checking
 
@@ -78,82 +90,26 @@ pnpm --filter @ibimina/website lint
 pnpm --filter @ibimina/website typecheck
 ```
 
-## Project Structure
+## Design System
 
-```
-apps/website/
-├── app/                    # Next.js 15 App Router pages
-│   ├── features/          # Features page
-│   ├── about/             # About page
-│   ├── contact/           # Contact page
-│   ├── privacy/           # Privacy policy
-│   ├── terms/             # Terms of service
-│   ├── layout.tsx         # Root layout with metadata
-│   ├── page.tsx           # Home page
-│   └── globals.css        # Global styles
-├── components/            # React components (future)
-├── public/                # Static assets
-│   └── images/           # Image assets
-├── next.config.mjs       # Next.js configuration
-├── tailwind.config.ts    # Tailwind configuration
-├── postcss.config.mjs    # PostCSS configuration
-├── tsconfig.json         # TypeScript configuration
-└── package.json          # Dependencies and scripts
-```
+### Colors
 
-## Deployment
+- **Rwanda Blue**: `#00A1DE` - Primary brand color
+- **Rwanda Royal**: `#0033FF` - Gradient accent
+- **Rwanda Yellow**: `#FAD201` - Call-to-action highlights
+- **Rwanda Green**: `#20603D` - Success states
+- **Ink**: `#0B1020` - Text and backgrounds
 
-### Cloudflare Pages
+### Accessibility
 
-The website is configured for deployment to Cloudflare Pages:
-
-1. Build the static export:
-
-   ```bash
-   pnpm --filter @ibimina/website build
-   ```
-
-2. Deploy the `out/` directory to Cloudflare Pages using the Cloudflare
-   dashboard or CLI.
-
-Using Cloudflare CLI (wrangler):
-
-```bash
-cd apps/website
-wrangler pages deploy out
-```
-
-Or connect via Cloudflare dashboard:
-
-- Build command: `pnpm --filter @ibimina/website build`
-- Build output directory: `out`
-
-## SEO Configuration
-
-The website includes comprehensive SEO configuration:
-
-- Meta tags for title, description, and keywords
-- Open Graph tags for social media sharing
-- Twitter Card tags
-- Structured data (future enhancement)
-- Sitemap generation (future enhancement)
-
-## Future Enhancements
-
-- [ ] Add blog/news section
-- [ ] Implement contact form backend
-- [ ] Add client testimonials
-- [ ] Create case studies section
-- [ ] Add multilingual support (Kinyarwanda, French)
-- [ ] Implement newsletter signup
-- [ ] Add Google Analytics or privacy-friendly alternative
-
-## Contributing
-
-- Follow existing code patterns and naming conventions
-- Ensure all new features are accessible (WCAG 2.1 AA)
-- Test thoroughly before committing
-- Keep the design consistent with the brand
+- ✅ Semantic HTML throughout
+- ✅ Proper heading hierarchy
+- ✅ Keyboard navigation support
+- ✅ Focus-visible states
+- ✅ High contrast text (≥4.5:1)
+- ✅ Large touch targets (≥48px)
+- ✅ ARIA labels on interactive elements
+- ✅ Reduced motion support
 
 ## License
 
