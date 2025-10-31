@@ -17,6 +17,7 @@
  */
 
 import { getUssdPaySheet, type UssdPaySheetEntry } from "@/lib/api/ussd-pay-sheet";
+import { GradientHeader } from "@ibimina/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -48,19 +49,13 @@ export default async function PaySheetPage() {
   const failedPayments = paySheetEntries.filter((entry) => entry.payment_status === "FAILED");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Page header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">Payment Instructions</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Use the USSD codes below to make payments via mobile money
-          </p>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100 pb-20">
+      <div className="mx-auto max-w-screen-xl space-y-6 px-4 py-6">
+        <GradientHeader
+          title="Payment Instructions"
+          subtitle="Use the USSD codes below to make payments via mobile money"
+        />
 
-      {/* Main content area */}
-      <main className="container mx-auto px-4 py-8">
         {/* Empty state */}
         {paySheetEntries.length === 0 && (
           <div
@@ -68,22 +63,24 @@ export default async function PaySheetPage() {
             role="status"
             aria-live="polite"
           >
-            <svg
-              className="w-16 h-16 text-gray-400 mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <p className="text-lg text-gray-600 mb-2">No payment instructions available</p>
-            <p className="text-sm text-gray-500">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
+              <svg
+                className="h-10 w-10 text-neutral-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            <p className="mb-2 text-lg font-medium text-neutral-700">No payment instructions available</p>
+            <p className="text-sm text-neutral-500">
               Payment instructions will appear here when you join a group
             </p>
           </div>
@@ -91,8 +88,8 @@ export default async function PaySheetPage() {
 
         {/* Pending Payments Section */}
         {pendingPayments.length > 0 && (
-          <section aria-labelledby="pending-payments-heading" className="mb-8">
-            <h2 id="pending-payments-heading" className="text-xl font-semibold text-gray-900 mb-4">
+          <section aria-labelledby="pending-payments-heading" className="space-y-4">
+            <h2 id="pending-payments-heading" className="text-xl font-semibold text-neutral-900">
               Pending Payments ({pendingPayments.length})
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -105,11 +102,8 @@ export default async function PaySheetPage() {
 
         {/* Completed Payments Section */}
         {completedPayments.length > 0 && (
-          <section aria-labelledby="completed-payments-heading" className="mb-8">
-            <h2
-              id="completed-payments-heading"
-              className="text-xl font-semibold text-gray-900 mb-4"
-            >
+          <section aria-labelledby="completed-payments-heading" className="space-y-4">
+            <h2 id="completed-payments-heading" className="text-xl font-semibold text-neutral-900">
               Completed Payments ({completedPayments.length})
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -122,8 +116,8 @@ export default async function PaySheetPage() {
 
         {/* Failed Payments Section */}
         {failedPayments.length > 0 && (
-          <section aria-labelledby="failed-payments-heading" className="mb-8">
-            <h2 id="failed-payments-heading" className="text-xl font-semibold text-gray-900 mb-4">
+          <section aria-labelledby="failed-payments-heading" className="space-y-4">
+            <h2 id="failed-payments-heading" className="text-xl font-semibold text-neutral-900">
               Failed Payments ({failedPayments.length})
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -137,12 +131,12 @@ export default async function PaySheetPage() {
         {/* Help text */}
         {paySheetEntries.length > 0 && (
           <div
-            className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg"
+            className="mt-8 rounded-2xl border border-atlas-blue/20 bg-atlas-blue/5 p-6"
             role="region"
             aria-label="Payment instructions help"
           >
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">How to pay using USSD</h3>
-            <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+            <h3 className="mb-3 text-sm font-semibold text-atlas-blue-dark">How to pay using USSD</h3>
+            <ol className="space-y-1 list-decimal list-inside text-sm text-atlas-blue-dark">
               <li>Tap the USSD code on any payment card below</li>
               <li>Your phone will dial the code automatically</li>
               <li>Follow the prompts on your phone to complete the payment</li>
@@ -150,7 +144,7 @@ export default async function PaySheetPage() {
             </ol>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
@@ -199,10 +193,10 @@ function PaymentCard({ entry }: PaymentCardProps) {
       }).format(new Date(entry.due_date))
     : null;
 
-  // Status badge styling
+  // Status badge styling - Atlas design tokens
   const statusStyles = {
-    PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    COMPLETED: "bg-green-100 text-green-800 border-green-200",
+    PENDING: "bg-amber-100 text-amber-800 border-amber-200",
+    COMPLETED: "bg-emerald-100 text-emerald-800 border-emerald-200",
     FAILED: "bg-red-100 text-red-800 border-red-200",
   };
 
@@ -214,13 +208,13 @@ function PaymentCard({ entry }: PaymentCardProps) {
 
   return (
     <article
-      className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow"
+      className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-atlas transition-shadow duration-interactive hover:shadow-lg"
       aria-label={`Payment for ${entry.ikimina_name}`}
     >
       {/* Status badge */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="mb-4 flex items-start justify-between">
         <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusStyles[entry.payment_status]}`}
+          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusStyles[entry.payment_status]}`}
           role="status"
           aria-label={`Payment status: ${statusLabels[entry.payment_status]}`}
         >
@@ -232,49 +226,49 @@ function PaymentCard({ entry }: PaymentCardProps) {
       <dl className="space-y-3">
         {/* Group name */}
         <div>
-          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Group</dt>
-          <dd className="mt-1 text-sm font-semibold text-gray-900">{entry.ikimina_name}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">Group</dt>
+          <dd className="mt-1 text-sm font-semibold text-neutral-900">{entry.ikimina_name}</dd>
         </div>
 
         {/* SACCO name */}
         <div>
-          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">SACCO</dt>
-          <dd className="mt-1 text-sm text-gray-900">{entry.sacco_name}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">SACCO</dt>
+          <dd className="mt-1 text-sm text-neutral-900">{entry.sacco_name}</dd>
         </div>
 
         {/* Payment amount */}
         <div>
-          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</dt>
-          <dd className="mt-1 text-lg font-bold text-gray-900">{formattedAmount}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">Amount</dt>
+          <dd className="mt-1 text-lg font-bold text-neutral-900">{formattedAmount}</dd>
         </div>
 
         {/* Due date */}
         {formattedDueDate && (
           <div>
-            <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Due Date</dt>
-            <dd className="mt-1 text-sm text-gray-900">{formattedDueDate}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">Due Date</dt>
+            <dd className="mt-1 text-sm text-neutral-900">{formattedDueDate}</dd>
           </div>
         )}
 
         {/* Reference code */}
         <div>
-          <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Reference</dt>
-          <dd className="mt-1 text-sm text-gray-900 font-mono">{entry.reference_code}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">Reference</dt>
+          <dd className="mt-1 font-mono text-sm text-neutral-900">{entry.reference_code}</dd>
         </div>
 
         {/* USSD code - only show for pending payments */}
         {entry.payment_status === "PENDING" && (
           <div>
-            <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">USSD Code</dt>
+            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">USSD Code</dt>
             <dd className="mt-2">
               <a
                 href={`tel:${encodeURIComponent(entry.ussd_code)}`}
-                className="block w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-white text-center font-mono text-sm rounded-lg transition-colors"
+                className="block w-full rounded-xl bg-atlas-blue px-4 py-3 text-center font-mono text-sm text-white shadow-atlas transition-all duration-interactive hover:bg-atlas-blue-dark focus:ring-4 focus:ring-atlas-blue focus:ring-offset-2"
                 aria-label={`Dial USSD code ${entry.ussd_code} to make payment`}
               >
                 {entry.ussd_code}
               </a>
-              <p className="mt-1 text-xs text-gray-500 text-center">Tap to dial</p>
+              <p className="mt-1 text-center text-xs text-neutral-500">Tap to dial</p>
             </dd>
           </div>
         )}
