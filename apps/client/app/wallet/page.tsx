@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { WalletToken } from "@/lib/types/supa-app";
 import { TokenCard } from "@/components/wallet/token-card";
+import { GradientHeader } from "@ibimina/ui";
 import { Loader2, AlertCircle, Wallet as WalletIcon } from "lucide-react";
 
 /**
@@ -57,8 +58,8 @@ export default function WalletPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-        <p className="text-gray-600">Loading wallet...</p>
+        <Loader2 className="h-12 w-12 animate-spin text-atlas-blue mb-4" />
+        <p className="text-neutral-600">Loading wallet...</p>
       </div>
     );
   }
@@ -66,44 +67,39 @@ export default function WalletPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
-        <p className="text-gray-900 font-semibold mb-2">Error</p>
-        <p className="text-gray-600 text-center">{error}</p>
+        <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
+        <p className="mb-2 font-semibold text-neutral-900">Error</p>
+        <p className="text-center text-neutral-600">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white sticky top-0 z-10">
-        <div className="max-w-screen-xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3 mb-4">
-            <WalletIcon className="w-8 h-8" aria-hidden="true" />
-            <h1 className="text-2xl font-bold">My Wallet</h1>
-          </div>
-
+    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100 pb-20">
+      <div className="mx-auto max-w-screen-xl space-y-6 px-4 py-6">
+        <GradientHeader title="My Wallet" subtitle="Manage your vouchers, loyalty points, and digital tokens">
           {/* Total value card */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-            <p className="text-sm text-blue-100 mb-1">Total Active Value</p>
-            <p className="text-3xl font-bold">
+          <div className="rounded-2xl bg-white/10 p-6 shadow-atlas backdrop-blur-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <WalletIcon className="h-6 w-6" aria-hidden="true" />
+              <p className="text-sm font-medium">Total Active Value</p>
+            </div>
+            <p className="text-4xl font-bold">
               {new Intl.NumberFormat("rw-RW", {
                 style: "currency",
                 currency: "RWF",
                 minimumFractionDigits: 0,
               }).format(getTotalValue())}
             </p>
-            <p className="text-xs text-blue-100 mt-2">
+            <p className="mt-3 text-sm opacity-90">
               {tokens.filter((t) => t.status === "ACTIVE").length} active tokens
             </p>
           </div>
-        </div>
-      </div>
+        </GradientHeader>
 
-      {/* Filter tabs */}
-      <div className="bg-white border-b border-gray-200 sticky top-[140px] z-10">
-        <div className="max-w-screen-xl mx-auto px-4">
-          <div className="flex gap-4 overflow-x-auto">
+        {/* Filter tabs */}
+        <div className="rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm">
+          <div className="flex gap-2">
             {[
               { value: "active", label: "Active" },
               { value: "all", label: "All" },
@@ -112,10 +108,10 @@ export default function WalletPage() {
               <button
                 key={value}
                 onClick={() => setFilter(value as any)}
-                className={`py-3 px-4 border-b-2 font-medium transition-colors whitespace-nowrap ${
+                className={`flex-1 rounded-xl px-4 py-2.5 font-medium transition-all duration-interactive ${
                   filter === value
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-600 hover:text-gray-900"
+                    ? "bg-atlas-blue text-white shadow-atlas"
+                    : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
                 }`}
               >
                 {label}
@@ -123,15 +119,15 @@ export default function WalletPage() {
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-screen-xl mx-auto px-4 py-6">
+        {/* Content */}
         {tokens.length === 0 ? (
-          <div className="text-center py-12">
-            <WalletIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 font-medium">No tokens found</p>
-            <p className="text-sm text-gray-500 mt-2">
+          <div className="py-16 text-center">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
+              <WalletIcon className="h-10 w-10 text-neutral-400" />
+            </div>
+            <p className="font-medium text-neutral-600">No tokens found</p>
+            <p className="mt-2 text-sm text-neutral-500">
               {filter === "active" ? "You don't have any active tokens." : "Your wallet is empty."}
             </p>
           </div>
