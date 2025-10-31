@@ -1,0 +1,31 @@
+# Gradle
+.gradle/
+build/
+*.iml
+
+# Android Studio
+.idea/
+*.iml
+local.properties
+
+# Generated files
+*.apk
+*.ap_
+*.aab
+
+# Android build artifacts
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Keystore files
+*.jks
+*.keystore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Kotlin
+*.kotlin_module
