@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -73,6 +73,19 @@ export function AdminPanelShell({
   const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [mobileOpen]);
+
   const activePath = useMemo(() => {
     if (!pathname) return "/admin";
     const parts = pathname.split("/").filter(Boolean);
@@ -117,7 +130,7 @@ export function AdminPanelShell({
               "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-interactive",
               isActive
                 ? "bg-atlas-blue text-white shadow-atlas shadow-atlas-blue/30"
-                : "text-neutral-600 hover:bg-atlas-glow hover:text-atlas-blue-dark dark:text-neutral-300 dark:hover:bg-atlas-blue/10"
+                : "text-neutral-600 hover:bg-atlas-blue/5 hover:text-atlas-blue-dark dark:text-neutral-300 dark:hover:bg-atlas-blue/10"
             )}
           >
             <Icon className="h-4 w-4 flex-shrink-0" />
@@ -169,8 +182,18 @@ export function AdminPanelShell({
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           {mobileOpen && (
-            <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm">
-              <div className="absolute inset-x-4 bottom-20 rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900">
+            <div
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+              onClick={() => setMobileOpen(false)}
+              role="presentation"
+            >
+              <div
+                className="absolute inset-x-4 bottom-20 rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Mobile navigation menu"
+              >
                 {nav}
               </div>
             </div>
