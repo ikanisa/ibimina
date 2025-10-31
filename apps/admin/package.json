@@ -42,6 +42,7 @@
     "@capacitor/push-notifications": "^7.0.3",
     "@ibimina/config": "workspace:*",
     "@ibimina/ui": "workspace:*",
+    "@openai/agents": "^0.1.11",
     "@simplewebauthn/browser": "^13.2.2",
     "@simplewebauthn/server": "^13.2.2",
     "@simplewebauthn/types": "^12.0.0",
