@@ -1,0 +1,34 @@
+name: supabase-db-guard
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      ENV_NAME: staging
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node (optional)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://cli.supabase.com/install/linux | sh
+          echo "$HOME/.supabase/bin" >> $GITHUB_PATH
+
+      - name: Verify schema & migrations
+        run: bash scripts/verify-schema.sh
+
+      - name: Upload refreshed schema snapshot (if drifted locally)
+        if: failure() && steps.Verify.outcome == 'failure'
+        run: echo "Schema snapshot drifted; please run locally and commit."

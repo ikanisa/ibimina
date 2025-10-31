@@ -165,7 +165,6 @@ export async function POST(request: NextRequest) {
         }
 
         if (verification.status < 500) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await (supabase as any)
             .from("users")
             .update({ failed_mfa_count: (safeRecord.failed_mfa_count ?? 0) + 1 })
@@ -211,7 +210,6 @@ export async function POST(request: NextRequest) {
 
       updates.mfa_methods = Array.from(methods);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateResult = await (supabase as any).from("users").update(updates).eq("id", user.id);
       if (updateResult.error) {
         logError("mfa.verify.persist_failed", {

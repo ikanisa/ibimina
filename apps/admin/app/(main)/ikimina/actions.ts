@@ -178,7 +178,6 @@ async function updateIkiminaSettingsInternal(
     },
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .schema("app")
     .from("ikimina")
@@ -190,7 +189,6 @@ async function updateIkiminaSettingsInternal(
     return { status: "error", message: updateError.message ?? "Unable to update settings" };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: auditError } = await (supabase as any).schema("app").from("audit_logs").insert({
     actor: user.id,
     action: "IKIMINA_SETTINGS_UPDATE",
@@ -204,10 +202,10 @@ async function updateIkiminaSettingsInternal(
 
   await revalidatePath(`/ikimina/${data.ikiminaId}`);
   await revalidatePath(`/ikimina/${data.ikiminaId}/settings`);
-  await revalidateTag(CACHE_TAGS.ikiminaDirectory);
-  await revalidateTag(CACHE_TAGS.ikimina(data.ikiminaId));
-  await revalidateTag(CACHE_TAGS.sacco(typedExisting.sacco_id ?? null));
-  await revalidateTag(CACHE_TAGS.dashboardSummary);
+  await revalidateTag(CACHE_TAGS.ikiminaDirectory, {});
+  await revalidateTag(CACHE_TAGS.ikimina(data.ikiminaId), {});
+  await revalidateTag(CACHE_TAGS.sacco(typedExisting.sacco_id ?? null), {});
+  await revalidateTag(CACHE_TAGS.dashboardSummary, {});
 
   logInfo("ikimina_settings_updated", {
     ikiminaId: data.ikiminaId,

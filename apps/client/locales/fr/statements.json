@@ -1,0 +1,36 @@
+{
+  "title": "Relevés",
+  "filters": {
+    "period": "Période",
+    "thisMonth": "Ce Mois",
+    "lastMonth": "Mois Dernier",
+    "custom": "Plage Personnalisée",
+    "all": "Tout le Temps"
+  },
+  "summary": {
+    "total": "Total",
+    "confirmed": "Confirmé",
+    "pending": "En Attente"
+  },
+  "table": {
+    "date": "Date",
+    "group": "Groupe",
+    "amount": "Montant",
+    "status": "Statut",
+    "reference": "Référence"
+  },
+  "export": {
+    "pdf": "Exporter PDF",
+    "csv": "Exporter CSV",
+    "success": "Relevé exporté avec succès"
+  },
+  "empty": {
+    "title": "Aucune transaction",
+    "description": "Votre historique de transactions apparaîtra ici",
+    "action": "Effectuez votre premier paiement"
+  },
+  "help": {
+    "title": "À Propos des Relevés",
+    "description": "Les relevés affichent vos transactions basées sur l'allocation. Les transactions confirmées ont été vérifiées et allouées à votre compte de groupe."
+  }
+}

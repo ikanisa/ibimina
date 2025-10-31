@@ -1,0 +1,17 @@
+{
+  "welcome": "Murakaza neza!",
+  "quickActions": "Ibikorwa Byihuse",
+  "myGroups": "Amatsinda Yanjye",
+  "recentActivity": "Ibikorwa Biheruka",
+  "noGroups": "Nturafite itsinda",
+  "joinFirstGroup": "Injira mu itsinda rya mbere",
+  "totalSavings": "Amafaranga Yose",
+  "recentConfirmations": "Byemejwe Vuba",
+  "noActivity": "Nta bikorwa",
+  "actions": {
+    "pay": "Kwishyura",
+    "viewGroups": "Reba Amatsinda",
+    "viewStatements": "Reba Raporo",
+    "joinGroup": "Injira mu Itsinda"
+  }
+}

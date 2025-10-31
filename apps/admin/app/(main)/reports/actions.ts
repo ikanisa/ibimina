@@ -108,7 +108,6 @@ async function createReportSubscriptionInternal(
     next_run_at: nextRun.toISOString(),
   } satisfies Record<string, unknown>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
     .schema("app")
     .from("report_subscriptions")
@@ -147,7 +146,6 @@ async function toggleReportSubscriptionInternal({
 
   const supabase = createSupabaseServiceRoleClient("reports/actions:toggle");
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: existing, error } = await (supabase as any)
     .schema("app")
     .from("report_subscriptions")
@@ -176,7 +174,6 @@ async function toggleReportSubscriptionInternal({
       ).toISOString()
     : existingRow.next_run_at;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: updatedRow, error: updateError } = await (supabase as any)
     .schema("app")
     .from("report_subscriptions")
@@ -215,7 +212,6 @@ async function deleteReportSubscriptionInternal({
 
   const supabase = createSupabaseServiceRoleClient("reports/actions:delete");
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
     .schema("app")
     .from("report_subscriptions")

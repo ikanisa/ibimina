@@ -1,6 +1,7 @@
 # TWA (Trusted Web Activity) for Ibimina Client App
 
-This directory contains the configuration and build scripts for packaging the Ibimina Client web app as an Android TWA (Trusted Web Activity).
+This directory contains the configuration and build scripts for packaging the
+Ibimina Client web app as an Android TWA (Trusted Web Activity).
 
 ## Prerequisites
 
@@ -23,7 +24,8 @@ cd infra/twa/client
 keytool -genkey -v -keystore android.keystore -alias ibimina-client -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-**Important**: Store the keystore password securely. You'll need it for signing builds.
+**Important**: Store the keystore password securely. You'll need it for signing
+builds.
 
 ### 2. Get SHA-256 Fingerprint
 
@@ -34,6 +36,7 @@ keytool -list -v -keystore android.keystore -alias ibimina-client
 ```
 
 Copy the SHA-256 fingerprint and update:
+
 - `apps/client/public/.well-known/assetlinks.json`
 
 ### 3. Initialize Bubblewrap Project
@@ -67,13 +70,15 @@ Build a signed Android App Bundle for Play Store distribution:
 bubblewrap build --signingKeyPath ./android.keystore --signingKeyAlias ibimina-client
 ```
 
-You'll be prompted for the keystore password. The AAB will be generated in `app/build/outputs/bundle/`.
+You'll be prompted for the keystore password. The AAB will be generated in
+`app/build/outputs/bundle/`.
 
 ## Testing Digital Asset Links
 
 ### Local Testing
 
 1. Install the APK on a test device:
+
    ```bash
    adb install app/build/outputs/apk/app.apk
    ```
@@ -83,11 +88,13 @@ You'll be prompted for the keystore password. The AAB will be generated in `app/
 ### Online Testing
 
 1. Deploy the web app with the assetlinks.json file at:
+
    ```
    https://client.ibimina.ikanisa.gov.rw/.well-known/assetlinks.json
    ```
 
 2. Verify using Google's tool:
+
    ```
    https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://client.ibimina.ikanisa.gov.rw&relation=delegate_permission/common.handle_all_urls
    ```
@@ -121,6 +128,7 @@ Update these values as needed for different environments (staging, production).
 ### Play Store Release
 
 1. Build the signed AAB:
+
    ```bash
    bubblewrap build --signingKeyPath ./android.keystore --signingKeyAlias ibimina-client
    ```
@@ -140,7 +148,9 @@ For app updates:
 2. Rebuild the app
 3. Upload new AAB to Play Store
 
-**Note**: Most content updates happen via the web app and don't require TWA updates. Only update the TWA when changing app configuration or Android-specific features.
+**Note**: Most content updates happen via the web app and don't require TWA
+updates. Only update the TWA when changing app configuration or Android-specific
+features.
 
 ## Troubleshooting
 

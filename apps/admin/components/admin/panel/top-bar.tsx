@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Bell, Menu, Search } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
-import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator";
+import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator.ssr-wrapper";
 import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { TenantSwitcher } from "@/components/admin/panel/tenant-switcher";

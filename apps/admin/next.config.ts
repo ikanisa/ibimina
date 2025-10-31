@@ -55,7 +55,6 @@ let withPWA = (config: NextConfig) => config;
 let withBundleAnalyzer = (config: NextConfig) => config;
 
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withPWAInit = require("next-pwa");
   withPWA = withPWAInit({
     dest: "public",
@@ -73,13 +72,12 @@ try {
 }
 
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withBundleAnalyzerInit = require("@next/bundle-analyzer");
   withBundleAnalyzer = withBundleAnalyzerInit({
-    enabled: process.env.ANALYZE_BUNDLE === "1",
+    enabled: process.env.ANALYZE_BUNDLE === "1" && process.env.CLOUDFLARE_BUILD !== "1",
     openAnalyzer: false,
     analyzerMode: "static",
-    reportFilename: "client.html",
+    reportFilename: "admin.html",
     generateStatsFile: true,
     statsFilename: "bundle-stats.json",
     defaultSizes: "gzip",
@@ -89,28 +87,38 @@ try {
 }
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Use standalone for Docker/Node deployments, but not for Cloudflare
+  output: process.env.CLOUDFLARE_BUILD === "1" ? undefined : "standalone",
   reactStrictMode: true,
-  outputFileTracingRoot: path.join(__dirname, "./"),
+  // For monorepo: always set to match turbopack.root
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   env: {
     NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
   },
+  // Performance: Optimize images
   images: {
     remotePatterns,
-    unoptimized: true,
+    unoptimized: false, // Enable Next.js image optimization
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 3600,
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   poweredByHeader: false,
+  // Performance: Transpile workspace packages
   transpilePackages: ["@ibimina/config", "@ibimina/ui"],
-  modularizeImports: {
-    "lucide-react": {
-      transform: "lucide-react/dist/esm/icons/{{member}}",
-    },
+  // Performance: Optimize builds
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"],
+          }
+        : false,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
+  // Enable Turbopack for Next.js 16 - always use monorepo root for dependencies
+  turbopack: {
+    root: path.join(__dirname, "../../"),
   },
   async headers() {
     const baseHeaders = [...SECURITY_HEADERS];
@@ -129,9 +137,21 @@ const nextConfig: NextConfig = {
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
     ];
+    const staticAssetHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+    ];
     return [
       {
+        source: "/_next/static/:path*",
+        headers: staticAssetHeaders,
+      },
+      {
         source: "/icons/:path*",
+        headers: immutableAssetHeaders,
+      },
+      {
+        source: "/fonts/:path*",
         headers: immutableAssetHeaders,
       },
       {
@@ -148,6 +168,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Performance: Experimental features
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+    webpackBuildWorker: true,
+    // Force webpack for Cloudflare builds (Turbopack has issues with monorepos)
+    ...(process.env.CLOUDFLARE_BUILD === "1" && {
+      turbo: false,
+    }),
+  },
 };
 
-export default withBundleAnalyzer(withPWA(nextConfig));
+// For Cloudflare builds, skip PWA and bundle analyzer wrappers as they add webpack config
+export default process.env.CLOUDFLARE_BUILD === "1"
+  ? nextConfig
+  : withBundleAnalyzer(withPWA(nextConfig));

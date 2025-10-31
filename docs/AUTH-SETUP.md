@@ -7,16 +7,16 @@ authentication stack locally, in preview, and in production.
 
 Populate the following secrets (see `.env.example` for defaults):
 
-| Key                                                          | Purpose                                                                                                                                          |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project URL and anon key for SSR/client operations.【F:.env.example†L1-L4】                                                             |
-| `SUPABASE_SERVICE_ROLE_KEY`                                  | Server-only key for admin client used by MFA APIs and Edge Functions.【F:.env.example†L6-L7】【F:lib/supabase/admin.ts†L1-L21】                  |
-| `KMS_DATA_KEY` (or `_BASE64`)                                | 32-byte AES-GCM key for encrypting TOTP secrets/pending tokens.【F:.env.example†L9-L10】【F:lib/mfa/crypto.ts†L33-L70】                          |
-| `BACKUP_PEPPER` / `EMAIL_OTP_PEPPER`                         | Pepper for hashing backup codes and email OTP digests.【F:.env.example†L11-L16】【F:lib/mfa/crypto.ts†L94-L123】【F:lib/mfa/email.ts†L5-L44】    |
-| `MFA_SESSION_SECRET` / `TRUSTED_COOKIE_SECRET`               | Secrets for signed MFA session + trusted device cookies.【F:.env.example†L11-L16】【F:lib/mfa/session.ts†L6-L64】                                |
-| `MFA_RP_ID` / `MFA_ORIGIN` / `MFA_RP_NAME`                   | WebAuthn relying party settings.【F:.env.example†L17-L19】【F:lib/mfa/passkeys.ts†L15-L57】                                                      |
-| `MAIL_FROM` / `SMTP_*` or Resend API key                     | Email OTP sender configuration; required for `/api/mfa/email/request`.【F:.env.example†L21-L27】【F:lib/mfa/email.ts†L32-L95】                   |
-| `TWILIO_*` or Meta WABA keys                                 | WhatsApp OTP provider; do not enable channel in production until throttling complete.【F:.env.example†L29-L36】【F:lib/authx/start.ts†L53-L120】 |
+| Key                                                           | Purpose                                                                                                                                       |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Supabase project URL and anon key for SSR/client operations.【F:.env.example†L1-L4】                                                          |
+| `SUPABASE_SERVICE_ROLE_KEY`                                   | Server-only key for admin client used by MFA APIs and Edge Functions.【F:.env.example†L6-L7】【F:lib/supabase/admin.ts†L1-L21】               |
+| `KMS_DATA_KEY` (or `_BASE64`)                                 | 32-byte AES-GCM key for encrypting TOTP secrets/pending tokens.【F:.env.example†L9-L10】【F:lib/mfa/crypto.ts†L33-L70】                       |
+| `BACKUP_PEPPER` / `EMAIL_OTP_PEPPER`                          | Pepper for hashing backup codes and email OTP digests.【F:.env.example†L11-L16】【F:lib/mfa/crypto.ts†L94-L123】【F:lib/mfa/email.ts†L5-L44】 |
+| `MFA_SESSION_SECRET` / `TRUSTED_COOKIE_SECRET`                | Secrets for signed MFA session + trusted device cookies.【F:.env.example†L11-L16】【F:lib/mfa/session.ts†L6-L64】                             |
+| `MFA_RP_ID` / `MFA_ORIGIN` / `MFA_RP_NAME`                    | WebAuthn relying party settings.【F:.env.example†L17-L19】【F:lib/mfa/passkeys.ts†L15-L57】                                                   |
+| `MAIL_FROM` / `SMTP_*` or Resend API key                      | Email OTP sender configuration; required for `/api/mfa/email/request`.【F:.env.example†L21-L27】【F:lib/mfa/email.ts†L32-L95】                |
+| `META_WHATSAPP_ACCESS_TOKEN`, `META_WHATSAPP_PHONE_NUMBER_ID` | WhatsApp OTP provider via Meta Business API; optional for development.                                                                        |
 
 For preview deployments, inject secrets via your chosen deployment CLI or secret
 store (e.g., Doppler, 1Password, or container orchestrator secrets). Ensure
@@ -37,9 +37,8 @@ store (e.g., Doppler, 1Password, or container orchestrator secrets). Ensure
 - **Email OTP**: Deploy Supabase Edge Function `mfa-email` or configure SMTP
   provider; confirm `MAIL_FROM` matches verified sender. Test with
   `/api/mfa/email/request`.
-- **WhatsApp OTP**: Configure Twilio (Account SID, Auth Token, WhatsApp sender)
-  or Meta WABA credentials. Do not enable channel until rate limiting + salted
-  hashes implemented (see Auth plan).【F:lib/authx/start.ts†L53-L120】
+- **WhatsApp OTP**: Configure Meta WhatsApp Business API (Access Token, Phone
+  Number ID). WhatsApp OTP temporarily disabled pending full Meta integration.
 - **Passkeys**: Set `MFA_RP_ID` to primary domain (e.g., `sacco.plus`) and
   `MFA_ORIGIN` to full https origin for previews/production. Local dev defaults
   to `localhost`.【F:lib/mfa/passkeys.ts†L15-L73】

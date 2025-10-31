@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { OfflineActions } from "./offline-actions";
 
 export const metadata: Metadata = {
   title: "Offline - Ibimina",
@@ -25,36 +27,25 @@ export default function OfflinePage() {
             />
           </svg>
         </div>
-        
+
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-          You're Offline
+          You&apos;re Offline
         </h1>
-        
+
         <p className="text-gray-600 dark:text-gray-400 mb-8">
-          It looks like you've lost your internet connection. Some features may be unavailable until you reconnect.
+          It looks like you&apos;ve lost your internet connection. Some features may be unavailable
+          until you reconnect.
         </p>
 
         <div className="space-y-4">
-          <button
-            onClick={() => window.location.reload()}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            Try Again
-          </button>
-          
-          <button
-            onClick={() => window.history.back()}
-            className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-          >
-            Go Back
-          </button>
-          
-          <a
+          <OfflineActions />
+
+          <Link
             href="/"
-            className="block w-full text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium py-3 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+            className="block w-full text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium py-3 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg text-center"
           >
             Return to Home
-          </a>
+          </Link>
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">

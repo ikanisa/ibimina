@@ -3,7 +3,7 @@ import { supabaseSrv } from "@/lib/supabase/server";
 
 export async function GET() {
   const srv = supabaseSrv();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Member app tables live in public schema without generated types.
+
   const legacyClient = srv as any;
   const {
     data: { user },

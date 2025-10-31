@@ -12,6 +12,8 @@
 import { getGroups } from "@/lib/api/groups";
 import { GroupsGrid } from "@/components/groups/groups-grid";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Groups | Ibimina Client",
   description: "Browse and join savings groups (Ibimina)",

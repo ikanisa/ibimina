@@ -4,7 +4,8 @@ This guide explains how to deploy and verify the multi-tenancy implementation.
 
 ## Overview
 
-The multi-tenancy feature introduces a hierarchical organization structure with Row-Level Security (RLS) to ensure proper data isolation between organizations.
+The multi-tenancy feature introduces a hierarchical organization structure with
+Row-Level Security (RLS) to ensure proper data isolation between organizations.
 
 ### Architecture
 
@@ -21,7 +22,8 @@ District (e.g., Gasabo)
 ### Access Control Model
 
 1. **SYSTEM_ADMIN**: Full access to all organizations and data (bypass RLS)
-2. **DISTRICT_MANAGER**: Access to district and all child organizations (SACCOs/MFIs)
+2. **DISTRICT_MANAGER**: Access to district and all child organizations
+   (SACCOs/MFIs)
 3. **SACCO_MANAGER/STAFF**: Access only to their specific SACCO's data
 4. **MFI_MANAGER/STAFF**: Access only to their specific MFI's data
 
@@ -30,6 +32,7 @@ District (e.g., Gasabo)
 ### 1. Migration: `supabase/migrations/20251110100000_multitenancy.sql`
 
 Creates the core multi-tenancy infrastructure:
+
 - `organizations` table with hierarchical structure
 - `org_memberships` table for user-organization relationships
 - `org_id` columns on all tenant tables
@@ -39,6 +42,7 @@ Creates the core multi-tenancy infrastructure:
 ### 2. Seed Data: `supabase/seed/seed_multitenancy.sql`
 
 Provides test data for development and QA:
+
 - 1 District: Gasabo
 - 2 SACCOs: Alpha (5 members), Beta (3 members)
 - 1 MFI: Capital
@@ -47,6 +51,7 @@ Provides test data for development and QA:
 ### 3. RLS Tests: `supabase/tests/rls/multitenancy_isolation.test.sql`
 
 Comprehensive tests verifying:
+
 - System admin has full access
 - District manager sees all child organizations
 - SACCO staff cannot see other SACCO's data
@@ -80,6 +85,7 @@ psql -d your_database_url -f supabase/seed/seed_multitenancy.sql
 ```
 
 Expected output:
+
 ```
 Multi-tenancy Seed Data Summary
 ========================================
@@ -109,6 +115,7 @@ psql -d your_database_url -f supabase/tests/rls/multitenancy_isolation.test.sql
 ```
 
 Expected output:
+
 ```
 ==================== Running Multi-Tenancy RLS Tests ====================
 Test 1: System Admin Access ✓
@@ -125,21 +132,22 @@ Test 7: Payment data isolation ✓
 
 All test users have password: `password123`
 
-| Email | Role | Access Scope |
-|-------|------|--------------|
-| seed.admin@test.ibimina.rw | SYSTEM_ADMIN | All data |
-| seed.district@test.ibimina.rw | DISTRICT_MANAGER | All orgs in Gasabo district |
-| seed.sacco.alpha.manager@test.ibimina.rw | SACCO_MANAGER | SACCO Alpha only |
-| seed.sacco.alpha.staff@test.ibimina.rw | SACCO_STAFF | SACCO Alpha only |
-| seed.sacco.beta.manager@test.ibimina.rw | SACCO_MANAGER | SACCO Beta only |
-| seed.mfi.manager@test.ibimina.rw | MFI_MANAGER | MFI Capital only |
-| seed.mfi.staff@test.ibimina.rw | MFI_STAFF | MFI Capital only |
+| Email                                    | Role             | Access Scope                |
+| ---------------------------------------- | ---------------- | --------------------------- |
+| seed.admin@test.ibimina.rw               | SYSTEM_ADMIN     | All data                    |
+| seed.district@test.ibimina.rw            | DISTRICT_MANAGER | All orgs in Gasabo district |
+| seed.sacco.alpha.manager@test.ibimina.rw | SACCO_MANAGER    | SACCO Alpha only            |
+| seed.sacco.alpha.staff@test.ibimina.rw   | SACCO_STAFF      | SACCO Alpha only            |
+| seed.sacco.beta.manager@test.ibimina.rw  | SACCO_MANAGER    | SACCO Beta only             |
+| seed.mfi.manager@test.ibimina.rw         | MFI_MANAGER      | MFI Capital only            |
+| seed.mfi.staff@test.ibimina.rw           | MFI_STAFF        | MFI Capital only            |
 
 ## Manual Verification
 
 ### Verify System Admin Access
 
 Login as `seed.admin@test.ibimina.rw` and verify:
+
 - Can see all 4 organizations
 - Can see all 8 members
 - Can see both SACCO Alpha and Beta data
@@ -147,6 +155,7 @@ Login as `seed.admin@test.ibimina.rw` and verify:
 ### Verify District Manager Access
 
 Login as `seed.district@test.ibimina.rw` and verify:
+
 - Can see both SACCO Alpha and Beta
 - Can see all 8 members (5 from Alpha, 3 from Beta)
 - Can see MFI Capital
@@ -154,12 +163,14 @@ Login as `seed.district@test.ibimina.rw` and verify:
 ### Verify SACCO Staff Isolation
 
 Login as `seed.sacco.alpha.staff@test.ibimina.rw` and verify:
+
 - Can see only SACCO Alpha (1 SACCO)
 - Can see only 5 members (from Alpha)
 - **Cannot** see any Beta members (critical: no cross-tenant leakage)
 - **Cannot** insert members into Beta
 
 Login as `seed.sacco.beta.manager@test.ibimina.rw` and verify:
+
 - Can see only SACCO Beta (1 SACCO)
 - Can see only 3 members (from Beta)
 - **Cannot** see any Alpha members (critical: no cross-tenant leakage)
@@ -167,6 +178,7 @@ Login as `seed.sacco.beta.manager@test.ibimina.rw` and verify:
 ### Verify MFI Isolation
 
 Login as `seed.mfi.staff@test.ibimina.rw` and verify:
+
 - **Cannot** see any SACCO members
 - Only has access to MFI-specific data
 
@@ -182,11 +194,13 @@ Login as `seed.mfi.staff@test.ibimina.rw` and verify:
 ### Deployment Process
 
 1. **Apply migration during maintenance window**
+
    ```bash
    supabase db push --linked
    ```
 
 2. **Verify migration success**
+
    ```sql
    SELECT COUNT(*) FROM public.organizations; -- Should not error
    SELECT COUNT(*) FROM public.org_memberships; -- Should not error
@@ -209,6 +223,7 @@ If issues are detected, rollback procedures are documented in:
 ## Backwards Compatibility
 
 The implementation maintains full backwards compatibility:
+
 - ✅ Existing SACCOs without `org_id` continue to work
 - ✅ Legacy `sacco_id` checks remain functional
 - ✅ `app.user_profiles` table still supported
@@ -224,6 +239,7 @@ The implementation maintains full backwards compatibility:
 ## Support
 
 For issues or questions:
+
 1. Review `supabase/README_MULTITENANCY.md` for architecture details
 2. Check `supabase/TEST_PLAN_MULTITENANCY.md` for testing procedures
 3. Examine RLS test output for specific access issues

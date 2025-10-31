@@ -5,6 +5,8 @@ import { useTranslation } from "@/providers/i18n-provider";
 import type { MfaInsights, MfaRiskAccount, MfaRiskReason } from "@/lib/mfa/insights";
 import { Badge, MetricCard, SectionHeader } from "@ibimina/ui";
 
+const numberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+
 interface MfaInsightsCardProps {
   insights: MfaInsights;
 }
@@ -145,20 +147,15 @@ function MetricsGrid({ insights }: { insights: MfaInsights }) {
     [insights.totals, t]
   );
 
-  const numberFormatter = new Intl.NumberFormat("en-RW");
-
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {metrics.map((metric) => (
         <MetricCard
           key={metric.label}
+          label={metric.label}
+          value={numberFormatter.format(metric.value)}
           className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-4 shadow-glass backdrop-blur"
-        >
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">{metric.label}</p>
-          <p className="mt-3 text-2xl font-semibold text-neutral-0">
-            {numberFormatter.format(metric.value)}
-          </p>
-        </article>
+        />
       ))}
     </div>
   );
@@ -241,9 +238,7 @@ export function MfaInsightsCard({ insights }: MfaInsightsCardProps) {
       </section>
 
       <section className="space-y-3">
-        <SectionHeader
-          title={t("admin.security.sacco.title", "Coverage by SACCO")}
-        />
+        <SectionHeader title={t("admin.security.sacco.title", "Coverage by SACCO")} />
         <SaccoCoverageTable insights={insights} />
       </section>
     </div>

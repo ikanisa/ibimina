@@ -5,9 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cloudflare": "CLOUDFLARE_BUILD=1 npx @cloudflare/next-on-pages",
+    "preview:cloudflare": "wrangler pages dev .vercel/output/static",
+    "deploy:cloudflare": "wrangler pages deploy .vercel/output/static",
     "start": "next start",
     "lint": "pnpm exec eslint --max-warnings=0 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.tests.json --noEmit",
     "check:i18n": "node scripts/check-i18n.mjs",
     "check:i18n:consistency": "node scripts/check-i18n-consistency.mjs",
     "fix:i18n": "node scripts/fix-i18n.mjs && node scripts/check-i18n.mjs",
@@ -27,6 +31,17 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/app": "^7.1.0",
+    "@capacitor/camera": "^7.0.2",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/device": "^7.0.2",
+    "@capacitor/haptics": "^7.0.2",
+    "@capacitor/preferences": "^7.0.2",
+    "@capacitor/push-notifications": "^7.0.3",
+    "@ibimina/config": "workspace:*",
+    "@ibimina/ui": "workspace:*",
     "@simplewebauthn/browser": "^13.2.2",
     "@simplewebauthn/server": "^13.2.2",
     "@simplewebauthn/types": "^12.0.0",
@@ -37,7 +52,7 @@
     "framer-motion": "^12.23.22",
     "idb": "^7.1.1",
     "lucide-react": "^0.545.0",
-    "next": "15.5.4",
+    "next": "16.0.0",
     "next-pwa": "^5.6.0",
     "next-themes": "^0.4.6",
     "openai": "^6.3.0",
@@ -51,9 +66,7 @@
     "workbox-precaching": "^6.6.0",
     "workbox-routing": "^6.6.0",
     "workbox-strategies": "^6.6.0",
-    "zod": "^3.23.8",
-    "@ibimina/config": "workspace:*",
-    "@ibimina/ui": "workspace:*"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -65,7 +78,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.4",
+    "eslint-config-next": "16.0.0",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5"

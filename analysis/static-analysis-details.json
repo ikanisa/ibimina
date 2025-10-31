@@ -185,7 +185,13 @@
     "short_term": [
       {
         "action": "Add ESLint to all packages",
-        "packages": ["packages/config", "packages/core", "packages/testing", "packages/ui", "apps/platform-api"]
+        "packages": [
+          "packages/config",
+          "packages/core",
+          "packages/testing",
+          "packages/ui",
+          "apps/platform-api"
+        ]
       },
       {
         "action": "Run unused imports cleanup",

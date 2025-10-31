@@ -21,16 +21,11 @@
     "lib/**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "tests/**/*.ts",
     "next-env.d.ts",
     "providers/**/*.ts",
     "providers/**/*.tsx",
     "workers/**/*.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    ".next",
-    "../../supabase/functions"
-  ]
+  "exclude": ["node_modules", ".next", "../../supabase"]
 }

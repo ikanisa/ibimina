@@ -1,0 +1,25 @@
+{
+  "title": "Groupes",
+  "browse": "Parcourir les Groupes",
+  "myGroups": "Mes Groupes",
+  "joinRequest": {
+    "title": "Rejoindre le Groupe",
+    "note": "Ajouter une note (optionnel)",
+    "notePlaceholder": "Dites au groupe pourquoi vous voulez rejoindre...",
+    "submit": "Envoyer la Demande",
+    "pending": "Demande en Attente",
+    "approved": "Demande Approuvée",
+    "rejected": "Demande Rejetée",
+    "success": "Votre demande a été envoyée"
+  },
+  "details": {
+    "members": "Membres",
+    "savings": "Épargne Totale",
+    "description": "Description",
+    "joinedDate": "Rejoint le"
+  },
+  "empty": {
+    "title": "Aucun groupe disponible",
+    "description": "Revenez plus tard pour voir de nouveaux groupes"
+  }
+}

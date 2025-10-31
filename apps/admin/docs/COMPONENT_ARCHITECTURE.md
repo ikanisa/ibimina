@@ -1,6 +1,7 @@
 # Component Architecture Guide
 
-This guide describes the component structure and best practices for the SACCO+ frontend.
+This guide describes the component structure and best practices for the SACCO+
+frontend.
 
 ## Component Organization
 
@@ -27,7 +28,8 @@ components/
 
 ## Shared UI Package (@ibimina/ui)
 
-Reusable components are published in the `@ibimina/ui` package for use across applications:
+Reusable components are published in the `@ibimina/ui` package for use across
+applications:
 
 ### Available Components
 
@@ -75,6 +77,7 @@ export function MyComponent({ title, count, onAction }: MyComponentProps) {
 ```
 
 Avoid:
+
 - `any` types
 - Implicit types
 - `React.FC` (use function declarations instead)
@@ -87,16 +90,19 @@ Use Tailwind classes with the `cn()` utility for conditional styles:
 ```tsx
 import { cn } from "@/lib/utils";
 
-<div className={cn(
-  "base-classes",
-  condition && "conditional-classes",
-  variant === "primary" && "variant-classes"
-)}>
+<div
+  className={cn(
+    "base-classes",
+    condition && "conditional-classes",
+    variant === "primary" && "variant-classes"
+  )}
+>
   {/* Content */}
-</div>
+</div>;
 ```
 
 Prefer:
+
 - Design token classes over arbitrary values
 - Component composition over conditional rendering
 - Semantic class names from design system
@@ -104,6 +110,7 @@ Prefer:
 ### Server vs Client Components
 
 Mark components as client-side only when they use:
+
 - React hooks (useState, useEffect, etc.)
 - Browser APIs (window, localStorage, etc.)
 - Event handlers
@@ -120,6 +127,7 @@ export function InteractiveComponent() {
 ```
 
 Server components (default) are preferred for:
+
 - Data fetching
 - Static content
 - Layout shells
@@ -164,11 +172,7 @@ Ensure all components are accessible:
 - Respect reduced motion preferences
 
 ```tsx
-<button
-  type="button"
-  aria-label="Close dialog"
-  onClick={onClose}
->
+<button type="button" aria-label="Close dialog" onClick={onClose}>
   <CloseIcon aria-hidden="true" />
 </button>
 ```
@@ -182,10 +186,8 @@ import { useTranslation } from "@/providers/i18n-provider";
 
 export function MyComponent() {
   const { t } = useTranslation();
-  
-  return (
-    <h1>{t("dashboard.title", "Dashboard")}</h1>
-  );
+
+  return <h1>{t("dashboard.title", "Dashboard")}</h1>;
 }
 ```
 
@@ -198,7 +200,7 @@ import { Trans } from "@/components/common/trans";
   i18nKey="welcome.message"
   defaults="Welcome, <strong>{{name}}</strong>!"
   values={{ name: userName }}
-/>
+/>;
 ```
 
 ## Performance Optimization
@@ -240,11 +242,13 @@ const sortedData = useMemo(
 ## Testing
 
 Components should be testable. Avoid:
+
 - Tight coupling to external services
 - Hard-coded configuration
 - Side effects in render
 
 Prefer:
+
 - Dependency injection via props
 - Pure functions where possible
 - Separate business logic from UI

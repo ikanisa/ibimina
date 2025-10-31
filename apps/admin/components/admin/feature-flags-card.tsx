@@ -60,7 +60,6 @@ export function FeatureFlagsCard() {
 
   const save = () => {
     startTransition(async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from("configuration")
         .update({ value: flags })

@@ -1,33 +1,33 @@
 /**
  * SACCO Search API Route Handler
- * 
+ *
  * GET /api/saccos/search
- * 
+ *
  * This route provides semantic search functionality for SACCOs using trigram
  * similarity search. Users can search for SACCOs by name, district, or other
  * attributes to find and add them to their profile.
- * 
+ *
  * Query parameters:
  * - q: string (optional) - Search query text
  * - district: string (optional) - Filter by district name
  * - sector: string (optional) - Filter by sector code
  * - limit: number (optional) - Maximum results (default: 20, max: 100)
- * 
+ *
  * Response:
  * - 200: Search results returned successfully
  * - 400: Invalid query parameters
  * - 401: User not authenticated
  * - 500: Server error during search
- * 
+ *
  * Security:
  * - Requires valid Supabase session (authenticated user)
  * - Uses RLS-protected database function
  * - Query parameter validation using Zod schema
- * 
+ *
  * Database:
  * - Function: public.search_saccos (with trigram indexes)
  * - Table: public.saccos (with RLS policies)
- * 
+ *
  * @accessibility
  * - Returns structured data for accessible presentation
  * - Supports keyboard-friendly search interaction
@@ -52,7 +52,7 @@ const searchParamsSchema = z.object({
 /**
  * GET handler for SACCO search
  * Returns list of SACCOs matching search criteria using trigram similarity
- * 
+ *
  * @param request - Next.js request object with URL search parameters
  * @returns JSON response with SACCO search results or error
  */
@@ -60,13 +60,16 @@ export async function GET(request: Request) {
   try {
     // Verify user authentication
     const supabase = await createSupabaseServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       return NextResponse.json(
         {
           error: "Authentication required",
-          details: "Please sign in to search for SACCOs"
+          details: "Please sign in to search for SACCOs",
         },
         { status: 401 }
       );
@@ -87,7 +90,9 @@ export async function GET(request: Request) {
       return NextResponse.json(
         {
           error: "Invalid query parameters",
-          details: validationResult.error.errors.map(e => `${e.path.join(".")}: ${e.message}`).join(", ")
+          details: validationResult.error.errors
+            .map((e) => `${e.path.join(".")}: ${e.message}`)
+            .join(", "),
         },
         { status: 400 }
       );
@@ -100,7 +105,7 @@ export async function GET(request: Request) {
       query: q || undefined,
       district: district || undefined,
       sector: sector || undefined,
-      limit,
+      limit: limit ?? undefined,
     });
 
     // Return success response with search results
@@ -119,15 +124,14 @@ export async function GET(request: Request) {
       },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("SACCO search API error:", error);
-    
+
     // Return server error response
     return NextResponse.json(
       {
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "An unexpected error occurred"
+        details: error instanceof Error ? error.message : "An unexpected error occurred",
       },
       { status: 500 }
     );

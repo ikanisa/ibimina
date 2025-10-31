@@ -94,7 +94,7 @@ function AddStaffDrawer({ organizations, onClose }: AddStaffDrawerProps) {
     }
 
     startTransition(async () => {
-      const { data, error: inviteError } = await supabase.functions.invoke("admin-invite-staff", {
+      const { error: inviteError } = await supabase.functions.invoke("admin-invite-staff", {
         body: {
           email,
           fullName: fullName || null,
@@ -219,7 +219,7 @@ function AddStaffDrawer({ organizations, onClose }: AddStaffDrawerProps) {
                   value={selectedOrg}
                   onChange={(e) => setSelectedOrg(e.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                  required={role !== "SYSTEM_ADMIN"}
+                  required
                 >
                   <option value="">
                     {t("admin.staff.selectOrganization", "Select organization")}
@@ -266,9 +266,7 @@ function AddStaffDrawer({ organizations, onClose }: AddStaffDrawerProps) {
           </div>
 
           {error && (
-            <div className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {error}
-            </div>
+            <div className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
           )}
 
           <div className="flex gap-3 pt-4">

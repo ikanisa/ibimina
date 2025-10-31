@@ -1,0 +1,15 @@
+# Cloudflare Pages configuration for Staff App
+# Domain: saccostaff.ikanisa.com
+# Note: This uses the same admin app codebase but with different domain
+
+name = "ibimina-staff"
+compatibility_date = "2025-10-30"
+pages_build_output_dir = ".vercel/output/static"
+
+# Node.js compatibility for API routes
+compatibility_flags = ["nodejs_compat"]
+
+# Note: For Cloudflare Pages, build configuration and environment variables
+# should be set in the Cloudflare dashboard under:
+# Pages > [Project] > Settings > Build & deployments
+# Pages > [Project] > Settings > Environment variables

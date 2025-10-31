@@ -1,15 +1,15 @@
 /**
  * Admin MFA Reset API Route
- * 
+ *
  * Allows system administrators to reset multi-factor authentication for a user.
  * This is a privileged operation used when a user loses access to their MFA device
  * (authenticator app, passkey, etc.) and cannot complete the sign-in flow.
- * 
+ *
  * Security:
  * - Restricted to SYSTEM_ADMIN role only
  * - All resets are logged in audit_logs for compliance
  * - Requires a documented reason for the reset
- * 
+ *
  * Operation:
  * 1. Locates user by ID or email
  * 2. Resets MFA flags (mfa_enabled = false)
@@ -17,17 +17,17 @@
  * 4. Deletes all trusted devices
  * 5. Sets default MFA method to EMAIL only
  * 6. Creates audit log entry with reason
- * 
+ *
  * @route POST /api/admin/mfa/reset
  * @access SYSTEM_ADMIN only
- * 
+ *
  * @example
  * POST /api/admin/mfa/reset
  * {
  *   "userId": "uuid",
  *   "reason": "Lost authenticator device on field assignment"
  * }
- * 
+ *
  * // Or by email
  * {
  *   "email": "staff@sacco.rw",
@@ -107,7 +107,6 @@ export async function POST(request: NextRequest) {
     last_mfa_success_at: null,
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .from("users")
     .update(updatePayload)

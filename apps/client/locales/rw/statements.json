@@ -1,0 +1,36 @@
+{
+  "title": "Raporo",
+  "filters": {
+    "period": "Igihe",
+    "thisMonth": "Uku Kwezi",
+    "lastMonth": "Ukwezi Gushize",
+    "custom": "Hitamo Igihe",
+    "all": "Igihe Cyose"
+  },
+  "summary": {
+    "total": "Yose",
+    "confirmed": "Byemejwe",
+    "pending": "Bitegerezwa"
+  },
+  "table": {
+    "date": "Itariki",
+    "group": "Itsinda",
+    "amount": "Amafaranga",
+    "status": "Imiterere",
+    "reference": "Nomero"
+  },
+  "export": {
+    "pdf": "Sohora PDF",
+    "csv": "Sohora CSV",
+    "success": "Raporo yasohowe neza"
+  },
+  "empty": {
+    "title": "Nta bikorwa",
+    "description": "Amateka yawe azagaragara hano",
+    "action": "Tangira kwishyura"
+  },
+  "help": {
+    "title": "Ku Byerekeye Raporo",
+    "description": "Raporo yerekana ibikorwa byawe byemejwe. Ibikorwa byemejwe byasuzumwe kandi byashyizwe kuri konti yawe."
+  }
+}

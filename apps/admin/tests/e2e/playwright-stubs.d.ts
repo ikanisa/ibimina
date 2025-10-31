@@ -30,8 +30,12 @@ declare module "@playwright/test" {
   }
 
   export interface TestHooks {
-    beforeEach: (callback: (fixtures: { request: APIRequestContext }) => Promise<unknown> | unknown) => void;
-    afterEach: (callback: (fixtures: { request: APIRequestContext }) => Promise<unknown> | unknown) => void;
+    beforeEach: (
+      callback: (fixtures: { request: APIRequestContext }) => Promise<unknown> | unknown
+    ) => void;
+    afterEach: (
+      callback: (fixtures: { request: APIRequestContext }) => Promise<unknown> | unknown
+    ) => void;
     describe: (title: string, callback: () => void) => void;
   }
 

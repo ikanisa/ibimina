@@ -119,13 +119,15 @@ export function GroupCard({ group }: GroupCardProps) {
         </div>
 
         {/* Creation date */}
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Calendar className="h-4 w-4" aria-hidden="true" />
-          <span>
-            <span className="sr-only">Created on:</span>
-            {formatDate(group.created_at)}
-          </span>
-        </div>
+        {group.created_at && (
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Calendar className="h-4 w-4" aria-hidden="true" />
+            <span>
+              <span className="sr-only">Created on:</span>
+              {formatDate(group.created_at)}
+            </span>
+          </div>
+        )}
 
         {/* SACCO affiliation */}
         {group.sacco_name && (

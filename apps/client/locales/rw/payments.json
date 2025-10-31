@@ -1,0 +1,33 @@
+{
+  "title": "Kwishyura",
+  "ussdSheet": {
+    "title": "Amabwiriza yo Kwishyura",
+    "merchantCode": "Kode ya Mucuruzi",
+    "referenceToken": "Nomero y'Isubirwaho",
+    "dialUssd": "Hamagara USSD",
+    "markAsPaid": "Narishyuye",
+    "pending": "Ishyuramihigo ritegerezwa",
+    "confirmed": "Ishyuramihigo ryemejwe",
+    "steps": {
+      "title": "Uburyo bwo Kwishyura",
+      "step1": "Kopi nomero y'isubirwaho",
+      "step2": "Hamagara kode ya USSD",
+      "step3": "Rangiza kwishyura kuri telefoni yawe"
+    },
+    "tips": {
+      "title": "Inama",
+      "dualSim": "Ku bakoresheje SIM ebyiri, hitamo SIM ikwiye",
+      "network": "Emeza ko ufite umuyoboro",
+      "balance": "Reba amafaranga yawe mbere yo kwishyura"
+    }
+  },
+  "faq": {
+    "title": "Ibibazo Bikunze Kubazwa",
+    "q1": "Bitwara igihe kingana iki kugira ngo ishyuramihigo ryanjye ryemezwe?",
+    "a1": "Ishyuramihigo ryemezwa mu minota mike.",
+    "q2": "Nibanditse nomero itari yo ni gute?",
+    "a2": "Hamagara umuyobozi wa SACCO yawe ako kanya.",
+    "q3": "Nshobora guhagarika ishyuramihigo?",
+    "a3": "Oya, ishyuramihigo rya mobile money rirangira vuba kandi ntirishobora guhagarikwa."
+  }
+}

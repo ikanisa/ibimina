@@ -36,7 +36,6 @@ export const consumeBackup = async (userId: string, code: string) => {
   const next = consumeBackupCode(code, hashes);
   if (!next) return false;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: updateError } = await (supabase as any)
     .from("users")
     .update({ mfa_backup_hashes: next })
