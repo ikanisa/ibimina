@@ -3,21 +3,17 @@
  * Parses MTN Rwanda mobile money SMS confirmation messages
  */
 
-import type {
-  SmsAdapter,
-  ParseResult,
-  ParsedTransaction,
-} from '../../types/adapter.js';
+import type { SmsAdapter, ParseResult, ParsedTransaction } from "../../types/adapter.js";
 
 export class MTNRwandaSmsAdapter implements SmsAdapter {
-  readonly name = 'MTN Rwanda SMS';
-  readonly countryISO3 = 'RWA';
+  readonly name = "MTN Rwanda SMS";
+  readonly countryISO3 = "RWA";
 
   /**
    * Known MTN Rwanda SMS sender IDs
    */
   getSenderPatterns(): string[] {
-    return ['MTN', 'MoMo', 'MTN-MM', 'MTN MOBILE MONEY'];
+    return ["MTN", "MoMo", "MTN-MM", "MTN MOBILE MONEY"];
   }
 
   /**
@@ -26,20 +22,20 @@ export class MTNRwandaSmsAdapter implements SmsAdapter {
   canHandle(input: string): boolean {
     const lower = input.toLowerCase();
     return (
-      (lower.includes('mtn') || lower.includes('momo')) &&
-      (lower.includes('received') ||
-        lower.includes('sent') ||
-        lower.includes('rwf') ||
-        lower.includes('confirmed'))
+      (lower.includes("mtn") || lower.includes("momo")) &&
+      (lower.includes("received") ||
+        lower.includes("sent") ||
+        lower.includes("rwf") ||
+        lower.includes("confirmed"))
     );
   }
 
   /**
    * Parse MTN Rwanda SMS text
    * Example format:
-   * "You have received RWF 5,000 from 250788123456. 
-   *  Transaction ID: MP240123.1234.A12345. 
-   *  Reference: RWA.NYA.GAS.TWIZ.001. 
+   * "You have received RWF 5,000 from 250788123456.
+   *  Transaction ID: MP240123.1234.A12345.
+   *  Reference: RWA.NYA.GAS.TWIZ.001.
    *  Balance: RWF 15,000"
    */
   parseSms(smsText: string): ParseResult {
@@ -50,7 +46,7 @@ export class MTNRwandaSmsAdapter implements SmsAdapter {
         return {
           success: false,
           confidence: 0.2,
-          error: 'Could not extract amount from SMS',
+          error: "Could not extract amount from SMS",
         };
       }
 
@@ -60,7 +56,7 @@ export class MTNRwandaSmsAdapter implements SmsAdapter {
         return {
           success: false,
           confidence: 0.4,
-          error: 'Could not extract transaction ID from SMS',
+          error: "Could not extract transaction ID from SMS",
         };
       }
 
@@ -98,7 +94,7 @@ export class MTNRwandaSmsAdapter implements SmsAdapter {
       return {
         success: false,
         confidence: 0,
-        error: error instanceof Error ? error.message : 'SMS parse error',
+        error: error instanceof Error ? error.message : "SMS parse error",
       };
     }
   }
@@ -124,7 +120,7 @@ export class MTNRwandaSmsAdapter implements SmsAdapter {
     for (const pattern of patterns) {
       const match = text.match(pattern);
       if (match) {
-        const cleaned = match[1].replace(/,/g, '');
+        const cleaned = match[1].replace(/,/g, "");
         const parsed = parseFloat(cleaned);
         if (!isNaN(parsed)) return parsed;
       }
@@ -138,6 +134,7 @@ export class MTNRwandaSmsAdapter implements SmsAdapter {
    */
   private extractTxnId(text: string): string | undefined {
     // Pattern: "Transaction ID: MP240123.1234.A12345" or "TxnID: ABC123"
+    // Use greedy match and clean trailing period
     const patterns = [
       /transaction\s+id[:\s]+([A-Z0-9.]+)/i,
       /txn\s*id[:\s]+([A-Z0-9.]+)/i,
@@ -147,7 +144,8 @@ export class MTNRwandaSmsAdapter implements SmsAdapter {
     for (const pattern of patterns) {
       const match = text.match(pattern);
       if (match && match[1].length >= 6) {
-        return match[1];
+        // Remove trailing period if present (e.g., "ID." -> "ID")
+        return match[1].replace(/\.$/, "");
       }
     }
 
@@ -172,17 +170,21 @@ export class MTNRwandaSmsAdapter implements SmsAdapter {
    * Extract reference token from SMS
    */
   private extractReference(text: string): string | undefined {
-    // Pattern: "Reference: RWA.NYA.GAS.TWIZ.001"
+    // Pattern: "Reference: RWA.NYA.GAS.TWIZ.001" (5 parts - with country)
     const match = text.match(
-      /reference[:\s]+([A-Z]{3}\.[A-Z0-9]{3}\.[A-Z0-9]{3,4}\.[A-Z0-9]{3,4}\.[0-9]{3})/i,
+      /reference[:\s]+([A-Z]{3}\.[A-Z0-9]{3}\.[A-Z0-9]{3,4}\.[A-Z0-9]{3,4}\.[0-9]{3})/i
     );
     if (match) return match[1];
 
-    // Look for reference pattern anywhere in text
-    const patternMatch = text.match(
-      /\b([A-Z]{3}\.[A-Z0-9]{3}\.[A-Z0-9]{3,4}\.[A-Z0-9]{3,4}\.[0-9]{3})\b/i,
+    // Look for reference pattern anywhere in text (5 parts)
+    const patternMatch5 = text.match(
+      /\b([A-Z]{3}\.[A-Z0-9]{3}\.[A-Z0-9]{3,4}\.[A-Z0-9]{3,4}\.[0-9]{3})\b/i
     );
-    return patternMatch?.[1];
+    if (patternMatch5) return patternMatch5[1];
+
+    // Legacy format (4 parts - without country): DISTRICT.SACCO.GROUP.MEMBER
+    const legacyMatch = text.match(/\b([A-Z]{3}\.[A-Z0-9]{3,4}\.[A-Z0-9]{3,4}\.[0-9]{3})\b/i);
+    return legacyMatch?.[1];
   }
 
   /**
@@ -192,7 +194,7 @@ export class MTNRwandaSmsAdapter implements SmsAdapter {
     // Pattern: "Balance: RWF 15,000"
     const match = text.match(/balance[:\s]+RWF\s*([\d,]+(?:\.\d{2})?)/i);
     if (match) {
-      const cleaned = match[1].replace(/,/g, '');
+      const cleaned = match[1].replace(/,/g, "");
       const parsed = parseFloat(cleaned);
       return isNaN(parsed) ? undefined : parsed;
     }
