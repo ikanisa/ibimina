@@ -1,12 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Offline - Ibimina",
-  description: "You are currently offline",
-};
 
 export default function OfflinePage() {
   return (
