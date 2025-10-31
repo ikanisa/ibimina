@@ -1,0 +1,39 @@
+{
+  "name": "@ibimina/website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3002",
+    "build": "next build",
+    "build:cloudflare": "CLOUDFLARE_BUILD=1 npx @cloudflare/next-on-pages",
+    "preview:cloudflare": "wrangler pages dev .vercel/output/static --port 3002",
+    "deploy:cloudflare": "wrangler pages deploy .vercel/output/static",
+    "start": "next start --port 3002",
+    "lint": "pnpm exec eslint --max-warnings=0 .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lighthouse": "lighthouse http://localhost:3002 --preset=desktop --output=html --output-path=./lighthouse-report.html"
+  },
+  "dependencies": {
+    "@ibimina/config": "workspace:*",
+    "@ibimina/lib": "workspace:*",
+    "@ibimina/ui": "workspace:*",
+    "lucide-react": "^0.545.0",
+    "next": "15.5.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
