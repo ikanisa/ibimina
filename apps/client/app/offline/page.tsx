@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { OfflineActions } from "./offline-actions";
-
 import { OfflinePageClient } from "./offline-page-client";
 
 export const metadata: Metadata = {
