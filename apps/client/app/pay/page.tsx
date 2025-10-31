@@ -126,7 +126,7 @@ export default async function PayPage() {
                   </svg>
                 </span>
               </summary>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="mt-2 text-sm text-neutral-600">
                 Make sure to use the SIM card that is registered with your Mobile Money account.
                 Your phone may ask you to select which SIM to use when dialing the USSD code.
               </p>
@@ -177,7 +177,7 @@ export default async function PayPage() {
                   </svg>
                 </span>
               </summary>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="mt-2 text-sm text-neutral-600">
                 If the tap-to-dial doesn&apos;t work, you can manually dial the USSD code from your
                 phone&apos;s dialer. Copy the merchant code and reference code from the card above.
               </p>

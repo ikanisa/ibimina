@@ -101,18 +101,18 @@ export default async function HomePage() {
             </Link>
             <Link
               href="/statements"
-              className="group relative flex flex-col items-center justify-center min-h-[110px] p-5 bg-white border border-neutral-200 rounded-2xl hover:border-purple-500/30 hover:shadow-atlas hover:shadow-purple-500/10 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:ring-offset-2 hover:-translate-y-0.5"
+              className="group relative flex flex-col items-center justify-center min-h-[110px] p-5 bg-white border border-neutral-200 rounded-2xl hover:border-atlas-blue/30 hover:shadow-atlas hover:shadow-atlas-blue/10 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2 hover:-translate-y-0.5"
             >
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-interactive" />
-              <FileText className="relative w-7 h-7 text-purple-600 mb-2.5 group-hover:scale-110 transition-transform duration-interactive" aria-hidden="true" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-atlas-glow to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-interactive" />
+              <FileText className="relative w-7 h-7 text-atlas-blue mb-2.5 group-hover:scale-110 transition-transform duration-interactive" aria-hidden="true" />
               <span className="relative text-sm font-semibold text-neutral-900">Statements</span>
             </Link>
             <Link
               href="/groups"
-              className="group relative flex flex-col items-center justify-center min-h-[110px] p-5 bg-white border border-neutral-200 rounded-2xl hover:border-orange-500/30 hover:shadow-atlas hover:shadow-orange-500/10 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:ring-offset-2 hover:-translate-y-0.5"
+              className="group relative flex flex-col items-center justify-center min-h-[110px] p-5 bg-white border border-neutral-200 rounded-2xl hover:border-amber-500/30 hover:shadow-atlas hover:shadow-amber-500/10 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:ring-offset-2 hover:-translate-y-0.5"
             >
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-orange-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-interactive" />
-              <Plus className="relative w-7 h-7 text-orange-600 mb-2.5 group-hover:scale-110 transition-transform duration-interactive" aria-hidden="true" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-interactive" />
+              <Plus className="relative w-7 h-7 text-amber-600 mb-2.5 group-hover:scale-110 transition-transform duration-interactive" aria-hidden="true" />
               <span className="relative text-sm font-semibold text-neutral-900">Join Group</span>
             </Link>
           </div>

@@ -200,10 +200,10 @@ export default function LoginPage({}: LoginPageProps) {
     <div className="space-y-6">
       {/* Page header */}
       <header className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold text-neutral-0">
+        <h1 className="text-2xl font-bold text-neutral-900">
           {step === "phone" ? "Sign In" : "Verify Code"}
         </h1>
-        <p className="text-sm text-neutral-1">
+        <p className="text-sm text-neutral-600">
           {step === "phone"
             ? "Enter your WhatsApp number to receive a verification code"
             : `We sent a code to ${phoneNumber}`}
@@ -214,7 +214,7 @@ export default function LoginPage({}: LoginPageProps) {
       {error && (
         <div
           role="alert"
-          className="p-4 text-sm text-red-200 bg-red-900/30 border border-red-700 rounded-lg"
+          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
         >
           {error}
         </div>
@@ -224,9 +224,9 @@ export default function LoginPage({}: LoginPageProps) {
       {step === "phone" && (
         <form onSubmit={handleSendOTP} className="space-y-6" noValidate>
           <div>
-            <label htmlFor="phone-number" className="block text-sm font-medium text-neutral-1 mb-2">
+            <label htmlFor="phone-number" className="mb-2 block text-sm font-medium text-neutral-700">
               WhatsApp Number{" "}
-              <span className="text-red-400" aria-label="required">
+              <span className="text-red-600" aria-label="required">
                 *
               </span>
             </label>
@@ -247,16 +247,16 @@ export default function LoginPage({}: LoginPageProps) {
               placeholder="078XXXXXXX"
               disabled={isLoading}
               className={`
-                w-full px-4 py-3 rounded-lg
-                bg-neutral-9/50 border
-                text-neutral-0 placeholder:text-neutral-2
-                focus:outline-none focus:ring-2 focus:ring-rw-blue focus:border-transparent
+                w-full rounded-xl border px-4 py-3
+                bg-white
+                text-neutral-900 placeholder:text-neutral-400
                 transition-all duration-interactive
-                disabled:opacity-50 disabled:cursor-not-allowed
-                ${error ? "border-red-500 focus:ring-red-500" : "border-neutral-2/30"}
+                focus:border-transparent focus:outline-none focus:ring-2 focus:ring-atlas-blue
+                disabled:cursor-not-allowed disabled:opacity-50
+                ${error ? "border-red-500 focus:ring-red-500" : "border-neutral-300"}
               `}
             />
-            <p className="mt-2 text-xs text-neutral-2">
+            <p className="mt-2 text-xs text-neutral-500">
               You&apos;ll receive a 6-digit verification code via WhatsApp
             </p>
           </div>
@@ -265,13 +265,13 @@ export default function LoginPage({}: LoginPageProps) {
             type="submit"
             disabled={isLoading}
             className={`
-              w-full px-6 py-4 text-lg font-semibold rounded-xl
+              w-full rounded-xl px-6 py-4 text-lg font-semibold
               transition-all duration-interactive
-              focus-visible:ring-4 focus-visible:ring-rw-blue focus-visible:ring-opacity-50
+              focus-visible:ring-4 focus-visible:ring-atlas-blue/30
               ${
                 isLoading
-                  ? "bg-neutral-2/30 text-neutral-2 cursor-not-allowed"
-                  : "bg-rw-blue text-ink hover:bg-opacity-90"
+                  ? "cursor-not-allowed bg-neutral-300 text-neutral-500"
+                  : "bg-atlas-blue text-white hover:bg-atlas-blue-dark"
               }
             `}
             aria-busy={isLoading}
@@ -313,23 +313,23 @@ export default function LoginPage({}: LoginPageProps) {
         <div className="space-y-6">
           {/* Timer and attempts */}
           <div className="flex items-center justify-between text-sm">
-            <div className="text-neutral-1">
+            <div className="text-neutral-700">
               {remainingTime > 0 ? (
                 <span>Code expires in {formatTime(remainingTime)}</span>
               ) : (
-                <span className="text-red-400">Code expired</span>
+                <span className="text-red-600">Code expired</span>
               )}
             </div>
-            <div className="text-neutral-1">
+            <div className="text-neutral-700">
               {attemptsRemaining} attempt{attemptsRemaining !== 1 ? "s" : ""} remaining
             </div>
           </div>
 
           <form onSubmit={handleVerifyOTP} className="space-y-6" noValidate>
             <div>
-              <label htmlFor="otp-code" className="block text-sm font-medium text-neutral-1 mb-2">
+              <label htmlFor="otp-code" className="mb-2 block text-sm font-medium text-neutral-700">
                 Verification Code{" "}
-                <span className="text-red-400" aria-label="required">
+                <span className="text-red-600" aria-label="required">
                   *
                 </span>
               </label>
@@ -351,13 +351,13 @@ export default function LoginPage({}: LoginPageProps) {
                 placeholder="000000"
                 disabled={isLoading}
                 className={`
-                  w-full px-4 py-3 rounded-lg text-center text-2xl tracking-widest
-                  bg-neutral-9/50 border
-                  text-neutral-0 placeholder:text-neutral-2
-                  focus:outline-none focus:ring-2 focus:ring-rw-blue focus:border-transparent
+                  w-full rounded-xl border px-4 py-3 text-center text-2xl tracking-widest
+                  bg-white
+                  text-neutral-900 placeholder:text-neutral-400
                   transition-all duration-interactive
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  ${error ? "border-red-500 focus:ring-red-500" : "border-neutral-2/30"}
+                  focus:border-transparent focus:outline-none focus:ring-2 focus:ring-atlas-blue
+                  disabled:cursor-not-allowed disabled:opacity-50
+                  ${error ? "border-red-500 focus:ring-red-500" : "border-neutral-300"}
                 `}
               />
             </div>
@@ -366,13 +366,13 @@ export default function LoginPage({}: LoginPageProps) {
               type="submit"
               disabled={isLoading || otpCode.length !== 6}
               className={`
-                w-full px-6 py-4 text-lg font-semibold rounded-xl
+                w-full rounded-xl px-6 py-4 text-lg font-semibold
                 transition-all duration-interactive
-                focus-visible:ring-4 focus-visible:ring-rw-blue focus-visible:ring-opacity-50
+                focus-visible:ring-4 focus-visible:ring-atlas-blue/30
                 ${
                   isLoading || otpCode.length !== 6
-                    ? "bg-neutral-2/30 text-neutral-2 cursor-not-allowed"
-                    : "bg-rw-blue text-ink hover:bg-opacity-90"
+                    ? "cursor-not-allowed bg-neutral-300 text-neutral-500"
+                    : "bg-atlas-blue text-white hover:bg-atlas-blue-dark"
                 }
               `}
               aria-busy={isLoading}
@@ -414,7 +414,7 @@ export default function LoginPage({}: LoginPageProps) {
               type="button"
               onClick={handleBack}
               disabled={isLoading}
-              className="flex-1 px-4 py-3 text-sm font-medium text-neutral-1 bg-neutral-9/30 border border-neutral-2/30 rounded-lg hover:bg-neutral-9/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-700 transition-all duration-interactive hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Change Number
             </button>
@@ -422,7 +422,7 @@ export default function LoginPage({}: LoginPageProps) {
               type="button"
               onClick={handleResendOTP}
               disabled={isLoading || !canResend}
-              className="flex-1 px-4 py-3 text-sm font-medium text-rw-blue bg-rw-blue/10 border border-rw-blue/30 rounded-lg hover:bg-rw-blue/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-xl border border-atlas-blue/30 bg-atlas-glow px-4 py-3 text-sm font-medium text-atlas-blue transition-all duration-interactive hover:bg-atlas-blue/20 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {canResend ? "Resend Code" : "Wait to Resend"}
             </button>
@@ -432,11 +432,11 @@ export default function LoginPage({}: LoginPageProps) {
 
       {/* Help text */}
       <footer className="pt-4 text-center">
-        <p className="text-xs text-neutral-2">
+        <p className="text-xs text-neutral-500">
           Need help?{" "}
           <a
             href="/help"
-            className="text-rw-blue underline hover:text-opacity-80 focus-visible:ring-2 focus-visible:ring-rw-blue focus-visible:ring-opacity-50 rounded"
+            className="rounded text-atlas-blue underline hover:text-atlas-blue-dark focus-visible:ring-2 focus-visible:ring-atlas-blue/30"
           >
             Contact support
           </a>

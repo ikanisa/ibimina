@@ -40,21 +40,21 @@ export default async function ProfilePage() {
   const profile = await getUserProfile();
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-neutral-50 pb-20">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-8">
-        <div className="max-w-screen-xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">{profile.name}</h1>
-          <p className="text-blue-100 text-sm">
+      <header className="bg-gradient-to-br from-atlas-blue via-atlas-blue-light to-atlas-blue-dark px-4 py-8 text-white">
+        <div className="mx-auto max-w-screen-xl">
+          <h1 className="mb-2 text-3xl font-bold">{profile.name}</h1>
+          <p className="text-sm text-white/90">
             Member since {new Date(profile.createdAt).toLocaleDateString()}
           </p>
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-6">
+      <main className="mx-auto max-w-screen-xl space-y-6 px-4 py-6">
         {/* Reference Card */}
         <section aria-labelledby="reference-heading">
-          <h2 id="reference-heading" className="text-lg font-bold text-gray-900 mb-4">
+          <h2 id="reference-heading" className="mb-4 text-lg font-bold text-neutral-900">
             My Reference Code
           </h2>
           <ReferenceCard
@@ -67,43 +67,43 @@ export default async function ProfilePage() {
         {/* Contact Information (Read-Only) */}
         <section
           aria-labelledby="contact-heading"
-          className="bg-white border border-gray-200 rounded-lg p-6 space-y-4"
+          className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6"
         >
-          <h2 id="contact-heading" className="text-lg font-bold text-gray-900">
+          <h2 id="contact-heading" className="text-lg font-bold text-neutral-900">
             Contact Information
           </h2>
 
           <div className="space-y-3">
             <div className="flex items-start gap-3">
               <MessageCircle
-                className="w-5 h-5 text-green-600 flex-shrink-0 mt-1"
+                className="mt-1 h-5 w-5 flex-shrink-0 text-emerald-600"
                 aria-hidden="true"
               />
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-700">WhatsApp</p>
-                <p className="text-base font-semibold text-gray-900 mt-1">
+                <p className="text-sm font-medium text-neutral-700">WhatsApp</p>
+                <p className="mt-1 text-base font-semibold text-neutral-900">
                   {profile.whatsappMsisdn}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-neutral-500">
                   This number is used for notifications and communication
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <Phone className="w-5 h-5 text-blue-600 flex-shrink-0 mt-1" aria-hidden="true" />
+              <Phone className="mt-1 h-5 w-5 flex-shrink-0 text-atlas-blue" aria-hidden="true" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-700">Mobile Money</p>
-                <p className="text-base font-semibold text-gray-900 mt-1">{profile.momoMsisdn}</p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm font-medium text-neutral-700">Mobile Money</p>
+                <p className="mt-1 text-base font-semibold text-neutral-900">{profile.momoMsisdn}</p>
+                <p className="mt-1 text-xs text-neutral-500">
                   This number is linked to your payment account
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-600">
+          <div className="border-t border-neutral-200 pt-4">
+            <p className="text-xs text-neutral-600">
               To update your contact information, please contact your SACCO staff.
             </p>
           </div>
@@ -112,25 +112,25 @@ export default async function ProfilePage() {
         {/* Language Settings */}
         <section
           aria-labelledby="language-heading"
-          className="bg-white border border-gray-200 rounded-lg p-6 space-y-4"
+          className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6"
         >
           <h2
             id="language-heading"
-            className="text-lg font-bold text-gray-900 flex items-center gap-2"
+            className="flex items-center gap-2 text-lg font-bold text-neutral-900"
           >
-            <Globe className="w-5 h-5 text-blue-600" aria-hidden="true" />
+            <Globe className="h-5 w-5 text-atlas-blue" aria-hidden="true" />
             <span>Language / Ururimi / Langue</span>
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <button
               className={`
-                min-h-[56px] px-4 py-3 rounded-lg border-2 font-semibold transition-all
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                min-h-[56px] rounded-xl border-2 px-4 py-3 font-semibold transition-all duration-interactive
+                focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2
                 ${
                   profile.lang === "rw"
-                    ? "border-blue-600 bg-blue-50 text-blue-700"
-                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    ? "border-atlas-blue bg-atlas-glow text-atlas-blue-dark"
+                    : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
                 }
               `}
               aria-pressed={profile.lang === "rw"}
@@ -139,12 +139,12 @@ export default async function ProfilePage() {
             </button>
             <button
               className={`
-                min-h-[56px] px-4 py-3 rounded-lg border-2 font-semibold transition-all
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                min-h-[56px] rounded-xl border-2 px-4 py-3 font-semibold transition-all duration-interactive
+                focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2
                 ${
                   profile.lang === "en"
-                    ? "border-blue-600 bg-blue-50 text-blue-700"
-                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    ? "border-atlas-blue bg-atlas-glow text-atlas-blue-dark"
+                    : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
                 }
               `}
               aria-pressed={profile.lang === "en"}
@@ -153,12 +153,12 @@ export default async function ProfilePage() {
             </button>
             <button
               className={`
-                min-h-[56px] px-4 py-3 rounded-lg border-2 font-semibold transition-all
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                min-h-[56px] rounded-xl border-2 px-4 py-3 font-semibold transition-all duration-interactive
+                focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2
                 ${
                   profile.lang === "fr"
-                    ? "border-blue-600 bg-blue-50 text-blue-700"
-                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    ? "border-atlas-blue bg-atlas-glow text-atlas-blue-dark"
+                    : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
                 }
               `}
               aria-pressed={profile.lang === "fr"}
@@ -167,7 +167,7 @@ export default async function ProfilePage() {
             </button>
           </div>
 
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-neutral-600">
             Choose your preferred language for the app interface
           </p>
         </section>
@@ -175,21 +175,21 @@ export default async function ProfilePage() {
         {/* Help & Support */}
         <section
           aria-labelledby="help-heading"
-          className="bg-white border border-gray-200 rounded-lg p-6 space-y-4"
+          className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6"
         >
-          <h2 id="help-heading" className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <HelpCircle className="w-5 h-5 text-blue-600" aria-hidden="true" />
+          <h2 id="help-heading" className="flex items-center gap-2 text-lg font-bold text-neutral-900">
+            <HelpCircle className="h-5 w-5 text-atlas-blue" aria-hidden="true" />
             <span>Help & Support</span>
           </h2>
 
           <div className="space-y-3">
             <a
               href="/help"
-              className="flex items-center justify-between min-h-[56px] px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="flex min-h-[56px] items-center justify-between rounded-xl bg-neutral-50 px-4 py-3 transition-colors duration-interactive hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2"
             >
-              <span className="font-medium text-gray-900">How to Use USSD Payments</span>
+              <span className="font-medium text-neutral-900">How to Use USSD Payments</span>
               <svg
-                className="w-5 h-5 text-gray-400"
+                className="h-5 w-5 text-neutral-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -205,11 +205,11 @@ export default async function ProfilePage() {
 
             <a
               href="/help/faq"
-              className="flex items-center justify-between min-h-[56px] px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="flex min-h-[56px] items-center justify-between rounded-xl bg-neutral-50 px-4 py-3 transition-colors duration-interactive hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2"
             >
-              <span className="font-medium text-gray-900">Frequently Asked Questions</span>
+              <span className="font-medium text-neutral-900">Frequently Asked Questions</span>
               <svg
-                className="w-5 h-5 text-gray-400"
+                className="h-5 w-5 text-neutral-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -225,11 +225,11 @@ export default async function ProfilePage() {
 
             <a
               href="/help/contact"
-              className="flex items-center justify-between min-h-[56px] px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="flex min-h-[56px] items-center justify-between rounded-xl bg-neutral-50 px-4 py-3 transition-colors duration-interactive hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2"
             >
-              <span className="font-medium text-gray-900">Contact SACCO Staff</span>
+              <span className="font-medium text-neutral-900">Contact SACCO Staff</span>
               <svg
-                className="w-5 h-5 text-gray-400"
+                className="h-5 w-5 text-neutral-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -248,37 +248,37 @@ export default async function ProfilePage() {
         {/* Legal Links */}
         <section
           aria-labelledby="legal-heading"
-          className="bg-white border border-gray-200 rounded-lg p-6 space-y-4"
+          className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6"
         >
           <h2
             id="legal-heading"
-            className="text-lg font-bold text-gray-900 flex items-center gap-2"
+            className="flex items-center gap-2 text-lg font-bold text-neutral-900"
           >
-            <Shield className="w-5 h-5 text-blue-600" aria-hidden="true" />
+            <Shield className="h-5 w-5 text-atlas-blue" aria-hidden="true" />
             <span>Legal & Privacy</span>
           </h2>
 
           <div className="space-y-3">
             <a
               href="/terms"
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:underline"
+              className="flex items-center gap-2 text-atlas-blue hover:text-atlas-blue-dark hover:underline"
             >
-              <FileText className="w-4 h-4" aria-hidden="true" />
+              <FileText className="h-4 w-4" aria-hidden="true" />
               <span className="text-sm font-medium">Terms of Service</span>
             </a>
 
             <a
               href="/privacy"
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:underline"
+              className="flex items-center gap-2 text-atlas-blue hover:text-atlas-blue-dark hover:underline"
             >
-              <Shield className="w-4 h-4" aria-hidden="true" />
+              <Shield className="h-4 w-4" aria-hidden="true" />
               <span className="text-sm font-medium">Privacy Policy</span>
             </a>
           </div>
         </section>
 
         {/* App Version */}
-        <div className="text-center text-xs text-gray-500 pb-4">
+        <div className="pb-4 text-center text-xs text-neutral-500">
           <p>SACCO+ Client App v1.0.0</p>
           <p className="mt-1">© 2025 Ibimina. All rights reserved.</p>
         </div>

@@ -140,7 +140,7 @@ export function GroupCard({ group }: GroupCardProps) {
         {/* Creation date */}
         {group.created_at && (
           <div className="flex items-center gap-2.5 text-sm text-neutral-700">
-            <Calendar className="h-4 w-4 text-purple-600" aria-hidden="true" />
+            <Calendar className="h-4 w-4 text-atlas-blue" aria-hidden="true" />
             <span className="font-medium">
               <span className="sr-only">Created on:</span>
               {formatDate(group.created_at)}

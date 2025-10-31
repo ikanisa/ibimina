@@ -103,22 +103,22 @@ export default async function StatementsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-neutral-50 pb-20">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-screen-xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">My Statements</h1>
-          <p className="text-sm text-gray-600 mt-1">
+      <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+        <div className="mx-auto max-w-screen-xl px-4 py-6">
+          <h1 className="text-2xl font-bold text-neutral-900">My Statements</h1>
+          <p className="mt-1 text-sm text-neutral-600">
             View your transaction history and export statements
           </p>
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 py-6">
+      <main className="mx-auto max-w-screen-xl px-4 py-6">
         {statements.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-12 text-center">
             <svg
-              className="w-16 h-16 text-gray-400 mx-auto mb-4"
+              className="mx-auto mb-4 h-16 w-16 text-neutral-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -131,8 +131,8 @@ export default async function StatementsPage() {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <p className="text-lg text-gray-600 mb-2">No statements available</p>
-            <p className="text-sm text-gray-500">
+            <p className="mb-2 text-lg text-neutral-600">No statements available</p>
+            <p className="text-sm text-neutral-500">
               Make your first contribution to see statements here
             </p>
           </div>
@@ -141,9 +141,9 @@ export default async function StatementsPage() {
         )}
 
         {/* Help Section */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h2 className="text-base font-bold text-blue-900 mb-3">About Your Statements</h2>
-          <ul className="space-y-2 text-sm text-blue-800">
+        <div className="mt-8 rounded-2xl border border-atlas-blue/20 bg-atlas-glow p-6">
+          <h2 className="mb-3 text-base font-bold text-atlas-blue-dark">About Your Statements</h2>
+          <ul className="space-y-2 text-sm text-neutral-700">
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>

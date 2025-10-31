@@ -137,14 +137,14 @@ export default function GroupMembersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50">
       {/* Page header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="border-b border-neutral-200 bg-white">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
             <button
               onClick={handleBack}
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md px-3 py-2"
+              className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-neutral-600 transition-colors duration-interactive hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-atlas-blue/30"
               aria-label="Back to groups"
             >
               <ArrowLeft className="h-5 w-5" aria-hidden="true" />
@@ -154,11 +154,11 @@ export default function GroupMembersPage() {
 
           {membersData && (
             <div className="mt-4">
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <h1 className="flex items-center gap-2 text-2xl font-bold text-neutral-900">
                 <Users className="h-6 w-6" aria-hidden="true" />
                 {membersData.group.name} - Members
               </h1>
-              <p className="mt-2 text-sm text-gray-600">
+              <p className="mt-2 text-sm text-neutral-600">
                 Total members: {membersData.pagination.total}
               </p>
             </div>
@@ -170,10 +170,10 @@ export default function GroupMembersPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Loading state */}
         {loading && (
-          <div className="flex justify-center items-center py-16" role="status" aria-live="polite">
+          <div className="flex items-center justify-center py-16" role="status" aria-live="polite">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading members...</p>
+              <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-atlas-blue"></div>
+              <p className="text-neutral-600">Loading members...</p>
             </div>
           </div>
         )}
@@ -181,13 +181,13 @@ export default function GroupMembersPage() {
         {/* Error state */}
         {error && !loading && (
           <div
-            className="bg-red-50 border border-red-200 rounded-lg p-6 flex items-start gap-3"
+            className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-6"
             role="alert"
             aria-live="assertive"
           >
-            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" aria-hidden="true" />
             <div>
-              <h2 className="text-lg font-semibold text-red-900 mb-1">Unable to Load Members</h2>
+              <h2 className="mb-1 text-lg font-semibold text-red-900">Unable to Load Members</h2>
               <p className="text-red-700">{error}</p>
               {error.includes("permission") && (
                 <p className="mt-2 text-sm text-red-600">
@@ -200,81 +200,81 @@ export default function GroupMembersPage() {
 
         {/* Members table */}
         {membersData && !loading && !error && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-hidden rounded-2xl bg-white shadow-atlas">
             {membersData.members.length === 0 ? (
-              <div className="text-center py-16" role="status">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
-                <p className="text-lg text-gray-600">No members found</p>
-                <p className="text-sm text-gray-500 mt-2">
+              <div className="py-16 text-center" role="status">
+                <Users className="mx-auto mb-4 h-12 w-12 text-neutral-400" aria-hidden="true" />
+                <p className="text-lg text-neutral-600">No members found</p>
+                <p className="mt-2 text-sm text-neutral-500">
                   This group doesn&apos;t have any active members yet.
                 </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-neutral-200">
+                  <thead className="bg-neutral-50">
                     <tr>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
                       >
                         Member Code
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
                       >
                         Full Name
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
                       >
                         Status
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
                       >
                         Joined Date
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
                       >
                         Contact
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-neutral-200 bg-white">
                     {membersData.members.map((member) => (
-                      <tr key={member.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <tr key={member.id} className="transition-colors duration-interactive hover:bg-neutral-50">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-neutral-900">
                           {member.member_code}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-900">
                           {member.full_name}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="whitespace-nowrap px-6 py-4">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                               member.status === "ACTIVE"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-neutral-100 text-neutral-800"
                             }`}
                             role="status"
                           >
-                            <Shield className="h-3 w-3 mr-1" aria-hidden="true" />
+                            <Shield className="mr-1 h-3 w-3" aria-hidden="true" />
                             {member.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-600">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" aria-hidden="true" />
                             <time dateTime={member.joined_at}>{formatDate(member.joined_at)}</time>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-neutral-600">
                           {member.msisdn || "N/A"}
                         </td>
                       </tr>
@@ -286,8 +286,8 @@ export default function GroupMembersPage() {
 
             {/* Pagination info */}
             {membersData.members.length > 0 && (
-              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
+              <div className="border-t border-neutral-200 bg-neutral-50 px-6 py-4">
+                <p className="text-sm text-neutral-600">
                   Showing {membersData.pagination.offset + 1} to{" "}
                   {Math.min(
                     membersData.pagination.offset + membersData.pagination.limit,
