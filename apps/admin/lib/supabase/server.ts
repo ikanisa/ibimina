@@ -33,3 +33,6 @@ export async function createSupabaseServerClient() {
     },
   });
 }
+
+// --- Compatibility alias for older imports ---
+export const createServerClient = createSupabaseServerClient;
