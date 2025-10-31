@@ -94,7 +94,8 @@ export default async function DashboardPage() {
     summary = await getDashboardSummary({ saccoId: profile.sacco_id, allowAll: isSystemAdmin });
   } catch (error) {
     summaryError = error;
-    console.error("[DashboardPage] failed to load summary", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error(`[DashboardPage] failed to load summary: ${errMsg}`);
     summary = { ...EMPTY_DASHBOARD_SUMMARY, generatedAt: new Date().toISOString() };
   }
 

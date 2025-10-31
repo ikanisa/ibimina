@@ -531,6 +531,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                   : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
               )}
               aria-current={isActive(href) ? "page" : undefined}
+              aria-label={t(key)}
             >
               <Icon
                 className={cn(
