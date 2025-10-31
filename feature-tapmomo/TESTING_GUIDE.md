@@ -1,6 +1,7 @@
 # TapMoMo Library - Validation & Testing Guide
 
-This document provides testing and validation procedures for the TapMoMo library.
+This document provides testing and validation procedures for the TapMoMo
+library.
 
 ## Build Validation
 
@@ -14,6 +15,7 @@ cd apps/client/android
 ```
 
 Expected output:
+
 - `BUILD SUCCESSFUL`
 - AAR file generated in `feature-tapmomo/build/outputs/aar/`
 
@@ -34,6 +36,7 @@ Should show `project :feature-tapmomo` in dependency tree.
 ```
 
 Check for:
+
 - No critical errors
 - Resource prefix violations
 - Manifest merge conflicts
@@ -45,6 +48,7 @@ Check for:
 ```
 
 Tests included:
+
 - `CryptoUtilsTest` - HMAC signing/verification
 - `TimeUtilsTest` - TTL validation and countdown
 - `UssdBuilderTest` - USSD code building and # encoding
@@ -54,6 +58,7 @@ All tests should pass.
 ## Manual Testing Checklist
 
 ### Prerequisites
+
 - Two Android devices with NFC (API 26+)
 - Active SIM cards (MTN or Airtel)
 - NFC enabled in device settings
@@ -61,19 +66,24 @@ All tests should pass.
 ### Test Cases
 
 #### TC1: NFC Availability Check
+
 ```kotlin
 val available = TapMoMo.isNfcAvailable(context)
 val enabled = TapMoMo.isNfcEnabled(context)
 ```
+
 **Expected**: Returns correct NFC status
 
 #### TC2: Library Initialization
+
 ```kotlin
 TapMoMo.init(context, TapMoMoConfig(...))
 ```
+
 **Expected**: No exceptions, config stored
 
 #### TC3: Get Paid Screen Launch
+
 ```kotlin
 TapMoMo.openGetPaid(
     context = context,
@@ -82,92 +92,113 @@ TapMoMo.openGetPaid(
     merchantId = "123456"
 )
 ```
-**Expected**: 
+
+**Expected**:
+
 - Activity launches
 - Form pre-filled with amount, merchant ID
 - Network selector shows MTN selected
 
 #### TC4: NFC Activation (Payee)
+
 1. Launch Get Paid screen
 2. Enter merchant ID and amount
 3. Tap "Activate NFC"
 
 **Expected**:
+
 - Countdown timer starts
 - Status shows "NFC Active"
 - Screen stays on
 - Timer counts down from 45 seconds
 
 #### TC5: Pay Screen Launch
+
 ```kotlin
 TapMoMo.openPay(context)
 ```
+
 **Expected**:
+
 - Activity launches
 - Shows "Start Scanning" button
 - NFC reader ready
 
 #### TC6: NFC Reading (Payer)
+
 1. Device A: Activate NFC in Get Paid
 2. Device B: Start scanning in Pay screen
 3. Tap devices back-to-back
 
 **Expected**:
+
 - Scanning indicator shows
 - Payload read successfully
 - Confirmation dialog appears with payment details
 - Shows merchant ID, amount, network
 
 #### TC7: SIM Picker (Dual-SIM)
+
 Prerequisites: Device with 2 active SIM cards
 
 **Expected**:
+
 - Payment confirmation shows SIM picker
 - Both SIMs listed with carrier names
 - Can select either SIM
 
 #### TC8: USSD Launch
+
 1. Complete NFC read
 2. Select SIM (if dual-SIM)
 3. Confirm payment
 
 **Expected**:
+
 - USSD code launches
 - Dialer opens with code
 - Code format: `*182*8*1*{MERCHANT}*{AMOUNT}#`
 - # symbol properly encoded
 
 #### TC9: Security - TTL Expiration
+
 1. Activate NFC on Device A
 2. Wait for countdown to reach 0
 3. Try to read from Device B
 
 **Expected**:
+
 - HCE service returns error
 - "Payment expired" message shown
 
 #### TC10: Security - Nonce Replay
+
 1. Complete successful payment
 2. Try to read same payload again (use saved data)
 
 **Expected**:
+
 - "Duplicate payment detected" error
 - Payment rejected
 
 #### TC11: Permission Requests
+
 1. Fresh install
 2. Launch Pay screen
 
 **Expected**:
+
 - Prompts for CALL_PHONE permission
 - Prompts for READ_PHONE_STATE permission
 - Clear explanation shown
 
 #### TC12: Offline Operation
+
 1. Disable internet
 2. Complete NFC payment flow
 
 **Expected**:
+
 - NFC works without internet
 - USSD launches successfully
 - Transaction saved locally
@@ -206,13 +237,13 @@ const { TapMoMoPlugin } = Plugins;
 
 // Test NFC check
 const result = await TapMoMoPlugin.isNfcAvailable();
-console.log('NFC:', result);
+console.log("NFC:", result);
 
 // Test payment launch
 await TapMoMoPlugin.openGetPaid({
-    amount: 1000,
-    network: 'MTN',
-    merchantId: '123456'
+  amount: 1000,
+  network: "MTN",
+  merchantId: "123456",
 });
 ```
 
@@ -227,10 +258,11 @@ await TapMoMoPlugin.openGetPaid({
    - `transactions`
 
 4. Test RLS policies:
+
    ```sql
    -- Should fail (no auth)
    SELECT * FROM merchants;
-   
+
    -- Should succeed after auth
    SET LOCAL jwt.claims.sub = '<user-uuid>';
    SELECT * FROM merchants;
@@ -269,6 +301,7 @@ Expected: < 50MB increase during NFC operations
 ### Battery Impact
 
 Test with screen on (NFC active):
+
 - HCE service: Minimal impact
 - Reader mode: ~5-10% per hour
 
@@ -352,24 +385,28 @@ After any code changes:
 ## Troubleshooting
 
 ### NFC Not Working
+
 - Check `adb logcat | grep NFC`
 - Verify HCE service in manifest
 - Check device NFC settings
 - Try different device position
 
 ### USSD Not Launching
+
 - Check permission granted
 - Test with manual USSD first
 - Verify SIM card active
 - Check Android version (API 26+)
 
 ### Build Errors
+
 - Clean build: `./gradlew clean`
 - Invalidate caches in Android Studio
 - Check Kotlin version compatibility
 - Verify KSP plugin version
 
 ### Signature Verification Fails
+
 - Check secret key matches
 - Verify message construction order
 - Test with known-good signature
@@ -382,13 +419,13 @@ Suggested CI steps:
 ```yaml
 - name: Build library
   run: ./gradlew :feature-tapmomo:assembleRelease
-  
+
 - name: Run tests
   run: ./gradlew :feature-tapmomo:test
-  
+
 - name: Lint check
   run: ./gradlew :feature-tapmomo:lint
-  
+
 - name: Generate AAR
   run: ./gradlew :feature-tapmomo:bundleReleaseAar
 ```
@@ -396,6 +433,7 @@ Suggested CI steps:
 ## Documentation Verification
 
 Checklist:
+
 - ✅ README.md complete
 - ✅ INTEGRATION_GUIDE.md with examples
 - ✅ Backend README.md
@@ -422,6 +460,7 @@ Before marking as production-ready:
 ## Support
 
 For issues found during testing:
+
 1. Check this guide first
 2. Review main README.md
 3. Check logcat output

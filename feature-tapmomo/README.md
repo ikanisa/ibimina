@@ -1,15 +1,20 @@
 # TapMoMo - NFC Mobile Money Payment Library for Android
 
-TapMoMo is a reusable Android library that enables phone-to-phone NFC payments with MoMo USSD integration for Rwanda. It provides both UI components and headless APIs for easy integration into existing apps.
+TapMoMo is a reusable Android library that enables phone-to-phone NFC payments
+with MoMo USSD integration for Rwanda. It provides both UI components and
+headless APIs for easy integration into existing apps.
 
 ## Features
 
-- **NFC Payment Protocol**: Phone-to-phone handshake using HCE (payee) and Reader Mode (payer)
-- **USSD Integration**: Automatic USSD code launch for MoMo payments (MTN, Airtel)
+- **NFC Payment Protocol**: Phone-to-phone handshake using HCE (payee) and
+  Reader Mode (payer)
+- **USSD Integration**: Automatic USSD code launch for MoMo payments (MTN,
+  Airtel)
 - **Security**: HMAC-SHA256 signing, TTL validation, nonce replay protection
 - **Dual-SIM Support**: SIM card picker for devices with multiple SIM cards
 - **Offline-First**: Local Room database for transaction history
-- **Optional Backend**: Supabase integration for merchant profiles and reconciliation
+- **Optional Backend**: Supabase integration for merchant profiles and
+  reconciliation
 - **QR Code Fallback**: Alternative payment method when NFC is unavailable
 - **Compose UI**: Ready-to-use Material3 Composable screens and Activities
 
@@ -52,7 +57,7 @@ import com.tapmomo.feature.Network
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        
+
         TapMoMo.init(
             context = this,
             config = TapMoMoConfig(
@@ -203,7 +208,8 @@ See `backend/README.md` for detailed setup instructions.
 
 ## ProGuard Rules
 
-The library includes consumer ProGuard rules automatically. No additional configuration needed.
+The library includes consumer ProGuard rules automatically. No additional
+configuration needed.
 
 ## Testing
 
@@ -259,18 +265,18 @@ com.tapmomo.feature
 
 All options in `TapMoMoConfig`:
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `supabaseUrl` | String? | null | Supabase project URL |
-| `supabaseAnonKey` | String? | null | Supabase anonymous key |
-| `reconcileFunctionUrl` | String? | null | Edge Function URL for reconciliation |
-| `defaultCurrency` | String | "RWF" | Default currency code |
-| `networks` | Set<Network> | MTN, Airtel | Supported networks |
-| `hceTtlMs` | Long | 45000 | NFC payload TTL (milliseconds) |
-| `requireSignature` | Boolean | true | Require HMAC signature |
-| `allowUnsignedWithWarning` | Boolean | true | Allow unsigned with warning |
-| `useUssdShortcutWhenAmountPresent` | Boolean | true | Use shortcut USSD when amount known |
-| `ussdTemplates` | Map<Network, UssdTemplate> | Rwanda defaults | Custom USSD templates |
+| Option                             | Type                       | Default         | Description                          |
+| ---------------------------------- | -------------------------- | --------------- | ------------------------------------ |
+| `supabaseUrl`                      | String?                    | null            | Supabase project URL                 |
+| `supabaseAnonKey`                  | String?                    | null            | Supabase anonymous key               |
+| `reconcileFunctionUrl`             | String?                    | null            | Edge Function URL for reconciliation |
+| `defaultCurrency`                  | String                     | "RWF"           | Default currency code                |
+| `networks`                         | Set<Network>               | MTN, Airtel     | Supported networks                   |
+| `hceTtlMs`                         | Long                       | 45000           | NFC payload TTL (milliseconds)       |
+| `requireSignature`                 | Boolean                    | true            | Require HMAC signature               |
+| `allowUnsignedWithWarning`         | Boolean                    | true            | Allow unsigned with warning          |
+| `useUssdShortcutWhenAmountPresent` | Boolean                    | true            | Use shortcut USSD when amount known  |
+| `ussdTemplates`                    | Map<Network, UssdTemplate> | Rwanda defaults | Custom USSD templates                |
 
 ## Contributing
 
@@ -289,4 +295,5 @@ Licensed under the Apache License, Version 2.0
 
 ## Support
 
-For issues, questions, or feature requests, please open an issue on the repository.
+For issues, questions, or feature requests, please open an issue on the
+repository.

@@ -1,13 +1,15 @@
 # TapMoMo Backend Integration
 
-This folder contains the optional Supabase backend integration for TapMoMo library.
+This folder contains the optional Supabase backend integration for TapMoMo
+library.
 
 ## Overview
 
 The backend provides:
 
 1. **Merchant Management**: Store merchant profiles with HMAC signing keys
-2. **Transaction Reconciliation**: Server-side transaction records and status updates
+2. **Transaction Reconciliation**: Server-side transaction records and status
+   updates
 3. **Edge Function**: API endpoint for transaction reconciliation
 
 ## Setup Instructions
@@ -87,31 +89,31 @@ TapMoMo.init(
 
 ### merchants table
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| user_id | UUID | Foreign key to auth.users |
-| display_name | TEXT | Merchant display name |
-| network | TEXT | Mobile money network (MTN, Airtel) |
-| merchant_code | TEXT | MoMo merchant code |
-| secret_key | BYTEA | HMAC signing secret (encrypted at rest) |
-| created_at | TIMESTAMPTZ | Creation timestamp |
-| updated_at | TIMESTAMPTZ | Last update timestamp |
+| Column        | Type        | Description                             |
+| ------------- | ----------- | --------------------------------------- |
+| id            | UUID        | Primary key                             |
+| user_id       | UUID        | Foreign key to auth.users               |
+| display_name  | TEXT        | Merchant display name                   |
+| network       | TEXT        | Mobile money network (MTN, Airtel)      |
+| merchant_code | TEXT        | MoMo merchant code                      |
+| secret_key    | BYTEA       | HMAC signing secret (encrypted at rest) |
+| created_at    | TIMESTAMPTZ | Creation timestamp                      |
+| updated_at    | TIMESTAMPTZ | Last update timestamp                   |
 
 ### transactions table
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| merchant_id | UUID | Foreign key to merchants |
-| nonce | UUID | Unique nonce from NFC payload |
-| amount | INTEGER | Transaction amount |
-| currency | TEXT | Currency code (default: RWF) |
-| ref | TEXT | Optional reference |
-| created_at | TIMESTAMPTZ | Creation timestamp |
-| status | TEXT | pending, settled, or failed |
-| payer_hint | TEXT | Optional payer information |
-| notes | TEXT | Optional notes |
+| Column      | Type        | Description                   |
+| ----------- | ----------- | ----------------------------- |
+| id          | UUID        | Primary key                   |
+| merchant_id | UUID        | Foreign key to merchants      |
+| nonce       | UUID        | Unique nonce from NFC payload |
+| amount      | INTEGER     | Transaction amount            |
+| currency    | TEXT        | Currency code (default: RWF)  |
+| ref         | TEXT        | Optional reference            |
+| created_at  | TIMESTAMPTZ | Creation timestamp            |
+| status      | TEXT        | pending, settled, or failed   |
+| payer_hint  | TEXT        | Optional payer information    |
+| notes       | TEXT        | Optional notes                |
 
 ## Row Level Security (RLS)
 
@@ -186,12 +188,13 @@ suspend fun fetchMerchantSecret(merchantId: String): String? {
         .select("secret_key")
         .eq("id", merchantId)
         .single()
-    
+
     return response.data?.getString("secret_key")
 }
 ```
 
-**Important**: Only fetch secrets for your own merchants. The library does not automatically fetch secrets for security reasons.
+**Important**: Only fetch secrets for your own merchants. The library does not
+automatically fetch secrets for security reasons.
 
 ## Testing
 
@@ -233,7 +236,8 @@ Supabase free tier includes:
 - 2 GB bandwidth
 - 500K Edge Function invocations
 
-For production, consider upgrading to Pro plan for better performance and support.
+For production, consider upgrading to Pro plan for better performance and
+support.
 
 ## Support
 
