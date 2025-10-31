@@ -3,30 +3,18 @@
  * Parses MTN Rwanda mobile money statement CSV files
  */
 
-import type {
-  StatementAdapter,
-  ParseResult,
-  ParsedTransaction,
-} from '../../types/adapter.js';
+import type { StatementAdapter, ParseResult, ParsedTransaction } from "../../types/adapter.js";
 
 export class MTNRwandaStatementAdapter implements StatementAdapter {
-  readonly name = 'MTN Rwanda';
-  readonly countryISO3 = 'RWA';
+  readonly name = "MTN Rwanda";
+  readonly countryISO3 = "RWA";
 
   /**
    * Expected CSV headers from MTN Rwanda statements
    * Format: Date, Time, Transaction ID, Details, Amount, Balance, etc.
    */
   getExpectedHeaders(): string[] {
-    return [
-      'Date',
-      'Time',
-      'Transaction ID',
-      'Details',
-      'Amount',
-      'Balance',
-      'Status',
-    ];
+    return ["Date", "Time", "Transaction ID", "Details", "Amount", "Balance", "Status"];
   }
 
   /**
@@ -34,11 +22,9 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
    */
   validateHeaders(headers: string[]): boolean {
     const normalized = headers.map((h) => h.toLowerCase().trim());
-    const required = ['date', 'transaction', 'amount'];
+    const required = ["date", "transaction", "amount"];
 
-    return required.every((req) =>
-      normalized.some((h) => h.includes(req)),
-    );
+    return required.every((req) => normalized.some((h) => h.includes(req)));
   }
 
   /**
@@ -47,9 +33,7 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
   canHandle(input: string): boolean {
     const lower = input.toLowerCase();
     return (
-      lower.includes('mtn') ||
-      lower.includes('mobile money') ||
-      /\d{4}-\d{2}-\d{2}/.test(input)
+      lower.includes("mtn") || lower.includes("mobile money") || /\d{4}-\d{2}-\d{2}/.test(input)
     );
   }
 
@@ -63,17 +47,17 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
         return {
           success: false,
           confidence: 0,
-          error: 'Insufficient columns in row',
+          error: "Insufficient columns in row",
         };
       }
 
       // Extract fields (adjust indices based on actual MTN format)
-      const date = row[0]?.trim() || '';
-      const time = row[1]?.trim() || '';
-      const txnId = row[2]?.trim() || '';
-      const details = row[3]?.trim() || '';
-      const amountStr = row[4]?.trim() || '';
-      const balanceStr = row[5]?.trim() || '';
+      const date = row[0]?.trim() || "";
+      const time = row[1]?.trim() || "";
+      const txnId = row[2]?.trim() || "";
+      const details = row[3]?.trim() || "";
+      const amountStr = row[4]?.trim() || "";
+      const balanceStr = row[5]?.trim() || "";
 
       // Parse amount (remove currency symbols and commas)
       const amount = this.parseAmount(amountStr);
@@ -81,7 +65,7 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
         return {
           success: false,
           confidence: 0.3,
-          error: 'Could not parse amount',
+          error: "Could not parse amount",
         };
       }
 
@@ -91,7 +75,7 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
         return {
           success: false,
           confidence: 0.5,
-          error: 'Could not parse timestamp',
+          error: "Could not parse timestamp",
         };
       }
 
@@ -107,7 +91,7 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
         timestamp,
         payer_msisdn: msisdn,
         raw_reference: reference,
-        balance: this.parseAmount(balanceStr),
+        balance: this.parseAmount(balanceStr) ?? undefined,
         raw_data: {
           date,
           time,
@@ -125,7 +109,7 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
       return {
         success: false,
         confidence: 0,
-        error: error instanceof Error ? error.message : 'Parse error',
+        error: error instanceof Error ? error.message : "Parse error",
       };
     }
   }
@@ -146,9 +130,7 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
     if (!amountStr) return null;
 
     // Remove currency symbols, commas, spaces
-    const cleaned = amountStr
-      .replace(/[RWF,\s]/gi, '')
-      .replace(/[^\d.-]/g, '');
+    const cleaned = amountStr.replace(/[RWF,\s]/gi, "").replace(/[^\d.-]/g, "");
 
     const parsed = parseFloat(cleaned);
     return isNaN(parsed) ? null : Math.abs(parsed);
@@ -160,7 +142,7 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
   private parseTimestamp(date: string, time: string): Date | null {
     try {
       // Try ISO format first
-      if (date.includes('-')) {
+      if (date.includes("-")) {
         const combined = time ? `${date}T${time}` : date;
         const parsed = new Date(combined);
         if (!isNaN(parsed.getTime())) return parsed;
@@ -181,14 +163,12 @@ export class MTNRwandaStatementAdapter implements StatementAdapter {
   private extractReference(details: string): string | undefined {
     // Pattern: 3-4 uppercase letters/digits, separated by dots
     const match = details.match(
-      /\b([A-Z]{3}\.[A-Z0-9]{3}\.[A-Z0-9]{3,4}\.[A-Z0-9]{3,4}\.[0-9]{3})\b/i,
+      /\b([A-Z]{3}\.[A-Z0-9]{3}\.[A-Z0-9]{3,4}\.[A-Z0-9]{3,4}\.[0-9]{3})\b/i
     );
     if (match) return match[1];
 
     // Legacy pattern (4 parts)
-    const legacyMatch = details.match(
-      /\b([A-Z]{3}\.[A-Z0-9]{3,4}\.[A-Z0-9]{3,4}\.[0-9]{3})\b/i,
-    );
+    const legacyMatch = details.match(/\b([A-Z]{3}\.[A-Z0-9]{3,4}\.[A-Z0-9]{3,4}\.[0-9]{3})\b/i);
     return legacyMatch?.[1];
   }
 
