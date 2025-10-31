@@ -8,6 +8,10 @@
  * - Session fixation is prevented
  *
  * Addresses Gap 1: State Management between initiate and verify endpoints
+ *
+ * SECURITY NOTE: This test file uses hardcoded test secrets that are ONLY for
+ * testing purposes. These secrets are never used in production. Production
+ * secrets must be configured via environment variables (see .env.example).
  */
 
 import { describe, it, before, afterEach } from "node:test";

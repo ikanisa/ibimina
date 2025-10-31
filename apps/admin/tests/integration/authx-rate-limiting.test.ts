@@ -7,6 +7,10 @@
  * - TOTP replay prevention
  *
  * Addresses Gap 1: Rate Limiting implementation verification
+ *
+ * SECURITY NOTE: This test file uses hardcoded test secrets that are ONLY for
+ * testing purposes. These secrets are never used in production. Production
+ * secrets must be configured via environment variables (see .env.example).
  */
 
 import { describe, it, before, afterEach } from "node:test";

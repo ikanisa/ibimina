@@ -8,6 +8,10 @@
  * - Device expiry and renewal
  *
  * Addresses Gap 2: Trusted Device implementation verification
+ *
+ * SECURITY NOTE: This test file uses hardcoded test secrets that are ONLY for
+ * testing purposes. These secrets are never used in production. Production
+ * secrets must be configured via environment variables (see .env.example).
  */
 
 import { describe, it, before } from "node:test";

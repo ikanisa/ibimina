@@ -20,6 +20,17 @@ addressed with:
 - **Security rating: A (Strong)** - Implementation demonstrates security best
   practices
 
+### Important Notes
+
+⚠️ **Test Secrets**: All tests use isolated, hardcoded test secrets that are
+**never used in production**. Production secrets must be configured via
+environment variables. See `.env.example` for required production configuration.
+
+📦 **Dependency Updates**: The `pnpm-lock.yaml` changes include routine
+dependency updates (Wrangler, Vercel, Supabase CLI tools) from the initial
+`pnpm install`. These are build/dev tool updates and do not affect runtime
+behavior of the authentication system.
+
 ---
 
 ## Gaps Addressed
