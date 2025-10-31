@@ -2,7 +2,8 @@
 
 ## Overview
 
-This document describes the complete authentication system for the SACCO+ platform, including:
+This document describes the complete authentication system for the SACCO+
+platform, including:
 
 1. **Staff Mobile App Authentication** - Email/password login for staff members
 2. **Client App Authentication** - WhatsApp OTP authentication for SACCO members
@@ -54,6 +55,7 @@ This document describes the complete authentication system for the SACCO+ platfo
 ### Database Schema
 
 #### Staff Profiles
+
 ```sql
 -- app.user_profiles (staff)
 user_id     UUID        PRIMARY KEY (references auth.users)
@@ -64,6 +66,7 @@ updated_at  TIMESTAMPTZ
 ```
 
 #### Member Profiles
+
 ```sql
 -- members_app_profiles (clients)
 id                      UUID        PRIMARY KEY
@@ -81,6 +84,7 @@ preferred_language      TEXT        DEFAULT 'en'
 ```
 
 #### WhatsApp OTP Codes
+
 ```sql
 -- app.whatsapp_otp_codes
 id            UUID        PRIMARY KEY
@@ -93,12 +97,13 @@ created_at    TIMESTAMPTZ
 ```
 
 #### Member Permissions
+
 ```sql
 -- member_permissions
 id           UUID               PRIMARY KEY
 user_id      UUID               NOT NULL (references auth.users)
 permission   member_permission  ENUM
-granted_at   TIMESTAMPTZ       
+granted_at   TIMESTAMPTZ
 granted_by   UUID               References auth.users
 expires_at   TIMESTAMPTZ        NULL for permanent
 
@@ -115,7 +120,9 @@ expires_at   TIMESTAMPTZ        NULL for permanent
 
 ### Overview
 
-Staff members (SACCO admins, managers, and staff) use email/password authentication. Accounts are created by system administrators or through the web app.
+Staff members (SACCO admins, managers, and staff) use email/password
+authentication. Accounts are created by system administrators or through the web
+app.
 
 ### Key Rules
 
@@ -132,14 +139,14 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(req: Request) {
   const { userId, newPassword } = await req.json();
-  
+
   const supabase = createSupabaseAdminClient();
-  
+
   // Only allow if user is authenticated via web app
   const { error } = await supabase.auth.admin.updateUserById(userId, {
     password: newPassword,
   });
-  
+
   // ... handle response
 }
 ```
@@ -157,7 +164,8 @@ The staff mobile app should:
 
 ### Overview
 
-SACCO members authenticate using WhatsApp OTP (One-Time Password). This provides:
+SACCO members authenticate using WhatsApp OTP (One-Time Password). This
+provides:
 
 - Phone number verification
 - Passwordless authentication
@@ -194,11 +202,11 @@ SACCO members authenticate using WhatsApp OTP (One-Time Password). This provides
 // apps/client/app/(auth)/login/page.tsx
 const handleSendOTP = async () => {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase.functions.invoke("whatsapp-otp-send", {
     body: { phone_number: phoneNumber },
   });
-  
+
   if (data.success) {
     // Move to OTP verification step
     setStep("otp");
@@ -212,18 +220,21 @@ const handleSendOTP = async () => {
 ```typescript
 const handleVerifyOTP = async () => {
   const supabase = createClient();
-  
-  const { data, error } = await supabase.functions.invoke("whatsapp-otp-verify", {
-    body: { phone_number: phoneNumber, code: otpCode },
-  });
-  
+
+  const { data, error } = await supabase.functions.invoke(
+    "whatsapp-otp-verify",
+    {
+      body: { phone_number: phoneNumber, code: otpCode },
+    }
+  );
+
   if (data.success) {
     // Set session and redirect
     await supabase.auth.setSession({
       access_token: data.session.access_token,
       refresh_token: data.session.refresh_token,
     });
-    
+
     router.push("/");
   }
 };
@@ -236,6 +247,7 @@ const handleVerifyOTP = async () => {
 **Endpoint**: `https://[project-ref].supabase.co/functions/v1/whatsapp-otp-send`
 
 **Request**:
+
 ```json
 {
   "phone_number": "+250781234567"
@@ -243,6 +255,7 @@ const handleVerifyOTP = async () => {
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -252,6 +265,7 @@ const handleVerifyOTP = async () => {
 ```
 
 **Security Features**:
+
 - Rate limiting: 3 OTPs per phone per hour
 - OTP hashed with bcrypt before storage
 - 5-minute expiry time
@@ -259,9 +273,11 @@ const handleVerifyOTP = async () => {
 
 #### whatsapp-otp-verify
 
-**Endpoint**: `https://[project-ref].supabase.co/functions/v1/whatsapp-otp-verify`
+**Endpoint**:
+`https://[project-ref].supabase.co/functions/v1/whatsapp-otp-verify`
 
 **Request**:
+
 ```json
 {
   "phone_number": "+250781234567",
@@ -270,6 +286,7 @@ const handleVerifyOTP = async () => {
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -286,6 +303,7 @@ const handleVerifyOTP = async () => {
 ```
 
 **Security Features**:
+
 - Max 3 verification attempts
 - Automatic OTP consumption
 - Rate limiting: 10 attempts per phone per hour
@@ -295,7 +313,8 @@ const handleVerifyOTP = async () => {
 
 ### Overview
 
-After initial WhatsApp OTP authentication, members can enable biometric authentication for subsequent logins.
+After initial WhatsApp OTP authentication, members can enable biometric
+authentication for subsequent logins.
 
 ### Features
 
@@ -322,7 +341,8 @@ After initial WhatsApp OTP authentication, members can enable biometric authenti
 
 ### Implementation
 
-See `DEVICE_AUTH_IMPLEMENTATION.md` for complete details on the device-bound authentication system.
+See `DEVICE_AUTH_IMPLEMENTATION.md` for complete details on the device-bound
+authentication system.
 
 #### Enable Biometrics
 
@@ -336,7 +356,7 @@ const enableBiometric = async () => {
     "My Phone",
     authToken
   );
-  
+
   if (result.success) {
     // Update profile
     await supabase
@@ -353,6 +373,7 @@ const enableBiometric = async () => {
 #### Biometric Login
 
 After enrollment, users can:
+
 1. Scan QR code from web app
 2. Approve with biometric (fingerprint/face)
 3. Automatically log in to web session
@@ -361,14 +382,15 @@ After enrollment, users can:
 
 ### Overview
 
-Granular access control for member features. Permissions can be granted/revoked by staff.
+Granular access control for member features. Permissions can be granted/revoked
+by staff.
 
 ### Default Permissions
 
 When a new member account is created, they automatically receive:
 
 - `VIEW_BALANCE` - View account balance
-- `VIEW_TRANSACTIONS` - View transaction history  
+- `VIEW_TRANSACTIONS` - View transaction history
 - `VIEW_GROUPS` - View savings groups
 - `MANAGE_PROFILE` - Update profile information
 
@@ -388,13 +410,11 @@ const hasPaymentPermission = await supabase.rpc("has_permission", {
 
 ```typescript
 // Staff grants permission to member
-await supabase
-  .from("member_permissions")
-  .insert({
-    user_id: memberId,
-    permission: "MAKE_PAYMENTS",
-    granted_by: staffUserId,
-  });
+await supabase.from("member_permissions").insert({
+  user_id: memberId,
+  permission: "MAKE_PAYMENTS",
+  granted_by: staffUserId,
+});
 ```
 
 #### Revoke Permission
@@ -414,11 +434,11 @@ await supabase
 // Conditionally render based on permission
 const PaymentButton = () => {
   const [canPay, setCanPay] = useState(false);
-  
+
   useEffect(() => {
     checkPermission("MAKE_PAYMENTS").then(setCanPay);
   }, []);
-  
+
   if (!canPay) {
     return (
       <div>
@@ -427,7 +447,7 @@ const PaymentButton = () => {
       </div>
     );
   }
-  
+
   return <button>Make Payment</button>;
 };
 ```
@@ -436,20 +456,20 @@ const PaymentButton = () => {
 
 ### Edge Functions
 
-| Function | Method | Description |
-|----------|--------|-------------|
-| `/whatsapp-otp-send` | POST | Send OTP via WhatsApp |
-| `/whatsapp-otp-verify` | POST | Verify OTP and authenticate |
-| `/device-auth/enroll` | POST | Enroll device for biometrics |
-| `/device-auth/challenge` | POST | Generate login challenge |
-| `/device-auth/verify` | POST | Verify biometric signature |
+| Function                 | Method | Description                  |
+| ------------------------ | ------ | ---------------------------- |
+| `/whatsapp-otp-send`     | POST   | Send OTP via WhatsApp        |
+| `/whatsapp-otp-verify`   | POST   | Verify OTP and authenticate  |
+| `/device-auth/enroll`    | POST   | Enroll device for biometrics |
+| `/device-auth/challenge` | POST   | Generate login challenge     |
+| `/device-auth/verify`    | POST   | Verify biometric signature   |
 
 ### Database Functions
 
-| Function | Parameters | Returns | Description |
-|----------|-----------|---------|-------------|
-| `has_permission` | `_user_id`, `_permission` | `BOOLEAN` | Check if user has permission |
-| `cleanup_expired_otp_codes` | - | `void` | Remove expired OTPs |
+| Function                    | Parameters                | Returns   | Description                  |
+| --------------------------- | ------------------------- | --------- | ---------------------------- |
+| `has_permission`            | `_user_id`, `_permission` | `BOOLEAN` | Check if user has permission |
+| `cleanup_expired_otp_codes` | -                         | `void`    | Remove expired OTPs          |
 
 ## Security
 
@@ -502,6 +522,7 @@ See `DEVICE_AUTH_IMPLEMENTATION.md` for complete security details:
 **Problem**: OTP not received
 
 **Solutions**:
+
 1. Check phone number format
 2. Verify WhatsApp Business API credentials
 3. Check rate limiting (3 per hour)
@@ -510,6 +531,7 @@ See `DEVICE_AUTH_IMPLEMENTATION.md` for complete security details:
 **Problem**: "Invalid OTP code"
 
 **Solutions**:
+
 1. Check if OTP expired (5 minutes)
 2. Verify attempts not exceeded (max 3)
 3. Request new OTP
@@ -519,6 +541,7 @@ See `DEVICE_AUTH_IMPLEMENTATION.md` for complete security details:
 **Problem**: Biometric enrollment fails
 
 **Solutions**:
+
 1. Check device has biometric hardware
 2. Verify Android Keystore available
 3. Ensure user has enrolled biometrics in system settings
@@ -526,6 +549,7 @@ See `DEVICE_AUTH_IMPLEMENTATION.md` for complete security details:
 **Problem**: "Device not found" on login
 
 **Solutions**:
+
 1. Re-enroll device
 2. Check device not revoked
 3. Verify device key exists in database
@@ -535,6 +559,7 @@ See `DEVICE_AUTH_IMPLEMENTATION.md` for complete security details:
 **Problem**: User can't access feature
 
 **Solutions**:
+
 1. Check permission granted: `has_permission(user_id, permission)`
 2. Verify permission not expired
 3. Request permission from staff
@@ -544,6 +569,7 @@ See `DEVICE_AUTH_IMPLEMENTATION.md` for complete security details:
 **Problem**: Migration fails
 
 **Solutions**:
+
 1. Ensure all dependencies exist (auth schema, functions)
 2. Check pg_cron extension available for cleanup job
 3. Review PostgreSQL logs

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { WalletToken } from '@/lib/types/supa-app';
-import { TokenCard } from '@/components/wallet/token-card';
-import { Loader2, AlertCircle, Wallet as WalletIcon } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { WalletToken } from "@/lib/types/supa-app";
+import { TokenCard } from "@/components/wallet/token-card";
+import { Loader2, AlertCircle, Wallet as WalletIcon } from "lucide-react";
 
 /**
  * Wallet Page
- * 
+ *
  * Display user's wallet tokens (vouchers, loyalty points, etc.).
  * Feature-flagged page for non-custodial wallet evidence display.
  */
@@ -15,24 +15,25 @@ export default function WalletPage() {
   const [tokens, setTokens] = useState<WalletToken[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'active' | 'redeemed'>('active');
+  const [filter, setFilter] = useState<"all" | "active" | "redeemed">("active");
 
   useEffect(() => {
     async function fetchTokens() {
       try {
-        const url = filter === 'all' 
-          ? '/api/wallet/tokens' 
-          : `/api/wallet/tokens?status=${filter.toUpperCase()}`;
-        
+        const url =
+          filter === "all"
+            ? "/api/wallet/tokens"
+            : `/api/wallet/tokens?status=${filter.toUpperCase()}`;
+
         const response = await fetch(url);
         if (!response.ok) {
-          throw new Error('Failed to fetch wallet tokens');
+          throw new Error("Failed to fetch wallet tokens");
         }
         const data = await response.json();
         setTokens(data.tokens || []);
       } catch (err) {
-        console.error('Error fetching wallet tokens:', err);
-        setError('Unable to load wallet tokens. Please try again later.');
+        console.error("Error fetching wallet tokens:", err);
+        setError("Unable to load wallet tokens. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -43,13 +44,13 @@ export default function WalletPage() {
 
   const handleRedeem = (token: WalletToken) => {
     // TODO: Implement redemption flow
-    console.log('Redeem token:', token.id);
+    console.log("Redeem token:", token.id);
     alert(`Redeem ${token.display_name} - Redemption flow coming soon!`);
   };
 
   const getTotalValue = () => {
     return tokens
-      .filter(t => t.status === 'ACTIVE' && t.value_amount)
+      .filter((t) => t.status === "ACTIVE" && t.value_amount)
       .reduce((sum, t) => sum + (t.value_amount || 0), 0);
   };
 
@@ -81,19 +82,19 @@ export default function WalletPage() {
             <WalletIcon className="w-8 h-8" aria-hidden="true" />
             <h1 className="text-2xl font-bold">My Wallet</h1>
           </div>
-          
+
           {/* Total value card */}
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
             <p className="text-sm text-blue-100 mb-1">Total Active Value</p>
             <p className="text-3xl font-bold">
-              {new Intl.NumberFormat('rw-RW', {
-                style: 'currency',
-                currency: 'RWF',
+              {new Intl.NumberFormat("rw-RW", {
+                style: "currency",
+                currency: "RWF",
                 minimumFractionDigits: 0,
               }).format(getTotalValue())}
             </p>
             <p className="text-xs text-blue-100 mt-2">
-              {tokens.filter(t => t.status === 'ACTIVE').length} active tokens
+              {tokens.filter((t) => t.status === "ACTIVE").length} active tokens
             </p>
           </div>
         </div>
@@ -104,17 +105,17 @@ export default function WalletPage() {
         <div className="max-w-screen-xl mx-auto px-4">
           <div className="flex gap-4 overflow-x-auto">
             {[
-              { value: 'active', label: 'Active' },
-              { value: 'all', label: 'All' },
-              { value: 'redeemed', label: 'Redeemed' },
+              { value: "active", label: "Active" },
+              { value: "all", label: "All" },
+              { value: "redeemed", label: "Redeemed" },
             ].map(({ value, label }) => (
               <button
                 key={value}
                 onClick={() => setFilter(value as any)}
                 className={`py-3 px-4 border-b-2 font-medium transition-colors whitespace-nowrap ${
                   filter === value
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-gray-600 hover:text-gray-900"
                 }`}
               >
                 {label}
@@ -131,19 +132,13 @@ export default function WalletPage() {
             <WalletIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600 font-medium">No tokens found</p>
             <p className="text-sm text-gray-500 mt-2">
-              {filter === 'active' 
-                ? 'You don\'t have any active tokens.'
-                : 'Your wallet is empty.'}
+              {filter === "active" ? "You don't have any active tokens." : "Your wallet is empty."}
             </p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {tokens.map((token) => (
-              <TokenCard
-                key={token.id}
-                token={token}
-                onRedeem={handleRedeem}
-              />
+              <TokenCard key={token.id} token={token} onRedeem={handleRedeem} />
             ))}
           </div>
         )}

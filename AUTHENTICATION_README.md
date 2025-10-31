@@ -1,6 +1,7 @@
 # Authentication Features - Quick Start
 
-This guide helps you get started with the new authentication features implemented for SACCO+.
+This guide helps you get started with the new authentication features
+implemented for SACCO+.
 
 ## Overview
 
@@ -28,24 +29,27 @@ META_WHATSAPP_PHONE_NUMBER_ID=your_phone_id
 ### Setup
 
 1. **Run the migration**:
+
    ```bash
    supabase db push
    ```
 
 2. **Deploy edge functions**:
+
    ```bash
    supabase functions deploy whatsapp-otp-send
    supabase functions deploy whatsapp-otp-verify
    ```
 
 3. **Test OTP flow**:
+
    ```bash
    # Send OTP
    curl -X POST https://project.supabase.co/functions/v1/whatsapp-otp-send \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer YOUR_ANON_KEY" \
      -d '{"phone_number": "+250781234567"}'
-   
+
    # Verify OTP
    curl -X POST https://project.supabase.co/functions/v1/whatsapp-otp-verify \
      -H "Content-Type: application/json" \
@@ -67,9 +71,12 @@ const { data } = await supabase.functions.invoke("whatsapp-otp-send", {
 });
 
 // Step 2: Verify OTP
-const { data: session } = await supabase.functions.invoke("whatsapp-otp-verify", {
-  body: { phone_number: "+250781234567", code: "123456" },
-});
+const { data: session } = await supabase.functions.invoke(
+  "whatsapp-otp-verify",
+  {
+    body: { phone_number: "+250781234567", code: "123456" },
+  }
+);
 
 // Step 3: Set session
 await supabase.auth.setSession({
@@ -228,14 +235,16 @@ if (hasPermission) {
 
 ## Files Changed
 
-- `supabase/migrations/20251201000000_add_whatsapp_otp_auth.sql` - Database schema
+- `supabase/migrations/20251201000000_add_whatsapp_otp_auth.sql` - Database
+  schema
 - `supabase/functions/whatsapp-otp-send/index.ts` - Send OTP edge function
 - `supabase/functions/whatsapp-otp-verify/index.ts` - Verify OTP edge function
 - `apps/client/app/(auth)/login/page.tsx` - Client login page
 - `apps/admin/lib/platform.ts` - Platform detection utilities
 - `apps/admin/app/api/staff/change-password/route.ts` - Password change API
 - `apps/admin/components/profile/password-change.tsx` - Password change UI
-- `apps/client/components/auth/biometric-enrollment-prompt.tsx` - Biometric prompt
+- `apps/client/components/auth/biometric-enrollment-prompt.tsx` - Biometric
+  prompt
 - `docs/AUTHENTICATION_GUIDE.md` - Comprehensive documentation
 - `supabase/functions/_tests/otp-utils.test.ts` - Unit tests
 
@@ -256,7 +265,8 @@ supabase db push
 ## Support
 
 - Documentation: See [AUTHENTICATION_GUIDE.md](./docs/AUTHENTICATION_GUIDE.md)
-- Implementation Details: See [AUTHENTICATION_IMPLEMENTATION_SUMMARY.md](./AUTHENTICATION_IMPLEMENTATION_SUMMARY.md)
+- Implementation Details: See
+  [AUTHENTICATION_IMPLEMENTATION_SUMMARY.md](./AUTHENTICATION_IMPLEMENTATION_SUMMARY.md)
 - Issues: Create GitHub issue with `authentication` label
 
 ## Statistics

@@ -1,6 +1,6 @@
 /**
  * Biometric Enrollment Prompt Component
- * 
+ *
  * Prompts users to enable biometric authentication after WhatsApp OTP login
  * This provides faster, more secure access for subsequent logins
  */

@@ -2,11 +2,14 @@
 
 ## Overview
 
-This document describes the implementation of the African fintech "supa app" features for the Client App, including feature toggles, loans, wallet/tokens, NFC, KYC, and AI agent support.
+This document describes the implementation of the African fintech "supa app"
+features for the Client App, including feature toggles, loans, wallet/tokens,
+NFC, KYC, and AI agent support.
 
 ## Feature Toggle Matrix
 
-The app uses a regulatory tier-based feature toggle system to ensure compliance and safe rollout:
+The app uses a regulatory tier-based feature toggle system to ensure compliance
+and safe rollout:
 
 - **P0 (No licenses)**: Basic features requiring no special licenses
 - **P1 (Partnered)**: Features enabled through partner agreements
@@ -34,11 +37,13 @@ The app uses a regulatory tier-based feature toggle system to ensure compliance 
 2. **org_kb, global_kb, faq**: AI agent knowledge bases with vector embeddings
 3. **tickets, ticket_messages**: Multi-channel support ticketing
 4. **loan_products, loan_applications**: Intermediated loan applications
-5. **wallet_tokens, wallet_transaction_evidence**: Non-custodial token management
+5. **wallet_tokens, wallet_transaction_evidence**: Non-custodial token
+   management
 6. **stablecoin_transfers**: P2-tier stablecoin metadata tracking
 7. **nfc_tags, nfc_tap_events**: NFC tag management and analytics
 
 All tables have:
+
 - Full RLS policies for multi-tenant isolation
 - Audit timestamps (created_at, updated_at)
 - Appropriate indexes for performance
@@ -49,11 +54,13 @@ All tables have:
 ### 1. Savings (P0 - Default Enabled)
 
 **What it does:**
+
 - USSD deposit with reference tokens
 - Allocation evidence display
 - Group vault proxy (optional, P1)
 
 **Implementation:**
+
 - Already implemented in base client app
 - `/pay` route for USSD payments
 - `/statements` route for allocation evidence
@@ -61,17 +68,20 @@ All tables have:
 ### 2. Loans (P0+ - Disabled by Default)
 
 **What it does:**
+
 - Browse loan products from SACCO/MFI partners
 - Digital loan application submission
 - Document upload and status tracking
 - Intermediation only (no disbursement)
 
 **Implementation:**
+
 - Page: `/app/loans/page.tsx`
 - Component: `/components/loans/loan-product-card.tsx`
 - API: `/api/loans/products/route.ts`, `/api/loans/applications/route.ts`
 
 **Enabling:**
+
 ```sql
 UPDATE configuration
 SET value = jsonb_set(value, '{loans,enabled}', 'true')
@@ -79,6 +89,7 @@ WHERE key = 'client_feature_matrix';
 ```
 
 Or set environment variable:
+
 ```bash
 NEXT_PUBLIC_FEATURE_FLAG_LOANS_ENABLED=true
 ```
@@ -86,23 +97,27 @@ NEXT_PUBLIC_FEATURE_FLAG_LOANS_ENABLED=true
 ### 3. Wallet/Tokens (P0+ - Disabled by Default)
 
 **What it does:**
+
 - Display vouchers, loyalty points, attendance credits
 - Non-custodial token management (evidence only)
 - QR/NFC redemption support
 - Transaction evidence tracking
 
 **Implementation:**
+
 - Page: `/app/wallet/page.tsx`
 - Component: `/components/wallet/token-card.tsx`
 - API: `/api/wallet/tokens/route.ts`
 
 **Token Types:**
+
 - VOUCHER: One-time use vouchers
 - LOYALTY_POINT: Accumulating points
 - ATTENDANCE_CREDIT: Group meeting attendance rewards
 - CLOSED_LOOP_TOKEN: Restricted-use tokens
 
 **Enabling:**
+
 ```sql
 UPDATE configuration
 SET value = jsonb_set(value, '{wallet,enabled}', 'true')
@@ -112,28 +127,33 @@ WHERE key = 'client_feature_matrix';
 ### 4. NFC (P0+ - Disabled by Default)
 
 **What it does:**
+
 - NDEF tag programming with reference tokens
 - Tap-to-copy payment references
 - Voucher redemption via NFC
 - Tap event analytics
 
 **Tag Types:**
+
 - NDEF: Physical NFC tags
 - HCE: Host Card Emulation (Android)
 - CARD_EMULATION: Closed-loop card emulation (P2)
 
 **Implementation:**
+
 - Database: `nfc_tags`, `nfc_tap_events` tables
 - Android: Capacitor NFC plugin integration required
 
 ### 5. KYC (P0 - Default Enabled)
 
 **What it does:**
+
 - OCR + selfie capture (P0)
 - 3rd-party screening (P1)
 - Full KYC for account opening (P2)
 
 **Implementation:**
+
 - Already implemented in base client app
 - `/api/ocr/upload/route.ts` for document processing
 - `members_app_profiles` table stores KYC data
@@ -141,22 +161,26 @@ WHERE key = 'client_feature_matrix';
 ### 6. AI Agent (P0+ - Disabled by Default)
 
 **What it does:**
+
 - In-app FAQ and USSD help
 - Multi-channel support (WhatsApp, Email, IVR)
 - RAG-based knowledge search
 - Ticket creation and tracking
 
 **Implementation:**
+
 - Page: `/app/support/page.tsx`
 - Component: `/components/ai-chat/ai-chat.tsx`
 - API: `/api/agent/search/route.ts`, `/api/agent/tickets/route.ts`
 
 **Knowledge Base:**
+
 - Org-specific KB: SACCO policies, contacts, help articles
 - Global KB: System-wide best practices, USSD guides
 - FAQ: Common Q&A with semantic search
 
 **Enabling:**
+
 ```sql
 UPDATE configuration
 SET value = jsonb_set(value, '{ai_agent,enabled}', 'true')
@@ -166,15 +190,18 @@ WHERE key = 'client_feature_matrix';
 ## API Endpoints
 
 ### Loans
+
 - `GET /api/loans/products` - List enabled loan products
 - `POST /api/loans/applications` - Create loan application
 - `GET /api/loans/applications` - Get user's applications
 
 ### Wallet
+
 - `GET /api/wallet/tokens` - Get user's wallet tokens
 - `GET /api/wallet/tokens?status=ACTIVE` - Filter by status
 
 ### AI Agent
+
 - `POST /api/agent/search` - Search knowledge base (RAG)
 - `POST /api/agent/tickets` - Create support ticket
 - `GET /api/agent/tickets` - Get user's tickets
@@ -184,6 +211,7 @@ WHERE key = 'client_feature_matrix';
 The bottom navigation dynamically adjusts based on enabled features:
 
 **Base (always visible):**
+
 - Home
 - Groups
 - Pay
@@ -191,10 +219,12 @@ The bottom navigation dynamically adjusts based on enabled features:
 - Profile
 
 **Feature-flagged (when enabled):**
+
 - Loans (when `loans-enabled` flag is true)
 - Wallet (when `wallet-enabled` flag is true)
 
 Limited to 5 items for optimal mobile UX. Priority order:
+
 1. Home (always)
 2. Groups (always)
 3. Pay (always)
@@ -224,6 +254,7 @@ All tables have comprehensive RLS policies:
 ### Feature Gating
 
 Features require:
+
 1. **Feature flag enabled** in configuration
 2. **Org-specific override** (optional) with risk sign-off
 3. **Partner agreement** reference (for P1/P2 features)
@@ -234,6 +265,7 @@ Features require:
 ### Unit Tests
 
 Test files for new features:
+
 - `apps/client/tests/unit/feature-flags.test.ts`
 - TODO: Add tests for new components
 
@@ -276,22 +308,28 @@ Track these metrics per feature domain:
 
 ### Feature not appearing in nav
 
-1. Check feature flag: `SELECT value->'loans'->>'enabled' FROM configuration WHERE key = 'client_feature_matrix';`
-2. Check org override: `SELECT * FROM org_feature_overrides WHERE feature_domain = 'loans';`
+1. Check feature flag:
+   `SELECT value->'loans'->>'enabled' FROM configuration WHERE key = 'client_feature_matrix';`
+2. Check org override:
+   `SELECT * FROM org_feature_overrides WHERE feature_domain = 'loans';`
 3. Clear browser cache
 4. Check console for errors
 
 ### RLS policy blocking access
 
-1. Verify user has org_membership: `SELECT * FROM org_memberships WHERE user_id = auth.uid();`
-2. Check table RLS policies: `SELECT * FROM pg_policies WHERE tablename = 'loan_applications';`
+1. Verify user has org_membership:
+   `SELECT * FROM org_memberships WHERE user_id = auth.uid();`
+2. Check table RLS policies:
+   `SELECT * FROM pg_policies WHERE tablename = 'loan_applications';`
 3. Test with service_role for debugging
 
 ### Vector search not working
 
 1. Ensure pgvector extension installed: `CREATE EXTENSION IF NOT EXISTS vector;`
-2. Check embeddings exist: `SELECT COUNT(*) FROM org_kb WHERE embedding IS NOT NULL;`
-3. Verify index: `SELECT * FROM pg_indexes WHERE tablename = 'org_kb' AND indexname LIKE '%embedding%';`
+2. Check embeddings exist:
+   `SELECT COUNT(*) FROM org_kb WHERE embedding IS NOT NULL;`
+3. Verify index:
+   `SELECT * FROM pg_indexes WHERE tablename = 'org_kb' AND indexname LIKE '%embedding%';`
 
 ## Future Enhancements
 

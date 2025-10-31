@@ -1,6 +1,6 @@
 /**
  * Unit Tests for WhatsApp OTP Functions
- * 
+ *
  * Tests phone number validation, normalization, and OTP generation
  */
 
@@ -29,11 +29,7 @@ Deno.test("validatePhoneNumber - accepts international Rwanda format with plus",
 
 Deno.test("validatePhoneNumber - rejects invalid Rwanda number", () => {
   const phone = "071234567"; // Invalid prefix
-  const patterns = [
-    /^07[2-9]\d{7}$/,
-    /^2507[2-9]\d{7}$/,
-    /^\+2507[2-9]\d{7}$/,
-  ];
+  const patterns = [/^07[2-9]\d{7}$/, /^2507[2-9]\d{7}$/, /^\+2507[2-9]\d{7}$/];
   const isValid = patterns.some((pattern) => pattern.test(phone));
   assertEquals(isValid, false);
 });
@@ -101,7 +97,7 @@ Deno.test("generateOTP - generates different values", () => {
 Deno.test("OTP expiry - 5 minutes from now", () => {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 5 * 60 * 1000);
-  
+
   const diffMinutes = (expiresAt.getTime() - now.getTime()) / (60 * 1000);
   assertEquals(Math.round(diffMinutes), 5);
 });
@@ -114,7 +110,7 @@ Deno.test("Error response - has correct structure", () => {
     success: false,
     message: "Phone number is required",
   };
-  
+
   assertEquals(errorResponse.success, false);
   assertExists(errorResponse.message);
 });
@@ -125,7 +121,7 @@ Deno.test("Success response - has correct structure", () => {
     message: "OTP sent successfully",
     expires_at: new Date().toISOString(),
   };
-  
+
   assertEquals(successResponse.success, true);
   assertExists(successResponse.message);
   assertExists(successResponse.expires_at);

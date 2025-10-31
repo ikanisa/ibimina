@@ -1,10 +1,10 @@
 /**
  * Member Login Page - WhatsApp OTP Authentication
- * 
+ *
  * Two-step authentication flow:
  * 1. Enter phone number and request OTP
  * 2. Enter OTP code and verify
- * 
+ *
  * Features:
  * - WhatsApp OTP authentication
  * - Phone number validation
@@ -41,7 +41,7 @@ export default function LoginPage({}: LoginPageProps) {
     const interval = setInterval(() => {
       const now = new Date();
       const diff = Math.floor((expiresAt.getTime() - now.getTime()) / 1000);
-      
+
       if (diff <= 0) {
         setRemainingTime(0);
         setCanResend(true);
@@ -72,11 +72,7 @@ export default function LoginPage({}: LoginPageProps) {
    */
   const validatePhoneNumber = (value: string): string | undefined => {
     const cleaned = value.replace(/\s+/g, "");
-    const patterns = [
-      /^07[2-9]\d{7}$/,
-      /^2507[2-9]\d{7}$/,
-      /^\+2507[2-9]\d{7}$/,
-    ];
+    const patterns = [/^07[2-9]\d{7}$/, /^2507[2-9]\d{7}$/, /^\+2507[2-9]\d{7}$/];
 
     if (!cleaned) {
       return "Phone number is required";

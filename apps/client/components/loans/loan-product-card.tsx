@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { LoanProduct } from '@/lib/types/supa-app';
-import { CreditCard, Calendar, TrendingUp, FileText } from 'lucide-react';
+import { LoanProduct } from "@/lib/types/supa-app";
+import { CreditCard, Calendar, TrendingUp, FileText } from "lucide-react";
 
 interface LoanProductCardProps {
   product: LoanProduct;
@@ -10,18 +10,18 @@ interface LoanProductCardProps {
 
 /**
  * LoanProductCard Component
- * 
+ *
  * Displays a loan product offer card with partner info, terms, and apply button.
  * Fully accessible with WCAG 2.1 AA compliance.
- * 
+ *
  * @param product - Loan product details
  * @param onApply - Callback when user clicks "Apply Now"
  */
 export function LoanProductCard({ product, onApply }: LoanProductCardProps) {
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('rw-RW', {
-      style: 'currency',
-      currency: 'RWF',
+    return new Intl.NumberFormat("rw-RW", {
+      style: "currency",
+      currency: "RWF",
       minimumFractionDigits: 0,
     }).format(amount);
   };
@@ -49,17 +49,13 @@ export function LoanProductCard({ product, onApply }: LoanProductCardProps) {
             {product.name}
           </h3>
           {product.partner_name && (
-            <p className="text-sm text-gray-600">
-              by {product.partner_name}
-            </p>
+            <p className="text-sm text-gray-600">by {product.partner_name}</p>
           )}
         </div>
       </div>
 
       {/* Description */}
-      {product.description && (
-        <p className="text-gray-700 mb-4">{product.description}</p>
-      )}
+      {product.description && <p className="text-gray-700 mb-4">{product.description}</p>}
 
       {/* Key details grid */}
       <div className="grid grid-cols-2 gap-4 mb-4">

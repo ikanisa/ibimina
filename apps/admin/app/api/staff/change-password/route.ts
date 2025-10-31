@@ -1,6 +1,6 @@
 /**
  * Staff Password Change API Route
- * 
+ *
  * Allows staff to change their own password
  * RESTRICTION: Only allowed from web platform, not mobile apps
  */
@@ -14,10 +14,7 @@ export async function POST(request: Request) {
     // Check authentication
     const context = await getUserAndProfile();
     if (!context) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { currentPassword, newPassword } = await request.json();
@@ -62,10 +59,7 @@ export async function POST(request: Request) {
     });
 
     if (verifyError) {
-      return NextResponse.json(
-        { error: "Current password is incorrect" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Current password is incorrect" }, { status: 401 });
     }
 
     // Update password
@@ -75,10 +69,7 @@ export async function POST(request: Request) {
 
     if (updateError) {
       console.error("Password update error:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update password" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to update password" }, { status: 500 });
     }
 
     // Log the password change
@@ -103,9 +94,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Password change error:", error);
-    return NextResponse.json(
-      { error: "An unexpected error occurred" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
   }
 }

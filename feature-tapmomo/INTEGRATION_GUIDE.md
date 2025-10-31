@@ -1,6 +1,7 @@
 # TapMoMo Integration Guide
 
-This guide shows how to integrate the TapMoMo library into the existing Ibimina client app.
+This guide shows how to integrate the TapMoMo library into the existing Ibimina
+client app.
 
 ## Integration Steps for apps/client
 
@@ -20,7 +21,7 @@ In `apps/client/android/app/build.gradle`, add:
 ```groovy
 dependencies {
     // ... existing dependencies
-    
+
     // TapMoMo NFC payment library
     implementation project(':feature-tapmomo')
 }
@@ -38,7 +39,7 @@ import com.tapmomo.feature.Network
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Initialize TapMoMo once
         TapMoMo.init(
             context = applicationContext,
@@ -67,19 +68,19 @@ Add a Capacitor plugin to expose TapMoMo to your web layer:
 ```kotlin
 @CapacitorPlugin(name = "TapMoMoPlugin")
 class TapMoMoPlugin : Plugin() {
-    
+
     @PluginMethod
     fun openGetPaid(call: PluginCall) {
         val amount = call.getInt("amount")
         val networkName = call.getString("network", "MTN")
         val merchantId = call.getString("merchantId", "")
-        
+
         val network = try {
             Network.valueOf(networkName)
         } catch (e: Exception) {
             Network.MTN
         }
-        
+
         activity.runOnUiThread {
             TapMoMo.openGetPaid(
                 context = activity,
@@ -88,10 +89,10 @@ class TapMoMoPlugin : Plugin() {
                 merchantId = merchantId
             )
         }
-        
+
         call.resolve()
     }
-    
+
     @PluginMethod
     fun openPay(call: PluginCall) {
         activity.runOnUiThread {
@@ -99,16 +100,16 @@ class TapMoMoPlugin : Plugin() {
         }
         call.resolve()
     }
-    
+
     @PluginMethod
     fun isNfcAvailable(call: PluginCall) {
         val available = TapMoMo.isNfcAvailable(activity)
         val enabled = TapMoMo.isNfcEnabled(activity)
-        
+
         val result = JSObject()
         result.put("available", available)
         result.put("enabled", enabled)
-        
+
         call.resolve(result)
     }
 }
@@ -120,7 +121,7 @@ Register the plugin in MainActivity:
 class MainActivity : BridgeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         registerPlugin(TapMoMoPlugin::class.java)
     }
 }
@@ -129,23 +130,23 @@ class MainActivity : BridgeActivity() {
 #### From TypeScript/JavaScript
 
 ```typescript
-import { Plugins } from '@capacitor/core';
+import { Plugins } from "@capacitor/core";
 
 const { TapMoMoPlugin } = Plugins;
 
 // Check NFC availability
 async function checkNfc() {
   const result = await TapMoMoPlugin.isNfcAvailable();
-  console.log('NFC available:', result.available);
-  console.log('NFC enabled:', result.enabled);
+  console.log("NFC available:", result.available);
+  console.log("NFC enabled:", result.enabled);
 }
 
 // Launch "Get Paid" screen
 async function startReceiving() {
   await TapMoMoPlugin.openGetPaid({
     amount: 2500,
-    network: 'MTN',
-    merchantId: '123456'
+    network: "MTN",
+    merchantId: "123456",
   });
 }
 
@@ -160,42 +161,42 @@ async function startPaying() {
 #### Add Payment Button to React Component
 
 ```tsx
-import React from 'react';
-import { IonButton, IonIcon } from '@ionic/react';
-import { nfcOutline } from 'ionicons/icons';
+import React from "react";
+import { IonButton, IonIcon } from "@ionic/react";
+import { nfcOutline } from "ionicons/icons";
 
 const PaymentButton: React.FC = () => {
   const handleTapToPay = async () => {
     // Check NFC first
     const nfc = await TapMoMoPlugin.isNfcAvailable();
     if (!nfc.available) {
-      alert('NFC not available on this device');
+      alert("NFC not available on this device");
       return;
     }
     if (!nfc.enabled) {
-      alert('Please enable NFC in device settings');
+      alert("Please enable NFC in device settings");
       return;
     }
-    
+
     // Launch payment screen
     await TapMoMoPlugin.openPay();
   };
-  
+
   const handleReceivePayment = async () => {
     await TapMoMoPlugin.openGetPaid({
       amount: 5000, // Optional
-      network: 'MTN',
-      merchantId: '123456'
+      network: "MTN",
+      merchantId: "123456",
     });
   };
-  
+
   return (
     <div>
       <IonButton onClick={handleTapToPay}>
         <IonIcon icon={nfcOutline} slot="start" />
         Tap to Pay
       </IonButton>
-      
+
       <IonButton onClick={handleReceivePayment} color="success">
         <IonIcon icon={nfcOutline} slot="start" />
         Receive Payment
@@ -292,7 +293,8 @@ android {
 
 ### Permission Errors
 
-The library handles permissions automatically, but you can request them manually:
+The library handles permissions automatically, but you can request them
+manually:
 
 ```kotlin
 import android.Manifest

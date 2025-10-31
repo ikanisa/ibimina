@@ -2,11 +2,13 @@
 
 ## Executive Summary
 
-This implementation provides a complete, production-ready authentication system for the SACCO+ platform with distinct flows for staff and members:
+This implementation provides a complete, production-ready authentication system
+for the SACCO+ platform with distinct flows for staff and members:
 
 - **Staff Authentication**: Email/password login with web-only password changes
 - **Client Authentication**: WhatsApp OTP with optional biometric enhancement
-- **Security**: Rate limiting, audit logging, platform restrictions, and comprehensive permission system
+- **Security**: Rate limiting, audit logging, platform restrictions, and
+  comprehensive permission system
 
 ## What Was Built
 
@@ -15,10 +17,12 @@ This implementation provides a complete, production-ready authentication system 
 **File**: `supabase/migrations/20251201000000_add_whatsapp_otp_auth.sql`
 
 **Tables Created:**
+
 - `app.whatsapp_otp_codes` - Stores hashed OTP codes with expiry
 - `public.member_permissions` - Granular permission system for members
 
 **Fields Added to `members_app_profiles`:**
+
 - `whatsapp_verified` - Boolean flag for verified numbers
 - `whatsapp_verified_at` - Timestamp of verification
 - `biometric_enabled` - Whether biometric auth is enabled
@@ -26,6 +30,7 @@ This implementation provides a complete, production-ready authentication system 
 - `last_login_at` - Last successful login
 
 **Features:**
+
 - Row-Level Security (RLS) policies
 - Automatic cleanup of expired OTPs (scheduled job)
 - Permission enum type with 6 permission levels
@@ -39,6 +44,7 @@ This implementation provides a complete, production-ready authentication system 
 **File**: `supabase/functions/whatsapp-otp-send/index.ts`
 
 **Features:**
+
 - Generates cryptographically secure 6-digit OTP
 - Hashes OTP with bcrypt before storage
 - Sends via Meta WhatsApp Business API
@@ -48,6 +54,7 @@ This implementation provides a complete, production-ready authentication system 
 - Comprehensive audit logging
 
 **API:**
+
 ```typescript
 POST /functions/v1/whatsapp-otp-send
 Body: { "phone_number": "+250781234567" }
@@ -63,6 +70,7 @@ Response: {
 **File**: `supabase/functions/whatsapp-otp-verify/index.ts`
 
 **Features:**
+
 - Verifies OTP against hashed value
 - Max 3 verification attempts
 - Creates user account if not exists
@@ -72,6 +80,7 @@ Response: {
 - Rate limiting: 10 attempts per phone per hour
 
 **API:**
+
 ```typescript
 POST /functions/v1/whatsapp-otp-verify
 Body: {
@@ -94,6 +103,7 @@ Response: {
 **File**: `apps/client/app/(auth)/login/page.tsx`
 
 **Features:**
+
 - Two-step authentication flow
 - Phone number validation (Rwanda formats)
 - OTP code entry with countdown timer
@@ -104,6 +114,7 @@ Response: {
 - Mobile-optimized
 
 **User Flow:**
+
 1. Enter phone number → Validate format
 2. Request OTP → Send via WhatsApp
 3. Display countdown timer (5 minutes)
@@ -118,6 +129,7 @@ Response: {
 **File**: `apps/admin/app/api/staff/change-password/route.ts`
 
 **Features:**
+
 - Current password verification
 - New password strength validation (min 8 chars)
 - Platform detection (blocks mobile)
@@ -126,11 +138,13 @@ Response: {
 - Prevents password reuse
 
 **Platform Restrictions:**
+
 - ✅ Allowed on web browsers
 - ❌ Blocked on mobile browsers
 - ❌ Blocked in Capacitor apps (native)
 
 **Response on Mobile:**
+
 ```json
 {
   "error": "Password changes are not allowed on mobile devices",
@@ -144,6 +158,7 @@ Response: {
 **File**: `apps/admin/components/profile/password-change.tsx`
 
 **Features:**
+
 - Platform-aware rendering
 - Mobile restriction warning with rationale
 - Form validation (client + server)
@@ -152,12 +167,14 @@ Response: {
 - Accessible form controls
 
 **Mobile View:**
+
 - Shows restriction explanation
 - Links to web app
 - Explains security rationale
 - Displays current platform type
 
 **Web View:**
+
 - Full password change form
 - Current/new/confirm password fields
 - Real-time validation
@@ -168,6 +185,7 @@ Response: {
 **File**: `apps/admin/lib/platform.ts`
 
 **Functions:**
+
 - `isMobileDevice()` - Detect any mobile
 - `isAndroid()` - Detect Android
 - `isIOS()` - Detect iOS
@@ -176,6 +194,7 @@ Response: {
 - `getPlatformType()` - Get detailed platform type
 
 **Platform Types:**
+
 - `web` - Desktop web browser
 - `mobile-web` - Mobile web browser
 - `android-app` - Android native app (Capacitor)
@@ -187,6 +206,7 @@ Response: {
 **File**: `apps/client/components/auth/biometric-enrollment-prompt.tsx`
 
 **Features:**
+
 - Post-login enrollment prompt
 - Device capability checking
 - Beautiful modal UI
@@ -196,6 +216,7 @@ Response: {
 - Device model detection
 
 **User Flow:**
+
 1. After successful WhatsApp OTP login
 2. Show biometric prompt modal
 3. Check device has biometric hardware
@@ -206,6 +227,7 @@ Response: {
 8. Redirect to app home
 
 **Benefits Shown:**
+
 - Skip OTP codes for future logins
 - More secure than passwords
 - Works offline
@@ -214,6 +236,7 @@ Response: {
 ### 7. Permission System
 
 **Implementation:**
+
 - Enum type with 6 permission levels
 - Default permissions granted on signup
 - RLS policies for security
@@ -221,6 +244,7 @@ Response: {
 - Expiry support for temporary permissions
 
 **Permission Types:**
+
 - `VIEW_BALANCE` - View account balance
 - `VIEW_TRANSACTIONS` - View transaction history
 - `MAKE_PAYMENTS` - Initiate payments
@@ -229,12 +253,14 @@ Response: {
 - `MANAGE_PROFILE` - Update profile info
 
 **Default Permissions (Auto-granted):**
+
 - VIEW_BALANCE
 - VIEW_TRANSACTIONS
 - VIEW_GROUPS
 - MANAGE_PROFILE
 
 **Requires Approval:**
+
 - MAKE_PAYMENTS (must be granted by staff)
 - JOIN_GROUPS (must be granted by staff)
 
@@ -243,6 +269,7 @@ Response: {
 **File**: `docs/AUTHENTICATION_GUIDE.md` (15,964 lines)
 
 **Sections:**
+
 - Architecture overview
 - Staff authentication
 - Client authentication (WhatsApp OTP)
@@ -340,14 +367,16 @@ Response: {
 ### Client App Integration
 
 1. **Login Flow**
+
    ```typescript
    // Redirect to login page if not authenticated
    if (!session) {
-     router.push('/login');
+     router.push("/login");
    }
    ```
 
 2. **Post-Login Biometric Prompt**
+
    ```typescript
    // After successful WhatsApp OTP login
    if (!profile.biometric_enabled) {
@@ -357,25 +386,27 @@ Response: {
 
 3. **Permission Checking**
    ```typescript
-   const canMakePayments = await supabase.rpc('has_permission', {
+   const canMakePayments = await supabase.rpc("has_permission", {
      _user_id: userId,
-     _permission: 'MAKE_PAYMENTS'
+     _permission: "MAKE_PAYMENTS",
    });
    ```
 
 ### Staff App Integration
 
 1. **Password Change in Profile**
+
    ```typescript
    import { PasswordChange } from '@/components/profile/password-change';
-   
+
    <PasswordChange onSuccess={() => showSuccess()} />
    ```
 
 2. **Platform Detection**
+
    ```typescript
-   import { isWebPlatform } from '@/lib/platform';
-   
+   import { isWebPlatform } from "@/lib/platform";
+
    if (!isWebPlatform()) {
      showMobileRestrictionMessage();
    }
@@ -397,11 +428,13 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ## Deployment Steps
 
 1. **Run Database Migration**
+
    ```bash
    supabase db push
    ```
 
 2. **Deploy Edge Functions**
+
    ```bash
    supabase functions deploy whatsapp-otp-send
    supabase functions deploy whatsapp-otp-verify
@@ -504,6 +537,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ## Support & Troubleshooting
 
 See `docs/AUTHENTICATION_GUIDE.md` for:
+
 - Detailed troubleshooting steps
 - Common issues and solutions
 - API reference
@@ -523,7 +557,9 @@ See `docs/AUTHENTICATION_GUIDE.md` for:
 
 ## Conclusion
 
-This implementation provides a complete, secure, and user-friendly authentication system that meets all the requirements specified in the problem statement:
+This implementation provides a complete, secure, and user-friendly
+authentication system that meets all the requirements specified in the problem
+statement:
 
 ✅ Staff mobile app authenticated with email/password  
 ✅ Staff can only change passwords via web app  
@@ -532,6 +568,6 @@ This implementation provides a complete, secure, and user-friendly authenticatio
 ✅ Optional biometric authentication for clients  
 ✅ Comprehensive security measures  
 ✅ Production-ready with audit logging  
-✅ Fully documented with guides and API reference  
+✅ Fully documented with guides and API reference
 
 The system is ready for integration testing and staging deployment.
