@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { LoanProduct } from '@/lib/types/supa-app';
-import { LoanProductCard } from '@/components/loans/loan-product-card';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { LoanProduct } from "@/lib/types/supa-app";
+import { LoanProductCard } from "@/components/loans/loan-product-card";
+import { Loader2, AlertCircle } from "lucide-react";
 
 /**
  * Loans Page
- * 
+ *
  * Browse available loan products from SACCO/MFI partners.
  * Feature-flagged page that only appears when loans domain is enabled.
  */
@@ -19,15 +19,15 @@ export default function LoansPage() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const response = await fetch('/api/loans/products');
+        const response = await fetch("/api/loans/products");
         if (!response.ok) {
-          throw new Error('Failed to fetch loan products');
+          throw new Error("Failed to fetch loan products");
         }
         const data = await response.json();
         setProducts(data.products || []);
       } catch (err) {
-        console.error('Error fetching loan products:', err);
-        setError('Unable to load loan products. Please try again later.');
+        console.error("Error fetching loan products:", err);
+        setError("Unable to load loan products. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -38,7 +38,7 @@ export default function LoansPage() {
 
   const handleApply = (product: LoanProduct) => {
     // TODO: Navigate to application form or open modal
-    console.log('Apply for loan:', product.id);
+    console.log("Apply for loan:", product.id);
     alert(`Apply for ${product.name} - Application flow coming soon!`);
   };
 
@@ -85,11 +85,7 @@ export default function LoansPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
-              <LoanProductCard
-                key={product.id}
-                product={product}
-                onApply={handleApply}
-              />
+              <LoanProductCard key={product.id} product={product} onApply={handleApply} />
             ))}
           </div>
         )}

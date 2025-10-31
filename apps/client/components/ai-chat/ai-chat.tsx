@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { Send, Bot, User, Loader2 } from "lucide-react";
 
 interface Message {
   id: string;
-  sender: 'user' | 'agent';
+  sender: "user" | "agent";
   content: string;
   timestamp: Date;
 }
@@ -17,28 +17,29 @@ interface AIChatProps {
 
 /**
  * AIChat Component
- * 
+ *
  * Simple in-app chat interface for AI agent support.
  * Mobile-first design with accessibility features.
- * 
+ *
  * @param orgId - Organization ID for context
  * @param onClose - Callback when chat is closed
  */
 export function AIChat({ orgId, onClose }: AIChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      sender: 'agent',
-      content: 'Muraho! How can I help you today? Ask me about USSD payments, reference tokens, or your statements.',
+      id: "1",
+      sender: "agent",
+      content:
+        "Muraho! How can I help you today? Ask me about USSD payments, reference tokens, or your statements.",
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -50,13 +51,13 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      sender: 'user',
+      sender: "user",
       content: input.trim(),
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+    setInput("");
     setIsLoading(true);
 
     // TODO: Call AI agent API
@@ -64,8 +65,9 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
     setTimeout(() => {
       const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
-        sender: 'agent',
-        content: 'I received your message. The AI agent integration will be completed in a future update. For now, please contact SACCO staff for assistance.',
+        sender: "agent",
+        content:
+          "I received your message. The AI agent integration will be completed in a future update. For now, please contact SACCO staff for assistance.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, agentMessage]);
@@ -74,7 +76,7 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -107,36 +109,34 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex gap-3 ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}
+            className={`flex gap-3 ${message.sender === "user" ? "flex-row-reverse" : ""}`}
           >
             <div
               className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                message.sender === 'user' ? 'bg-blue-600' : 'bg-gray-200'
+                message.sender === "user" ? "bg-blue-600" : "bg-gray-200"
               }`}
               aria-hidden="true"
             >
-              {message.sender === 'user' ? (
+              {message.sender === "user" ? (
                 <User className="w-5 h-5 text-white" />
               ) : (
                 <Bot className="w-5 h-5 text-gray-600" />
               )}
             </div>
             <div
-              className={`flex-1 max-w-[80%] ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
+              className={`flex-1 max-w-[80%] ${message.sender === "user" ? "items-end" : "items-start"}`}
             >
               <div
                 className={`rounded-lg p-3 ${
-                  message.sender === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-900'
+                  message.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-900"
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {message.timestamp.toLocaleTimeString('rw-RW', {
-                  hour: '2-digit',
-                  minute: '2-digit',
+                {message.timestamp.toLocaleTimeString("rw-RW", {
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </p>
             </div>
@@ -148,7 +148,10 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
               <Bot className="w-5 h-5 text-gray-600" aria-hidden="true" />
             </div>
             <div className="bg-gray-100 rounded-lg p-3">
-              <Loader2 className="w-5 h-5 text-gray-600 animate-spin" aria-label="Agent is typing" />
+              <Loader2
+                className="w-5 h-5 text-gray-600 animate-spin"
+                aria-label="Agent is typing"
+              />
             </div>
           </div>
         )}

@@ -1,8 +1,8 @@
 /**
  * WhatsApp OTP Verify Edge Function
- * 
+ *
  * Verifies OTP codes and creates/authenticates member accounts
- * 
+ *
  * Security features:
  * - Max 3 attempts per OTP
  * - Automatic OTP consumption after successful verification
@@ -18,8 +18,7 @@ import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
-  "access-control-allow-headers":
-    "authorization, x-client-info, apikey, content-type",
+  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
 };
 
 interface VerifyOTPRequest {
@@ -83,11 +82,10 @@ Deno.serve(async (req) => {
     const supabase = createServiceClient();
 
     // Rate limiting: max 10 verification attempts per phone per hour
-    const rateLimitOk = await enforceRateLimit(
-      supabase,
-      `whatsapp_verify:${normalizedPhone}`,
-      { maxHits: 10, windowSeconds: 3600 }
-    );
+    const rateLimitOk = await enforceRateLimit(supabase, `whatsapp_verify:${normalizedPhone}`, {
+      maxHits: 10,
+      windowSeconds: 3600,
+    });
 
     if (!rateLimitOk) {
       await writeAuditLog(supabase, {

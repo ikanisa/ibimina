@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { WalletToken } from '@/lib/types/supa-app';
-import { Gift, Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { WalletToken } from "@/lib/types/supa-app";
+import { Gift, Calendar, CheckCircle, XCircle, Clock } from "lucide-react";
 
 interface TokenCardProps {
   token: WalletToken;
@@ -10,40 +10,40 @@ interface TokenCardProps {
 
 /**
  * TokenCard Component
- * 
+ *
  * Displays a wallet token (voucher, loyalty point, etc.) with redemption options.
  * Mobile-first design with large touch targets (≥48px).
- * 
+ *
  * @param token - Wallet token details
  * @param onRedeem - Callback when user taps "Redeem"
  */
 export function TokenCard({ token, onRedeem }: TokenCardProps) {
   const formatAmount = (amount: number | null, currency: string) => {
-    if (!amount) return 'N/A';
-    return new Intl.NumberFormat('rw-RW', {
-      style: 'currency',
-      currency: currency || 'RWF',
+    if (!amount) return "N/A";
+    return new Intl.NumberFormat("rw-RW", {
+      style: "currency",
+      currency: currency || "RWF",
       minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat('rw-RW', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Intl.DateTimeFormat("rw-RW", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     }).format(new Date(dateString));
   };
 
   const getStatusIcon = () => {
     switch (token.status) {
-      case 'ACTIVE':
+      case "ACTIVE":
         return <CheckCircle className="w-5 h-5 text-green-600" aria-hidden="true" />;
-      case 'REDEEMED':
+      case "REDEEMED":
         return <CheckCircle className="w-5 h-5 text-gray-600" aria-hidden="true" />;
-      case 'EXPIRED':
+      case "EXPIRED":
         return <XCircle className="w-5 h-5 text-red-600" aria-hidden="true" />;
-      case 'CANCELLED':
+      case "CANCELLED":
         return <XCircle className="w-5 h-5 text-gray-600" aria-hidden="true" />;
       default:
         return <Clock className="w-5 h-5 text-gray-600" aria-hidden="true" />;
@@ -52,25 +52,26 @@ export function TokenCard({ token, onRedeem }: TokenCardProps) {
 
   const getStatusColor = () => {
     switch (token.status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'REDEEMED':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'EXPIRED':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'CANCELLED':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "ACTIVE":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "REDEEMED":
+        return "bg-gray-100 text-gray-800 border-gray-200";
+      case "EXPIRED":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "CANCELLED":
+        return "bg-gray-100 text-gray-800 border-gray-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
-  const canRedeem = token.status === 'ACTIVE' && (!token.expires_at || new Date(token.expires_at) > new Date());
+  const canRedeem =
+    token.status === "ACTIVE" && (!token.expires_at || new Date(token.expires_at) > new Date());
 
   return (
     <div
       className={`rounded-lg shadow-md p-6 border ${
-        canRedeem ? 'bg-white border-blue-200' : 'bg-gray-50 border-gray-200'
+        canRedeem ? "bg-white border-blue-200" : "bg-gray-50 border-gray-200"
       }`}
       role="article"
       aria-labelledby={`token-${token.id}`}
@@ -81,13 +82,12 @@ export function TokenCard({ token, onRedeem }: TokenCardProps) {
           <Gift className="w-6 h-6 text-blue-600" aria-hidden="true" />
         </div>
         <div className="flex-1">
-          <h3
-            id={`token-${token.id}`}
-            className="text-lg font-semibold text-gray-900 mb-1"
-          >
+          <h3 id={`token-${token.id}`} className="text-lg font-semibold text-gray-900 mb-1">
             {token.display_name}
           </h3>
-          <div className={`inline-flex items-center gap-1 px-2 py-1 rounded border text-xs font-medium ${getStatusColor()}`}>
+          <div
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded border text-xs font-medium ${getStatusColor()}`}
+          >
             {getStatusIcon()}
             <span>{token.status}</span>
           </div>
@@ -95,9 +95,7 @@ export function TokenCard({ token, onRedeem }: TokenCardProps) {
       </div>
 
       {/* Description */}
-      {token.description && (
-        <p className="text-sm text-gray-700 mb-4">{token.description}</p>
-      )}
+      {token.description && <p className="text-sm text-gray-700 mb-4">{token.description}</p>}
 
       {/* Value */}
       {token.value_amount && (
@@ -113,7 +111,7 @@ export function TokenCard({ token, onRedeem }: TokenCardProps) {
       <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
         <div>
           <p className="text-xs text-gray-600 font-medium mb-1">Token Type</p>
-          <p className="text-gray-900 font-medium">{token.token_type.replace(/_/g, ' ')}</p>
+          <p className="text-gray-900 font-medium">{token.token_type.replace(/_/g, " ")}</p>
         </div>
         <div>
           <p className="text-xs text-gray-600 font-medium mb-1">Issued</p>
@@ -133,7 +131,7 @@ export function TokenCard({ token, onRedeem }: TokenCardProps) {
       </div>
 
       {/* Redemption info */}
-      {token.status === 'REDEEMED' && token.redeemed_at && (
+      {token.status === "REDEEMED" && token.redeemed_at && (
         <div className="mb-4 p-3 bg-gray-100 rounded border border-gray-200">
           <p className="text-xs font-medium text-gray-700 mb-1">Redeemed</p>
           <p className="text-sm text-gray-900">{formatDate(token.redeemed_at)}</p>
@@ -159,7 +157,7 @@ export function TokenCard({ token, onRedeem }: TokenCardProps) {
           className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors min-h-[48px]"
           aria-label={`Redeem ${token.display_name}`}
         >
-          {token.nfc_enabled ? 'Tap to Redeem' : 'Redeem Now'}
+          {token.nfc_enabled ? "Tap to Redeem" : "Redeem Now"}
         </button>
       )}
     </div>
