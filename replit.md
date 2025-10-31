@@ -252,12 +252,20 @@ pnpm run build  # Builds all apps and packages
 
 ## Recent Changes
 
-### 2025-10-31: Migration to Replit
+### 2025-10-31: Navigation Improvements and i18n Fix
+- ✅ Fixed Client PWA navigation - all pages now load correctly
+- ✅ Made group cards clickable to navigate to group detail pages
+- ✅ Added bottom padding (pb-20) to all pages to prevent content from being hidden behind bottom navigation
+- ✅ Simplified i18n middleware to fix 404 routing errors
+- ✅ All 5 main navigation pages functional: Home, Groups, Pay, Statements, Profile
+- ⚠️ Temporarily disabled server-side locale routing (hard-coded to "rw" default locale)
+
+### 2025-10-31: Migration to Replit (Earlier)
 - Cloned repository from GitHub (ikanisa/ibimina)
-- Setting up Replit environment
-- Configuring PostgreSQL database
-- Installing dependencies and building packages
-- Setting up workflows for development
+- Set up Replit environment
+- Configured PostgreSQL database
+- Installed dependencies and built packages
+- Set up workflows for development
 
 ## Next Steps
 
@@ -272,6 +280,36 @@ pnpm run build  # Builds all apps and packages
 9. ⏳ Configure deployment settings
 10. ⏳ Test Android app builds
 
+## Technical Debt
+
+### Client PWA - Internationalization Restructuring
+**Priority**: Medium  
+**Status**: Tracked, not blocking  
+**Issue**: App currently uses simplified i18n middleware that hard-codes locale to "rw" (Kinyarwanda)
+
+**Current State**:
+- Pages exist directly in `app/` directory (e.g., `app/home/page.tsx`)
+- Middleware sets `x-next-intl-locale` header to default locale "rw"
+- Translations load correctly for default locale
+- Locale switching not currently supported
+
+**Target State**:
+- Restructure app with `[locale]` folders: `app/[locale]/home/page.tsx`
+- Re-enable `createIntlMiddleware` for proper server-side locale routing
+- Support locale prefixes: `/en/home`, `/fr/home`, `/home` (default "rw")
+- Enable browser-based locale detection and manual language switching
+
+**Files to Restructure** (when implementing):
+- `apps/client/middleware.ts` - Re-enable createIntlMiddleware
+- `apps/client/app/` - Move all pages into `[locale]` folder
+- `apps/client/i18n.ts` - Already configured correctly
+
+**Testing Requirements**:
+- Verify locale switching works (en, rw, fr)
+- Test deep linking with locale prefixes
+- Ensure security headers (CSP) remain intact
+- Add automated i18n smoke tests
+
 ## Notes
 
 - The project uses pnpm workspaces - always use `pnpm` not `npm`
@@ -279,7 +317,7 @@ pnpm run build  # Builds all apps and packages
 - RLS (Row Level Security) is critical - never bypass in client code
 - Admin app is the primary interface - prioritize this for setup
 - Android apps require Java/Kotlin toolchain (Gradle + Android SDK)
-- All apps configured to run on port 5000 by default (adjust for multiple)
+- All apps configured on different ports: Admin (5000), Client (3000), Website (3001)
 
 ## Support
 
