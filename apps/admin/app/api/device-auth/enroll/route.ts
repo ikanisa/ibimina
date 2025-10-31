@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { supabaseSrv } from "@/lib/supabase/server";
 
 /**
  * Enroll a new device for device-bound authentication
- * 
+ *
  * POST /api/device-auth/enroll
- * 
+ *
  * Body: {
  *   device_id: string (unique identifier from Android),
  *   device_label: string (user-friendly name),
@@ -19,26 +19,27 @@ import { createClient } from "@/lib/supabase/server";
  *   },
  *   integrity_token?: string (Play Integrity API token)
  * }
- * 
+ *
  * Requires authenticated user session.
  */
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    
+    const supabase = supabaseSrv();
+
     // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
-    
+
     const body = await req.json();
-    const { device_id, device_label, public_key, key_algorithm, device_info, integrity_token } = body;
-    
+    const { device_id, device_label, public_key, key_algorithm, device_info, integrity_token } =
+      body;
+
     // Validate required fields
     if (!device_id || !public_key || !key_algorithm) {
       return NextResponse.json(
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Validate algorithm
     if (!["ES256", "Ed25519"].includes(key_algorithm)) {
       return NextResponse.json(
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Validate public key format (basic check)
     if (!public_key.includes("BEGIN PUBLIC KEY")) {
       return NextResponse.json(
@@ -62,18 +63,18 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Verify Play Integrity token if provided
-    let integrityStatus = null;
-    let integrityVerdict = null;
-    
+    let integrityStatus: any = null;
+    let integrityVerdict: string | null = null;
+
     if (integrity_token) {
       integrityStatus = await verifyPlayIntegrity(integrity_token);
-      integrityVerdict = integrityStatus.meets_device_integrity 
-        ? "MEETS_DEVICE_INTEGRITY" 
+      integrityVerdict = integrityStatus?.meets_device_integrity
+        ? "MEETS_DEVICE_INTEGRITY"
         : "FAILED";
     }
-    
+
     // Check if device already exists for this user
     const { data: existingDevice } = await supabase
       .from("device_auth_keys")
@@ -81,11 +82,11 @@ export async function POST(req: NextRequest) {
       .eq("user_id", user.id)
       .eq("device_id", device_id)
       .single();
-    
+
     if (existingDevice && !existingDevice.revoked_at) {
       // Device already enrolled and not revoked
       return NextResponse.json(
-        { 
+        {
           error: "Device already enrolled",
           device_id: existingDevice.id,
           device_label: existingDevice.device_label,
@@ -93,10 +94,10 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       );
     }
-    
+
     // If device was previously revoked, we'll create a new entry
     // (Old entry remains for audit trail)
-    
+
     // Create new device key entry
     const { data: deviceKey, error: insertError } = await supabase
       .from("device_auth_keys")
@@ -113,15 +114,12 @@ export async function POST(req: NextRequest) {
       })
       .select()
       .single();
-    
+
     if (insertError) {
       console.error("Failed to enroll device:", insertError);
-      return NextResponse.json(
-        { error: "Failed to enroll device" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to enroll device" }, { status: 500 });
     }
-    
+
     // Log audit event
     await supabase.from("device_auth_audit").insert({
       event_type: "DEVICE_ENROLLED",
@@ -135,21 +133,21 @@ export async function POST(req: NextRequest) {
         ip_address: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown",
       },
     });
-    
+
     if (integrityStatus) {
       await supabase.from("device_auth_audit").insert({
-        event_type: integrityStatus.meets_device_integrity 
-          ? "INTEGRITY_CHECK_PASSED" 
+        event_type: integrityStatus?.meets_device_integrity
+          ? "INTEGRITY_CHECK_PASSED"
           : "INTEGRITY_CHECK_FAILED",
         user_id: user.id,
         device_key_id: deviceKey.id,
-        success: integrityStatus.meets_device_integrity,
+        success: integrityStatus?.meets_device_integrity || false,
         metadata: {
           integrity_status: integrityStatus,
         },
       });
     }
-    
+
     return NextResponse.json({
       success: true,
       device: {
@@ -162,29 +160,25 @@ export async function POST(req: NextRequest) {
       },
       message: "Device enrolled successfully",
     });
-    
   } catch (error) {
     console.error("Enrollment error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
 /**
  * Verify Play Integrity API token
- * 
+ *
  * In production, this should call Google's Play Integrity API
  * For now, we'll return a mock result
  */
 async function verifyPlayIntegrity(token: string): Promise<any> {
   // TODO: Implement actual Play Integrity verification
   // See: https://developer.android.com/google/play/integrity/verdict
-  
+
   // Mock implementation for development
   console.log("Mock Play Integrity verification for token:", token);
-  
+
   return {
     meets_device_integrity: true,
     meets_basic_integrity: true,
