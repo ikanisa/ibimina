@@ -116,10 +116,16 @@ class DeviceAuthPlugin : Plugin() {
     @PluginMethod
     fun signChallenge(call: PluginCall) {
         val challengeJson = call.getString("challenge")
+        val userId = call.getString("userId")
         val origin = call.getString("origin")
 
         if (challengeJson.isNullOrBlank()) {
             call.reject("challenge is required")
+            return
+        }
+
+        if (userId.isNullOrBlank()) {
+            call.reject("userId is required")
             return
         }
 
@@ -155,7 +161,7 @@ class DeviceAuthPlugin : Plugin() {
             activity = activity,
             origin = origin,
             onSuccess = {
-                val signingResult = challengeSigner.signChallenge(challengeJson)
+                val signingResult = challengeSigner.signChallenge(challengeJson, userId)
                 
                 when (signingResult) {
                     is ChallengeSigner.SigningResult.Success -> {

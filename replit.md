@@ -107,13 +107,18 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
 - Authenticate with fingerprint/face
 - Instantly logged in with zero phishing risk!
 
+**Critical Fix (2025-10-31 Evening)**:
+- ✅ **Signed Message Format**: Fixed Android to include all required fields (ver, user_id, scope, alg, ts) - backend verification now works correctly
+- ✅ **API Consistency**: Updated ChallengeSigner, DeviceAuthPlugin, and TypeScript bridge to match backend expectations
+
 **Files:**
 - `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/auth/DeviceKeyManager.kt` (NEW)
 - `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/auth/BiometricAuthHelper.kt` (NEW)
-- `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/auth/ChallengeSigner.kt` (NEW)
-- `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/DeviceAuthPlugin.kt` (NEW)
-- `apps/admin/lib/native/device-auth.ts` (NEW)
+- `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/auth/ChallengeSigner.kt` (NEW + UPDATED)
+- `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/DeviceAuthPlugin.kt` (NEW + UPDATED)
+- `apps/admin/lib/native/device-auth.ts` (NEW + UPDATED)
 - `apps/admin/DEVICE_AUTH_ANDROID_IMPLEMENTATION.md` (NEW)
+- `DEVICE_AUTH_MFA_CROSSCHECK_COMPLETE.md` (NEW - comprehensive verification)
 
 ### 2025-10-31: Real-Time SMS Payment Processing - COMPLETE
 

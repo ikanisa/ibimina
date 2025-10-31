@@ -72,25 +72,27 @@ class ChallengeSigner(
         }
     }
 
-    fun createCanonicalMessage(challenge: JSONObject): String {
+    fun createCanonicalMessage(challenge: JSONObject, userId: String): String {
         val sessionId = challenge.getString("session_id")
         val nonce = challenge.getString("nonce")
         val origin = challenge.getString("origin")
         val exp = challenge.getString("exp")
 
         val canonical = JSONObject()
-        canonical.put("session_id", sessionId)
-        canonical.put("nonce", nonce)
-        canonical.put("origin", origin)
-        canonical.put("exp", exp)
-
+        canonical.put("ver", 1)
+        canonical.put("user_id", userId)
         canonical.put("device_id", keyManager.getDeviceId())
-        canonical.put("timestamp", ISO_DATE_FORMAT.format(Date()))
+        canonical.put("session_id", sessionId)
+        canonical.put("origin", origin)
+        canonical.put("nonce", nonce)
+        canonical.put("ts", System.currentTimeMillis() / 1000) // Unix timestamp in seconds
+        canonical.put("scope", JSONArray().put("login"))
+        canonical.put("alg", "ES256")
 
         return canonical.toString()
     }
 
-    fun signChallenge(challengeJson: String): SigningResult {
+    fun signChallenge(challengeJson: String, userId: String): SigningResult {
         val validationResult = validateChallenge(challengeJson)
         
         when (validationResult) {
@@ -107,7 +109,7 @@ class ChallengeSigner(
 
         return try {
             val challenge = JSONObject(challengeJson)
-            val canonicalMessage = createCanonicalMessage(challenge)
+            val canonicalMessage = createCanonicalMessage(challenge, userId)
 
             val signatureResult = keyManager.signChallenge(canonicalMessage)
             

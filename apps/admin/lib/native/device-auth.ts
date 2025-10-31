@@ -56,6 +56,7 @@ export interface DeviceAuthPlugin {
    */
   signChallenge(options: {
     challenge: string;
+    userId: string;
     origin: string;
   }): Promise<SigningResult>;
 
@@ -229,6 +230,7 @@ export const DeviceAuth = {
    */
   async signChallenge(
     challengeJson: string,
+    userId: string,
     origin: string
   ): Promise<SigningResult> {
     if (!this.isAvailable()) {
@@ -237,6 +239,7 @@ export const DeviceAuth = {
 
     return DeviceAuthNative.signChallenge({
       challenge: challengeJson,
+      userId,
       origin,
     });
   },
