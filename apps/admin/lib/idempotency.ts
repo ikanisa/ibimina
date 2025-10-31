@@ -79,66 +79,185 @@ export async function withIdempotency<T>({
   const supabase = await createSupabaseServerClient();
   const requestHash = requestPayload ? hashRequest(requestPayload) : "";
   const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000).toISOString();
+  const pollIntervalMs = 200;
+  const maxAttempts = 50; // ~10 seconds total wait for concurrent executions
+  let lockAcquired = false;
 
   try {
-    // Check for existing idempotency record
-    const { data: existing, error: checkError } = (await supabase
-      .from("idempotency" as any)
-      .select("response, expires_at, request_hash")
-      .eq("key", key)
-      .eq("user_id", userId)
-      .maybeSingle()) as { data: IdempotencyRecord | null; error: any };
+    const tryInsertLock = async () => {
+      const { data, error } = await supabase
+        .from("idempotency")
+        .insert(
+          {
+            key,
+            user_id: userId,
+            request_hash: requestHash,
+            response: null,
+            expires_at: expiresAt,
+          },
+          { returning: "representation" }
+        )
+        .select("request_hash")
+        .maybeSingle();
 
-    if (!checkError && existing) {
-      // Verify request hash matches to ensure same operation
-      if (existing.request_hash !== requestHash) {
+      if (!error && data) {
+        return { status: "acquired" as const };
+      }
+
+      if (error) {
+        if (error.code === "23505" || error.details?.includes("duplicate key")) {
+          return { status: "conflict" as const };
+        }
+
+        throw error;
+      }
+
+      return { status: "conflict" as const };
+    };
+
+    const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+    const handleCachedResponse = async () => {
+      const { data: existing, error: fetchError } = await supabase
+        .from("idempotency")
+        .select("response, expires_at, request_hash")
+        .eq("key", key)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      if (!existing) {
+        return { status: "retry" as const };
+      }
+
+      const isExpired = new Date(existing.expires_at) < new Date();
+      const hashMatches = existing.request_hash === requestHash;
+      const hasResponse = existing.response !== null;
+
+      if (hashMatches && hasResponse && !isExpired) {
+        return {
+          status: "cached" as const,
+          data: existing.response as T,
+        };
+      }
+
+      if (hashMatches && !hasResponse && !isExpired) {
+        return { status: "wait" as const };
+      }
+
+      if (!hashMatches) {
         logError("idempotency_hash_mismatch", {
           key,
           userId,
           expected: requestHash,
           actual: existing.request_hash,
         });
-        // Hash mismatch - different operation with same key
-        // Proceeding to execute new operation will overwrite
       }
 
-      // Check if the record has expired
-      const isExpired = new Date(existing.expires_at) < new Date();
+      if (isExpired || !hashMatches) {
+        const { data: updated, error: updateError } = await supabase
+          .from("idempotency")
+          .update({
+            request_hash: requestHash,
+            expires_at: expiresAt,
+            response: null,
+          })
+          .eq("key", key)
+          .eq("user_id", userId)
+          .eq("request_hash", existing.request_hash)
+          .select("request_hash")
+          .maybeSingle();
 
-      if (!isExpired && existing.request_hash === requestHash) {
-        // Return cached result
-        return {
-          fromCache: true,
-          data: existing.response as T,
-        };
+        if (updateError) {
+          throw updateError;
+        }
+
+        if (updated) {
+          return { status: "acquired" as const };
+        }
       }
 
-      // Record expired or hash mismatch, will execute and update
+      return { status: "wait" as const };
+    };
+
+    const initialLock = await tryInsertLock();
+
+    if (initialLock.status === "acquired") {
+      lockAcquired = true;
+    } else {
+      let attempts = 0;
+
+      while (attempts < maxAttempts) {
+        const cachedResult = await handleCachedResponse();
+
+        if (cachedResult.status === "cached") {
+          return {
+            fromCache: true,
+            data: cachedResult.data,
+          };
+        }
+
+        if (cachedResult.status === "acquired") {
+          lockAcquired = true;
+          break;
+        }
+
+        attempts += 1;
+
+        if (cachedResult.status === "retry") {
+          const retryLock = await tryInsertLock();
+
+          if (retryLock.status === "acquired") {
+            lockAcquired = true;
+            break;
+          }
+
+          continue;
+        }
+
+        await wait(pollIntervalMs);
+      }
     }
 
-    // Execute the operation
+    if (!lockAcquired) {
+      throw new Error("Failed to acquire idempotency lock");
+    }
+
     const result = await operation();
 
-    // Store the result
-    const { error: insertError } = await supabase.from("idempotency" as any).upsert(
-      {
-        key,
-        user_id: userId,
-        request_hash: requestHash,
-        response: result as unknown as Record<string, unknown>,
+    const { error: storeError } = await supabase
+      .from("idempotency")
+      .update({
+        response: result as unknown,
         expires_at: expiresAt,
-      },
-      {
-        onConflict: "user_id,key",
-      }
-    );
+      })
+      .eq("key", key)
+      .eq("user_id", userId)
+      .eq("request_hash", requestHash);
 
-    if (insertError) {
+    if (storeError) {
       logError("idempotency_store_failed", {
         key,
         userId,
-        error: insertError,
+        error: storeError,
       });
+      const { error: releaseError } = await supabase
+        .from("idempotency")
+        .delete()
+        .eq("key", key)
+        .eq("user_id", userId)
+        .eq("request_hash", requestHash);
+
+      if (releaseError) {
+        logError("idempotency_release_failed", {
+          key,
+          userId,
+          error: releaseError,
+        });
+      }
       // Continue anyway - the operation succeeded
     }
 
@@ -152,6 +271,22 @@ export async function withIdempotency<T>({
       userId,
       error,
     });
+    if (lockAcquired) {
+      const { error: cleanupError } = await supabase
+        .from("idempotency")
+        .delete()
+        .eq("key", key)
+        .eq("user_id", userId)
+        .eq("request_hash", requestHash);
+
+      if (cleanupError) {
+        logError("idempotency_cleanup_failed", {
+          key,
+          userId,
+          error: cleanupError,
+        });
+      }
+    }
     throw error;
   }
 }
