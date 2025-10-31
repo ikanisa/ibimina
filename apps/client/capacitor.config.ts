@@ -14,30 +14,22 @@ import type { CapacitorConfig } from "@capacitor/cli";
  */
 
 const config: CapacitorConfig = {
-  appId: "rw.gov.ikanisa.ibimina.client",
-  appName: "Ibimina Client",
-  webDir: "out",
+  appId: "rw.ibimina.client",
+  appName: "Ibimina",
+  webDir: ".next-static",
   server: {
     androidScheme: "https",
-    cleartext: true,
-    // For production builds, set CAPACITOR_SERVER_URL
-    // For development, defaults to localhost
-    ...(process.env.CAPACITOR_SERVER_URL && {
-      url: process.env.CAPACITOR_SERVER_URL,
-    }),
+    url: "https://4095a3b5-fbd8-407c-bbf4-c6a12f21341e-00-2ss8fo7up7zir.kirk.replit.dev",
   },
   android: {
-    // Allow mixed content for development
     allowMixedContent: false,
-    // Background color for splash screen
-    backgroundColor: "#0b1020",
-    // Enable web view debugging in debug builds
+    backgroundColor: "#0066FF",
     webContentsDebuggingEnabled: true,
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: "#0b1020",
+      backgroundColor: "#0066FF",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
       showSpinner: true,
@@ -59,8 +51,8 @@ const config: CapacitorConfig = {
       saveToGallery: false,
     },
     StatusBar: {
-      style: "dark",
-      backgroundColor: "#0b1020",
+      style: "light",
+      backgroundColor: "#0066FF",
     },
     Keyboard: {
       resize: "body",
