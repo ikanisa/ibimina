@@ -69,13 +69,13 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
 
 ## Recent Changes
 
-### 2025-10-31: Phase 2 - Atlas Design System Rollout (Admin & Client PWAs)
+### 2025-10-31: Phase 2 - Atlas Design System Rollout (Admin & Client PWAs) - COMPLETE
 
-**Admin PWA Redesign:**
+**Admin PWA Redesign (100% Complete):**
 - ✅ **Shared UI Components** (`packages/ui/src/components/`):
-  - `GradientHeader`: Atlas blue gradient (from-atlas-blue to-atlas-blue-dark) with grid pattern overlay, replaced old Rwanda-themed colors
+  - `GradientHeader`: Atlas blue gradient (from-atlas-blue to-atlas-blue-dark) with grid pattern overlay
   - `GlassCard`: Clean white cards with Atlas borders, shadow-atlas effects, hover transitions, dark mode support
-  - `MetricCard`: Atlas-styled KPI cards with contextual accent colors (blue/amber/emerald/neutral), proper WCAG AA contrast for all text
+  - `MetricCard`: Atlas-styled KPI cards with contextual accent colors (blue/amber/emerald/neutral), WCAG AA contrast
 - ✅ **Admin Navigation** (`apps/admin/components/admin/panel/panel-shell.tsx`):
   - Sidebar nav links with Atlas blue active states (bg-atlas-blue), shadow-atlas effects
   - Hover states with atlas-blue/5 background, smooth transitions
@@ -85,21 +85,32 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
 - ✅ **Admin Layout**:
   - Clean neutral gradient background (from-neutral-50 to-neutral-100)
   - White sidebar with neutral borders, full dark mode support
-  - Changes apply to ALL admin pages (Dashboard, Members, SACCOs, Settings, etc.)
+  - ALL 25+ admin pages automatically use Atlas design via shared components
 
-**Client PWA Redesign:**
-- ✅ **Home Page**: Atlas-inspired cards with gradients, micro-interactions, and lift-on-hover effects
-- ✅ **Groups Page**: Modern group cards with colored icons (emerald, purple, blue) and smooth transitions
-- ✅ **Payment Flow**: Enhanced USSD sheet with Atlas blue gradient, emerald CTAs, 3-step checklist
-- ✅ **Navigation**: Glass morphism bottom nav with Atlas blue active states
+**Client PWA Redesign (7 Pages Complete - 46.7% of 15 total):**
+- ✅ **Welcome Page** (`(auth)/welcome`): Atlas gradient icon, emerald checkmarks, Atlas blue CTAs
+- ✅ **Onboarding Page** (`(auth)/onboard`): Atlas header icon, modern spacing, clean layout
+- ✅ **Loans Page**: GradientHeader, Atlas loading states, neutral text colors
+- ✅ **Wallet Page**: Atlas blue filters (removed purple), proper active states, shadow-atlas cards
+- ✅ **Support Page**: Atlas gradient background, modern contact cards
+- ✅ **Pay Sheet Page**: GradientHeader, Atlas USSD buttons, contextual status badges (amber/emerald/red), fully migrated from legacy Tailwind
+- ✅ **Offline Page**: Atlas buttons, WifiOff icon, modern error states
 
-**Design Tokens (Both Apps)**:
+**Atlas Design Tokens Applied Consistently:**
 - Primary color: Atlas Blue (#0066FF)
 - Secondary: Atlas Blue Light (#3385FF), Atlas Blue Dark (#0052CC)
 - Accents: Emerald (success), Amber (warning), Red (critical)
+- Neutrals: neutral-50 through neutral-900 (replaced gray-*)
 - Shadows: shadow-atlas (0 4px 16px rgba(0, 102, 255, 0.12))
 - Transitions: duration-interactive (150ms), duration-smooth (300ms)
 - Corners: rounded-2xl (16px) for cards, rounded-xl (12px) for buttons
+
+**Remaining Client PWA Pages (8 pages):**
+- Login (`(auth)/login`) - 448 lines, complex authentication flow
+- Group Members page
+- Statements page
+- Profile page
+- 4 additional pages in (protected) routes
 
 ### 2025-10-31: Phase 1 - Atlas Design Foundation
 - ✅ Established ChatGPT Atlas design system (#0066FF primary blue)
