@@ -63,7 +63,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-inset-bottom"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-gray-300 shadow-lg safe-area-inset-bottom"
       aria-label="Main navigation"
     >
       <div className="flex justify-around items-center h-16 max-w-screen-xl mx-auto px-2">
@@ -81,15 +81,15 @@ export function BottomNav() {
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                 ${
                   isActive
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    ? "text-blue-600 bg-blue-100 font-bold"
+                    : "text-black hover:text-blue-600 hover:bg-blue-50"
                 }
               `}
               aria-label={ariaLabel}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className="w-6 h-6 mb-1" aria-hidden="true" />
-              <span className="text-xs font-medium">{label}</span>
+              <Icon className="w-7 h-7 mb-0.5 stroke-[2.5]" aria-hidden="true" />
+              <span className="text-[11px] font-semibold">{label}</span>
             </Link>
           );
         })}
