@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import path from "path";
+import { HSTS_HEADER, createSecureHeaders } from "@ibimina/lib";
 
 /**
  * Next.js configuration for SACCO+ Client App
@@ -33,12 +33,6 @@ try {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  outputFileTracingRoot: path.join(__dirname, "../../"),
-
-  // Ignore ESLint errors during build (known issues in client app)
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 
   // Enable optimized image handling
   images: {
@@ -49,10 +43,13 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    const securityHeaders = createSecureHeaders();
+    const dnsPrefetchHeader = { key: "X-DNS-Prefetch-Control", value: "on" } as const;
+
     const baseHeaders = [
-      { key: "X-DNS-Prefetch-Control", value: "on" },
-      { key: "X-Frame-Options", value: "SAMEORIGIN" },
-      { key: "X-Content-Type-Options", value: "nosniff" },
+      ...securityHeaders,
+      dnsPrefetchHeader,
+      ...(process.env.NODE_ENV === "production" ? [HSTS_HEADER] : []),
     ];
 
     const immutableAssetHeaders = [

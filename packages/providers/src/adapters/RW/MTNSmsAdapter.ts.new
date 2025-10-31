@@ -1,0 +1,24 @@
+$(sed '136,155d' packages/providers/src/adapters/RW/MTNSmsAdapter.ts)
+  /**
+   * Extract transaction ID from SMS
+   */
+  private extractTxnId(text: string): string | undefined {
+    // Pattern: "Transaction ID: MP240123.1234.A12345" or "TxnID: ABC123"
+    // Use greedy match and clean trailing period
+    const patterns = [
+      /transaction\s+id[:\s]+([A-Z0-9.]+)/i,
+      /txn\s*id[:\s]+([A-Z0-9.]+)/i,
+      /ref[:\s]+([A-Z0-9.]+)/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match && match[1].length >= 6) {
+        // Remove trailing period if present (e.g., "ID.  " -> "ID")
+        return match[1].replace(/\.$/, '');
+      }
+    }
+
+    return undefined;
+  }
+$(sed '1,155d' packages/providers/src/adapters/RW/MTNSmsAdapter.ts)

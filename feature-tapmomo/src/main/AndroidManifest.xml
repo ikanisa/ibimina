@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- NFC permissions -->
+    <uses-permission android:name="android.permission.NFC" />
+    
+    <!-- Phone/USSD permissions -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    
+    <!-- Network permissions for Supabase -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Camera for QR code scanning (optional fallback) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- NFC feature (not required to allow installation on non-NFC devices) -->
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="false" />
+    
+    <uses-feature
+        android:name="android.hardware.nfc.hce"
+        android:required="false" />
+
+    <application>
+        <!-- HCE Service for NFC payee mode -->
+        <service
+            android:name=".nfc.PayeeCardService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE"
+            tools:node="merge">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/tapmomo_apdu_service" />
+        </service>
+
+        <!-- Activities (not exported, host app can create aliases if needed) -->
+        <activity
+            android:name=".ui.TapMoMoGetPaidActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TapMoMo"
+            android:screenOrientation="portrait"
+            tools:node="merge" />
+
+        <activity
+            android:name=".ui.TapMoMoPayActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TapMoMo"
+            android:screenOrientation="portrait"
+            tools:node="merge" />
+    </application>
+
+</manifest>
