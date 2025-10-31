@@ -116,12 +116,17 @@ The website is configured for deployment to Cloudflare Pages:
 2. Deploy the `out/` directory to Cloudflare Pages using the Cloudflare
    dashboard or CLI.
 
-Alternatively, use the build script for Cloudflare:
+Using Cloudflare CLI (wrangler):
 
 ```bash
-pnpm --filter @ibimina/website build:cloudflare
-pnpm --filter @ibimina/website deploy:cloudflare
+cd apps/website
+wrangler pages deploy out
 ```
+
+Or connect via Cloudflare dashboard:
+
+- Build command: `pnpm --filter @ibimina/website build`
+- Build output directory: `out`
 
 ## SEO Configuration
 

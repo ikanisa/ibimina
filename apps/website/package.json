@@ -5,9 +5,7 @@
   "scripts": {
     "dev": "next dev --port 3002",
     "build": "next build",
-    "build:cloudflare": "CLOUDFLARE_BUILD=1 npx @cloudflare/next-on-pages",
-    "preview:cloudflare": "wrangler pages dev .vercel/output/static --port 3002",
-    "deploy:cloudflare": "wrangler pages deploy .vercel/output/static",
+    "preview": "python3 -m http.server 3002 --directory out",
     "start": "next start --port 3002",
     "lint": "pnpm exec eslint --max-warnings=0 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
