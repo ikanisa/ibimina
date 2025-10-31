@@ -238,6 +238,20 @@ export async function withIdempotency<T>({
         userId,
         error: storeError,
       });
+      const { error: releaseError } = await supabase
+        .from("idempotency")
+        .delete()
+        .eq("key", key)
+        .eq("user_id", userId)
+        .eq("request_hash", requestHash);
+
+      if (releaseError) {
+        logError("idempotency_release_failed", {
+          key,
+          userId,
+          error: releaseError,
+        });
+      }
       // Continue anyway - the operation succeeded
     }
 
