@@ -4,3 +4,37 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
+packages = ["postgresql"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "admin-app"
+
+[[workflows.workflow]]
+name = "admin-app"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd apps/admin && npx next dev -p 5000 -H 0.0.0.0"
+waitForPort = 5000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["bash", "-c", "cd apps/admin && npx next start -p 5000 -H 0.0.0.0"]
+build = ["bash", "-c", "pnpm install && pnpm --filter @ibimina/admin run build"]
