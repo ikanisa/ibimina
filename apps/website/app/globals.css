@@ -2,26 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Rwanda liquid-glass helpers */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 255, 255, 255;
-  --background-end-rgb: 255, 255, 255;
+  --rw-blue: #0033ff;
+  --rw-azure: #00a1de;
+  --rw-yellow: #fad201;
+  --rw-green: #20603d;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 11, 16, 32;
-    --background-end-rgb: 11, 16, 32;
-  }
+.bg-rwanda {
+  background: linear-gradient(135deg, var(--rw-blue), var(--rw-azure), var(--rw-yellow), var(--rw-green));
 }
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+.glass {
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 24px;
 }
