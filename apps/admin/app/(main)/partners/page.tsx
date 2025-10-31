@@ -32,7 +32,10 @@ export default async function PartnersPage() {
             </thead>
             <tbody>
               {orgs?.map((o: any) => (
-                <tr key={o.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr
+                  key={o.id}
+                  className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
                   <td className="px-4 py-3">{o.name}</td>
                   <td className="px-4 py-3">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -43,8 +46,8 @@ export default async function PartnersPage() {
                     {o.countries?.name} ({o.countries?.iso2})
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link 
-                      href={`/partners/${o.id}`} 
+                    <Link
+                      href={`/partners/${o.id}`}
                       className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
                     >
                       Configure
@@ -55,11 +58,10 @@ export default async function PartnersPage() {
             </tbody>
           </table>
 
-          {!orgs || orgs.length === 0 && (
-            <div className="p-8 text-center text-gray-500">
-              No partner organizations found.
-            </div>
-          )}
+          {!orgs ||
+            (orgs.length === 0 && (
+              <div className="p-8 text-center text-gray-500">No partner organizations found.</div>
+            ))}
         </div>
       )}
     </div>

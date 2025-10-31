@@ -1,19 +1,19 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-export default async function PartnerConfigPage({ params }: { params: { id: string }}) {
+export default async function PartnerConfigPage({ params }: { params: { id: string } }) {
   const supa = createSupabaseAdminClient();
   const { data: org } = await supa
     .from("organizations")
     .select("*, countries(name, iso2)")
     .eq("id", params.id)
     .maybeSingle();
-  
+
   const { data: cfg } = await supa
     .from("partner_config")
     .select("*")
     .eq("org_id", params.id)
     .maybeSingle();
-  
+
   const { data: telcos } = await supa
     .from("telco_providers")
     .select("id, name")
@@ -61,7 +61,9 @@ export default async function PartnerConfigPage({ params }: { params: { id: stri
             </div>
             {org.district_code && (
               <div>
-                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">District Code</dt>
+                <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  District Code
+                </dt>
                 <dd className="mt-1">{org.district_code}</dd>
               </div>
             )}
@@ -74,8 +76,8 @@ export default async function PartnerConfigPage({ params }: { params: { id: stri
             <h2 className="text-lg font-semibold mb-4">Available Telco Providers</h2>
             <div className="flex flex-wrap gap-2">
               {telcos.map((telco: any) => (
-                <span 
-                  key={telco.id} 
+                <span
+                  key={telco.id}
                   className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm rounded-full"
                 >
                   {telco.name}
@@ -92,23 +94,32 @@ export default async function PartnerConfigPage({ params }: { params: { id: stri
             <dl className="space-y-4">
               {cfg.merchant_code && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Merchant Code</dt>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Merchant Code
+                  </dt>
                   <dd className="mt-1 font-mono text-sm">{cfg.merchant_code}</dd>
                 </div>
               )}
               {cfg.reference_prefix && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Reference Prefix</dt>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Reference Prefix
+                  </dt>
                   <dd className="mt-1 font-mono text-sm">{cfg.reference_prefix}</dd>
                 </div>
               )}
               {cfg.enabled_features && cfg.enabled_features.length > 0 && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Enabled Features</dt>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Enabled Features
+                  </dt>
                   <dd className="mt-1">
                     <div className="flex flex-wrap gap-2">
                       {cfg.enabled_features.map((feature: string) => (
-                        <span key={feature} className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm rounded">
+                        <span
+                          key={feature}
+                          className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm rounded"
+                        >
                           {feature}
                         </span>
                       ))}
@@ -118,11 +129,16 @@ export default async function PartnerConfigPage({ params }: { params: { id: stri
               )}
               {cfg.language_pack && cfg.language_pack.length > 0 && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Language Pack</dt>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Language Pack
+                  </dt>
                   <dd className="mt-1">
                     <div className="flex flex-wrap gap-2">
                       {cfg.language_pack.map((lang: string) => (
-                        <span key={lang} className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-sm rounded">
+                        <span
+                          key={lang}
+                          className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-sm rounded"
+                        >
                           {lang}
                         </span>
                       ))}
@@ -132,7 +148,9 @@ export default async function PartnerConfigPage({ params }: { params: { id: stri
               )}
               {cfg.contact && (
                 <div>
-                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Contact Information</dt>
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Contact Information
+                  </dt>
                   <dd className="mt-1 space-y-1 text-sm">
                     {cfg.contact.phone && <div>Phone: {cfg.contact.phone}</div>}
                     {cfg.contact.email && <div>Email: {cfg.contact.email}</div>}
@@ -151,7 +169,7 @@ export default async function PartnerConfigPage({ params }: { params: { id: stri
         {/* TODO: Add form for editing configuration */}
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
           <p className="text-sm text-yellow-800 dark:text-yellow-200">
-            <strong>Note:</strong> Configuration editing UI will be implemented in a future update. 
+            <strong>Note:</strong> Configuration editing UI will be implemented in a future update.
             For now, configurations can be managed directly in the database.
           </p>
         </div>
