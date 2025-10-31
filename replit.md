@@ -111,13 +111,28 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
 - ✅ **Signed Message Format**: Fixed Android to include all required fields (ver, user_id, scope, alg, ts) - backend verification now works correctly
 - ✅ **API Consistency**: Updated ChallengeSigner, DeviceAuthPlugin, and TypeScript bridge to match backend expectations
 
+**QR Login UI (2025-10-31 Late Evening)**:
+- ✅ **QR Login Component**: Built React component with QR generation, real-time polling, countdown timer, error handling
+- ✅ **Backend Polling Endpoint**: Created `/api/device-auth/verify-status` for real-time verification checks
+- ✅ **Login Page Integration**: Added "Sign in with Biometric Authentication" button to main login
+- ✅ **Device Login Route**: New `/device-login` page for passwordless QR login
+- ✅ **Atlas Design**: Consistent styling with primary blue, neutral colors, rounded cards, shadows
+- ✅ **Security Features Display**: Shows phishing resistance, replay prevention, zero password exposure
+- ✅ **User Experience**: Auto-generate QR on load, 2s polling, 60s expiry, retry button, success redirect
+
 **Files:**
 - `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/auth/DeviceKeyManager.kt` (NEW)
 - `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/auth/BiometricAuthHelper.kt` (NEW)
 - `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/auth/ChallengeSigner.kt` (NEW + UPDATED)
 - `apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/DeviceAuthPlugin.kt` (NEW + UPDATED)
 - `apps/admin/lib/native/device-auth.ts` (NEW + UPDATED)
+- `apps/admin/components/auth/qr-login.tsx` (NEW - main QR component)
+- `apps/admin/components/auth/device-login-page.tsx` (NEW - page wrapper)
+- `apps/admin/app/(auth)/device-login/page.tsx` (NEW - route)
+- `apps/admin/app/api/device-auth/verify-status/route.ts` (NEW - polling endpoint)
+- `apps/admin/app/(auth)/login/page.tsx` (UPDATED - added biometric button)
 - `apps/admin/DEVICE_AUTH_ANDROID_IMPLEMENTATION.md` (NEW)
+- `apps/admin/QR_LOGIN_IMPLEMENTATION.md` (NEW - comprehensive UI guide)
 - `DEVICE_AUTH_MFA_CROSSCHECK_COMPLETE.md` (NEW - comprehensive verification)
 
 ### 2025-10-31: Real-Time SMS Payment Processing - COMPLETE

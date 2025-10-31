@@ -54,13 +54,13 @@ outputType = "webview"
 name = "admin-app"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd apps/admin && npx next dev -p 3000 -H 0.0.0.0"
-waitForPort = 3000
-
-[workflows.workflow.metadata]
-outputType = "console"
+args = "cd apps/admin && npx next dev -p 5000 -H 0.0.0.0"
+waitForPort = 5000
 
 [[ports]]
 localPort = 3000
@@ -69,6 +69,10 @@ externalPort = 3000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 41423
+externalPort = 3001
 
 [deployment]
 deploymentTarget = "autoscale"
