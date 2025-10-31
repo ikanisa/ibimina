@@ -36,7 +36,7 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
 
 **Mobile Apps:**
 1.  **Staff Mobile App**: Android app built with Capacitor from Admin PWA. Package: `rw.ibimina.staff`. Fully configured at `apps/admin/android/` with 6 native plugins (camera, push notifications, haptics, preferences, device, app lifecycle).
-2.  **Client Mobile App**: Android app built with Capacitor from Client PWA. Package: `rw.ibimina.client`. Member-facing mobile banking experience.
+2.  **Client Mobile App**: Android app built with Capacitor from Client PWA. Package: `rw.ibimina.client`. Fully configured at `apps/client/android/` with 16 native plugins (camera, push notifications, haptics, biometrics, SMS, location, barcode scanner, filesystem, geolocation, keyboard, network, share, splash screen, status bar, toast, foreground service). Member-facing mobile banking experience with WhatsApp OTP, MoMo auto-sync, and offline-first design.
 
 **Key Features Implemented:**
 -   Multi-factor Authentication (MFA) with passkeys
@@ -72,6 +72,54 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
 -   **Workbox**: Used for PWA offline capabilities.
 
 ## Recent Changes
+
+### 2025-10-31: Client Mobile App (Android) Implementation - COMPLETE
+
+**Client Android App Setup:**
+- ✅ **Capacitor Configuration**: Fully configured Android project at `apps/client/android/`
+- ✅ **Native Plugins**: Installed 16 Capacitor plugins including biometrics, SMS, location, barcode scanner, foreground service
+- ✅ **App Identity**: Package ID `rw.ibimina.client`, App Name "Ibimina"
+- ✅ **Build Configuration**: Gradle wrapper, Android manifest, splash screen, app icons
+- ✅ **Server Connection**: Configured to connect to Replit dev server (customizable for production)
+- ✅ **Atlas Branding**: Splash screen and status bar with Atlas Blue (#0066FF) theme
+- ✅ **Documentation**: Created comprehensive build guides:
+  - `apps/client/BUILD_APK_INSTRUCTIONS.md` - Local build instructions
+  - `apps/client/CLIENT_MOBILE_APP_README.md` - Complete app documentation
+  - `.github/workflows/build-android-client-apk.yml` - CI/CD build automation
+
+**Advanced Features:**
+- 🔐 **Biometric Authentication**: Fingerprint & face unlock with AndroidX Biometric library
+- 📱 **SMS Integration**: OTP reading & MoMo transaction parsing
+- 📞 **USSD Dialing**: Direct mobile money access (*182#, *333#)
+- 📍 **Location Services**: Branch finder with Google Maps & fraud detection
+- 📡 **Background Sync**: Foreground service for offline-first operation
+- 🔔 **Notification Listener**: Auto-sync MoMo transactions from SMS
+- 📸 **Advanced Camera**: CameraX with lifecycle management
+- 🔍 **Barcode Scanner**: QR code scanning for payments
+- 💼 **Work Manager**: Scheduled background tasks
+- 🗺️ **Google Play Services**: Maps & location integration
+
+**Build Options Provided:**
+1. **Local Build**: Step-by-step Gradle build instructions for Windows/Mac/Linux
+2. **GitHub Actions**: Automated CI/CD workflow for continuous APK generation
+3. **Cloud Build**: Integration guides for Codemagic, Bitrise, App Center
+
+**Technical Specifications:**
+- Min SDK: 22 (Android 5.1+)
+- Target SDK: 34 (Android 14)
+- Architecture: Hybrid (web + 16 native plugins)
+- Security: HTTPS enforced, cleartext disabled, biometric auth, SMS permissions
+- Build Type: Debug APK ready, Release APK configuration included
+- Additional Libraries: AndroidX Biometric 1.2.0, Work Manager 2.9.1, CameraX 1.4.1, Google Play Services (Location, Maps), Material Design 1.12.0
+
+**APK Location** (after building):
+```
+apps/client/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+**Note**: Full Android SDK required for APK compilation. Documentation provides multiple build pathways since Android SDK is too large for Replit environment.
+
+
 
 ### 2025-10-31: Staff Mobile App (Android) Implementation - COMPLETE
 
