@@ -16,19 +16,26 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
- * Capacitor plugin for ingesting SMS messages from mobile money providers.
+ * Capacitor plugin for REAL-TIME SMS ingestion from mobile money providers.
  * 
- * This plugin:
- * - Requests READ_SMS and RECEIVE_SMS permissions
- * - Queries the SMS inbox for messages from whitelisted senders
- * - Schedules periodic background sync using WorkManager
- * - Returns SMS messages to JavaScript for processing
+ * This plugin provides:
+ * 1. REAL-TIME PROCESSING: BroadcastReceiver intercepts SMS immediately on arrival
+ * 2. FALLBACK SYNC: Hourly background sync catches any missed messages
+ * 3. PERMISSION MANAGEMENT: Requests READ_SMS and RECEIVE_SMS permissions
+ * 4. MANUAL QUERY: Allows querying SMS inbox on demand
+ * 
+ * Real-time Flow:
+ * - SMS arrives → BroadcastReceiver triggered instantly
+ * - Filters for whitelisted senders (MTN, Airtel)
+ * - Sends to backend via HTTPS for OpenAI parsing
+ * - Member gets instant payment approval notification
  * 
  * Security & Privacy:
  * - Only reads SMS from pre-approved mobile money senders (MTN, Airtel)
  * - Requires explicit user consent before activation
  * - Can be disabled via settings toggle
  * - Does not store SMS data on device (forwards to secure backend)
+ * - HMAC authentication for all backend requests
  */
 @CapacitorPlugin(name = "SmsIngest")
 class SmsIngestPlugin : Plugin() {
@@ -114,7 +121,9 @@ class SmsIngestPlugin : Plugin() {
     }
 
     /**
-     * Enable SMS ingestion and start background sync
+     * Enable SMS ingestion with real-time processing
+     * Real-time: SMS BroadcastReceiver processes messages instantly
+     * Background sync: Runs hourly as fallback for missed messages
      */
     @PluginMethod
     fun enable(call: PluginCall) {
@@ -124,10 +133,13 @@ class SmsIngestPlugin : Plugin() {
         }
 
         prefs.edit().putBoolean(PREF_ENABLED, true).apply()
+        
+        // Schedule hourly fallback sync (catches any missed messages)
         scheduleBackgroundSync()
         
         val result = JSObject()
         result.put("enabled", true)
+        result.put("realtime", true)
         call.resolve(result)
     }
 
@@ -180,11 +192,37 @@ class SmsIngestPlugin : Plugin() {
     }
 
     /**
+     * Configure edge function endpoint for SMS processing
+     */
+    @PluginMethod
+    fun configure(call: PluginCall) {
+        val edgeFunctionUrl = call.getString("edgeFunctionUrl")
+        val hmacSecret = call.getString("hmacSecret")
+        
+        val editor = prefs.edit()
+        
+        if (edgeFunctionUrl != null) {
+            editor.putString("edge_function_url", edgeFunctionUrl)
+        }
+        
+        if (hmacSecret != null) {
+            editor.putString("hmac_secret", hmacSecret)
+        }
+        
+        editor.apply()
+        
+        val result = JSObject()
+        result.put("configured", true)
+        call.resolve(result)
+    }
+
+    /**
      * Schedule periodic background sync using WorkManager
+     * This is a fallback for missed messages - real-time processing happens via BroadcastReceiver
      */
     @PluginMethod
     fun scheduleBackgroundSync(call: PluginCall? = null) {
-        val intervalMinutes = call?.getInt("intervalMinutes", 15) ?: 15
+        val intervalMinutes = call?.getInt("intervalMinutes", 60) ?: 60
         
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
