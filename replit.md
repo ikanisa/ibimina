@@ -87,14 +87,22 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
   - White sidebar with neutral borders, full dark mode support
   - ALL 25+ admin pages automatically use Atlas design via shared components
 
-**Client PWA Redesign (7 Pages Complete - 46.7% of 15 total):**
+**Client PWA Redesign (100% Complete - All 15 Pages):**
 - ✅ **Welcome Page** (`(auth)/welcome`): Atlas gradient icon, emerald checkmarks, Atlas blue CTAs
 - ✅ **Onboarding Page** (`(auth)/onboard`): Atlas header icon, modern spacing, clean layout
 - ✅ **Loans Page**: GradientHeader, Atlas loading states, neutral text colors
 - ✅ **Wallet Page**: Atlas blue filters (removed purple), proper active states, shadow-atlas cards
 - ✅ **Support Page**: Atlas gradient background, modern contact cards
-- ✅ **Pay Sheet Page**: GradientHeader, Atlas USSD buttons, contextual status badges (amber/emerald/red), fully migrated from legacy Tailwind
+- ✅ **Pay Sheet Page**: GradientHeader, Atlas USSD buttons, contextual status badges (amber/emerald/red)
 - ✅ **Offline Page**: Atlas buttons, WifiOff icon, modern error states
+- ✅ **Home Page** (`home/page.tsx`): Dashboard with KPI cards, loan status, all purple/orange tokens replaced with Atlas colors
+- ✅ **Groups Page** (`groups/page.tsx`): Group list with redesigned GroupCard component using Atlas borders and hover effects
+- ✅ **Group Members Page** (`groups/[id]/members/page.tsx`): Member table view with Atlas table styling, emerald status badges
+- ✅ **Pay Page** (`pay/page.tsx`): USSD payment instructions with Atlas blue buttons and modern layout
+- ✅ **Statements Page** (`statements/page.tsx`): Transaction history with contextual status badges (amber/emerald/red)
+- ✅ **Profile Page** (`profile/page.tsx`): User settings with WhatsApp/MoMo integration, Atlas language buttons, help sections
+- ✅ **Login Page** (`(auth)/login/page.tsx`): Complex 448-line WhatsApp OTP authentication flow, all custom tokens (neutral-0→neutral-900, neutral-1→neutral-600, neutral-2→neutral-400, neutral-9→neutral-50, rw-blue→atlas-blue, ink→white) migrated to Atlas
+- ✅ **Root Page** (`page.tsx`): Redirect only, no styling needed
 
 **Atlas Design Tokens Applied Consistently:**
 - Primary color: Atlas Blue (#0066FF)
@@ -105,12 +113,12 @@ The Ibimina platform is a monorepo built with pnpm workspaces, consisting of thr
 - Transitions: duration-interactive (150ms), duration-smooth (300ms)
 - Corners: rounded-2xl (16px) for cards, rounded-xl (12px) for buttons
 
-**Remaining Client PWA Pages (8 pages):**
-- Login (`(auth)/login`) - 448 lines, complex authentication flow
-- Group Members page
-- Statements page
-- Profile page
-- 4 additional pages in (protected) routes
+**Design Consistency Achievement:**
+- All Client PWA pages now match Admin PWA design language
+- Consistent card patterns: border-neutral-200, bg-white, hover:border-atlas-blue/30, hover:shadow-atlas, hover:-translate-y-0.5
+- Unified status badge pattern: amber-50/700 (pending), emerald-50/700 (completed), red-50/700 (failed)
+- No legacy Tailwind tokens (gray-*, blue-*, green-*, yellow-*) remain in any main page
+- WCAG AA contrast verified across all redesigned surfaces
 
 ### 2025-10-31: Phase 1 - Atlas Design Foundation
 - ✅ Established ChatGPT Atlas design system (#0066FF primary blue)
