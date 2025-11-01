@@ -1,10 +1,10 @@
 /**
  * Enhanced Feature Flag Utilities
- * 
+ *
  * Supports regulatory tier-based feature toggles with org-specific overrides
  */
 
-import { ClientFeatureMatrix, FeatureDomain, OrgFeatureOverride } from './types/supa-app';
+import { ClientFeatureMatrix, FeatureDomain, OrgFeatureOverride } from "../types/supa-app";
 
 /**
  * Default feature matrix (P0 tier - no licenses required)
@@ -12,7 +12,7 @@ import { ClientFeatureMatrix, FeatureDomain, OrgFeatureOverride } from './types/
 export const DEFAULT_FEATURE_MATRIX: ClientFeatureMatrix = {
   savings: {
     enabled: true,
-    tier: 'P0',
+    tier: "P0",
     features: {
       ussd_deposit_reference: true,
       allocation_evidence: true,
@@ -22,7 +22,7 @@ export const DEFAULT_FEATURE_MATRIX: ClientFeatureMatrix = {
   },
   loans: {
     enabled: false,
-    tier: 'P0',
+    tier: "P0",
     features: {
       digital_applications: false,
       doc_collection: false,
@@ -32,7 +32,7 @@ export const DEFAULT_FEATURE_MATRIX: ClientFeatureMatrix = {
   },
   wallet: {
     enabled: false,
-    tier: 'P0',
+    tier: "P0",
     features: {
       proxy_wallet: false,
       transaction_evidence: false,
@@ -42,7 +42,7 @@ export const DEFAULT_FEATURE_MATRIX: ClientFeatureMatrix = {
   },
   tokens: {
     enabled: false,
-    tier: 'P0',
+    tier: "P0",
     features: {
       voucher_tokens_offchain: false,
       stablecoin_onramp: false,
@@ -51,7 +51,7 @@ export const DEFAULT_FEATURE_MATRIX: ClientFeatureMatrix = {
   },
   nfc: {
     enabled: false,
-    tier: 'P0',
+    tier: "P0",
     features: {
       ndef_tag_reference: false,
       hce_vouchers: false,
@@ -60,7 +60,7 @@ export const DEFAULT_FEATURE_MATRIX: ClientFeatureMatrix = {
   },
   kyc: {
     enabled: true,
-    tier: 'P0',
+    tier: "P0",
     features: {
       ocr_selfie_capture: true,
       third_party_screening: false,
@@ -69,7 +69,7 @@ export const DEFAULT_FEATURE_MATRIX: ClientFeatureMatrix = {
   },
   ai_agent: {
     enabled: false,
-    tier: 'P0',
+    tier: "P0",
     features: {
       faq_ussd_help: false,
       whatsapp_bot: false,
@@ -131,7 +131,9 @@ export function applyOrgOverrides(
 /**
  * Get all enabled domains
  */
-export function getEnabledDomains(matrix: ClientFeatureMatrix = DEFAULT_FEATURE_MATRIX): FeatureDomain[] {
+export function getEnabledDomains(
+  matrix: ClientFeatureMatrix = DEFAULT_FEATURE_MATRIX
+): FeatureDomain[] {
   return (Object.keys(matrix) as FeatureDomain[]).filter((domain) => matrix[domain].enabled);
 }
 
@@ -154,7 +156,7 @@ export function getEnabledFeatures(
  */
 export function hasRequiredTier(
   domain: FeatureDomain,
-  requiredTier: 'P0' | 'P1' | 'P2',
+  requiredTier: "P0" | "P1" | "P2",
   matrix: ClientFeatureMatrix = DEFAULT_FEATURE_MATRIX
 ): boolean {
   const domainConfig = matrix[domain];
@@ -179,7 +181,15 @@ export function validateFeatureMatrix(matrix: ClientFeatureMatrix): {
   const errors: string[] = [];
 
   // Validate each domain
-  const domains: FeatureDomain[] = ['savings', 'loans', 'wallet', 'tokens', 'nfc', 'kyc', 'ai_agent'];
+  const domains: FeatureDomain[] = [
+    "savings",
+    "loans",
+    "wallet",
+    "tokens",
+    "nfc",
+    "kyc",
+    "ai_agent",
+  ];
   for (const domain of domains) {
     if (!matrix[domain]) {
       errors.push(`Missing domain configuration for: ${domain}`);
@@ -189,12 +199,12 @@ export function validateFeatureMatrix(matrix: ClientFeatureMatrix): {
     const domainConfig = matrix[domain];
 
     // Validate tier
-    if (!['P0', 'P1', 'P2'].includes(domainConfig.tier)) {
+    if (!["P0", "P1", "P2"].includes(domainConfig.tier)) {
       errors.push(`Invalid tier for ${domain}: ${domainConfig.tier}`);
     }
 
     // Validate features object
-    if (typeof domainConfig.features !== 'object') {
+    if (typeof domainConfig.features !== "object") {
       errors.push(`Invalid features object for ${domain}`);
     }
   }
