@@ -15,6 +15,7 @@
     "worker:gsm": "node dist/workers/gsm-heartbeat.js"
   },
   "dependencies": {
+    "@ibimina/config": "workspace:*",
     "@supabase/supabase-js": "^2.74.0"
   },
   "devDependencies": {
