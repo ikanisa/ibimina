@@ -10,6 +10,37 @@ type AnalyticsState = "disabled" | "initialising" | "ready";
 
 let status: AnalyticsState = "disabled";
 let client: PostHog | null = null;
+const readyListeners = new Set<(client: PostHog) => void>();
+
+function notifyReady(activeClient: PostHog) {
+  if (!readyListeners.size) {
+    return;
+  }
+
+  const listeners = Array.from(readyListeners);
+  readyListeners.clear();
+  listeners.forEach((listener) => {
+    try {
+      listener(activeClient);
+    } catch (error) {
+      if (process.env.NEXT_PUBLIC_ANALYTICS_DEBUG === "true") {
+        console.error("[analytics:listener-error]", error);
+      }
+    }
+  });
+}
+
+function onReady(listener: (activeClient: PostHog) => void) {
+  if (status === "ready" && client) {
+    listener(client);
+    return () => {};
+  }
+
+  readyListeners.add(listener);
+  return () => {
+    readyListeners.delete(listener);
+  };
+}
 
 function ensureClient(): PostHog | null {
   if (typeof window === "undefined") {
@@ -35,6 +66,7 @@ function ensureClient(): PostHog | null {
         status = "ready";
         client = activeClient;
         activeClient.capture("app_loaded", { app: "admin" });
+        notifyReady(activeClient);
       },
     });
   }
@@ -94,11 +126,18 @@ export type AnalyticsProps = {
 
 export function Analytics({ identifyUser }: AnalyticsProps): null {
   useEffect(() => {
+    const runWhenReady = (activeClient: PostHog) => {
+      activeClient.capture("page_view", { path: window.location.pathname, app: "admin" });
+      identifyUser?.();
+    };
+
+    const dispose = onReady(runWhenReady);
     const client = ensureClient();
     if (client && status === "ready") {
-      client.capture("page_view", { path: window.location.pathname, app: "admin" });
-      identifyUser?.();
+      runWhenReady(client);
     }
+
+    return dispose;
   }, [identifyUser]);
 
   return null;
