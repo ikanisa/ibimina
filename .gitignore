@@ -25,7 +25,7 @@ yarn-error.log*
 .env*
 !.env.example
 !.env.production.example
-!apps/admin/.env.example
+!apps/*/.env.example
 
 # TypeScript
 *.tsbuildinfo
