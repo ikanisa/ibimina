@@ -10,11 +10,13 @@
 ## 📱 Applications
 
 ### 1. Ibimina Staff (Admin Mobile App)
+
 - **App ID**: `rw.ibimina.staff`
 - **Package**: `apps/admin/android/`
 - **Purpose**: Staff console for Android devices
 
 ### 2. Ibimina Client (Member Mobile App)
+
 - **App ID**: `rw.gov.ikanisa.ibimina.client`
 - **Package**: `apps/client/android/`
 - **Purpose**: Member self-service portal
@@ -30,29 +32,32 @@
    - Includes: Android SDK, Gradle, emulators
 
 2. **Java Development Kit (JDK) 17**
+
    ```bash
    # macOS (Homebrew)
    brew install openjdk@17
-   
+
    # Ubuntu/Debian
    sudo apt install openjdk-17-jdk
-   
+
    # Verify
    java -version  # Should show 17.x.x
    ```
 
 3. **Node.js 18+** & **pnpm**
+
    ```bash
    node -v  # Should be 18+
    pnpm -v  # Should be 10+
    ```
 
 4. **Android SDK Command Line Tools**
+
    ```bash
    # Set environment variable
    export ANDROID_HOME=$HOME/Library/Android/sdk  # macOS
    export ANDROID_HOME=$HOME/Android/Sdk         # Linux
-   
+
    # Add to PATH
    export PATH=$PATH:$ANDROID_HOME/platform-tools
    export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
@@ -80,6 +85,41 @@ cd apps/admin/android
 ./gradlew --version
 # Expected: Gradle 8.7+
 ```
+
+---
+
+## 🤖 Continuous Integration (Signed Bundles)
+
+Production-signed Android App Bundles for the staff application are produced by
+the [`Build Signed Staff Android Bundle`](.github/workflows/android-build.yml)
+GitHub Actions workflow. The job executes the same steps documented below
+(workspace builds, Next.js build, Capacitor sync) and finishes with a
+deterministic `bundleRelease` Gradle build that honours the versioning values
+injected via CI.
+
+### Required GitHub Secrets
+
+| Secret                              | Purpose                                                                |
+| ----------------------------------- | ---------------------------------------------------------------------- |
+| `ANDROID_KEYSTORE_BASE64`           | Base64-encoded Java keystore used for release signing.                 |
+| `ANDROID_KEYSTORE_PASSWORD`         | Password protecting the keystore container.                            |
+| `ANDROID_KEY_ALIAS`                 | Alias of the signing key inside the keystore.                          |
+| `ANDROID_KEY_PASSWORD`              | Password for the signing key.                                          |
+| `STAFF_APP_SERVER_URL` _(optional)_ | Overrides the production server URL embedded into the Capacitor build. |
+
+> The workflow fails fast if the base64 keystore secret is missing. The decoded
+> keystore is written to `apps/admin/android/app/release.keystore`, matching the
+> default path referenced in `gradle.properties`.
+
+### Triggering the Workflow
+
+- **Automatic**: Any push to `main` touching `apps/admin/**`.
+- **Manual**: `workflow_dispatch`, which also supports an optional `server_url`
+  override when testing against non-production endpoints.
+
+The resulting `.aab` artefact is uploaded under the name
+`ibimina-staff-aab-<version>` and, when the workflow runs on a tag, attached to
+the corresponding GitHub Release for downstream distribution.
 
 ---
 
@@ -227,6 +267,7 @@ ls -lh app/build/outputs/apk/debug/app-debug.apk
 
 **Purpose**: Development and testing  
 **Features**:
+
 - Web view debugging enabled
 - Connects to localhost
 - Not signed
@@ -240,6 +281,7 @@ ls -lh app/build/outputs/apk/debug/app-debug.apk
 
 **Purpose**: Production deployment  
 **Features**:
+
 - Optimized and minified
 - Must be signed
 - Connects to production server
@@ -298,7 +340,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     // ... existing config
-    
+
     signingConfigs {
         release {
             if (keystorePropertiesFile.exists()) {
@@ -309,7 +351,7 @@ android {
             }
         }
     }
-    
+
     buildTypes {
         release {
             signingConfig signingConfigs.release
@@ -440,11 +482,13 @@ echo ""
 ```
 
 Make executable:
+
 ```bash
 chmod +x build-android.sh
 ```
 
 Run:
+
 ```bash
 ./build-android.sh
 ```
@@ -515,6 +559,7 @@ npx cap sync android
 ### App Crashes on Launch
 
 **Check logs**:
+
 ```bash
 adb logcat *:E
 
@@ -578,6 +623,7 @@ chmod +x gradlew
 ### Step 2: Prepare Store Listing
 
 **Required**:
+
 - App icon (512x512 PNG)
 - Feature graphic (1024x500 PNG)
 - Screenshots (at least 2)
@@ -631,6 +677,7 @@ android {
 ## ✅ Build Checklist
 
 ### Before Building:
+
 - [ ] Java 17 installed
 - [ ] Android SDK installed
 - [ ] Licenses accepted
@@ -639,6 +686,7 @@ android {
 - [ ] Environment variables set (if production)
 
 ### Build Process:
+
 - [ ] Next.js build completed
 - [ ] Capacitor sync successful
 - [ ] Gradle build successful
@@ -646,6 +694,7 @@ android {
 - [ ] APK size reasonable (<50MB)
 
 ### Testing:
+
 - [ ] Install on emulator
 - [ ] Test core functionality
 - [ ] Check offline mode
@@ -654,6 +703,7 @@ android {
 - [ ] Test biometric auth
 
 ### Production Release:
+
 - [ ] Keystore created and secured
 - [ ] APK signed
 - [ ] Version number incremented
