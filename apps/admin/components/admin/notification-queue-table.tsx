@@ -37,8 +37,28 @@ export function NotificationQueueTable({
         templateLabel: row.template_id
           ? (templateLookup.get(row.template_id) ?? row.template_id)
           : "—",
-        createdLabel: row.created_at ? new Date(row.created_at).toLocaleString() : "—",
-        scheduledLabel: row.scheduled_for ? new Date(row.scheduled_for).toLocaleString() : "—",
+        createdLabel: row.created_at 
+          ? new Intl.DateTimeFormat("en-US", { 
+              year: "numeric", 
+              month: "2-digit", 
+              day: "2-digit", 
+              hour: "2-digit", 
+              minute: "2-digit", 
+              hour12: false,
+              timeZone: "UTC" 
+            }).format(new Date(row.created_at)) 
+          : "—",
+        scheduledLabel: row.scheduled_for 
+          ? new Intl.DateTimeFormat("en-US", { 
+              year: "numeric", 
+              month: "2-digit", 
+              day: "2-digit", 
+              hour: "2-digit", 
+              minute: "2-digit", 
+              hour12: false,
+              timeZone: "UTC" 
+            }).format(new Date(row.scheduled_for)) 
+          : "—",
         channelLabel: row.channel ?? "—",
       })),
     [rows, saccoLookup, templateLookup, t]
@@ -46,16 +66,16 @@ export function NotificationQueueTable({
 
   if (emptyState) {
     return (
-      <p className="text-sm text-neutral-2">
+      <p className="text-sm text-gray-600">
         {t("admin.queue.empty", "No notifications queued yet.")}
       </p>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10">
+    <div className="overflow-hidden rounded-2xl border border-gray-200">
       <table className="w-full border-collapse text-sm">
-        <thead className="bg-white/5 text-left text-xs uppercase tracking-[0.2em] text-neutral-2">
+        <thead className="bg-gray-50 text-left text-xs uppercase tracking-[0.2em] text-gray-600">
           <tr>
             <th className="px-4 py-3">{t("admin.queue.event", "Event")}</th>
             <th className="px-4 py-3">{t("admin.queue.channel", "Channel")}</th>
@@ -66,16 +86,16 @@ export function NotificationQueueTable({
             <th className="px-4 py-3">{t("admin.queue.scheduled", "Scheduled")}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody className="divide-y divide-gray-100">
           {formatted.map((row) => (
-            <tr key={row.id} className="hover:bg-white/5">
-              <td className="px-4 py-3 text-neutral-0">{row.event}</td>
-              <td className="px-4 py-3 text-neutral-2">{row.channelLabel ?? "—"}</td>
-              <td className="px-4 py-3 text-neutral-2">{row.saccoLabel}</td>
-              <td className="px-4 py-3 text-neutral-2">{row.templateLabel}</td>
-              <td className="px-4 py-3 text-neutral-2">{row.status ?? "pending"}</td>
-              <td className="px-4 py-3 text-neutral-2">{row.createdLabel}</td>
-              <td className="px-4 py-3 text-neutral-2">{row.scheduledLabel}</td>
+            <tr key={row.id} className="hover:bg-gray-50">
+              <td className="px-4 py-3 text-gray-900 font-medium">{row.event}</td>
+              <td className="px-4 py-3 text-gray-700">{row.channelLabel ?? "—"}</td>
+              <td className="px-4 py-3 text-gray-700">{row.saccoLabel}</td>
+              <td className="px-4 py-3 text-gray-700">{row.templateLabel}</td>
+              <td className="px-4 py-3 text-gray-700">{row.status ?? "pending"}</td>
+              <td className="px-4 py-3 text-gray-700">{row.createdLabel}</td>
+              <td className="px-4 py-3 text-gray-700">{row.scheduledLabel}</td>
             </tr>
           ))}
         </tbody>
