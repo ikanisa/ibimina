@@ -1,8 +1,9 @@
 package rw.gov.ikanisa.ibimina.client.auth
 
+import android.util.Base64
+import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
 import org.json.JSONObject
-import java.security.Signature
 
 /**
  * Device Authentication Challenge Signer
@@ -65,17 +66,34 @@ class ChallengeSigner(
         // Convert to canonical JSON (sorted keys)
         val messageJson = signedMessage.toCanonicalJson()
         val messageBytes = messageJson.toByteArray(Charsets.UTF_8)
-        
+
+        val initializedSignature = keyManager.getInitializedSignature()
+            ?: run {
+                onError("Device key unavailable. Please re-enroll this device.")
+                return
+            }
+
+        val cryptoObject = BiometricPrompt.CryptoObject(initializedSignature)
+
         // Prompt for biometric authentication and sign
-        biometricHelper.authenticate(
+        biometricHelper.authenticateWithCrypto(
             title = "Confirm Sign In",
             subtitle = challenge.origin,
             description = "Authenticate to sign in to the web application",
-            onSuccess = { _ ->
+            cryptoObject = cryptoObject,
+            onSuccess = { result ->
+                val signature = result.cryptoObject?.signature
+                if (signature == null) {
+                    android.util.Log.e("ChallengeSigner", "Biometric prompt returned null signature")
+                    onError("Failed to access signature for signing")
+                    return@authenticateWithCrypto
+                }
+
                 try {
-                    // Sign the message with the device private key
-                    val signature = keyManager.sign(messageBytes)
-                    onSuccess(signature, signedMessage)
+                    signature.update(messageBytes)
+                    val signedBytes = signature.sign()
+                    val signatureBase64 = Base64.encodeToString(signedBytes, Base64.NO_WRAP)
+                    onSuccess(signatureBase64, signedMessage)
                 } catch (e: Exception) {
                     android.util.Log.e("ChallengeSigner", "Signing failed", e)
                     onError("Failed to sign challenge: ${e.message}")
