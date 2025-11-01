@@ -8,10 +8,11 @@
   "scripts": {
     "lint": "echo 'TODO: add linting'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo 'TODO: add tests'"
+    "test": "vitest run"
   },
   "devDependencies": {
+    "@types/node": "20.19.21",
     "typescript": "^5.9.3",
-    "@types/node": "20.19.21"
+    "vitest": "^2.1.9"
   }
 }

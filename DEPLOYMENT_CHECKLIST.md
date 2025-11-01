@@ -17,6 +17,8 @@ production-ready.
 > - [docs/SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md) - Security
 >   configuration checklist
 > - [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) - Quick reference guide
+> - [docs/dev/getting-started.md](docs/dev/getting-started.md) - Developer
+>   onboarding steps and Supabase bootstrap
 
 ## 1. Environment & Secrets
 

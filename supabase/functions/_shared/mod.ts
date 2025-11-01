@@ -36,7 +36,7 @@ const bufferFromHex = (hex: string) => {
 };
 
 export const verifyHmacSignature = (
-  secret: string,
+  secret: string | Uint8Array | Buffer,
   body: Uint8Array,
   signature: string | null | undefined
 ) => {

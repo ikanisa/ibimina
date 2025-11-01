@@ -162,7 +162,10 @@ Default templates for Rwanda MoMo:
 - **Menu**: `*182*8*1#`
 - **Base**: `*182#`
 
-Custom templates can be configured via `TapMoMoConfig.ussdTemplates`.
+Custom templates can be configured via `TapMoMoConfig.ussdTemplateBundle` (use
+`UssdTemplateBundle.from(...)` for OTA refreshes).
+`TapMoMo.refreshUssdTemplates` can replace the bundle at runtime when a newer
+version is fetched.
 
 ## Permissions
 
@@ -265,18 +268,18 @@ com.tapmomo.feature
 
 All options in `TapMoMoConfig`:
 
-| Option                             | Type                       | Default         | Description                          |
-| ---------------------------------- | -------------------------- | --------------- | ------------------------------------ |
-| `supabaseUrl`                      | String?                    | null            | Supabase project URL                 |
-| `supabaseAnonKey`                  | String?                    | null            | Supabase anonymous key               |
-| `reconcileFunctionUrl`             | String?                    | null            | Edge Function URL for reconciliation |
-| `defaultCurrency`                  | String                     | "RWF"           | Default currency code                |
-| `networks`                         | Set<Network>               | MTN, Airtel     | Supported networks                   |
-| `hceTtlMs`                         | Long                       | 45000           | NFC payload TTL (milliseconds)       |
-| `requireSignature`                 | Boolean                    | true            | Require HMAC signature               |
-| `allowUnsignedWithWarning`         | Boolean                    | true            | Allow unsigned with warning          |
-| `useUssdShortcutWhenAmountPresent` | Boolean                    | true            | Use shortcut USSD when amount known  |
-| `ussdTemplates`                    | Map<Network, UssdTemplate> | Rwanda defaults | Custom USSD templates                |
+| Option                             | Type               | Default         | Description                          |
+| ---------------------------------- | ------------------ | --------------- | ------------------------------------ |
+| `supabaseUrl`                      | String?            | null            | Supabase project URL                 |
+| `supabaseAnonKey`                  | String?            | null            | Supabase anonymous key               |
+| `reconcileFunctionUrl`             | String?            | null            | Edge Function URL for reconciliation |
+| `defaultCurrency`                  | String             | "RWF"           | Default currency code                |
+| `networks`                         | Set<Network>       | MTN, Airtel     | Supported networks                   |
+| `hceTtlMs`                         | Long               | 45000           | NFC payload TTL (milliseconds)       |
+| `requireSignature`                 | Boolean            | true            | Require HMAC signature               |
+| `allowUnsignedWithWarning`         | Boolean            | true            | Allow unsigned with warning          |
+| `useUssdShortcutWhenAmountPresent` | Boolean            | true            | Use shortcut USSD when amount known  |
+| `ussdTemplateBundle`               | UssdTemplateBundle | Rwanda defaults | Versioned USSD templates + TTL       |
 
 ## Contributing
 

@@ -25,7 +25,7 @@ yarn-error.log*
 .env*
 !.env.example
 !.env.production.example
-!apps/admin/.env.example
+!apps/*/.env.example
 
 # TypeScript
 *.tsbuildinfo
@@ -45,6 +45,11 @@ test-results/
 /apps/client/android/app/*.keystore
 /apps/client/android/app/*.jks
 /apps/client/android/keystore.properties
+/apps/client/credentials/*.json
+
+# Fastlane build output
+/apps/client/fastlane/report.xml
+/apps/client/fastlane/Preview.html
 
 # Vercel local artifacts
 apps/admin/.vercel/

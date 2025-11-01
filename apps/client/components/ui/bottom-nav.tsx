@@ -17,6 +17,7 @@
 import { Home, Users, CreditCard, FileText, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 interface NavItem {
   href: string;
@@ -60,10 +61,38 @@ const NAV_ITEMS: NavItem[] = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-inset-bottom"
+        aria-label="Main navigation"
+      >
+        <div className="flex justify-around items-center h-16 max-w-screen-xl mx-auto px-2">
+          {NAV_ITEMS.map(({ href, icon: Icon, label, ariaLabel }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex flex-col items-center justify-center min-w-[64px] min-h-[48px] px-3 py-2 rounded-xl transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2 text-neutral-700 hover:text-atlas-blue hover:bg-neutral-50"
+              aria-label={ariaLabel}
+            >
+              <Icon className="w-6 h-6 mb-1" aria-hidden="true" />
+              <span className="text-xs font-medium">{label}</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-neutral-200 shadow-atlas safe-area-inset-bottom"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-inset-bottom"
       aria-label="Main navigation"
     >
       <div className="flex justify-around items-center h-16 max-w-screen-xl mx-auto px-2">
@@ -74,31 +103,26 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`
-                group flex flex-col items-center justify-center
-                min-w-[64px] min-h-[48px] px-3 py-2
-                rounded-xl transition-all duration-interactive
-                focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2
-                ${
-                  isActive
-                    ? "text-atlas-blue bg-atlas-glow font-bold scale-105"
-                    : "text-neutral-700 hover:text-atlas-blue hover:bg-neutral-50"
-                }
-              `}
+              className={
+                "flex flex-col items-center justify-center min-w-[64px] min-h-[48px] px-3 py-2 rounded-xl transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2 " +
+                (isActive
+                  ? "text-atlas-blue bg-atlas-glow font-bold"
+                  : "text-neutral-700 hover:text-atlas-blue hover:bg-neutral-50")
+              }
               aria-label={ariaLabel}
               aria-current={isActive ? "page" : undefined}
             >
               <Icon 
-                className={`
-                  w-6 h-6 mb-1 transition-transform duration-interactive
-                  ${isActive ? "scale-110 stroke-[2.5]" : "stroke-[2] group-hover:scale-105"}
-                `} 
+                className={
+                  "w-6 h-6 mb-1 transition-transform duration-interactive " +
+                  (isActive ? "stroke-[2.5]" : "stroke-[2]")
+                }
                 aria-hidden="true" 
               />
-              <span className={`
-                text-[11px] transition-all duration-interactive
-                ${isActive ? "font-bold" : "font-medium"}
-              `}>
+              <span className={
+                "text-xs font-medium transition-all duration-interactive " +
+                (isActive ? "font-bold" : "")
+              }>
                 {label}
               </span>
             </Link>

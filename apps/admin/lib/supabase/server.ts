@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient as createSupabaseSSRClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 import { requireSupabaseConfig } from "@/lib/supabase/config";
@@ -22,7 +22,7 @@ export async function createSupabaseServerClient() {
 
   const cookieStore = await cookies();
 
-  return createServerClient<Database>(url, anonKey, {
+  return createSupabaseSSRClient<Database>(url, anonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -33,6 +33,3 @@ export async function createSupabaseServerClient() {
     },
   });
 }
-
-// --- Compatibility alias for older imports ---
-export const createServerClient = createSupabaseServerClient;

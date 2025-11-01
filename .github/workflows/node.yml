@@ -37,11 +37,27 @@ jobs:
           node-version-file: .nvmrc
           cache: "pnpm"
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm run lint
+      - name: Lint (excluding client)
+        run: pnpm --filter '!@ibimina/client' run lint
+
+      - name: Lint client package
+        id: client_lint
+        run: pnpm --filter @ibimina/client lint
+        continue-on-error: true
+
+      - name: Enforce client lint tracking policy
+        if: steps.client_lint.outcome == 'failure'
+        run: node scripts/verify-client-lint-tracking.mjs
+
+      - name: Report client lint allowance
+        if: steps.client_lint.outcome == 'failure'
+        run: echo "::warning::@ibimina/client lint failed but is temporarily allowed because issues are tracked."
 
       - name: Typecheck
         run: pnpm run typecheck

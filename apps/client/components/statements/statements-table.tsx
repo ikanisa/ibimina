@@ -16,6 +16,7 @@
 
 import { useState } from "react";
 import { Calendar, Download, ChevronDown } from "lucide-react";
+import { fmtCurrency } from "@/utils/format";
 
 export interface StatementEntry {
   id: string;
@@ -143,13 +144,7 @@ export function StatementsTable({ entries, onExportPDF }: StatementsTableProps) 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">
-            {new Intl.NumberFormat("rw-RW", {
-              style: "currency",
-              currency: "RWF",
-              minimumFractionDigits: 0,
-            }).format(totalAmount)}
-          </p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{fmtCurrency(totalAmount)}</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Confirmed</p>
@@ -201,11 +196,7 @@ export function StatementsTable({ entries, onExportPDF }: StatementsTableProps) 
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-900">{entry.groupName}</td>
                     <td className="px-4 py-4 text-right text-sm font-semibold text-gray-900">
-                      {new Intl.NumberFormat("rw-RW", {
-                        style: "currency",
-                        currency: "RWF",
-                        minimumFractionDigits: 0,
-                      }).format(entry.amount)}
+                      {fmtCurrency(entry.amount)}
                     </td>
                     <td className="px-4 py-4 text-sm font-mono text-gray-600">{entry.txnId}</td>
                     <td className="px-4 py-4">

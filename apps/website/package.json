@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start -p 5000 -H 0.0.0.0",
     "lint": "pnpm exec eslint --max-warnings=0 .",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test tests/unit/*.test.ts"
   },
   "dependencies": {
     "@ibimina/config": "workspace:*",
     "lucide-react": "^0.545.0",
+    "@ibimina/locales": "workspace:*",
     "next": "15.5.4",
     "next-intl": "^4.4.0",
     "next-seo": "^6.6.0",
@@ -27,7 +29,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "tsx": "^4.20.6"
   },
   "engines": {
     "node": ">=18.18.0"

@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2025-02-21T09:00:00.000Z",
+  "sources": [
+    {
+      "id": "internal-drafts",
+      "name": "Internal Draft Articles",
+      "owner": "Customer Experience Lead",
+      "type": "drive",
+      "fetchedAt": "2025-02-21T09:00:00.000Z",
+      "articleCount": 1,
+      "outputPath": "apps/website/public/help/internal/internal-drafts.json",
+      "updateCadence": "Weekly (Friday)"
+    }
+  ]
+}

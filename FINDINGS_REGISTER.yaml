@@ -115,6 +115,77 @@ findings:
     owasp_references:
       - A06:2021 – Vulnerable and Outdated Components
 
+  - id: SEC-PT-001
+    title: Q2 2025 External Penetration Test Scheduled
+    severity: medium
+    priority: p1
+    domain: Security
+    subdomain: Testing
+    status: planned
+    affected_scope:
+      - Supabase edge functions (ingest-sms, parse-sms, scheduled-reconciliation)
+      - Cloudflare ingestion workers (MoMo poller, GSM heartbeat)
+      - AuthX authentication surfaces
+    impact: |
+      Engagement scheduled with ShieldGrid Security (2025-03-10 → 2025-03-21).
+      Findings will be integrated into the Security & Resilience backlog within
+      24 hours of discovery with retesting the week of 2025-04-07.
+    likelihood: pending_assessment
+    exploitability: pending_assessment
+    business_impact: to_be_determined
+    technical_impact: to_be_determined
+    evidence:
+      files:
+        - docs/security/penetration-test-plan.md
+      details: |
+        Plan captured in repository outlining scope, communication cadence, and
+        backlog workflow mapping.
+    recommendation:
+      summary: Execute the scheduled engagement and funnel findings to Jira `SECOPS-2xx` backlog.
+      actions:
+        - Confirm staging environment parity and freeze window 10 days prior.
+        - Provide ShieldGrid with updated architecture diagrams and seed data.
+        - Triage each reported issue within 24 hours and assign remediation owner.
+    effort: medium
+    effort_days: 5
+    target_completion: 2025-04-14
+    owner: Security Champion
+
+  - id: SEC-PT-002
+    title: Penetration Test Remediation Tracker
+    severity: medium
+    priority: p1
+    domain: Security
+    subdomain: Remediation
+    status: planned
+    affected_scope:
+      - Security & Resilience backlog (Jira `ENGSEC-*` epics)
+      - Release testing gates (docs/testing/release-testing-cadence.md)
+    impact: |
+      Ensures critical/high findings are resolved before production deployment
+      and medium findings have committed mitigation plans with sprint targets.
+    likelihood: planned
+    exploitability: dependent_on_findings
+    business_impact: reduces_residual_risk
+    technical_impact: improves_security_posture
+    evidence:
+      files:
+        - docs/testing/release-testing-cadence.md
+        - docs/security/penetration-test-plan.md
+      details: |
+        Documentation establishes quality gates tying performance and security
+        evidence to release approvals.
+    recommendation:
+      summary: Maintain remediation Kanban column for pen test findings and log evidence in release issues.
+      actions:
+        - Add pen test remediation swim lane in Jira with owner + due date fields.
+        - Require success metrics (p99 latency, success rate) from load tests before closing.
+        - Update release checklist with security sign-off referencing evidence logs.
+    effort: small
+    effort_days: 2
+    target_completion: 2025-04-30
+    owner: Platform SRE
+
   - id: SHELL-AUD-001
     title: Shell Script Safety Improvements Needed
     severity: low
@@ -842,18 +913,23 @@ next_actions:
     - Complete infrastructure setup
     - Generate production secrets
     - Run final validation
+    - Confirm ShieldGrid penetration test scope lock-in (SEC-PT-001)
   week_1:
     - Fix dependency vulnerabilities (P1-1)
     - Improve shell script safety (P1-2)
+    - Freeze non-critical deploys ahead of penetration test (SEC-PT-001)
   week_2_3:
     - Complete privacy documentation (P1-3)
+    - Stage remediation tracker workflow in Jira (SEC-PT-002)
   month_1:
     - Document rate limits (P2-1)
     - Conduct load testing (P2-3)
+    - Capture load/chaos evidence for release gates (SEC-PT-002)
   month_2:
     - Add accessibility automation (P2-2)
     - Harden Docker security (P2-4)
     - Enhance error handling (P2-5)
+    - Deliver retest evidence and close SEC-PT-001 findings
 
 # Compliance Status
 compliance_status:

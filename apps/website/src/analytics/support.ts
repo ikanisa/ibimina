@@ -72,17 +72,18 @@ function buildTenantContext(tenantId: string | null | undefined): TenantContextR
   const tenant = normalized
     ? (tenantById.get(normalized) ?? tenantBySlug.get(normalized))
     : undefined;
-  const flags = { ...getTenantFeatureFlags(normalized) };
+  const canonicalTenantId = tenant?.id ?? normalized ?? null;
+  const flags = { ...getTenantFeatureFlags(canonicalTenantId) };
 
   const context = {
-    tenant_id: normalized,
+    tenant_id: canonicalTenantId,
     tenant_slug: tenant?.slug ?? null,
     tenant_name: tenant?.displayName ?? null,
-    pilot_tenant: isPilotTenant(normalized),
+    pilot_tenant: isPilotTenant(canonicalTenantId),
     feature_flags: flags,
   } satisfies Record<string, unknown>;
 
-  const distinctId = tenant?.id ?? normalized ?? tenant?.slug ?? "anonymous-web";
+  const distinctId = tenant?.id ?? canonicalTenantId ?? tenant?.slug ?? "anonymous-web";
 
   return { context, distinctId };
 }

@@ -9,6 +9,8 @@ semantic SACCO search.
 
 - [**CONTRIBUTING.md**](CONTRIBUTING.md) - Guidelines for contributing to the
   project
+- [**docs/dev/getting-started.md**](docs/dev/getting-started.md) - Consolidated
+  developer onboarding checklist
 - [**DEVELOPMENT.md**](DEVELOPMENT.md) - Detailed development setup and workflow
   guide
 - [**docs/**](docs/) - Additional documentation on architecture, deployment, and
@@ -115,13 +117,13 @@ Before setting up the project, ensure you have:
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPMENT.md) for
 detailed guidelines.
 
-## Local setup
+## Getting Started
 
 ### 1. Install dependencies
 
 ```bash
 # Use the correct Node version
-nvm use
+nvm use 20
 
 # Install pnpm if not already installed
 npm install -g pnpm@10.19.0
@@ -130,17 +132,20 @@ npm install -g pnpm@10.19.0
 pnpm install
 ```
 
-### 2. Configure environment variables
+### 2. Copy and configure environment variables
 
 ```bash
 # Copy the example environment file
 cp .env.example .env
 ```
 
-Edit `.env` and populate the following **required** variables:
+`.env.example` groups the mandatory secrets at the top so you can see what must
+be filled in before running the app. Update `.env` with the following
+**required** values (matching the placeholders shipped in `.env.example`):
 
 | Variable                        | Purpose                        | How to obtain                            |
 | ------------------------------- | ------------------------------ | ---------------------------------------- |
+| `APP_ENV`                       | Runtime environment label      | Use `development` locally                |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL           | From your Supabase project settings      |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key                | From your Supabase project API settings  |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Service role key (server-only) | From your Supabase project API settings  |
@@ -149,11 +154,38 @@ Edit `.env` and populate the following **required** variables:
 | `MFA_SESSION_SECRET`            | MFA session signing key        | Generate with: `openssl rand -hex 32`    |
 | `TRUSTED_COOKIE_SECRET`         | Trusted device cookie key      | Generate with: `openssl rand -hex 32`    |
 | `HMAC_SHARED_SECRET`            | HMAC for edge function auth    | Generate with: `openssl rand -hex 32`    |
+| `MFA_EMAIL_FROM`                | From address for MFA email     | Use a verified sender (Resend/SMTP)      |
+| `MFA_EMAIL_LOCALE`              | Default MFA locale             | Typically `en`, `rw`, or `fr`            |
 
-See `.env.example` for additional optional configuration (logging, email,
-analytics, etc.).
+Use the quick commands below to mint secrets that match the placeholder formats
+in `.env.example`:
 
-### 3. Start local Supabase (optional)
+```bash
+openssl rand -base64 32 # KMS_DATA_KEY_BASE64
+openssl rand -hex 32    # BACKUP_PEPPER, MFA_SESSION_SECRET, TRUSTED_COOKIE_SECRET, HMAC_SHARED_SECRET
+```
+
+See `.env.example` for optional configuration covering logging, email,
+analytics, Web Push, and test scaffolding.
+
+### 3. Provision Supabase secrets (optional but recommended)
+
+When you link a Supabase project, push the same secrets to the project so Edge
+Functions and migrations run locally and in CI with matching credentials:
+
+```bash
+supabase secrets set \
+  SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY \
+  HMAC_SHARED_SECRET=$HMAC_SHARED_SECRET \
+  KMS_DATA_KEY_BASE64=$KMS_DATA_KEY_BASE64 \
+  BACKUP_PEPPER=$BACKUP_PEPPER \
+  TRUSTED_COOKIE_SECRET=$TRUSTED_COOKIE_SECRET \
+  MFA_SESSION_SECRET=$MFA_SESSION_SECRET \
+  MFA_EMAIL_FROM=$MFA_EMAIL_FROM \
+  MFA_EMAIL_LOCALE=$MFA_EMAIL_LOCALE
+```
+
+### 4. Start local Supabase (optional)
 
 For local development with a full database:
 
@@ -168,7 +200,7 @@ supabase db reset
 # Update your .env with these local URLs
 ```
 
-### 4. Run the development server
+### 5. Run the development server
 
 ```bash
 # Start Next.js dev server (default port 3000)
@@ -183,6 +215,33 @@ The admin console will be available at `http://localhost:3000`.
 `.env` stays out of version control and is loaded automatically by the admin
 app. See [`docs/local-hosting.md`](docs/local-hosting.md) for a detailed
 Mac-hosting walkthrough plus health-check steps.
+
+### Configure CI secret stores
+
+Ensure your CI/CD targets read the same secrets defined in `.env.example`.
+
+#### Vercel
+
+- Set **Production**, **Preview**, and **Development** environment variables to
+  include all required keys: `APP_ENV`, `NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+  `KMS_DATA_KEY_BASE64`, `BACKUP_PEPPER`, `MFA_SESSION_SECRET`,
+  `TRUSTED_COOKIE_SECRET`, `HMAC_SHARED_SECRET`, `MFA_EMAIL_FROM`, and
+  `MFA_EMAIL_LOCALE`.
+- Mirror any optional integrations you rely on (Resend, OpenAI, Web Push) using
+  the same names and values found in `.env`.
+- Use `vercel env pull` to refresh local `.env` files after updating the secret
+  store so developers stay aligned.
+
+#### GitHub Actions
+
+- Store the same required variables listed above as repository or environment
+  secrets so workflows can build and run Playwright tests against preview
+  deployments.
+- Add Supabase deployment credentials alongside them: `SUPABASE_PROJECT_REF` and
+  `SUPABASE_ACCESS_TOKEN` for the Supabase CLI workflow.
+- When rotating secrets, update the GitHub Action store and immediately refresh
+  Vercel to keep build and deploy pipelines in sync.
 
 - `pnpm start` (and the `apps/admin/scripts/start.sh` wrapper) boots the
   `.next/standalone` output by default. Set `ADMIN_USE_STANDALONE_START=0` (or
@@ -250,9 +309,11 @@ docs/                   # Architecture, hosting, onboarding guides
 
 ### GitHub Actions deployment secrets
 
-The Supabase deploy workflow (`.github/workflows/supabase-deploy.yml`) requires
-the following repository secrets so migrations and edge functions can be
-promoted automatically:
+In addition to the application secrets listed under
+[_Configure CI secret stores_](#configure-ci-secret-stores), the Supabase deploy
+workflow (`.github/workflows/supabase-deploy.yml`) requires the following
+repository secrets so migrations and edge functions can be promoted
+automatically:
 
 - `SUPABASE_PROJECT_REF` – the Supabase project reference used by
   `supabase link` and `supabase migration up`.
@@ -260,7 +321,10 @@ promoted automatically:
   project (Settings → Access Tokens in the Supabase dashboard).
 
 Ensure these secrets stay in sync with your production project before re-running
-the workflow.
+the workflow. Runtime environment variables for the Next.js apps are pulled from
+AWS Secrets Manager at deploy time via `scripts/load-aws-secrets.sh`; see
+`docs/operations/secrets-rotation.md` for the rotation cadence and response
+playbook.
 
 ## SACCO+ Supabase backend
 

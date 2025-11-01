@@ -1,0 +1,26 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appID": "ABCDE12345.com.saccoplus.mobile",
+        "components": [
+          {
+            "/^\\/pay\\/.*$/": {
+              "comment": "Deep link into the pay flow",
+              "caseSensitive": false
+            }
+          },
+          {
+            "/^\\/reference\\/.*$/": {
+              "comment": "Reference sheet quick action",
+              "caseSensitive": false
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["ABCDE12345.com.saccoplus.mobile"]
+  }
+}

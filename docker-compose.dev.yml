@@ -1,0 +1,27 @@
+version: "3.9"
+
+x-postgres-common: &postgres-common
+  image: supabase/postgres:15.1.1.71
+  environment:
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_DB: ${IBIMINA_DB_NAME:-ibimina_dev}
+  healthcheck:
+    test: ["CMD", "pg_isready", "-U", "postgres"]
+    interval: 5s
+    timeout: 5s
+    retries: 10
+  restart: unless-stopped
+
+services:
+  postgres:
+    <<: *postgres-common
+    container_name: ibimina-postgres-dev
+    ports:
+      - "${IBIMINA_DB_PORT:-6543}:5432"
+    volumes:
+      - ibimina-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  ibimina-postgres-data:
+    driver: local

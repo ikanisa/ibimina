@@ -34,103 +34,55 @@ import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
 
 ## SMS and OTP Handling
 
-### Reading SMS for OTP Auto-fill
+The public build avoids sensitive SMS permissions by combining:
+
+1. A notification listener that watches MTN MoMo/Airtel Money push notifications
+   for instant context.
+2. The Android SMS User Consent API for the rare occasions where the full SMS
+   body is required.
+
+### Triggering the SMS User Consent dialog
 
 ```typescript
-// lib/utils/sms-otp.ts
-export async function requestSMSPermission(): Promise<boolean> {
-  // SMS permissions are requested at runtime
-  // On Android 13+, you need to request READ_SMS permission
+import { requestSmsUserConsent } from "@/lib/sms/user-consent";
+
+async function captureOtp() {
   try {
-    // Check if running on Android
-    const info = await Device.getInfo();
-    if (info.platform !== "android") {
-      return false;
-    }
-
-    // Request permission through native code
-    // This requires a Capacitor plugin or native code
-    // For now, guide user to grant permission in settings
-    return true;
+    const result = await requestSmsUserConsent();
+    console.log("Member approved SMS", result.message, result.otp);
   } catch (error) {
-    console.error("SMS permission error:", error);
-    return false;
+    console.error("SMS consent failed", error);
   }
-}
-
-// Listen for SMS messages (requires native implementation)
-export function setupSMSListener(callback: (message: string) => void) {
-  // This requires a custom Capacitor plugin to listen for SMS
-  // Example implementation:
-
-  // 1. Create a broadcast receiver in Android native code
-  // 2. Parse incoming SMS for OTP patterns
-  // 3. Send OTP to the callback
-
-  // Pattern to match: 6-digit codes
-  const OTP_PATTERN = /\b\d{6}\b/;
-
-  // Callback will be called with extracted OTP
-  // callback('123456');
-}
-
-// Extract OTP from SMS text
-export function extractOTP(smsText: string): string | null {
-  const patterns = [
-    /\b\d{6}\b/, // 6 digits
-    /\b\d{4}\b/, // 4 digits
-    /OTP[:\s]+(\d+)/i, // "OTP: 123456"
-    /code[:\s]+(\d+)/i, // "Code: 123456"
-  ];
-
-  for (const pattern of patterns) {
-    const match = smsText.match(pattern);
-    if (match) {
-      return match[1] || match[0];
-    }
-  }
-
-  return null;
 }
 ```
 
-### Using OTP in Form
+The promise resolves only after the Android consent dialog is accepted.
+Rejections include helpful codes such as `timeout`, `cancelled`, or
+`consent_failed` to drive UX fallbacks.
+
+### React helper hook
 
 ```typescript
-// components/auth/otp-input.tsx
-import { useState, useEffect } from 'react';
+import { useSmsConsent } from "@/hooks/use-sms-consent";
 
-export function OTPInput({ onComplete }: { onComplete: (otp: string) => void }) {
-  const [otp, setOTP] = useState('');
-
-  useEffect(() => {
-    // Request SMS permission when component mounts
-    requestSMSPermission();
-
-    // Setup SMS listener for auto-fill
-    const unsubscribe = setupSMSListener((message) => {
-      const extractedOTP = extractOTP(message);
-      if (extractedOTP) {
-        setOTP(extractedOTP);
-        onComplete(extractedOTP);
-        Toast.show({ text: 'OTP auto-filled!' });
-      }
-    });
-
-    return () => unsubscribe?.();
-  }, []);
+export function SmsOtpButton() {
+  const { status, error, result, requestConsent } = useSmsConsent();
 
   return (
-    <input
-      type="text"
-      value={otp}
-      onChange={(e) => setOTP(e.target.value)}
-      maxLength={6}
-      placeholder="Enter OTP"
-    />
+    <div>
+      <button onClick={requestConsent} disabled={status === "requesting"}>
+        {status === "requesting" ? "Waiting..." : "Capture SMS"}
+      </button>
+      {status === "error" && <p role="alert">{error}</p>}
+      {status === "success" && result?.otp && <p>Detected OTP: {result.otp}</p>}
+    </div>
   );
 }
 ```
+
+The hook emits analytics events (`sms_consent_requested`, `sms_consent_granted`,
+`sms_consent_failed`) to PostHog/console so we can monitor adoption and
+troubleshoot issues.
 
 ## Camera and Document Capture
 

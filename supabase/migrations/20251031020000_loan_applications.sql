@@ -106,7 +106,10 @@ ALTER TABLE public.loan_application_status_history ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Authenticated users can view enabled loan products"
   ON public.loan_products
   FOR SELECT
-  USING (enabled = true AND auth.role() = 'authenticated');
+  USING (
+    enabled = true
+    AND auth.role() = 'authenticated'
+  );
 
 CREATE POLICY "Staff can manage their org loan products"
   ON public.loan_products
