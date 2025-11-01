@@ -20,4 +20,5 @@ export type PanelIconKey =
   | "reports"
   | "settings"
   | "audit"
-  | "feature-flags";
+  | "feature-flags"
+  | "support";

@@ -1,0 +1,270 @@
+
+Name	Last commit message	Last commit date
+..
+00000000000000_bootstrap.sql
+Add missing Supabase bootstrap and search migrations
+3 weeks ago
+20250203120000_metrics_anomaly_samples.sql
+Add Supabase metric anomaly detector and dashboards
+5 days ago
+20251007111647_0ad74d87-9b06-4a13-b252-8ecd3533e366.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251007162733_2795ee87-5113-4ac4-bf60-4c94e6a9b4d3.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251007172207_62b714d9-104f-4afd-87b8-410fe6520410.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251007175801_445427d3-4918-4a49-8ce2-19dd594e775e.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251007194126_69e2de70-aa8e-4254-ad9f-b1824d86d3b3.sql
+Guard admin cleanup against missing email_change column
+2 weeks ago
+20251007231413_5c172e5f-7458-4672-a879-43101e3cb903.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251008120000_enrich_saccos_with_umurenge_master.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251008163451_4bd7b6a1-70fd-4fe9-824b-9466b41979af.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251009121500_admin_branding_sms.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251009140500_admin_enhancements.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251009170000_restrict_ledger_entries_visibility.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251009170500_secure_ikimina_members.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251009175000_prepare_saccos_search_columns.sql
+Add missing Supabase bootstrap and search migrations
+3 weeks ago
+20251009175910_feature_flags_configuration.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251009180500_add_mfa_and_trusted_devices.sql
+Finalize go-live updates with MFA, analytics, and ops tooling
+3 weeks ago
+20251009193000_add_sacco_viewer_role.sql
+feat: refine role permissions and add sacco viewer access
+3 weeks ago
+20251009203000_cleanup_saccos_schema.sql
+feat(authx): add modular MFA orchestration layer
+3 weeks ago
+20251010220000_seed_admin_user.sql
+Patch Supabase auth token columns and add debug helpers
+2 weeks ago
+20251010223000_enable_trigram_extension.sql
+Ensure pg_trgm extension is available
+3 weeks ago
+20251011140000_reintroduce_brand_color_and_backfill.sql
+MFA: prevent 500s on decrypt/rate-limit errors; add per-user + bulk 2…
+3 weeks ago
+20251011153000_dashboard_materialization.sql
+Deploy cleanup
+2 weeks ago
+20251011154000_fix_consume_rate_limit.sql
+fix: harden consume rate limit
+3 weeks ago
+20251012120000_sacco_plus_schema.sql
+Complete documentation for SQL procedures and API routes
+4 days ago
+20251012183000_add_passkeys_mfa.sql
+Add passkey multi-factor authentication
+3 weeks ago
+20251013100000_add_mfa_email_codes.sql
+feat(mfa): allow email-only MFA and channel toggles
+3 weeks ago
+20251015000000_client_app.sql
+Deploy cleanup
+2 weeks ago
+20251015090000_add_authx_schema.sql
+feat(authx): add modular MFA orchestration layer
+3 weeks ago
+20251015190000_member_app_tables.sql
+Build member PWA foundation with onboarding and SACCO flows
+2 weeks ago
+20251016090000_add_report_subscriptions.sql
+Document P0-P2 implementation coverage (#12)
+3 weeks ago
+20251018010458_remote_schema.sql
+Harden RLS fixtures and stub pg_net during tests
+last week
+20251018103000_fix_auth_schema_permissions.sql
+fix: restore auth schema grants for login
+2 weeks ago
+20251020120000_align_app_schema.sql
+chore: repair supabase migration history
+last week
+20251020130000_public_views_app.sql
+Deploy cleanup
+2 weeks ago
+20251020134500_fix_search_slug.sql
+Deploy cleanup
+2 weeks ago
+20251020153000_seed_fixups.sql
+chore: repair supabase migration history
+last week
+20251020160000_fix_auth_confirmation_token.sql
+Patch Supabase auth token columns and add debug helpers
+2 weeks ago
+20251020160500_fix_auth_recovery_token.sql
+Patch Supabase auth token columns and add debug helpers
+2 weeks ago
+20251020161000_debug_auth_users.sql
+Patch Supabase auth token columns and add debug helpers
+2 weeks ago
+20251020161500_debug_auth_users_rpc.sql
+Patch Supabase auth token columns and add debug helpers
+2 weeks ago
+20251020162000_debug_auth_users_columns.sql
+Patch Supabase auth token columns and add debug helpers
+2 weeks ago
+20251020163000_debug_null_tokens.sql
+Patch Supabase auth token columns and add debug helpers
+2 weeks ago
+20251020163500_fix_auth_remaining_tokens.sql
+Patch Supabase auth token columns and add debug helpers
+2 weeks ago
+20251020164000_fix_auth_tokens.sql
+Patch Supabase auth token columns and add debug helpers
+2 weeks ago
+20251020164500_debug_null_text_columns.sql
+Add Supabase auth text-column cleanup helpers
+2 weeks ago
+20251020165000_fix_auth_phone_email.sql
+Add Supabase auth text-column cleanup helpers
+2 weeks ago
+20251020165500_secure_debug_rpcs.sql
+Restrict debug auth RPCs to service role
+2 weeks ago
+20251021150502_remote_schema.sql
+Harden RLS fixtures and stub pg_net during tests
+last week
+20251022120000_set_analytics_cache_webhook.sql
+Ensure analytics cache token seed uses JSON null
+4 days ago
+20251023120000_momo_codes_and_institutions.sql
+feat(admin): manage financial institutions and MoMo codes
+last week
+20251023123000_seed_momo_codes.sql
+feat(admin): manage financial institutions and MoMo codes
+last week
+20251023230000_grant_app_schema_access.sql
+chore: admin panel updates and migration scripts
+last week
+20251023231000_reload_postgrest_schema.sql
+chore: admin panel updates and migration scripts
+last week
+20251023233000_app_alias_analytics_views.sql
+chore: admin panel updates and migration scripts
+last week
+20251024003000_restore_public_views_and_analytics.sql
+chore: admin panel updates and migration scripts
+last week
+20251024083940_cleanup_legacy_public_tables.sql
+chore: admin panel updates and migration scripts
+last week
+20251025113000_public_users_insert_trigger.sql
+Harden RLS fixtures and stub pg_net during tests
+last week
+20251026231500_add_users_suspended.sql
+feat: add staff org management and district automation
+5 days ago
+20251026232500_add_orgs_and_memberships.sql
+feat: add staff org management and district automation
+5 days ago
+20251027003000_add_sacco_district_org_link.sql
+feat: add staff org management and district automation
+5 days ago
+20251027004500_rls_org_memberships.sql
+feat: add staff org management and district automation
+5 days ago
+20251027160000_notification_preferences_and_events.sql
+Changes before error encountered
+4 days ago
+20251027200000_staff_management.sql
+Changes before error encountered
+4 days ago
+20251027200000_web_push_subscriptions.sql
+Changes before error encountered
+4 days ago
+20251027200100_analytics_event_logging.sql
+Changes before error encountered
+4 days ago
+20251031000000_enhanced_feature_flags.sql
+feat: add database migrations and types for supa app features
+5 hours ago
+20251031010000_ai_agent_infrastructure.sql
+feat: add database migrations and types for supa app features
+5 hours ago
+20251031020000_loan_applications.sql
+feat: add database migrations and types for supa app features
+5 hours ago
+20251031030000_wallet_tokens.sql
+feat: add database migrations and types for supa app features
+5 hours ago
+20251031040000_nfc_references.sql
+feat: add database migrations and types for supa app features
+5 hours ago
+20251031080000_device_auth_system.sql
+feat: add device-bound authentication backend and Android implementation
+5 hours ago
+20251101090000_notification_queue_channels.sql
+Fix rate limit tests and finalize notification dispatch
+5 days ago
+20251101090500_notification_channel_in_app.sql
+Add forward migration for notification_channel enum update
+8 hours ago
+20251101120000_update_notification_channel_enum.sql
+Add forward migration for notification channel updates
+8 hours ago
+20251104100000_momo_polling_and_gsm_heartbeat.sql
+fix: make e2e start script resilient
+5 days ago
+20251105100000_trigram_search.sql
+Use trigram operators in sacco search filter
+4 days ago
+20251105100100_aggregates_rpc.sql
+Add trigram search and aggregates RPC migrations
+4 days ago
+20251110100000_multitenancy.sql
+Add WITH CHECK to multitenant modify policies
+4 days ago
+20251115100000_optimize_indexes_and_queries.sql
+Backend refactoring: Add indexes, optimize queries, improve shell scr…
+4 days ago
+20251115100100_optimize_account_balance_function.sql
+Backend refactoring: Add indexes, optimize queries, improve shell scr…
+4 days ago
+20251115100200_simplify_triggers.sql
+Backend refactoring: Add indexes, optimize queries, improve shell scr…
+4 days ago
+20251127160000_add_staff_management_fields.sql
+Fix staff management migration to update user view
+2 days ago
+20251127200000_notification_templates_and_prefs.sql
+Changes before error encountered
+4 days ago
+20251128000000_add_client_app_tables.sql
+feat: implement production-ready API routes and health monitoring
+3 days ago
+20251201000000_add_whatsapp_otp_auth.sql
+feat: add WhatsApp OTP authentication for client app
+4 hours ago
+20251201100000_multicountry_intermediation.sql
+Add multi-country primitives: SQL migration, Edge Function adapters, …
+2 hours ago
+20251231100000_multinational_expansion.sql
+feat: implement multi-country expansion infrastructure
+2 hours ago
+20251231100100_seed_countries.sql
+feat: implement multi-country expansion infrastructure
+2 hours ago

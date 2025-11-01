@@ -2,7 +2,9 @@
 
 ## Overview
 
-**TapMoMo** is a complete, production-ready Android library module that enables phone-to-phone NFC payments with mobile money (MoMo) USSD integration for Rwanda.
+**TapMoMo** is a complete, production-ready Android library module that enables
+phone-to-phone NFC payments with mobile money (MoMo) USSD integration for
+Rwanda.
 
 ## What Was Built
 
@@ -11,6 +13,7 @@
 **Location**: `/feature-tapmomo/`
 
 **Type**: Android Library (not an app)
+
 - **Package**: `com.tapmomo.feature`
 - **Namespace**: `com.tapmomo.feature`
 - **Resource Prefix**: `tapmomo_`
@@ -20,23 +23,30 @@
 ### 2. Core Components (39 Files Total)
 
 #### NFC Layer
-- **PayeeCardService**: Host Card Emulation (HCE) service that responds to NFC SELECT commands with payment payload
-- **ReaderController**: Reader mode controller for reading payment data from merchant's phone
+
+- **PayeeCardService**: Host Card Emulation (HCE) service that responds to NFC
+  SELECT commands with payment payload
+- **ReaderController**: Reader mode controller for reading payment data from
+  merchant's phone
 - **PayloadBuilder**: Creates signed payment payloads with HMAC-SHA256
 - **PayloadValidator**: Validates TTL, nonces, and signatures
 
 #### USSD Layer
-- **UssdLauncher**: Launches MoMo USSD codes via TelephonyManager or fallback to ACTION_DIAL
+
+- **UssdLauncher**: Launches MoMo USSD codes via TelephonyManager or fallback to
+  ACTION_DIAL
 - Supports both Rwanda networks (MTN, Airtel)
 - Handles dual-SIM devices with SIM picker
 
 #### Security & Core Utilities
+
 - **CryptoUtils**: HMAC-SHA256 signing and verification
 - **TimeUtils**: TTL validation, countdown formatting
 - **SimUtils**: Multi-SIM card detection and management
 - **PermissionUtils**: Runtime permission helpers
 
 #### Data Layer
+
 - **Room Database**: Local SQLite with 2 tables
   - `transactions`: Payment history
   - `seen_nonces`: Replay attack prevention
@@ -44,6 +54,7 @@
 - **SupabaseClient**: Optional backend integration via Ktor
 
 #### UI Layer (Jetpack Compose)
+
 - **GetPaidScreen**: Merchant receiving screen with NFC activation
 - **PayScreen**: Payer screen with NFC reader and confirmation
 - **TapMoMoGetPaidActivity**: Standalone activity for merchants
@@ -70,6 +81,7 @@ TapMoMo.openPay(context)
 ### 4. Backend Resources (Optional)
 
 #### Supabase Integration
+
 - **schema.sql**: PostgreSQL database schema with RLS
   - `merchants` table: Profiles with HMAC signing keys
   - `transactions` table: Server-side payment records
@@ -89,16 +101,18 @@ TapMoMo.openPay(context)
 ✅ **Constant-time comparison** (timing attack prevention)  
 ✅ **Optional signatures** with warning mode  
 ✅ **Device unlock required** for HCE  
-✅ **Permission validation**  
+✅ **Permission validation**
 
 ### 6. Testing
 
 #### Unit Tests (3 files)
+
 - **CryptoUtilsTest**: 8 tests for HMAC operations
 - **TimeUtilsTest**: 8 tests for TTL validation
 - **UssdBuilderTest**: 4 tests for USSD encoding
 
 #### Test Coverage
+
 - Signature generation and verification
 - TTL expiration scenarios
 - Nonce replay detection
@@ -138,6 +152,7 @@ TapMoMo.openPay(context)
 ### 8. Build Configuration
 
 #### Gradle Files
+
 - **build.gradle.kts**: Complete Kotlin DSL config
   - All required dependencies
   - Compose setup
@@ -146,11 +161,13 @@ TapMoMo.openPay(context)
   - ZXing for QR codes
 
 #### ProGuard Rules
+
 - **consumer-rules.pro**: Auto-applied to host app
 - **proguard-rules.pro**: Library-specific rules
 - Protects HCE service, data models, public API
 
 #### Manifest
+
 - **AndroidManifest.xml**: Merge-safe configuration
   - NFC permissions
   - HCE service registration
@@ -160,11 +177,13 @@ TapMoMo.openPay(context)
 ### 9. NFC Protocol Design
 
 #### Application ID (AID)
+
 - **Hex**: `F01234567890`
 - **Category**: `other` (not payment)
 - No conflicts with Google Pay, banking apps
 
 #### Payload Format (JSON over ISO-DEP)
+
 ```json
 {
   "ver": 1,
@@ -180,6 +199,7 @@ TapMoMo.openPay(context)
 ```
 
 #### Protocol Flow
+
 1. **Payer** enables reader mode
 2. **Payee** activates HCE with payload
 3. **Payer** taps phone to **Payee**
@@ -192,6 +212,7 @@ TapMoMo.openPay(context)
 ### 10. USSD Implementation
 
 #### Templates (Rwanda MoMo)
+
 ```
 Shortcut: *182*8*1*{MERCHANT}*{AMOUNT}#
 Menu:     *182*8*1#
@@ -199,6 +220,7 @@ Base:     *182#
 ```
 
 #### Launch Strategy
+
 1. Try `TelephonyManager.sendUssdRequest()` (API 26+)
 2. Fallback to `ACTION_DIAL` with encoded URI
 3. Handle dual-SIM with subscription ID
@@ -207,18 +229,20 @@ Base:     *182#
 ### 11. Integration Points
 
 #### For apps/client Android App
+
 - Module included in `settings.gradle`
 - Add dependency in `app/build.gradle`
 - Initialize in Application/MainActivity
 - Optional Capacitor bridge for web layer
 
 #### Capacitor Bridge Example
+
 ```kotlin
 @CapacitorPlugin(name = "TapMoMoPlugin")
 class TapMoMoPlugin : Plugin() {
     @PluginMethod
     fun openGetPaid(call: PluginCall) { ... }
-    
+
     @PluginMethod
     fun openPay(call: PluginCall) { ... }
 }
@@ -238,6 +262,7 @@ Config Files:     4
 ```
 
 **Lines of Code** (approximate):
+
 - Kotlin: ~2,500 LOC
 - Tests: ~300 LOC
 - XML: ~400 LOC
@@ -255,7 +280,7 @@ Config Files:     4
 ✅ **Backend-ready** - Optional Supabase integration  
 ✅ **Dual-SIM support** - Works with multiple SIM cards  
 ✅ **Offline-first** - Local database, queued sync  
-✅ **Material3 UI** - Modern Compose components  
+✅ **Material3 UI** - Modern Compose components
 
 ## Technology Stack
 
@@ -282,6 +307,7 @@ Config Files:     4
 ## Maintenance & Support
 
 The library is designed for:
+
 - **Easy updates**: Isolated module
 - **Version control**: Semantic versioning ready
 - **Breaking changes**: Public API is minimal and stable

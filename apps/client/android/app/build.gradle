@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "rw.gov.ikanisa.ibimina.client"
+    namespace "rw.ibimina.client"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "rw.gov.ikanisa.ibimina.client"
+        applicationId "rw.ibimina.client"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

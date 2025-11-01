@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   BarChartBig,
+  Bot,
   Building2,
   Flag,
   Inbox,
@@ -58,6 +59,7 @@ const ICON_MAP: Record<PanelIconKey, React.ComponentType<{ className?: string }>
   settings: Settings2,
   audit: ScrollText,
   "feature-flags": Flag,
+  support: Bot,
 };
 
 export function AdminPanelShell({
@@ -70,6 +72,19 @@ export function AdminPanelShell({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [mobileOpen]);
 
   const activePath = useMemo(() => {
     if (!pathname) return "/admin";
@@ -102,7 +117,7 @@ export function AdminPanelShell({
   }, [alertsBreakdown]);
 
   const nav = (
-    <nav className="flex h-full flex-col gap-1 overflow-y-auto p-3">
+    <nav className="flex h-full flex-col gap-1.5 overflow-y-auto p-3">
       {navItems.map((item) => {
         const Icon = ICON_MAP[item.icon];
         const isActive = activePath === item.href;
@@ -112,21 +127,22 @@ export function AdminPanelShell({
             href={{ pathname: item.href, query: saccoFilter ? { sacco: saccoFilter } : undefined }}
             onClick={() => setMobileOpen(false)}
             className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition",
-              "text-neutral-3 hover:bg-white/5 hover:text-neutral-0",
-              isActive && "bg-white/10 text-neutral-0 shadow-inner"
+              "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-interactive",
+              isActive
+                ? "bg-atlas-blue text-white shadow-atlas shadow-atlas-blue/30"
+                : "text-neutral-600 hover:bg-atlas-blue/5 hover:text-atlas-blue-dark dark:text-neutral-300 dark:hover:bg-atlas-blue/10"
             )}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">{item.label}</span>
             {item.badge && (
               <span
                 className={cn(
-                  "ml-auto inline-flex min-h-[1.25rem] items-center justify-center rounded-full px-2 text-[0.625rem] uppercase tracking-[0.2em]",
-                  item.badge.tone === "critical" && "bg-red-500/20 text-red-100",
-                  item.badge.tone === "warning" && "bg-amber-500/20 text-amber-100",
-                  item.badge.tone === "info" && "bg-sky-500/15 text-sky-100",
-                  item.badge.tone === "success" && "bg-emerald-500/20 text-emerald-100"
+                  "ml-auto inline-flex min-h-[1.25rem] items-center justify-center rounded-full px-2 text-[0.625rem] font-semibold uppercase tracking-wider",
+                  item.badge.tone === "critical" && "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
+                  item.badge.tone === "warning" && "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200",
+                  item.badge.tone === "info" && "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200",
+                  item.badge.tone === "success" && "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200"
                 )}
               >
                 {item.badge.label}
@@ -140,7 +156,7 @@ export function AdminPanelShell({
 
   return (
     <AdminPanelShortcuts>
-      <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,_rgba(70,100,255,0.18),_transparent_55%)]">
+      <div className="flex min-h-screen flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
         <AdminPanelTopBar
           profile={profile}
           tenantOptions={tenantOptions}
@@ -149,7 +165,7 @@ export function AdminPanelShell({
           alertsBreakdown={alertsBreakdown}
         />
         <div className="flex flex-1">
-          <aside className="hidden w-64 flex-shrink-0 border-r border-white/5 bg-white/5 backdrop-blur lg:block">
+          <aside className="hidden w-64 flex-shrink-0 border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:block">
             {nav}
           </aside>
           <div className="flex-1">
@@ -159,15 +175,25 @@ export function AdminPanelShell({
         <div className="lg:hidden">
           <button
             type="button"
-            className="fixed bottom-4 right-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-neutral-0 shadow-lg shadow-black/30 backdrop-blur"
+            className="fixed bottom-4 right-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-atlas-blue text-white shadow-atlas shadow-atlas-blue/40 transition-all duration-interactive hover:bg-atlas-blue-dark hover:shadow-lg"
             onClick={() => setMobileOpen((value) => !value)}
             aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           {mobileOpen && (
-            <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur">
-              <div className="absolute inset-x-4 bottom-20 rounded-2xl border border-white/10 bg-neutral-950/95 shadow-xl">
+            <div
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+              onClick={() => setMobileOpen(false)}
+              role="presentation"
+            >
+              <div
+                className="absolute inset-x-4 bottom-20 rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Mobile navigation menu"
+              >
                 {nav}
               </div>
             </div>
