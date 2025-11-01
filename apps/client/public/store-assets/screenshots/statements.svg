@@ -1,0 +1,23 @@
+<svg width="1284" height="2778" viewBox="0 0 1284 2778" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1284" height="2778" rx="96" fill="#ffffff" />
+  <rect x="96" y="180" width="1092" height="220" rx="48" fill="#0f172a" />
+  <text x="50%" y="320" text-anchor="middle" font-size="96" font-family="'Inter'" fill="#f8fafc">
+    Statements
+  </text>
+  <rect x="150" y="520" width="984" height="420" rx="48" fill="#bae6fd" />
+  <text x="50%" y="640" text-anchor="middle" font-size="48" font-family="'Inter'" fill="#0f172a">
+    Filter by product
+  </text>
+  <rect x="150" y="980" width="984" height="420" rx="48" fill="#e0f2fe" />
+  <text x="50%" y="1100" text-anchor="middle" font-size="48" font-family="'Inter'" fill="#0f172a">
+    Filter by date range
+  </text>
+  <rect x="150" y="1440" width="984" height="420" rx="48" fill="#cbd5f5" />
+  <text x="50%" y="1560" text-anchor="middle" font-size="48" font-family="'Inter'" fill="#0f172a">
+    Download receipts
+  </text>
+  <rect x="400" y="2040" width="484" height="164" rx="48" fill="#38bdf8" />
+  <text x="50%" y="2140" text-anchor="middle" font-size="48" font-family="'Inter'" fill="#0f172a">
+    Apply filters
+  </text>
+</svg>

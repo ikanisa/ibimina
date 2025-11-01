@@ -1,0 +1,6 @@
+app_identifier "rw.ibimina.sacco"
+apple_id "ops@ibimina.rw"
+team_id "TEAMID1234"
+itc_team_name "Ibimina Cooperative"
+
+json_key_file "../credentials/appstore_connect.json"

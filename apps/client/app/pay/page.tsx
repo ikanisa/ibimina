@@ -14,6 +14,7 @@
 
 import { UssdSheet } from "@/components/ussd/ussd-sheet";
 import { AlertCircle } from "lucide-react";
+import { mockGroups } from "@/utils/mock";
 
 export const metadata = {
   title: "Pay | SACCO+ Client",
@@ -23,28 +24,16 @@ export const metadata = {
 // Mock data - replace with actual data fetching from Supabase
 async function getPaymentInstructions() {
   // TODO: Fetch user's group memberships and generate USSD codes
-  return [
-    {
-      id: "1",
-      groupName: "Kigali Business Group",
-      groupId: "group-1",
-      saccoName: "Gasabo SACCO",
-      merchantCode: "123456",
-      reference: "NYA.GAS.KBG.001",
-      ussdCode: "*182*8*1*123456*20000#",
-      amount: 20000,
-    },
-    {
-      id: "2",
-      groupName: "Farmers Cooperative",
-      groupId: "group-2",
-      saccoName: "Kicukiro SACCO",
-      merchantCode: "789012",
-      reference: "NYA.KIC.FRM.002",
-      ussdCode: "*182*8*1*789012*15000#",
-      amount: 15000,
-    },
-  ];
+  return mockGroups.map((group) => ({
+    id: group.id,
+    groupName: group.name,
+    groupId: group.id,
+    saccoName: group.saccoName,
+    merchantCode: group.merchantCode,
+    reference: group.reference,
+    ussdCode: `*182*8*1*${group.merchantCode}*${group.defaultContribution}#`,
+    amount: group.defaultContribution,
+  }));
 }
 
 export default async function PayPage() {
@@ -62,14 +51,19 @@ export default async function PayPage() {
       <header className="bg-white border-b border-neutral-200 sticky top-0 z-10 backdrop-blur-sm bg-white/95">
         <div className="max-w-screen-xl mx-auto px-4 py-6">
           <h1 className="text-2xl font-bold text-neutral-900">Make a Payment</h1>
-          <p className="text-sm text-neutral-600 mt-1">Use USSD codes to contribute to your groups</p>
+          <p className="text-sm text-neutral-600 mt-1">
+            Use USSD codes to contribute to your groups
+          </p>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-8">
         {/* Help Banner - Atlas redesigned */}
         <div className="bg-atlas-glow border border-atlas-blue/20 rounded-2xl p-5 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-atlas-blue flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <AlertCircle
+            className="w-5 h-5 text-atlas-blue flex-shrink-0 mt-0.5"
+            aria-hidden="true"
+          />
           <div>
             <h2 className="text-sm font-semibold text-atlas-blue-dark">How to Pay</h2>
             <p className="text-sm text-neutral-700 mt-1.5 leading-relaxed">
@@ -82,8 +76,12 @@ export default async function PayPage() {
         {/* Payment Instructions List */}
         {paymentInstructions.length === 0 ? (
           <div className="bg-white border border-neutral-200 rounded-2xl p-12 text-center">
-            <p className="text-lg font-semibold text-neutral-700 mb-2">No payment instructions available</p>
-            <p className="text-sm text-neutral-600">Join a group to see payment instructions here</p>
+            <p className="text-lg font-semibold text-neutral-700 mb-2">
+              No payment instructions available
+            </p>
+            <p className="text-sm text-neutral-600">
+              Join a group to see payment instructions here
+            </p>
           </div>
         ) : (
           <div className="space-y-6">

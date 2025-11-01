@@ -90,11 +90,7 @@ export function UssdSheet({
   };
 
   // Format amount with RWF currency
-  const formattedAmount = new Intl.NumberFormat("rw-RW", {
-    style: "currency",
-    currency: "RWF",
-    minimumFractionDigits: 0,
-  }).format(amount);
+  const formattedAmount = fmtCurrency(amount);
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-atlas border border-neutral-200 overflow-hidden hover:shadow-atlas-lg hover:border-atlas-blue/20 transition-all duration-interactive">
