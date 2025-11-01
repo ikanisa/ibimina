@@ -18,6 +18,7 @@
 
 import { useState } from "react";
 import { Copy, Check, Phone, CheckCircle2, AlertCircle } from "lucide-react";
+import { trackEvent } from "@/lib/analytics/track";
 
 interface UssdSheetProps {
   merchantCode: string;
@@ -58,8 +59,21 @@ export function UssdSheet({
       if ("vibrate" in navigator) {
         navigator.vibrate(50);
       }
+
+      trackEvent("mobile_ussd_copy", {
+        field: type,
+        amount,
+        group: groupName,
+        sacco: saccoName,
+        hasAmount: Boolean(amount),
+      });
     } catch (error) {
       console.error("Failed to copy:", error);
+      trackEvent("mobile_ussd_copy_failed", {
+        field: type,
+        group: groupName,
+        sacco: saccoName,
+      });
     }
   };
 
@@ -68,6 +82,11 @@ export function UssdSheet({
     if (onPaidClick) {
       onPaidClick();
     }
+    trackEvent("mobile_ussd_paid_marked", {
+      group: groupName,
+      sacco: saccoName,
+      amount,
+    });
   };
 
   // Format amount with RWF currency
@@ -145,6 +164,13 @@ export function UssdSheet({
         <div className="space-y-3">
           <a
             href={`tel:${encodeURIComponent(ussdCode)}`}
+            onClick={() =>
+              trackEvent("mobile_ussd_dial_attempt", {
+                group: groupName,
+                sacco: saccoName,
+                hasAmount: Boolean(amount),
+              })
+            }
             className="flex items-center justify-center gap-3 w-full min-h-[60px] px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-xl shadow-atlas hover:shadow-atlas-lg hover:shadow-emerald-600/20 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:ring-offset-2"
             aria-label={`Dial USSD code ${ussdCode} to make payment`}
           >
@@ -191,7 +217,9 @@ export function UssdSheet({
               </div>
               <div className="flex-1 pt-1">
                 <p className="text-sm font-semibold text-neutral-900">Confirm the payment</p>
-                <p className="text-xs text-neutral-600 mt-1.5 leading-relaxed">You&apos;ll receive a confirmation SMS</p>
+                <p className="text-xs text-neutral-600 mt-1.5 leading-relaxed">
+                  You&apos;ll receive a confirmation SMS
+                </p>
               </div>
             </div>
           </div>

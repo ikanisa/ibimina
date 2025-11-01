@@ -3,18 +3,24 @@ package com.tapmomo.feature
 import android.content.Context
 import android.content.Intent
 import android.nfc.NfcAdapter
+import android.os.Build
+import com.tapmomo.feature.internal.TestHooks
+import com.tapmomo.feature.telemetry.TelemetryLogger
 import com.tapmomo.feature.ui.TapMoMoGetPaidActivity
 import com.tapmomo.feature.ui.TapMoMoPayActivity
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Main entry point for TapMoMo library.
  * Initialize this in your Application.onCreate() before using any features.
  */
 object TapMoMo {
-    
+
     private var config: TapMoMoConfig? = null
     private var isInitialized = false
-    
+    private val nfcUnavailableLogged = AtomicBoolean(false)
+    private val nfcDisabledLogged = AtomicBoolean(false)
+
     /**
      * Initialize TapMoMo with configuration.
      * Call this once in Application.onCreate()
@@ -22,10 +28,18 @@ object TapMoMo {
     fun init(context: Context, config: TapMoMoConfig) {
         this.config = config
         this.isInitialized = true
-        
+
         // Initialize internal components
         initializeDatabase(context.applicationContext)
         initializeSupabaseClient(config)
+        TelemetryLogger.initialize(context.applicationContext)
+        TelemetryLogger.track(
+            "tapmomo_initialized",
+            mapOf(
+                "networks" to config.networks.size,
+                "requiresSignature" to config.requireSignature,
+            ),
+        )
     }
     
     /**
@@ -40,16 +54,43 @@ object TapMoMo {
      * Check if NFC is available on this device
      */
     fun isNfcAvailable(context: Context): Boolean {
+        TestHooks.nfcAvailabilityOverride?.let { override ->
+            return override(context)
+        }
+
         val nfcAdapter = NfcAdapter.getDefaultAdapter(context)
-        return nfcAdapter != null
+        val available = nfcAdapter != null
+        if (!available && nfcUnavailableLogged.compareAndSet(false, true)) {
+            TelemetryLogger.track(
+                "tapmomo_nfc_unavailable",
+                mapOf(
+                    "manufacturer" to Build.MANUFACTURER,
+                    "model" to Build.MODEL,
+                ),
+            )
+        }
+        return available
     }
-    
+
     /**
      * Check if NFC is enabled
      */
     fun isNfcEnabled(context: Context): Boolean {
-        val nfcAdapter = NfcAdapter.getDefaultAdapter(context) ?: return false
-        return nfcAdapter.isEnabled
+        TestHooks.nfcEnabledOverride?.let { override ->
+            return override(context)
+        }
+
+        val nfcAdapter = NfcAdapter.getDefaultAdapter(context) ?: run {
+            if (nfcUnavailableLogged.compareAndSet(false, true)) {
+                TelemetryLogger.track("tapmomo_nfc_unavailable", emptyMap())
+            }
+            return false
+        }
+        val enabled = nfcAdapter.isEnabled
+        if (!enabled && nfcDisabledLogged.compareAndSet(false, true)) {
+            TelemetryLogger.track("tapmomo_nfc_disabled", emptyMap())
+        }
+        return enabled
     }
     
     /**
@@ -62,6 +103,13 @@ object TapMoMo {
         merchantId: String
     ) {
         checkInitialized()
+        TelemetryLogger.track(
+            "tapmomo_get_paid_attempt",
+            mapOf(
+                "network" to network.name,
+                "amountProvided" to (amount != null),
+            ),
+        )
         val intent = Intent(context, TapMoMoGetPaidActivity::class.java).apply {
             putExtra(TapMoMoGetPaidActivity.EXTRA_AMOUNT, amount)
             putExtra(TapMoMoGetPaidActivity.EXTRA_NETWORK, network.name)
@@ -76,6 +124,7 @@ object TapMoMo {
      */
     fun openPay(context: Context) {
         checkInitialized()
+        TelemetryLogger.track("tapmomo_pay_attempt")
         val intent = Intent(context, TapMoMoPayActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }

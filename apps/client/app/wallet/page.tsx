@@ -5,6 +5,7 @@ import { WalletToken } from "@/lib/types/supa-app";
 import { TokenCard } from "@/components/wallet/token-card";
 import { GradientHeader } from "@ibimina/ui";
 import { Loader2, AlertCircle, Wallet as WalletIcon } from "lucide-react";
+import { trackEvent } from "@/lib/analytics/track";
 
 /**
  * Wallet Page
@@ -52,6 +53,13 @@ export default function WalletPage() {
   }, [filter]);
 
   const handleRedeem = (token: WalletToken) => {
+    trackEvent("wallet_token_tap_attempt", {
+      tokenType: token.token_type,
+      nfcEnabled: token.nfc_enabled,
+      valueAmount: token.value_amount,
+      status: token.status,
+    });
+
     // TODO: Implement redemption flow
     console.log("Redeem token:", token.id);
     alert(`Redeem ${token.display_name} - Redemption flow coming soon!`);
