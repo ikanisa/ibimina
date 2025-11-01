@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { featureFlagDefinitions } from "@ibimina/config";
 import { HSTS_HEADER, createSecureHeaders } from "@ibimina/lib";
 
 /**
@@ -12,12 +13,20 @@ import { HSTS_HEADER, createSecureHeaders } from "@ibimina/lib";
 
 let withPWA = (config: NextConfig) => config;
 
+const fallbackFeatureDefault = featureFlagDefinitions.pwaFallback.defaultValue;
+const shouldEnablePwaFallback =
+  process.env.ENABLE_PWA_FALLBACK === "1" ||
+  (process.env.DISABLE_PWA_FALLBACK !== "1" && fallbackFeatureDefault);
+
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const withPWAInit = require("next-pwa");
   withPWA = withPWAInit({
     dest: "public",
-    disable: process.env.NODE_ENV === "development" || process.env.DISABLE_PWA === "1",
+    disable:
+      process.env.NODE_ENV === "development" ||
+      process.env.DISABLE_PWA === "1" ||
+      !shouldEnablePwaFallback,
     register: true,
     skipWaiting: true,
     sw: "service-worker.js",
@@ -33,6 +42,14 @@ try {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  publicRuntimeConfig: {
+    featureFlags: {
+      pwaFallback: shouldEnablePwaFallback,
+      nfcReferenceCards: featureFlagDefinitions.nfcReferenceCards.defaultValue,
+      memberVouchers: featureFlagDefinitions.memberVouchers.defaultValue,
+      memberLoans: featureFlagDefinitions.memberLoans.defaultValue,
+    },
+  },
 
   // Enable optimized image handling
   images: {

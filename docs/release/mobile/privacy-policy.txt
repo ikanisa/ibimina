@@ -1,0 +1,17 @@
+Ibimina SACCO+ Mobile Privacy Notice
+
+1. Data Collection
+   - Device identifiers collected solely for fraud prevention.
+   - Optional contact and SMS metadata processed for voucher autofill when consented.
+
+2. Data Usage
+   - Transaction data is stored on Ibimina-managed Supabase infrastructure in the EU West region.
+   - NFC reference card tokens are hashed and encrypted at rest using the secure token vault service.
+
+3. Data Sharing
+   - No personal data is sold or shared with third parties.
+   - Regulatory disclosures provided to BNR and RURA upon request only.
+
+4. User Rights
+   - Members may request data access or deletion via privacy@ibimina.rw.
+   - Data retention is 24 months for operational telemetry and consent logs.

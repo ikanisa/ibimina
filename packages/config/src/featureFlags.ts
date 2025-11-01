@@ -7,7 +7,13 @@
  * feature gates stay in sync across environments.
  */
 
-export type FeatureFlagName = "directory" | "ticketing";
+export type FeatureFlagName =
+  | "directory"
+  | "ticketing"
+  | "nfcReferenceCards"
+  | "memberVouchers"
+  | "memberLoans"
+  | "pwaFallback";
 
 export interface PilotDistrict {
   /** UUID for the pilot district organization. */
@@ -122,6 +128,36 @@ const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFl
       defaultValue: false,
       rollout: "pilot",
     },
+    nfcReferenceCards: {
+      key: "nfcReferenceCards",
+      description: "Issue NFC reference cards and secure provisioning tokens for teller devices.",
+      pilotTenants: PILOT_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
+    },
+    memberVouchers: {
+      key: "memberVouchers",
+      description: "Enable digital voucher issuance for savings groups and merchant redemption.",
+      pilotTenants: PILOT_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
+    },
+    memberLoans: {
+      key: "memberLoans",
+      description:
+        "Enable lightweight loan application capture and fulfilment tracking for members.",
+      pilotTenants: PILOT_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
+    },
+    pwaFallback: {
+      key: "pwaFallback",
+      description:
+        "Surface the responsive PWA fallback when native modules are disabled by feature flags.",
+      pilotTenants: PILOT_TENANT_IDS,
+      defaultValue: true,
+      rollout: "graduated",
+    },
   });
 
 export const featureFlagDefinitions = FEATURE_FLAG_DEFINITIONS;
@@ -163,5 +199,9 @@ export function getTenantFeatureFlags(tenantId: string | null | undefined): Tena
   return Object.freeze({
     directory: isFeatureEnabledForTenant("directory", tenantId),
     ticketing: isFeatureEnabledForTenant("ticketing", tenantId),
+    nfcReferenceCards: isFeatureEnabledForTenant("nfcReferenceCards", tenantId),
+    memberVouchers: isFeatureEnabledForTenant("memberVouchers", tenantId),
+    memberLoans: isFeatureEnabledForTenant("memberLoans", tenantId),
+    pwaFallback: isFeatureEnabledForTenant("pwaFallback", tenantId),
   });
 }
