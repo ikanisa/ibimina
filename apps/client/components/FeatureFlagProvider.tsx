@@ -8,7 +8,7 @@ import React, { createContext, ReactNode, useMemo } from "react";
  * This type defines the structure of feature flags in the application.
  * Add new feature flags here as needed.
  */
-type FeatureFlags = {
+export type FeatureFlags = {
   [key: string]: boolean;
 };
 
@@ -25,45 +25,19 @@ type FeatureFlagContextType = {
 export const FeatureFlagContext = createContext<FeatureFlagContextType | undefined>(undefined);
 
 /**
- * Feature Flag Provider Component
+ * Normalise a feature flag key.
  *
- * This provider wraps the application and makes feature flags available
- * to all child components via the useFeatureFlags hook.
- *
- * Feature flags are loaded from environment variables with the prefix
- * NEXT_PUBLIC_FEATURE_FLAG_. For example:
- * - NEXT_PUBLIC_FEATURE_FLAG_NEW_UI=true enables the 'new-ui' flag
- * - NEXT_PUBLIC_FEATURE_FLAG_BETA_FEATURES=false disables 'beta-features'
- *
- * Default behavior: All flags default to false unless explicitly enabled.
- *
- * Accessibility: Feature flags can be used to gradually roll out a11y
- * improvements or test different accessible UI patterns.
- *
- * @example
- * ```tsx
- * // In your app layout or root component:
- * <FeatureFlagProvider>
- *   <YourApp />
- * </FeatureFlagProvider>
- * ```
+ * Converts camelCase, PascalCase, snake_case, and space separated names into
+ * kebab-case strings for consistent lookups.
  */
-export function FeatureFlagProvider({ children }: { children: ReactNode }) {
-  const flags = useMemo(() => {
-    return parseFeatureFlagsFromEnv();
-  }, []);
-
-  const value = useMemo(
-    () => ({
-      flags,
-      isEnabled: (flagName: string): boolean => {
-        return flags[flagName] ?? false;
-      },
-    }),
-    [flags]
-  );
-
-  return <FeatureFlagContext.Provider value={value}>{children}</FeatureFlagContext.Provider>;
+export function normalizeFlagKey(rawKey: string): string {
+  return rawKey
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/[_\s]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
 }
 
 /**
@@ -74,19 +48,78 @@ export function FeatureFlagProvider({ children }: { children: ReactNode }) {
  *
  * @returns Object mapping flag names to boolean values
  */
-function parseFeatureFlagsFromEnv(): FeatureFlags {
+export function parseFeatureFlagsFromEnv(env: NodeJS.ProcessEnv = process.env): FeatureFlags {
   const envFlags: FeatureFlags = {};
 
-  Object.keys(process.env).forEach((key) => {
+  Object.entries(env).forEach(([key, value]) => {
     if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-      const flagName = key
-        .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
-        .toLowerCase()
-        .replace(/_/g, "-");
-      const value = process.env[key];
+      const flagName = normalizeFlagKey(key.replace("NEXT_PUBLIC_FEATURE_FLAG_", ""));
       envFlags[flagName] = value === "true" || value === "1";
     }
   });
 
   return envFlags;
+}
+
+/**
+ * Merge feature flag sources, giving precedence to overrides.
+ */
+export function mergeFeatureFlagSources(
+  base: FeatureFlags,
+  overrides?: FeatureFlags | null
+): FeatureFlags {
+  return {
+    ...base,
+    ...(overrides ?? {}),
+  };
+}
+
+type FeatureFlagProviderProps = {
+  children: ReactNode;
+  initialFlags?: FeatureFlags;
+};
+
+/**
+ * Feature Flag Provider Component
+ *
+ * This provider wraps the application and makes feature flags available
+ * to all child components via the useFeatureFlags hook.
+ *
+ * Feature flags are loaded from environment variables with the prefix
+ * NEXT_PUBLIC_FEATURE_FLAG_. Remote configuration providers (ConfigCat,
+ * Flagsmith, Supabase) can supply an initialFlags object which overrides
+ * the environment defaults.
+ *
+ * Default behavior: All flags default to false unless explicitly enabled.
+ *
+ * Accessibility: Feature flags can be used to gradually roll out a11y
+ * improvements or test different accessible UI patterns.
+ *
+ * @example
+ * ```tsx
+ * // In your app layout or root component:
+ * <FeatureFlagProvider initialFlags={remoteFlags}>
+ *   <YourApp />
+ * </FeatureFlagProvider>
+ * ```
+ */
+export function FeatureFlagProvider({ children, initialFlags }: FeatureFlagProviderProps) {
+  const envFlags = useMemo(() => parseFeatureFlagsFromEnv(), []);
+  const mergedFlags = useMemo(
+    () => mergeFeatureFlagSources(envFlags, initialFlags),
+    [envFlags, initialFlags]
+  );
+
+  const value = useMemo(
+    () => ({
+      flags: mergedFlags,
+      isEnabled: (flagName: string): boolean => {
+        const normalized = normalizeFlagKey(flagName);
+        return mergedFlags[normalized] ?? false;
+      },
+    }),
+    [mergedFlags]
+  );
+
+  return <FeatureFlagContext.Provider value={value}>{children}</FeatureFlagContext.Provider>;
 }
