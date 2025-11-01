@@ -1,0 +1,24 @@
+<svg width="2732" height="2048" viewBox="0 0 2732 2048" xmlns="http://www.w3.org/2000/svg">
+  <rect width="2732" height="2048" fill="#0f172a" />
+  <circle cx="1366" cy="1024" r="720" fill="#38bdf8" opacity="0.12" />
+  <circle cx="1366" cy="1024" r="540" fill="#38bdf8" opacity="0.18" />
+  <circle cx="1366" cy="1024" r="360" fill="#38bdf8" opacity="0.22" />
+  <text
+    x="50%"
+    y="50%"
+    dominant-baseline="middle"
+    text-anchor="middle"
+    font-size="240"
+    font-family="'Inter', sans-serif"
+    fill="#f8fafc"
+  >Ibimina SACCO+</text>
+  <text
+    x="50%"
+    y="60%"
+    dominant-baseline="middle"
+    text-anchor="middle"
+    font-size="72"
+    font-family="'Inter', sans-serif"
+    fill="#cbd5f5"
+  >Serving cooperatives with digital-first member services</text>
+</svg>
