@@ -9,6 +9,8 @@ semantic SACCO search.
 
 - [**CONTRIBUTING.md**](CONTRIBUTING.md) - Guidelines for contributing to the
   project
+- [**docs/dev/getting-started.md**](docs/dev/getting-started.md) - Consolidated
+  developer onboarding checklist
 - [**DEVELOPMENT.md**](DEVELOPMENT.md) - Detailed development setup and workflow
   guide
 - [**docs/**](docs/) - Additional documentation on architecture, deployment, and
