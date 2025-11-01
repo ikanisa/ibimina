@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
-import { defaultLocale } from "@/i18n";
+import { getLocale } from "next-intl/server";
+
+import { defaultLocale, isValidLocale } from "@/i18n";
 import { getClientContentPack } from "@/lib/content/pack";
 
 export const metadata = {
@@ -9,28 +11,33 @@ export const metadata = {
   description: "Frequently asked questions",
 };
 
-const contentPack = getClientContentPack(defaultLocale);
+export default async function FAQPage() {
+  const locale = await getLocale();
+  const activeLocale = isValidLocale(locale) ? locale : defaultLocale;
+  const contentPack = getClientContentPack(activeLocale);
 
-const faqs = [
-  {
-    question: "USSD contribution guide",
-    answerItems: contentPack.help.paymentGuide,
-  },
-  {
-    question: "Troubleshooting steps",
-    answerItems: contentPack.help.troubleshooting,
-  },
-  {
-    question: "Dual SIM and network tips",
-    answerItems: [...(contentPack.tips?.dualSim ?? []), ...(contentPack.tips?.networkIssues ?? [])],
-  },
-  {
-    question: "Market day reminders",
-    answerItems: contentPack.tips?.marketDays ?? [],
-  },
-];
+  const faqs = [
+    {
+      question: "USSD contribution guide",
+      answerItems: contentPack.help.paymentGuide,
+    },
+    {
+      question: "Troubleshooting steps",
+      answerItems: contentPack.help.troubleshooting,
+    },
+    {
+      question: "Dual SIM and network tips",
+      answerItems: [
+        ...(contentPack.tips?.dualSim ?? []),
+        ...(contentPack.tips?.networkIssues ?? []),
+      ],
+    },
+    {
+      question: "Market day reminders",
+      answerItems: contentPack.tips?.marketDays ?? [],
+    },
+  ];
 
-export default function FAQPage() {
   return (
     <div className="min-h-screen bg-neutral-50 pb-20">
       <header className="bg-white border-b border-neutral-200">
