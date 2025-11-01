@@ -9,6 +9,19 @@ import {
   type WhatsAppStatusRecord,
   type WhatsAppWebhookPayload,
 } from "../../src/webhooks/whatsapp.js";
+import {
+  ensureObservability,
+  logError,
+  logInfo,
+  logWarn,
+  recordWhatsappFailure,
+  recordWhatsappIngestMetrics,
+  captureException,
+} from "../../src/lib/observability/index.js";
+import {
+  createSupabaseWebhookIdempotencyStore,
+  withWebhookIdempotency,
+} from "../../src/lib/idempotency.js";
 
 interface AlertPayload {
   event: string;
@@ -106,13 +119,16 @@ const postAlert = async (payload: AlertPayload) => {
     });
 
     if (!response.ok) {
-      console.warn("whatsapp_webhook.alert_non_200", {
+      logWarn("whatsapp_webhook.alert_non_200", {
         status: response.status,
         statusText: response.statusText,
       });
+      recordWhatsappFailure("alert_non_200");
     }
   } catch (error) {
-    console.error("whatsapp_webhook.alert_failed", error);
+    const message = error instanceof Error ? error.message : String(error);
+    logError("whatsapp_webhook.alert_failed", { error: message });
+    recordWhatsappFailure("alert_failed");
   }
 };
 
@@ -156,12 +172,15 @@ const parsePayload = (rawBody: Buffer): WhatsAppWebhookPayload => {
     const text = rawBody.toString("utf8");
     return JSON.parse(text) as WhatsAppWebhookPayload;
   } catch (error) {
-    console.error("whatsapp_webhook.parse_error", error);
+    const message = error instanceof Error ? error.message : String(error);
+    logError("whatsapp_webhook.parse_error", { error: message });
+    recordWhatsappFailure("parse_error");
     throw new Error("Invalid JSON payload");
   }
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  ensureObservability();
   if (req.method === "GET") {
     handleVerification(req, res);
     return;
@@ -178,7 +197,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const appSecret = process.env.META_WHATSAPP_APP_SECRET;
 
   if (!appSecret) {
-    console.error("whatsapp_webhook.misconfigured", { reason: "missing_app_secret" });
+    logError("whatsapp_webhook.misconfigured", { reason: "missing_app_secret" });
+    recordWhatsappFailure("missing_secret");
     res.status(500).json({ error: "WhatsApp webhook misconfigured" });
     return;
   }
@@ -194,7 +214,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   );
 
   if (!verification.ok) {
-    console.warn("whatsapp_webhook.signature_invalid", { reason: verification.reason });
+    logWarn("whatsapp_webhook.signature_invalid", { reason: verification.reason });
+    recordWhatsappFailure("invalid_signature");
     res.status(403).json({ error: "Invalid signature" });
     return;
   }
@@ -204,31 +225,105 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     payload = parsePayload(rawBody);
   } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+    const message = error instanceof Error ? error.message : String(error);
+    res.status(400).json({ error: message });
     return;
   }
 
-  const summary = processWebhookPayload(payload);
+  const bodyHash = hashBody(rawBody);
+  const supabase = getSupabaseClient();
+  const store = createSupabaseWebhookIdempotencyStore(supabase, `whatsapp:${bodyHash}`);
+  const fallbackResponse = {
+    ok: true,
+    inboundMessages: 0,
+    statuses: 0,
+    failures: 0,
+    deduplicated: true,
+  } as const;
 
   try {
-    await persistStatuses(summary.statuses);
+    const result = await withWebhookIdempotency({
+      store,
+      requestHash: bodyHash,
+      ttlSeconds: 60 * 60,
+      fallback: fallbackResponse,
+      onPendingTimeout: () => {
+        recordWhatsappFailure("pending_timeout");
+        logWarn("whatsapp_webhook.pending_timeout", { hash: bodyHash });
+      },
+      operation: async () => {
+        const summary = processWebhookPayload(payload);
+        logInfo("whatsapp_webhook.processed", {
+          inboundMessages: summary.inboundMessages,
+          statuses: summary.statuses.length,
+          failures: summary.failures.length,
+          hash: bodyHash,
+        });
+
+        try {
+          await persistStatuses(summary.statuses);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          logError("whatsapp_webhook.persist_error", { error: message });
+          recordWhatsappFailure("persist_error");
+          captureException(error, { stage: "persistence", hash: bodyHash });
+          throw new Error("Failed to persist statuses");
+        }
+
+        if (summary.failures.length) {
+          await postAlert(buildAlertPayload(summary.failures, bodyHash));
+        }
+
+        recordWhatsappIngestMetrics({
+          result: "processed",
+          inboundMessages: summary.inboundMessages,
+          statuses: summary.statuses.length,
+          failures: summary.failures.length,
+        });
+
+        return {
+          ok: true,
+          inboundMessages: summary.inboundMessages,
+          statuses: summary.statuses.length,
+          failures: summary.failures.length,
+          deduplicated: false,
+        } as const;
+      },
+    });
+
+    if (result.fromCache) {
+      if (result.timedOut) {
+        recordWhatsappIngestMetrics({
+          result: "failed",
+          inboundMessages: 0,
+          statuses: 0,
+          failures: 0,
+        });
+      } else {
+        recordWhatsappIngestMetrics({
+          result: "cached",
+          inboundMessages: result.data.inboundMessages,
+          statuses: result.data.statuses,
+          failures: result.data.failures,
+        });
+        logInfo("whatsapp_webhook.cached", { hash: bodyHash });
+      }
+    }
+
+    const responsePayload = result.fromCache ? { ...result.data, deduplicated: true } : result.data;
+
+    res.status(200).json(responsePayload);
   } catch (error) {
-    console.error("whatsapp_webhook.persist_error", error);
-    res.status(500).json({ error: "Failed to persist statuses" });
-    return;
+    const message = error instanceof Error ? error.message : String(error);
+    captureException(error, { stage: "handler", hash: bodyHash });
+    recordWhatsappIngestMetrics({
+      result: "failed",
+      inboundMessages: 0,
+      statuses: 0,
+      failures: 0,
+    });
+    res.status(500).json({ error: message });
   }
-
-  if (summary.failures.length) {
-    const hash = hashBody(rawBody);
-    await postAlert(buildAlertPayload(summary.failures, hash));
-  }
-
-  res.status(200).json({
-    ok: true,
-    inboundMessages: summary.inboundMessages,
-    statuses: summary.statuses.length,
-    failures: summary.failures.length,
-  });
 }
 
 export const config = {

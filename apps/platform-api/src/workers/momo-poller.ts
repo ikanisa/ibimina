@@ -1,5 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import { invokeEdge, requireEnv } from "../lib/edgeClient";
+import {
+  ensureObservability,
+  logError,
+  logInfo,
+  recordMomoPollerMetrics,
+  captureException,
+} from "../lib/observability/index.js";
 
 interface PollSummary {
   success: boolean;
@@ -10,9 +17,20 @@ interface PollSummary {
 }
 
 export async function runMomoPoller() {
-  const response = (await invokeEdge("momo-statement-poller", { method: "POST" })) as PollSummary;
+  ensureObservability();
+  logInfo("momo_poller.invocation", { worker: "momo-statement-poller" });
+
+  const response = (await invokeEdge("momo-statement-poller", {
+    method: "POST",
+    retry: { attempts: 3, backoffMs: 500 },
+  })) as PollSummary;
   if (!response?.success) {
-    throw new Error(`MoMo polling failed: ${response?.error ?? "unknown error"}`);
+    recordMomoPollerMetrics({ status: "failure" });
+    const errorMessage = response?.error ?? "unknown error";
+    const error = new Error(`MoMo polling failed: ${errorMessage}`);
+    logError("momo_poller.edge_failed", { error: errorMessage });
+    captureException(error, { stage: "edge_invocation" });
+    throw error;
   }
 
   const supabase = createClient(
@@ -23,7 +41,7 @@ export async function runMomoPoller() {
     }
   );
 
-  const { data: pollers } = await supabase
+  const { data: pollers, error: pollerStatusError } = await supabase
     .schema("app")
     .from("momo_statement_pollers")
     .select(
@@ -31,11 +49,25 @@ export async function runMomoPoller() {
     )
     .order("display_name", { ascending: true });
 
-  console.info("MoMo polling summary", {
-    processed: response.processed ?? 0,
-    inserted: response.inserted ?? 0,
-    jobs: response.jobs ?? 0,
+  if (pollerStatusError) {
+    recordMomoPollerMetrics({ status: "failure" });
+    logError("momo_poller.supabase_failed", { error: pollerStatusError.message });
+    captureException(pollerStatusError, { stage: "status_fetch" });
+    throw new Error(`Failed to load MoMo poller status: ${pollerStatusError.message}`);
+  }
+
+  const processed = response.processed ?? 0;
+  const inserted = response.inserted ?? 0;
+  const jobs = response.jobs ?? 0;
+
+  recordMomoPollerMetrics({
+    status: "success",
+    processed,
+    inserted,
+    jobs,
   });
+
+  logInfo("momo_poller.completed", { processed, inserted, jobs });
 
   if (pollers?.length) {
     console.table(
