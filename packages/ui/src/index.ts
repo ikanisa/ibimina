@@ -15,3 +15,6 @@ export * from "./components/sparkline";
 export * from "./components/sticky-action-bar";
 export * from "./utils/cn";
 export * from "./utils/blur-placeholder";
+export * from "./components/accessibility/AccessibleActionButton";
+export * from "./components/accessibility/MotionPreferenceToggle";
+export * from "./utils/accessibility";
