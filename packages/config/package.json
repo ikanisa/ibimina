@@ -7,15 +7,16 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "lint": "echo 'TODO: add linting'",
+    "lint": "eslint --config ./eslint.config.mjs --max-warnings=0 'src/**/*.{ts,tsx}'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo 'TODO: add tests'"
+    "test": "vitest run --config vitest.base.ts"
   },
   "dependencies": {
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/node": "20.19.21",
     "typescript": "^5.9.3",
-    "@types/node": "20.19.21"
+    "vitest": "^2.1.9"
   }
 }

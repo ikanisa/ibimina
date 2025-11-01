@@ -93,7 +93,7 @@ jobs:
         run: echo "Required Supabase secrets are unavailable; skipping feature flag validation."
 
       - name: Lint (excluding client)
-        run: pnpm --filter '!@ibimina/client' run lint
+        run: pnpm -r --filter '!@ibimina/client' lint
 
       - name: Lint client package
         id: client_lint
@@ -110,6 +110,9 @@ jobs:
 
       - name: Typecheck
         run: pnpm run typecheck
+
+      - name: Workspace library tests
+        run: pnpm -r --filter "@ibimina/{lib,core,providers,ai-agent,testing,config}" test
 
       - name: Unit tests
         run: pnpm run test:unit

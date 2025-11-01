@@ -6,9 +6,9 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "lint": "echo 'TODO: add linting'",
+    "lint": "eslint --config ../config/eslint.config.mjs --max-warnings=0 '{src,tests}/**/*.{ts,tsx}'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --config vitest.config.ts"
   },
   "devDependencies": {
     "@types/node": "20.19.21",

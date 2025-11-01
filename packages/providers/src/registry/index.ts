@@ -3,15 +3,11 @@
  * Central registry for all statement and SMS adapters
  */
 
-import type {
-  ProviderAdapter,
-  AdapterRegistryEntry,
-  ParseResult,
-} from '../types/adapter.js';
+import type { ProviderAdapter, AdapterRegistryEntry, ParseResult } from "../types/adapter.js";
 
 // Import Rwanda adapters
-import { MTNRwandaStatementAdapter } from '../adapters/RW/MTNStatementAdapter.js';
-import { MTNRwandaSmsAdapter } from '../adapters/RW/MTNSmsAdapter.js';
+import { MTNRwandaStatementAdapter } from "../adapters/RW/MTNStatementAdapter.js";
+import { MTNRwandaSmsAdapter } from "../adapters/RW/MTNSmsAdapter.js";
 
 /**
  * Global adapter registry
@@ -33,17 +29,14 @@ class AdapterRegistry {
    */
   getAdaptersByCountry(countryISO3: string): AdapterRegistryEntry[] {
     return this.adapters.filter(
-      (entry) =>
-        entry.countryISO3.toUpperCase() === countryISO3.toUpperCase(),
+      (entry) => entry.countryISO3.toUpperCase() === countryISO3.toUpperCase()
     );
   }
 
   /**
    * Get adapters by type
    */
-  getAdaptersByType(
-    type: 'statement' | 'sms',
-  ): AdapterRegistryEntry[] {
+  getAdaptersByType(type: "statement" | "sms"): AdapterRegistryEntry[] {
     return this.adapters.filter((entry) => entry.type === type);
   }
 
@@ -53,13 +46,13 @@ class AdapterRegistry {
   getAdapter(
     countryISO3: string,
     providerName: string,
-    type: 'statement' | 'sms',
+    type: "statement" | "sms"
   ): ProviderAdapter | undefined {
     const entry = this.adapters.find(
       (e) =>
         e.countryISO3.toUpperCase() === countryISO3.toUpperCase() &&
         e.providerName.toLowerCase() === providerName.toLowerCase() &&
-        e.type === type,
+        e.type === type
     );
     return entry?.adapter;
   }
@@ -68,13 +61,11 @@ class AdapterRegistry {
    * Auto-detect and parse input using all registered adapters
    * Returns the best match based on confidence score
    */
-  autoParse(input: string, type?: 'statement' | 'sms'): ParseResult {
+  autoParse(input: string, type?: "statement" | "sms"): ParseResult {
     let bestResult: ParseResult | null = null;
     let bestConfidence = 0;
 
-    const candidates = type
-      ? this.getAdaptersByType(type)
-      : this.adapters;
+    const candidates = type ? this.getAdaptersByType(type) : this.adapters;
 
     for (const entry of candidates) {
       const adapter = entry.adapter;
@@ -102,7 +93,7 @@ class AdapterRegistry {
     return {
       success: false,
       confidence: 0,
-      error: 'No adapter could parse the input',
+      error: "No adapter could parse the input",
     };
   }
 
@@ -129,18 +120,18 @@ export function registerDefaultAdapters(): void {
   // Rwanda - MTN Statement
   adapterRegistry.register({
     adapter: new MTNRwandaStatementAdapter(),
-    type: 'statement',
-    countryISO3: 'RWA',
-    providerName: 'MTN Rwanda',
+    type: "statement",
+    countryISO3: "RWA",
+    providerName: "MTN Rwanda",
     priority: 100,
   });
 
   // Rwanda - MTN SMS
   adapterRegistry.register({
     adapter: new MTNRwandaSmsAdapter(),
-    type: 'sms',
-    countryISO3: 'RWA',
-    providerName: 'MTN Rwanda',
+    type: "sms",
+    countryISO3: "RWA",
+    providerName: "MTN Rwanda",
     priority: 100,
   });
 

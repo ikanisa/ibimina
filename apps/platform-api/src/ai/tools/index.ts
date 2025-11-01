@@ -27,12 +27,6 @@ const defaultSurveyPath = resolve(
 const followUpScheduleRelativePath = "docs/retros/review-schedule.json";
 const followUpSchedulePath = resolve(repoRoot, followUpScheduleRelativePath);
 
-interface DateRangeArgs {
-  startDate?: string;
-  endDate?: string;
-  filePath?: string;
-}
-
 interface MetricsArgs {
   startDate?: string;
   endDate?: string;
@@ -52,12 +46,6 @@ interface MetricsSummary {
   peakEscalationDate: string | null;
   peakEscalationCount: number;
   handleTimeDeltaSeconds: number;
-}
-
-interface SurveySummaryArgs {
-  startDate?: string;
-  endDate?: string;
-  surveyPath?: string;
 }
 
 interface SurveyArgs {

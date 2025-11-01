@@ -44,7 +44,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint (excluding client)
-        run: pnpm --filter '!@ibimina/client' run lint
+        run: pnpm -r --filter '!@ibimina/client' lint
 
       - name: Lint client package
         id: client_lint
