@@ -321,7 +321,10 @@ automatically:
   project (Settings → Access Tokens in the Supabase dashboard).
 
 Ensure these secrets stay in sync with your production project before re-running
-the workflow.
+the workflow. Runtime environment variables for the Next.js apps are pulled from
+AWS Secrets Manager at deploy time via `scripts/load-aws-secrets.sh`; see
+`docs/operations/secrets-rotation.md` for the rotation cadence and response
+playbook.
 
 ## SACCO+ Supabase backend
 
