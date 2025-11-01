@@ -8,6 +8,7 @@ interface BaseSource {
   owner: string;
   outputSubdir?: string;
   enabled?: boolean;
+  updateCadence?: string;
 }
 
 interface CmsSource extends BaseSource {
@@ -45,12 +46,24 @@ interface OutputBundle {
     owner: string;
     type: PartnerSource["type"];
     fetchedAt: string;
+    updateCadence?: string;
     upstream?: {
       endpoint?: string;
       locale?: string;
     };
   };
   articles: CmsArticle[];
+}
+
+interface ManifestEntry {
+  id: string;
+  name: string;
+  owner: string;
+  type: PartnerSource["type"];
+  fetchedAt: string;
+  articleCount: number;
+  outputPath: string;
+  updateCadence?: string;
 }
 
 const DEFAULT_EXTENSIONS = [".md", ".mdx", ".markdown", ".json", ".html"];
@@ -249,6 +262,7 @@ function makeSourceMeta(source: PartnerSource): OutputBundle["source"] {
     owner: source.owner,
     type: source.type,
     fetchedAt: new Date().toISOString(),
+    updateCadence: source.updateCadence,
     upstream:
       source.type === "cms"
         ? {
@@ -259,7 +273,11 @@ function makeSourceMeta(source: PartnerSource): OutputBundle["source"] {
   };
 }
 
-async function writeBundle(bundle: OutputBundle, source: PartnerSource, outputDir: string) {
+async function writeBundle(
+  bundle: OutputBundle,
+  source: PartnerSource,
+  outputDir: string
+): Promise<string> {
   const targetDir = source.outputSubdir ? path.resolve(outputDir, source.outputSubdir) : outputDir;
   await ensureDir(targetDir);
   const targetFile = path.resolve(targetDir, `${source.id}.json`);
@@ -267,6 +285,7 @@ async function writeBundle(bundle: OutputBundle, source: PartnerSource, outputDi
   console.log(
     `✔ Wrote ${bundle.articles.length} articles for ${source.name} → ${path.relative(repoRoot(), targetFile)}`
   );
+  return targetFile;
 }
 
 async function run() {
@@ -277,6 +296,8 @@ async function run() {
 
   const outputDir = path.resolve(repoRoot(), "apps/website/public/help");
   await ensureDir(outputDir);
+
+  const manifestEntries: ManifestEntry[] = [];
 
   for (const source of sources) {
     if (source.enabled === false) {
@@ -290,10 +311,32 @@ async function run() {
       if (!bundle) {
         continue;
       }
-      await writeBundle(bundle, source, outputDir);
+      const outputFile = await writeBundle(bundle, source, outputDir);
+      manifestEntries.push({
+        id: bundle.source.id,
+        name: bundle.source.name,
+        owner: bundle.source.owner,
+        type: bundle.source.type,
+        fetchedAt: bundle.source.fetchedAt,
+        articleCount: bundle.articles.length,
+        outputPath: path.relative(repoRoot(), outputFile),
+        updateCadence: bundle.source.updateCadence,
+      });
     } catch (error) {
       console.error(`✖ Failed to process source ${source.name}:`, error);
     }
+  }
+
+  if (manifestEntries.length) {
+    const manifestPath = path.resolve(outputDir, "manifest.json");
+    const manifest = {
+      generatedAt: new Date().toISOString(),
+      sources: manifestEntries,
+    };
+    await writeFile(manifestPath, JSON.stringify(manifest, null, 2), "utf8");
+    console.log(
+      `✔ Wrote manifest for ${manifestEntries.length} sources → ${path.relative(repoRoot(), manifestPath)}`
+    );
   }
 }
 
