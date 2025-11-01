@@ -65,6 +65,14 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
 
+      - name: Validate Supabase migrations
+        if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' && secrets.SUPABASE_PROJECT_REF != '' }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          ENV_NAME: ci
+        run: bash scripts/verify-schema.sh
+
       - name: Restore Next.js cache
         uses: actions/cache@v4
         with:
@@ -181,3 +189,35 @@ jobs:
           if [ -f .reports/server.pid ]; then
             kill $(cat .reports/server.pid) || true
           fi
+
+  android-instrumented-tests:
+    name: Android instrumentation (TapMoMo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Run TapMoMo instrumentation tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          script: |
+            cd apps/client/android
+            chmod +x gradlew
+            ./gradlew :feature-tapmomo:assembleDebug
+            ./gradlew :feature-tapmomo:connectedDebugAndroidTest
+          emulator-options: -no-snapshot -noaudio -no-boot-anim
+          disable-animations: true

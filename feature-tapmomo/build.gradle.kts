@@ -2,7 +2,6 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp") version "1.9.20-1.0.14"
-    id("org.jetbrains.kotlin.plugin.compose") version "1.9.20"
 }
 
 android {
@@ -53,6 +52,9 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
+
+    // Shared TapMoMo protocol models & crypto helpers
+    implementation(project(":tapmomo-proto"))
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

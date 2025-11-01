@@ -4,7 +4,7 @@
   "language_code": "rw",
   "tags": ["reference", "reconciliation", "training"],
   "policy_tag": "reference",
-  "scope": "global",
+  "scope": "global"
 }
 ---
 

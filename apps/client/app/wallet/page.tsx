@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { WalletToken } from "@/lib/types/supa-app";
 import { TokenCard } from "@/components/wallet/token-card";
 import { GradientHeader } from "@ibimina/ui";
+import { fmtCurrency } from "@/utils/format";
 import { Loader2, AlertCircle, Wallet as WalletIcon } from "lucide-react";
+import { trackEvent } from "@/lib/analytics/track";
 
 /**
  * Wallet Page
@@ -52,6 +54,13 @@ export default function WalletPage() {
   }, [filter]);
 
   const handleRedeem = (token: WalletToken) => {
+    trackEvent("wallet_token_tap_attempt", {
+      tokenType: token.token_type,
+      nfcEnabled: token.nfc_enabled,
+      valueAmount: token.value_amount,
+      status: token.status,
+    });
+
     // TODO: Implement redemption flow
     console.log("Redeem token:", token.id);
     alert(`Redeem ${token.display_name} - Redemption flow coming soon!`);
@@ -95,13 +104,7 @@ export default function WalletPage() {
               <WalletIcon className="h-6 w-6" aria-hidden="true" />
               <p className="text-sm font-medium">Total Active Value</p>
             </div>
-            <p className="text-4xl font-bold">
-              {new Intl.NumberFormat("rw-RW", {
-                style: "currency",
-                currency: "RWF",
-                minimumFractionDigits: 0,
-              }).format(getTotalValue())}
-            </p>
+            <p className="text-4xl font-bold">{fmtCurrency(getTotalValue())}</p>
             <p className="mt-3 text-sm opacity-90">
               {tokens.filter((t) => t.status === "ACTIVE").length} active tokens
             </p>

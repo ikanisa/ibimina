@@ -41,6 +41,18 @@ echo "$SECRET_PAYLOAD" \
 
 SECRET_COUNT=$(wc -l < "$TEMP_ENV" | tr -d ' ')
 
+while IFS= read -r SECRET_LINE || [[ -n "$SECRET_LINE" ]]; do
+  # Skip empty lines to avoid emitting useless mask commands
+  if [[ -z "$SECRET_LINE" ]]; then
+    continue
+  fi
+
+  SECRET_VALUE="${SECRET_LINE#*=}"
+  if [[ -n "$SECRET_VALUE" ]]; then
+    echo "::add-mask::${SECRET_VALUE}"
+  fi
+done < "$TEMP_ENV"
+
 cat "$TEMP_ENV" >> "$GITHUB_ENV"
 
 echo "Loaded $SECRET_COUNT secrets from AWS Secrets Manager"

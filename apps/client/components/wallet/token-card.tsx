@@ -1,6 +1,7 @@
 "use client";
 
 import { WalletToken } from "@/lib/types/supa-app";
+import { fmtCurrency } from "@/utils/format";
 import { Gift, Calendar, CheckCircle, XCircle, Clock } from "lucide-react";
 
 interface TokenCardProps {
@@ -20,11 +21,9 @@ interface TokenCardProps {
 export function TokenCard({ token, onRedeem }: TokenCardProps) {
   const formatAmount = (amount: number | null, currency: string) => {
     if (!amount) return "N/A";
-    return new Intl.NumberFormat("rw-RW", {
-      style: "currency",
-      currency: currency || "RWF",
-      minimumFractionDigits: 0,
-    }).format(amount);
+    return fmtCurrency(amount, {
+      currency: currency || undefined,
+    });
   };
 
   const formatDate = (dateString: string) => {

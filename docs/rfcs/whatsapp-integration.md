@@ -42,16 +42,28 @@ capacity and regulatory guardrails for Rwanda and future expansion markets.
 
 ### API Provider Selection
 
-We will adopt the **Meta WhatsApp Business Cloud API**.
+We will adopt the **Meta WhatsApp Business Cloud API**. Key evaluation notes:
 
-| Requirement           | Meta WhatsApp Cloud API                                  | Rationale                                                    |
-| --------------------- | -------------------------------------------------------- | ------------------------------------------------------------ |
-| Hosting               | Fully managed by Meta                                    | Avoids on-premise BSP deployments and accelerates onboarding |
-| Template management   | API + Business Manager UI                                | Matches existing notification templates stored in Supabase   |
-| Session messaging     | Supported (24-hour window)                               | Enables contextual replies from support within SLA           |
-| Rate limits           | Scales with verified business tiers                      | Aligns with expected traffic (<10 TPS)                       |
-| Pricing               | First 1000 conv./month free, tiered by conversation type | Competitive for pilot scale                                  |
-| Regional availability | Global, includes Rwanda                                  | No additional aggregator needed                              |
+| Requirement           | Meta WhatsApp Cloud API                                 | Rationale                                                                               |
+| --------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Hosting model         | Fully managed by Meta                                   | Avoids on-premise BSP deployments and accelerates onboarding.                           |
+| Template management   | API + Business Manager UI                               | Matches existing notification templates stored in Supabase and requires minimal rework. |
+| Session messaging     | Supported (24-hour window)                              | Enables contextual replies from support within SLA.                                     |
+| Rate limits           | Scales with verified business tiers                     | Aligns with expected traffic (<10 TPS) for the pilot.                                   |
+| Pricing               | First 1,000 conversations/month free, tiered afterwards | Competitive for beta scale while we validate demand.                                    |
+| Regional availability | Global, includes Rwanda                                 | No additional aggregator needed for primary market.                                     |
+
+Operational details:
+
+- Use the `/messages` endpoint for replies and the
+  `/v1/{phone-number-id}/messages` endpoint for template sends.
+- Store message templates in Supabase so they can be synchronised with Meta’s
+  Business Manager during deployment pipelines.
+- Subscribe to the `messages` and `message_template_status_update` webhook
+  topics to receive inbound content plus template review feedback.
+- Leverage Meta’s throughput tiers for headroom; the webhook handler will buffer
+  payload processing through our existing queue infrastructure once we go beyond
+  this spike.
 
 Fallback to a local aggregator (e.g., Africa's Talking) remains a contingency if
 Meta access is blocked, but current compliance feedback indicates direct access
@@ -72,7 +84,7 @@ is acceptable.
     future support.
 - Default behaviour while in beta:
   - Acknowledge every text message with a canned “thanks, an agent will follow
-    up” reply.
+    up” reply (override via handler option for tenant-specific copy).
   - Immediately mark inbound messages as read to clear the Meta UI state.
   - Surface metrics via structured logs (counts of inbound/status events)
     feeding into DataDog dashboards.
@@ -81,6 +93,11 @@ is acceptable.
     the transport layer.
   - Wrap transport invocations with retries (to be implemented when wiring the
     concrete transport) but expose hooks for backoff configuration now.
+- Verification webhook support:
+  - Respond to `hub.challenge` queries at the routing layer before delegating to
+    the handler.
+  - Validate the `X-Hub-Signature-256` header per request before invoking the
+    handler function.
 
 ### Flag Rollout Strategy (`FeatureFlag.WHATSAPP_BETA`)
 
@@ -122,11 +139,11 @@ Feature flag plumbing:
 
 ## Appendix A – Voice/IVR Vendor Feasibility Matrix
 
-| Vendor                     | Coverage                                                         | Latency (Rwanda -> closest PoP)        | Pricing Snapshot                             | Regulatory Notes                                                        | Integration Fit                                                     |
-| -------------------------- | ---------------------------------------------------------------- | -------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **Twilio Voice**           | 180+ countries, incl. virtual numbers for Rwanda via partner BSP | ~210–250 ms RTT via EU (Frankfurt) PoP | ~$0.13/min inbound, $0.35/min outbound (USD) | Requires proof of business registration; Rwanda outbound subject to KYC | Direct SDK + existing Twilio account (SMS already in use)           |
-| **Africa's Talking Voice** | Focused on African markets incl. Rwanda short codes              | ~90–120 ms RTT via Nairobi PoP         | ~$0.07/min inbound, $0.12/min outbound (USD) | Local regulatory filings handled by AT; easier shortcode procurement    | REST APIs; webhook pattern matches existing Supabase function model |
-| **Vonage Voice API**       | Global, Rwanda coverage via SIP interconnects                    | ~200 ms RTT via EU PoP                 | ~$0.14/min inbound, $0.28/min outbound (USD) | Requires dedicated compliance review; slower onboarding                 | Webhook + JWT auth; heavier setup than needed                       |
+| Vendor                     | Coverage                                             | Latency (Rwanda → closest PoP)         | Pricing Snapshot (USD/min)        | Regulatory Notes                                                                    | Integration Fit                                                               |
+| -------------------------- | ---------------------------------------------------- | -------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Twilio Voice**           | 180+ countries, incl. Rwanda via partner BSP numbers | ~210–250 ms RTT via EU (Frankfurt) PoP | Inbound: ~$0.13, Outbound: ~$0.35 | Requires proof of business registration; outbound traffic subject to KYC review     | Direct SDK and existing Twilio account (SMS already in use).                  |
+| **Africa's Talking Voice** | Focused on African markets incl. Rwanda short codes  | ~90–120 ms RTT via Nairobi PoP         | Inbound: ~$0.07, Outbound: ~$0.12 | Local regulatory filings handled by Africa's Talking; simpler shortcode procurement | REST APIs; webhook model aligns with existing Supabase function integrations. |
+| **Vonage Voice API**       | Global coverage with Rwanda via SIP interconnects    | ~200 ms RTT via EU PoP                 | Inbound: ~$0.14, Outbound: ~$0.28 | Requires dedicated compliance review; slower onboarding due to legal review cycles  | Webhook + JWT auth but heavier setup than needed for pilot.                   |
 
 **Latency & Cost Considerations**
 
@@ -136,3 +153,10 @@ Feature flag plumbing:
   higher per-minute rate.
 - Recommended approach: pilot with Twilio (fastest integration), gather usage
   data, and revisit Africa's Talking if sustained volume justifies optimisation.
+
+## Open Questions
+
+- Do we need to support multi-language canned replies during the beta, or can we
+  defer locale negotiation to GA?
+- Should we persist inbound message transcripts immediately, or leverage the
+  existing notification archive after the pilot proves retention needs?

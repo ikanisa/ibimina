@@ -115,4 +115,70 @@ describe("WhatsApp handler", () => {
     assert.equal(getCalls(transport.markAsRead).length, 0);
     assert.equal(getCalls(transport.sendAutomatedReply).length, 0);
   });
+
+  it("ignores non-text messages while still marking them as read", async () => {
+    const handler = createWhatsAppHandler({ featureFlags, transport });
+
+    const payload = {
+      entry: [
+        {
+          changes: [
+            {
+              value: {
+                messages: [
+                  {
+                    id: "wamid.NON_TEXT",
+                    from: "250788000000",
+                    type: "image",
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = await handler.handleWebhook(payload);
+
+    assert.equal(result.ok, true);
+    assert.equal(result.processed.inboundMessages, 1);
+    assert.equal(getCalls(transport.markAsRead).length, 1);
+    assert.equal(getCalls(transport.sendAutomatedReply).length, 0);
+  });
+
+  it("supports overriding the default automated reply text", async () => {
+    const handler = createWhatsAppHandler({
+      featureFlags,
+      transport,
+      autoReplyText: "Murakoze cyane! Tuzagusubiza vuba.",
+    });
+
+    const payload = {
+      entry: [
+        {
+          changes: [
+            {
+              value: {
+                messages: [
+                  {
+                    id: "wamid.CUSTOM_REPLY",
+                    from: "250788999999",
+                    type: "text",
+                    text: { body: "Hello" },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    await handler.handleWebhook(payload);
+
+    const replyCalls = getCalls(transport.sendAutomatedReply);
+    assert.equal(replyCalls.length, 1);
+    assert.equal(replyCalls[0].arguments[0].body, "Murakoze cyane! Tuzagusubiza vuba.");
+  });
 });

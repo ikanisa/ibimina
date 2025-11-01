@@ -927,6 +927,52 @@ export type Database = {
       [_ in never]: never;
     };
   };
+  config: {
+    Tables: {
+      ussd_templates: {
+        Row: {
+          operator_id: string;
+          version: string;
+          ttl_seconds: number;
+          payload: Json;
+          is_active: boolean;
+          updated_at: string;
+          metadata: Json | null;
+        };
+        Insert: {
+          operator_id: string;
+          version: string;
+          ttl_seconds: number;
+          payload: Json;
+          is_active?: boolean;
+          updated_at?: string;
+          metadata?: Json | null;
+        };
+        Update: {
+          operator_id?: string;
+          version?: string;
+          ttl_seconds?: number;
+          payload?: Json;
+          is_active?: boolean;
+          updated_at?: string;
+          metadata?: Json | null;
+        };
+        Relationships: [];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   app_helpers: {
     Tables: {
       [_ in never]: never;

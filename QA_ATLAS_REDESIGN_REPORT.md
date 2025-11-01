@@ -16,6 +16,26 @@ production-ready.
 
 ---
 
+## 2025-11-02 Staging Website Smoke Test (Attempt 2)
+
+- **Trigger:** Follow-up validation after adding `.env.staging` template and
+  documenting monitoring requirements.
+- **Deployment command:** `pnpm deploy --filter website --env staging`
+- **Result:** ❌ Command still fails – pnpm treats `deploy` as its built-in
+  workspace command and rejects `--env`. No `deploy:staging` script exists yet.
+- **Environment configuration:** `.env.staging` now committed with placeholders
+  for Sentry/PostHog/Supabase secrets. Real credentials remain missing, so
+  observability ingestion could not be verified.
+- **Impact:** Login/core payments smoke checklist remains blocked – staging URL
+  unavailable and monitoring credentials absent.
+- **Next steps:**
+  1. Add a workspace deploy wrapper (e.g. `pnpm run website:deploy:staging`)
+     that invokes `wrangler pages deploy out --branch=staging`.
+  2. Populate staging secrets in Cloudflare Pages (`NEXT_PUBLIC_POSTHOG_KEY`,
+     `POSTHOG_HOST`, `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, `SUPABASE_*`).
+  3. Re-run smoke tests and capture Sentry/PostHog evidence once staging build
+     is reachable.
+
 ## 2025-11-01 Staging Website Smoke Test (Attempt)
 
 - **Trigger:** Requested staging validation for marketing website deployment

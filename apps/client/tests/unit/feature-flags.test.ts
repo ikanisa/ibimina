@@ -1,5 +1,10 @@
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
+import {
+  mergeFeatureFlagSources,
+  normalizeFlagKey,
+  parseFeatureFlagsFromEnv,
+} from "@/components/FeatureFlagProvider";
 
 /**
  * Feature Flag System Tests
@@ -8,32 +13,28 @@ import assert from "node:assert";
  * parses environment variables and provides the expected API.
  */
 
+function clearEnv() {
+  Object.keys(process.env).forEach((key) => {
+    if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
+      delete process.env[key];
+    }
+  });
+}
+
 describe("Feature Flags", () => {
   beforeEach(() => {
-    // Clean up environment variables before each test
-    Object.keys(process.env).forEach((key) => {
-      if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-        delete process.env[key];
-      }
-    });
+    clearEnv();
+  });
+
+  afterEach(() => {
+    clearEnv();
   });
 
   it("should parse environment variables with NEXT_PUBLIC_FEATURE_FLAG_ prefix", () => {
     process.env.NEXT_PUBLIC_FEATURE_FLAG_TEST_FEATURE = "true";
     process.env.NEXT_PUBLIC_FEATURE_FLAG_ANOTHER_FEATURE = "false";
 
-    // Simulate the flag parsing logic from FeatureFlagProvider
-    const flags: Record<string, boolean> = {};
-    Object.keys(process.env).forEach((key) => {
-      if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-        const flagName = key
-          .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
-          .toLowerCase()
-          .replace(/_/g, "-");
-        const value = process.env[key];
-        flags[flagName] = value === "true" || value === "1";
-      }
-    });
+    const flags = parseFeatureFlagsFromEnv();
 
     assert.strictEqual(flags["test-feature"], true);
     assert.strictEqual(flags["another-feature"], false);
@@ -42,17 +43,7 @@ describe("Feature Flags", () => {
   it("should convert flag names from SCREAMING_SNAKE_CASE to kebab-case", () => {
     process.env.NEXT_PUBLIC_FEATURE_FLAG_MY_NEW_FEATURE = "true";
 
-    const flags: Record<string, boolean> = {};
-    Object.keys(process.env).forEach((key) => {
-      if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-        const flagName = key
-          .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
-          .toLowerCase()
-          .replace(/_/g, "-");
-        const value = process.env[key];
-        flags[flagName] = value === "true" || value === "1";
-      }
-    });
+    const flags = parseFeatureFlagsFromEnv();
 
     assert.ok(flags["my-new-feature"]);
     assert.strictEqual(typeof flags["MY_NEW_FEATURE"], "undefined");
@@ -61,17 +52,7 @@ describe("Feature Flags", () => {
   it("should treat '1' as true", () => {
     process.env.NEXT_PUBLIC_FEATURE_FLAG_NUMERIC_FLAG = "1";
 
-    const flags: Record<string, boolean> = {};
-    Object.keys(process.env).forEach((key) => {
-      if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-        const flagName = key
-          .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
-          .toLowerCase()
-          .replace(/_/g, "-");
-        const value = process.env[key];
-        flags[flagName] = value === "true" || value === "1";
-      }
-    });
+    const flags = parseFeatureFlagsFromEnv();
 
     assert.strictEqual(flags["numeric-flag"], true);
   });
@@ -82,17 +63,7 @@ describe("Feature Flags", () => {
     process.env.NEXT_PUBLIC_FEATURE_FLAG_TEST3 = "yes";
     process.env.NEXT_PUBLIC_FEATURE_FLAG_TEST4 = "True";
 
-    const flags: Record<string, boolean> = {};
-    Object.keys(process.env).forEach((key) => {
-      if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-        const flagName = key
-          .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
-          .toLowerCase()
-          .replace(/_/g, "-");
-        const value = process.env[key];
-        flags[flagName] = value === "true" || value === "1";
-      }
-    });
+    const flags = parseFeatureFlagsFromEnv();
 
     assert.strictEqual(flags["test1"], false);
     assert.strictEqual(flags["test2"], false);
@@ -103,7 +74,7 @@ describe("Feature Flags", () => {
   it("should return false for non-existent flags", () => {
     const flags: Record<string, boolean> = {};
     const isEnabled = (flagName: string): boolean => {
-      return flags[flagName] ?? false;
+      return flags[normalizeFlagKey(flagName)] ?? false;
     };
 
     assert.strictEqual(isEnabled("non-existent-flag"), false);
@@ -114,21 +85,27 @@ describe("Feature Flags", () => {
     process.env.NEXT_PUBLIC_FEATURE_FLAG_BETA_FEATURES = "false";
     process.env.NEXT_PUBLIC_FEATURE_FLAG_NEW_UI = "1";
 
-    const flags: Record<string, boolean> = {};
-    Object.keys(process.env).forEach((key) => {
-      if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-        const flagName = key
-          .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
-          .toLowerCase()
-          .replace(/_/g, "-");
-        const value = process.env[key];
-        flags[flagName] = value === "true" || value === "1";
-      }
-    });
+    const flags = parseFeatureFlagsFromEnv();
 
     assert.strictEqual(flags["web-push"], true);
     assert.strictEqual(flags["beta-features"], false);
     assert.strictEqual(flags["new-ui"], true);
     assert.strictEqual(Object.keys(flags).length, 3);
+  });
+
+  it("should normalise mixed-format flag keys", () => {
+    assert.strictEqual(normalizeFlagKey("AdvancedModules"), "advanced-modules");
+    assert.strictEqual(normalizeFlagKey("advanced_modules"), "advanced-modules");
+    assert.strictEqual(normalizeFlagKey(" advanced modules "), "advanced-modules");
+  });
+
+  it("should merge overrides with precedence", () => {
+    const base = { "advanced-modules": false, "loans-enabled": false };
+    const overrides = { "loans-enabled": true };
+
+    const merged = mergeFeatureFlagSources(base, overrides);
+
+    assert.strictEqual(merged["advanced-modules"], false);
+    assert.strictEqual(merged["loans-enabled"], true);
   });
 });

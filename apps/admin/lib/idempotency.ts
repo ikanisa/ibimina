@@ -74,6 +74,10 @@ function deserializeResponse<T>(value: unknown): T {
 }
 
 function hasStoredResponse(value: unknown): boolean {
+  if (value === null) {
+    return false;
+  }
+
   return !isSentinel(value, "pending");
 }
 

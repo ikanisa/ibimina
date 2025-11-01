@@ -1,9 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 
-def resolvedVersionCode = project.findProperty("VERSION_CODE") ?: System.getenv("ANDROID_VERSION_CODE")
+def envVersionCode = System.getenv("ANDROID_VERSION_CODE")
+def envVersionName = System.getenv("ANDROID_VERSION_NAME")
+def resolvedVersionCode = envVersionCode ?: project.findProperty("VERSION_CODE")
 def versionCodeValue = resolvedVersionCode ? resolvedVersionCode.toInteger() : 102
-def versionNameValue = project.findProperty("VERSION_NAME") ?: System.getenv("ANDROID_VERSION_NAME") ?: "0.1.2"
+def versionNameValue = envVersionName ?: project.findProperty("VERSION_NAME") ?: "0.1.2"
 def capacitorServerUrl = System.getenv("CAPACITOR_SERVER_URL") ?: project.findProperty("CAPACITOR_SERVER_URL")
 
 def releaseSigningConfigured = false

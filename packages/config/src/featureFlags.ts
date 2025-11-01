@@ -7,7 +7,13 @@
  * feature gates stay in sync across environments.
  */
 
-export type FeatureFlagName = "directory" | "ticketing";
+export type FeatureFlagName =
+  | "directory"
+  | "ticketing"
+  | "nfcReferenceCards"
+  | "memberVouchers"
+  | "memberLoans"
+  | "pwaFallback";
 
 export interface PilotDistrict {
   /** UUID for the pilot district organization. */
@@ -102,7 +108,9 @@ export const PILOT_TENANTS: ReadonlyArray<PilotTenant> = Object.freeze([
 
 export const PILOT_TENANT_IDS = Object.freeze(PILOT_TENANTS.map((tenant) => tenant.id));
 
-const pilotTenantIdSet = new Set(PILOT_TENANT_IDS.map((id) => id.toLowerCase()));
+const pilotTenantIdentifierSet = new Set(
+  PILOT_TENANTS.flatMap(({ id, slug }) => [id, slug]).map((identifier) => identifier.toLowerCase())
+);
 
 const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFlag>> =
   Object.freeze({
@@ -122,9 +130,48 @@ const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFl
       defaultValue: false,
       rollout: "pilot",
     },
+    nfcReferenceCards: {
+      key: "nfcReferenceCards",
+      description: "Issue NFC reference cards and secure provisioning tokens for teller devices.",
+      pilotTenants: PILOT_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
+    },
+    memberVouchers: {
+      key: "memberVouchers",
+      description: "Enable digital voucher issuance for savings groups and merchant redemption.",
+      pilotTenants: PILOT_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
+    },
+    memberLoans: {
+      key: "memberLoans",
+      description:
+        "Enable lightweight loan application capture and fulfilment tracking for members.",
+      pilotTenants: PILOT_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
+    },
+    pwaFallback: {
+      key: "pwaFallback",
+      description:
+        "Surface the responsive PWA fallback when native modules are disabled by feature flags.",
+      pilotTenants: PILOT_TENANT_IDS,
+      defaultValue: true,
+      rollout: "graduated",
+    },
   });
 
 export const featureFlagDefinitions = FEATURE_FLAG_DEFINITIONS;
+
+const featureFlagTargetSets: Readonly<Record<FeatureFlagName, ReadonlySet<string>>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(FEATURE_FLAG_DEFINITIONS).map(([flag, definition]) => [
+      flag as FeatureFlagName,
+      new Set(definition.pilotTenants.map((id) => id.toLowerCase())),
+    ])
+  ) as unknown as Record<FeatureFlagName, ReadonlySet<string>>
+);
 
 export function normalizeTenantId(raw: string | null | undefined): string | null {
   if (typeof raw !== "string") {
@@ -142,7 +189,7 @@ export function isPilotTenant(tenantId: string | null | undefined): boolean {
   if (!normalized) {
     return false;
   }
-  return pilotTenantIdSet.has(normalized);
+  return pilotTenantIdentifierSet.has(normalized);
 }
 
 export function isFeatureEnabledForTenant(
@@ -153,15 +200,26 @@ export function isFeatureEnabledForTenant(
   if (!definition) {
     return false;
   }
+
   if (definition.pilotTenants.length === 0) {
     return definition.defaultValue;
   }
-  return isPilotTenant(tenantId);
+
+  const canonicalTenantId = resolveCanonicalTenantId(tenantId);
+  if (!canonicalTenantId) {
+    return definition.defaultValue;
+  }
+
+  return featureFlagTargetSets[flag].has(canonicalTenantId);
 }
 
 export function getTenantFeatureFlags(tenantId: string | null | undefined): TenantFeatureFlags {
   return Object.freeze({
     directory: isFeatureEnabledForTenant("directory", tenantId),
     ticketing: isFeatureEnabledForTenant("ticketing", tenantId),
+    nfcReferenceCards: isFeatureEnabledForTenant("nfcReferenceCards", tenantId),
+    memberVouchers: isFeatureEnabledForTenant("memberVouchers", tenantId),
+    memberLoans: isFeatureEnabledForTenant("memberLoans", tenantId),
+    pwaFallback: isFeatureEnabledForTenant("pwaFallback", tenantId),
   });
 }

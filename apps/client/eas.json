@@ -1,0 +1,37 @@
+{
+  "cli": {
+    "version": ">=3.20.0"
+  },
+  "build": {
+    "internal": {
+      "distribution": "internal",
+      "env": {
+        "FEATURE_FLAG_VOUCHERS": "1",
+        "FEATURE_FLAG_LOANS": "0"
+      }
+    },
+    "alpha": {
+      "distribution": "internal",
+      "channel": "alpha",
+      "env": {
+        "FEATURE_FLAG_VOUCHERS": "1",
+        "FEATURE_FLAG_LOANS": "1"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "channel": "production",
+      "env": {
+        "FEATURE_FLAG_VOUCHERS": "1",
+        "FEATURE_FLAG_LOANS": "1",
+        "FEATURE_FLAG_NFC_REFERENCE_CARDS": "1"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ascAppId": "1234567890",
+      "androidPackage": "rw.ibimina.sacco"
+    }
+  }
+}

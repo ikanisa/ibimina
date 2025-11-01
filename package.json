@@ -27,12 +27,16 @@
     "setup:agent": "tsx scripts/setupAgent.ts",
     "check:flags": "node scripts/check-feature-flags.mjs",
     "gen:types": "supabase gen types typescript --local > apps/admin/lib/supabase/types.ts",
+    "deploy:function:reconcile": "cd supabase && supabase functions deploy reconcile",
     "check:types": "bash scripts/check-supabase-types.sh",
     "check:deploy": "pnpm run check:flags && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse",
     "validate:production": "bash scripts/validate-production-readiness.sh",
     "validate:cloudflare": "bash scripts/validate-cloudflare-deployment.sh",
     "kb:sync": "tsx scripts/kb/syncContent.ts",
     "prepare": "husky"
+  },
+  "dependencies": {
+    "openai": "^6.7.0"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",
@@ -51,7 +55,6 @@
     "globals": "^16.4.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
-    "openai": "^6.7.0",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
     "tsx": "^4.7.1",
