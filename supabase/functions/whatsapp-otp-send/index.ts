@@ -11,9 +11,8 @@
  * - Audit logging
  */
 
-import { createServiceClient, requireEnv } from "../_shared/mod.ts";
-import { validateHmacRequest } from "../_shared/auth.ts";
-import { enforceRateLimit } from "../_shared/rate-limit.ts";
+import { createServiceClient, getForwardedIp, requireEnv } from "../_shared/mod.ts";
+import { enforceIpRateLimit, enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
@@ -25,6 +24,11 @@ const corsHeaders = {
 
 interface SendOTPRequest {
   phone_number: string;
+  device_id?: string;
+  device_fingerprint?: string;
+  device_fingerprint_hash?: string;
+  user_agent?: string;
+  user_agent_hash?: string;
 }
 
 interface SendOTPResponse {
@@ -122,6 +126,21 @@ Deno.serve(async (req) => {
     // Parse request body
     const body: SendOTPRequest = await req.json();
     const { phone_number } = body;
+    const deviceId = typeof body.device_id === "string" ? body.device_id : null;
+    const deviceFingerprint =
+      typeof body.device_fingerprint === "string"
+        ? body.device_fingerprint
+        : typeof body.device_fingerprint_hash === "string"
+          ? body.device_fingerprint_hash
+          : null;
+    const explicitUserAgent = typeof body.user_agent === "string" ? body.user_agent : null;
+    const userAgent = explicitUserAgent ?? req.headers.get("user-agent") ?? null;
+    const userAgentHash = typeof body.user_agent_hash === "string" ? body.user_agent_hash : null;
+
+    const baseMetadata: Record<string, unknown> = {};
+    if (userAgentHash) {
+      baseMetadata.user_agent_hash = userAgentHash;
+    }
 
     if (!phone_number) {
       return new Response(
@@ -155,6 +174,71 @@ Deno.serve(async (req) => {
 
     // Create Supabase client
     const supabase = createServiceClient();
+    const clientIp = getForwardedIp(req.headers);
+
+    const recordEvent = async (
+      eventType: "send_success" | "send_throttled" | "send_failed",
+      metadata?: Record<string, unknown>
+    ) => {
+      const metadataPayload = { ...baseMetadata };
+      if (metadata) {
+        Object.assign(metadataPayload, metadata);
+      }
+      const finalMetadata = Object.keys(metadataPayload).length > 0 ? metadataPayload : null;
+
+      const { error: eventError } = await supabase.rpc("record_whatsapp_otp_event", {
+        phone_number: normalizedPhone,
+        event_type: eventType,
+        attempts_remaining: null,
+        ip_address: clientIp,
+        device_fingerprint: deviceFingerprint,
+        device_id: deviceId,
+        user_agent: userAgent,
+        metadata: finalMetadata,
+      });
+
+      if (eventError) {
+        console.error("whatsapp_otp.event_log_failed", {
+          error: eventError,
+          eventType,
+          phone: normalizedPhone,
+        });
+      }
+    };
+
+    // Rate limiting: max 30 OTPs per IP per hour
+    const ipRateLimitOk = await enforceIpRateLimit(supabase, clientIp, "whatsapp_otp_send", {
+      maxHits: 30,
+      windowSeconds: 3600,
+    });
+
+    if (!ipRateLimitOk) {
+      await recordEvent("send_throttled", { reason: "ip_rate_limit" });
+      await writeAuditLog(supabase, {
+        actorId: null,
+        action: "whatsapp_otp.send.ip_rate_limited",
+        entity: "whatsapp_otp",
+        entityId: normalizedPhone,
+        diff: {
+          phone: normalizedPhone,
+          ip: clientIp,
+          device_id: deviceId,
+          device_fingerprint: deviceFingerprint,
+        },
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Too many OTP requests. Please try again later.",
+          retry_after: 3600,
+        } satisfies SendOTPResponse),
+        {
+          status: 429,
+          headers: { ...corsHeaders, "content-type": "application/json" },
+        }
+      );
+    }
 
     // Rate limiting: max 3 OTPs per phone per hour
     const rateLimitOk = await enforceRateLimit(supabase, `whatsapp_otp:${normalizedPhone}`, {
@@ -163,12 +247,18 @@ Deno.serve(async (req) => {
     });
 
     if (!rateLimitOk) {
+      await recordEvent("send_throttled", { reason: "phone_rate_limit" });
       await writeAuditLog(supabase, {
-        event: "whatsapp_otp.rate_limited",
-        actor: null,
+        actorId: null,
+        action: "whatsapp_otp.send.phone_rate_limited",
         entity: "whatsapp_otp",
-        entity_id: normalizedPhone,
-        metadata: { phone: normalizedPhone },
+        entityId: normalizedPhone,
+        diff: {
+          phone: normalizedPhone,
+          ip: clientIp,
+          device_id: deviceId,
+          device_fingerprint: deviceFingerprint,
+        },
       });
 
       return new Response(
@@ -239,12 +329,19 @@ Deno.serve(async (req) => {
       }
 
       // Log failure but don't expose details to client
+      await recordEvent("send_failed", { error: sendResult.error });
       await writeAuditLog(supabase, {
-        event: "whatsapp_otp.send_failed",
-        actor: null,
+        actorId: null,
+        action: "whatsapp_otp.send.failed",
         entity: "whatsapp_otp",
-        entity_id: normalizedPhone,
-        metadata: { phone: normalizedPhone, error: sendResult.error },
+        entityId: normalizedPhone,
+        diff: {
+          phone: normalizedPhone,
+          error: sendResult.error,
+          ip: clientIp,
+          device_id: deviceId,
+          device_fingerprint: deviceFingerprint,
+        },
       });
 
       return new Response(
@@ -260,12 +357,18 @@ Deno.serve(async (req) => {
     }
 
     // Log successful send
+    await recordEvent("send_success");
     await writeAuditLog(supabase, {
-      event: "whatsapp_otp.sent",
-      actor: null,
+      actorId: null,
+      action: "whatsapp_otp.send.success",
       entity: "whatsapp_otp",
-      entity_id: normalizedPhone,
-      metadata: { phone: normalizedPhone },
+      entityId: normalizedPhone,
+      diff: {
+        phone: normalizedPhone,
+        ip: clientIp,
+        device_id: deviceId,
+        device_fingerprint: deviceFingerprint,
+      },
     });
 
     return new Response(
