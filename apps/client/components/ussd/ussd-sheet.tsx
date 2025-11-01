@@ -18,6 +18,7 @@
 
 import { useState } from "react";
 import { Copy, Check, Phone, CheckCircle2, AlertCircle } from "lucide-react";
+import { fmtCurrency } from "@/utils/format";
 
 interface UssdSheetProps {
   merchantCode: string;
@@ -71,11 +72,7 @@ export function UssdSheet({
   };
 
   // Format amount with RWF currency
-  const formattedAmount = new Intl.NumberFormat("rw-RW", {
-    style: "currency",
-    currency: "RWF",
-    minimumFractionDigits: 0,
-  }).format(amount);
+  const formattedAmount = fmtCurrency(amount);
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-atlas border border-neutral-200 overflow-hidden hover:shadow-atlas-lg hover:border-atlas-blue/20 transition-all duration-interactive">
@@ -191,7 +188,9 @@ export function UssdSheet({
               </div>
               <div className="flex-1 pt-1">
                 <p className="text-sm font-semibold text-neutral-900">Confirm the payment</p>
-                <p className="text-xs text-neutral-600 mt-1.5 leading-relaxed">You&apos;ll receive a confirmation SMS</p>
+                <p className="text-xs text-neutral-600 mt-1.5 leading-relaxed">
+                  You&apos;ll receive a confirmation SMS
+                </p>
               </div>
             </div>
           </div>

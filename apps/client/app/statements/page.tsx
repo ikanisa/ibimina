@@ -13,6 +13,7 @@
  */
 
 import { StatementsTable, type StatementEntry } from "@/components/statements/statements-table";
+import { mockStatements } from "@/utils/mock";
 
 export const metadata = {
   title: "Statements | SACCO+ Client",
@@ -24,71 +25,7 @@ export const metadata = {
 async function getStatements(): Promise<StatementEntry[]> {
   // TODO: Fetch allocations scoped by user's reference_token(s)
   // SELECT * FROM allocations WHERE reference_token IN (user's tokens) ORDER BY date DESC
-  return [
-    {
-      id: "1",
-      date: "2025-10-25T10:30:00Z",
-      amount: 20000,
-      txnId: "MTN12345",
-      status: "CONFIRMED",
-      groupName: "Kigali Business Group",
-      reference: "NYA.GAS.KBG.001",
-    },
-    {
-      id: "2",
-      date: "2025-10-20T14:15:00Z",
-      amount: 15000,
-      txnId: "MTN67890",
-      status: "CONFIRMED",
-      groupName: "Farmers Cooperative",
-      reference: "NYA.KIC.FRM.002",
-    },
-    {
-      id: "3",
-      date: "2025-10-28T09:00:00Z",
-      amount: 25000,
-      txnId: "PENDING",
-      status: "PENDING",
-      groupName: "Kigali Business Group",
-      reference: "NYA.GAS.KBG.001",
-    },
-    {
-      id: "4",
-      date: "2025-10-15T11:45:00Z",
-      amount: 18000,
-      txnId: "MTN11223",
-      status: "CONFIRMED",
-      groupName: "Farmers Cooperative",
-      reference: "NYA.KIC.FRM.002",
-    },
-    {
-      id: "5",
-      date: "2025-10-10T16:20:00Z",
-      amount: 20000,
-      txnId: "MTN44556",
-      status: "CONFIRMED",
-      groupName: "Kigali Business Group",
-      reference: "NYA.GAS.KBG.001",
-    },
-    {
-      id: "6",
-      date: "2025-09-28T13:30:00Z",
-      amount: 15000,
-      txnId: "MTN77889",
-      status: "CONFIRMED",
-      groupName: "Farmers Cooperative",
-      reference: "NYA.KIC.FRM.002",
-    },
-    {
-      id: "7",
-      date: "2025-09-20T10:00:00Z",
-      amount: 20000,
-      txnId: "MTN99001",
-      status: "CONFIRMED",
-      groupName: "Kigali Business Group",
-      reference: "NYA.GAS.KBG.001",
-    },
-  ];
+  return mockStatements;
 }
 
 export default async function StatementsPage() {
