@@ -16,6 +16,6 @@ export type {
   PilotTenant,
   TenantFeatureFlag,
   TenantFeatureFlags,
-} from "./featureFlags.js";
-export { getOffersFeatureDecision, setOffersOverrides } from "./configcat.js";
-export type { OffersDecisionInput } from "./configcat.js";
+} from "./featureFlags";
+export { ussdConfig, getDefaultUssdOperator, getUssdOperatorById } from "./ussd";
+export type { UssdConfig, UssdOperatorConfig, UssdLocaleDefinition } from "./ussd";

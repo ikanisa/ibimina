@@ -2,6 +2,7 @@ package com.tapmomo.feature.ussd
 
 import com.tapmomo.feature.Network
 import com.tapmomo.feature.UssdTemplate
+import com.tapmomo.feature.UssdTemplateBundle
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -71,5 +72,23 @@ class UssdBuilderTest {
         assertEquals(mtnTemplate.shortcut, airtelTemplate.shortcut)
         assertEquals(mtnTemplate.menu, airtelTemplate.menu)
         assertEquals(mtnTemplate.base, airtelTemplate.base)
+    }
+
+    @Test
+    fun testUssdTemplateBundleExpiry() {
+        val template = UssdTemplate(
+            shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
+            menu = "*182*8*1#",
+            base = "*182#"
+        )
+
+        val bundle = UssdTemplateBundle.from(
+            version = "test-version",
+            ttlSeconds = 30,
+            templates = mapOf(Network.MTN to template),
+            fetchedAtMs = System.currentTimeMillis() - 120_000
+        )
+
+        assertTrue(bundle.isExpired())
     }
 }

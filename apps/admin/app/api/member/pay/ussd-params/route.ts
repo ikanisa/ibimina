@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { buildUssdPayload } from "@ibimina/lib";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { loadUssdTemplate } from "@/lib/ussd/templates";
 import type { Database } from "@/lib/supabase/types";
 
 export async function GET(request: NextRequest) {
@@ -87,17 +89,58 @@ export async function GET(request: NextRequest) {
   const saccoSlug = saccoRow?.name?.split(" ")[0]?.toUpperCase() ?? "SACCO";
   const reference = `${districtSlug}.${saccoSlug}.${groupRow.code}`;
 
+  const operatorId = provider.toLowerCase() === "airtel" ? "airtel-rw" : "mtn-rw";
+  const template = await loadUssdTemplate(supabase, operatorId);
+
+  const androidPayload = buildUssdPayload({
+    merchantCode: merchant,
+    reference,
+    operator: template.operator,
+    platform: "android",
+    versionOverride: template.version,
+    ttlSecondsOverride: template.ttlSeconds,
+  });
+
+  const iosPayload = buildUssdPayload({
+    merchantCode: merchant,
+    reference,
+    operator: template.operator,
+    platform: "ios",
+    versionOverride: template.version,
+    ttlSecondsOverride: template.ttlSeconds,
+  });
+
+  const maxAge = Math.min(template.ttlSeconds, 600);
+  const staleWhileRevalidate = Math.min(template.ttlSeconds * 2, 1800);
+
   return NextResponse.json(
     {
       merchant,
       provider,
       account_name: accountName,
       reference,
-      telUri: "tel:*182#",
+      ussd: {
+        operator: template.operator.id,
+        version: template.version,
+        ttlSeconds: template.ttlSeconds,
+        expiresAt: new Date(template.expiresAt).toISOString(),
+        code: androidPayload.code,
+        android: {
+          telUri: androidPayload.telUri,
+          canAutoDial: androidPayload.canAutoDial,
+          ctaLabel: androidPayload.ctaLabel,
+          expiresAt: androidPayload.expiresAt,
+        },
+        ios: {
+          copyText: iosPayload.copyText,
+          instructions: iosPayload.instructions,
+          expiresAt: iosPayload.expiresAt,
+        },
+      },
     },
     {
       headers: {
-        "Cache-Control": "public, max-age=120, stale-while-revalidate=300",
+        "Cache-Control": `public, max-age=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`,
       },
     }
   );
