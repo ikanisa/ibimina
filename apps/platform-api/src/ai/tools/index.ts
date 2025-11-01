@@ -33,6 +33,12 @@ interface DateRangeArgs {
   filePath?: string;
 }
 
+interface MetricsArgs {
+  startDate?: string;
+  endDate?: string;
+  filePath: string;
+}
+
 interface MetricsSummary {
   startDate: string | null;
   endDate: string | null;
@@ -43,12 +49,21 @@ interface MetricsSummary {
   averageHandleTimeSeconds: number;
   averageFirstResponseSeconds: number;
   averageCsat: number;
+  peakEscalationDate: string | null;
+  peakEscalationCount: number;
+  handleTimeDeltaSeconds: number;
 }
 
 interface SurveySummaryArgs {
   startDate?: string;
   endDate?: string;
   surveyPath?: string;
+}
+
+interface SurveyArgs {
+  startDate?: string;
+  endDate?: string;
+  surveyPath: string;
 }
 
 interface SurveySummary {
@@ -58,7 +73,10 @@ interface SurveySummary {
   weightedCsat: number;
   weightedCes: number;
   weightedNps: number;
+  positiveComments: number;
+  neutralComments: number;
   negativeComments: number;
+  negativeCommentRate: number;
 }
 
 interface FollowUpArgs {
@@ -156,7 +174,7 @@ const toNumber = (value: string | undefined): number => {
   return parsed;
 };
 
-const metricsSummaryTool: ToolDefinition<DateRangeArgs, MetricsSummary> = {
+const metricsSummaryTool: ToolDefinition<MetricsArgs, MetricsSummary> = {
   name: "agentMetricsSummary",
   description:
     "Summarise agent performance metrics (resolution, deflection, response speed) for an optional date range.",
@@ -168,7 +186,7 @@ const metricsSummaryTool: ToolDefinition<DateRangeArgs, MetricsSummary> = {
       typeof value.filePath === "string" && value.filePath.trim().length > 0
         ? resolve(packageRoot, value.filePath)
         : metricsCsvPath;
-    return { startDate, endDate, filePath };
+    return { startDate, endDate, filePath } satisfies MetricsArgs;
   },
   execute: async ({ startDate, endDate, filePath }) => {
     const records = await loadCsv(filePath);
@@ -184,6 +202,9 @@ const metricsSummaryTool: ToolDefinition<DateRangeArgs, MetricsSummary> = {
         averageHandleTimeSeconds: 0,
         averageFirstResponseSeconds: 0,
         averageCsat: 0,
+        peakEscalationDate: null,
+        peakEscalationCount: 0,
+        handleTimeDeltaSeconds: 0,
       } satisfies MetricsSummary;
     }
     const totals = scoped.reduce(
@@ -191,10 +212,15 @@ const metricsSummaryTool: ToolDefinition<DateRangeArgs, MetricsSummary> = {
         acc.totalInteractions += toNumber(record.total_interactions);
         acc.resolved += toNumber(record.resolved);
         acc.deflected += toNumber(record.deflected);
-        acc.escalations += toNumber(record.escalations);
+        const escalations = toNumber(record.escalations);
+        acc.escalations += escalations;
         acc.totalHandleTime += toNumber(record.avg_handle_time_seconds);
         acc.totalFirstResponse += toNumber(record.first_response_seconds);
         acc.totalCsat += toNumber(record.csat);
+        if (escalations > acc.maxEscalations) {
+          acc.maxEscalations = escalations;
+          acc.peakDate = record.date ?? null;
+        }
         return acc;
       },
       {
@@ -205,6 +231,8 @@ const metricsSummaryTool: ToolDefinition<DateRangeArgs, MetricsSummary> = {
         totalHandleTime: 0,
         totalFirstResponse: 0,
         totalCsat: 0,
+        maxEscalations: 0,
+        peakDate: null as string | null,
       }
     );
     const averageHandleTimeSeconds = totals.totalHandleTime / scoped.length;
@@ -216,6 +244,9 @@ const metricsSummaryTool: ToolDefinition<DateRangeArgs, MetricsSummary> = {
       totals.totalInteractions === 0 ? 0 : totals.deflected / totals.totalInteractions;
     const escalationRate =
       totals.totalInteractions === 0 ? 0 : totals.escalations / totals.totalInteractions;
+    const peakEscalationCount = totals.maxEscalations;
+    const peakEscalationDate = totals.peakDate;
+    const handleTimeDeltaSeconds = averageHandleTimeSeconds - 360;
     return {
       startDate: startDate ?? scoped[0].date ?? null,
       endDate: endDate ?? scoped[scoped.length - 1].date ?? null,
@@ -226,11 +257,14 @@ const metricsSummaryTool: ToolDefinition<DateRangeArgs, MetricsSummary> = {
       averageHandleTimeSeconds,
       averageFirstResponseSeconds,
       averageCsat,
+      peakEscalationDate,
+      peakEscalationCount,
+      handleTimeDeltaSeconds,
     } satisfies MetricsSummary;
   },
 };
 
-const surveySummaryTool: ToolDefinition<SurveySummaryArgs, SurveySummary> = {
+const surveySummaryTool: ToolDefinition<SurveyArgs, SurveySummary> = {
   name: "agentSatisfactionSummary",
   description:
     "Aggregate CSAT, CES, and NPS results from the latest agent satisfaction surveys for an optional date range.",
@@ -242,7 +276,7 @@ const surveySummaryTool: ToolDefinition<SurveySummaryArgs, SurveySummary> = {
       typeof value.surveyPath === "string" && value.surveyPath.trim().length > 0
         ? resolve(repoRoot, value.surveyPath)
         : defaultSurveyPath;
-    return { startDate, endDate, surveyPath };
+    return { startDate, endDate, surveyPath } satisfies SurveyArgs;
   },
   execute: async ({ startDate, endDate, surveyPath }) => {
     const records = await loadCsv(surveyPath);
@@ -255,7 +289,10 @@ const surveySummaryTool: ToolDefinition<SurveySummaryArgs, SurveySummary> = {
         weightedCsat: 0,
         weightedCes: 0,
         weightedNps: 0,
+        positiveComments: 0,
+        neutralComments: 0,
         negativeComments: 0,
+        negativeCommentRate: 0,
       } satisfies SurveySummary;
     }
     const aggregates = scoped.reduce(
@@ -265,14 +302,18 @@ const surveySummaryTool: ToolDefinition<SurveySummaryArgs, SurveySummary> = {
         acc.csat += toNumber(record.csat_avg) * responses;
         acc.ces += toNumber(record.ces_avg) * responses;
         acc.nps += toNumber(record.nps) * responses;
+        acc.positives += toNumber(record.positive_comments);
+        acc.neutrals += toNumber(record.neutral_comments);
         acc.negatives += toNumber(record.negative_comments);
         return acc;
       },
-      { responses: 0, csat: 0, ces: 0, nps: 0, negatives: 0 }
+      { responses: 0, csat: 0, ces: 0, nps: 0, positives: 0, neutrals: 0, negatives: 0 }
     );
     const weightedCsat = aggregates.responses === 0 ? 0 : aggregates.csat / aggregates.responses;
     const weightedCes = aggregates.responses === 0 ? 0 : aggregates.ces / aggregates.responses;
     const weightedNps = aggregates.responses === 0 ? 0 : aggregates.nps / aggregates.responses;
+    const negativeCommentRate =
+      aggregates.responses === 0 ? 0 : aggregates.negatives / aggregates.responses;
     return {
       startDate: startDate ?? scoped[0].date ?? null,
       endDate: endDate ?? scoped[scoped.length - 1].date ?? null,
@@ -280,7 +321,10 @@ const surveySummaryTool: ToolDefinition<SurveySummaryArgs, SurveySummary> = {
       weightedCsat,
       weightedCes,
       weightedNps,
+      positiveComments: aggregates.positives,
+      neutralComments: aggregates.neutrals,
       negativeComments: aggregates.negatives,
+      negativeCommentRate,
     } satisfies SurveySummary;
   },
 };
@@ -325,7 +369,8 @@ const followUpTool: ToolDefinition<FollowUpArgs, FollowUpConfirmation> = {
     return { reviewDate, owner: ownerRaw.trim(), focusAreas, channel };
   },
   execute: async ({ reviewDate, owner, focusAreas, channel }) => {
-    const entry = { reviewDate, owner, focusAreas, channel };
+    const resolvedChannel = channel ?? "calendar";
+    const entry = { reviewDate, owner, focusAreas, channel: resolvedChannel };
     await mkdir(dirname(followUpSchedulePath), { recursive: true });
     let existing: FollowUpConfirmation[] = [];
     if (await pathExists(followUpSchedulePath)) {
