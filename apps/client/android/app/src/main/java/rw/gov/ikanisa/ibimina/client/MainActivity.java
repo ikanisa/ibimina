@@ -8,9 +8,10 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         // Register custom plugins
         registerPlugin(MoMoNotificationListenerPlugin.class);
+        registerPlugin(SmsUserConsentPlugin.class);
         registerPlugin(DeviceAuthPlugin.class);
     }
 }

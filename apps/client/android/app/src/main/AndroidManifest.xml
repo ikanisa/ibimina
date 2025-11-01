@@ -72,10 +72,7 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
-    <!-- SMS Permissions - For OTP reading and transaction confirmations -->
-    <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
+    <!-- SMS User Consent API removes the need for SEND/RECEIVE/READ_SMS -->
 
     <!-- Camera & Storage Permissions - For ID upload, receipts, profile pictures -->
     <uses-permission android:name="android.permission.CAMERA" />
