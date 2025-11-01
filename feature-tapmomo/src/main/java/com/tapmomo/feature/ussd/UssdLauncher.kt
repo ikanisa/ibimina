@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.telephony.TelephonyManager
+import androidx.annotation.VisibleForTesting
 import androidx.core.content.ContextCompat
 import com.tapmomo.feature.Network
 import com.tapmomo.feature.TapMoMo
@@ -17,8 +18,14 @@ import com.tapmomo.feature.telemetry.TelemetryLogger
 /**
  * USSD launcher for initiating mobile money payments
  */
+sealed class UssdLaunchResult {
+    object Success : UssdLaunchResult()
+    data class PermissionRequired(val permissions: Array<String>) : UssdLaunchResult()
+    data class Failure(val reason: String? = null) : UssdLaunchResult()
+}
+
 object UssdLauncher {
-    
+
     /**
      * Launch USSD payment code
      */
@@ -28,65 +35,74 @@ object UssdLauncher {
         merchantId: String,
         amount: Int?,
         subscriptionId: Int? = null
-    ): Boolean {
+    ): UssdLaunchResult {
         val config = TapMoMo.getConfig()
-        val template = config.ussdTemplateBundle.get(network) ?: return false
-        
+        val template = config.ussdTemplates[network]
+            ?: return UssdLaunchResult.Failure("Unsupported network")
+
         // Build USSD code
-        val ussdCode = buildUssdCode(template, merchantId, amount, config.useUssdShortcutWhenAmountPresent)
+        val ussdCode = try {
+            buildUssdCode(template, merchantId, amount, config.useUssdShortcutWhenAmountPresent)
+        } catch (e: IllegalArgumentException) {
+            return UssdLaunchResult.Failure(e.message)
+        }
 
-        TelemetryLogger.track(
-            "tapmomo_ussd_launch_attempt",
-            mapOf(
-                "network" to network.name,
-                "hasAmount" to (amount != null),
-                "subscriptionProvided" to (subscriptionId != null),
-            ),
-        )
+        val permissionsNeeded = mutableListOf<String>()
+        if (!hasPermission(context, Manifest.permission.CALL_PHONE)) {
+            permissionsNeeded.add(Manifest.permission.CALL_PHONE)
+        }
 
-        TestHooks.ussdDirectHandler?.let { handler ->
-            val handled = handler(context, ussdCode, subscriptionId)
-            if (handled) {
-                TelemetryLogger.track(
-                    "tapmomo_ussd_launch",
-                    mapOf("method" to "test_override", "network" to network.name),
-                )
-                return true
-            }
+        if (!hasPermission(context, Manifest.permission.READ_PHONE_STATE)) {
+            permissionsNeeded.add(Manifest.permission.READ_PHONE_STATE)
+        }
+
+        if (permissionsNeeded.isNotEmpty()) {
+            return UssdLaunchResult.PermissionRequired(permissionsNeeded.distinct().toTypedArray())
         }
 
         // Try TelephonyManager.sendUssdRequest first (API 26+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (trySendUssdRequest(context, ussdCode, subscriptionId)) {
-                return true
+                return UssdLaunchResult.Success
             }
         }
 
         // Fallback to ACTION_DIAL
-        return launchUssdViaDial(context, ussdCode)
+        return if (launchUssdViaDial(context, ussdCode)) {
+            UssdLaunchResult.Success
+        } else {
+            UssdLaunchResult.Failure()
+        }
     }
-    
+
     /**
      * Build USSD code from template
      */
-    private fun buildUssdCode(
+    @VisibleForTesting
+    internal fun buildUssdCode(
         template: UssdTemplate,
         merchantId: String,
         amount: Int?,
         useShortcut: Boolean
     ): String {
-        return when {
-            amount != null && useShortcut -> {
-                template.shortcut
-                    .replace("{MERCHANT}", merchantId)
-                    .replace("{AMOUNT}", amount.toString())
-            }
-            else -> {
-                template.menu.replace("{MERCHANT}", merchantId)
-            }
+        val sanitizedMerchant = merchantId.trim()
+        require(sanitizedMerchant.isNotEmpty()) { "Merchant ID is required" }
+
+        if (amount != null && amount < 0) {
+            throw IllegalArgumentException("Amount must be positive")
+        }
+
+        val shouldUseShortcut = amount != null && amount > 0 && useShortcut
+
+        return if (shouldUseShortcut) {
+            template.shortcut
+                .replace("{MERCHANT}", sanitizedMerchant)
+                .replace("{AMOUNT}", amount!!.toString())
+        } else {
+            template.menu.replace("{MERCHANT}", sanitizedMerchant)
         }
     }
-    
+
     /**
      * Try to send USSD request using TelephonyManager (API 26+)
      */
@@ -100,9 +116,11 @@ object UssdLauncher {
         }
 
         // Check permission
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE)
-            != PackageManager.PERMISSION_GRANTED) {
-            TelemetryLogger.track("tapmomo_ussd_permission_missing")
+        if (!hasPermission(context, Manifest.permission.CALL_PHONE)) {
+            return false
+        }
+
+        if (subscriptionId != null && !hasPermission(context, Manifest.permission.READ_PHONE_STATE)) {
             return false
         }
 
@@ -190,7 +208,7 @@ object UssdLauncher {
         }
         try {
             // Encode # as %23 for proper URI handling
-            val encodedUssd = ussdCode.replace("#", "%23")
+            val encodedUssd = encodeForDialer(ussdCode)
             val uri = Uri.parse("tel:$encodedUssd")
 
             val intent = Intent(Intent.ACTION_DIAL, uri).apply {
@@ -212,7 +230,15 @@ object UssdLauncher {
             return false
         }
     }
-    
+
+    private fun hasPermission(context: Context, permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun encodeForDialer(ussdCode: String): String {
+        return ussdCode.replace("#", Uri.encode("#"))
+    }
+
     /**
      * Get USSD preview (for display purposes)
      */
