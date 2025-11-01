@@ -108,12 +108,9 @@ export const PILOT_TENANTS: ReadonlyArray<PilotTenant> = Object.freeze([
 
 export const PILOT_TENANT_IDS = Object.freeze(PILOT_TENANTS.map((tenant) => tenant.id));
 
-const pilotTenantLookup = new Map<string, PilotTenant>();
-
-for (const tenant of PILOT_TENANTS) {
-  pilotTenantLookup.set(tenant.id.toLowerCase(), tenant);
-  pilotTenantLookup.set(tenant.slug.toLowerCase(), tenant);
-}
+const pilotTenantIdentifierSet = new Set(
+  PILOT_TENANTS.flatMap(({ id, slug }) => [id, slug]).map((identifier) => identifier.toLowerCase())
+);
 
 const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFlag>> =
   Object.freeze({
@@ -192,17 +189,7 @@ export function isPilotTenant(tenantId: string | null | undefined): boolean {
   if (!normalized) {
     return false;
   }
-  return pilotTenantLookup.has(normalized);
-}
-
-function resolveCanonicalTenantId(tenantId: string | null | undefined): string | null {
-  const normalized = normalizeTenantId(tenantId);
-  if (!normalized) {
-    return null;
-  }
-
-  const tenant = pilotTenantLookup.get(normalized);
-  return tenant?.id.toLowerCase() ?? normalized;
+  return pilotTenantIdentifierSet.has(normalized);
 }
 
 export function isFeatureEnabledForTenant(
