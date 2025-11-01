@@ -28,6 +28,13 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [assistantContext, setAssistantContext] = useState<{
+    org: string | null;
+    country: string | null;
+    lang: string | null;
+  } | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,31 +53,10 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
     }
   }, [input]);
 
-  const simulateStreaming = async (fullText: string, messageId: string) => {
-    const words = fullText.split(" ");
-    let currentText = "";
-
-    for (let i = 0; i < words.length; i++) {
-      currentText += (i > 0 ? " " : "") + words[i];
-      
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === messageId
-            ? { ...msg, content: currentText, isStreaming: i < words.length - 1 }
-            : msg
-        )
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, 50 + Math.random() * 100));
-    }
-
-    setMessages((prev) =>
-      prev.map((msg) => (msg.id === messageId ? { ...msg, isStreaming: false } : msg))
-    );
-  };
-
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    controllerRef.current?.abort();
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -82,10 +68,9 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    setError(null);
 
     const agentMessageId = (Date.now() + 1).toString();
-    const fullResponse =
-      "Thank you for your message. The AI agent is currently in preview mode. For immediate assistance, please contact your SACCO staff or use the help resources in your profile.";
 
     const agentMessage: Message = {
       id: agentMessageId,
@@ -96,12 +81,170 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
     };
 
     setMessages((prev) => [...prev, agentMessage]);
-    
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    
-    await simulateStreaming(fullResponse, agentMessageId);
-    
-    setIsLoading(false);
+    const conversation = [...messages, userMessage]
+      .filter((message) => !message.isStreaming)
+      .map((message) => ({
+        role: message.sender === "agent" ? "assistant" : "user",
+        content: message.content,
+      }));
+
+    const abortController = new AbortController();
+    controllerRef.current = abortController;
+
+    try {
+      const response = await fetch("/api/agent/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          messages: conversation,
+          orgId,
+        }),
+        signal: abortController.signal,
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error("Assistant unavailable");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let finalText = "";
+
+      const updateAgentMessage = (content: string, isStreaming: boolean) => {
+        setMessages((prev) =>
+          prev.map((msg) => (msg.id === agentMessageId ? { ...msg, content, isStreaming } : msg))
+        );
+      };
+
+      let shouldStop = false;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (!value) continue;
+        buffer += decoder.decode(value, { stream: true });
+
+        let boundary = buffer.indexOf("\n\n");
+        while (boundary !== -1) {
+          const chunk = buffer.slice(0, boundary);
+          buffer = buffer.slice(boundary + 2);
+          boundary = buffer.indexOf("\n\n");
+
+          const lines = chunk.split("\n");
+          let event = "message";
+          let data = "";
+          for (const line of lines) {
+            if (line.startsWith("event:")) {
+              event = line.slice(6).trim();
+            } else if (line.startsWith("data:")) {
+              data += line.slice(5).trim();
+            }
+          }
+
+          if (!data) continue;
+          let payload: unknown = data;
+          try {
+            payload = JSON.parse(data);
+          } catch {
+            // Non JSON payload, keep as string
+          }
+
+          if (event === "metadata" && payload && typeof payload === "object") {
+            const record = payload as Record<string, unknown>;
+            setAssistantContext({
+              org: (record.org as { name?: string | null } | undefined)?.name ?? null,
+              country: (record.org as { country?: string | null } | undefined)?.country ?? null,
+              lang: (record.lang as string | null) ?? null,
+            });
+            continue;
+          }
+
+          if (event === "token") {
+            const text =
+              typeof payload === "string"
+                ? payload
+                : (((payload as Record<string, unknown>).text as string | undefined) ?? "");
+            if (text) {
+              finalText += text;
+              updateAgentMessage(finalText, true);
+            }
+            continue;
+          }
+
+          if (event === "tool_result") {
+            const name =
+              typeof payload === "object" && payload
+                ? ((payload as Record<string, unknown>).name as string | undefined)
+                : undefined;
+            const resultValue =
+              typeof payload === "object" && payload
+                ? ((payload as Record<string, unknown>).result ??
+                  (payload as Record<string, unknown>).error)
+                : payload;
+            const serialized =
+              typeof resultValue === "string" ? resultValue : JSON.stringify(resultValue, null, 2);
+            const toolSummary = `\n\n🔧 ${name ?? "Tool"}: ${serialized}`;
+            finalText += toolSummary;
+            updateAgentMessage(finalText, true);
+            continue;
+          }
+
+          if (event === "error") {
+            const message =
+              typeof payload === "string"
+                ? payload
+                : (((payload as Record<string, unknown>).message as string | undefined) ??
+                  "Assistant encountered an error");
+            setError(message);
+            finalText = message;
+            updateAgentMessage(finalText, false);
+            shouldStop = true;
+            break;
+          }
+
+          if (event === "message") {
+            const text =
+              typeof payload === "string"
+                ? payload
+                : (((payload as Record<string, unknown>).text as string | undefined) ?? finalText);
+            finalText = text;
+            updateAgentMessage(finalText, false);
+            continue;
+          }
+
+          if (event === "done") {
+            updateAgentMessage(finalText, false);
+            shouldStop = true;
+            break;
+          }
+        }
+
+        if (shouldStop) {
+          break;
+        }
+      }
+
+      updateAgentMessage(finalText || "I wasn't able to generate a response.", false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Assistant request failed";
+      setError(message);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === agentMessageId
+            ? {
+                ...msg,
+                content:
+                  "Ndagusabye imbabazi – I couldn't reach the SACCO assistant right now. Please try again shortly.",
+                isStreaming: false,
+              }
+            : msg
+        )
+      );
+    } finally {
+      controllerRef.current = null;
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -111,6 +254,12 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      controllerRef.current?.abort();
+    };
+  }, []);
+
   return (
     <div className="flex flex-col h-full bg-white">
       <header className="flex items-center gap-3 px-4 py-4 border-b border-neutral-200 bg-white">
@@ -119,7 +268,15 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
         </div>
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-neutral-900">SACCO+ Support</h2>
-          <p className="text-xs text-neutral-500">AI Assistant</p>
+          <p className="text-xs text-neutral-500">
+            AI Assistant
+            {assistantContext?.org && (
+              <span className="ml-1 text-neutral-400">
+                • {assistantContext.org}
+                {assistantContext.country ? ` (${assistantContext.country})` : ""}
+              </span>
+            )}
+          </p>
         </div>
         {onClose && (
           <button
@@ -150,7 +307,9 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
                   </div>
                 )}
               </div>
-              <div className={`flex flex-col ${message.sender === "user" ? "items-end" : "items-start"} flex-1`}>
+              <div
+                className={`flex flex-col ${message.sender === "user" ? "items-end" : "items-start"} flex-1`}
+              >
                 <div
                   className={`inline-block rounded-2xl px-4 py-3 max-w-[85%] ${
                     message.sender === "user"
@@ -183,9 +342,18 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
               </div>
               <div className="inline-block rounded-2xl bg-neutral-100 px-4 py-3">
                 <div className="flex items-center gap-1">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-neutral-400" style={{ animationDelay: "0ms" }}></div>
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-neutral-400" style={{ animationDelay: "150ms" }}></div>
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-neutral-400" style={{ animationDelay: "300ms" }}></div>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-neutral-400"
+                    style={{ animationDelay: "0ms" }}
+                  ></div>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-neutral-400"
+                    style={{ animationDelay: "150ms" }}
+                  ></div>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-neutral-400"
+                    style={{ animationDelay: "300ms" }}
+                  ></div>
                 </div>
               </div>
             </div>
@@ -218,6 +386,7 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
           </div>
           <p className="mt-3 text-center text-xs text-neutral-500">
             AI assistant may make mistakes. Verify important information with SACCO staff.
+            {error && <span className="block text-red-500 mt-2">{error}</span>}
           </p>
         </div>
       </div>
