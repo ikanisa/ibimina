@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file. Dates are
 in YYYY-MM-DD.
 
+## [0.1.4] - 2025-11-01
+
+- Captured the cross-platform refactor inventory in `docs/REFACTOR_PLAN.md` to
+  drive the PR `00` → `10` programme and surface risk hotspots for reviewers.
+- Documented that no schema or runtime changes ship in this planning PR; all
+  follow-up work remains in subsequent branches.
+
+See details: docs/releases/2025-11-01-pr00-refactor-plan.md
+
 ## [0.1.3] - 2025-10-16
 
 - Normalised SACCO search slugs via helper-trigger pipeline and backfilled data;
