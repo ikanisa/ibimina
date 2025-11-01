@@ -4,7 +4,7 @@
   "language_code": "rw",
   "tags": ["ussd", "collections", "training"],
   "policy_tag": "ussd",
-  "scope": "global",
+  "scope": "global"
 }
 ---
 
