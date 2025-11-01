@@ -30,6 +30,9 @@
     "validate:cloudflare": "bash scripts/validate-cloudflare-deployment.sh",
     "prepare": "husky"
   },
+  "dependencies": {
+    "openai": "^6.7.0"
+  },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",
     "@cloudflare/workers-types": "^4.20241127.0",
@@ -47,7 +50,6 @@
     "globals": "^16.4.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.6",
-    "openai": "^6.7.0",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
