@@ -221,3 +221,86 @@ jobs:
             ./gradlew :feature-tapmomo:connectedDebugAndroidTest
           emulator-options: -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
+
+  client-playwright:
+    name: Client Playwright e2e
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run client Playwright suite
+        run: pnpm --filter @ibimina/client run test:e2e
+
+      - name: Upload Playwright coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-playwright-coverage
+          path: apps/client/.reports/coverage
+          if-no-files-found: warn
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-playwright-report
+          path: apps/client/.reports/playwright
+          if-no-files-found: warn
+
+  mobile-detox:
+    name: Mobile Detox regression
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Detox smoke tests
+        run: pnpm --filter @ibimina/mobile run test:detox
+
+      - name: Upload Detox artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-detox-output
+          path: apps/client/tests/detox
+          if-no-files-found: warn
