@@ -160,6 +160,7 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
             orgId,
             quickAction: action,
             threadId: threadRef.current,
+            messageId: assistantMessageId,
           }),
           signal: controller.signal,
         });

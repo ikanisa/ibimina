@@ -104,13 +104,14 @@ function sleep(ms: number) {
 }
 
 export async function POST(request: NextRequest) {
-  const { message, locale = "rw", quickAction } = await request.json();
+  const { message, locale = "rw", quickAction, messageId } = await request.json();
   const language = (locale ?? "rw") as SupportedLocale;
   const scenario = detectScenario(String(message ?? ""), quickAction);
 
   const stream = new ReadableStream({
     async start(controller) {
-      const messageId = `assistant-${Date.now()}`;
+      const resolvedMessageId =
+        typeof messageId === "string" && messageId.trim() ? messageId : `assistant-${Date.now()}`;
       const abort = () => {
         try {
           controller.close();
@@ -120,22 +121,26 @@ export async function POST(request: NextRequest) {
       };
       request.signal.addEventListener("abort", abort);
 
-      writeEvent(controller, "message", { type: "message-start", messageId });
+      writeEvent(controller, "message", { type: "message-start", messageId: resolvedMessageId });
 
       const text = scenario.text[language] ?? scenario.text.rw;
       const parts = text.split(/(\s+)/);
       for (const part of parts) {
         if (!part) continue;
-        writeEvent(controller, "message", { type: "message-delta", messageId, delta: part });
+        writeEvent(controller, "message", {
+          type: "message-delta",
+          messageId: resolvedMessageId,
+          delta: part,
+        });
         await sleep(60);
       }
 
-      writeEvent(controller, "message", { type: "message-end", messageId });
+      writeEvent(controller, "message", { type: "message-end", messageId: resolvedMessageId });
 
       if (scenario.allocation) {
         writeEvent(controller, "message", {
           type: "allocation",
-          messageId,
+          messageId: resolvedMessageId,
           payload: {
             heading: scenario.allocation.heading,
             subheading: scenario.allocation.subheading,
@@ -164,7 +169,7 @@ export async function POST(request: NextRequest) {
       if (scenario.ticket) {
         writeEvent(controller, "message", {
           type: "ticket",
-          messageId,
+          messageId: resolvedMessageId,
           payload: {
             heading: scenario.ticket.heading,
             status: scenario.ticket.status,
