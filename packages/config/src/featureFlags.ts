@@ -108,7 +108,12 @@ export const PILOT_TENANTS: ReadonlyArray<PilotTenant> = Object.freeze([
 
 export const PILOT_TENANT_IDS = Object.freeze(PILOT_TENANTS.map((tenant) => tenant.id));
 
-const pilotTenantIdSet = new Set(PILOT_TENANT_IDS.map((id) => id.toLowerCase()));
+const pilotTenantLookup = new Map<string, PilotTenant>();
+
+for (const tenant of PILOT_TENANTS) {
+  pilotTenantLookup.set(tenant.id.toLowerCase(), tenant);
+  pilotTenantLookup.set(tenant.slug.toLowerCase(), tenant);
+}
 
 const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFlag>> =
   Object.freeze({
@@ -162,6 +167,15 @@ const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFl
 
 export const featureFlagDefinitions = FEATURE_FLAG_DEFINITIONS;
 
+const featureFlagTargetSets: Readonly<Record<FeatureFlagName, ReadonlySet<string>>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(FEATURE_FLAG_DEFINITIONS).map(([flag, definition]) => [
+      flag as FeatureFlagName,
+      new Set(definition.pilotTenants.map((id) => id.toLowerCase())),
+    ])
+  ) as unknown as Record<FeatureFlagName, ReadonlySet<string>>
+);
+
 export function normalizeTenantId(raw: string | null | undefined): string | null {
   if (typeof raw !== "string") {
     return null;
@@ -178,7 +192,17 @@ export function isPilotTenant(tenantId: string | null | undefined): boolean {
   if (!normalized) {
     return false;
   }
-  return pilotTenantIdSet.has(normalized);
+  return pilotTenantLookup.has(normalized);
+}
+
+function resolveCanonicalTenantId(tenantId: string | null | undefined): string | null {
+  const normalized = normalizeTenantId(tenantId);
+  if (!normalized) {
+    return null;
+  }
+
+  const tenant = pilotTenantLookup.get(normalized);
+  return tenant?.id.toLowerCase() ?? normalized;
 }
 
 export function isFeatureEnabledForTenant(
@@ -189,10 +213,17 @@ export function isFeatureEnabledForTenant(
   if (!definition) {
     return false;
   }
+
   if (definition.pilotTenants.length === 0) {
     return definition.defaultValue;
   }
-  return isPilotTenant(tenantId);
+
+  const canonicalTenantId = resolveCanonicalTenantId(tenantId);
+  if (!canonicalTenantId) {
+    return definition.defaultValue;
+  }
+
+  return featureFlagTargetSets[flag].has(canonicalTenantId);
 }
 
 export function getTenantFeatureFlags(tenantId: string | null | undefined): TenantFeatureFlags {
