@@ -23,6 +23,7 @@ export interface WhatsAppHandlerOptions {
   featureFlags: FeatureFlagService;
   transport: WhatsAppTransport;
   logger?: Pick<typeof console, "info" | "warn" | "error" | "debug">;
+  autoReplyText?: string;
 }
 
 export type WhatsAppWebhookPayload = {
@@ -64,7 +65,8 @@ const DEFAULT_AUTO_REPLY =
   "Murakoze! Twakiriye ubutumwa bwawe kuri WhatsApp. Umuyobozi wa cooperative azagusubiza vuba.";
 
 export function createWhatsAppHandler(options: WhatsAppHandlerOptions) {
-  const { featureFlags, transport, logger = console } = options;
+  const { featureFlags, transport, logger = console, autoReplyText } = options;
+  const replyText = autoReplyText?.trim() || DEFAULT_AUTO_REPLY;
 
   return {
     async handleWebhook(payload: WhatsAppWebhookPayload): Promise<WhatsAppWebhookResult> {
@@ -113,7 +115,7 @@ export function createWhatsAppHandler(options: WhatsAppHandlerOptions) {
                 try {
                   await transport.sendAutomatedReply({
                     to: recipient,
-                    body: DEFAULT_AUTO_REPLY,
+                    body: replyText,
                     context: messageId ? { messageId } : undefined,
                   });
                 } catch (error) {
