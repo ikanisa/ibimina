@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      openai:
+        specifier: ^6.7.0
+        version: 6.7.0(ws@8.18.3)(zod@3.25.76)
     devDependencies:
       '@cloudflare/next-on-pages':
         specifier: ^1.13.16
@@ -56,9 +60,6 @@ importers:
       lint-staged:
         specifier: ^16.2.6
         version: 16.2.6
-      openai:
-        specifier: ^6.7.0
-        version: 6.7.0(ws@8.18.3)(zod@3.25.76)
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
