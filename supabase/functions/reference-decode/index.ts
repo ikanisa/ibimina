@@ -171,16 +171,18 @@ Deno.serve(async (req) => {
     let memberByCodeResponse;
 
     if (countryId) {
-      memberByCodeResponse = await buildMemberQuery()
+      const memberByCountry = await buildMemberQuery()
         .eq("country_id", countryId)
         .eq("member_code", token.member)
         .maybeSingle();
 
-      if (!memberByCodeResponse.data) {
+      if (!memberByCountry.data && !memberByCountry.error) {
         memberByCodeResponse = await buildMemberQuery()
           .is("country_id", null)
           .eq("member_code", token.member)
           .maybeSingle();
+      } else {
+        memberByCodeResponse = memberByCountry;
       }
     } else {
       memberByCodeResponse = await buildMemberQuery().eq("member_code", token.member).maybeSingle();
