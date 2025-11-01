@@ -17,3 +17,5 @@ export type {
   TenantFeatureFlag,
   TenantFeatureFlags,
 } from "./featureFlags";
+export { ussdConfig, getDefaultUssdOperator, getUssdOperatorById } from "./ussd";
+export type { UssdConfig, UssdOperatorConfig, UssdLocaleDefinition } from "./ussd";

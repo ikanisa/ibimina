@@ -28,7 +28,7 @@ object UssdLauncher {
         subscriptionId: Int? = null
     ): Boolean {
         val config = TapMoMo.getConfig()
-        val template = config.ussdTemplates[network] ?: return false
+        val template = config.ussdTemplateBundle.get(network) ?: return false
         
         // Build USSD code
         val ussdCode = buildUssdCode(template, merchantId, amount, config.useUssdShortcutWhenAmountPresent)
@@ -156,7 +156,7 @@ object UssdLauncher {
         amount: Int?
     ): String {
         val config = TapMoMo.getConfig()
-        val template = config.ussdTemplates[network] ?: return ""
+        val template = config.ussdTemplateBundle.get(network) ?: return ""
         
         return buildUssdCode(template, merchantId, amount, config.useUssdShortcutWhenAmountPresent)
     }

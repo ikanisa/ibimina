@@ -5,6 +5,7 @@ import android.content.Intent
 import android.nfc.NfcAdapter
 import com.tapmomo.feature.ui.TapMoMoGetPaidActivity
 import com.tapmomo.feature.ui.TapMoMoPayActivity
+import java.util.concurrent.TimeUnit
 
 /**
  * Main entry point for TapMoMo library.
@@ -34,6 +35,12 @@ object TapMoMo {
     fun getConfig(): TapMoMoConfig {
         checkInitialized()
         return config!!
+    }
+
+    fun refreshUssdTemplates(bundle: UssdTemplateBundle) {
+        checkInitialized()
+        val current = config!!
+        config = current.copy(ussdTemplateBundle = bundle.withFetchedAt(System.currentTimeMillis()))
     }
     
     /**
@@ -158,22 +165,13 @@ data class TapMoMoConfig(
     val useUssdShortcutWhenAmountPresent: Boolean = true,
     
     /**
-     * USSD code templates by network
-     * Default values are for Rwanda MoMo
+     * USSD templates bundle (with versioning & TTL)
      */
-    val ussdTemplates: Map<Network, UssdTemplate> = mapOf(
-        Network.MTN to UssdTemplate(
-            shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
-            menu = "*182*8*1#",
-            base = "*182#"
-        ),
-        Network.Airtel to UssdTemplate(
-            shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
-            menu = "*182*8*1#",
-            base = "*182#"
-        )
-    )
-)
+    val ussdTemplateBundle: UssdTemplateBundle = UssdTemplateBundle.default()
+) {
+    val ussdTemplates: Map<Network, UssdTemplate>
+        get() = ussdTemplateBundle.templates
+}
 
 /**
  * USSD code templates for a network
@@ -190,4 +188,59 @@ data class UssdTemplate(
 enum class Network {
     MTN,
     Airtel
+}
+
+data class UssdTemplateBundle(
+    val version: String,
+    val ttlMs: Long,
+    val fetchedAtMs: Long = System.currentTimeMillis(),
+    val templates: Map<Network, UssdTemplate>
+) {
+    fun get(network: Network): UssdTemplate? = templates[network]
+
+    fun isExpired(nowMs: Long = System.currentTimeMillis()): Boolean {
+        return nowMs - fetchedAtMs >= ttlMs
+    }
+
+    fun withFetchedAt(fetchedAt: Long): UssdTemplateBundle {
+        return copy(fetchedAtMs = fetchedAt)
+    }
+
+    companion object {
+        private const val DEFAULT_VERSION = "config-2025-01-15"
+        private const val DEFAULT_TTL_SECONDS = 86_400L
+
+        fun default(): UssdTemplateBundle {
+            return UssdTemplateBundle(
+                version = DEFAULT_VERSION,
+                ttlMs = TimeUnit.SECONDS.toMillis(DEFAULT_TTL_SECONDS),
+                templates = mapOf(
+                    Network.MTN to UssdTemplate(
+                        shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
+                        menu = "*182*8*1#",
+                        base = "*182#"
+                    ),
+                    Network.Airtel to UssdTemplate(
+                        shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
+                        menu = "*182*8*1#",
+                        base = "*182#"
+                    )
+                )
+            )
+        }
+
+        fun from(
+            version: String,
+            ttlSeconds: Long,
+            templates: Map<Network, UssdTemplate>,
+            fetchedAtMs: Long = System.currentTimeMillis()
+        ): UssdTemplateBundle {
+            return UssdTemplateBundle(
+                version = version,
+                ttlMs = TimeUnit.SECONDS.toMillis(ttlSeconds),
+                fetchedAtMs = fetchedAtMs,
+                templates = templates
+            )
+        }
+    }
 }
