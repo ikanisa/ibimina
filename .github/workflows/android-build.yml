@@ -108,13 +108,18 @@ jobs:
         run: |
           set -euo pipefail
           OUTPUT_DIR="apps/admin/android/app/build/outputs/bundle/release"
-          DEFAULT_BUNDLE="$OUTPUT_DIR/app-release.aab"
-          if [ ! -f "$DEFAULT_BUNDLE" ]; then
-            echo "::error::Expected bundle not found at $DEFAULT_BUNDLE"
+          BUNDLE_PREFIX="ibimina-staff-${{ steps.version.outputs.version_name }}"
+          readarray -t MATCHING_BUNDLES < <(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "${BUNDLE_PREFIX}-*.aab" -print)
+          if [ "${#MATCHING_BUNDLES[@]}" -eq 0 ]; then
+            echo "::error::Expected bundle matching ${BUNDLE_PREFIX}-*.aab not found in $OUTPUT_DIR"
+            exit 1
+          elif [ "${#MATCHING_BUNDLES[@]}" -gt 1 ]; then
+            echo "::error::Multiple bundles matched ${BUNDLE_PREFIX}-*.aab in $OUTPUT_DIR: ${MATCHING_BUNDLES[*]}"
             exit 1
           fi
+          SOURCE_BUNDLE="${MATCHING_BUNDLES[0]}"
           ARTIFACT_NAME="ibimina-staff-${{ steps.version.outputs.version_name }}-${{ steps.version.outputs.version_code }}.aab"
-          mv "$DEFAULT_BUNDLE" "$OUTPUT_DIR/$ARTIFACT_NAME"
+          mv "$SOURCE_BUNDLE" "$OUTPUT_DIR/$ARTIFACT_NAME"
           echo "path=$OUTPUT_DIR/$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Upload signed bundle artifact
