@@ -1,6 +1,6 @@
 /**
  * Biometric Enrollment Prompt Component
- * 
+ *
  * Prompts users to enable biometric authentication after WhatsApp OTP login
  * This provides faster, more secure access for subsequent logins
  */
@@ -11,6 +11,26 @@ import { useState } from "react";
 import { Fingerprint, X } from "lucide-react";
 import { deviceAuthManager } from "@/lib/device-auth";
 import { createClient } from "@/lib/supabase/client";
+
+const getDeviceModel = (): string => {
+  if (typeof navigator === "undefined") return "Unknown Device";
+
+  const ua = navigator.userAgent;
+
+  if (/Android/i.test(ua)) {
+    const match = ua.match(/Android[^;]+;([^)]+)\)/);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+    return "Android Device";
+  }
+
+  if (/iPhone/i.test(ua)) return "iPhone";
+  if (/iPad/i.test(ua)) return "iPad";
+  if (/iPod/i.test(ua)) return "iPod";
+
+  return "Mobile Device";
+};
 
 interface BiometricEnrollmentPromptProps {
   userId: string;
@@ -196,28 +216,4 @@ export function BiometricEnrollmentPrompt({
       </div>
     </div>
   );
-}
-
-/**
- * Get device model/name from user agent
- */
-function getDeviceModel(): string {
-  if (typeof navigator === "undefined") return "Unknown Device";
-
-  const ua = navigator.userAgent;
-
-  // Try to extract device model from user agent
-  if (/Android/i.test(ua)) {
-    const match = ua.match(/Android[^;]+;([^)]+)\)/);
-    if (match && match[1]) {
-      return match[1].trim();
-    }
-    return "Android Device";
-  }
-
-  if (/iPhone/i.test(ua)) return "iPhone";
-  if (/iPad/i.test(ua)) return "iPad";
-  if (/iPod/i.test(ua)) return "iPod";
-
-  return "Mobile Device";
 }
