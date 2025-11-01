@@ -19,6 +19,7 @@
     "assert:bundle": "pnpm --filter @ibimina/admin run assert:bundle",
     "verify:log-drain": "pnpm --filter @ibimina/admin run verify:log-drain",
     "start": "pnpm --filter @ibimina/admin run start",
+    "setup:agent": "tsx scripts/setupAgent.ts",
     "check:flags": "node scripts/check-feature-flags.mjs",
     "check:deploy": "pnpm run check:flags && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse",
     "validate:production": "bash scripts/validate-production-readiness.sh",
@@ -33,6 +34,7 @@
     "@types/node": "20.19.21",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
+    "dotenv": "^16.4.5",
     "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -43,6 +45,7 @@
     "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.20.6",
     "typescript": "5.9.3",
     "vercel": "^48.6.7",
     "wrangler": "^4.45.2"
