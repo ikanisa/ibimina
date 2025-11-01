@@ -18,6 +18,7 @@
 
 import { getUssdPaySheet, type UssdPaySheetEntry } from "@/lib/api/ussd-pay-sheet";
 import { GradientHeader } from "@ibimina/ui";
+import { fmtCurrency } from "@/utils/format";
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +80,9 @@ export default async function PaySheetPage() {
                 />
               </svg>
             </div>
-            <p className="mb-2 text-lg font-medium text-neutral-700">No payment instructions available</p>
+            <p className="mb-2 text-lg font-medium text-neutral-700">
+              No payment instructions available
+            </p>
             <p className="text-sm text-neutral-500">
               Payment instructions will appear here when you join a group
             </p>
@@ -135,7 +138,9 @@ export default async function PaySheetPage() {
             role="region"
             aria-label="Payment instructions help"
           >
-            <h3 className="mb-3 text-sm font-semibold text-atlas-blue-dark">How to pay using USSD</h3>
+            <h3 className="mb-3 text-sm font-semibold text-atlas-blue-dark">
+              How to pay using USSD
+            </h3>
             <ol className="space-y-1 list-decimal list-inside text-sm text-atlas-blue-dark">
               <li>Tap the USSD code on any payment card below</li>
               <li>Your phone will dial the code automatically</li>
@@ -178,11 +183,7 @@ interface PaymentCardProps {
 
 function PaymentCard({ entry }: PaymentCardProps) {
   // Format amount with RWF currency
-  const formattedAmount = new Intl.NumberFormat("rw-RW", {
-    style: "currency",
-    currency: "RWF",
-    minimumFractionDigits: 0,
-  }).format(entry.payment_amount);
+  const formattedAmount = fmtCurrency(entry.payment_amount);
 
   // Format due date if available
   const formattedDueDate = entry.due_date
@@ -245,21 +246,27 @@ function PaymentCard({ entry }: PaymentCardProps) {
         {/* Due date */}
         {formattedDueDate && (
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">Due Date</dt>
+            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+              Due Date
+            </dt>
             <dd className="mt-1 text-sm text-neutral-900">{formattedDueDate}</dd>
           </div>
         )}
 
         {/* Reference code */}
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">Reference</dt>
+          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+            Reference
+          </dt>
           <dd className="mt-1 font-mono text-sm text-neutral-900">{entry.reference_code}</dd>
         </div>
 
         {/* USSD code - only show for pending payments */}
         {entry.payment_status === "PENDING" && (
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">USSD Code</dt>
+            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+              USSD Code
+            </dt>
             <dd className="mt-2">
               <a
                 href={`tel:${encodeURIComponent(entry.ussd_code)}`}

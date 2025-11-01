@@ -3,12 +3,7 @@
 import { format } from "date-fns";
 import { CheckCircle2, FileText, MessageSquareSparkles } from "lucide-react";
 import { AllocationPayload, ChatMessage, SupportedLocale, TicketPayload } from "./types";
-
-const formatter = new Intl.NumberFormat("rw-RW", {
-  style: "currency",
-  currency: "RWF",
-  minimumFractionDigits: 0,
-});
+import { fmtCurrency } from "@/utils/format";
 
 const columnLabels = {
   group: { rw: "Itsinda", en: "Group", fr: "Groupe" },
@@ -61,7 +56,7 @@ function renderAllocation(locale: SupportedLocale, payload: AllocationPayload) {
                 </p>
               </div>
               <div className="flex flex-col justify-center text-neutral-900">
-                <span className="font-semibold">{formatter.format(allocation.amount)}</span>
+                <span className="font-semibold">{fmtCurrency(allocation.amount)}</span>
               </div>
               <div className="flex flex-col justify-center text-neutral-700">
                 <span className="font-medium">{allocation.reference}</span>

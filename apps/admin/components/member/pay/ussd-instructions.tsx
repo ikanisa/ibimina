@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { Copy, PhoneCall } from "lucide-react";
+import { track } from "@/src/lib/analytics";
 
 interface UssdParams {
   merchant: string;
@@ -49,11 +50,32 @@ export function UssdInstructions({ groupId }: UssdInstructionsProps) {
     };
   }, [groupId]);
 
-  const copy = async (value: string) => {
-    await navigator.clipboard.writeText(value);
-    setCopied(value);
-    setTimeout(() => setCopied(null), 2000);
+  const copy = async (value: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(value);
+      setTimeout(() => setCopied(null), 2000);
+      void track({
+        event: "staff_ussd_copy",
+        properties: { field, hasTelUri: Boolean(params?.telUri), groupId },
+      });
+    } catch (error) {
+      console.error("Failed to copy USSD value", error);
+      void track({
+        event: "staff_ussd_copy_failed",
+        properties: { field, groupId },
+      });
+    }
   };
+
+  useEffect(() => {
+    if (params && !params.telUri) {
+      void track({
+        event: "staff_ussd_manual_required",
+        properties: { groupId },
+      });
+    }
+  }, [params, groupId]);
 
   if (!groupId) {
     return <p className="text-sm text-white/70">Select a group to view USSD instructions.</p>;
@@ -105,6 +127,12 @@ export function UssdInstructions({ groupId }: UssdInstructionsProps) {
           <a
             href={params.telUri}
             className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/80 px-4 py-3 text-base font-semibold text-neutral-0 transition-all duration-interactive ease-interactive hover:bg-emerald-500"
+            onClick={() =>
+              track({
+                event: "staff_ussd_dial_attempt",
+                properties: { groupId, provider: params.provider ?? "MTN" },
+              })
+            }
           >
             <PhoneCall className="h-5 w-5" aria-hidden /> Launch USSD
           </a>
@@ -117,7 +145,7 @@ export function UssdInstructions({ groupId }: UssdInstructionsProps) {
 interface CopyFieldProps {
   label: string;
   value: string;
-  copy: (value: string) => Promise<void>;
+  copy: (value: string, field: string) => Promise<void>;
   copied: boolean;
 }
 
@@ -129,7 +157,7 @@ function CopyField({ label, value, copy, copied }: CopyFieldProps) {
         <p className="text-lg font-semibold">{value}</p>
       </div>
       <button
-        onClick={() => copy(value)}
+        onClick={() => copy(value, label.toLowerCase())}
         className="flex items-center gap-2 rounded-2xl bg-white/15 px-3 py-2 text-sm font-semibold text-neutral-0 transition-all duration-interactive ease-interactive hover:bg-white/25"
       >
         <Copy className="h-4 w-4" aria-hidden />

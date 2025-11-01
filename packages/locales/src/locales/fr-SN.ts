@@ -13,22 +13,49 @@ export const frSNContentPack: CountryContentPack = {
     providers: [
       {
         name: "Orange Money",
+        telco: "orange",
         code: "#144#",
         instructions: [
           "Composez #144#",
-          'Sélectionnez "Payer un marchand"',
-          "Entrez le code marchand",
-          "Entrez le numéro de référence: SEN.DAK.XXX.YYYY.001",
-          "Entrez le montant",
-          "Confirmez avec votre code PIN",
+          "Choisissez 'Paiement marchand'",
+          "Saisissez le code marchand",
+          "Entrez la référence fournie",
+          "Indiquez le montant",
+          "Validez avec votre code secret",
+        ],
+        variants: [
+          {
+            telco: "orange-kiosk",
+            code: "#144*391#",
+            instructions: [
+              "Composez #144*391#",
+              "Sélectionnez 'SACCO+'",
+              "Entrez l'identifiant membre",
+              "Confirmez le montant",
+            ],
+          },
+        ],
+      },
+      {
+        name: "Free Money",
+        telco: "free",
+        code: "*150#",
+        instructions: [
+          "Composez *150#",
+          "Choisissez 'Paiement'",
+          "Saisissez le code marchand",
+          "Saisissez la référence",
+          "Validez le montant",
+          "Confirmez avec le code secret",
         ],
       },
     ],
     generalInstructions: [
-      "Utilisez le numéro de référence exact indiqué sur votre carte",
+      "Utilisez le numéro de référence tel qu'indiqué sur votre carte",
       "Vérifiez le montant avant de confirmer",
-      "Conservez le SMS de confirmation comme preuve",
+      "Conservez le SMS de confirmation",
     ],
+    fallbackMessage: "En cas d'échec, composez #144# ou contactez le support au +221 33 000 00 00.",
   },
 
   legal: {
@@ -38,33 +65,35 @@ export const frSNContentPack: CountryContentPack = {
 
   help: {
     paymentGuide: [
-      "Assurez-vous d'avoir un solde suffisant sur votre compte mobile money",
-      "Utilisez le numéro de référence exactement comme écrit sur votre carte",
-      "Contactez votre institution en cas de problème",
+      "Assurez-vous d'avoir suffisamment de solde",
+      "Utilisez exactement la référence fournie",
+      "Contactez votre mutuelle si besoin",
     ],
     troubleshooting: [
-      "Si l'USSD échoue: Essayez depuis un autre téléphone",
-      "Si le paiement est rejeté: Vérifiez le numéro de référence",
-      "Si vous ne recevez pas de SMS: Vérifiez l'historique des transactions",
+      "Si le code échoue : réessayez d'un autre téléphone",
+      "Si le paiement est rejeté : vérifiez la référence",
+      "Pas de SMS : composez #144# pour consulter l'historique",
     ],
     contactInfo: {
-      helpline: "+221 XX XXX XXXX",
-      email: "support@sacco-plus.sn",
-      hours: "Lundi - Vendredi, 8h00 - 17h00",
+      helpline: "+221 33 000 00 00",
+      email: "assistance@sacco-plus.sn",
+      hours: "Lundi - Vendredi, 9h00 - 17h00",
     },
   },
+
   tips: {
     dualSim: [
-      "Si vous avez deux SIM, utilisez celle liée à votre compte mobile money",
-      "Vérifiez que la SIM utilisée dispose d'un solde suffisant",
+      "Utilisez la SIM liée au compte mobile money",
+      "Activez les données mobiles pour accélérer la synchronisation",
     ],
     networkIssues: [
-      "Essayez de vous placer dans une zone avec une meilleure couverture réseau",
-      "Patientez quelques minutes puis réessayez",
+      "Déplacez-vous vers une zone avec une meilleure couverture",
+      "Patientez quelques minutes avant de réessayer",
     ],
-    marketDays: [
-      "Jour de marché: planifiez votre paiement avant la journée de forte affluence",
-      "Astuce: payez tôt pour éviter l'attente",
+    marketDays: ["Jour de marché : samedi - payez avant midi"],
+    contactless: [
+      "Approchez votre carte SACCO+ des terminaux NFC partenaires",
+      "Gardez la carte immobile jusqu'au bip sonore",
     ],
   },
 };
@@ -84,7 +113,7 @@ export const frSNMessages: TranslationMessages = {
   payment: {
     title: "Paiement",
     amount: "Montant",
-    reference: "Numéro de référence",
+    reference: "Référence",
     confirmPayment: "Confirmer le paiement",
     paymentSuccess: "Paiement réussi",
     paymentFailed: "Paiement échoué",
@@ -94,7 +123,7 @@ export const frSNMessages: TranslationMessages = {
     title: "Membre",
     name: "Nom",
     phone: "Téléphone",
-    memberCode: "Code membre",
+    memberCode: "Numéro de membre",
     joinDate: "Date d'adhésion",
   },
 
@@ -104,5 +133,18 @@ export const frSNMessages: TranslationMessages = {
     groupCode: "Code du groupe",
     members: "Membres",
     totalSavings: "Épargne totale",
+  },
+
+  accessibility: {
+    motionToggleLabel: "Activer la réduction des animations",
+    talkbackHint: "Tapez une fois pour entendre, deux fois pour ouvrir.",
+    voiceoverHint: "Balayez vers la droite pour lire chaque instruction.",
+  },
+
+  offers: {
+    title: "Offres",
+    description: "Découvrez les prêts et services négociés par votre mutuelle.",
+    cta: "Voir les offres",
+    upcoming: "De nouvelles offres apparaîtront automatiquement lorsqu'elles seront actives.",
   },
 };

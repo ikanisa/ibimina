@@ -6,7 +6,7 @@
     "declaration": true,
     "declarationMap": true,
     "noEmit": false,
-    "types": ["node", "react", "react-dom"],
+    "types": ["node", "react", "react-dom", "react-native"],
     "moduleResolution": "node",
     "module": "esnext",
     "baseUrl": "./src",

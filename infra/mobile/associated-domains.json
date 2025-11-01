@@ -1,0 +1,14 @@
+{
+  "domains": [
+    {
+      "host": "app.sacco.plus",
+      "paths": ["/pay/*", "/reference/*", "/wallet/*"],
+      "deepLink": "saccoplus://pay"
+    },
+    {
+      "host": "sacco.plus",
+      "paths": ["/offers/*"],
+      "deepLink": "saccoplus://offers"
+    }
+  ]
+}
