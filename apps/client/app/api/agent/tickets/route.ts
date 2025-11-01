@@ -6,6 +6,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { captureEdgeEvent } from "@ibimina/lib";
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,6 +51,16 @@ export async function POST(request: NextRequest) {
       console.error("Error creating ticket:", ticketError);
       return NextResponse.json({ error: "Failed to create ticket" }, { status: 500 });
     }
+
+    await captureEdgeEvent(
+      "ticket_created",
+      {
+        orgId: org_id,
+        channel,
+        priority: priority || "normal",
+      },
+      user.id
+    );
 
     return NextResponse.json({ ticket }, { status: 201 });
   } catch (error) {

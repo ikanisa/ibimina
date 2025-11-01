@@ -23,9 +23,15 @@ export function QuickAction({
   eventProperties,
 }: QuickActionProps) {
   const handleClick = () => {
-    if (eventName) {
-      void track(eventName, eventProperties);
-    }
+    const name = eventName ?? "tool_used";
+    void track({
+      event: name,
+      properties: {
+        label: typeof label === "string" ? label : undefined,
+        href,
+        ...(eventProperties ?? {}),
+      },
+    });
   };
 
   return (

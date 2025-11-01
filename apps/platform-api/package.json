@@ -15,7 +15,8 @@
     "worker:gsm": "node dist/workers/gsm-heartbeat.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.74.0"
+    "@supabase/supabase-js": "^2.74.0",
+    "@sentry/node": "^8.39.0"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",

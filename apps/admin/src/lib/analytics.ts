@@ -1,61 +1,105 @@
 "use client";
 
-import type { ComponentProps } from "react";
+import { useEffect } from "react";
+import posthog, { type PostHog } from "posthog-js";
 
-/**
- * Lightweight analytics adapter used to decouple the app from any vendor SDK.
- *
- * The real implementation can be swapped in without touching the call sites.
- * For now, we intentionally no-op to keep the runtime free of hosted
- * platform dependencies while we build the replacement data pipeline.
- */
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com";
+
+type AnalyticsState = "disabled" | "initialising" | "ready";
+
+let status: AnalyticsState = "disabled";
+let client: PostHog | null = null;
+
+function ensureClient(): PostHog | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  if (!POSTHOG_KEY) {
+    status = "disabled";
+    client = null;
+    return null;
+  }
+
+  if (status === "disabled") {
+    status = "initialising";
+    posthog.init(POSTHOG_KEY, {
+      api_host: POSTHOG_HOST,
+      capture_pageview: false,
+      persistence: "memory",
+      autocapture: false,
+      property_blacklist: ["email", "phone"],
+      mask_all_text: true,
+      loaded(activeClient) {
+        status = "ready";
+        client = activeClient;
+        activeClient.capture("app_loaded", { app: "admin" });
+      },
+    });
+  }
+
+  if (status === "ready" && client) {
+    return client;
+  }
+
+  return posthog;
+}
+
 export type TrackEvent =
   | string
   | {
-      /**
-       * Canonical identifier for the event.
-       */
       event: string;
-      /**
-       * Optional set of structured properties associated with the event.
-       */
       properties?: Record<string, unknown>;
     };
 
-/**
- * Emits an analytics event. The current implementation is a no-op, but the
- * signature matches the one we use across the app so we can drop in a
- * production tracker later without touching consumers.
- */
 export async function track(
   event: TrackEvent,
   properties?: Record<string, unknown>
 ): Promise<void> {
-  if (process.env.NODE_ENV !== "production") {
-    const payload =
-      typeof event === "string"
-        ? { event, properties }
-        : { event: event.event, properties: event.properties ?? properties };
+  const payload = typeof event === "string" ? { event, properties } : event;
 
+  const client = ensureClient();
+
+  if (!client || status !== "ready") {
     if (process.env.NEXT_PUBLIC_ANALYTICS_DEBUG === "true") {
-      console.debug("[analytics:noop]", payload);
+      console.debug("[analytics:buffered]", payload);
     }
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    // queue once client becomes ready
+    window.setTimeout(() => {
+      const activeClient = ensureClient();
+      if (activeClient && status === "ready") {
+        activeClient.capture(payload.event, {
+          ...(payload.properties ?? properties),
+          app: "admin",
+        });
+      }
+    }, 250);
+    return;
   }
+
+  client.capture(payload.event, {
+    ...(payload.properties ?? properties),
+    app: "admin",
+  });
 }
 
-export type AnalyticsProps = ComponentProps<"script"> & {
-  /**
-   * Allows future adapters to perform final mutation before the payload leaves
-   * the browser. Ignored by the current noop implementation.
-   */
-  beforeSend?: (event: unknown) => unknown;
+export type AnalyticsProps = {
+  identifyUser?: () => void;
 };
 
-/**
- * Client component placeholder so layouts can keep their JSX tree unchanged
- * while the analytics backend is migrated to the new self-hosted pipeline.
- */
-export function Analytics(_props: AnalyticsProps): null {
-  void _props;
+export function Analytics({ identifyUser }: AnalyticsProps): null {
+  useEffect(() => {
+    const client = ensureClient();
+    if (client && status === "ready") {
+      client.capture("page_view", { path: window.location.pathname, app: "admin" });
+      identifyUser?.();
+    }
+  }, [identifyUser]);
+
   return null;
 }

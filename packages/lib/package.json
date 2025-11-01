@@ -11,7 +11,11 @@
     "test": "echo 'TODO: add tests'"
   },
   "devDependencies": {
+    "@sentry/types": "^8.39.0",
     "typescript": "^5.9.3",
     "@types/node": "20.19.21"
+  },
+  "dependencies": {
+    "posthog-node": "^4.3.0"
   }
 }
