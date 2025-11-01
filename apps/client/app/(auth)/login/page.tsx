@@ -16,13 +16,11 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-interface LoginPageProps {}
-
-export default function LoginPage({}: LoginPageProps) {
+export default function LoginPage() {
   const router = useRouter();
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -224,7 +222,10 @@ export default function LoginPage({}: LoginPageProps) {
       {step === "phone" && (
         <form onSubmit={handleSendOTP} className="space-y-6" noValidate>
           <div>
-            <label htmlFor="phone-number" className="mb-2 block text-sm font-medium text-neutral-700">
+            <label
+              htmlFor="phone-number"
+              className="mb-2 block text-sm font-medium text-neutral-700"
+            >
               WhatsApp Number{" "}
               <span className="text-red-600" aria-label="required">
                 *

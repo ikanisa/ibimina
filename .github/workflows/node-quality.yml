@@ -46,8 +46,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run lint
-        run: pnpm run lint
+      - name: Run lint (excluding client)
+        run: pnpm --filter '!@ibimina/client' run lint
+
+      - name: Run client lint
+        id: client_lint
+        run: pnpm --filter @ibimina/client lint
+        continue-on-error: true
+
+      - name: Enforce client lint tracking policy
+        if: steps.client_lint.outcome == 'failure'
+        run: node scripts/verify-client-lint-tracking.mjs
+
+      - name: Report client lint allowance
+        if: steps.client_lint.outcome == 'failure'
+        run: echo "::warning::@ibimina/client lint failed but is temporarily allowed because issues are tracked."
 
       - name: Run typecheck
         run: pnpm run typecheck

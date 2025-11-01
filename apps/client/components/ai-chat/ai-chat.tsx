@@ -17,12 +17,13 @@ interface AIChatProps {
 }
 
 export function AIChat({ orgId, onClose }: AIChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>(() => [
     {
       id: "1",
       sender: "agent",
-      content:
-        "Muraho! I'm your SACCO+ AI assistant. How can I help you today? Ask me about USSD payments, reference tokens, statements, or any questions about your account.",
+      content: orgId
+        ? `Muraho! I'm your SACCO+ AI assistant for organisation ${orgId}. Ask me about USSD payments, reference tokens, statements, or any questions about your account.`
+        : "Muraho! I'm your SACCO+ AI assistant. How can I help you today? Ask me about USSD payments, reference tokens, statements, or any questions about your account.",
       timestamp: new Date(),
     },
   ]);
@@ -52,7 +53,7 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
 
     for (let i = 0; i < words.length; i++) {
       currentText += (i > 0 ? " " : "") + words[i];
-      
+
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === messageId
@@ -96,11 +97,11 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
     };
 
     setMessages((prev) => [...prev, agentMessage]);
-    
+
     await new Promise((resolve) => setTimeout(resolve, 800));
-    
+
     await simulateStreaming(fullResponse, agentMessageId);
-    
+
     setIsLoading(false);
   };
 
@@ -150,7 +151,9 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
                   </div>
                 )}
               </div>
-              <div className={`flex flex-col ${message.sender === "user" ? "items-end" : "items-start"} flex-1`}>
+              <div
+                className={`flex flex-col ${message.sender === "user" ? "items-end" : "items-start"} flex-1`}
+              >
                 <div
                   className={`inline-block rounded-2xl px-4 py-3 max-w-[85%] ${
                     message.sender === "user"
@@ -183,9 +186,18 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
               </div>
               <div className="inline-block rounded-2xl bg-neutral-100 px-4 py-3">
                 <div className="flex items-center gap-1">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-neutral-400" style={{ animationDelay: "0ms" }}></div>
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-neutral-400" style={{ animationDelay: "150ms" }}></div>
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-neutral-400" style={{ animationDelay: "300ms" }}></div>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-neutral-400"
+                    style={{ animationDelay: "0ms" }}
+                  ></div>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-neutral-400"
+                    style={{ animationDelay: "150ms" }}
+                  ></div>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-neutral-400"
+                    style={{ animationDelay: "300ms" }}
+                  ></div>
                 </div>
               </div>
             </div>

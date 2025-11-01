@@ -14,16 +14,7 @@
 
 "use client";
 
-import {
-  Home,
-  Users,
-  CreditCard,
-  FileText,
-  User,
-  Wallet,
-  HandCoins,
-  MessageCircle,
-} from "lucide-react";
+import { Home, Users, CreditCard, FileText, User, Wallet, HandCoins } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
