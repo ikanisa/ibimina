@@ -1,0 +1,31 @@
+<svg width="1284" height="2778" viewBox="0 0 1284 2778" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1284" height="2778" rx="96" fill="#ffffff" />
+  <rect x="96" y="200" width="1092" height="164" rx="48" fill="#0f172a" />
+  <text x="50%" y="320" text-anchor="middle" font-size="72" font-family="'Inter'" fill="#f8fafc">
+    Welcome to Ibimina SACCO+
+  </text>
+  <text x="50%" y="520" text-anchor="middle" font-size="42" font-family="'Inter'" fill="#334155">
+    Digitally onboard new members and issue NFC reference cards in seconds.
+  </text>
+  <rect x="180" y="720" width="924" height="560" rx="48" fill="#e0f2fe" />
+  <text x="50%" y="980" text-anchor="middle" font-size="64" font-family="'Inter'" fill="#0f172a">
+    Step 1
+  </text>
+  <text x="50%" y="1100" text-anchor="middle" font-size="36" font-family="'Inter'" fill="#1e293b">
+    Scan member ID and capture biometrics
+  </text>
+  <rect x="180" y="1360" width="924" height="560" rx="48" fill="#bae6fd" />
+  <text x="50%" y="1620" text-anchor="middle" font-size="64" font-family="'Inter'" fill="#0f172a">
+    Step 2
+  </text>
+  <text x="50%" y="1740" text-anchor="middle" font-size="36" font-family="'Inter'" fill="#1e293b">
+    Issue NFC card and initial voucher bundle
+  </text>
+  <rect x="180" y="2000" width="924" height="560" rx="48" fill="#93c5fd" />
+  <text x="50%" y="2260" text-anchor="middle" font-size="64" font-family="'Inter'" fill="#0f172a">
+    Step 3
+  </text>
+  <text x="50%" y="2380" text-anchor="middle" font-size="36" font-family="'Inter'" fill="#1e293b">
+    Confirm consent and share digital receipts
+  </text>
+</svg>
