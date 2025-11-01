@@ -6,4 +6,7 @@ project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor
 include ':feature-tapmomo'
 project(':feature-tapmomo').projectDir = new File('../../../feature-tapmomo/')
 
+include ':tapmomo-proto'
+project(':tapmomo-proto').projectDir = new File('../../../packages/tapmomo-proto/kotlin')
+
 apply from: 'capacitor.settings.gradle'
