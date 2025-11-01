@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@ibimina/config": ["../../packages/config/src/index.ts"]
     }
   },
   "include": [

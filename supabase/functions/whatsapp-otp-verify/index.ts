@@ -11,7 +11,7 @@
  * - Automatic user creation if not exists
  */
 
-import { createServiceClient } from "../_shared/mod.ts";
+import { createServiceClient, requireEnv } from "../_shared/mod.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
@@ -32,6 +32,8 @@ interface VerifyOTPResponse {
   session?: {
     access_token: string;
     refresh_token: string;
+    expires_in?: number;
+    token_type?: string;
     user: {
       id: string;
       phone: string;
@@ -50,6 +52,68 @@ function normalizePhoneNumber(phone: string): string {
   if (cleaned.startsWith("0")) return `+250${cleaned.slice(1)}`;
   return cleaned;
 }
+
+interface ExchangeSessionResult {
+  accessToken: string | null;
+  refreshToken: string | null;
+  expiresIn: number | null;
+  tokenType: string | null;
+}
+
+const extractTokensFromUrl = (url: URL): ExchangeSessionResult => {
+  const hashParams = url.hash ? new URLSearchParams(url.hash.slice(1)) : null;
+  const searchParams = url.search ? new URLSearchParams(url.search.slice(1)) : null;
+
+  const params =
+    hashParams && hashParams.has("access_token")
+      ? hashParams
+      : searchParams && searchParams.has("access_token")
+        ? searchParams
+        : (hashParams ?? searchParams);
+
+  const accessToken = params?.get("access_token") ?? null;
+  const refreshToken = params?.get("refresh_token") ?? null;
+  const expiresInValue = params?.get("expires_in") ?? null;
+  const tokenType = params?.get("token_type") ?? null;
+  const parsedExpiresIn = expiresInValue ? Number.parseInt(expiresInValue, 10) : Number.NaN;
+
+  return {
+    accessToken,
+    refreshToken,
+    expiresIn: Number.isNaN(parsedExpiresIn) ? null : parsedExpiresIn,
+    tokenType,
+  };
+};
+
+const exchangeMagicLinkForSession = async (actionLink: string): Promise<ExchangeSessionResult> => {
+  let currentUrl = actionLink;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const response = await fetch(currentUrl, { redirect: "manual" });
+    const locationHeader = response.headers.get("location");
+
+    const targetUrl = locationHeader ? new URL(locationHeader, currentUrl) : new URL(currentUrl);
+
+    const tokens = extractTokensFromUrl(targetUrl);
+
+    if (tokens.accessToken && tokens.refreshToken) {
+      return tokens;
+    }
+
+    if (!locationHeader) {
+      break;
+    }
+
+    currentUrl = targetUrl.toString();
+  }
+
+  return {
+    accessToken: null,
+    refreshToken: null,
+    expiresIn: null,
+    tokenType: null,
+  };
+};
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -292,20 +356,40 @@ Deno.serve(async (req) => {
     }
 
     // Generate session token
+    const supabaseUrl = requireEnv("SUPABASE_URL");
+
     const { data: session, error: sessionError } = await supabase.auth.admin.generateLink({
       type: "magiclink",
       email: `${normalizedPhone.replace("+", "")}@phone.sacco.rw`, // Fake email for phone users
       options: {
-        redirectTo: "/",
+        redirectTo: `${supabaseUrl}/auth/v1/token-exchange`,
       },
     });
 
-    if (sessionError || !session) {
+    if (sessionError || !session?.properties?.action_link) {
       console.error("whatsapp_otp.session_creation_failed", { error: sessionError });
       return new Response(
         JSON.stringify({
           success: false,
           message: "Failed to create session",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "content-type": "application/json" },
+        }
+      );
+    }
+
+    const exchangedSession = await exchangeMagicLinkForSession(session.properties.action_link);
+
+    if (!exchangedSession.accessToken || !exchangedSession.refreshToken) {
+      console.error("whatsapp_otp.session_exchange_failed", {
+        action_link: session.properties.action_link,
+      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Failed to exchange session tokens",
         }),
         {
           status: 500,
@@ -328,8 +412,10 @@ Deno.serve(async (req) => {
         success: true,
         message: "OTP verified successfully",
         session: {
-          access_token: session.properties.action_link,
-          refresh_token: session.properties.hashed_token,
+          access_token: exchangedSession.accessToken,
+          refresh_token: exchangedSession.refreshToken,
+          expires_in: exchangedSession.expiresIn ?? undefined,
+          token_type: exchangedSession.tokenType ?? undefined,
           user: {
             id: userId,
             phone: normalizedPhone,

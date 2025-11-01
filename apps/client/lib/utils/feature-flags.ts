@@ -4,7 +4,7 @@
  * Supports regulatory tier-based feature toggles with org-specific overrides
  */
 
-import { ClientFeatureMatrix, FeatureDomain, OrgFeatureOverride } from "./types/supa-app";
+import { ClientFeatureMatrix, FeatureDomain, OrgFeatureOverride } from "../types/supa-app";
 
 /**
  * Default feature matrix (P0 tier - no licenses required)
