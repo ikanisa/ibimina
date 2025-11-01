@@ -11,13 +11,93 @@ on:
       - reopened
 
 jobs:
-  verify:
-    name: Verify build quality
+  lint:
+    name: Lint (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.allow_failure }}
+    strategy:
+      matrix:
+        include:
+          - label: Admin app
+            filter: "@ibimina/admin"
+            allow_failure: false
+          - label: Client app
+            filter: "@ibimina/client"
+            allow_failure: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Derive pnpm store path
+        run: echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PNPM_STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run lint
+        run: pnpm --filter ${{ matrix.filter }} run lint
+
+  typecheck:
+    name: Typecheck (@ibimina/admin)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Derive pnpm store path
+        run: echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PNPM_STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run typecheck
+        run: pnpm --filter @ibimina/admin run typecheck
+
+  build:
+    name: Build (@ibimina/admin)
+    needs: typecheck
     runs-on: ubuntu-latest
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       CI: "true"
-      # Required environment variables for Next.js build
       NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key"
       SUPABASE_SERVICE_ROLE_KEY: "placeholder-service-role-key"
@@ -41,16 +121,64 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
+
+      - name: Derive pnpm store path
+        run: echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PNPM_STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run lint
-        run: pnpm run lint
+      - name: Build admin app
+        run: pnpm --filter @ibimina/admin run build
 
-      - name: Run typecheck
-        run: pnpm run typecheck
+  validate-supabase-types:
+    name: Validate Supabase types
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Build project
-        run: pnpm run build
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Derive pnpm store path
+        run: echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PNPM_STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Validate generated Supabase types
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: scripts/check-supabase-types.sh

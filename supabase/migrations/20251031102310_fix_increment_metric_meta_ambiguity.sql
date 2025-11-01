@@ -4,14 +4,14 @@
 CREATE OR REPLACE FUNCTION public.increment_metric(
   event_name text,
   delta integer,
-  in_meta jsonb DEFAULT '{}'::jsonb
+  meta jsonb DEFAULT '{}'::jsonb
 )
 RETURNS void
 LANGUAGE plpgsql
 AS $function$
 BEGIN
   INSERT INTO public.system_metrics (event, total, last_occurred, meta)
-  VALUES (event_name, delta, NOW(), COALESCE(in_meta, '{}'::jsonb))
+  VALUES (event_name, delta, NOW(), COALESCE(meta, '{}'::jsonb))
   ON CONFLICT (event) DO UPDATE
     SET total = public.system_metrics.total + GREATEST(EXCLUDED.total, 0),
         last_occurred = NOW(),

@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: ${IBIMINA_TEST_DB_NAME:-ibimina_test}
+    ports:
+      - "${IBIMINA_TEST_DB_PORT:-6543}:5432"
+    volumes:
+      - ibimina-postgres-test-data:/var/lib/postgresql/data
+
+volumes:
+  ibimina-postgres-test-data:
+    driver: local
