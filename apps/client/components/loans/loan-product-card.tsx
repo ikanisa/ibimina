@@ -42,6 +42,7 @@ export function LoanProductCard({ product, onApply }: LoanProductCardProps) {
             width={64}
             height={64}
             className="h-16 w-16 rounded object-contain"
+            unoptimized
           />
         )}
         <div className="flex-1">
