@@ -1,31 +1,17 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { ReactNode } from "react";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ReactQueryProvider } from "../src/providers/query-client";
-import { SupabaseProvider } from "../src/providers/supabase-client";
-
-function Providers({ children }: { children: ReactNode }) {
-  return (
-    <SafeAreaProvider>
-      <SupabaseProvider>
-        <ReactQueryProvider>
-          <StatusBar style="light" />
-          {children}
-        </ReactQueryProvider>
-      </SupabaseProvider>
-    </SafeAreaProvider>
-  );
-}
+import { AppProviders } from "../src/app";
+import "../global.css";
 
 export default function RootLayout() {
   return (
-    <Providers>
+    <AppProviders>
+      <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ presentation: "modal", headerShown: false }} />
         <Stack.Screen name="assist" options={{ title: "Ibimina Assist" }} />
       </Stack>
-    </Providers>
+    </AppProviders>
   );
 }
