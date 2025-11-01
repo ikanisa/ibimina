@@ -140,6 +140,9 @@ jobs:
       - name: Verify log drain alerting
         run: pnpm run verify:log-drain
 
+      - name: Verify PWA baseline
+        run: pnpm --filter @ibimina/admin run verify:pwa -- --skip-build
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
 

@@ -111,6 +111,8 @@ New to the project? Start here:
 - [**security-observability.md**](security-observability.md) - Security and
   observability
 - [**supabase-cicd.md**](supabase-cicd.md) - Supabase CI/CD
+- [**operations/app-portfolio-status.md**](operations/app-portfolio-status.md) -
+  Application retention decisions and archival checklist
 
 ## 📦 Package Documentation
 
