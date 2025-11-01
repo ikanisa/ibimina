@@ -28,6 +28,7 @@
     "check:deploy": "pnpm run check:flags && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse",
     "validate:production": "bash scripts/validate-production-readiness.sh",
     "validate:cloudflare": "bash scripts/validate-cloudflare-deployment.sh",
+    "kb:sync": "tsx scripts/kb/syncContent.ts",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -50,6 +51,7 @@
     "openai": "^6.7.0",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
+    "tsx": "^4.7.1",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6",
     "typescript": "5.9.3",
