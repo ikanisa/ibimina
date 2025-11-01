@@ -36,7 +36,7 @@ jobs:
       MFA_SESSION_SECRET: placeholder-mfa-session-secret-32b
       TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
       HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
-      KMS_DATA_KEY_BASE64: cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ==
+      KMS_DATA_KEY_BASE64: c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==
       OPENAI_API_KEY: placeholder-openai-api-key
     steps:
       - name: Checkout
@@ -105,7 +105,7 @@ jobs:
       MFA_SESSION_SECRET: placeholder-mfa-session-secret-32b
       TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
       HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
-      KMS_DATA_KEY_BASE64: cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ==
+      KMS_DATA_KEY_BASE64: c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==
       OPENAI_API_KEY: placeholder-openai-api-key
     steps:
       - name: Checkout
@@ -174,7 +174,7 @@ jobs:
       MFA_SESSION_SECRET: placeholder-mfa-session-secret-32b
       TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
       HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
-      KMS_DATA_KEY_BASE64: cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ==
+      KMS_DATA_KEY_BASE64: c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==
       NEXT_PUBLIC_VAPID_PUBLIC_KEY: placeholder-vapid-public-key
       VAPID_PRIVATE_KEY: placeholder-vapid-private-key
       OPENAI_API_KEY: placeholder-openai-api-key

@@ -18,7 +18,7 @@ if (process.env.AUTH_E2E_STUB === "1") {
   ensure("TRUSTED_COOKIE_SECRET", "stub-trusted-cookie-secret");
   ensure("HMAC_SHARED_SECRET", "stub-hmac-shared-secret");
   ensure("OPENAI_API_KEY", "stub-openai-api-key");
-  ensure("KMS_DATA_KEY_BASE64", "ZGV2LWttcy1kYXRhLWtleS0zMi1ieXRlcyEhISEhISE=");
+  ensure("KMS_DATA_KEY_BASE64", "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==");
 }
 
 const resolvedBuildId =

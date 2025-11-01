@@ -9,6 +9,7 @@ import {
 } from "@/lib/security/headers";
 
 const isDev = process.env.NODE_ENV !== "production";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
 
 export function middleware(request: NextRequest) {
   const nonce = createNonce();
@@ -19,7 +20,7 @@ export function middleware(request: NextRequest) {
     request: { headers: requestHeaders },
   });
 
-  const csp = createContentSecurityPolicy({ nonce, isDev });
+  const csp = createContentSecurityPolicy({ nonce, isDev, supabaseUrl });
   response.headers.set("Content-Security-Policy", csp);
 
   for (const header of SECURITY_HEADERS) {

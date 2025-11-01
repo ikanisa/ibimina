@@ -1,0 +1,14 @@
+title = "Ibimina Gitleaks Configuration"
+
+description = "Secret scanning configuration tuned for placeholder fixtures."
+
+[allowlist]
+  description = "Ignore known placeholder tokens and fixture logs"
+  regexes = [
+    """__REPLACE_WITH_[A-Z0-9_]+__""",
+    """c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==""",
+    """stubkmsdatakey0123456789abcdefstubkmsdatakey0123456789abcdefabcd"""
+  ]
+  paths = [
+    """^audit/analysis-2025-10-27/unit-test-output\\.txt$"""
+  ]
