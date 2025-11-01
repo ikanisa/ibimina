@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { LoanProduct } from "@/lib/types/supa-app";
 import { CreditCard, Calendar, TrendingUp, FileText } from "lucide-react";
 
@@ -35,10 +36,12 @@ export function LoanProductCard({ product, onApply }: LoanProductCardProps) {
       {/* Header with partner logo and name */}
       <div className="flex items-start gap-4 mb-4">
         {product.partner_logo_url && (
-          <img
+          <Image
             src={product.partner_logo_url}
             alt={`${product.partner_name} logo`}
-            className="w-16 h-16 object-contain rounded"
+            width={64}
+            height={64}
+            className="h-16 w-16 rounded object-contain"
           />
         )}
         <div className="flex-1">

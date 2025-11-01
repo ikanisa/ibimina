@@ -57,8 +57,9 @@ export default function TermsPage() {
 
             <h2 className="mt-6 text-xl font-bold text-neutral-900">5. Limitation of Liability</h2>
             <p className="text-neutral-600">
-              SACCO+ is provided "as is" without warranties of any kind. We are not liable for any
-              indirect, incidental, or consequential damages arising from your use of the service.
+              SACCO+ is provided &ldquo;as is&rdquo; without warranties of any kind. We are not
+              liable for any indirect, incidental, or consequential damages arising from your use of
+              the service.
             </p>
 
             <h2 className="mt-6 text-xl font-bold text-neutral-900">6. Contact Information</h2>

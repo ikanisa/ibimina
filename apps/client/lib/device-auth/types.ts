@@ -110,6 +110,10 @@ export interface DeviceEnrollmentData {
   integrityToken?: string;
 }
 
+export type DeviceInfoRecord = DeviceEnrollmentData["deviceInfo"] & {
+  [key: string]: unknown;
+};
+
 /**
  * Registered device info
  */
@@ -118,7 +122,7 @@ export interface RegisteredDevice {
   device_id: string;
   device_label: string;
   key_algorithm: string;
-  device_info: any;
+  device_info: DeviceInfoRecord;
   integrity_status: string | null;
   created_at: string;
   last_used_at: string;

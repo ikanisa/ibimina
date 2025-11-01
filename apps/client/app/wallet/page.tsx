@@ -12,11 +12,19 @@ import { Loader2, AlertCircle, Wallet as WalletIcon } from "lucide-react";
  * Display user's wallet tokens (vouchers, loyalty points, etc.).
  * Feature-flagged page for non-custodial wallet evidence display.
  */
+type WalletFilter = "all" | "active" | "redeemed";
+
+const filterOptions: ReadonlyArray<{ value: WalletFilter; label: string }> = [
+  { value: "active", label: "Active" },
+  { value: "all", label: "All" },
+  { value: "redeemed", label: "Redeemed" },
+];
+
 export default function WalletPage() {
   const [tokens, setTokens] = useState<WalletToken[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "active" | "redeemed">("active");
+  const [filter, setFilter] = useState<WalletFilter>("active");
 
   useEffect(() => {
     async function fetchTokens() {
@@ -77,7 +85,10 @@ export default function WalletPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-neutral-100 pb-20">
       <div className="mx-auto max-w-screen-xl space-y-6 px-4 py-6">
-        <GradientHeader title="My Wallet" subtitle="Manage your vouchers, loyalty points, and digital tokens">
+        <GradientHeader
+          title="My Wallet"
+          subtitle="Manage your vouchers, loyalty points, and digital tokens"
+        >
           {/* Total value card */}
           <div className="rounded-2xl bg-white/10 p-6 shadow-atlas backdrop-blur-sm">
             <div className="flex items-center gap-3 mb-4">
@@ -100,14 +111,10 @@ export default function WalletPage() {
         {/* Filter tabs */}
         <div className="rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm">
           <div className="flex gap-2">
-            {[
-              { value: "active", label: "Active" },
-              { value: "all", label: "All" },
-              { value: "redeemed", label: "Redeemed" },
-            ].map(({ value, label }) => (
+            {filterOptions.map(({ value, label }) => (
               <button
                 key={value}
-                onClick={() => setFilter(value as any)}
+                onClick={() => setFilter(value)}
                 className={`flex-1 rounded-xl px-4 py-2.5 font-medium transition-all duration-interactive ${
                   filter === value
                     ? "bg-atlas-blue text-white shadow-atlas"
