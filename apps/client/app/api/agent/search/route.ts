@@ -4,12 +4,17 @@
  * Endpoint for RAG-based semantic search across org and global knowledge bases
  */
 
-import { createClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  KnowledgeBaseResolver,
+  OpenAIEmbeddingProvider,
+  SupabaseVectorStore,
+} from "@ibimina/ai-agent";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     // Check authentication
     const {
@@ -28,11 +33,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Query is required" }, { status: 400 });
     }
 
-    // TODO: Generate embedding from query using OpenAI
-    // For now, return placeholder response
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "OPENAI_API_KEY is not configured for semantic search" },
+        { status: 500 }
+      );
+    }
+
+    const startedAt = Date.now();
+    const resolver = new KnowledgeBaseResolver(
+      SupabaseVectorStore.fromClient(supabase),
+      new OpenAIEmbeddingProvider({ apiKey }),
+      { defaultMatchCount: limit, fallbackLimit: limit }
+    );
+
+    const result = await resolver.search(query, {
+      orgId: org_id ?? null,
+      matchCount: limit,
+    });
+
     const response = {
-      results: [],
-      message: "Knowledge base search endpoint ready (embedding generation to be implemented)",
+      query,
+      orgId: org_id ?? null,
+      source: result.source,
+      results: result.matches,
+      latencyMs: Date.now() - startedAt,
     };
 
     return NextResponse.json(response);

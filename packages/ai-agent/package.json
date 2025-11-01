@@ -9,9 +9,12 @@
     "build": "tsc -p tsconfig.json",
     "lint": "echo 'TODO: add linting'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "reindex": "tsx src/scripts/reindex.ts",
+    "monitor": "tsx src/scripts/monitor.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.47.10",
     "openai": "^6.3.0"
   },
   "devDependencies": {
