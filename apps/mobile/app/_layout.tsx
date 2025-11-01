@@ -11,6 +11,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ presentation: "modal", headerShown: false }} />
         <Stack.Screen name="assist" options={{ title: "Ibimina Assist" }} />
+        <Stack.Screen name="auth/start" options={{ title: "Sign in" }} />
+        <Stack.Screen name="auth/verify" options={{ title: "Verify" }} />
       </Stack>
     </AppProviders>
   );

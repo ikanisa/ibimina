@@ -2,9 +2,10 @@
  * Bottom tabs layout with 5 navigation routes
  */
 
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { useIntl } from "react-intl";
 import { colors } from "../../src/theme";
+import { useAppStore } from "../../src/providers/store";
 
 // Simple icon placeholders using emoji
 function TabBarIcon({ name, focused }: { name: string; focused: boolean }) {
@@ -27,6 +28,18 @@ function TabBarIcon({ name, focused }: { name: string; focused: boolean }) {
 
 export default function TabsLayout() {
   const intl = useIntl();
+  const { isAuthenticated, hasHydratedAuth } = useAppStore((state) => ({
+    isAuthenticated: state.isAuthenticated,
+    hasHydratedAuth: state.hasHydratedAuth,
+  }));
+
+  if (!hasHydratedAuth) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect href="/auth/start" />;
+  }
 
   return (
     <Tabs
