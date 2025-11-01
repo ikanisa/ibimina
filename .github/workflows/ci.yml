@@ -51,6 +51,9 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
       - name: Restore Next.js cache
         uses: actions/cache@v4
         with:
