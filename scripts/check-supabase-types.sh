@@ -17,7 +17,58 @@ if ! command -v supabase >/dev/null 2>&1; then
   exit 1
 fi
 
-supabase gen types typescript --local >"$TMP_FILE"
+MODE="${SUPABASE_TYPES_MODE:-}"  # optional override: "remote" or "local"
+if [[ -z "$MODE" ]]; then
+  if [[ "${CI:-}" == "true" || -n "${SUPABASE_ACCESS_TOKEN:-}" || -n "${SUPABASE_ACCESS_TOKEN_FILE:-}" ]]; then
+    MODE="remote"
+  else
+    MODE="local"
+  fi
+fi
+
+generate_remote_types() {
+  local project_ref="${PROJECT_REF:-${SUPABASE_PROJECT_REF:-}}"
+  if [[ -z "$project_ref" && -f supabase/config.toml ]]; then
+    project_ref="$(sed -nE 's/^project_id = "([^"]+)"/\1/p' supabase/config.toml | head -n1)"
+  fi
+
+  if [[ -z "$project_ref" ]]; then
+    echo "Unable to determine Supabase project ref for remote type generation." >&2
+    echo "Set PROJECT_REF or SUPABASE_PROJECT_REF, or ensure supabase/config.toml exists." >&2
+    return 1
+  fi
+
+  if ! supabase gen types typescript --project-id "$project_ref" >"$TMP_FILE"; then
+    echo "Failed to generate Supabase types from remote project '$project_ref'." >&2
+    echo "Ensure the Supabase CLI is logged in (supabase login) and you have access to the project." >&2
+    return 1
+  fi
+}
+
+generate_local_types() {
+  if ! supabase gen types typescript --local >"$TMP_FILE"; then
+    echo "Failed to generate Supabase types from the local development stack." >&2
+    echo "Make sure 'supabase start' is running, or set SUPABASE_TYPES_MODE=remote to use the linked project." >&2
+    return 1
+  fi
+}
+
+case "$MODE" in
+  remote)
+    if ! generate_remote_types; then
+      exit 1
+    fi
+    ;;
+  local)
+    if ! generate_local_types; then
+      exit 1
+    fi
+    ;;
+  *)
+    echo "Unsupported SUPABASE_TYPES_MODE '$MODE'. Expected 'remote' or 'local'." >&2
+    exit 1
+    ;;
+esac
 
 if ! cmp -s "$TMP_FILE" "$TARGET_FILE"; then
   echo "Supabase types are out of date. Run 'pnpm gen:types' and commit the updated file." >&2
