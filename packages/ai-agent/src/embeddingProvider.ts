@@ -16,7 +16,7 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
     }
 
     this.client = new OpenAI({ apiKey: config.apiKey });
-    this.model = config.model ?? "text-embedding-3-large";
+    this.model = config.model ?? "text-embedding-3-small";
   }
 
   async embed(texts: string[]): Promise<number[][]> {
