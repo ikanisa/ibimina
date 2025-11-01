@@ -51,6 +51,7 @@
     "@capacitor/toast": "^7.0.2",
     "@capawesome-team/capacitor-android-foreground-service": "^7.0.1",
     "@ibimina/config": "workspace:*",
+    "@ibimina/locales": "workspace:*",
     "@ibimina/lib": "workspace:*",
     "@ibimina/ui": "workspace:*",
     "@supabase/ssr": "^0.7.0",

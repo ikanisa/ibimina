@@ -1,41 +1,32 @@
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
+import { defaultLocale } from "@/i18n";
+import { getClientContentPack } from "@/lib/content/pack";
+
 export const metadata = {
   title: "FAQ | SACCO+ Client",
   description: "Frequently asked questions",
 };
 
+const contentPack = getClientContentPack(defaultLocale);
+
 const faqs = [
   {
-    question: "How do I make a payment to my group?",
-    answer:
-      "Go to the Pay page and tap on the USSD code for your group. Your phone will dial the code automatically. Follow the prompts to complete the payment.",
+    question: "USSD contribution guide",
+    answerItems: contentPack.help.paymentGuide,
   },
   {
-    question: "What is my reference token?",
-    answer:
-      "Your reference token is a unique identifier used for payments. You can find it on your Profile page. Share it with others who need to send you money.",
+    question: "Troubleshooting steps",
+    answerItems: contentPack.help.troubleshooting,
   },
   {
-    question: "How long does it take for payments to appear?",
-    answer:
-      "Payments are typically confirmed within 5-8 seconds after you complete the mobile money transaction.",
+    question: "Dual SIM and network tips",
+    answerItems: [...(contentPack.tips?.dualSim ?? []), ...(contentPack.tips?.networkIssues ?? [])],
   },
   {
-    question: "Can I join multiple groups?",
-    answer:
-      "Yes! You can join as many groups as you like. Go to the Groups page and tap 'Ask to Join' on any group you're interested in.",
-  },
-  {
-    question: "How do I view my transaction history?",
-    answer:
-      "Tap on Statements in the bottom navigation to see all your transactions, including pending and confirmed payments.",
-  },
-  {
-    question: "What if I can't find my payment?",
-    answer:
-      "If your payment doesn't appear after a few minutes, contact your SACCO staff. They can check the transaction manually using your reference token.",
+    question: "Market day reminders",
+    answerItems: contentPack.tips?.marketDays ?? [],
   },
 ];
 
@@ -64,7 +55,11 @@ export default function FAQPage() {
             <summary className="cursor-pointer list-none text-lg font-semibold text-neutral-900 group-hover:text-atlas-blue">
               {faq.question}
             </summary>
-            <p className="mt-4 text-neutral-600 leading-relaxed">{faq.answer}</p>
+            <ul className="mt-4 space-y-2 text-neutral-600 leading-relaxed list-disc pl-6">
+              {faq.answerItems.map((item, itemIndex) => (
+                <li key={itemIndex}>{item}</li>
+              ))}
+            </ul>
           </details>
         ))}
       </main>

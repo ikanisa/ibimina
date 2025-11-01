@@ -8,10 +8,11 @@
   "scripts": {
     "lint": "echo 'TODO: add linting'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo 'TODO: add tests'"
+    "test": "tsx --test src/__tests__/*.test.ts"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
-    "@types/node": "20.19.21"
+    "@types/node": "20.19.21",
+    "tsx": "^4.20.6"
   }
 }
