@@ -1,0 +1,42 @@
+groups:
+  - name: edge-function-alerts
+    rules:
+      - alert: EdgeFunctionLatencyHigh
+        expr: max_over_time(ibimina_momo_poller_latency_seconds[5m]) > 5
+        for: 10m
+        labels:
+          severity: warning
+          service: edge-functions
+        annotations:
+          summary: "Edge function polling latency above 5s"
+          description: |
+            The moving maximum of ibimina_momo_poller_latency_seconds has exceeded
+            5 seconds for more than 10 minutes. Investigate Supabase edge function
+            execution or upstream MoMo API health.
+      - alert: EdgeFunctionErrorRate
+        expr: |
+          sum(increase(ibimina_system_metric_total{event=~"(mfa_email_failure|sms_reprocess_failed|momo_poll_failure)"}[15m]))
+          /
+          clamp_min(sum(increase(ibimina_system_metric_total{event=~"(mfa_email_sent|sms_reprocessed|momo_statements_polled)"}[15m])), 1)
+          > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          service: edge-functions
+        annotations:
+          summary: "Edge function error rate above 10%"
+          description: |
+            Failures recorded by Supabase edge functions have exceeded 10% of total
+            processed events for 10 minutes. Review Grafana edge function dashboards
+            for failing handlers and redeploy if necessary.
+      - alert: PlaywrightFailures
+        expr: increase(ibimina_system_metric_total{event="ci.playwright.failure"}[30m]) > 0
+        for: 15m
+        labels:
+          severity: critical
+          service: ci
+        annotations:
+          summary: "Playwright CI failures detected"
+          description: |
+            At least one Playwright failure was reported in the last 30 minutes.
+            Review the CI dashboard and trace artifacts to triage the regression.
