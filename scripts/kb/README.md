@@ -24,6 +24,7 @@ determine which sources to pull. Each entry supports the following properties:
   sources.
 - `outputSubdir` – optional subfolder inside `apps/website/public/help`.
 - `enabled` – when set to `false`, the source is ignored.
+- `updateCadence` – optional human-readable cadence used by the manifest output.
 
 ## Output
 
@@ -50,4 +51,6 @@ For every enabled source the script writes a JSON bundle shaped as:
 ```
 
 These bundles can be imported directly by the marketing site or transformed
-further during the Next.js build step.
+further during the Next.js build step. After processing all sources the script
+also writes a `manifest.json` file that summarises article counts, owners, and
+update cadences so downstream services can flag stale content.

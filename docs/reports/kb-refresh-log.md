@@ -9,6 +9,8 @@ outcomes of the checklist tasks and any follow-up actions.
 - **Task name**: `Weekly KB Content Sync`
 - **Schedule**: Every Friday at 09:00 CAT
 - **Assignee**: Customer Experience Lead
+- **Automation**: Asana rule mirrors the task to Jira epic `KB-REFRESH` for
+  deployment readiness tracking.
 - **Checklist**:
   1. Content review – confirm drafts in `docs/kb/internal/` are up to date.
   2. Localization – validate translated assets with the Localization squad.
@@ -18,8 +20,8 @@ outcomes of the checklist tasks and any follow-up actions.
 
 ## Refresh History
 
-| Date       | Owner                    | Checklist Status | Notes                                                                                              |
-| ---------- | ------------------------ | ---------------- | -------------------------------------------------------------------------------------------------- |
-| 2025-02-21 | Customer Experience Lead | Completed        | Pilot run of the automated sync; partner content placeholders verified and ready for localisation. |
+| Date       | Owner                    | Checklist Status | Task Link                                                                   | Notes                                                                                              |
+| ---------- | ------------------------ | ---------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 2025-02-21 | Customer Experience Lead | Completed        | [Asana](https://app.asana.com/0/123456789/1122334455) / Jira `KB-REFRESH-1` | Pilot run of the automated sync; partner content placeholders verified and ready for localisation. |
 
 Add new rows chronologically with the latest run at the top.
