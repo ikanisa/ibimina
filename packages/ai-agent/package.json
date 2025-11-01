@@ -12,6 +12,8 @@
     "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@ibimina/providers": "workspace:*",
+    "@supabase/supabase-js": "^2.74.0",
     "openai": "^6.3.0"
   },
   "devDependencies": {

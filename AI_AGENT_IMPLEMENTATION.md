@@ -117,6 +117,8 @@ All documentation is comprehensive and production-ready:
    Visual architecture diagrams
 4. **[apps/admin/AI_AGENT_README.md](apps/admin/AI_AGENT_README.md)** -
    Implementation summary
+5. **[docs/AI_AGENT_OPERATIONS.md](docs/AI_AGENT_OPERATIONS.md)** - Session
+   storage, rate limiting, cost guidance, and failure runbooks
 
 ## 🎊 Conclusion
 

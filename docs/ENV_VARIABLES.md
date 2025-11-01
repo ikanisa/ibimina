@@ -500,6 +500,73 @@ These variables are **never exposed** to the browser.
 - **Example**: `gpt-4-turbo-preview`
 - **Default**: `gpt-4o-mini`
 
+#### `AI_AGENT_SESSION_STORE`
+
+- **Type**: Enum (`supabase` | `redis`)
+- **Required**: No
+- **Description**: Session persistence backend for the AI assistant
+- **Default**: `supabase`
+- **Usage**: Set to `redis` when using an external Redis cluster for
+  conversation history
+
+#### `AI_AGENT_SESSION_TTL_SECONDS`
+
+- **Type**: Number (seconds)
+- **Required**: No
+- **Description**: Expiration window for AI chat sessions
+- **Default**: `3600`
+- **Usage**: Increase to keep longer conversations available; decrease for
+  stricter retention
+
+#### `AI_AGENT_RATE_LIMIT_MAX_REQUESTS`
+
+- **Type**: Number
+- **Required**: No
+- **Description**: Maximum requests per window enforced for each agent bucket
+- **Default**: `60`
+- **Usage**: Tune alongside `AI_AGENT_RATE_LIMIT_WINDOW_SECONDS` to protect
+  OpenAI quotas
+
+#### `AI_AGENT_RATE_LIMIT_WINDOW_SECONDS`
+
+- **Type**: Number
+- **Required**: No
+- **Description**: Rate-limit window (seconds) applied to org/user/IP keys
+- **Default**: `60`
+- **Usage**: Extend for slower-paced channels such as WhatsApp
+
+#### `AI_AGENT_USAGE_LOG_ENABLED`
+
+- **Type**: Boolean (`true` | `false`)
+- **Required**: No
+- **Description**: Toggle structured usage logging for AI interactions
+- **Default**: `true`
+- **Usage**: Disable to reduce write volume in constrained environments
+
+#### `AI_AGENT_USAGE_LOG_TABLE`
+
+- **Type**: String
+- **Required**: No
+- **Description**: Supabase table capturing per-request usage metrics
+- **Default**: `agent_usage_events`
+- **Usage**: Change when using a custom schema
+
+#### `AI_AGENT_OPTOUT_TABLE`
+
+- **Type**: String
+- **Required**: No
+- **Description**: Supabase table storing opt-out preferences
+- **Default**: `agent_opt_outs`
+- **Usage**: Override when using an alternate compliance table
+
+#### `AI_AGENT_REDIS_URL`
+
+- **Type**: String (URL)
+- **Required**: When `AI_AGENT_SESSION_STORE=redis`
+- **Description**: Redis connection string for agent sessions
+- **Example**: `rediss://:password@mycache.example.com:6380`
+- **Usage**: Provide managed Redis endpoint credentials
+
 ### Feature Flags
 
 #### `DISABLE_PWA`

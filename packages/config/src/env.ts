@@ -69,6 +69,14 @@ function buildRawEnv(source: ProcessEnvSource) {
     PLAYWRIGHT_SUPABASE_URL: source.PLAYWRIGHT_SUPABASE_URL,
     PLAYWRIGHT_SUPABASE_ANON_KEY: source.PLAYWRIGHT_SUPABASE_ANON_KEY,
     CI: source.CI,
+    AI_AGENT_SESSION_STORE: source.AI_AGENT_SESSION_STORE ?? "supabase",
+    AI_AGENT_SESSION_TTL_SECONDS: source.AI_AGENT_SESSION_TTL_SECONDS ?? "3600",
+    AI_AGENT_RATE_LIMIT_MAX_REQUESTS: source.AI_AGENT_RATE_LIMIT_MAX_REQUESTS ?? "60",
+    AI_AGENT_RATE_LIMIT_WINDOW_SECONDS: source.AI_AGENT_RATE_LIMIT_WINDOW_SECONDS ?? "60",
+    AI_AGENT_USAGE_LOG_ENABLED: source.AI_AGENT_USAGE_LOG_ENABLED ?? "true",
+    AI_AGENT_USAGE_LOG_TABLE: source.AI_AGENT_USAGE_LOG_TABLE ?? "agent_usage_events",
+    AI_AGENT_OPTOUT_TABLE: source.AI_AGENT_OPTOUT_TABLE ?? "agent_opt_outs",
+    AI_AGENT_REDIS_URL: source.AI_AGENT_REDIS_URL,
   } as Record<string, string | undefined>;
 }
 
@@ -167,6 +175,14 @@ const schema = z
     PLAYWRIGHT_SUPABASE_URL: optionalString,
     PLAYWRIGHT_SUPABASE_ANON_KEY: optionalString,
     CI: optionalString,
+    AI_AGENT_SESSION_STORE: z.enum(["supabase", "redis"]).default("supabase"),
+    AI_AGENT_SESSION_TTL_SECONDS: positiveNumberString,
+    AI_AGENT_RATE_LIMIT_MAX_REQUESTS: positiveNumberString,
+    AI_AGENT_RATE_LIMIT_WINDOW_SECONDS: positiveNumberString,
+    AI_AGENT_USAGE_LOG_ENABLED: z.enum(["true", "false"]).default("true"),
+    AI_AGENT_USAGE_LOG_TABLE: z.string().trim().min(1).default("agent_usage_events"),
+    AI_AGENT_OPTOUT_TABLE: z.string().trim().min(1).default("agent_opt_outs"),
+    AI_AGENT_REDIS_URL: optionalString,
   })
   .superRefine((values, ctx) => {
     const kmsCandidates = [values.KMS_DATA_KEY, values.KMS_DATA_KEY_BASE64].filter(
@@ -288,6 +304,19 @@ function prepareServerEnv(parsedEnv: RawEnv) {
     rateLimitSecret,
     emailOtpPepper,
     kmsDataKey,
+    AI_AGENT_SESSION_TTL_SECONDS: parsePositiveInteger(
+      parsedEnv.AI_AGENT_SESSION_TTL_SECONDS,
+      60 * 60
+    ),
+    AI_AGENT_RATE_LIMIT_MAX_REQUESTS: parsePositiveInteger(
+      parsedEnv.AI_AGENT_RATE_LIMIT_MAX_REQUESTS,
+      60
+    ),
+    AI_AGENT_RATE_LIMIT_WINDOW_SECONDS: parsePositiveInteger(
+      parsedEnv.AI_AGENT_RATE_LIMIT_WINDOW_SECONDS,
+      60
+    ),
+    AI_AGENT_USAGE_LOG_ENABLED: parsedEnv.AI_AGENT_USAGE_LOG_ENABLED === "true",
   });
 }
 
