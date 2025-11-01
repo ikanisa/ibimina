@@ -69,6 +69,11 @@ function buildRawEnv(source: ProcessEnvSource) {
     PLAYWRIGHT_SUPABASE_URL: source.PLAYWRIGHT_SUPABASE_URL,
     PLAYWRIGHT_SUPABASE_ANON_KEY: source.PLAYWRIGHT_SUPABASE_ANON_KEY,
     CI: source.CI,
+    CONFIGCAT_OFFERS_SDK_KEY: source.CONFIGCAT_OFFERS_SDK_KEY,
+    CONFIGCAT_ENVIRONMENT: source.CONFIGCAT_ENVIRONMENT,
+    CONFIGCAT_OFFERS_FALLBACK: source.CONFIGCAT_OFFERS_FALLBACK,
+    CONFIGCAT_OFFERS_OVERRIDES: source.CONFIGCAT_OFFERS_OVERRIDES,
+    CONFIGCAT_SETTINGS_URL: source.CONFIGCAT_SETTINGS_URL,
   } as Record<string, string | undefined>;
 }
 
@@ -167,6 +172,11 @@ const schema = z
     PLAYWRIGHT_SUPABASE_URL: optionalString,
     PLAYWRIGHT_SUPABASE_ANON_KEY: optionalString,
     CI: optionalString,
+    CONFIGCAT_OFFERS_SDK_KEY: optionalString,
+    CONFIGCAT_ENVIRONMENT: optionalString,
+    CONFIGCAT_OFFERS_FALLBACK: optionalString,
+    CONFIGCAT_OFFERS_OVERRIDES: optionalString,
+    CONFIGCAT_SETTINGS_URL: optionalString,
   })
   .superRefine((values, ctx) => {
     const kmsCandidates = [values.KMS_DATA_KEY, values.KMS_DATA_KEY_BASE64].filter(

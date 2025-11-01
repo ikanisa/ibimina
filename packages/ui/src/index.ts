@@ -16,4 +16,6 @@ export * from "./components/sticky-action-bar";
 export * from "./theme";
 export * from "./utils/cn";
 export * from "./utils/blur-placeholder";
-export * as mobile from "./mobile";
+export * from "./components/accessibility/AccessibleActionButton";
+export * from "./components/accessibility/MotionPreferenceToggle";
+export * from "./utils/accessibility";

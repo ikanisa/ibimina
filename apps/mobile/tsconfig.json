@@ -1,19 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "jsx": "react-native",
-    "allowJs": false,
-    "noEmit": true,
-    "types": ["nativewind/types"],
-    "moduleResolution": "node",
-    "paths": {
-      "@/features/*": ["./src/features/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/providers/*": ["./src/providers/*"],
-      "@/storage/*": ["./src/storage/*"],
-      "@/services/*": ["./src/services/*"]
-    }
+    "rootDir": "src",
+    "outDir": "dist",
+    "jsx": "react-jsx",
+    "types": ["node"],
+    "baseUrl": "./src"
   },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["dist", "node_modules"]
 }
