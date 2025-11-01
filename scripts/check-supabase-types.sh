@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -z "${SUPABASE_ACCESS_TOKEN:-}" ]]; then
-  echo "Supabase access token not provided; skipping type validation."
-  exit 0
-fi
+TARGET_FILE="apps/admin/lib/supabase/types.ts"
+TMP_FILE="$(mktemp)"
+trap 'rm -f "$TMP_FILE"' EXIT
 
-PROJECT_REF=$(awk -F '"' '/project_id/ { print $2; exit }' supabase/config.toml)
-if [[ -z "${PROJECT_REF}" ]]; then
-  echo "Unable to determine Supabase project reference from supabase/config.toml" >&2
+if [[ ! -f "$TARGET_FILE" ]]; then
+  echo "Expected Supabase types file '$TARGET_FILE' does not exist." >&2
+  echo "Run 'pnpm gen:types' to generate it." >&2
   exit 1
 fi
 
-TMP_DIR=$(mktemp -d)
-trap 'rm -rf "${TMP_DIR}"' EXIT
-OUTPUT_FILE="apps/admin/lib/supabase/types.ts"
-GENERATED_FILE="${TMP_DIR}/supabase.types.ts"
-
-supabase gen types typescript \
-  --project-ref "${PROJECT_REF}" \
-  --schema "public,storage,graphql_public,app,app_helpers" \
-  > "${GENERATED_FILE}"
-
-if ! diff -u "${OUTPUT_FILE}" "${GENERATED_FILE}"; then
-  echo "Supabase type definitions are out of date. Run 'supabase gen types typescript --project-ref ${PROJECT_REF} --schema public,storage,graphql_public,app,app_helpers > ${OUTPUT_FILE}' locally and commit the result." >&2
+if ! command -v supabase >/dev/null 2>&1; then
+  echo "Supabase CLI not found on PATH." >&2
+  echo "Install it from https://supabase.com/docs/guides/cli then re-run the command." >&2
   exit 1
 fi
 
-echo "Supabase type definitions are up to date."
+supabase gen types typescript --local >"$TMP_FILE"
+
+if ! cmp -s "$TMP_FILE" "$TARGET_FILE"; then
+  echo "Supabase types are out of date. Run 'pnpm gen:types' and commit the updated file." >&2
+  if command -v git >/dev/null 2>&1; then
+    git --no-pager diff --no-index --color=always "$TARGET_FILE" "$TMP_FILE" || true
+  elif command -v diff >/dev/null 2>&1; then
+    diff -u "$TARGET_FILE" "$TMP_FILE" || true
+  fi
+  exit 1
+fi

@@ -133,6 +133,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
