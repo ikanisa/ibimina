@@ -35,8 +35,8 @@ export default async function RootLayout({
   const locale = resolveRequestLocale({ headers: headerList, cookies: cookieStore });
 
   return (
-    <html lang={locale} className="bg-nyungwe" suppressHydrationWarning>
-      <body className="antialiased bg-nyungwe text-neutral-0">
+    <html lang={locale} suppressHydrationWarning>
+      <body className="antialiased">
         <AppProviders nonce={nonce} locale={locale}>
           {children}
         </AppProviders>
