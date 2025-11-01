@@ -26,7 +26,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     infoPlist: {
       NSCameraUsageDescription: "This app uses the camera to scan QR codes for payments.",
-      NSPhotoLibraryUsageDescription: "This app accesses your photo library to select profile pictures.",
+      NSPhotoLibraryUsageDescription:
+        "This app accesses your photo library to select profile pictures.",
     },
   },
   android: {
@@ -65,6 +66,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     configcatSdkKey: process.env.CONFIGCAT_SDK_KEY,
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+    apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
   },
   experiments: {
     typedRoutes: true,
