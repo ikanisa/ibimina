@@ -14,7 +14,7 @@
     "lint": "pnpm exec eslint --max-warnings=0 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm run test:unit",
-    "test:unit": "tsx --test tests/unit/*.test.ts",
+    "test:unit": "pnpm exec c8 --clean=false --temp-directory=.nyc_output --report-dir=coverage/unit --reporter=lcov --reporter=json-summary --reporter=text-summary tsx --test tests/unit/*.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:detox": "tsx --test tests/detox/*.e2e.ts",
