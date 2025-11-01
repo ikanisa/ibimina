@@ -66,6 +66,14 @@ waitForPort = 3000
 localPort = 3000
 externalPort = 3000
 
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 39801
+externalPort = 3001
+
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "cd apps/admin && npx next start -p 5000 -H 0.0.0.0"]
