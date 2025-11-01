@@ -109,11 +109,6 @@ CREATE POLICY "Authenticated users can view enabled loan products"
   USING (
     enabled = true
     AND auth.role() = 'authenticated'
-    AND EXISTS (
-      SELECT 1 FROM public.org_memberships
-      WHERE org_id = loan_products.org_id
-      AND user_id = auth.uid()
-    )
   );
 
 CREATE POLICY "Staff can manage their org loan products"
