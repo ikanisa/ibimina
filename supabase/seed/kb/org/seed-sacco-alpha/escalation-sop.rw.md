@@ -5,7 +5,7 @@
   "tags": ["escalation", "support", "atlas"],
   "policy_tag": "escalation",
   "scope": "org",
-  "org_id": "20000000-0000-0000-0000-000000000001",
+  "org_id": "20000000-0000-0000-0000-000000000001"
 }
 ---
 

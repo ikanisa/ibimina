@@ -11,7 +11,23 @@ CREATE EXTENSION IF NOT EXISTS vector;
 DROP INDEX IF EXISTS idx_org_kb_embedding;
 
 ALTER TABLE public.org_kb
-  ALTER COLUMN embedding TYPE vector(3072);
+  ALTER COLUMN embedding TYPE vector(3072)
+  USING CASE
+    WHEN embedding IS NULL THEN NULL
+    WHEN COALESCE(array_length(embedding::float4[], 1), 0) = 3072 THEN embedding
+    WHEN COALESCE(array_length(embedding::float4[], 1), 0) > 3072 THEN
+      vector((embedding::float4[])[1:3072])
+    ELSE
+      vector(
+        array_cat(
+          embedding::float4[],
+          array_fill(
+            0::float4,
+            ARRAY[3072 - COALESCE(array_length(embedding::float4[], 1), 0)]
+          )
+        )
+      )
+  END;
 
 -- Add language metadata if missing
 ALTER TABLE public.org_kb
@@ -52,7 +68,23 @@ COMMENT ON COLUMN public.org_kb.embedding IS '3072-d vector embedding for RAG si
 DROP INDEX IF EXISTS idx_global_kb_embedding;
 
 ALTER TABLE public.global_kb
-  ALTER COLUMN embedding TYPE vector(3072);
+  ALTER COLUMN embedding TYPE vector(3072)
+  USING CASE
+    WHEN embedding IS NULL THEN NULL
+    WHEN COALESCE(array_length(embedding::float4[], 1), 0) = 3072 THEN embedding
+    WHEN COALESCE(array_length(embedding::float4[], 1), 0) > 3072 THEN
+      vector((embedding::float4[])[1:3072])
+    ELSE
+      vector(
+        array_cat(
+          embedding::float4[],
+          array_fill(
+            0::float4,
+            ARRAY[3072 - COALESCE(array_length(embedding::float4[], 1), 0)]
+          )
+        )
+      )
+  END;
 
 ALTER TABLE public.global_kb
   ADD COLUMN IF NOT EXISTS language_code TEXT DEFAULT 'en';
