@@ -74,10 +74,6 @@ externalPort = 3001
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 39541
-externalPort = 3002
-
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "cd apps/admin && npx next start -p 5000 -H 0.0.0.0"]
