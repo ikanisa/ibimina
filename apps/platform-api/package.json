@@ -11,6 +11,9 @@
     "test": "pnpm run test:unit && pnpm run test:integration",
     "test:unit": "tsx --test tests/unit/*.test.ts",
     "test:integration": "tsx --test tests/integration/*.test.ts",
+    "test:load": "tsx tests/performance/load-ingestion.ts",
+    "test:chaos": "tsx tests/performance/chaos-edge.ts",
+    "test:performance": "tsx tests/performance/run-performance.ts",
     "worker:momo": "node dist/workers/momo-poller.js",
     "worker:gsm": "node dist/workers/gsm-heartbeat.js"
   },
