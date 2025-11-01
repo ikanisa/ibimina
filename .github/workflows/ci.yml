@@ -51,6 +51,9 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
       - name: Restore Next.js cache
         uses: actions/cache@v4
         with:
@@ -61,9 +64,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
 
       - name: Verify required feature flags
         if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' }}
@@ -120,6 +120,9 @@ jobs:
 
       - name: Verify log drain alerting
         run: pnpm run verify:log-drain
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
 
       - name: Playwright smoke tests
         run: pnpm run test:e2e

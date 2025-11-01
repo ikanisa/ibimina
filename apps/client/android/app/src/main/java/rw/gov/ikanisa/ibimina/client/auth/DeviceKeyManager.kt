@@ -142,13 +142,26 @@ class DeviceKeyManager(private val deviceId: String) {
     fun sign(data: ByteArray): String {
         val keyPair = getKeyPair()
             ?: throw IllegalStateException("Key not found. Call generateKeyPair first.")
-        
+
         val signature = Signature.getInstance(SIGNATURE_ALGORITHM)
         signature.initSign(keyPair.private)
         signature.update(data)
-        
+
         val signatureBytes = signature.sign()
         return Base64.encodeToString(signatureBytes, Base64.NO_WRAP)
+    }
+
+    /**
+     * Get a Signature instance initialized with the private key for biometric-bound operations.
+     *
+     * The returned Signature must be used immediately with a BiometricPrompt CryptoObject.
+     */
+    fun getInitializedSignature(): Signature? {
+        val keyPair = getKeyPair() ?: return null
+
+        val signature = Signature.getInstance(SIGNATURE_ALGORITHM)
+        signature.initSign(keyPair.private)
+        return signature
     }
     
     /**

@@ -29,6 +29,13 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [assistantContext, setAssistantContext] = useState<{
+    org: string | null;
+    country: string | null;
+    lang: string | null;
+  } | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -73,6 +80,8 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
+    controllerRef.current?.abort();
+
     const userMessage: Message = {
       id: Date.now().toString(),
       sender: "user",
@@ -83,10 +92,9 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    setError(null);
 
     const agentMessageId = (Date.now() + 1).toString();
-    const fullResponse =
-      "Thank you for your message. The AI agent is currently in preview mode. For immediate assistance, please contact your SACCO staff or use the help resources in your profile.";
 
     const agentMessage: Message = {
       id: agentMessageId,
@@ -112,6 +120,12 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      controllerRef.current?.abort();
+    };
+  }, []);
+
   return (
     <div className="flex flex-col h-full bg-white">
       <header className="flex items-center gap-3 px-4 py-4 border-b border-neutral-200 bg-white">
@@ -120,7 +134,15 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
         </div>
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-neutral-900">SACCO+ Support</h2>
-          <p className="text-xs text-neutral-500">AI Assistant</p>
+          <p className="text-xs text-neutral-500">
+            AI Assistant
+            {assistantContext?.org && (
+              <span className="ml-1 text-neutral-400">
+                • {assistantContext.org}
+                {assistantContext.country ? ` (${assistantContext.country})` : ""}
+              </span>
+            )}
+          </p>
         </div>
         {onClose && (
           <button
@@ -230,6 +252,7 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
           </div>
           <p className="mt-3 text-center text-xs text-neutral-500">
             AI assistant may make mistakes. Verify important information with SACCO staff.
+            {error && <span className="block text-red-500 mt-2">{error}</span>}
           </p>
         </div>
       </div>
