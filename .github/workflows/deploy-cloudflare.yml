@@ -28,9 +28,29 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ""
+      BACKUP_PEPPER: placeholder-backup-pepper-32-bytes-min
+      MFA_SESSION_SECRET: placeholder-mfa-session-secret-32b
+      TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
+      HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
+      KMS_DATA_KEY_BASE64: cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ==
+      OPENAI_API_KEY: placeholder-openai-api-key
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Load runtime secrets
+        run: ./scripts/load-aws-secrets.sh "${{ secrets.AWS_SECRETSMANAGER_SECRET_ID }}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -77,9 +97,29 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ""
+      BACKUP_PEPPER: placeholder-backup-pepper-32-bytes-min
+      MFA_SESSION_SECRET: placeholder-mfa-session-secret-32b
+      TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
+      HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
+      KMS_DATA_KEY_BASE64: cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ==
+      OPENAI_API_KEY: placeholder-openai-api-key
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Load runtime secrets
+        run: ./scripts/load-aws-secrets.sh "${{ secrets.AWS_SECRETSMANAGER_SECRET_ID }}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -126,9 +166,31 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ""
+      BACKUP_PEPPER: placeholder-backup-pepper-32-bytes-min
+      MFA_SESSION_SECRET: placeholder-mfa-session-secret-32b
+      TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
+      HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
+      KMS_DATA_KEY_BASE64: cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ==
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: placeholder-vapid-public-key
+      VAPID_PRIVATE_KEY: placeholder-vapid-private-key
+      OPENAI_API_KEY: placeholder-openai-api-key
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Load runtime secrets
+        run: ./scripts/load-aws-secrets.sh "${{ secrets.AWS_SECRETSMANAGER_SECRET_ID }}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
