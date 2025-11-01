@@ -1,0 +1,9 @@
+[
+  {
+    "reviewDate": "2025-11-05",
+    "owner": "Quality Lead",
+    "focusAreas": ["Verify automation guardrails", "Confirm CSAT rebound"],
+    "channel": "ops-calendar",
+    "storagePath": "docs/retros/review-schedule.json"
+  }
+]
