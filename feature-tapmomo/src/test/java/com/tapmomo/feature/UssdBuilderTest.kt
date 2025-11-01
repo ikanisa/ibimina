@@ -1,8 +1,10 @@
 package com.tapmomo.feature.ussd
 
-import com.tapmomo.feature.Network
 import com.tapmomo.feature.UssdTemplate
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 
 /**
@@ -11,65 +13,75 @@ import org.junit.Test
 class UssdBuilderTest {
     
     @Test
-    fun testUssdShortcut_withAmount() {
+    fun `buildUssdCode uses shortcut when amount provided`() {
         val template = UssdTemplate(
             shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
             menu = "*182*8*1#",
             base = "*182#"
         )
-        
-        val merchantId = "123456"
-        val amount = 2500
-        
-        val ussd = template.shortcut
-            .replace("{MERCHANT}", merchantId)
-            .replace("{AMOUNT}", amount.toString())
-        
-        assertEquals("*182*8*1*123456*2500#", ussd)
+
+        val result = UssdLauncher.buildUssdCode(template, " 123456 ", 2500, useShortcut = true)
+
+        assertEquals("*182*8*1*123456*2500#", result)
     }
-    
+
     @Test
-    fun testUssdMenu_withoutAmount() {
+    fun `buildUssdCode falls back to menu when amount missing`() {
         val template = UssdTemplate(
             shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
             menu = "*182*8*1#",
             base = "*182#"
         )
-        
-        val ussd = template.menu
-        
-        assertEquals("*182*8*1#", ussd)
+
+        val result = UssdLauncher.buildUssdCode(template, "merchant", null, useShortcut = true)
+
+        assertEquals("*182*8*1#", result)
     }
-    
+
     @Test
-    fun testUssdEncoding_hashSymbol() {
-        val ussdCode = "*182*8*1*123456*2500#"
-        
-        // Encode # as %23 for URI
-        val encoded = ussdCode.replace("#", "%23")
-        
-        assertEquals("*182*8*1*123456*2500%23", encoded)
-        assertTrue(encoded.contains("%23"))
-        assertFalse(encoded.contains("#"))
-    }
-    
-    @Test
-    fun testUssdTemplate_multipleNetworks() {
-        val mtnTemplate = UssdTemplate(
+    fun `buildUssdCode treats zero amount as menu`() {
+        val template = UssdTemplate(
             shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
             menu = "*182*8*1#",
             base = "*182#"
         )
-        
-        val airtelTemplate = UssdTemplate(
+
+        val result = UssdLauncher.buildUssdCode(template, "merchant", 0, useShortcut = true)
+
+        assertEquals("*182*8*1#", result)
+    }
+
+    @Test
+    fun `buildUssdCode throws for negative amount`() {
+        val template = UssdTemplate(
             shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
             menu = "*182*8*1#",
             base = "*182#"
         )
-        
-        // Both networks use same USSD codes in Rwanda
-        assertEquals(mtnTemplate.shortcut, airtelTemplate.shortcut)
-        assertEquals(mtnTemplate.menu, airtelTemplate.menu)
-        assertEquals(mtnTemplate.base, airtelTemplate.base)
+
+        try {
+            UssdLauncher.buildUssdCode(template, "merchant", -10, useShortcut = true)
+            fail("Expected IllegalArgumentException")
+        } catch (expected: IllegalArgumentException) {
+            assertTrue(expected.message!!.contains("Amount"))
+        }
+    }
+
+    @Test
+    fun `ussd preview encodes merchant placeholder`() {
+        val template = UssdTemplate(
+            shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
+            menu = "*182*8*1#",
+            base = "*182#"
+        )
+
+        val preview = UssdLauncher.getUssdPreview(
+            network = com.tapmomo.feature.Network.MTN,
+            merchantId = " 98765 ",
+            amount = 1200
+        )
+
+        assertTrue(preview.contains("98765"))
+        assertFalse(preview.contains(" 98765 "))
     }
 }
