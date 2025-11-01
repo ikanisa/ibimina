@@ -27,6 +27,7 @@
     "setup:agent": "tsx scripts/setupAgent.ts",
     "check:flags": "node scripts/check-feature-flags.mjs",
     "gen:types": "supabase gen types typescript --local > apps/admin/lib/supabase/types.ts",
+    "deploy:function:reconcile": "cd supabase && supabase functions deploy reconcile",
     "check:types": "bash scripts/check-supabase-types.sh",
     "check:deploy": "pnpm run check:flags && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse",
     "validate:production": "bash scripts/validate-production-readiness.sh",
