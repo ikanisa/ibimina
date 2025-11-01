@@ -12,37 +12,84 @@ BEGIN
 END $$;
 
 -- === USERS VIEW ===============================================
-DROP VIEW IF EXISTS public.users;
-CREATE VIEW public.users
-  (id,email,role,sacco_id,status,pw_reset_required,last_login_at,suspended_at,
-   suspended_by,notes,created_at,updated_at,mfa_enabled,mfa_enrolled_at,
-   mfa_passkey_enrolled,mfa_methods,mfa_backup_hashes,failed_mfa_count,
-   last_mfa_success_at,last_mfa_step,mfa_secret_enc)
-WITH (security_barrier = true) AS
-SELECT
-  p.user_id AS id,
-  au.email,
-  COALESCE(p.role,'SACCO_STAFF')::public.app_role AS role,
-  p.sacco_id,
-  p.status,
-  p.pw_reset_required,
-  p.last_login_at,
-  p.suspended_at,
-  p.suspended_by,
-  p.notes,
-  au.created_at,
-  au.updated_at,
-  COALESCE((au.raw_user_meta_data ->> 'mfa_enabled')::boolean,false) AS mfa_enabled,
-  (au.raw_user_meta_data ->> 'mfa_enrolled_at')::timestamptz         AS mfa_enrolled_at,
-  COALESCE((au.raw_user_meta_data ->> 'mfa_passkey_enrolled')::boolean,false) AS mfa_passkey_enrolled,
-  COALESCE( au.raw_user_meta_data -> 'mfa_methods', '[]'::jsonb)     AS mfa_methods,
-  COALESCE( au.raw_user_meta_data -> 'mfa_backup_hashes','[]'::jsonb)AS mfa_backup_hashes,
-  COALESCE((au.raw_user_meta_data ->> 'failed_mfa_count')::int,0)    AS failed_mfa_count,
-  (au.raw_user_meta_data ->> 'last_mfa_success_at')::timestamptz     AS last_mfa_success_at,
-  (au.raw_user_meta_data ->> 'last_mfa_step')::int                   AS last_mfa_step,
-  (au.raw_user_meta_data ->> 'mfa_secret_enc')                       AS mfa_secret_enc
-FROM app.user_profiles p
-JOIN auth.users au ON au.id = p.user_id;
+DO $$
+DECLARE
+  view_exists boolean;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_views
+    WHERE schemaname = 'public' AND viewname = 'users'
+  )
+  INTO view_exists;
+
+  IF view_exists THEN
+    EXECUTE $view$
+      CREATE OR REPLACE VIEW public.users
+        (id,email,role,sacco_id,status,pw_reset_required,last_login_at,suspended_at,
+         suspended_by,notes,created_at,updated_at,mfa_enabled,mfa_enrolled_at,
+         mfa_passkey_enrolled,mfa_methods,mfa_backup_hashes,failed_mfa_count,
+         last_mfa_success_at,last_mfa_step,mfa_secret_enc)
+      WITH (security_barrier = true) AS
+      SELECT
+        p.user_id AS id,
+        au.email,
+        COALESCE(p.role,'SACCO_STAFF')::public.app_role AS role,
+        p.sacco_id,
+        p.status,
+        p.pw_reset_required,
+        p.last_login_at,
+        p.suspended_at,
+        p.suspended_by,
+        p.notes,
+        au.created_at,
+        au.updated_at,
+        COALESCE((au.raw_user_meta_data ->> 'mfa_enabled')::boolean,false) AS mfa_enabled,
+        (au.raw_user_meta_data ->> 'mfa_enrolled_at')::timestamptz         AS mfa_enrolled_at,
+        COALESCE((au.raw_user_meta_data ->> 'mfa_passkey_enrolled')::boolean,false) AS mfa_passkey_enrolled,
+        COALESCE( au.raw_user_meta_data -> 'mfa_methods', '[]'::jsonb)     AS mfa_methods,
+        COALESCE( au.raw_user_meta_data -> 'mfa_backup_hashes','[]'::jsonb)AS mfa_backup_hashes,
+        COALESCE((au.raw_user_meta_data ->> 'failed_mfa_count')::int,0)    AS failed_mfa_count,
+        (au.raw_user_meta_data ->> 'last_mfa_success_at')::timestamptz     AS last_mfa_success_at,
+        (au.raw_user_meta_data ->> 'last_mfa_step')::int                   AS last_mfa_step,
+        (au.raw_user_meta_data ->> 'mfa_secret_enc')                       AS mfa_secret_enc
+      FROM app.user_profiles p
+      JOIN auth.users au ON au.id = p.user_id;
+    $view$;
+  ELSE
+    EXECUTE $view$
+      CREATE VIEW public.users
+        (id,email,role,sacco_id,status,pw_reset_required,last_login_at,suspended_at,
+         suspended_by,notes,created_at,updated_at,mfa_enabled,mfa_enrolled_at,
+         mfa_passkey_enrolled,mfa_methods,mfa_backup_hashes,failed_mfa_count,
+         last_mfa_success_at,last_mfa_step,mfa_secret_enc)
+      WITH (security_barrier = true) AS
+      SELECT
+        p.user_id AS id,
+        au.email,
+        COALESCE(p.role,'SACCO_STAFF')::public.app_role AS role,
+        p.sacco_id,
+        p.status,
+        p.pw_reset_required,
+        p.last_login_at,
+        p.suspended_at,
+        p.suspended_by,
+        p.notes,
+        au.created_at,
+        au.updated_at,
+        COALESCE((au.raw_user_meta_data ->> 'mfa_enabled')::boolean,false) AS mfa_enabled,
+        (au.raw_user_meta_data ->> 'mfa_enrolled_at')::timestamptz         AS mfa_enrolled_at,
+        COALESCE((au.raw_user_meta_data ->> 'mfa_passkey_enrolled')::boolean,false) AS mfa_passkey_enrolled,
+        COALESCE( au.raw_user_meta_data -> 'mfa_methods', '[]'::jsonb)     AS mfa_methods,
+        COALESCE( au.raw_user_meta_data -> 'mfa_backup_hashes','[]'::jsonb)AS mfa_backup_hashes,
+        COALESCE((au.raw_user_meta_data ->> 'failed_mfa_count')::int,0)    AS failed_mfa_count,
+        (au.raw_user_meta_data ->> 'last_mfa_success_at')::timestamptz     AS last_mfa_success_at,
+        (au.raw_user_meta_data ->> 'last_mfa_step')::int                   AS last_mfa_step,
+        (au.raw_user_meta_data ->> 'mfa_secret_enc')                       AS mfa_secret_enc
+      FROM app.user_profiles p
+      JOIN auth.users au ON au.id = p.user_id;
+    $view$;
+  END IF;
+END $$;
 ALTER VIEW public.users SET (security_barrier = true);
 
 -- === OTP: one active code per phone ===========================

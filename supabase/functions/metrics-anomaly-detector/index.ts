@@ -236,6 +236,7 @@ const enqueueAlert = async (supabase: ReturnType<typeof createClient>, anomaly: 
 
   const { error } = await supabase.from("notification_queue").insert({
     event: "ANOMALY_DETECTED",
+    channel: "WHATSAPP",
     payload: {
       signal: anomaly.signal,
       event: anomaly.event,

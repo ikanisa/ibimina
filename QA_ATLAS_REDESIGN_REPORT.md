@@ -9,7 +9,32 @@
 
 ## Executive Summary
 
-Both the **Client PWA** and **Admin PWA** have been successfully redesigned with the ChatGPT Atlas design system. All smoke tests passed, visual baselines captured, and architect approval received. The implementation is production-ready.
+Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
+the ChatGPT Atlas design system. All smoke tests passed, visual baselines
+captured, and architect approval received. The implementation is
+production-ready.
+
+---
+
+## 2025-11-01 Staging Website Smoke Test (Attempt)
+
+- **Trigger:** Requested staging validation for marketing website deployment
+- **Deployment command:** `pnpm deploy --filter website --env staging`
+- **Result:** ❌ Command failed – workspace has no `deploy` script and pnpm does
+  not support `--env` for the built-in command.
+- **Environment configuration:** `.env.staging` file for `apps/website` is not
+  present in the repository; unable to validate staging environment variables,
+  feature flags, Sentry DSN, or PostHog keys.
+- **Impact:** Unable to execute smoke tests for login, core user flows, or
+  payments against staging. No staging build artefacts available to validate.
+- **Next steps:**
+  1. Provide a staging `.env` file (or secure secret management instructions)
+     including Sentry and PostHog credentials.
+  2. Add a workspace-level deployment script (e.g.,
+     `pnpm --filter @ibimina/website deploy`) or documented Cloudflare/Vercel
+     workflow for staging.
+  3. Re-run smoke checklist once staging deployment succeeds and URLs are
+     accessible.
 
 ---
 
@@ -18,18 +43,21 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ### 1.1 Workflow Health Check ✅
 
 **Admin PWA** (Port 3000):
+
 - Status: ✅ RUNNING
 - Compilation: ✅ No errors
 - Ready time: 2.3s
 - Console: Clean (no critical errors)
 
 **Client PWA** (Port 5000):
-- Status: ✅ RUNNING  
+
+- Status: ✅ RUNNING
 - Compilation: ✅ No errors
 - All routes functional: `/home`, `/groups`, `/pay`, `/statements`, `/profile`
 - Console: Clean (React DevTools warning only - non-blocking)
 
 **Shared UI Package**:
+
 - Status: ✅ Built successfully
 - Components: GradientHeader, GlassCard, MetricCard all functioning
 
@@ -40,7 +68,9 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ### 2.1 Client PWA (All 5 Pages Captured)
 
 #### ✅ Home Page (`/home`)
+
 **Visual Elements:**
+
 - Atlas blue gradient header ("Welcome Back!")
 - Modern card-based layout with lift-on-hover effects
 - Quick action cards: Pay, Groups, Statements, Join Group
@@ -49,12 +79,14 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 - Bottom navigation with Atlas blue active state on "Home"
 
 **Design Tokens Applied:**
+
 - Primary: Atlas Blue (#0066FF)
 - Corners: rounded-2xl (cards)
 - Shadows: shadow-atlas on cards
 - Transitions: Smooth 150ms hover effects
 
 **Accessibility:**
+
 - ✅ Proper contrast ratios (WCAG AA)
 - ✅ Clear text hierarchy
 - ✅ Touch-friendly tap targets
@@ -62,7 +94,9 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ---
 
 #### ✅ Groups Page (`/groups`)
+
 **Visual Elements:**
+
 - Clean header: "Savings Groups"
 - Descriptive subtitle
 - Group cards with icons (emerald, purple colors)
@@ -71,6 +105,7 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 - Bottom navigation visible
 
 **Design Consistency:**
+
 - ✅ Consistent card styling with home page
 - ✅ Proper spacing and layout grid
 - ✅ Atlas color accents on badges
@@ -78,7 +113,9 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ---
 
 #### ✅ Pay Page (`/pay`)
+
 **Visual Elements:**
+
 - Header: "Make a Payment"
 - USSD payment instructions in info card
 - Payment card with gradient background
@@ -88,6 +125,7 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 - Bottom navigation with "Pay" active (Atlas blue)
 
 **Functionality:**
+
 - ✅ Payment flow accessible
 - ✅ Copy-to-clipboard functionality visible
 - ✅ Clear user guidance
@@ -97,7 +135,9 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ---
 
 #### ✅ Statements Page (`/statements`)
+
 **Visual Elements:**
+
 - Header: "My Statements"
 - Export PDF button (Atlas blue - #0066FF)
 - Month filter dropdown
@@ -107,12 +147,14 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 - Clean data table layout
 
 **Data Quality:**
+
 - ✅ Real transaction data displayed
 - ✅ Proper date formatting
 - ✅ Currency formatting (RWF)
 - ✅ Status color coding matches Atlas palette
 
 **Accessibility:**
+
 - ✅ Table headers properly labeled
 - ✅ Status badges with sufficient contrast
 - ✅ Export button meets minimum tap target size
@@ -120,7 +162,9 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ---
 
 #### ✅ Profile Page (`/profile`)
+
 **Visual Elements:**
+
 - Atlas blue gradient header with user name "John Doe"
 - Member since date: 10/1/2025
 - "My Reference Code" section with white card
@@ -131,6 +175,7 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 - Bottom navigation with "Profile" active
 
 **Design Highlights:**
+
 - ✅ Prominent use of Atlas blue gradient
 - ✅ Clean card-based layout
 - ✅ Consistent button styling
@@ -140,7 +185,9 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 
 ### 2.2 Admin PWA (Verified via Code Review)
 
-**Note:** Admin app requires authentication. Visual verification conducted through:
+**Note:** Admin app requires authentication. Visual verification conducted
+through:
+
 1. ✅ Architect code review (approved)
 2. ✅ Shared component testing in Client PWA
 3. ✅ Workflow compilation success
@@ -149,6 +196,7 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 **Components Updated:**
 
 #### Shared UI Components
+
 1. **GradientHeader** (`packages/ui/src/components/gradient-header.tsx`):
    - Atlas blue gradient (from-atlas-blue to-atlas-blue-dark)
    - Grid pattern overlay
@@ -169,7 +217,9 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
    - Responsive layout
 
 #### Admin Navigation
+
 **PanelShell** (`apps/admin/components/admin/panel/panel-shell.tsx`):
+
 - ✅ Sidebar with Atlas blue active states (bg-atlas-blue)
 - ✅ Hover states with bg-atlas-blue/5
 - ✅ Shadow-atlas effects on active links
@@ -179,12 +229,14 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 - ✅ Alert badges with contextual colors (red/amber/blue/emerald)
 
 #### Admin Layout
+
 - ✅ Neutral gradient background (from-neutral-50 to-neutral-100)
 - ✅ White sidebar with neutral-200 borders
 - ✅ Full dark mode support
 - ✅ Consistent spacing and typography
 
 **Pages Affected (All use shared components):**
+
 - Dashboard
 - Members
 - SACCOs (Ikimina)
@@ -199,6 +251,7 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ## 3. Design System Consistency
 
 ### 3.1 Atlas Color Palette ✅
+
 - **Primary Blue:** #0066FF (Atlas Blue)
 - **Secondary Blues:** #3385FF (Light), #0052CC (Dark)
 - **Success:** Emerald-600 (#10b981)
@@ -207,24 +260,29 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 - **Neutral:** Gray scale (50-900)
 
 ### 3.2 Typography ✅
-- **Font Stack:** System fonts (-apple-system, BlinkMacSystemFont, "Segoe UI", etc.)
+
+- **Font Stack:** System fonts (-apple-system, BlinkMacSystemFont, "Segoe UI",
+  etc.)
 - **Hierarchy:** Consistent heading sizes (h1-h6)
 - **Body Text:** Proper line heights for readability
 - **Contrast:** All text meets WCAG AA standards
 
 ### 3.3 Spacing & Layout ✅
+
 - **Corners:** rounded-2xl (16px cards), rounded-xl (12px buttons)
 - **Padding:** Consistent spacing scale (4px, 8px, 16px, 24px, 32px)
 - **Gaps:** Proper grid gaps for card layouts
 - **Bottom Nav Padding:** pb-20 on all pages to prevent content overlap
 
 ### 3.4 Shadows & Effects ✅
+
 - **shadow-atlas:** 0 4px 16px rgba(0, 102, 255, 0.12)
 - **shadow-sm/md/lg:** Neutral shadow variants for depth
 - **Hover Effects:** Lift animations on interactive elements
 - **Transitions:** 150ms (interactive), 300ms (smooth)
 
 ### 3.5 Accessibility ✅
+
 - **Contrast Ratios:** All text meets WCAG AA (4.5:1 minimum)
 - **Touch Targets:** Minimum 44x44px for mobile
 - **Keyboard Navigation:** ESC key support in modals
@@ -236,12 +294,17 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ## 4. Architect Review Results
 
 ### Phase 2 Client PWA ✅ PASS
-**Feedback:** "Excellent implementation of Atlas design principles. Modern, cohesive, and production-ready."
 
-### Phase 3 Admin PWA ✅ PASS  
-**Feedback:** "All concerns addressed. Mobile nav accessibility resolved, color contrast fixed, shared components production-ready."
+**Feedback:** "Excellent implementation of Atlas design principles. Modern,
+cohesive, and production-ready."
+
+### Phase 3 Admin PWA ✅ PASS
+
+**Feedback:** "All concerns addressed. Mobile nav accessibility resolved, color
+contrast fixed, shared components production-ready."
 
 **Critical Fixes Applied:**
+
 1. ✅ Fixed invalid utility `bg-atlas-glow` → `bg-atlas-blue/5`
 2. ✅ Fixed MetricCard contrast - contextual trend colors
 3. ✅ Added mobile nav accessibility (ESC, click-outside, ARIA)
@@ -252,6 +315,7 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ## 5. Cross-Browser Compatibility
 
 **Tested On:**
+
 - Chrome/Edge (Chromium): ✅ Optimal
 - Safari: ✅ Compatible (CSS variables, gradients, shadows all supported)
 - Firefox: ✅ Compatible
@@ -259,6 +323,7 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 - Chrome Mobile (Android): ✅ Compatible
 
 **PWA Features:**
+
 - ✅ Service Worker registered
 - ✅ Offline capabilities configured
 - ✅ Install prompt functional
@@ -269,17 +334,20 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ## 6. Performance Metrics
 
 **Client PWA:**
+
 - First compile: ~518ms (Home)
 - Subsequent pages: 50-200ms
 - All routes under 2s load time
 - Smooth 60fps animations
 
 **Admin PWA:**
+
 - Ready time: 2.3s
 - Turbopack enabled for fast refresh
 - No memory leaks detected
 
 **Shared Components:**
+
 - Minimal bundle impact
 - Tree-shakeable exports
 - No duplicate CSS
@@ -289,9 +357,11 @@ Both the **Client PWA** and **Admin PWA** have been successfully redesigned with
 ## 7. Regression Prevention
 
 ### Visual Baselines Established
+
 The following screenshots serve as visual regression baselines:
 
 **Client PWA Baselines (Captured 2025-10-31):**
+
 1. `/home` - Home page with group cards and quick actions
 2. `/groups` - Savings groups listing
 3. `/pay` - USSD payment interface
@@ -299,12 +369,15 @@ The following screenshots serve as visual regression baselines:
 5. `/profile` - User profile with QR code
 
 **Admin PWA Baselines (Code Review):**
+
 - Shared components: GradientHeader, GlassCard, MetricCard
 - PanelShell navigation and layout
 - All admin pages inherit these components
 
 ### Recommended Tests
+
 **Before Next Deployment:**
+
 1. Run visual regression tests against captured baselines
 2. Verify color contrast ratios remain WCAG AA compliant
 3. Test mobile drawer interactions (ESC, click-outside)
@@ -312,6 +385,7 @@ The following screenshots serve as visual regression baselines:
 5. Check dark mode consistency
 
 **Automated Testing:**
+
 - Consider adding Playwright E2E tests for navigation flows
 - Add Chromatic or Percy for visual regression testing
 - Implement color contrast linting in CI/CD pipeline
@@ -321,6 +395,7 @@ The following screenshots serve as visual regression baselines:
 ## 8. Known Issues & Limitations
 
 ### Non-Blocking Issues
+
 1. **Dev Mode Badge:** "1 issue" badge appears in bottom-left on some pages
    - **Status:** Expected in development mode
    - **Impact:** None (removed in production build)
@@ -332,6 +407,7 @@ The following screenshots serve as visual regression baselines:
    - **Action Required:** None
 
 ### Future Enhancements (Optional)
+
 1. Add loading skeleton screens with Atlas styling
 2. Implement toast notifications with Atlas colors
 3. Add micro-interactions to card hover states
@@ -342,6 +418,7 @@ The following screenshots serve as visual regression baselines:
 ## 9. Deployment Checklist
 
 ### Pre-Production ✅
+
 - [x] Both PWAs running without errors
 - [x] All routes functional and tested
 - [x] Visual baselines captured
@@ -352,6 +429,7 @@ The following screenshots serve as visual regression baselines:
 - [x] Documentation updated (replit.md)
 
 ### Production Deployment (Ready)
+
 - [ ] Run `npm run build` for both apps
 - [ ] Verify production builds start successfully
 - [ ] Test PWA installation on mobile devices
@@ -361,6 +439,7 @@ The following screenshots serve as visual regression baselines:
 - [ ] Monitor error tracking for first 24 hours
 
 ### Post-Deployment
+
 - [ ] Capture production screenshots for baseline
 - [ ] Monitor user feedback on new design
 - [ ] Track Core Web Vitals metrics
@@ -372,25 +451,34 @@ The following screenshots serve as visual regression baselines:
 
 **QA Engineer:** Replit Agent  
 **Date:** October 31, 2025  
-**Test Coverage:** Smoke tests, visual baselines, code review, accessibility audit  
+**Test Coverage:** Smoke tests, visual baselines, code review, accessibility
+audit
 
 **Summary:**  
-The Atlas Design System has been successfully implemented across both the Client PWA and Admin PWA. All smoke tests passed, visual baselines captured, and architect approval received. The implementation maintains design consistency, meets accessibility standards, and is production-ready.
+The Atlas Design System has been successfully implemented across both the Client
+PWA and Admin PWA. All smoke tests passed, visual baselines captured, and
+architect approval received. The implementation maintains design consistency,
+meets accessibility standards, and is production-ready.
 
 ### Final Verdict: ✅ **APPROVED FOR PRODUCTION**
 
 **Recommendation:**  
-Proceed with production deployment. The Atlas redesign significantly improves the visual appeal and user experience while maintaining functionality and performance.
+Proceed with production deployment. The Atlas redesign significantly improves
+the visual appeal and user experience while maintaining functionality and
+performance.
 
 ---
 
 ## 11. Visual Evidence
 
 ### Client PWA Screenshots
+
 All 5 pages captured and analyzed (see Section 2.1 above):
+
 - Home, Groups, Pay, Statements, Profile
 
 ### Design Tokens Reference
+
 ```typescript
 // Atlas Blue Palette
 --atlas-blue: #0066FF
@@ -414,28 +502,35 @@ All 5 pages captured and analyzed (see Section 2.1 above):
 ## Appendix
 
 ### A. Files Modified
+
 **Shared UI Components:**
+
 - `packages/ui/src/components/gradient-header.tsx`
 - `packages/ui/src/components/glass-card.tsx`
 - `packages/ui/src/components/metric-card.tsx`
 
 **Admin PWA:**
+
 - `apps/admin/components/admin/panel/panel-shell.tsx`
 - `apps/admin/tailwind.config.ts`
 - `apps/admin/app/globals.css`
 
 **Client PWA:**
+
 - `apps/client/tailwind.config.ts`
 - `apps/client/app/globals.css`
 
 **Documentation:**
+
 - `replit.md` (updated with recent changes)
 
 ### B. Architect Reviews
+
 - **Phase 2 (Client PWA):** PASS - Production-ready
 - **Phase 3 (Admin PWA):** PASS - All concerns addressed
 
 ### C. Test Environment
+
 - Platform: Replit
 - Node.js: Latest LTS
 - Next.js: 16.0.0 (Turbopack)
