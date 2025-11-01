@@ -134,8 +134,9 @@ public class MoMoNotificationListener extends NotificationListenerService {
                 String supabaseUrl = BuildConfig.SUPABASE_URL;
                 String hmacSecret = BuildConfig.HMAC_SHARED_SECRET;
                 
-                // Skip if not configured
-                if (supabaseUrl.contains("placeholder") || hmacSecret.equals("placeholder-secret")) {
+                // Skip if not configured (exact check for placeholders)
+                if ("https://placeholder.supabase.co".equals(supabaseUrl) || 
+                    "placeholder-secret".equals(hmacSecret)) {
                     Log.w(TAG, "Edge Function URL or HMAC secret not configured, skipping post");
                     return;
                 }
@@ -200,8 +201,12 @@ public class MoMoNotificationListener extends NotificationListenerService {
     
     /**
      * Compute HMAC-SHA256 signature
+     * @throws java.security.NoSuchAlgorithmException if HmacSHA256 is not available
+     * @throws java.security.InvalidKeyException if the key is invalid
      */
-    private String computeHmacSha256(String secret, byte[] data) throws Exception {
+    private String computeHmacSha256(String secret, byte[] data) 
+            throws java.security.NoSuchAlgorithmException, 
+                   java.security.InvalidKeyException {
         Mac mac = Mac.getInstance("HmacSHA256");
         SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
         mac.init(keySpec);

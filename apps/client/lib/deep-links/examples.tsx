@@ -193,6 +193,9 @@ export function RequestNotificationPermission() {
  * Example: SMS User Consent Integration
  *
  * Use the SMS User Consent API when user taps "I've paid".
+ *
+ * Note: The SMS User Consent module (@/lib/sms/user-consent) already exists
+ * in the repository at lib/sms/user-consent.ts. This example shows how to use it.
  */
 
 import { requestSmsUserConsent } from "@/lib/sms/user-consent";

@@ -30,7 +30,8 @@ export type DeepLinkRoute =
 
 export type DeepLinkHandler = (route: DeepLinkRoute) => void | Promise<void>;
 
-const isNative = typeof window !== "undefined" && Capacitor.isNativePlatform();
+const isNative =
+  typeof window !== "undefined" && typeof Capacitor !== "undefined" && Capacitor.isNativePlatform();
 
 /**
  * Parse a URL into a DeepLinkRoute
@@ -121,11 +122,11 @@ export function registerDeepLinkHandler(handler: DeepLinkHandler): () => void {
   };
 
   // Add listener (returns Promise<PluginListenerHandle>)
-  let handlePromise = App.addListener("appUrlOpen", listener);
+  let appUrlListenerHandle = App.addListener("appUrlOpen", listener);
 
   // Return cleanup function
   return () => {
-    handlePromise.then((handle) => handle.remove());
+    appUrlListenerHandle.then((handle) => handle.remove());
   };
 }
 
