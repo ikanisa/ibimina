@@ -1,9 +1,11 @@
 package rw.gov.ikanisa.ibimina.client.auth
 
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.util.Base64
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
 import org.json.JSONObject
+import java.security.InvalidKeyException
 
 /**
  * Device Authentication Challenge Signer
@@ -67,7 +69,21 @@ class ChallengeSigner(
         val messageJson = signedMessage.toCanonicalJson()
         val messageBytes = messageJson.toByteArray(Charsets.UTF_8)
 
-        val initializedSignature = keyManager.getInitializedSignature()
+        val initializedSignature = try {
+            keyManager.getInitializedSignature()
+        } catch (e: KeyPermanentlyInvalidatedException) {
+            android.util.Log.w("ChallengeSigner", "Device key permanently invalidated", e)
+            onError("Device security settings changed. Please re-enroll biometrics.")
+            return
+        } catch (e: InvalidKeyException) {
+            android.util.Log.e("ChallengeSigner", "Failed to initialize device key", e)
+            onError("Device key unavailable. Please re-enroll this device.")
+            return
+        } catch (e: Exception) {
+            android.util.Log.e("ChallengeSigner", "Unexpected error initializing signature", e)
+            onError("Failed to prepare biometric signing: ${e.message}")
+            return
+        }
             ?: run {
                 onError("Device key unavailable. Please re-enroll this device.")
                 return
