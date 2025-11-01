@@ -27,19 +27,15 @@ interface VerifyOTPRequest {
 }
 
 interface VerifyOTPResponse {
-  success: boolean;
-  message: string;
-  session?: {
-    access_token: string;
-    refresh_token: string;
-    expires_in?: number;
-    token_type?: string;
-    user: {
-      id: string;
-      phone: string;
-    };
-  };
+  ok: boolean;
+  error?: string;
   attempts_remaining?: number;
+  token?: string;
+  user?: {
+    id: string;
+    phone: string;
+    is_new: boolean;
+  };
 }
 
 /**
@@ -53,69 +49,45 @@ function normalizePhoneNumber(phone: string): string {
   return cleaned;
 }
 
-interface ExchangeSessionResult {
-  accessToken: string | null;
-  refreshToken: string | null;
-  expiresIn: number | null;
-  tokenType: string | null;
-}
+const SESSION_TTL_SEC = parseInt(Deno.env.get("OTP_SESSION_TTL_SEC") ?? "3600", 10);
 
-const extractTokensFromUrl = (url: URL): ExchangeSessionResult => {
-  const hashParams = url.hash ? new URLSearchParams(url.hash.slice(1)) : null;
-  const searchParams = url.search ? new URLSearchParams(url.search.slice(1)) : null;
+const encoder = new TextEncoder();
 
-  const params =
-    hashParams && hashParams.has("access_token")
-      ? hashParams
-      : searchParams && searchParams.has("access_token")
-        ? searchParams
-        : (hashParams ?? searchParams);
-
-  const accessToken = params?.get("access_token") ?? null;
-  const refreshToken = params?.get("refresh_token") ?? null;
-  const expiresInValue = params?.get("expires_in") ?? null;
-  const tokenType = params?.get("token_type") ?? null;
-  const parsedExpiresIn = expiresInValue ? Number.parseInt(expiresInValue, 10) : Number.NaN;
-
-  return {
-    accessToken,
-    refreshToken,
-    expiresIn: Number.isNaN(parsedExpiresIn) ? null : parsedExpiresIn,
-    tokenType,
-  };
+export const base64UrlEncode = (input: Uint8Array): string => {
+  let binary = "";
+  input.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  const base64 = btoa(binary);
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 };
 
-const exchangeMagicLinkForSession = async (actionLink: string): Promise<ExchangeSessionResult> => {
-  let currentUrl = actionLink;
+export const signJwt = async (
+  payload: Record<string, unknown>,
+  secret: string,
+  expiresInSeconds: number
+): Promise<string> => {
+  const header = { alg: "HS256", typ: "JWT" };
+  const now = Math.floor(Date.now() / 1000);
+  const body = { ...payload, iat: now, exp: now + expiresInSeconds };
 
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    const response = await fetch(currentUrl, { redirect: "manual" });
-    const locationHeader = response.headers.get("location");
+  const headerBytes = encoder.encode(JSON.stringify(header));
+  const payloadBytes = encoder.encode(JSON.stringify(body));
 
-    const targetUrl = locationHeader ? new URL(locationHeader, currentUrl) : new URL(currentUrl);
-
-    const tokens = extractTokensFromUrl(targetUrl);
-
-    if (tokens.accessToken && tokens.refreshToken) {
-      return tokens;
-    }
-
-    if (!locationHeader) {
-      break;
-    }
-
-    currentUrl = targetUrl.toString();
-  }
-
-  return {
-    accessToken: null,
-    refreshToken: null,
-    expiresIn: null,
-    tokenType: null,
-  };
+  const base = `${base64UrlEncode(headerBytes)}.${base64UrlEncode(payloadBytes)}`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(base));
+  const signatureSegment = base64UrlEncode(new Uint8Array(signature));
+  return `${base}.${signatureSegment}`;
 };
 
-Deno.serve(async (req) => {
+export const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -129,9 +101,9 @@ Deno.serve(async (req) => {
     if (!phone_number || !code) {
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "Phone number and code are required",
-        }),
+          ok: false,
+          error: "Phone number and code are required",
+        } satisfies VerifyOTPResponse),
         {
           status: 400,
           headers: { ...corsHeaders, "content-type": "application/json" },
@@ -162,8 +134,8 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "Too many verification attempts. Please try again later.",
+          ok: false,
+          error: "Too many verification attempts. Please try again later.",
         } satisfies VerifyOTPResponse),
         {
           status: 429,
@@ -194,8 +166,8 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "No active OTP found. Please request a new code.",
+          ok: false,
+          error: "No active OTP found. Please request a new code.",
         } satisfies VerifyOTPResponse),
         {
           status: 404,
@@ -216,8 +188,8 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "OTP has expired. Please request a new code.",
+          ok: false,
+          error: "OTP has expired. Please request a new code.",
         } satisfies VerifyOTPResponse),
         {
           status: 401,
@@ -245,8 +217,8 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "Maximum verification attempts exceeded. Please request a new code.",
+          ok: false,
+          error: "Maximum verification attempts exceeded. Please request a new code.",
           attempts_remaining: 0,
         } satisfies VerifyOTPResponse),
         {
@@ -279,8 +251,8 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: `Invalid OTP code. ${attemptsRemaining} attempt(s) remaining.`,
+          ok: false,
+          error: `Invalid OTP code. ${attemptsRemaining} attempt(s) remaining.`,
           attempts_remaining: attemptsRemaining,
         } satisfies VerifyOTPResponse),
         {
@@ -331,9 +303,9 @@ Deno.serve(async (req) => {
         console.error("whatsapp_otp.user_creation_failed", { error: userError });
         return new Response(
           JSON.stringify({
-            success: false,
-            message: "Failed to create user account",
-          }),
+            ok: false,
+            error: "Failed to create user account",
+          } satisfies VerifyOTPResponse),
           {
             status: 500,
             headers: { ...corsHeaders, "content-type": "application/json" },
@@ -355,48 +327,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Generate session token
-    const supabaseUrl = requireEnv("SUPABASE_URL");
-
-    const { data: session, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: "magiclink",
-      email: `${normalizedPhone.replace("+", "")}@phone.sacco.rw`, // Fake email for phone users
-      options: {
-        redirectTo: `${supabaseUrl}/auth/v1/token-exchange`,
+    const jwtSecret = requireEnv("JWT_SECRET");
+    const token = await signJwt(
+      {
+        sub: userId,
+        phone: normalizedPhone,
+        role: "member",
       },
-    });
-
-    if (sessionError || !session?.properties?.action_link) {
-      console.error("whatsapp_otp.session_creation_failed", { error: sessionError });
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: "Failed to create session",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "content-type": "application/json" },
-        }
-      );
-    }
-
-    const exchangedSession = await exchangeMagicLinkForSession(session.properties.action_link);
-
-    if (!exchangedSession.accessToken || !exchangedSession.refreshToken) {
-      console.error("whatsapp_otp.session_exchange_failed", {
-        action_link: session.properties.action_link,
-      });
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: "Failed to exchange session tokens",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "content-type": "application/json" },
-        }
-      );
-    }
+      jwtSecret,
+      SESSION_TTL_SEC
+    );
 
     // Log successful verification
     await writeAuditLog(supabase, {
@@ -404,22 +344,17 @@ Deno.serve(async (req) => {
       actor: userId,
       entity: "whatsapp_otp",
       entity_id: normalizedPhone,
-      metadata: { phone: normalizedPhone, user_id: userId },
+      metadata: { phone: normalizedPhone, user_id: userId, is_new_user: isNewUser },
     });
 
     return new Response(
       JSON.stringify({
-        success: true,
-        message: "OTP verified successfully",
-        session: {
-          access_token: exchangedSession.accessToken,
-          refresh_token: exchangedSession.refreshToken,
-          expires_in: exchangedSession.expiresIn ?? undefined,
-          token_type: exchangedSession.tokenType ?? undefined,
-          user: {
-            id: userId,
-            phone: normalizedPhone,
-          },
+        ok: true,
+        token,
+        user: {
+          id: userId,
+          phone: normalizedPhone,
+          is_new: isNewUser,
         },
       } satisfies VerifyOTPResponse),
       {
@@ -431,13 +366,17 @@ Deno.serve(async (req) => {
     console.error("whatsapp_otp.verify_unexpected_error", { error });
     return new Response(
       JSON.stringify({
-        success: false,
-        message: "An unexpected error occurred",
-      }),
+        ok: false,
+        error: "An unexpected error occurred",
+      } satisfies VerifyOTPResponse),
       {
         status: 500,
         headers: { ...corsHeaders, "content-type": "application/json" },
       }
     );
   }
-});
+};
+
+if (import.meta.main) {
+  Deno.serve(handler);
+}
