@@ -6,8 +6,9 @@ to transform the Ibimina Client app into a comprehensive finance super app.
 ## 🎯 Objective
 
 Transform the Ibimina Client Android app into a feature-rich finance super app
-with all necessary permissions, packages, and tools for SACCO operations,
-including SMS access for OTP and Mobile Money integration.
+with all necessary permissions, packages, and tools for SACCO operations while
+adhering to Google Play's SMS/Call Log policy via user-consented Mobile Money
+ingestion.
 
 ## ✅ What Was Implemented
 
@@ -15,8 +16,8 @@ including SMS access for OTP and Mobile Money integration.
 
 #### Critical Finance Operations
 
-- **SMS Permissions** (SEND_SMS, RECEIVE_SMS, READ_SMS) - For OTP auto-reading
-  and Mobile Money integration
+- **Notification Listener + SMS User Consent** (no READ_SMS) - For policy-
+  compliant OTP capture and Mobile Money reconciliation
 - **Camera** (CAMERA) - For ID verification and receipt capture
 - **Phone** (CALL_PHONE) - For USSD dialing (\*182# in Rwanda)
 - **Biometric** (USE_BIOMETRIC, USE_FINGERPRINT) - For secure authentication
@@ -119,7 +120,7 @@ Comprehensive reference for all permissions:
 Developer implementation guide with:
 
 - Code examples for all features
-- SMS/OTP auto-reading
+- SMS consent-driven OTP capture
 - Camera and document capture
 - Biometric authentication
 - Push notifications
@@ -185,7 +186,7 @@ Permission management utilities:
 
 ### 1. Mobile Money Integration
 
-- SMS OTP auto-reading from Mobile Money providers
+- SMS consent UX for Mobile Money OTPs
 - USSD dialing for payments (\*182#)
 - Transaction confirmation parsing
 - Payment receipt capture
@@ -263,7 +264,7 @@ Permission management utilities:
 
 ### Features
 
-- SMS OTP reading with real Mobile Money messages
+- SMS consent flow tested with real Mobile Money messages
 - Camera capture in various lighting conditions
 - Biometric auth on multiple devices
 - Location accuracy
@@ -284,8 +285,8 @@ Permission management utilities:
 ### Pre-submission Checklist
 
 - [ ] Privacy policy published and linked
-- [ ] SMS permission usage explained in store listing
-- [ ] Video demo showing SMS features
+- [ ] SMS User Consent flow documented in store listing
+- [ ] Video demo showing consent experience (optional)
 - [ ] Location permission justification provided
 - [ ] Camera permission usage documented
 - [ ] Biometric usage explained
@@ -294,7 +295,7 @@ Permission management utilities:
 
 ### Required Declarations
 
-- SMS & CALL_LOG permissions require special declaration
+- Confirm SMS/Call Log declaration is NOT required (User Consent API only)
 - Location permission background usage justification
 - Camera permission usage explanation
 - Contacts permission justification
@@ -449,7 +450,7 @@ with:
 
 The app is ready for:
 
-- SMS/OTP integration
+- SMS consent-driven OTP integration
 - Mobile Money payments
 - Biometric authentication
 - Location services

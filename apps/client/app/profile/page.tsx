@@ -15,6 +15,7 @@
 
 import { Phone, MessageCircle, Globe, HelpCircle, FileText, Shield } from "lucide-react";
 import { ReferenceCard } from "@/components/reference/reference-card";
+import { SmsConsentCard } from "@/components/sms/sms-consent-card";
 
 export const metadata = {
   title: "Profile | SACCO+ Client",
@@ -95,7 +96,9 @@ export default async function ProfilePage() {
               <Phone className="mt-1 h-5 w-5 flex-shrink-0 text-atlas-blue" aria-hidden="true" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-neutral-700">Mobile Money</p>
-                <p className="mt-1 text-base font-semibold text-neutral-900">{profile.momoMsisdn}</p>
+                <p className="mt-1 text-base font-semibold text-neutral-900">
+                  {profile.momoMsisdn}
+                </p>
                 <p className="mt-1 text-xs text-neutral-500">
                   This number is linked to your payment account
                 </p>
@@ -108,6 +111,17 @@ export default async function ProfilePage() {
               To update your contact information, please contact your SACCO staff.
             </p>
           </div>
+        </section>
+
+        {/* Mobile Money Sync Consent */}
+        <section
+          aria-labelledby="sms-consent-heading"
+          className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6"
+        >
+          <h2 id="sms-consent-heading" className="text-lg font-bold text-neutral-900">
+            Mobile Money SMS Consent
+          </h2>
+          <SmsConsentCard senderHint={profile.momoMsisdn} />
         </section>
 
         {/* Language Settings */}
@@ -178,7 +192,10 @@ export default async function ProfilePage() {
           aria-labelledby="help-heading"
           className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6"
         >
-          <h2 id="help-heading" className="flex items-center gap-2 text-lg font-bold text-neutral-900">
+          <h2
+            id="help-heading"
+            className="flex items-center gap-2 text-lg font-bold text-neutral-900"
+          >
             <HelpCircle className="h-5 w-5 text-atlas-blue" aria-hidden="true" />
             <span>Help & Support</span>
           </h2>

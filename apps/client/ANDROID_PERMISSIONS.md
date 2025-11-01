@@ -45,34 +45,22 @@ for SACCO operations.
 - **Use Cases**:
   - Switch between mobile data and WiFi for optimal performance
 
-### SMS Permissions (Critical for Finance Operations)
+### SMS Access Strategy (Play Store Compliant)
 
-#### `SEND_SMS`
+The public Play Store build no longer requests the legacy `SEND_SMS`,
+`RECEIVE_SMS`, or `READ_SMS` permissions. Instead we combine two capabilities:
 
-- **Purpose**: Send SMS messages for transactions and notifications
-- **Required**: Yes (for USSD and SMS-based services)
-- **Use Cases**:
-  - Mobile Money USSD dialing
-  - SMS-based transaction confirmations
-  - Emergency alerts to members
+- **Notification Listener (`BIND_NOTIFICATION_LISTENER_SERVICE`)** – captures
+  the text that MTN MoMo and Airtel Money place in the Android notification
+  shade. This delivers immediate transaction context without reading the inbox.
+- **SMS User Consent API** – prompts the member with a system dialog for a
+  _single_ SMS. The message is only shared if the member explicitly approves it,
+  satisfying Google's SMS/Call Log policy requirements.
 
-#### `RECEIVE_SMS`
-
-- **Purpose**: Receive incoming SMS messages
-- **Required**: Yes (for OTP and confirmations)
-- **Use Cases**:
-  - Auto-read OTP codes from Mobile Money services
-  - Receive transaction confirmations from payment providers
-  - Process payment status updates
-
-#### `READ_SMS`
-
-- **Purpose**: Read SMS message content
-- **Required**: Yes (for OTP auto-fill)
-- **Use Cases**:
-  - Automatically extract OTP codes for seamless authentication
-  - Parse Mobile Money transaction confirmations
-  - Read payment receipts from SMS
+This hybrid approach keeps Mobile Money reconciliation automated while avoiding
+the sensitive SMS permissions that trigger Play Console declarations. Enterprise
+(MDM) builds can still enable the full `READ_SMS` flow via a separate manifest
+overlay if required.
 
 ### Camera & Storage Permissions
 

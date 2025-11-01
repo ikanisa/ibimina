@@ -84,7 +84,7 @@ export const PermissionExplanations: Record<PermissionType, string> = {
   [PermissionType.NOTIFICATIONS]:
     "Notifications keep you informed about transactions, payments, and group activities.",
   [PermissionType.SMS]:
-    "SMS access allows automatic reading of OTP codes from Mobile Money for faster authentication.",
+    "We use Android's SMS User Consent dialog so you can approve a single Mobile Money message. The app never reads your inbox in the background.",
   [PermissionType.CONTACTS]:
     "Contact access helps you find other SACCO members and easily send payments to friends.",
   [PermissionType.PHONE]:
@@ -152,19 +152,18 @@ export async function handlePermissionDenied(type: PermissionType) {
  */
 export async function checkCriticalPermissions(): Promise<boolean> {
   const cameraStatus = await checkPermission();
-  const smsStatus = await checkPermission();
 
-  return cameraStatus === PermissionStatus.GRANTED && smsStatus === PermissionStatus.GRANTED;
+  return cameraStatus === PermissionStatus.GRANTED;
 }
 
 /**
  * Request all critical permissions at app start
  */
 export async function requestCriticalPermissions(): Promise<void> {
-  const critical = [PermissionType.CAMERA, PermissionType.SMS];
+  const critical = [PermissionType.CAMERA];
 
   await Toast.show({
-    text: "Ibimina requires some permissions to provide full functionality",
+    text: "Ibimina needs camera access for KYC. SMS is requested later via Android's consent dialog.",
     duration: "long",
   });
 
