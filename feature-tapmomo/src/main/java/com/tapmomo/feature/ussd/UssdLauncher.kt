@@ -12,6 +12,8 @@ import androidx.core.content.ContextCompat
 import com.tapmomo.feature.Network
 import com.tapmomo.feature.TapMoMo
 import com.tapmomo.feature.UssdTemplate
+import com.tapmomo.feature.internal.TestHooks
+import com.tapmomo.feature.telemetry.TelemetryLogger
 
 /**
  * USSD launcher for initiating mobile money payments
@@ -112,7 +114,7 @@ object UssdLauncher {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return false
         }
-        
+
         // Check permission
         if (!hasPermission(context, Manifest.permission.CALL_PHONE)) {
             return false
@@ -129,7 +131,7 @@ object UssdLauncher {
             } else {
                 context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
             } ?: return false
-            
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 telephonyManager.sendUssdRequest(
                     ussdCode,
@@ -140,28 +142,53 @@ object UssdLauncher {
                             response: CharSequence?
                         ) {
                             // USSD response received
+                            TelemetryLogger.track(
+                                "tapmomo_ussd_response",
+                                mapOf(
+                                    "success" to true,
+                                    "responseLength" to (response?.length ?: 0),
+                                ),
+                            )
                         }
-                        
+
                         override fun onReceiveUssdResponseFailed(
                             telephonyManager: TelephonyManager?,
                             request: String?,
                             failureCode: Int
                         ) {
-                            // USSD failed, user should complete manually
+                            TelemetryLogger.track(
+                                "tapmomo_ussd_response",
+                                mapOf(
+                                    "success" to false,
+                                    "failureCode" to failureCode,
+                                ),
+                            )
                         }
                     },
                     android.os.Handler(android.os.Looper.getMainLooper())
+                )
+                TelemetryLogger.track(
+                    "tapmomo_ussd_launch",
+                    mapOf("method" to "telephony"),
                 )
                 return true
             }
         } catch (e: SecurityException) {
             e.printStackTrace()
+            TelemetryLogger.track(
+                "tapmomo_ussd_launch_failed",
+                mapOf("reason" to "security_exception"),
+            )
             return false
         } catch (e: Exception) {
             e.printStackTrace()
+            TelemetryLogger.track(
+                "tapmomo_ussd_launch_failed",
+                mapOf("reason" to e.javaClass.simpleName ?: "unknown"),
+            )
             return false
         }
-        
+
         return false
     }
     
@@ -169,6 +196,16 @@ object UssdLauncher {
      * Launch USSD via ACTION_DIAL intent (fallback)
      */
     private fun launchUssdViaDial(context: Context, ussdCode: String): Boolean {
+        TestHooks.ussdDialHandler?.let { handler ->
+            val handled = handler(context, ussdCode)
+            if (handled) {
+                TelemetryLogger.track(
+                    "tapmomo_ussd_launch",
+                    mapOf("method" to "test_override_dial"),
+                )
+                return true
+            }
+        }
         try {
             // Encode # as %23 for proper URI handling
             val encodedUssd = encodeForDialer(ussdCode)
@@ -179,9 +216,17 @@ object UssdLauncher {
             }
 
             context.startActivity(intent)
+            TelemetryLogger.track(
+                "tapmomo_ussd_launch",
+                mapOf("method" to "dial_intent"),
+            )
             return true
         } catch (e: Exception) {
             e.printStackTrace()
+            TelemetryLogger.track(
+                "tapmomo_ussd_launch_failed",
+                mapOf("reason" to "dial_intent_exception"),
+            )
             return false
         }
     }
@@ -203,7 +248,7 @@ object UssdLauncher {
         amount: Int?
     ): String {
         val config = TapMoMo.getConfig()
-        val template = config.ussdTemplates[network] ?: return ""
+        val template = config.ussdTemplateBundle.get(network) ?: return ""
         
         return buildUssdCode(template, merchantId, amount, config.useUssdShortcutWhenAmountPresent)
     }

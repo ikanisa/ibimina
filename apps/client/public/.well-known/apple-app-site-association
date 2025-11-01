@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "REPLACE_WITH_TEAM_ID.rw.ibimina.client",
+        "paths": [
+          "/join/*",
+          "/invite/*",
+          "/groups/*",
+          "/group/*",
+          "/pay",
+          "/statements",
+          "/profile"
+        ]
+      }
+    ]
+  }
+}

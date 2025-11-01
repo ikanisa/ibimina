@@ -1,5 +1,5 @@
-export { env, clientEnv, requiredServerEnv, atLeastOneServerEnv, loadServerEnv } from "./env";
-export type { ServerEnv, ClientEnv, RequiredServerEnvGroups, RawEnv } from "./env";
+export { env, clientEnv, requiredServerEnv, atLeastOneServerEnv, loadServerEnv } from "./env.js";
+export type { ServerEnv, ClientEnv, RequiredServerEnvGroups, RawEnv } from "./env.js";
 export {
   featureFlagDefinitions,
   getTenantFeatureFlags,
@@ -9,7 +9,7 @@ export {
   PILOT_DISTRICT,
   PILOT_TENANT_IDS,
   PILOT_TENANTS,
-} from "./featureFlags";
+} from "./featureFlags.js";
 export type {
   FeatureFlagName,
   PilotDistrict,
@@ -17,3 +17,5 @@ export type {
   TenantFeatureFlag,
   TenantFeatureFlags,
 } from "./featureFlags";
+export { ussdConfig, getDefaultUssdOperator, getUssdOperatorById } from "./ussd";
+export type { UssdConfig, UssdOperatorConfig, UssdLocaleDefinition } from "./ussd";

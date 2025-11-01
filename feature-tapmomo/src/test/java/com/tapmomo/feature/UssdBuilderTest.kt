@@ -84,4 +84,22 @@ class UssdBuilderTest {
         assertTrue(preview.contains("98765"))
         assertFalse(preview.contains(" 98765 "))
     }
+
+    @Test
+    fun testUssdTemplateBundleExpiry() {
+        val template = UssdTemplate(
+            shortcut = "*182*8*1*{MERCHANT}*{AMOUNT}#",
+            menu = "*182*8*1#",
+            base = "*182#"
+        )
+
+        val bundle = UssdTemplateBundle.from(
+            version = "test-version",
+            ttlSeconds = 30,
+            templates = mapOf(Network.MTN to template),
+            fetchedAtMs = System.currentTimeMillis() - 120_000
+        )
+
+        assertTrue(bundle.isExpired())
+    }
 }

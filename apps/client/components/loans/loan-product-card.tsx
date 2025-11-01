@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { LoanProduct } from "@/lib/types/supa-app";
+import { fmtCurrency } from "@/utils/format";
 import { CreditCard, Calendar, TrendingUp, FileText } from "lucide-react";
 
 interface LoanProductCardProps {
@@ -19,13 +20,7 @@ interface LoanProductCardProps {
  * @param onApply - Callback when user clicks "Apply Now"
  */
 export function LoanProductCard({ product, onApply }: LoanProductCardProps) {
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat("rw-RW", {
-      style: "currency",
-      currency: "RWF",
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  const formatAmount = (amount: number) => fmtCurrency(amount);
 
   return (
     <div

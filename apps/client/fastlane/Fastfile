@@ -1,0 +1,46 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build internal TestFlight build"
+  lane :internal do
+    ENV["FEATURE_FLAG_VOUCHERS"] = "1"
+    ENV["FEATURE_FLAG_LOANS"] = "0"
+    sh("eas build --profile internal --platform ios")
+  end
+
+  desc "Build alpha TestFlight build"
+  lane :alpha do
+    ENV["FEATURE_FLAG_VOUCHERS"] = "1"
+    ENV["FEATURE_FLAG_LOANS"] = "1"
+    sh("eas build --profile alpha --platform ios")
+  end
+
+  desc "Submit production build"
+  lane :release do
+    ENV["FEATURE_FLAG_VOUCHERS"] = "1"
+    ENV["FEATURE_FLAG_LOANS"] = "1"
+    ENV["FEATURE_FLAG_NFC_REFERENCE_CARDS"] = "1"
+    sh("eas build --profile production --platform ios")
+    sh("eas submit --profile production --platform ios")
+  end
+end
+
+platform :android do
+  desc "Build internal track"
+  lane :internal do
+    sh("eas build --profile internal --platform android")
+    sh("fastlane supply --track internal --apk build/app-internal.apk --skip_upload_metadata")
+  end
+
+  desc "Build open testing"
+  lane :alpha do
+    sh("eas build --profile alpha --platform android")
+    sh("fastlane supply --track alpha --aab build/app-alpha.aab --skip_upload_images")
+  end
+
+  desc "Rollout production"
+  lane :release do
+    sh("eas build --profile production --platform android")
+    sh("fastlane supply --track production --aab build/app-production.aab")
+  end
+end
