@@ -478,3 +478,58 @@ you’re ready to release to your local or on-prem infrastructure.
   each deployment.
 - Keep [Disaster Recovery Procedures](docs/DISASTER_RECOVERY.md) accessible for
   emergency response.
+
+## WhatsApp OTP & webhook smoke tests
+
+### cURL validation flow
+
+1. **Issue an OTP via Supabase Edge Function**
+
+   ```bash
+   curl -X POST "${SUPABASE_URL}/functions/v1/whatsapp-otp-send" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+     -d '{"phone_number":"+250788123456"}'
+   ```
+
+2. **Verify the OTP** (replace `123456` with the code returned by the first call
+   or retrieved from the database in non-production environments):
+
+   ```bash
+   curl -X POST "${SUPABASE_URL}/functions/v1/whatsapp-otp-verify" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+     -d '{"phone_number":"+250788123456","code":"123456"}'
+   ```
+
+3. **Simulate a Meta webhook callback**. Create the JSON payload you want to
+   test (for example `payload.json`), then sign it with your app secret:
+
+   ```bash
+   SIGNATURE="sha256=$(openssl dgst -sha256 -hmac "$META_WHATSAPP_APP_SECRET" payload.json | cut -d' ' -f2)"
+
+   curl -X POST "https://<your-vercel-domain>/webhook/whatsapp" \
+     -H "Content-Type: application/json" \
+     -H "X-Hub-Signature-256: ${SIGNATURE}" \
+     --data-binary @payload.json
+   ```
+
+   Use the `hub.mode=subscribe` query parameters to complete Meta's webhook
+   handshake:
+
+   ```bash
+   curl "https://<your-vercel-domain>/webhook/whatsapp?hub.mode=subscribe&hub.challenge=test&hub.verify_token=${META_WHATSAPP_VERIFY_TOKEN}"
+   ```
+
+### Troubleshooting checklist
+
+- Confirm rows are added to `ops.whatsapp_delivery_events` with
+  `select status, failure_reason from ops.whatsapp_delivery_events order by created_at desc limit 5;`
+- Review function logs in Supabase (`supabase functions logs whatsapp-otp-send`)
+  if OTP requests fail.
+- Inspect the alert webhook receiver whenever `whatsapp.delivery_failed`
+  notifications are emitted (search for the body hash reported in the 200 OK
+  response).
+- Ensure `META_WHATSAPP_APP_SECRET`, `META_WHATSAPP_VERIFY_TOKEN`,
+  `WHATSAPP_ALERT_WEBHOOK`, and Supabase credentials are present in your Vercel
+  project if webhook validation fails.
