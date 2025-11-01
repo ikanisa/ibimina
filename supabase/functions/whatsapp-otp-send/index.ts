@@ -1,8 +1,8 @@
 /**
  * WhatsApp OTP Send Edge Function
- * 
+ *
  * Generates and sends OTP codes via WhatsApp for member authentication
- * 
+ *
  * Security features:
  * - Rate limiting (max 3 OTPs per phone per hour)
  * - Secure OTP generation (6 digits, cryptographically random)
@@ -49,11 +49,7 @@ function generateOTP(): string {
  */
 function validatePhoneNumber(phone: string): boolean {
   // Accept formats: 078XXXXXXX, 250XXXXXXXXX, +250XXXXXXXXX
-  const patterns = [
-    /^07[2-9]\d{7}$/,
-    /^2507[2-9]\d{7}$/,
-    /^\+2507[2-9]\d{7}$/,
-  ];
+  const patterns = [/^07[2-9]\d{7}$/, /^2507[2-9]\d{7}$/, /^\+2507[2-9]\d{7}$/];
   return patterns.some((pattern) => pattern.test(phone));
 }
 
@@ -161,11 +157,10 @@ Deno.serve(async (req) => {
     const supabase = createServiceClient();
 
     // Rate limiting: max 3 OTPs per phone per hour
-    const rateLimitOk = await enforceRateLimit(
-      supabase,
-      `whatsapp_otp:${normalizedPhone}`,
-      { maxHits: 3, windowSeconds: 3600 }
-    );
+    const rateLimitOk = await enforceRateLimit(supabase, `whatsapp_otp:${normalizedPhone}`, {
+      maxHits: 3,
+      windowSeconds: 3600,
+    });
 
     if (!rateLimitOk) {
       await writeAuditLog(supabase, {
@@ -199,14 +194,16 @@ Deno.serve(async (req) => {
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     // Store OTP in database
-    const { error: dbError } = await supabase
+    const { data: insertedOtp, error: dbError } = await supabase
       .schema("app")
       .from("whatsapp_otp_codes")
       .insert({
         phone_number: normalizedPhone,
         code_hash: otpHash,
         expires_at: expiresAt.toISOString(),
-      });
+      })
+      .select("id")
+      .single();
 
     if (dbError) {
       console.error("whatsapp_otp.db_insert_failed", { error: dbError });
@@ -226,6 +223,21 @@ Deno.serve(async (req) => {
     const sendResult = await sendWhatsAppOTP(normalizedPhone, otp);
 
     if (!sendResult.success) {
+      if (insertedOtp?.id) {
+        const { error: cleanupError } = await supabase
+          .schema("app")
+          .from("whatsapp_otp_codes")
+          .delete()
+          .eq("id", insertedOtp.id);
+
+        if (cleanupError) {
+          console.error("whatsapp_otp.cleanup_failed", {
+            error: cleanupError,
+            phone: normalizedPhone,
+          });
+        }
+      }
+
       // Log failure but don't expose details to client
       await writeAuditLog(supabase, {
         event: "whatsapp_otp.send_failed",
