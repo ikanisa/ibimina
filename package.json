@@ -33,6 +33,9 @@
     "validate:production": "bash scripts/validate-production-readiness.sh",
     "validate:cloudflare": "bash scripts/validate-cloudflare-deployment.sh",
     "kb:sync": "tsx scripts/kb/syncContent.ts",
+    "preview:vercel": "pnpm exec vercel deploy --cwd apps/admin --prebuilt --yes",
+    "deploy:vercel": "pnpm exec vercel deploy --cwd apps/admin --prod --yes",
+    "release": "pnpm run check:deploy && pnpm run deploy:vercel",
     "prepare": "husky"
   },
   "dependencies": {
