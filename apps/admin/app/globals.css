@@ -25,8 +25,16 @@
   --surface: #F9FAFB;
   --border: #E5E7EB;
   
-  --background: var(--bg);
-  --foreground: var(--fg);
+  --background: #FFFFFF;
+  --foreground: #111827;
+  --input: #9CA3AF;
+  --primary: #0066FF;
+  --primary-foreground: #FFFFFF;
+  --muted-foreground: #4B5563;
+  --destructive: #EF4444;
+  --success: #10B981;
+  --ring: #0066FF;
+  
   --focus-ring: 0 0 0 3px var(--atlas-glow);
 }
 
@@ -37,6 +45,15 @@
     --fg: #F9FAFB;
     --surface: #1F2937;
     --border: #374151;
+    
+    --background: #0B1020;
+    --foreground: #F9FAFB;
+    --input: #374151;
+    --primary: #3385FF;
+    --primary-foreground: #FFFFFF;
+    --muted-foreground: #9CA3AF;
+    --destructive: #F87171;
+    --success: #34D399;
   }
 }
 
