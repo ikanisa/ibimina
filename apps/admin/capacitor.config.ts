@@ -16,15 +16,12 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "rw.ibimina.staff",
   appName: "Ibimina Staff",
-  webDir: ".next",
+  webDir: ".next-static",
   server: {
     androidScheme: "https",
-    cleartext: false, // Enforce HTTPS in production
-    // For production builds, set CAPACITOR_SERVER_URL
-    // For development, defaults to localhost
-    ...(process.env.CAPACITOR_SERVER_URL && {
-      url: process.env.CAPACITOR_SERVER_URL,
-    }),
+    cleartext: true, // Allow cleartext for dev server
+    // Server URL for the app to connect to
+    url: process.env.CAPACITOR_SERVER_URL || "https://4095a3b5-fbd8-407c-bbf4-c6a12f21341e-00-2ss8fo7up7zir.kirk.replit.dev",
   },
   android: {
     // Disallow mixed content for security

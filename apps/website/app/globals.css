@@ -25,7 +25,10 @@ body {
   background: linear-gradient(135deg, #0033ff, #00a1de, #fad201, #20603d);
   background-size: 300% 300%;
   animation: flow 16s ease-in-out infinite;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -70,11 +73,11 @@ button:focus-visible {
     background: white;
     color: black;
   }
-  
+
   .no-print {
     display: none;
   }
-  
+
   .glass {
     background: white;
     border: 1px solid #ccc;

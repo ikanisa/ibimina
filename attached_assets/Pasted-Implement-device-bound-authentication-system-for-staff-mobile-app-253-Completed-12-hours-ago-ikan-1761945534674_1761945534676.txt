@@ -1,0 +1,60 @@
+Implement device-bound authentication system for staff mobile app #253
+Completed
+12 hours ago
+·
+ikanisa/ibimina
+main
+copilot/add-private-authenticator-app
+Summary
+1 session
+· 1 premium request
+· Last updated 12 hours ago
+Adds WebAuthn/FIDO-style authentication where the staff Android app acts as a biometric-gated authenticator for web login. Challenge-response over QR, not credential transfer.
+
+Implementation
+Database (Supabase)
+
+device_auth_keys - EC P-256 public keys, Play Integrity verdicts, device lifecycle
+device_auth_challenges - 60s TTL, one-time nonce, origin binding
+device_auth_audit - comprehensive event log
+Backend API
+
+POST /api/device-auth/challenge - generates QR payload: {session_id, origin, nonce, exp}
+POST /api/device-auth/verify - validates signature, nonce freshness, origin match
+POST /api/device-auth/enroll - registers device public key
+GET/DELETE /api/device-auth/devices - device management
+Android (Kotlin)
+
+DeviceKeyManager - EC P-256 in Android Keystore (StrongBox preferred), biometric-bound private key
+BiometricAuthHelper - Class 3 biometrics (fingerprint/face) via BiometricPrompt
+ChallengeSigner - canonical JSON signing, challenge validation
+DeviceAuthPlugin - Capacitor bridge exposing key ops to web layer
+Web Integration
+
+DeviceAuthManager (mobile) - enrollment, signing, verification workflows
+DeviceAuthClient (admin) - QR generation, session polling
+Security
+Phishing resistance: Origin in challenge, displayed to user, validated server-side
+Replay prevention: One-time nonce, database tracking, 60s expiry
+Device binding: Keys never leave Keystore, StrongBox when available
+Biometric gate: Every signature requires user presence
+Integrity: Play Integrity API scaffolded (mock + production guide)
+
+Usage
+// Enroll
+await deviceAuthManager.enrollDevice(userId, "Galaxy S23", token);
+
+// Generate challenge (web)
+const { challenge } = await client.generateChallenge();
+const qr = await QRCode.toDataURL(JSON.stringify(challenge));
+
+// Sign challenge (mobile) - triggers biometric
+const { signature, signedMessage } = await deviceAuthManager.signChallenge(challenge, userId);
+await deviceAuthManager.verifyChallenge(sessionId, deviceId, signature, signedMessage);
+Pending
+UI components (enrollment flow, QR login screen, device management)
+WebSocket/SSE for session updates (polling implemented, guide provided)
+Real Play Integrity verification (mock + guide provided)
+TypeScript types regeneration after migration
+Docs: DEVICE_AUTHENTICATION.md (technical), DEVICE_AUTH_SETUP.md (quickstart), DEVICE_AUTH_IMPLEMENTATION.md (summary)
+

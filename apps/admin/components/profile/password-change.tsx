@@ -1,6 +1,6 @@
 /**
  * Staff Password Change Component
- * 
+ *
  * Allows staff to change their password with platform restrictions
  * Password changes are only allowed via web app, not mobile
  */

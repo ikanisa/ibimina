@@ -1,6 +1,6 @@
 /**
  * Platform detection utilities
- * 
+ *
  * Helps detect if user is on mobile, web, or specific platform
  */
 

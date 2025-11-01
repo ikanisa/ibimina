@@ -57,22 +57,22 @@ export default async function PayPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-neutral-50 pb-20">
+      {/* Header - Atlas redesigned */}
+      <header className="bg-white border-b border-neutral-200 sticky top-0 z-10 backdrop-blur-sm bg-white/95">
         <div className="max-w-screen-xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">Make a Payment</h1>
-          <p className="text-sm text-gray-600 mt-1">Use USSD codes to contribute to your groups</p>
+          <h1 className="text-2xl font-bold text-neutral-900">Make a Payment</h1>
+          <p className="text-sm text-neutral-600 mt-1">Use USSD codes to contribute to your groups</p>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-8">
-        {/* Help Banner */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        {/* Help Banner - Atlas redesigned */}
+        <div className="bg-atlas-glow border border-atlas-blue/20 rounded-2xl p-5 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-atlas-blue flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div>
-            <h2 className="text-sm font-semibold text-blue-900">How to Pay</h2>
-            <p className="text-xs text-blue-800 mt-1">
+            <h2 className="text-sm font-semibold text-atlas-blue-dark">How to Pay</h2>
+            <p className="text-sm text-neutral-700 mt-1.5 leading-relaxed">
               Tap the green &quot;Dial to Pay&quot; button on any card below. Your phone will
               automatically dial the USSD code. Follow the prompts to complete your payment.
             </p>
@@ -81,9 +81,9 @@ export default async function PayPage() {
 
         {/* Payment Instructions List */}
         {paymentInstructions.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-lg p-12 text-center">
-            <p className="text-lg text-gray-600 mb-2">No payment instructions available</p>
-            <p className="text-sm text-gray-500">Join a group to see payment instructions here</p>
+          <div className="bg-white border border-neutral-200 rounded-2xl p-12 text-center">
+            <p className="text-lg font-semibold text-neutral-700 mb-2">No payment instructions available</p>
+            <p className="text-sm text-neutral-600">Join a group to see payment instructions here</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -102,13 +102,13 @@ export default async function PayPage() {
           </div>
         )}
 
-        {/* General Help Section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-          <h2 className="text-lg font-bold text-gray-900">Need Help?</h2>
+        {/* General Help Section - Atlas redesigned */}
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 space-y-4">
+          <h2 className="text-lg font-bold text-neutral-900">Need Help?</h2>
 
           <div className="space-y-3">
-            <details className="group">
-              <summary className="flex items-center justify-between cursor-pointer list-none font-medium text-gray-900 hover:text-blue-600 transition-colors">
+            <details className="group pb-3 border-b border-neutral-100 last:border-0 last:pb-0">
+              <summary className="flex items-center justify-between cursor-pointer list-none font-semibold text-neutral-900 hover:text-atlas-blue transition-colors">
                 <span>What if I have multiple SIM cards?</span>
                 <span className="transition group-open:rotate-180">
                   <svg
@@ -126,14 +126,14 @@ export default async function PayPage() {
                   </svg>
                 </span>
               </summary>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="mt-2 text-sm text-neutral-600">
                 Make sure to use the SIM card that is registered with your Mobile Money account.
                 Your phone may ask you to select which SIM to use when dialing the USSD code.
               </p>
             </details>
 
-            <details className="group">
-              <summary className="flex items-center justify-between cursor-pointer list-none font-medium text-gray-900 hover:text-blue-600 transition-colors">
+            <details className="group pb-3 border-b border-neutral-100 last:border-0 last:pb-0">
+              <summary className="flex items-center justify-between cursor-pointer list-none font-semibold text-neutral-900 hover:text-atlas-blue transition-colors">
                 <span>How long does it take to confirm?</span>
                 <span className="transition group-open:rotate-180">
                   <svg
@@ -151,15 +151,15 @@ export default async function PayPage() {
                   </svg>
                 </span>
               </summary>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-neutral-600 mt-3 leading-relaxed">
                 Payment confirmations usually appear within a few minutes. You&apos;ll receive an
                 SMS confirmation from your mobile money provider, and your statement will update
                 automatically.
               </p>
             </details>
 
-            <details className="group">
-              <summary className="flex items-center justify-between cursor-pointer list-none font-medium text-gray-900 hover:text-blue-600 transition-colors">
+            <details className="group pb-3 border-b border-neutral-100 last:border-0 last:pb-0">
+              <summary className="flex items-center justify-between cursor-pointer list-none font-semibold text-neutral-900 hover:text-atlas-blue transition-colors">
                 <span>What if the USSD code doesn&apos;t work?</span>
                 <span className="transition group-open:rotate-180">
                   <svg
@@ -177,7 +177,7 @@ export default async function PayPage() {
                   </svg>
                 </span>
               </summary>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="mt-2 text-sm text-neutral-600">
                 If the tap-to-dial doesn&apos;t work, you can manually dial the USSD code from your
                 phone&apos;s dialer. Copy the merchant code and reference code from the card above.
               </p>

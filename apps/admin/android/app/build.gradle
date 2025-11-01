@@ -36,6 +36,16 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    
+    // Biometric Authentication for Device-Bound Auth
+    implementation "androidx.biometric:biometric:1.1.0"
+    
+    // WorkManager for SMS background sync
+    implementation "androidx.work:work-runtime-ktx:2.8.1"
+    
+    // Kotlin coroutines for SmsReceiver
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+    
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
