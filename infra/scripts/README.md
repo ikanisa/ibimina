@@ -124,3 +124,29 @@ Configure alerts for:
 - Auth service errors
 - Failed idempotency operations
 - Unusual audit log patterns
+
+## Automated Deployments
+
+### deploy-vercel.ts
+
+Deploys the WhatsApp OTP edge functions and the platform-api webhook to Vercel.
+
+**Usage:**
+
+```bash
+pnpm exec tsx infra/scripts/deploy-vercel.ts
+```
+
+**Required environment variables:**
+
+- `SUPABASE_ACCESS_TOKEN`
+- `SUPABASE_PROJECT_REF`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `VERCEL_TOKEN`
+
+The script runs `supabase functions deploy whatsapp-otp-send` and
+`supabase functions deploy whatsapp-otp-verify` before pushing the
+`apps/platform-api` project to Vercel with production settings.
