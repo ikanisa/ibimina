@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file. Dates are
 in YYYY-MM-DD.
 
+## [0.1.4] - 2025-12-02
+
+- Hardened linting for platform workers, extending @typescript-eslint coverage
+  and wiring `pnpm exec eslint` to block
+  regressions.【F:apps/platform-api/eslint.config.mjs†L1-L46】【F:apps/platform-api/package.json†L7-L24】
+- Expanded the client PWA manifest/service worker with installability metadata,
+  navigation preload, and a share target landing flow to satisfy Lighthouse PWA
+  checks.【F:apps/client/public/manifest.json†L1-L74】【F:apps/client/workers/service-worker.ts†L1-L115】【F:apps/client/app/share/page.tsx†L1-L58】【F:apps/client/app/share-target/route.ts†L1-L35】
+- Codified Expo mobile release governance with runtime versioning, EAS profiles,
+  and scripted AAB/IPA builds for reproducible
+  releases.【F:apps/mobile/app.config.ts†L1-L93】【F:apps/mobile/app.json†L1-L48】【F:apps/mobile/package.json†L1-L69】【F:apps/mobile/eas.json†L1-L23】
+- Delivered audit collateral (ExecutiveSummary.md, AuditReport.md,
+  RiskRegister.json, GoLiveScorecard.md, ARTIFACTS_INVENTORY.md,
+  RELEASE_CHECKLIST.md) and a CI/CD blueprint for full-stack quality
+  gates.【F:ExecutiveSummary.md†L1-L27】【F:AuditReport.md†L1-L116】【F:RiskRegister.json†L1-L43】【F:GoLiveScorecard.md†L1-L19】【F:ARTIFACTS_INVENTORY.md†L1-L7】【F:RELEASE_CHECKLIST.md†L1-L37】【F:ci/github-actions-hardening.yml†L1-L185】
+
 ## [0.1.3] - 2025-10-16
 
 - Normalised SACCO search slugs via helper-trigger pipeline and backfilled data;

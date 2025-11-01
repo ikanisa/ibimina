@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-esm src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "lint": "echo 'TODO: add linting'",
+    "lint": "pnpm exec eslint --max-warnings=0 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm run test:unit && pnpm run test:integration",
     "test:unit": "tsx --test tests/unit/*.test.ts",
@@ -22,10 +22,14 @@
     "@supabase/supabase-js": "^2.74.0"
   },
   "devDependencies": {
+    "@types/node": "20.19.21",
+    "@typescript-eslint/eslint-plugin": "workspace:^",
+    "@typescript-eslint/parser": "workspace:^",
     "@vercel/node": "^3.2.9",
+    "eslint": "workspace:^",
+    "globals": "workspace:^",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3",
-    "@types/node": "20.19.21"
+    "typescript": "^5.9.3"
   }
 }
