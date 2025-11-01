@@ -339,30 +339,26 @@ async function verifySignature(
     const messageBuffer = Buffer.from(messageJson, "utf-8");
     const signatureBuffer = Buffer.from(signatureBase64, "base64");
 
-    // Create verifier based on algorithm
-    let verify: crypto.Verify;
-
-    if (algorithm === "ES256") {
-      // EC P-256 with SHA-256
-      verify = crypto.createVerify("SHA256");
-    } else if (algorithm === "Ed25519") {
-      // Ed25519
-      verify = crypto.createVerify("ed25519"); // Ed25519
-    } else {
-      throw new Error(`Unsupported algorithm: ${algorithm}`);
-    }
-
-    verify.update(messageBuffer);
-    verify.end();
-
     // Import public key
     const publicKey = crypto.createPublicKey({
       key: publicKeyPem,
       format: "pem",
     });
 
-    // Verify signature
-    return verify.verify(publicKey, signatureBuffer);
+    if (algorithm === "ES256") {
+      // EC P-256 with SHA-256 (streaming verify)
+      const verifier = crypto.createVerify("SHA256");
+      verifier.update(messageBuffer);
+      verifier.end();
+      return verifier.verify(publicKey, signatureBuffer);
+    }
+
+    if (algorithm === "Ed25519") {
+      // Node's Ed25519 API uses one-shot verify
+      return crypto.verify(null, messageBuffer, publicKey, signatureBuffer);
+    }
+
+    throw new Error(`Unsupported algorithm: ${algorithm}`);
   } catch (error) {
     console.error("Signature verification error:", error);
     return false;
