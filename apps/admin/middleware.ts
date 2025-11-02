@@ -3,14 +3,8 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
-import {
-  HSTS_HEADER,
-  SECURITY_HEADERS,
-  createContentSecurityPolicy,
-  createNonce,
-  createRequestId,
-} from "@/lib/security/headers";
 import { resolveEnvironment, scrubPII } from "@ibimina/lib";
+import { createSecurityMiddlewareContext } from "@ibimina/lib/security";
 
 const isDev = process.env.NODE_ENV !== "production";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
@@ -79,9 +73,11 @@ const resolveDeepLink = async (
 
 const middlewareImpl = async (request: NextRequest) => {
   const startedAt = Date.now();
-  const nonce = createNonce();
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-csp-nonce", nonce);
+  const securityContext = createSecurityMiddlewareContext({
+    requestHeaders: request.headers,
+    isDev,
+    supabaseUrl,
+  });
 
   try {
     const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
@@ -144,7 +140,7 @@ const middlewareImpl = async (request: NextRequest) => {
   } catch (error) {
     Sentry.captureException(error, {
       data: {
-        requestId: requestHeaders.get("x-request-id"),
+        requestId: securityContext.requestId,
         path: request.nextUrl.pathname,
         method: request.method,
       },
@@ -154,7 +150,7 @@ const middlewareImpl = async (request: NextRequest) => {
     const logPayload = {
       event: "admin.middleware.complete",
       environment: resolveEnvironment(),
-      requestId: requestHeaders.get("x-request-id"),
+      requestId: securityContext.requestId,
       method: request.method,
       url: request.nextUrl.pathname,
       durationMs: Date.now() - startedAt,

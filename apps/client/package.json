@@ -11,7 +11,7 @@
     "deploy:vercel:fallback": "ENABLE_PWA_FALLBACK=1 vercel --prod",
     "deploy:vercel:preview": "ENABLE_PWA_FALLBACK=1 vercel --prebuilt",
     "start": "next start -p 5000 -H 0.0.0.0",
-    "lint": "pnpm exec eslint --max-warnings=0 .",
+    "lint": "node ../../config/tooling/scripts/run-eslint.mjs .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm run test:unit",
     "test:unit": "pnpm exec c8 --clean=false --temp-directory=.nyc_output --report-dir=coverage/unit --reporter=lcov --reporter=json-summary --reporter=text-summary tsx --test tests/unit/*.test.ts",
