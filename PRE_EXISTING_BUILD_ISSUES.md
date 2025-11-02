@@ -161,7 +161,7 @@ Cannot find namespace 'JSX'.
 Update the type definitions in the story file:
 
 ```typescript
-import type { ComponentProps, JSXElementConstructor } from "react";
+import React, { type ComponentProps, type JSXElementConstructor } from "react";
 
 type StoryObj<
   T extends JSXElementConstructor<unknown> | keyof JSX.IntrinsicElements,
