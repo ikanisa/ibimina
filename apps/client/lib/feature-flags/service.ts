@@ -9,11 +9,11 @@
  */
 
 import {
-  FeatureFlags,
+  type FeatureFlags,
   mergeFeatureFlagSources,
   normalizeFlagKey,
   parseFeatureFlagsFromEnv,
-} from "@/components/FeatureFlagProvider";
+} from "./utils";
 import { requireSupabaseConfig } from "@/lib/supabase/config";
 
 type RemoteFlagRecord = Record<string, unknown>;
@@ -113,7 +113,7 @@ async function fetchFlagsmithFlags(environmentKey: string): Promise<FeatureFlags
 
 async function fetchSupabaseFeatureFlags(serviceRoleKey: string): Promise<FeatureFlags> {
   const { url, anonKey } = requireSupabaseConfig("loadFeatureFlags");
-  const endpoint = `${url.replace(/\/$/, "")}/rest/v1/configuration?select=value&key=eq.feature_flags`;
+  const endpoint = `${url.replace(/\/$/, "")}/rest/v1/feature_flags?select=key,is_enabled&country_id=is.null&org_id=is.null`;
 
   const response = await fetch(endpoint, {
     headers: {
@@ -124,23 +124,18 @@ async function fetchSupabaseFeatureFlags(serviceRoleKey: string): Promise<Featur
   });
 
   if (!response.ok) {
-    throw new Error(`Supabase configuration request failed with status ${response.status}`);
+    throw new Error(`Supabase feature flag request failed with status ${response.status}`);
   }
 
-  const payload = (await response.json()) as Array<{ value?: RemoteFlagRecord | null }>;
-  const configuration = payload?.[0]?.value ?? {};
+  const payload = (await response.json()) as Array<{ key?: string; is_enabled?: unknown }>;
   const flags: FeatureFlags = {};
 
-  Object.entries(configuration).forEach(([key, value]) => {
-    const normalizedKey = normalizeFlagKey(key);
+  payload.forEach((row) => {
+    const normalizedKey = normalizeFlagKey(row.key ?? "");
     if (!normalizedKey) {
       return;
     }
-
-    const booleanValue = extractBoolean(value);
-    if (typeof booleanValue === "boolean") {
-      flags[normalizedKey] = booleanValue;
-    }
+    flags[normalizedKey] = extractBoolean(row.is_enabled) ?? false;
   });
 
   return flags;

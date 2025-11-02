@@ -1,10 +1,18 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { resolveSupabaseEnvironment, type ResolveSupabaseEnvironmentOptions } from "@ibimina/lib";
+import { resolveSupabaseEnvironment } from "@ibimina/lib";
 
-export type CreateClientOptions = ResolveSupabaseEnvironmentOptions;
+export type CreateClientOptions = {
+  url?: string;
+  anonKey?: string;
+  accessToken?: string;
+};
 
-export const createSupabaseClient = (options: CreateClientOptions = {}): SupabaseClient => {
-  const environment = resolveSupabaseEnvironment(options);
+export const createSupabaseClient = ({
+  url,
+  anonKey,
+  accessToken,
+}: CreateClientOptions = {}): SupabaseClient => {
+  const environment = resolveSupabaseEnvironment({ url, anonKey, accessToken });
 
   const client = createClient(environment.url, environment.anonKey, {
     auth: environment.accessToken

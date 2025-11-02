@@ -1,6 +1,7 @@
 // ESM configuration for Next.js
 import path from "path";
 import { fileURLToPath } from "url";
+import { featureFlagDefinitions } from "@ibimina/config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,13 +24,25 @@ const SECURITY_HEADERS = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
 ];
 
-// PWA configuration
+const HSTS_HEADER = {
+  key: "Strict-Transport-Security",
+  value: "max-age=63072000; includeSubDomains; preload",
+};
+
+const fallbackFeatureDefault = featureFlagDefinitions.pwaFallback.defaultValue;
+const shouldEnablePwaFallback =
+  process.env.ENABLE_PWA_FALLBACK === "1" ||
+  (process.env.DISABLE_PWA_FALLBACK !== "1" && fallbackFeatureDefault);
+
 let withPWA = (config) => config;
 try {
   const withPWAInit = (await import("next-pwa")).default;
   withPWA = withPWAInit({
     dest: "public",
-    disable: process.env.NODE_ENV === "development" || process.env.DISABLE_PWA === "1",
+    disable:
+      process.env.NODE_ENV === "development" ||
+      process.env.DISABLE_PWA === "1" ||
+      !shouldEnablePwaFallback,
     register: true,
     skipWaiting: true,
     sw: "service-worker.js",
@@ -63,7 +76,7 @@ const nextConfig = {
   },
 
   // Performance: Transpile workspace packages
-  transpilePackages: ["@ibimina/config", "@ibimina/ui"],
+  transpilePackages: ["@ibimina/config", "@ibimina/lib", "@ibimina/locales", "@ibimina/ui"],
 
   // Performance: Tree-shaking for lucide-react
   modularizeImports: {
@@ -85,6 +98,9 @@ const nextConfig = {
   // Performance: HTTP caching headers for static assets
   async headers() {
     const baseHeaders = [...SECURITY_HEADERS];
+    if (process.env.NODE_ENV === "production") {
+      baseHeaders.push(HSTS_HEADER);
+    }
 
     const immutableAssetHeaders = [
       ...baseHeaders,

@@ -122,7 +122,7 @@ export function registerDeepLinkHandler(handler: DeepLinkHandler): () => void {
   };
 
   // Add listener (returns Promise<PluginListenerHandle>)
-  let appUrlListenerHandle = App.addListener("appUrlOpen", listener);
+  const appUrlListenerHandle = App.addListener("appUrlOpen", listener);
 
   // Return cleanup function
   return () => {

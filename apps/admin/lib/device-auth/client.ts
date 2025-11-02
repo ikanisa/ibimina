@@ -123,7 +123,7 @@ export class DeviceAuthClient {
    * @param sessionId Session ID to check
    * @returns Verification status
    */
-  async checkSessionStatus(sessionId: string): Promise<{
+  async checkSessionStatus(_sessionId: string): Promise<{
     verified: boolean;
     userId?: string;
     error?: string;

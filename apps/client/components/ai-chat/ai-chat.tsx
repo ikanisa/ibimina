@@ -30,11 +30,6 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [assistantContext, setAssistantContext] = useState<{
-    org: string | null;
-    country: string | null;
-    lang: string | null;
-  } | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -108,6 +103,8 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
 
     await new Promise((resolve) => setTimeout(resolve, 800));
 
+    const fullResponse = `I understand you're asking about "${userMessage.content}". I'm here to help with USSD payments, reference tokens, account statements, and general SACCO questions. Could you please provide more details about what you'd like to know?`;
+
     await simulateStreaming(fullResponse, agentMessageId);
 
     setIsLoading(false);
@@ -121,8 +118,9 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
   };
 
   useEffect(() => {
+    const controller = controllerRef.current;
     return () => {
-      controllerRef.current?.abort();
+      controller?.abort();
     };
   }, []);
 
@@ -134,15 +132,7 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
         </div>
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-neutral-900">SACCO+ Support</h2>
-          <p className="text-xs text-neutral-500">
-            AI Assistant
-            {assistantContext?.org && (
-              <span className="ml-1 text-neutral-400">
-                • {assistantContext.org}
-                {assistantContext.country ? ` (${assistantContext.country})` : ""}
-              </span>
-            )}
-          </p>
+          <p className="text-xs text-neutral-500">AI Assistant</p>
         </div>
         {onClose && (
           <button

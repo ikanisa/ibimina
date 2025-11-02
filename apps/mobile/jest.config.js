@@ -10,6 +10,11 @@ const combinedModuleNameMapper = {
   "^expo-modules-core/src/web/index\\.web$": "<rootDir>/jest.expo-modules-web.cjs",
   "^expo$": "<rootDir>/jest.expo-mock.cjs",
   "^expo/.*$": "<rootDir>/jest.expo-mock.cjs",
+  "^@/(.*)$": "<rootDir>/src/$1",
+  "^@ibimina/data-access$": "<rootDir>/../../packages/data-access/src/index.ts",
+  "^@ibimina/data-access/(.*)$": "<rootDir>/../../packages/data-access/src/$1",
+  "^@ibimina/lib$": "<rootDir>/../../packages/lib/src/index.ts",
+  "^@ibimina/lib/(.*)$": "<rootDir>/../../packages/lib/src/$1",
 };
 
 const combinedSetupFiles = [
@@ -39,4 +44,22 @@ module.exports = {
   transformIgnorePatterns: [],
   moduleNameMapper: combinedModuleNameMapper,
   transform: combinedTransform,
+  testMatch: ["**/__tests__/**/*.(spec|test).[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
+  collectCoverage: true,
+  collectCoverageFrom: [
+    "src/features/auth/**/*.{ts,tsx}",
+    "src/services/api/client.ts",
+    "src/providers/store.ts",
+  ],
+  coverageDirectory: "<rootDir>/coverage",
+  coverageReporters: ["text", "lcov", "json-summary"],
+  coveragePathIgnorePatterns: ["/node_modules/", "\.stories\.(ts|tsx)$"],
+  coverageThreshold: {
+    global: {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+  },
 };

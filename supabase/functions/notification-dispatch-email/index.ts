@@ -2,6 +2,7 @@ import { validateHmacRequest } from "../_shared/auth.ts";
 import { createServiceClient, requireEnv } from "../_shared/mod.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 import {
   claimNotificationJobs,
   computeNextRetryAt,
@@ -46,7 +47,7 @@ const sendResendEmail = async ({
   return { ok: response.ok, status: response.status, error };
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("notification-dispatch-email", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

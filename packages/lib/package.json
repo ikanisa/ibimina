@@ -3,15 +3,32 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "src/index.ts",
   "scripts": {
-    "lint": "echo 'TODO: add linting'",
+    "build": "tsup src/index.ts --format cjs,esm",
+    "clean": "rimraf dist",
+    "lint": "node ../../config/tooling/scripts/run-eslint.mjs ./src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "posthog-node": "^4.3.0"
   },
   "devDependencies": {
+    "@sentry/types": "^8.39.0",
     "@types/node": "20.19.21",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.1.0",
     "typescript": "^5.9.3",
     "vitest": "^2.1.9"
   }

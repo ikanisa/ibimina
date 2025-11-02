@@ -29,10 +29,18 @@ export interface TicketPayload {
   summary: LocalizedCopy;
 }
 
+export interface ToolResultPayload {
+  id: string;
+  name: string;
+  status: "success" | "error";
+  data: unknown;
+}
+
 export type MessageContent =
   | { type: "text"; text: string; streaming?: boolean }
   | { type: "allocation"; payload: AllocationPayload }
-  | { type: "ticket"; payload: TicketPayload };
+  | { type: "ticket"; payload: TicketPayload }
+  | { type: "tool-result"; payload: ToolResultPayload };
 
 export interface ChatMessage {
   id: string;

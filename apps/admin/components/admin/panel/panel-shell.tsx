@@ -139,10 +139,14 @@ export function AdminPanelShell({
               <span
                 className={cn(
                   "ml-auto inline-flex min-h-[1.25rem] items-center justify-center rounded-full px-2 text-[0.625rem] font-semibold uppercase tracking-wider",
-                  item.badge.tone === "critical" && "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
-                  item.badge.tone === "warning" && "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200",
-                  item.badge.tone === "info" && "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200",
-                  item.badge.tone === "success" && "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200"
+                  item.badge.tone === "critical" &&
+                    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
+                  item.badge.tone === "warning" &&
+                    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200",
+                  item.badge.tone === "info" &&
+                    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200",
+                  item.badge.tone === "success" &&
+                    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200"
                 )}
               >
                 {item.badge.label}

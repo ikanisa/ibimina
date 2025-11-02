@@ -5,11 +5,7 @@ import QRCode from "qrcode";
 import { Loader2, RefreshCw, Smartphone, Shield, AlertCircle } from "lucide-react";
 
 interface QRLoginProps {
-  onSuccess?: (data: {
-    user_id: string;
-    device_id: string;
-    session_id: string;
-  }) => void;
+  onSuccess?: (data: { user_id: string; device_id: string; session_id: string }) => void;
   onError?: (error: string) => void;
 }
 
@@ -41,8 +37,8 @@ interface VerifyResponse {
 
 export function QRLogin({ onSuccess, onError }: QRLoginProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const [sessionId, setSessionId] = useState<string>("");
-  const [expiresAt, setExpiresAt] = useState<string>("");
+  const [_sessionId, setSessionId] = useState<string>("");
+  const [_expiresAt, setExpiresAt] = useState<string>("");
   const [status, setStatus] = useState<
     "idle" | "generating" | "waiting" | "verifying" | "success" | "error" | "expired"
   >("idle");
@@ -103,12 +99,9 @@ export function QRLogin({ onSuccess, onError }: QRLoginProps) {
 
     pollingIntervalRef.current = setInterval(async () => {
       try {
-        const response = await fetch(
-          `/api/device-auth/verify-status?session_id=${sessionId}`,
-          {
-            method: "GET",
-          }
-        );
+        const response = await fetch(`/api/device-auth/verify-status?session_id=${sessionId}`, {
+          method: "GET",
+        });
 
         if (response.ok) {
           const data: VerifyResponse = await response.json();
@@ -184,6 +177,7 @@ export function QRLogin({ onSuccess, onError }: QRLoginProps) {
       stopPolling();
       stopExpiryTimer();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (status === "generating") {
@@ -263,8 +257,8 @@ export function QRLogin({ onSuccess, onError }: QRLoginProps) {
 
       <div className="space-y-4 text-center">
         <p className="text-sm text-neutral-11">
-          Scan this QR code with your Staff Mobile App to sign in securely using your fingerprint
-          or face.
+          Scan this QR code with your Staff Mobile App to sign in securely using your fingerprint or
+          face.
         </p>
       </div>
 
