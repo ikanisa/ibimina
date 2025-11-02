@@ -1,62 +1,110 @@
-// deno-lint-ignore-file no-explicit-any
 import { registry } from "../../providers/index.ts";
+import type { NormalizedTxn } from "../../providers/types.ts";
+import { logRedacted } from "../../shared/logging.ts";
+import {
+  getServiceClient,
+  readEnv
+} from "../../shared/supabase.ts";
 
-function verifyHmac(secret: string, raw: Uint8Array, sig: string | null) {
+async function verifyHmac(
+  secret: string,
+  raw: Uint8Array,
+  sig: string | null
+): Promise<boolean> {
   if (!sig) return false;
-  const key = crypto.subtle.importKey("raw", new TextEncoder().encode(secret), {name:"HMAC", hash:"SHA-256"}, false, ["sign","verify"]);
-  return key.then(k => crypto.subtle.verify("HMAC", k, hexToBuf(sig), raw)).then((ok)=> ok);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"]
+  );
+  return crypto.subtle.verify("HMAC", key, hexToBuf(sig), raw);
 }
-function hexToBuf(hex: string){ const b = new Uint8Array(hex.length/2); for(let i=0;i<b.length;i++) b[i] = parseInt(hex.substr(i*2,2),16); return b; }
+
+function hexToBuf(hex: string): Uint8Array {
+  const buffer = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < buffer.length; i++) {
+    buffer[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+  return buffer;
+}
+
+function buildRow(
+  orgId: string,
+  normalized: NormalizedTxn,
+  decoded: ReturnType<typeof registry.decoder.decode>
+) {
+  return {
+    org_id: orgId,
+    momo_txn_id: normalized.txnId,
+    payer_msisdn: normalized.payerMsisdn,
+    amount: normalized.amount,
+    ts: normalized.ts,
+    raw_ref: normalized.rawRef ?? null,
+    decoded_district: decoded?.district ?? null,
+    decoded_sacco: decoded?.sacco ?? null,
+    decoded_group: decoded?.group ?? null,
+    decoded_member: decoded?.member ?? null,
+    match_status: "UNALLOCATED",
+    notes: "sms-ingest"
+  };
+}
 
 export default {
   async fetch(req: Request): Promise<Response> {
-    const secret = Deno.env.get("HMAC_SHARED_SECRET");
+    const secret = readEnv("HMAC_SMS_SECRET");
     if (!secret) {
       return new Response("server misconfigured", { status: 500 });
     }
 
-    const bodyRaw = new Uint8Array(await req.arrayBuffer());
-    const ok = await verifyHmac(secret, bodyRaw, req.headers.get("x-signature"));
+    const rawBody = new Uint8Array(await req.arrayBuffer());
+    const ok = await verifyHmac(secret, rawBody, req.headers.get("x-signature"));
     if (!ok) return new Response("bad signature", { status: 401 });
 
-    const { org_id, country_iso2, telco, sms } = JSON.parse(new TextDecoder().decode(bodyRaw));
-    const key = `${(country_iso2||"").toLowerCase()}.${(telco||"").toLowerCase()}.sms`;
+    const payload = JSON.parse(new TextDecoder().decode(rawBody)) as {
+      org_id: string;
+      country_iso2: string;
+      telco: string;
+      sms: string;
+    };
+
+    const key = `${payload.country_iso2.toLowerCase()}.${payload.telco.toLowerCase()}.sms`;
     const adapter = registry.sms[key];
     if (!adapter) return new Response("no adapter", { status: 400 });
 
-    const norm = adapter.parseSms(sms);
-    if (!norm) return new Response("no match", { status: 422 });
+    const normalized = adapter.parseSms(payload.sms);
+    if (!normalized) return new Response("no match", { status: 422 });
 
-    const decoded = registry.decoder.decode(norm.rawRef || "");
-    // Insert into allocations with UNALLOCATED by default; set org_id, country_id via trigger.
-    // Use Supabase REST or PostgREST RPC; in Deno you can call postgres directly or supabase-js via ESM.
-    // Example payload:
-    const row = {
-      org_id,
-      sacco_name: "", // optional label
-      momo_txn_id: norm.txnId,
-      payer_msisdn: norm.payerMsisdn,
-      amount: norm.amount,
-      ts: norm.ts,
-      raw_ref: norm.rawRef || null,
-      decoded_district: decoded?.district || null,
-      decoded_sacco: decoded?.sacco || null,
-      decoded_group: decoded?.group || null,
-      decoded_member: decoded?.member || null,
-      match_status: "UNALLOCATED",
-      notes: "sms-ingest"
-    };
+    const decoded = registry.decoder.decode(normalized.rawRef ?? "");
 
-    // TODO: insert row to allocations (via Supabase client with service role)
-    // const supa = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    // const { error } = await supa.from("allocations").insert(row);
-    // if (error) return new Response(error.message, { status: 500 });
+    const client = await getServiceClient();
+    const row = buildRow(payload.org_id, normalized, decoded);
+    const { error } = await client.from("allocations").insert(row);
+    if (error) {
+      logRedacted("sms-ingest-error", {
+        reason: error.message,
+        org_id: payload.org_id,
+        txn_id: normalized.txnId,
+        raw_ref: normalized.rawRef,
+        payer_msisdn: normalized.payerMsisdn
+      });
+      return new Response(error.message, { status: 500 });
+    }
 
-    console.log("SMS ingested (adapter):", { row, normalized: norm, decoded });
-
-    return new Response(JSON.stringify({ ok: true, normalized: norm, decoded }), { 
-      status: 200,
-      headers: { "Content-Type": "application/json" }
+    logRedacted("sms-ingest", {
+      org_id: payload.org_id,
+      txn_id: normalized.txnId,
+      raw_ref: normalized.rawRef,
+      payer_msisdn: normalized.payerMsisdn
     });
+
+    return new Response(
+      JSON.stringify({ ok: true, normalized, decoded }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
 };

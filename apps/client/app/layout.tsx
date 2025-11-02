@@ -20,7 +20,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import { FeatureFlagProvider } from "@/components/FeatureFlagProvider";
 import { loadFeatureFlags } from "@/lib/feature-flags/service";
-import { BottomNav as EnhancedBottomNav } from "@/components/ui/enhanced-bottom-nav";
+import { ClientBottomNav } from "@/components/ui/client-bottom-nav";
 
 export const metadata: Metadata = {
   title: {
@@ -78,7 +78,7 @@ export default async function RootLayout({
           <div id="main-content">{children}</div>
 
           {/* Bottom Navigation - conditionally rendered */}
-          <EnhancedBottomNav />
+          <ClientBottomNav />
         </FeatureFlagProvider>
       </body>
     </html>
