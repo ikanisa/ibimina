@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file. Dates are
 in YYYY-MM-DD.
 
+## [1.0.0] - 2025-12-05
+
+### Added
+
+- Finalised architecture docs (`ARCHITECTURE.md`, `docs/REPORT.md`) covering
+  Vercel ↔ Supabase topology, RLS validation, and operational runbooks.
+- Published go-live collateral (`GO_LIVE_CHECKLIST.md`, `docs/ENVIRONMENT.md`,
+  `docs/RLS_TESTS.md`, `docs/MOBILE_RELEASE.md`) to govern deployments and
+  migrations.
+- Authored release notes for Vercel production launch and Supabase migration
+  batch (`docs/releases/2025-12-05-vercel-supabase.md`).
+
+### Verification
+
+- `pnpm run check:deploy`
+- `pnpm --filter @ibimina/testing run test:rls`
+- Supabase migration diff archived in release PR attachments.
+
+See details: `docs/releases/2025-12-05-vercel-supabase.md`
+
 ## [0.1.4] - 2025-11-01
 
 - Captured the cross-platform refactor inventory in `docs/REFACTOR_PLAN.md` to

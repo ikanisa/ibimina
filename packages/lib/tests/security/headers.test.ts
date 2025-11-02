@@ -10,7 +10,7 @@ import {
 
 declare global {
   // Extend the global scope for typed crypto overrides in tests.
-  // eslint-disable-next-line no-var
+
   var crypto: Crypto | undefined;
 }
 
