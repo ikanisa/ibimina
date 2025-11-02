@@ -359,18 +359,18 @@ CMD ["pnpm", "run", "start"]
 
 **Production Deployment**:
 
-- ✅ PRODUCTION_CHECKLIST.md (17KB) - 200+ item checklist
-- ✅ GOLIVE_READINESS_AUDIT.md (52KB) - Previous comprehensive audit
+- ✅ production-checklist.md (17KB) - 200+ item checklist
+- ✅ readiness-audit.md (52KB) - Previous comprehensive audit
 - ✅ DEPLOYMENT_GUIDE.md (18KB) - Step-by-step procedures
 - ✅ DEPLOYMENT_CHECKLIST.md (3.5KB) - Quick checklist
-- ✅ PRODUCTION_GO_LIVE_GAPS_SUMMARY.md (14KB) - Gap analysis
+- ✅ gap-summary.md (14KB) - Gap analysis
 
 **Security**:
 
 - ✅ AUTHENTICATION_IMPLEMENTATION_SUMMARY.md (14KB)
 - ✅ AUTHENTICATION_README.md (7.1KB)
 - ✅ AUTH-PLAN.md (9.2KB)
-- ✅ AUDIT_ISSUES.yaml (6.7KB) - Known issues register
+- ✅ audit-issues.yaml (6.7KB) - Known issues register
 - ✅ FINDINGS_REGISTER.yaml (28KB) - Structured findings
 
 **Architecture**:
@@ -402,7 +402,7 @@ CMD ["pnpm", "run", "start"]
 - ✅ DEVELOPMENT.md (11KB) - Development setup
 - ✅ CHANGELOG.md (3.3KB) - Version history
 
-#### Sub-Documentation (docs/ directory)
+#### Sub-Documentation (../ directory)
 
 **20+ specialized guides** covering:
 
@@ -643,7 +643,7 @@ LOW   │ NEW-001  │ SEC-001  │          │          │
 
 ### Issues Resolved Since Last Audit
 
-From AUDIT_ISSUES.yaml:
+From audit-issues.yaml:
 
 - ✅ SEC-001: AuthX MFA rate limiting → RESOLVED
 - ✅ SEC-002: WhatsApp OTP throttling → RESOLVED

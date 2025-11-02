@@ -67,12 +67,12 @@
 
 ## 📖 Document Guide
 
-| Document                      | For        | Size   | Purpose                   |
-| ----------------------------- | ---------- | ------ | ------------------------- |
-| **EXECUTIVE_SUMMARY.md**      | Management | 11 KB  | Decision & sign-off       |
-| **GOLIVE_READINESS_AUDIT.md** | Engineers  | 177 KB | Full technical audit      |
-| **FINDINGS_REGISTER.yaml**    | DevOps     | 28 KB  | Machine-readable tracking |
-| **REMEDIATION_PLAN.md**       | All teams  | 30 KB  | Implementation guide      |
+| Document                   | For        | Size   | Purpose                   |
+| -------------------------- | ---------- | ------ | ------------------------- |
+| **executive-summary.md**   | Management | 11 KB  | Decision & sign-off       |
+| **readiness-audit.md**     | Engineers  | 177 KB | Full technical audit      |
+| **FINDINGS_REGISTER.yaml** | DevOps     | 28 KB  | Machine-readable tracking |
+| **REMEDIATION_PLAN.md**    | All teams  | 30 KB  | Implementation guide      |
 
 ---
 
@@ -159,7 +159,7 @@ pnpm build
 
 ## 📋 Next Steps
 
-1. **Review & Approve** - Management sign-off on EXECUTIVE_SUMMARY.md
+1. **Review & Approve** - Management sign-off on executive-summary.md
 2. **Infrastructure** - Provision production environment
 3. **Secrets** - Generate and secure production secrets
 4. **Deploy** - Follow DEPLOYMENT_GUIDE.md procedures
@@ -189,7 +189,7 @@ pnpm build
 
 ---
 
-_For detailed findings, see GOLIVE_READINESS_AUDIT.md_  
+_For detailed findings, see readiness-audit.md_  
 _For remediation details, see REMEDIATION_PLAN.md_  
-_For management approval, see EXECUTIVE_SUMMARY.md_  
+_For management approval, see executive-summary.md_  
 _For tracking, see FINDINGS_REGISTER.yaml_

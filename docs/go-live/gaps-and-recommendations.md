@@ -1175,7 +1175,7 @@ export async function GET() {
 **Option 2: Markdown API Docs**
 
 ````markdown
-<!-- docs/API_REFERENCE.md -->
+<!-- ../API_REFERENCE.md -->
 
 # API Reference
 
@@ -1236,7 +1236,7 @@ List all members with pagination.
 5. Add to CI: validate specs on build
 
 **Option 2 (Markdown)**:
-1. Create `docs/API_REFERENCE.md`
+1. Create `../API_REFERENCE.md`
 2. Document each endpoint
 3. Include examples and status codes
 4. Link from README

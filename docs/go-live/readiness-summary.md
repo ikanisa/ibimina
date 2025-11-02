@@ -376,9 +376,9 @@ GSM_HEARTBEAT_TIMEOUT_MS=8000
 
 - `README.md` - Project overview and setup
 - `DEPLOYMENT_GUIDE.md` - Deployment procedures
-- `PRODUCTION_CHECKLIST.md` - Complete production checklist
+- `production-checklist.md` - Complete production checklist
 - `MOBILE_TESTING_GUIDE.md` - Mobile testing procedures
-- `PRODUCTION_GO_LIVE_GAPS_SUMMARY.md` - Gap analysis
+- `gap-summary.md` - Gap analysis
 
 ### Scripts
 
