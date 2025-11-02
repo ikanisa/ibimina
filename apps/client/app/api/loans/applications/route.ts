@@ -11,21 +11,45 @@ type SupabaseClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
 let resolveSupabaseForTests: (() => Promise<SupabaseClient>) | null = null;
 
-function detectNetworkFailure(error: unknown) {
-  if (!(error instanceof Error)) {
-    return false;
+function extractErrorMessage(error: unknown) {
+  if (error instanceof Error && typeof error.message === "string") {
+    return error.message;
   }
 
-  const message = (error.message ?? "").toLowerCase();
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof (error as { message?: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
+
+  return "";
+}
+
+function extractErrorCode(error: unknown) {
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    typeof (error as { code?: unknown }).code === "string"
+  ) {
+    return (error as { code: string }).code;
+  }
+
+  return undefined;
+}
+
+function detectNetworkFailure(error: unknown) {
+  const message = extractErrorMessage(error).toLowerCase();
+  const code = extractErrorCode(error)?.toLowerCase();
+
   return (
     message.includes("fetch failed") ||
     message.includes("failed to fetch") ||
     message.includes("network") ||
-    ("code" in error &&
-      typeof (error as { code?: unknown }).code === "string" &&
-      ["econnrefused", "enotfound", "etimedout"].includes(
-        ((error as { code: string }).code ?? "").toLowerCase()
-      ))
+    (code !== undefined && ["econnrefused", "enotfound", "etimedout"].includes(code))
   );
 }
 
@@ -104,6 +128,10 @@ export async function POST(request: NextRequest) {
 
     if (applicationError) {
       console.error("Error creating loan application:", applicationError);
+      if (detectNetworkFailure(applicationError)) {
+        return NextResponse.json({ error: "Supabase unavailable" }, { status: 503 });
+      }
+
       return NextResponse.json({ error: "Failed to create loan application" }, { status: 500 });
     }
 
@@ -150,6 +178,10 @@ export async function GET() {
 
     if (applicationsError) {
       console.error("Error fetching loan applications:", applicationsError);
+      if (detectNetworkFailure(applicationsError)) {
+        return NextResponse.json({ error: "Supabase unavailable" }, { status: 503 });
+      }
+
       return NextResponse.json({ error: "Failed to fetch loan applications" }, { status: 500 });
     }
 
