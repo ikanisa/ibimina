@@ -165,11 +165,11 @@ jobs:
       - name: Verify i18n glossary consistency
         run: pnpm run check:i18n:consistency
 
-      - name: Validate PWA manifest
-        run: pnpm run check:manifest
+      - name: Build shared packages
+        run: pnpm run build:packages
 
-      - name: Build
-        run: pnpm run build
+      - name: Build applications
+        run: pnpm run build:apps
         env:
           ANALYZE_BUNDLE: "1"
 

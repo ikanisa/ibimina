@@ -60,6 +60,8 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
   },
 
+  transpilePackages: ["@ibimina/config", "@ibimina/lib", "@ibimina/locales", "@ibimina/ui"],
+
   async headers() {
     const securityHeaders = createSecureHeaders();
     const dnsPrefetchHeader = { key: "X-DNS-Prefetch-Control", value: "on" } as const;
