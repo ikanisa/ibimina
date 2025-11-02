@@ -3,11 +3,18 @@ import { ConfigContext, ExpoConfig } from "expo/config";
 /**
  * Expo app configuration with Sentry, deep linking, and analytics
  */
+const APP_VERSION = process.env.APP_VERSION || "1.0.0";
+const parsedAndroidVersionCode = Number.parseInt(process.env.ANDROID_VERSION_CODE ?? "1", 10);
+const ANDROID_VERSION_CODE = Number.isNaN(parsedAndroidVersionCode)
+  ? 1
+  : Math.max(1, parsedAndroidVersionCode);
+const IOS_BUILD_NUMBER = process.env.IOS_BUILD_NUMBER || "1";
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Ibimina",
   slug: "ibimina-mobile",
-  version: "1.0.0",
+  version: APP_VERSION,
   orientation: "portrait",
   icon: "./assets/icon.png",
   scheme: "ibimina",
@@ -21,6 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: false,
     bundleIdentifier: "com.ibimina.mobile",
+    buildNumber: IOS_BUILD_NUMBER,
     config: {
       usesNonExemptEncryption: false,
     },
@@ -36,6 +44,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: "#0A0E27",
     },
     package: "com.ibimina.mobile",
+    versionCode: ANDROID_VERSION_CODE,
     permissions: ["CAMERA", "READ_EXTERNAL_STORAGE"],
   },
   web: {
