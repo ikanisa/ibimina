@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "jest",
-    "test:detox": "pnpm --filter @ibimina/client run test:detox"
+    "test:detox": "tsx --test tests/detox/*.e2e.ts"
   },
   "dependencies": {
     "@ibimina/config": "workspace:*",
@@ -58,6 +58,7 @@
     "@testing-library/react-native": "^12.5.1",
     "eas-cli": "^13.4.4",
     "jest": "^29.7.0",
-    "jest-expo": "~52.0.0"
+    "jest-expo": "~52.0.0",
+    "tsx": "^4.20.6"
   }
 }
