@@ -53,11 +53,17 @@ function runEasBuild({ profile, platform, target }) {
     );
   }
 
-  const buildInfo = parseEasJson(result.stdout);
-  if (!buildInfo) {
+  const rawBuildInfo = parseEasJson(result.stdout);
+  if (!rawBuildInfo) {
     throw new Error(
       `Failed to parse EAS build output for target "${target}". Received:\n${result.stdout}`
     );
+  }
+
+  const buildInfo = Array.isArray(rawBuildInfo?.builds) ? rawBuildInfo.builds[0] : rawBuildInfo;
+
+  if (!buildInfo) {
+    throw new Error(`EAS build for target "${target}" did not return any build records.`);
   }
 
   if (buildInfo.status !== "finished") {
