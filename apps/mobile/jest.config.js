@@ -11,6 +11,10 @@ const combinedModuleNameMapper = {
   "^expo$": "<rootDir>/jest.expo-mock.cjs",
   "^expo/.*$": "<rootDir>/jest.expo-mock.cjs",
   "^@/(.*)$": "<rootDir>/src/$1",
+  "^@ibimina/data-access$": "<rootDir>/../../packages/data-access/src/index.ts",
+  "^@ibimina/data-access/(.*)$": "<rootDir>/../../packages/data-access/src/$1",
+  "^@ibimina/lib$": "<rootDir>/../../packages/lib/src/index.ts",
+  "^@ibimina/lib/(.*)$": "<rootDir>/../../packages/lib/src/$1",
 };
 
 const combinedSetupFiles = [

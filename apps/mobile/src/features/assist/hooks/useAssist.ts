@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { invokeTool, sendAssistMessage, type AssistMessage } from "../services/assist";
+import { invokeTool, streamAssistMessage, type AssistMessage, type AssistStreamEvent } from "../services/assist";
 
 export const useAssist = () => {
   const [threadId] = useState(() => `thread-${Date.now()}`);
@@ -20,9 +20,67 @@ export const useAssist = () => {
   });
 
   const sendMutation = useMutation({
-    mutationFn: (content: string) => sendAssistMessage(threadId, content),
-    onSuccess: (message) => {
-      setMessages((prev) => [...prev, message]);
+    mutationFn: async (content: string) => {
+      const userMessage: AssistMessage = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        content,
+      };
+      setMessages((prev) => [...prev, userMessage]);
+
+      let assistantId: string | null = null;
+      let buffer = "";
+
+      const handleEvent = (event: AssistStreamEvent) => {
+        if (event.type === "message-start") {
+          assistantId = event.messageId;
+          buffer = "";
+          setMessages((prev) => [
+            ...prev,
+            { id: event.messageId, role: "assistant", content: "" },
+          ]);
+          return;
+        }
+
+        if (!assistantId) {
+          return;
+        }
+
+        if (event.type === "message-delta") {
+          buffer += event.delta;
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === assistantId ? { ...message, content: buffer } : message
+            )
+          );
+          return;
+        }
+
+        if (event.type === "message-end") {
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === assistantId ? { ...message, content: buffer } : message
+            )
+          );
+          return;
+        }
+
+        if (event.type === "tool") {
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === event.messageId
+                ? { ...message, toolInvocations: event.invocations }
+                : message
+            )
+          );
+        }
+      };
+
+      await streamAssistMessage({
+        threadId,
+        content,
+        onEvent: handleEvent,
+      });
     },
   });
 

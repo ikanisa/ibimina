@@ -2,29 +2,42 @@
  * Profile screen - User profile and settings
  */
 
+import { useMemo } from "react";
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useIntl } from "react-intl";
-import { useQuery } from "@tanstack/react-query";
 import { HeaderGradient } from "../../src/components/shared/HeaderGradient";
 import { LocaleToggle } from "../../src/components/shared/LocaleToggle";
 import { colors, elevation } from "../../src/theme";
-import mockApi from "../../src/mocks";
+import { useCurrentUser } from "../../src/features/users/hooks/useCurrentUser";
+import { useReferenceTokens } from "../../src/features/allocations/hooks/useAllocations";
 
 export default function ProfileScreen() {
   const intl = useIntl();
+  const { data: user, isLoading } = useCurrentUser();
+  const { data: referenceTokens } = useReferenceTokens();
 
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["user"],
-    queryFn: mockApi.getUser,
-  });
+  const initials = useMemo(() => {
+    if (!user?.fullName) {
+      return "";
+    }
+    return user.fullName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("");
+  }, [user?.fullName]);
 
   return (
     <View style={styles.container}>
       <LinearGradient colors={[colors.ink[900], colors.ink[800]]} style={styles.gradient}>
         <HeaderGradient
           title={intl.formatMessage({ id: "nav.profile", defaultMessage: "Profile" })}
-          subtitle="Manage your account and settings"
+          subtitle={intl.formatMessage({
+            id: "profile.subtitle",
+            defaultMessage: "Manage your account and settings",
+          })}
         />
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -32,33 +45,53 @@ export default function ProfileScreen() {
             <Text style={styles.loadingText}>Loading profile...</Text>
           ) : user ? (
             <>
-              {/* User Info Card */}
               <View style={styles.profileCard}>
                 <View style={styles.avatarContainer}>
                   <LinearGradient colors={[colors.rw.blue, colors.rw.green]} style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </Text>
+                    <Text style={styles.avatarText}>{initials || "👤"}</Text>
                   </LinearGradient>
                 </View>
 
-                <Text style={styles.userName}>{user.name}</Text>
-                <Text style={styles.userEmail}>{user.email}</Text>
-                <Text style={styles.userPhone}>{user.phone}</Text>
+                <Text style={styles.userName}>{user.fullName}</Text>
+                <Text style={styles.userEmail}>{user.primaryMsisdn}</Text>
+                {user.referenceToken ? (
+                  <Text style={styles.userPhone}>
+                    {intl.formatMessage({
+                      id: "profile.reference",
+                      defaultMessage: "Reference: {token}",
+                    }, { token: user.referenceToken })}
+                  </Text>
+                ) : null}
 
                 <View style={styles.memberSince}>
                   <Text style={styles.memberSinceLabel}>Member since</Text>
                   <Text style={styles.memberSinceDate}>
-                    {new Date(user.joinedAt).toLocaleDateString()}
+                    {new Date(user.createdAt).toLocaleDateString()}
                   </Text>
                 </View>
               </View>
 
-              {/* Settings Sections */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Linked references</Text>
+                <View style={styles.sectionCard}>
+                  {referenceTokens?.length ? (
+                    referenceTokens.map((token) => (
+                      <View key={token.token} style={styles.referenceRow}>
+                        <Text style={styles.referenceGroup}>{token.groupName}</Text>
+                        <Text style={styles.referenceToken}>{token.token}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={styles.emptyReference}>
+                      {intl.formatMessage({
+                        id: "profile.reference.empty",
+                        defaultMessage: "No reference tokens assigned yet.",
+                      })}
+                    </Text>
+                  )}
+                </View>
+              </View>
+
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Language</Text>
                 <View style={styles.sectionCard}>
@@ -202,73 +235,86 @@ const styles = StyleSheet.create({
   },
   memberSinceDate: {
     fontSize: 12,
-    fontWeight: "600",
-    color: colors.warm[500],
+    color: colors.neutral[200],
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.neutral[300],
-    marginBottom: 8,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.neutral[100],
+    marginBottom: 12,
   },
   sectionCard: {
     backgroundColor: colors.ink[800],
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: colors.ink[700],
+    ...elevation[1],
+    gap: 12,
+  },
+  referenceRow: {
+    paddingVertical: 4,
+  },
+  referenceGroup: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.neutral[50],
+  },
+  referenceToken: {
+    fontSize: 13,
+    color: colors.neutral[300],
+  },
+  emptyReference: {
+    fontSize: 13,
+    color: colors.neutral[400],
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
+    justifyContent: "space-between",
   },
   menuItemIcon: {
-    fontSize: 20,
-    marginRight: 12,
+    fontSize: 16,
   },
   menuItemText: {
     flex: 1,
-    fontSize: 16,
-    color: colors.neutral[100],
+    marginHorizontal: 12,
+    fontSize: 15,
+    color: colors.neutral[200],
   },
   menuItemArrow: {
-    fontSize: 24,
-    color: colors.neutral[500],
+    fontSize: 20,
+    color: colors.neutral[300],
   },
   menuDivider: {
     height: 1,
     backgroundColor: colors.ink[700],
-    marginVertical: 8,
   },
   logoutButton: {
-    backgroundColor: colors.warm[700],
+    marginTop: 12,
+    backgroundColor: colors.ink[900],
+    padding: 14,
     borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    marginTop: 8,
-    ...elevation[2],
+    borderWidth: 1,
+    borderColor: colors.ink[700],
   },
   logoutButtonText: {
-    fontSize: 16,
+    color: colors.neutral[200],
+    textAlign: "center",
     fontWeight: "600",
-    color: "#FFFFFF",
   },
   version: {
-    fontSize: 12,
-    color: colors.neutral[500],
     textAlign: "center",
-    marginTop: 24,
+    color: colors.neutral[500],
+    marginTop: 16,
   },
   loadingText: {
     fontSize: 14,
     color: colors.neutral[400],
     textAlign: "center",
-    marginVertical: 20,
+    marginTop: 20,
   },
 });

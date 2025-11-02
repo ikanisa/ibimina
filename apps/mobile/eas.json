@@ -6,17 +6,45 @@
     "production": {
       "channel": "production",
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "artifactPath": "dist/ibimina-mobile.aab",
+        "credentialsSource": "remote"
       },
       "ios": {
-        "simulator": false
-      }
+        "simulator": false,
+        "artifactPath": "dist/ibimina-mobile.ipa",
+        "credentialsSource": "remote"
+      },
+      "autoIncrement": true,
+      "distribution": "store"
     },
     "apk": {
       "channel": "qa",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "artifactPath": "dist/ibimina-mobile.apk",
+        "credentialsSource": "remote"
       }
+    },
+    "android-signed": {
+      "channel": "production",
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle",
+        "artifactPath": "dist/ibimina-mobile-signed.aab",
+        "credentialsSource": "remote"
+      },
+      "autoIncrement": true
+    },
+    "ios-release": {
+      "channel": "production",
+      "distribution": "store",
+      "ios": {
+        "simulator": false,
+        "artifactPath": "dist/ibimina-mobile-release.ipa",
+        "credentialsSource": "remote"
+      },
+      "autoIncrement": true
     }
   },
   "submit": {

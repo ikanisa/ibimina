@@ -354,7 +354,7 @@ importers:
         version: 15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       next-intl:
         specifier: ^4.4.0
-        version: 4.4.0(next@15.5.4(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+        version: 4.4.0(next@15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
       next-pwa:
         specifier: ^5.6.0
         version: 5.6.0(@babel/core@7.28.5)(@types/babel__core@7.20.5)(next@15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(webpack@5.102.1)
@@ -479,6 +479,9 @@ importers:
       expo-build-properties:
         specifier: ~0.13.1
         version: 0.13.3(expo@52.0.47(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@expo/metro-runtime@4.0.1(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1)))(graphql@16.8.1)(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1))(react@18.3.1))
+      expo-clipboard:
+        specifier: ~6.0.0
+        version: 6.0.3(expo@52.0.47(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@expo/metro-runtime@4.0.1(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1)))(graphql@16.8.1)(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1))(react@18.3.1))
       expo-constants:
         specifier: ~17.0.0
         version: 17.0.8(expo@52.0.47(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@expo/metro-runtime@4.0.1(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1)))(graphql@16.8.1)(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1))(react@18.3.1))(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1))
@@ -556,7 +559,7 @@ importers:
         specifier: ~12.0.11
         version: 12.0.11(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))
       eas-cli:
-        specifier: ^16.26.0
+        specifier: ^16.0.0
         version: 16.26.0(@types/node@20.19.21)(typescript@5.9.3)
       eslint:
         specifier: ^9.15.0
@@ -691,7 +694,7 @@ importers:
         version: 15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       next-intl:
         specifier: ^4.4.0
-        version: 4.4.0(next@15.5.4(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+        version: 4.4.0(next@15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
       next-seo:
         specifier: ^6.6.0
         version: 6.8.0(next@15.5.4(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -6048,6 +6051,12 @@ packages:
     resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
     engines: {node: '>=6'}
 
+  bundle-require@5.1.0:
+    resolution: {integrity: sha512-3WrrOuZiyaaZPWiEt4G3+IffISVC9HYlWueJEBWED4ZH4aIAC2PnkdnuRrR94M+w6yGWn4AglWtJtBI8YqvgoA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    peerDependencies:
+      esbuild: '>=0.18'
+
   bunyan@1.8.15:
     resolution: {integrity: sha512-0tECWShh6wUysgucJcBAoYegf3JJoZWibxdqhTm7OHPeT42qdjkZ29QCMcKwbgU1kiH+auSIasNRXMLWXafXig==}
     engines: {'0': node >=0.10.0}
@@ -6160,6 +6169,10 @@ packages:
 
   chokidar@4.0.0:
     resolution: {integrity: sha512-mxIojEAQcuEvT/lyXq+jf/3cO/KoA6z4CeNDGGevTybECPOMFCnQy3OPahluUkbqgPNGw5Bi78UC7Po6Lhy+NA==}
+    engines: {node: '>= 14.16.0'}
+
+  chokidar@4.0.3:
+    resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
     engines: {node: '>= 14.16.0'}
 
   chownr@2.0.0:
@@ -6348,6 +6361,9 @@ packages:
 
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
+
+  confbox@0.1.8:
+    resolution: {integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==}
 
   configcat-common@9.4.0:
     resolution: {integrity: sha512-rKFawlrEXY1NQ1jxX5sYXN4fhT4MhfllC1ELd+3k2tY+z1DQju+PoopNra1wyfegLn3Aa0X8l3JpXFFO/gyo0g==}
@@ -7469,6 +7485,11 @@ packages:
     peerDependencies:
       expo: '*'
 
+  expo-clipboard@6.0.3:
+    resolution: {integrity: sha512-RIKDsuHkYfaspifbFpVC8sBVFKR05L7Pj7mU2/XkbrW9m01OBNvdpGraXEMsTFCx97xMGsZpEw9pPquL4j4xVg==}
+    peerDependencies:
+      expo: '*'
+
   expo-constants@17.0.8:
     resolution: {integrity: sha512-XfWRyQAf1yUNgWZ1TnE8pFBMqGmFP5Gb+SFSgszxDdOoheB/NI5D4p7q86kI2fvGyfTrxAe+D+74nZkfsGvUlg==}
     peerDependencies:
@@ -7761,6 +7782,9 @@ packages:
   find-up@7.0.0:
     resolution: {integrity: sha512-YyZM99iHrqLKjmt4LJDj58KI+fYyufRLBSYcqycxf//KpBk9FoewoGX0450m9nB44qrZnovzC2oeP5hUibxc/g==}
     engines: {node: '>=18'}
+
+  fix-dts-default-cjs-exports@1.0.1:
+    resolution: {integrity: sha512-pVIECanWFC61Hzl2+oOCtoJ3F17kglZC/6N94eRWycFgBH35hHx0Li604ZIzhseh97mf2p0cv7vVrOZGoqhlEg==}
 
   flat-cache@4.0.1:
     resolution: {integrity: sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw==}
@@ -9070,6 +9094,10 @@ packages:
     resolution: {integrity: sha512-ME4Fb83LgEgwNw96RKNvKV4VTLuXfoKudAmm2lP8Kk87KaMK0/Xrx/aAkMWmT8mDb+3MlFDspfbCs7adjRxA2g==}
     engines: {node: '>=20.0.0'}
 
+  load-tsconfig@0.2.5:
+    resolution: {integrity: sha512-IXO6OCs9yg8tMKzfPZ1YmheJbZCiEsnBdcB03l0OcfK9prKnJb96siuHCr5Fl37/yo9DnKU+TLpxzTUspw9shg==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
   loader-runner@4.3.1:
     resolution: {integrity: sha512-IWqP2SCPhyVFTBtRcgMHdzlf9ul25NwaFx4wCEH/KjAXuuHY4yNjvPXsBokp8jCB936PyWRaPKUNh8NvylLp2Q==}
     engines: {node: '>=6.11.5'}
@@ -9574,6 +9602,9 @@ packages:
     resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
     engines: {node: '>=10'}
     hasBin: true
+
+  mlly@1.8.0:
+    resolution: {integrity: sha512-l8D9ODSRWLe2KHJSifWGwBqpTZXIXTeo8mlKjY+E2HAakaTeNpqAyBZ8GSqLzHgw4XmHmC8whvpjJNMbFZN7/g==}
 
   module-details-from-path@1.0.4:
     resolution: {integrity: sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==}
@@ -10253,6 +10284,9 @@ packages:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
     engines: {node: '>=8'}
 
+  pkg-types@1.3.1:
+    resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
+
   playwright-core@1.56.1:
     resolution: {integrity: sha512-hutraynyn31F+Bifme+Ps9Vq59hKuUCz7H1kDOcBs+2oGguKkWTU50bBWrtz34OUWmIwpBTWDxaRPXrIXkgvmQ==}
     engines: {node: '>=18'}
@@ -10357,10 +10391,6 @@ packages:
   postgres-interval@1.2.0:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
-
-  posthog-node@4.18.0:
-    resolution: {integrity: sha512-XROs1h+DNatgKh/AlIlCtDxWzwrKdYDb2mOs58n4yN8BkGN9ewqeQwG5ApS4/IzwCb7HPttUkOVulkYatd2PIw==}
-    engines: {node: '>=15.0.0'}
 
   posthog-react-native@3.16.1:
     resolution: {integrity: sha512-qrsQC552nY9emZbv2HmnPfckS1waFf5kG1LLGF1noUhgXWzNfLfwK20FIypjRR50O+j/vCFIzQBmoy4Sv/U2RA==}
@@ -11778,6 +11808,25 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  tsup@8.5.0:
+    resolution: {integrity: sha512-VmBp77lWNQq6PfuMqCHD3xWl22vEoWsKajkF8t+yMBawlUS8JzEI+vOVMeuNZIuMML8qXRizFKi9oD5glKQVcQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+    peerDependencies:
+      '@microsoft/api-extractor': ^7.36.0
+      '@swc/core': ^1
+      postcss: ^8.4.12
+      typescript: '>=4.5.0'
+    peerDependenciesMeta:
+      '@microsoft/api-extractor':
+        optional: true
+      '@swc/core':
+        optional: true
+      postcss:
+        optional: true
+      typescript:
+        optional: true
 
   tsx@4.19.2:
     resolution: {integrity: sha512-pOUl6Vo2LUq/bSa8S5q7b91cgNSjctn9ugq/+Mvow99qW6x/UZYwzxy/3NmqoT66eHYfCVvFvACC58UBPFf28g==}
@@ -16324,6 +16373,7 @@ snapshots:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/instrumentation': 0.57.2(@opentelemetry/api@1.9.0)
     transitivePeerDependencies:
+      - '@babel/preset-env'
       - supports-color
 
   '@radix-ui/react-compose-refs@1.0.0(react@18.3.1)':
@@ -19305,6 +19355,13 @@ snapshots:
       mv: 2.1.1
       safe-json-stringify: 1.2.0
 
+  bunyan@1.8.15:
+    optionalDependencies:
+      dtrace-provider: 0.8.8
+      moment: 2.30.1
+      mv: 2.1.1
+      safe-json-stringify: 1.2.0
+
   bytes@3.1.0: {}
 
   bytes@3.1.2: {}
@@ -19417,6 +19474,10 @@ snapshots:
       fsevents: 2.3.3
 
   chokidar@4.0.0:
+    dependencies:
+      readdirp: 4.1.2
+
+  chokidar@4.0.3:
     dependencies:
       readdirp: 4.1.2
 
@@ -19596,6 +19657,8 @@ snapshots:
       - supports-color
 
   concat-map@0.0.1: {}
+
+  confbox@0.1.8: {}
 
   configcat-common@9.4.0:
     dependencies:
@@ -20991,6 +21054,10 @@ snapshots:
       expo: 52.0.47(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@expo/metro-runtime@4.0.1(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1)))(graphql@16.8.1)(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1))(react@18.3.1)
       semver: 7.7.3
 
+  expo-clipboard@6.0.3(expo@52.0.47(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@expo/metro-runtime@4.0.1(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1)))(graphql@16.8.1)(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1))(react@18.3.1)):
+    dependencies:
+      expo: 52.0.47(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@expo/metro-runtime@4.0.1(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1)))(graphql@16.8.1)(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1))(react@18.3.1)
+
   expo-constants@17.0.8(expo@52.0.47(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@expo/metro-runtime@4.0.1(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1)))(graphql@16.8.1)(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1))(react@18.3.1))(react-native@0.76.5(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@18.3.26)(react@18.3.1)):
     dependencies:
       '@expo/config': 10.0.11
@@ -21583,6 +21650,12 @@ snapshots:
       locate-path: 7.2.0
       path-exists: 5.0.0
       unicorn-magic: 0.1.0
+
+  fix-dts-default-cjs-exports@1.0.1:
+    dependencies:
+      magic-string: 0.30.21
+      mlly: 1.8.0
+      rollup: 4.52.5
 
   flat-cache@4.0.1:
     dependencies:
@@ -23144,6 +23217,8 @@ snapshots:
       rfdc: 1.4.1
       wrap-ansi: 9.0.2
 
+  load-tsconfig@0.2.5: {}
+
   loader-runner@4.3.1: {}
 
   loader-utils@2.0.4:
@@ -23974,6 +24049,13 @@ snapshots:
 
   mkdirp@1.0.4: {}
 
+  mlly@1.8.0:
+    dependencies:
+      acorn: 8.15.0
+      pathe: 2.0.3
+      pkg-types: 1.3.1
+      ufo: 1.6.1
+
   module-details-from-path@1.0.4: {}
 
   moment@2.30.1:
@@ -24074,7 +24156,7 @@ snapshots:
 
   nested-error-stacks@2.0.1: {}
 
-  next-intl@4.4.0(next@15.5.4(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3):
+  next-intl@4.4.0(next@15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3):
     dependencies:
       '@formatjs/intl-localematcher': 0.5.10
       negotiator: 1.0.0
@@ -24640,6 +24722,12 @@ snapshots:
     dependencies:
       find-up: 4.1.0
 
+  pkg-types@1.3.1:
+    dependencies:
+      confbox: 0.1.8
+      mlly: 1.8.0
+      pathe: 2.0.3
+
   playwright-core@1.56.1: {}
 
   playwright@1.56.1:
@@ -24685,6 +24773,15 @@ snapshots:
       tsx: 4.20.6
       yaml: 2.8.1
 
+  postcss-load-config@6.0.1(jiti@2.6.1)(postcss@8.5.6)(tsx@4.20.6)(yaml@2.8.1):
+    dependencies:
+      lilconfig: 3.1.3
+    optionalDependencies:
+      jiti: 2.6.1
+      postcss: 8.5.6
+      tsx: 4.20.6
+      yaml: 2.8.1
+
   postcss-nested@6.2.0(postcss@8.5.6):
     dependencies:
       postcss: 8.5.6
@@ -24724,12 +24821,6 @@ snapshots:
   postgres-interval@1.2.0:
     dependencies:
       xtend: 4.0.2
-
-  posthog-node@4.18.0:
-    dependencies:
-      axios: 1.13.1
-    transitivePeerDependencies:
-      - debug
 
   posthog-react-native@3.16.1(kebrwlprpunseewq64hvc5q3ce):
     dependencies:
@@ -26592,6 +26683,34 @@ snapshots:
   tslib@2.6.2: {}
 
   tslib@2.8.1: {}
+
+  tsup@8.5.0(jiti@2.6.1)(postcss@8.5.6)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1):
+    dependencies:
+      bundle-require: 5.1.0(esbuild@0.25.12)
+      cac: 6.7.14
+      chokidar: 4.0.3
+      consola: 3.4.2
+      debug: 4.4.3(supports-color@10.2.2)
+      esbuild: 0.25.12
+      fix-dts-default-cjs-exports: 1.0.1
+      joycon: 3.1.1
+      picocolors: 1.1.1
+      postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.6)(tsx@4.20.6)(yaml@2.8.1)
+      resolve-from: 5.0.0
+      rollup: 4.52.5
+      source-map: 0.8.0-beta.0
+      sucrase: 3.35.0
+      tinyexec: 0.3.2
+      tinyglobby: 0.2.15
+      tree-kill: 1.2.2
+    optionalDependencies:
+      postcss: 8.5.6
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - jiti
+      - supports-color
+      - tsx
+      - yaml
 
   tsx@4.19.2:
     dependencies:

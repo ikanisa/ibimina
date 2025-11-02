@@ -7,29 +7,41 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ReactQueryProvider } from "./providers/ReactQueryProvider";
 import { I18nProvider } from "./providers/I18nProvider";
+import { SupabaseProvider } from "./providers/supabase-client";
 import { initSentry } from "./lib/sentry";
 import { initPostHog } from "./lib/posthog";
-import { initFeatureFlags, getAllFeatureFlags } from "./lib/featureFlags";
 import { useAppStore } from "./providers/store";
 import { hydrateAuthToken, getStoredAuthToken } from "./storage/authToken";
+import { useFeatureFlags } from "./features/feature-flags/hooks/useFeatureFlags";
 
 // Initialize monitoring and analytics
 initSentry();
 
-export function AppProviders({ children }: { children: React.ReactNode }) {
+function FeatureFlagBootstrapper({ children }: { children: React.ReactNode }) {
   const setFeatureFlags = useAppStore((state) => state.setFeatureFlags);
-  const userId = useAppStore((state) => state.userId);
+  const { data } = useFeatureFlags();
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+    const flattened = Object.entries(data).reduce<Record<string, boolean>>((acc, [key, value]) => {
+      acc[key] = value.enabled;
+      return acc;
+    }, {});
+    setFeatureFlags(flattened);
+  }, [data, setFeatureFlags]);
+
+  return <>{children}</>;
+}
+
+function AppProviderBody({ children }: { children: React.ReactNode }) {
   const setAuthToken = useAppStore((state) => state.setAuthToken);
   const setHasHydratedAuth = useAppStore((state) => state.setHasHydratedAuth);
 
   useEffect(() => {
-    // Initialize PostHog
     initPostHog();
 
-    // Initialize ConfigCat
-    initFeatureFlags();
-
-    // Hydrate auth token from secure storage
     let isMounted = true;
     (async () => {
       try {
@@ -54,25 +66,28 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       }
     })();
 
-    // Load feature flags
-    async function loadFeatureFlags() {
-      const flags = await getAllFeatureFlags(userId || undefined);
-      setFeatureFlags(flags);
-    }
-
-    loadFeatureFlags();
     return () => {
       isMounted = false;
     };
-  }, [userId, setFeatureFlags, setAuthToken, setHasHydratedAuth]);
+  }, [setAuthToken, setHasHydratedAuth]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ReactQueryProvider>
-          <I18nProvider>{children}</I18nProvider>
+          <I18nProvider>
+            <FeatureFlagBootstrapper>{children}</FeatureFlagBootstrapper>
+          </I18nProvider>
         </ReactQueryProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+export function AppProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <SupabaseProvider>
+      <AppProviderBody>{children}</AppProviderBody>
+    </SupabaseProvider>
   );
 }
