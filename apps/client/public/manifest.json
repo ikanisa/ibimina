@@ -20,6 +20,30 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/store-assets/screenshots/onboarding.svg",
+      "sizes": "1080x1920",
+      "type": "image/svg+xml",
+      "label": "Onboarding overview"
+    },
+    {
+      "src": "/store-assets/screenshots/statements.svg",
+      "sizes": "1080x1920",
+      "type": "image/svg+xml",
+      "label": "Monthly statements"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "shortcuts": [
     {
       "name": "View Contributions",

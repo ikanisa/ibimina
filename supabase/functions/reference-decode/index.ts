@@ -9,6 +9,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { corsHeaders } from "../_shared/http.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 interface ReferenceToken {
   country?: string;
@@ -76,7 +77,7 @@ function parseToken(token: string): ReferenceToken | null {
 /**
  * Main handler
  */
-Deno.serve(async (req) => {
+serveWithObservability("reference-decode", async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders() });

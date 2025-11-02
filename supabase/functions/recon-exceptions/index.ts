@@ -4,6 +4,7 @@ import { enforceIdentityRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
 import { postToLedger } from "../_shared/ledger.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const actionSchema = z.object({
   paymentId: z.string().uuid(),
@@ -262,7 +263,7 @@ const handlePost = async (req: Request) => {
   }
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("recon-exceptions", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

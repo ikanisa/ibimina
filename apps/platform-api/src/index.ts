@@ -1,10 +1,14 @@
 #!/usr/bin/env node
+import { normalizeError } from "@ibimina/lib";
+
 import { runGsmHeartbeat } from "./workers/gsm-heartbeat";
 import { runMomoPoller } from "./workers/momo-poller";
+import { ensureObservability, logError, captureException } from "./lib/observability/index.js";
 
 const command = process.argv[2] ?? "all";
 
 async function main() {
+  ensureObservability();
   switch (command) {
     case "momo":
       await runMomoPoller();
@@ -17,12 +21,19 @@ async function main() {
       await runGsmHeartbeat();
       break;
     default:
-      console.error(`Unknown command: ${command}`);
+      logError("platform_api.unknown_command", { command });
       process.exitCode = 1;
   }
 }
 
 main().catch((error) => {
-  console.error("Worker execution failed", error);
+  console.error(
+    JSON.stringify({
+      level: "error",
+      event: "platform-api.worker.failure",
+      error: normalizeError(error),
+      timestamp: new Date().toISOString(),
+    })
+  );
   process.exitCode = 1;
 });

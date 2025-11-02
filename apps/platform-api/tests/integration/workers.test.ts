@@ -1,6 +1,11 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 
+import {
+  getObservabilityRegistry,
+  resetObservabilityMetrics,
+} from "../../src/lib/observability/index.js";
+
 /**
  * Integration tests for MoMo poller worker
  *
@@ -18,6 +23,9 @@ describe("MoMo poller worker integration", () => {
       SUPABASE_SERVICE_ROLE_KEY: "test-service-key",
       HMAC_SHARED_SECRET: "test-secret",
     };
+    delete process.env.SENTRY_DSN;
+    delete process.env.PLATFORM_API_SENTRY_DSN;
+    resetObservabilityMetrics();
   });
 
   afterEach(() => {
@@ -85,6 +93,12 @@ describe("MoMo poller worker integration", () => {
     // Verify Supabase query was made
     const supabaseCalls = fetchCalls.filter((call) => call.url.includes("momo_statement_pollers"));
     assert.equal(supabaseCalls.length, 1);
+
+    const metrics = await getObservabilityRegistry().getMetricsAsJSON();
+    const runsMetric = metrics.find((metric) => metric.name === "ibimina_momo_poller_runs_total");
+    assert.ok(runsMetric, "Expected momo poller runs metric to be present");
+    const successSample = runsMetric!.values.find((sample) => sample.labels?.result === "success");
+    assert.equal(successSample?.value, 1);
   });
 
   it("throws an error when edge function fails", async () => {
@@ -110,6 +124,11 @@ describe("MoMo poller worker integration", () => {
       name: "Error",
       message: /MoMo polling failed: Database connection failed/,
     });
+
+    const metrics = await getObservabilityRegistry().getMetricsAsJSON();
+    const runsMetric = metrics.find((metric) => metric.name === "ibimina_momo_poller_runs_total");
+    const failureSample = runsMetric!.values.find((sample) => sample.labels?.result === "failure");
+    assert.equal(failureSample?.value, 1);
   });
 
   it("handles missing edge function response gracefully", async () => {
@@ -134,6 +153,11 @@ describe("MoMo poller worker integration", () => {
       name: "Error",
       message: /MoMo polling failed: unknown error/,
     });
+
+    const metrics = await getObservabilityRegistry().getMetricsAsJSON();
+    const runsMetric = metrics.find((metric) => metric.name === "ibimina_momo_poller_runs_total");
+    const failureSample = runsMetric!.values.find((sample) => sample.labels?.result === "failure");
+    assert.equal(failureSample?.value, 1);
   });
 });
 
@@ -191,6 +215,11 @@ describe("GSM heartbeat worker integration", () => {
     const edgeCalls = fetchCalls.filter((call) => call.url.includes("gsm-heartbeat"));
     assert.equal(edgeCalls.length, 1);
     assert.equal(edgeCalls[0].init?.method, "POST");
+
+    const metrics = await getObservabilityRegistry().getMetricsAsJSON();
+    const runsMetric = metrics.find((metric) => metric.name === "ibimina_gsm_heartbeat_runs_total");
+    const successSample = runsMetric!.values.find((sample) => sample.labels?.result === "success");
+    assert.equal(successSample?.value, 1);
   });
 
   it("throws an error when edge function reports failure", async () => {
@@ -216,5 +245,10 @@ describe("GSM heartbeat worker integration", () => {
       name: "Error",
       message: /GSM heartbeat failed: GSM device unreachable/,
     });
+
+    const metrics = await getObservabilityRegistry().getMetricsAsJSON();
+    const runsMetric = metrics.find((metric) => metric.name === "ibimina_gsm_heartbeat_runs_total");
+    const failureSample = runsMetric!.values.find((sample) => sample.labels?.result === "failure");
+    assert.equal(failureSample?.value, 1);
   });
 });

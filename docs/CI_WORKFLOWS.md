@@ -91,6 +91,7 @@ functionality.
 ```yaml
 - Enforce bundle budgets
 - Verify log drain alerting
+- Verify PWA baseline (reuse build artifacts)
 ```
 
 **Expected Time**: ~2 seconds
