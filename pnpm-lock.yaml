@@ -120,6 +120,9 @@ importers:
       '@ibimina/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@ibimina/flags':
+        specifier: workspace:*
+        version: link:../../packages/flags
       '@ibimina/locales':
         specifier: workspace:*
         version: link:../../packages/locales
@@ -322,6 +325,9 @@ importers:
       '@ibimina/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@ibimina/data-access':
+        specifier: workspace:*
+        version: link:../../packages/data-access
       '@ibimina/lib':
         specifier: workspace:*
         version: link:../../packages/lib
@@ -354,7 +360,7 @@ importers:
         version: 15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       next-intl:
         specifier: ^4.4.0
-        version: 4.4.0(next@15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+        version: 4.4.0(next@15.5.4(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
       next-pwa:
         specifier: ^5.6.0
         version: 5.6.0(@babel/core@7.28.5)(@types/babel__core@7.20.5)(next@15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(webpack@5.102.1)
@@ -449,6 +455,9 @@ importers:
       '@ibimina/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@ibimina/lib':
+        specifier: workspace:*
+        version: link:../../packages/lib
       '@ibimina/locales':
         specifier: workspace:*
         version: link:../../packages/locales
@@ -694,7 +703,7 @@ importers:
         version: 15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       next-intl:
         specifier: ^4.4.0
-        version: 4.4.0(next@15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+        version: 4.4.0(next@15.5.4(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
       next-seo:
         specifier: ^6.6.0
         version: 6.8.0(next@15.5.4(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -735,6 +744,37 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.3
+
+  packages/agent:
+    dependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.78.0
+        version: 2.78.0
+      openai:
+        specifier: ^6.7.0
+        version: 6.7.0(ws@8.18.3)(zod@4.1.12)
+    devDependencies:
+      '@types/node':
+        specifier: 20.19.21
+        version: 20.19.21
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.46.2
+        version: 8.46.2(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.46.2
+        version: 8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3)
+      eslint:
+        specifier: ^9.37.0
+        version: 9.39.0(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@9.39.0(jiti@2.6.1))
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@edge-runtime/vm@3.2.0)(@types/node@20.19.21)(jsdom@20.0.3)(lightningcss@1.30.2)(terser@5.44.0)
 
   packages/ai-agent:
     dependencies:
@@ -816,9 +856,9 @@ importers:
 
   packages/data-access:
     dependencies:
-      '@ibimina/lib':
+      '@ibimina/flags':
         specifier: workspace:*
-        version: link:../lib
+        version: link:../flags
       '@supabase/supabase-js':
         specifier: ^2.78.0
         version: 2.78.0
@@ -834,6 +874,28 @@ importers:
         version: 5.9.3
 
   packages/eslint-plugin-ibimina: {}
+
+  packages/flags:
+    dependencies:
+      '@ibimina/config':
+        specifier: workspace:*
+        version: link:../config
+      '@supabase/supabase-js':
+        specifier: ^2.78.0
+        version: 2.78.0
+    devDependencies:
+      '@types/node':
+        specifier: 20.19.21
+        version: 20.19.21
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.1.0
+      tsup:
+        specifier: ^8.1.0
+        version: 8.5.0(jiti@2.6.1)(postcss@8.5.6)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/lib:
     dependencies:
@@ -2717,7 +2779,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {node: '>=0.10.0'}
+    engines: {'0': node >=0.10.0}
 
   '@expo/cli@0.22.26':
     resolution: {integrity: sha512-I689wc8Fn/AX7aUGiwrh3HnssiORMJtR2fpksX+JIe8Cj/EDleblYMSwRPd0025wrwOV9UN1KM/RuEt/QjCS3Q==}
@@ -8792,6 +8854,10 @@ packages:
   jose@5.9.6:
     resolution: {integrity: sha512-AMlnetc9+CV9asI19zHmrgS/WYsWUwCn2R7RzlbJWD7F9eWYUTGyBmU9o6PxngtLGOiDGPRu+Uc4fhKzbpteZQ==}
 
+  joycon@3.1.1:
+    resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
+    engines: {node: '>=10'}
+
   js-levenshtein@1.1.6:
     resolution: {integrity: sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g==}
     engines: {node: '>=0.10.0'}
@@ -10391,6 +10457,10 @@ packages:
   postgres-interval@1.2.0:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
+
+  posthog-node@4.18.0:
+    resolution: {integrity: sha512-XROs1h+DNatgKh/AlIlCtDxWzwrKdYDb2mOs58n4yN8BkGN9ewqeQwG5ApS4/IzwCb7HPttUkOVulkYatd2PIw==}
+    engines: {node: '>=15.0.0'}
 
   posthog-react-native@3.16.1:
     resolution: {integrity: sha512-qrsQC552nY9emZbv2HmnPfckS1waFf5kG1LLGF1noUhgXWzNfLfwK20FIypjRR50O+j/vCFIzQBmoy4Sv/U2RA==}
@@ -16373,7 +16443,6 @@ snapshots:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/instrumentation': 0.57.2(@opentelemetry/api@1.9.0)
     transitivePeerDependencies:
-      - '@babel/preset-env'
       - supports-color
 
   '@radix-ui/react-compose-refs@1.0.0(react@18.3.1)':
@@ -19348,12 +19417,10 @@ snapshots:
 
   builtin-modules@3.3.0: {}
 
-  bunyan@1.8.15:
-    optionalDependencies:
-      dtrace-provider: 0.8.8
-      moment: 2.30.1
-      mv: 2.1.1
-      safe-json-stringify: 1.2.0
+  bundle-require@5.1.0(esbuild@0.25.12):
+    dependencies:
+      esbuild: 0.25.12
+      load-tsconfig: 0.2.5
 
   bunyan@1.8.15:
     optionalDependencies:
@@ -20639,7 +20706,7 @@ snapshots:
       eslint: 9.39.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.0(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.0(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.0(jiti@2.6.1))
       eslint-plugin-react-hooks: 5.2.0(eslint@9.39.0(jiti@2.6.1))
@@ -20656,7 +20723,7 @@ snapshots:
       eslint: 9.39.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.0(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.0(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.0(jiti@2.6.1))
       eslint-plugin-react-hooks: 7.0.1(eslint@9.39.0(jiti@2.6.1))
@@ -20693,7 +20760,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.0(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -20708,7 +20775,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.0(jiti@2.6.1)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1)))(eslint@9.39.0(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -21587,7 +21654,7 @@ snapshots:
 
   filelist@1.0.4:
     dependencies:
-      minimatch: 5.1.2
+      minimatch: 5.1.6
 
   fill-range@7.1.1:
     dependencies:
@@ -22912,6 +22979,8 @@ snapshots:
 
   jose@5.9.6: {}
 
+  joycon@3.1.1: {}
+
   js-levenshtein@1.1.6: {}
 
   js-tokens@4.0.0: {}
@@ -24156,7 +24225,7 @@ snapshots:
 
   nested-error-stacks@2.0.1: {}
 
-  next-intl@4.4.0(next@15.5.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3):
+  next-intl@4.4.0(next@15.5.4(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.9.3):
     dependencies:
       '@formatjs/intl-localematcher': 0.5.10
       negotiator: 1.0.0
@@ -24821,6 +24890,12 @@ snapshots:
   postgres-interval@1.2.0:
     dependencies:
       xtend: 4.0.2
+
+  posthog-node@4.18.0:
+    dependencies:
+      axios: 1.13.1
+    transitivePeerDependencies:
+      - debug
 
   posthog-react-native@3.16.1(kebrwlprpunseewq64hvc5q3ce):
     dependencies:

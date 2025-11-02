@@ -3,8 +3,7 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
-import { resolveEnvironment, scrubPII } from "@ibimina/lib";
-import { createSecurityMiddlewareContext } from "@ibimina/lib/security";
+import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@ibimina/lib";
 
 const isDev = process.env.NODE_ENV !== "production";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
@@ -36,8 +35,7 @@ const resolveDeepLink = async (
   type: DeepLinkType,
   identifier: string
 ): Promise<DeepLinkResolution | null> => {
-  const supabaseRestUrl =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+  const supabaseRestUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseRestUrl || !serviceKey) {
@@ -78,10 +76,9 @@ const middlewareImpl = async (request: NextRequest) => {
     isDev,
     supabaseUrl,
   });
+  const { requestHeaders, requestId } = securityContext;
 
   try {
-    const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
-
     let response: NextResponse | null = null;
 
     const deepLinkMatch = request.nextUrl.pathname.match(DEEP_LINK_MATCHER);
@@ -118,23 +115,7 @@ const middlewareImpl = async (request: NextRequest) => {
       });
     }
 
-    // Set CSP header
-    const csp = createContentSecurityPolicy({ nonce, isDev, supabaseUrl });
-    response.headers.set("Content-Security-Policy", csp);
-
-    // Apply security headers
-    for (const header of SECURITY_HEADERS) {
-      response.headers.set(header.key, header.value);
-    }
-
-    // HSTS in production only
-    if (!isDev) {
-      response.headers.set(HSTS_HEADER.key, HSTS_HEADER.value);
-    }
-
-    if (!response.headers.has("X-Request-ID")) {
-      response.headers.set("X-Request-ID", requestId);
-    }
+    securityContext.applyResponseHeaders(response.headers);
 
     return response;
   } catch (error) {

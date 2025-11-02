@@ -3,8 +3,7 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
-import { resolveEnvironment, scrubPII } from "@ibimina/lib";
-import { createSecurityMiddlewareContext } from "@ibimina/lib/security";
+import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@ibimina/lib";
 import { defaultLocale } from "./i18n";
 
 const isDev = process.env.NODE_ENV !== "production";
