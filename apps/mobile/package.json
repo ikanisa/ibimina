@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "jest",
-    "test:detox": "tsx --test tests/detox/*.e2e.ts"
+    "test:detox": "pnpm --filter @ibimina/client run test:detox && tsx --test tests/detox/*.e2e.ts"
   },
   "dependencies": {
     "@ibimina/config": "workspace:*",
