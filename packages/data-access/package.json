@@ -24,8 +24,12 @@
     "build:cjs": "tsc -p tsconfig.build.cjs.json && node ../../scripts/build/prepare-cjs.mjs dist/cjs"
   },
   "dependencies": {
+    "@ibimina/lib": "workspace:*",
     "@supabase/supabase-js": "^2.78.0",
     "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "@ibimina/lib": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "20.19.21",

@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 import { withSentryConfig } from "@sentry/nextjs";
 import { HSTS_HEADER, SECURITY_HEADERS } from "./lib/security/headers";
+import { createWithPwa } from "../../config/next/withPwa";
 
 if (process.env.AUTH_E2E_STUB === "1") {
   const ensure = (key: string, fallback: string) => {
@@ -52,25 +53,9 @@ try {
   console.warn("Invalid NEXT_PUBLIC_SUPABASE_URL", error);
 }
 
-let withPWA = (config: NextConfig) => config;
 let withBundleAnalyzer = (config: NextConfig) => config;
 
-try {
-  const withPWAInit = require("next-pwa");
-  withPWA = withPWAInit({
-    dest: "public",
-    disable: process.env.NODE_ENV === "development" || process.env.DISABLE_PWA === "1",
-    register: true,
-    skipWaiting: true,
-    sw: "service-worker.js",
-    swSrc: "workers/service-worker.ts",
-    buildExcludes: [/middleware-manifest\.json$/],
-  });
-} catch {
-  console.warn(
-    "next-pwa not available during local build; proceeding without service worker bundling."
-  );
-}
+const withPWA = createWithPwa();
 
 try {
   const withBundleAnalyzerInit = require("@next/bundle-analyzer");
@@ -126,10 +111,11 @@ const nextConfig: NextConfig = {
     if (process.env.NODE_ENV === "production") {
       baseHeaders.push(HSTS_HEADER);
     }
-    const immutableAssetHeaders = [
+    const staticAssetHeaders = [
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
     ];
+    const immutableAssetHeaders = [...staticAssetHeaders];
     const manifestHeaders = [
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
@@ -137,10 +123,6 @@ const nextConfig: NextConfig = {
     const serviceWorkerHeaders = [
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
-    ];
-    const staticAssetHeaders = [
-      ...baseHeaders,
-      { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
     ];
     return [
       {

@@ -54,6 +54,7 @@ export const AssistChat = () => {
           placeholderTextColor="rgba(255,255,255,0.4)"
           value={draft}
           onChangeText={setDraft}
+          editable={!sendMutation.isPending}
         />
         <Pressable
           style={({ pressed }) => [styles.sendButton, pressed && styles.sendButtonPressed]}
@@ -63,8 +64,9 @@ export const AssistChat = () => {
             sendMutation.mutate(draft.trim());
             setDraft("");
           }}
+          disabled={sendMutation.isPending}
         >
-          <Text style={styles.sendText}>Send</Text>
+          <Text style={styles.sendText}>{sendMutation.isPending ? "…" : "Send"}</Text>
         </Pressable>
       </View>
     </LinearGradient>

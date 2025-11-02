@@ -80,6 +80,16 @@ function buildRawEnv(source: ProcessEnvSource) {
     CONFIGCAT_OFFERS_FALLBACK: source.CONFIGCAT_OFFERS_FALLBACK,
     CONFIGCAT_OFFERS_OVERRIDES: source.CONFIGCAT_OFFERS_OVERRIDES,
     CONFIGCAT_SETTINGS_URL: source.CONFIGCAT_SETTINGS_URL,
+    AI_AGENT_SESSION_STORE: source.AI_AGENT_SESSION_STORE ?? "supabase",
+    AI_AGENT_SESSION_TTL_SECONDS: source.AI_AGENT_SESSION_TTL_SECONDS ?? "3600",
+    AI_AGENT_RATE_LIMIT_MAX_REQUESTS: source.AI_AGENT_RATE_LIMIT_MAX_REQUESTS ?? "60",
+    AI_AGENT_RATE_LIMIT_WINDOW_SECONDS: source.AI_AGENT_RATE_LIMIT_WINDOW_SECONDS ?? "60",
+    AI_AGENT_USAGE_LOG_ENABLED: source.AI_AGENT_USAGE_LOG_ENABLED ?? "true",
+    AI_AGENT_USAGE_LOG_TABLE: source.AI_AGENT_USAGE_LOG_TABLE ?? "agent_usage_events",
+    AI_AGENT_OPTOUT_TABLE: source.AI_AGENT_OPTOUT_TABLE ?? "agent_opt_outs",
+    AI_AGENT_REDIS_URL: source.AI_AGENT_REDIS_URL,
+    CONFIGCAT_OFFERS_OVERRIDES: source.CONFIGCAT_OFFERS_OVERRIDES,
+    CONFIGCAT_SETTINGS_URL: source.CONFIGCAT_SETTINGS_URL,
   } as Record<string, string | undefined>;
 }
 
@@ -189,6 +199,14 @@ const schema = z
     CONFIGCAT_OFFERS_FALLBACK: optionalString,
     CONFIGCAT_OFFERS_OVERRIDES: optionalString,
     CONFIGCAT_SETTINGS_URL: optionalString,
+    AI_AGENT_SESSION_STORE: z.enum(["supabase", "redis"]).default("supabase"),
+    AI_AGENT_SESSION_TTL_SECONDS: positiveNumberString,
+    AI_AGENT_RATE_LIMIT_MAX_REQUESTS: positiveNumberString,
+    AI_AGENT_RATE_LIMIT_WINDOW_SECONDS: positiveNumberString,
+    AI_AGENT_USAGE_LOG_ENABLED: z.string().default("true"),
+    AI_AGENT_USAGE_LOG_TABLE: z.string().default("agent_usage_events"),
+    AI_AGENT_OPTOUT_TABLE: z.string().default("agent_opt_outs"),
+    AI_AGENT_REDIS_URL: optionalString,
   })
   .superRefine((values, ctx) => {
     const kmsCandidates = [values.KMS_DATA_KEY, values.KMS_DATA_KEY_BASE64].filter(

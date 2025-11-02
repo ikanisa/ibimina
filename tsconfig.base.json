@@ -31,7 +31,8 @@
       "@ibimina/providers": ["packages/providers/src/index.ts"],
       "@ibimina/tapmomo-proto": ["packages/tapmomo-proto/src/index.ts"],
       "@ibimina/testing": ["packages/testing/src/index.ts"],
-      "@ibimina/ui": ["packages/ui/src/index.ts"]
+      "@ibimina/ui": ["packages/ui/src/index.ts"],
+      "@ibimina/agent": ["packages/agent/src/index.ts"]
     }
   }
 }
