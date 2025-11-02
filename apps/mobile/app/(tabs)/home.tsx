@@ -2,31 +2,93 @@
  * Home screen - Dashboard with groups and statements overview
  */
 
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { useMemo, useCallback } from "react";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useIntl } from "react-intl";
-import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import { HeaderGradient } from "../../src/components/shared/HeaderGradient";
 import { FloatingAskToJoinFab } from "../../src/components/shared/FloatingAskToJoinFab";
 import { colors, elevation } from "../../src/theme";
-import mockApi from "../../src/mocks";
+import { useGroups } from "../../src/features/groups/hooks/useGroups";
+import {
+  useAllocations,
+  useReferenceTokens,
+} from "../../src/features/allocations/hooks/useAllocations";
+import { useAppStore } from "../../src/providers/store";
 
 export default function HomeScreen() {
   const intl = useIntl();
+  const router = useRouter();
+  const featureFlags = useAppStore((state) => state.featureFlags);
 
-  const { data: groups, isLoading: groupsLoading } = useQuery({
-    queryKey: ["groups"],
-    queryFn: mockApi.getGroups,
-  });
+  const groupsQuery = useGroups({ limit: 10 });
+  const groups = useMemo(
+    () => groupsQuery.data?.pages.flat() ?? [],
+    [groupsQuery.data]
+  );
 
-  const { data: statements, isLoading: statementsLoading } = useQuery({
-    queryKey: ["statements"],
-    queryFn: mockApi.getStatements,
-  });
+  const { data: referenceTokens } = useReferenceTokens();
+  const referenceTokenValues = useMemo(
+    () => referenceTokens?.map((token) => token.token).filter(Boolean) ?? [],
+    [referenceTokens]
+  );
 
-  const handleJoinGroup = () => {
-    console.log("Join group pressed");
-  };
+  const allocationsQuery = useAllocations(referenceTokenValues);
+  const allocations = allocationsQuery.data ?? [];
+
+  const statementSummaries = useMemo(() => {
+    if (!allocations.length) {
+      return [];
+    }
+
+    const aggregates = new Map<
+      string,
+      { monthLabel: string; groupName: string; closingBalance: number; currency: string }
+    >();
+
+    for (const allocation of allocations) {
+      const createdAt = new Date(allocation.createdAt);
+      const key = `${createdAt.getFullYear()}-${createdAt.getMonth()}`;
+      const monthLabel = createdAt.toLocaleDateString(undefined, {
+        month: "long",
+        year: "numeric",
+      });
+
+      const existing = aggregates.get(key) ?? {
+        monthLabel,
+        groupName: allocation.groupName ?? intl.formatMessage({
+          id: "home.group.unnamed",
+          defaultMessage: "Unassigned",
+        }),
+        closingBalance: 0,
+        currency: allocation.currency,
+      };
+
+      existing.closingBalance += allocation.amount;
+      existing.groupName = allocation.groupName ?? existing.groupName;
+      existing.currency = allocation.currency;
+
+      aggregates.set(key, existing);
+    }
+
+    return Array.from(aggregates.entries())
+      .sort(([a], [b]) => (a > b ? -1 : 1))
+      .slice(0, 3)
+      .map(([key, value]) => ({
+        id: key,
+        month: value.monthLabel,
+        groupName: value.groupName,
+        closingBalance: value.closingBalance,
+        currency: value.currency,
+      }));
+  }, [allocations, intl]);
+
+  const handleJoinGroup = useCallback(() => {
+    router.push("/assist");
+  }, [router]);
+
+  const showAskToJoin = featureFlags["group_join_requests"] !== false;
 
   return (
     <View style={styles.container}>
@@ -45,35 +107,51 @@ export default function HomeScreen() {
             {intl.formatMessage({ id: "home.groups", defaultMessage: "Your groups" })}
           </Text>
 
-          {groupsLoading ? (
+          {groupsQuery.isLoading ? (
             <Text style={styles.loadingText}>Loading...</Text>
-          ) : (
-            groups?.map((group) => (
+          ) : groups.length ? (
+            groups.map((group) => (
               <View key={group.id} style={styles.card}>
                 <View style={styles.cardHeader}>
                   <Text style={styles.cardTitle}>{group.name}</Text>
-                  {group.joined && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>Member</Text>
-                    </View>
-                  )}
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{group.status.toUpperCase()}</Text>
+                  </View>
                 </View>
-                <Text style={styles.cardSubtitle}>{group.description}</Text>
+                <Text style={styles.cardSubtitle}>
+                  {`${new Intl.NumberFormat(undefined, {
+                    style: "currency",
+                    currency: group.contributionCurrency ?? "RWF",
+                    maximumFractionDigits: 0,
+                  }).format(group.contributionAmount ?? 0)} ${intl.formatMessage({
+                    id: "home.group.contributionLabel",
+                    defaultMessage: "contribution",
+                  })} • ${intl.formatNumber(group.memberCount)} ${intl.formatMessage({
+                    id: "home.group.members",
+                    defaultMessage: "members",
+                  })}`}
+                </Text>
                 <View style={styles.cardFooter}>
                   <Text style={styles.cardInfo}>
-                    {group.memberCount} members • {(group.totalSavings / 1000).toFixed(0)}K{" "}
-                    {group.currency}
+                    {intl.formatMessage(
+                      {
+                        id: "home.group.nextCollection",
+                        defaultMessage: "Next collection: {date}",
+                      },
+                      {
+                        date: group.nextCollectionDate
+                          ? new Date(group.nextCollectionDate).toLocaleDateString()
+                          : intl.formatMessage({ id: "home.group.notScheduled", defaultMessage: "Not scheduled" }),
+                      }
+                    )}
                   </Text>
-                  {!group.joined && (
-                    <TouchableOpacity style={styles.joinButton}>
-                      <Text style={styles.joinButtonText}>
-                        {intl.formatMessage({ id: "button.join", defaultMessage: "Join" })}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
                 </View>
               </View>
             ))
+          ) : (
+            <Text style={styles.loadingText}>
+              {intl.formatMessage({ id: "home.groups.empty", defaultMessage: "No groups available yet" })}
+            </Text>
           )}
 
           {/* Statements Section */}
@@ -81,10 +159,10 @@ export default function HomeScreen() {
             {intl.formatMessage({ id: "home.statements", defaultMessage: "Recent statements" })}
           </Text>
 
-          {statementsLoading ? (
+          {allocationsQuery.isLoading ? (
             <Text style={styles.loadingText}>Loading...</Text>
-          ) : (
-            statements?.map((statement) => (
+          ) : statementSummaries.length ? (
+            statementSummaries.map((statement) => (
               <View key={statement.id} style={styles.statementCard}>
                 <View style={styles.statementHeader}>
                   <Text style={styles.statementMonth}>{statement.month}</Text>
@@ -93,17 +171,30 @@ export default function HomeScreen() {
                 <View style={styles.statementRow}>
                   <Text style={styles.statementLabel}>Closing Balance</Text>
                   <Text style={styles.statementValue}>
-                    {statement.closingBalance.toLocaleString()} {statement.currency}
+                    {new Intl.NumberFormat(undefined, {
+                      style: "currency",
+                      currency: statement.currency,
+                      maximumFractionDigits: 0,
+                    }).format(statement.closingBalance)}
                   </Text>
                 </View>
               </View>
             ))
+          ) : (
+            <Text style={styles.loadingText}>
+              {intl.formatMessage({
+                id: "home.statements.empty",
+                defaultMessage: "No reconciled allocations yet",
+              })}
+            </Text>
           )}
 
           <View style={{ height: 100 }} />
         </ScrollView>
 
-        <FloatingAskToJoinFab onPress={handleJoinGroup} label="Ask to Join" />
+        {showAskToJoin ? (
+          <FloatingAskToJoinFab onPress={handleJoinGroup} label="Ask to Join" />
+        ) : null}
       </LinearGradient>
     </View>
   );
@@ -172,17 +263,6 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  joinButton: {
-    backgroundColor: colors.rw.blue,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  joinButtonText: {
-    fontSize: 14,
     fontWeight: "600",
     color: "#FFFFFF",
   },
