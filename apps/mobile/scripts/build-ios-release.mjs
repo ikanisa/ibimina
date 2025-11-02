@@ -3,6 +3,7 @@ import { createWriteStream } from "node:fs";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
+import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -76,6 +77,8 @@ if (!response.ok || !response.body) {
   );
 }
 
-await pipeline(response.body, createWriteStream(artifactPath));
+const artifactPath = path.join(distDir, "Ibimina.ipa");
+const downloadStream = Readable.fromWeb(response.body);
+await pipeline(downloadStream, createWriteStream(artifactPath));
 
 console.log(`Downloaded iOS IPA to ${artifactPath}`);
