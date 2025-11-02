@@ -14,7 +14,7 @@
     "test": "jest",
     "build:android:release": "eas build --platform android --profile production --local --non-interactive --output ./dist/ibimina-mobile.aab",
     "build:android:apk": "eas build --platform android --profile apk --local --non-interactive --output ./dist/ibimina-mobile.apk",
-    "build:ios:release": "eas build --platform ios --profile production --local --non-interactive --output ./dist/Ibimina.ipa"
+    "build:ios:release": "eas build --platform ios --profile production --non-interactive --output ./dist/Ibimina.ipa"
   },
   "dependencies": {
     "@ibimina/config": "workspace:*",
