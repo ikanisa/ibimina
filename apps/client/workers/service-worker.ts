@@ -24,6 +24,7 @@ import { registerRoute, setCatchHandler } from "workbox-routing";
 import { StaleWhileRevalidate, NetworkFirst, CacheFirst } from "workbox-strategies";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 import { ExpirationPlugin } from "workbox-expiration";
+import { enable as enableNavigationPreload } from "workbox-navigation-preload";
 
 declare let self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<PrecacheEntry>;
@@ -127,6 +128,18 @@ const enforcePrecacheBudget = (entries: Array<PrecacheEntry>) => {
 // Immediately activate the service worker and take control of all clients
 self.skipWaiting();
 clientsClaim();
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      try {
+        await enableNavigationPreload();
+      } catch (error) {
+        console.error("Failed to enable navigation preload", error);
+      }
+    })()
+  );
+});
 
 // Precache critical app shell resources
 // The workbox plugin injects the manifest at build time via __WB_MANIFEST

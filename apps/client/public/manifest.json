@@ -1,11 +1,17 @@
 {
   "name": "Ibimina Client App",
   "short_name": "Ibimina",
-  "description": "Member-facing app for Umurenge SACCO Ibimina. View contributions, request loans, and manage your ikimina membership.",
-  "start_url": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "id": "/",
+  "scope": "/",
+  "start_url": "/?source=pwa",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#0b1020",
+  "description": "Member-facing app for Umurenge SACCO Ibimina. View contributions, request loans, and manage your ikimina membership.",
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -20,23 +26,24 @@
       "purpose": "maskable"
     }
   ],
+  "categories": ["finance", "productivity"],
   "screenshots": [
     {
       "src": "/store-assets/screenshots/onboarding.svg",
-      "sizes": "1080x1920",
+      "sizes": "1242x2688",
       "type": "image/svg+xml",
-      "label": "Onboarding overview"
+      "form_factor": "narrow"
     },
     {
       "src": "/store-assets/screenshots/statements.svg",
-      "sizes": "1080x1920",
+      "sizes": "1242x2688",
       "type": "image/svg+xml",
-      "label": "Monthly statements"
+      "form_factor": "narrow"
     }
   ],
   "share_target": {
-    "action": "/share",
-    "method": "GET",
+    "action": "/share-target",
+    "method": "POST",
     "enctype": "application/x-www-form-urlencoded",
     "params": {
       "title": "title",
@@ -80,6 +87,16 @@
           "sizes": "192x192"
         }
       ]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.ibimina.mobile"
+    },
+    {
+      "platform": "itunes",
+      "id": "com.ibimina.mobile"
     }
   ]
 }

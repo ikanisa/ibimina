@@ -1,70 +1,65 @@
-# Mobile Release Checklist
+# Release Checklist
 
-Use this checklist to prepare and validate an Ibimina mobile release. Each
-section ensures the Expo/EAS pipeline consumes consistent metadata, secrets, and
-test coverage before the build is promoted.
+## 1. Pre-flight
 
-## 1. Version metadata
+- [ ] Confirm `pnpm install --frozen-lockfile` succeeds on a clean clone.
+- [ ] Ensure `pnpm --filter @ibimina/client run build` and
+      `pnpm --filter @ibimina/admin run build` complete locally; investigate any
+      missing compiled shared packages.
+- [ ] Verify Supabase migrations are applied to staging using
+      `pnpm --filter @ibimina/admin run supabase:deploy -- --dry-run`.
 
-- [ ] Export release identifiers in the CI environment (or your local shell)
-      before triggering a build:
-  ```bash
-  export APP_VERSION=1.12.0
-  export ANDROID_VERSION_CODE=84
-  export IOS_BUILD_NUMBER=84
-  ```
-- [ ] Run the automated guard rail to confirm the variables are present and
-      valid:
-  ```bash
-  pnpm --filter @ibimina/mobile run preflight:version
-  ```
-  The script aborts with actionable errors when metadata is missing or
-  malformed.
+## 2. Client & Staff PWAs
 
-## 2. Credentials and signing assets
+1. `pnpm run lint`
+2. `pnpm run typecheck`
+3. `pnpm run test`
+4. `pnpm --filter @ibimina/client run build`
+5. `pnpm --filter @ibimina/admin run build`
+6. Run Lighthouse with throttling:
+   `npx @lhci/cli autorun --config=apps/client/lighthouse.config.cjs`
+7. Deploy to Vercel once Lighthouse ≥90 PWA / ≥80 Performance:
+   `pnpm --filter @ibimina/client run deploy:vercel:fallback`
+8. Deploy Cloudflare Pages fallback:
+   `pnpm --filter @ibimina/client run deploy:cloudflare`
 
-- [ ] Confirm `apps/mobile/eas.json` contains the `production` and `apk` build
-      profiles with `credentialsSource` set to `remote` for both Android and
-      iOS.
-- [ ] Store signing assets in EAS secure storage (`eas credentials`) instead of
-      committing them to the repository. Regenerate or revoke credentials that
-      have been downloaded locally.
-- [ ] Ensure App Store Connect identifiers (ASC App ID, Apple ID, Apple Team ID)
-      and Google Play service account keys are available as encrypted CI secrets
-      before promoting a build.
+## 3. Android (Expo) Release
 
-## 3. Quality gates
+1. Export credentials (keystore JSON, Expo token) into your shell.
+2. Bump version via env vars if needed:
+   ```bash
+   export APP_VERSION=1.0.1
+   export ANDROID_VERSION_CODE=101
+   pnpm --filter @ibimina/mobile exec expo config --type public
+   ```
+3. Build release bundle (AAB):
+   ```bash
+   pnpm --filter @ibimina/mobile run build:android:release
+   ```
+4. Build QA APK for smoke tests:
+   ```bash
+   pnpm --filter @ibimina/mobile run build:android:apk
+   ```
+5. Upload `apps/mobile/dist/*.aab` to Play Console with matching Proguard
+   mapping.
 
-- [ ] Execute mobile smoke tests with coverage enforcement:
-  ```bash
-  pnpm --filter @ibimina/mobile run test
-  ```
-  Jest is configured to require at least 60% line, function, and statement
-  coverage and emits an LCOV report for further inspection.
-- [ ] Coordinate deeper navigation and authentication flows with Detox where
-      device automation is required. Document new flows in
-      `MOBILE_TESTING_GUIDE.md` when they are implemented.
+## 4. iOS (Expo) Release
 
-## 4. Build and artifact validation
+1. Export credentials (Apple App Store Connect key, certificates, Expo token).
+2. Align build number (defaults to app version, override via
+   `IOS_BUILD_NUMBER`).
+3. Build signed IPA:
+   ```bash
+   pnpm --filter @ibimina/mobile run build:ios:release
+   ```
+4. Validate output with Transporter or `eas submit --platform ios`.
 
-- [ ] Generate artifacts for every distribution channel. The helper wraps
-      Expo/EAS configuration and embeds version metadata in each bundle
-      manifest:
-  ```bash
-  pnpm --filter @ibimina/mobile run build:android:aab
-  pnpm --filter @ibimina/mobile run build:android:apk
-  pnpm --filter @ibimina/mobile run build:ios:ipa
-  ```
-- [ ] Capture SHA256 fingerprints for every artifact prior to publishing and
-      record them in the release ticket or deployment notes.
-- [ ] Upload generated `.aab`, `.apk`, and `.ipa` files to the pipeline storage
-      bucket used by CI so downstream jobs can reuse the binaries without
-      rebuilding.
+## 5. Post-Deployment
 
-## 5. Post-release tasks
-
-- [ ] Monitor Sentry and PostHog dashboards for the first hour after release for
-      crash-free session and retention anomalies.
-- [ ] Rotate feature flags or ConfigCat rules that were staged for the release.
-- [ ] Archive the final LCOV coverage report alongside release documentation for
-      auditing.
+- [ ] Smoke-test member PWA offline cache (`/offline`) and share target
+      (`/share`).
+- [ ] Validate Android/iOS builds on physical devices for cold start and
+      analytics capture.
+- [ ] Monitor Supabase logs and Vercel/Cloudflare dashboards for error spikes.
+- [ ] Update `CHANGELOG.md` with release highlights and increment versions in
+      affected packages.

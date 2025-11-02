@@ -1,24 +1,21 @@
 {
   "cli": {
-    "requireCommit": true
+    "version": ">= 13.4.0"
   },
   "build": {
     "production": {
-      "distribution": "store",
+      "channel": "production",
       "android": {
-        "buildType": "app-bundle",
-        "credentialsSource": "remote"
+        "buildType": "app-bundle"
       },
       "ios": {
-        "simulator": false,
-        "credentialsSource": "remote"
+        "simulator": false
       }
     },
     "apk": {
-      "distribution": "internal",
+      "channel": "qa",
       "android": {
-        "buildType": "apk",
-        "credentialsSource": "remote"
+        "buildType": "apk"
       }
     }
   },
@@ -28,9 +25,7 @@
         "serviceAccountKeyPath": "./credentials/google-service-account.json"
       },
       "ios": {
-        "ascAppId": "",
-        "appleId": "",
-        "appleTeamId": ""
+        "ascAppId": "1234567890"
       }
     }
   }
