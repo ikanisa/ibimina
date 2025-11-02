@@ -15,12 +15,13 @@ interface AppProvidersProps {
   children: React.ReactNode;
   nonce?: string;
   locale?: SupportedLocale;
+  forcedTheme?: 'light' | 'nyungwe';
 }
 
-export function AppProviders({ children, nonce, locale = DEFAULT_LOCALE }: AppProvidersProps) {
+export function AppProviders({ children, nonce, locale = DEFAULT_LOCALE, forcedTheme }: AppProvidersProps) {
   return (
     <I18nProvider defaultLocale={locale}>
-      <ThemeProvider nonce={nonce}>
+      <ThemeProvider nonce={nonce} forcedTheme={forcedTheme}>
         <ToastProvider>
           <OfflineQueueProvider>
             <ConfirmProvider>

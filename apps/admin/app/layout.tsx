@@ -24,6 +24,11 @@ export const viewport: Viewport = {
   themeColor: "#0b1020",
 };
 
+function getInitialTheme(cookieStore: Awaited<ReturnType<typeof cookies>>) {
+  const themeCookie = cookieStore.get('theme')?.value;
+  return themeCookie === 'nyungwe' ? 'nyungwe' : 'light';
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -33,11 +38,17 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const nonce = headerList.get("x-csp-nonce") ?? undefined;
   const locale = resolveRequestLocale({ headers: headerList, cookies: cookieStore });
+  const theme = getInitialTheme(cookieStore);
+
+  const rootClass =
+    theme === 'nyungwe'
+      ? 'antialiased bg-nyungwe text-neutral-0'
+      : 'antialiased bg-white text-gray-900';
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className="antialiased">
-        <AppProviders nonce={nonce} locale={locale}>
+    <html lang={locale} data-theme={theme} className={theme}>
+      <body className={rootClass}>
+        <AppProviders nonce={nonce} locale={locale} forcedTheme={theme}>
           {children}
         </AppProviders>
       </body>

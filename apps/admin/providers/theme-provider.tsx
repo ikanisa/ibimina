@@ -5,14 +5,16 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 interface ThemeProviderProps {
   children: React.ReactNode;
   nonce?: string;
+  forcedTheme?: 'light' | 'nyungwe';
 }
 
-export function ThemeProvider({ children, nonce }: ThemeProviderProps) {
+export function ThemeProvider({ children, nonce, forcedTheme }: ThemeProviderProps) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="dark"
-      enableSystem
+      defaultTheme="light"
+      forcedTheme={forcedTheme}
+      enableSystem={false}
       disableTransitionOnChange
       nonce={nonce}
     >
