@@ -25,9 +25,14 @@ describe("withWebhookIdempotency", () => {
       },
       async updateRecord(response, requestHash, expiresAt) {
         this.record = { response, request_hash: requestHash, expires_at: expiresAt };
+        return true;
       },
-      async removeRecord() {
-        this.record = null;
+      async removeRecord(expectedRequestHash) {
+        if (this.record?.request_hash === expectedRequestHash) {
+          this.record = null;
+          return true;
+        }
+        return false;
       },
     } as WebhookIdempotencyStore & { record: any };
 
@@ -67,9 +72,14 @@ describe("withWebhookIdempotency", () => {
       },
       async updateRecord(response, requestHash, expiresAt) {
         this.state = { response, request_hash: requestHash, expires_at: expiresAt };
+        return true;
       },
-      async removeRecord() {
-        this.state = null;
+      async removeRecord(expectedRequestHash) {
+        if (this.state?.request_hash === expectedRequestHash) {
+          this.state = null;
+          return true;
+        }
+        return false;
       },
     } as WebhookIdempotencyStore & { state: any };
 
@@ -104,11 +114,12 @@ describe("withWebhookIdempotency", () => {
       async fetchRecord() {
         return { response: PENDING_SENTINEL, request_hash: "hash", expires_at: "" } as any;
       },
-      async updateRecord() {
+      async updateRecord(_response, _requestHash, _expiresAt) {
         throw new Error("should not update");
       },
-      async removeRecord() {
+      async removeRecord(_expectedRequestHash) {
         // no-op
+        return false;
       },
     };
 
