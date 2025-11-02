@@ -25,6 +25,8 @@ export interface ScenarioController {
   };
   readonly expectScreen: (name: string) => Promise<void>;
   readonly markAccessible: (id: string) => Promise<void>;
+  readonly getHistory: () => readonly ScreenState[];
+  readonly isOffline: () => boolean;
 }
 
 function cloneScreen(screen: ScreenState): ScreenState {
@@ -92,6 +94,12 @@ export function createScenario(config: ScenarioConfig): ScenarioController {
         ...state.current,
         accessibilityElements: Array.from(new Set([...state.current.accessibilityElements, id])),
       };
+    },
+    getHistory() {
+      return state.history;
+    },
+    isOffline() {
+      return state.offline;
     },
   };
 }
