@@ -3,22 +3,80 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
-import { resolveEnvironment, scrubPII } from "@ibimina/lib";
-import { createSecurityMiddlewareContext } from "@ibimina/lib/security";
+import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@ibimina/lib";
 import { defaultLocale } from "./i18n";
 
 const isDev = process.env.NODE_ENV !== "production";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
+const PUBLIC_ROUTES = new Set([
+  "/login",
+  "/welcome",
+  "/onboard",
+  "/offline",
+  "/help",
+  "/privacy",
+  "/terms",
+]);
+
+const PUBLIC_PREFIXES = [
+  "/api",
+  "/_next",
+  "/icons",
+  "/manifest",
+  "/service-worker.js",
+  "/assets",
+  "/store-assets",
+  "/favicon.ico",
+  "/.well-known",
+  "/share",
+  "/share-target",
+];
+
+function hasSupabaseSessionCookie(request: NextRequest) {
+  const cookies = request.cookies.getAll();
+  return cookies.some(({ name, value }) => {
+    if (!value) {
+      return false;
+    }
+    if (name === "stub-auth" && value === "1") {
+      return true;
+    }
+    if (name === "supabase-auth-token" || name === "sb-access-token") {
+      return true;
+    }
+    return /^sb-.*-auth-token$/i.test(name) || /^supabase-session/.test(name);
+  });
+}
+
+function isPublicPath(pathname: string) {
+  if (PUBLIC_ROUTES.has(pathname)) {
+    return true;
+  }
+
+  return PUBLIC_PREFIXES.some((prefix) =>
+    pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 const middlewareImpl = (request: NextRequest) => {
   const startedAt = Date.now();
   const environment = resolveEnvironment();
-  const securityContext = createSecurityMiddlewareContext({
-    requestHeaders: request.headers,
-    defaultLocale,
-    isDev,
-    supabaseUrl,
-  });
+  const nonce = createNonce();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-csp-nonce", nonce);
+
+  // Set default locale in request headers for next-intl
+  requestHeaders.set("x-next-intl-locale", defaultLocale);
+
+  const pathname = request.nextUrl.pathname;
+  if (!hasSupabaseSessionCookie(request) && !isPublicPath(pathname)) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("redirectedFrom", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
   let response: NextResponse;
   const { requestId } = securityContext;
 

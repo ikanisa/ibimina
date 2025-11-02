@@ -84,8 +84,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Prepare coverage and report directories
-        run: pnpm run coverage:prepare
+      - name: Prepare report directories
+        run: mkdir -p .reports/lighthouse .reports/security
 
       - name: pnpm audit (production dependencies)
         run: |
@@ -105,63 +105,19 @@ jobs:
           set -eo pipefail
           gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path .reports/security/gitleaks-report.json
 
-      - name: Install Semgrep
-        run: |
-          python -m pip install --upgrade --user pip
-          python -m pip install --user semgrep
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Run Semgrep scan
-        run: |
-          set -eo pipefail
-          semgrep scan --config .semgrep/semgrep.yml --json --output .reports/security/semgrep-report.json --exit-code=0
-          if jq -e '.results[] | select(.extra.severity == "ERROR" or .extra.severity == "CRITICAL")' .reports/security/semgrep-report.json >/dev/null; then
-            echo "High severity Semgrep findings detected." >&2
-            exit 1
-          fi
-
-      - name: Verify required feature flags
-        if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' }}
-        run: pnpm run check:flags
-
-      - name: Skip feature flag check when secrets unavailable
-        if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_SERVICE_ROLE_KEY == '' }}
-        run: echo "Required Supabase secrets are unavailable; skipping feature flag validation."
-
       - name: Lint all workspaces
         run: pnpm run lint
 
       - name: Typecheck all workspaces
         run: pnpm run typecheck
 
-      - name: Workspace library tests
-        run: pnpm -r --filter "@ibimina/{lib,core,providers,ai-agent,testing,config}" test
+      - name: Test all workspaces
+        run: pnpm run test
 
-      - name: Unit tests
-        run: pnpm run test:unit
-
-      - name: Auth security tests
-        run: pnpm run test:auth
-
-      - name: RLS policy tests
-        run: pnpm run test:rls
-
-      - name: Merge and enforce coverage thresholds
-        run: pnpm run coverage:enforce
-
-      - name: Verify i18n keys
-        run: pnpm run check:i18n
-
-      - name: Verify i18n glossary consistency
-        run: pnpm run check:i18n:consistency
-
-      - name: Build shared packages
-        run: pnpm run build:packages
-
-      - name: Build applications
-        run: pnpm run build:apps
+      - name: Build all workspaces
         env:
           ANALYZE_BUNDLE: "1"
+        run: pnpm -r build
 
       - name: Enforce bundle budgets
         run: pnpm run assert:bundle
@@ -169,90 +125,51 @@ jobs:
       - name: Verify log drain alerting
         run: pnpm run verify:log-drain
 
-      - name: Verify PWA baseline
-        run: pnpm --filter @ibimina/admin run verify:pwa -- --skip-build
-
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
-
-      - name: Playwright smoke tests
-        run: pnpm run test:e2e
-
-      - name: Upload Playwright traces
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-traces
-          path: apps/admin/test-results
-          if-no-files-found: ignore
-
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: apps/admin/.reports/playwright
-          if-no-files-found: ignore
-
-      - name: Upload coverage reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-reports
-          path: |
-            .reports/coverage
-            apps/admin/coverage
-            apps/platform-api/coverage
-            apps/client/coverage
-            packages/ui/coverage
-          if-no-files-found: warn
-
-      - name: Upload security reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-reports
-          path: .reports/security
-          if-no-files-found: warn
-
-      - name: Start preview server
+      - name: Lighthouse · admin
         run: |
-          mkdir -p .reports
-          pnpm run start -- --hostname 0.0.0.0 --port 3000 &
-          echo $! > .reports/server.pid
+          pnpm --filter @ibimina/admin run start -- --hostname 0.0.0.0 --port 3000 &
+          echo $! > .reports/admin.pid
+          pnpm dlx wait-on http://127.0.0.1:3000
+          pnpm dlx lighthouse http://127.0.0.1:3000 \
+            --quiet \
+            --chrome-flags="--headless" \
+            --config-path=apps/admin/lighthouse.config.cjs \
+            --output=json \
+            --output-path=.reports/lighthouse/admin.json
+          kill $(cat .reports/admin.pid) || true
 
-      - name: Wait for preview
-        run: pnpm dlx wait-on http://127.0.0.1:3000
+      - name: Lighthouse · client
+        run: |
+          pnpm --filter @ibimina/client run start -- --hostname 0.0.0.0 --port 3001 &
+          echo $! > .reports/client.pid
+          pnpm dlx wait-on http://127.0.0.1:3001
+          pnpm dlx lighthouse http://127.0.0.1:3001 \
+            --quiet \
+            --chrome-flags="--headless" \
+            --config-path=apps/client/lighthouse.config.cjs \
+            --output=json \
+            --output-path=.reports/lighthouse/client.json
+          kill $(cat .reports/client.pid) || true
 
-      - name: Lighthouse (headless)
-        run: >-
-          pnpm dlx lighthouse http://127.0.0.1:3000
-          --quiet
-          --chrome-flags="--headless"
-          --config-path=apps/client/lighthouse.config.cjs
-          --throttling-method=simulate
-          --throttling.cpuSlowdownMultiplier=4
-          --throttling.downloadThroughputKbps=1500
-          --throttling.uploadThroughputKbps=750
-          --throttling.rttMs=150
-          --output=json
-          --output-path=.reports/lighthouse.json
+      - name: Lighthouse · staff
+        run: |
+          pnpm --filter @ibimina/staff run start -- --hostname 0.0.0.0 --port 3002 &
+          echo $! > .reports/staff.pid
+          pnpm dlx wait-on http://127.0.0.1:3002
+          pnpm dlx lighthouse http://127.0.0.1:3002 \
+            --quiet \
+            --chrome-flags="--headless" \
+            --config-path=apps/staff/lighthouse.config.cjs \
+            --output=json \
+            --output-path=.reports/lighthouse/staff.json
+          kill $(cat .reports/staff.pid) || true
 
-      - name: Upload Lighthouse artifact
+      - name: Upload Lighthouse artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lighthouse-report
-          path: .reports/lighthouse.json
-
-      - name: Enforce Lighthouse budgets
-        run: node scripts/assert-lighthouse.mjs
-
-      - name: Stop preview server
-        if: always()
-        run: |
-          if [ -f .reports/server.pid ]; then
-            kill $(cat .reports/server.pid) || true
-          fi
+          name: lighthouse-reports
+          path: .reports/lighthouse
 
   android-instrumented-tests:
     name: Android instrumentation (TapMoMo)

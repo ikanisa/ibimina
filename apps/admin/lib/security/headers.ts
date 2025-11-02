@@ -5,4 +5,4 @@ export {
   createNonce,
   createRequestId,
   createSecureHeaders,
-} from "@ibimina/lib/security";
+} from "@ibimina/lib";

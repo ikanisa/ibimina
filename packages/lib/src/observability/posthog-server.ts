@@ -1,7 +1,16 @@
 import { PostHog } from "posthog-node";
+
+import { parseSampleRate, resolveEnvironment } from "./env.js";
 import { scrubPII } from "./pii.js";
+import { shouldSampleEvent } from "./sampling.js";
 
 let client: PostHog | null = null;
+
+const environment = resolveEnvironment();
+const defaultServerSampleRate = parseSampleRate(
+  process.env.POSTHOG_SERVER_SAMPLE_RATE ?? process.env.POSTHOG_CAPTURE_SAMPLE_RATE,
+  environment === "production" ? 0.35 : 1
+);
 
 function getClient(): PostHog | null {
   if (client) {
@@ -23,13 +32,23 @@ function getClient(): PostHog | null {
   return client;
 }
 
+export type CaptureServerEventOptions = {
+  readonly sampleRate?: number;
+};
+
 export async function captureServerEvent(
   event: string,
   properties: Record<string, unknown> = {},
-  distinctId = "system"
+  distinctId = "system",
+  options: CaptureServerEventOptions = {}
 ): Promise<void> {
   const instance = getClient();
   if (!instance) {
+    return;
+  }
+
+  const sampleRate = options.sampleRate ?? defaultServerSampleRate;
+  if (!shouldSampleEvent({ event, distinctId, sampleRate })) {
     return;
   }
 
@@ -43,7 +62,21 @@ export async function captureServerEvent(
       },
     });
 
-    await instance.flush();
+    const flushAsync = (instance as unknown as { flushAsync?: () => Promise<void> }).flushAsync;
+    if (typeof flushAsync === "function") {
+      await flushAsync.call(instance).catch((error) => {
+        console.warn("[posthog] flushAsync failed", error);
+      });
+    } else {
+      await new Promise<void>((resolve) => {
+        instance.flush((err) => {
+          if (err) {
+            console.warn("[posthog] flush failed", err);
+          }
+          resolve();
+        });
+      });
+    }
   } catch (error) {
     console.warn("[posthog] capture failed", error);
   }

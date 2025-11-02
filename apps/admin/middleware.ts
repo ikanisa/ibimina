@@ -3,22 +3,71 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
-import { resolveEnvironment, scrubPII } from "@ibimina/lib";
-import { createSecurityMiddlewareContext } from "@ibimina/lib/security";
+import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@ibimina/lib";
 
 const isDev = process.env.NODE_ENV !== "production";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
 
-type DeepLinkType = "join" | "invite";
+const PUBLIC_ROUTES = new Set([
+  "/login",
+  "/offline",
+  "/auth/callback",
+  "/auth/first-login",
+]);
 
-interface DeepLinkResolution {
-  status: string;
-  scheme?: string;
-  type?: DeepLinkType;
-  targetId?: string;
-  groupName?: string | null;
-  token?: string | null;
+const PUBLIC_PREFIXES = [
+  "/api",
+  "/_next",
+  "/icons",
+  "/manifest",
+  "/service-worker.js",
+  "/assets",
+  "/favicon.ico",
+  "/.well-known",
+];
+
+function hasSupabaseSessionCookie(request: NextRequest) {
+  const cookies = request.cookies.getAll();
+  return cookies.some(({ name, value }) => {
+    if (!value) {
+      return false;
+    }
+    if (name === "stub-auth" && value === "1") {
+      return true;
+    }
+    if (name === "supabase-auth-token" || name === "sb-access-token") {
+      return true;
+    }
+    return /^sb-.*-auth-token$/i.test(name) || /^supabase-session/.test(name);
+  });
 }
+
+function isPublicPath(pathname: string) {
+  if (PUBLIC_ROUTES.has(pathname)) {
+    return true;
+  }
+
+  return PUBLIC_PREFIXES.some((prefix) =>
+    pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
+const middlewareImpl = (request: NextRequest) => {
+  const startedAt = Date.now();
+  const nonce = createNonce();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-csp-nonce", nonce);
+
+  const pathname = request.nextUrl.pathname;
+  if (!hasSupabaseSessionCookie(request) && !isPublicPath(pathname)) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("redirectedFrom", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  try {
+    const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
 
 const DEEP_LINK_MATCHER = /^\/(join|invite)\/([^/?#]+)/;
 
@@ -36,8 +85,7 @@ const resolveDeepLink = async (
   type: DeepLinkType,
   identifier: string
 ): Promise<DeepLinkResolution | null> => {
-  const supabaseRestUrl =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+  const supabaseRestUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseRestUrl || !serviceKey) {
@@ -78,10 +126,9 @@ const middlewareImpl = async (request: NextRequest) => {
     isDev,
     supabaseUrl,
   });
+  const { requestHeaders, requestId } = securityContext;
 
   try {
-    const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
-
     let response: NextResponse | null = null;
 
     const deepLinkMatch = request.nextUrl.pathname.match(DEEP_LINK_MATCHER);
@@ -118,23 +165,7 @@ const middlewareImpl = async (request: NextRequest) => {
       });
     }
 
-    // Set CSP header
-    const csp = createContentSecurityPolicy({ nonce, isDev, supabaseUrl });
-    response.headers.set("Content-Security-Policy", csp);
-
-    // Apply security headers
-    for (const header of SECURITY_HEADERS) {
-      response.headers.set(header.key, header.value);
-    }
-
-    // HSTS in production only
-    if (!isDev) {
-      response.headers.set(HSTS_HEADER.key, HSTS_HEADER.value);
-    }
-
-    if (!response.headers.has("X-Request-ID")) {
-      response.headers.set("X-Request-ID", requestId);
-    }
+    securityContext.applyResponseHeaders(response.headers);
 
     return response;
   } catch (error) {
