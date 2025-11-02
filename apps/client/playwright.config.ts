@@ -20,7 +20,11 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: "html",
+  reporter: [
+    ["list"],
+    ["html", { outputFolder: ".reports/playwright", open: "never" }],
+    ["json", { outputFile: ".reports/playwright/results.json" }],
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -63,5 +67,24 @@ export default defineConfig({
     url: "http://localhost:5000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+  },
+  // @ts-expect-error Coverage configuration is available in Playwright 1.56+
+  coverage: {
+    provider: "v8",
+    include: ["app/**/*.{ts,tsx,js,jsx}", "src/**/*.{ts,tsx,js,jsx}"],
+    exclude: ["tests/**", "**/*.d.ts"],
+    reports: [
+      ["json-summary", { outputFile: ".reports/coverage/playwright-summary.json" }],
+      ["html", { outputFolder: ".reports/coverage/playwright" }],
+      ["lcov", { outputFile: ".reports/coverage/playwright/lcov.info" }],
+    ],
+    thresholds: {
+      total: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
+    },
   },
 });

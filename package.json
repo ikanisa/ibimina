@@ -26,6 +26,7 @@
     "start": "pnpm --filter @ibimina/admin run start",
     "setup:agent": "tsx scripts/setupAgent.ts",
     "check:flags": "node scripts/check-feature-flags.mjs",
+    "check:manifest": "node scripts/check-manifest.mjs",
     "gen:types": "supabase gen types typescript --local > apps/admin/lib/supabase/types.ts",
     "deploy:function:reconcile": "cd supabase && supabase functions deploy reconcile",
     "check:types": "bash scripts/check-supabase-types.sh",
@@ -35,7 +36,9 @@
     "validate:production": "bash scripts/validate-production-readiness.sh",
     "validate:cloudflare": "bash scripts/validate-cloudflare-deployment.sh",
     "kb:sync": "tsx scripts/kb/syncContent.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "openapi:generate": "pnpm --filter @ibimina/api run openapi:generate",
+    "openapi:check": "pnpm --filter @ibimina/api run openapi:check"
   },
   "dependencies": {
     "openai": "^6.7.0"
@@ -49,6 +52,7 @@
     "@types/node": "20.19.21",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
+    "@vitest/coverage-v8": "^2.1.9",
     "dotenv": "^16.4.5",
     "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
@@ -56,12 +60,13 @@
     "eslint-plugin-react-hooks": "^7.0.0",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
+    "istanbul-lib-coverage": "^3.2.2",
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
-    "tsx": "^4.7.1",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "5.9.3",
     "vercel": "^48.6.7",
     "wrangler": "^4.45.2"

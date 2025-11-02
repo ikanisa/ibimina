@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ElementType, ReactElement } from "react";
 import { AccessibleActionButton } from "../components/accessibility/AccessibleActionButton.js";
 import { MotionPreferenceToggle } from "../components/accessibility/MotionPreferenceToggle.js";
 import { meetsAaNormalText, ensureTouchTarget } from "../utils/accessibility.js";

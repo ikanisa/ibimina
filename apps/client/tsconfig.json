@@ -12,6 +12,8 @@
       "@/utils/*": ["./src/utils/*"],
       "@ibimina/config": ["../../packages/config/src/index.ts"],
       "@ibimina/core": ["../../packages/core/src/index.ts"],
+      "@ibimina/lib": ["../../packages/lib/src/index.ts"],
+      "@ibimina/locales": ["../../packages/locales/src/index.ts"],
       "@ibimina/testing": ["../../packages/testing/src/index.ts"],
       "@ibimina/ui": ["../../packages/ui/src/index.ts"]
     }

@@ -4,6 +4,7 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 import reactHooks from "eslint-plugin-react-hooks";
 import prettierConfig from "eslint-config-prettier";
 import prettierPlugin from "eslint-plugin-prettier";
+import ibiminaPlugin from "./packages/eslint-plugin-ibimina/index.js";
 
 export default [
   {
@@ -25,16 +26,7 @@ export default [
     },
   },
   {
-    files: [
-      "apps/admin/app/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/components/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/lib/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/providers/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/scripts/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/tests/**/*.{js,jsx,ts,tsx}",
-      "apps/client/**/*.{js,jsx,ts,tsx}",
-      "packages/lib/**/*.{js,jsx,ts,tsx}",
-    ],
+    files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -51,6 +43,40 @@ export default [
       "@typescript-eslint": tsPlugin,
       "react-hooks": reactHooks,
       prettier: prettierPlugin,
+      ibimina: ibiminaPlugin,
+    },
+    rules: {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
+      ],
+      "no-undef": "off",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": ["error", { checksVoidReturn: false }],
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/set-state-in-effect": "off",
+      "prettier/prettier": "warn",
+      "ibimina/structured-logging": "error",
+      "ibimina/require-retry-options": ["error", { functions: ["invokeEdge"] }],
+    },
+  },
+  {
+    files: ["apps/platform-api/**/*.{ts,tsx}", "packages/api/**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+      globals: {
+        ...globals.node,
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+      prettier: prettierPlugin,
     },
     rules: {
       "no-unused-vars": "off",
@@ -58,10 +84,6 @@ export default [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      "no-undef": "off",
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
-      "react-hooks/set-state-in-effect": "off",
       "prettier/prettier": "warn",
     },
   },

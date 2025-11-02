@@ -1,4 +1,4 @@
-import ussdConfigRaw from "../ussd.json" assert { type: "json" };
+import { ussdConfigData } from "./data/ussdConfig";
 import { z } from "zod";
 
 const UssdLocaleSchema = z.object({
@@ -41,7 +41,7 @@ const UssdConfigSchema = z.object({
   operators: z.array(OperatorSchema).min(1),
 });
 
-export const ussdConfig = UssdConfigSchema.parse(ussdConfigRaw);
+export const ussdConfig = UssdConfigSchema.parse(ussdConfigData);
 
 export type UssdConfig = typeof ussdConfig;
 export type UssdOperatorConfig = z.infer<typeof OperatorSchema>;
