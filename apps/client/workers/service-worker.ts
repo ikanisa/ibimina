@@ -24,6 +24,7 @@ import { registerRoute, setCatchHandler } from "workbox-routing";
 import { StaleWhileRevalidate, NetworkFirst, CacheFirst } from "workbox-strategies";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 import { ExpirationPlugin } from "workbox-expiration";
+import { enable as enableNavigationPreload } from "workbox-navigation-preload";
 
 declare let self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<PrecacheEntry>;
@@ -31,17 +32,158 @@ declare let self: ServiceWorkerGlobalScope & {
 
 const BUILD_ID = process.env.NEXT_PUBLIC_BUILD_ID ?? "dev-build";
 const OFFLINE_URL = "/offline";
+const PRECACHE_MAX_ENTRIES = 120;
+const PRECACHE_MAX_TOTAL_BYTES = 5 * 1024 * 1024; // 5 MiB budget
+
+type LogLevel = "info" | "warn" | "error";
+
+const logSwEvent = (level: LogLevel, event: string, payload?: Record<string, unknown>) => {
+  const entry = {
+    level,
+    event,
+    source: "service-worker",
+    timestamp: new Date().toISOString(),
+    ...(payload ? { payload } : {}),
+  } satisfies Record<string, unknown>;
+
+  const serialized = JSON.stringify(entry);
+  switch (level) {
+    case "error":
+      console.error(serialized);
+      break;
+    case "warn":
+      console.warn(serialized);
+      break;
+    default:
+      console.log(serialized);
+  }
+};
+
+const logSwInfo = (event: string, payload?: Record<string, unknown>) =>
+  logSwEvent("info", event, payload);
+const logSwWarn = (event: string, payload?: Record<string, unknown>) =>
+  logSwEvent("warn", event, payload);
+const logSwError = (event: string, payload?: Record<string, unknown>) =>
+  logSwEvent("error", event, payload);
+
+const estimateEntrySize = (entry: PrecacheEntry): number => {
+  const url = entry.url ?? "";
+  if (url.endsWith(".js") || url.endsWith(".mjs")) {
+    return 180 * 1024;
+  }
+  if (url.endsWith(".css")) {
+    return 48 * 1024;
+  }
+  if (url.endsWith(".woff2")) {
+    return 95 * 1024;
+  }
+  if (
+    url.endsWith(".png") ||
+    url.endsWith(".jpg") ||
+    url.endsWith(".jpeg") ||
+    url.endsWith(".webp")
+  ) {
+    return 120 * 1024;
+  }
+
+  return 24 * 1024;
+};
+
+const enforcePrecacheBudget = (entries: Array<PrecacheEntry>) => {
+  const accepted: Array<PrecacheEntry> = [];
+  const rejected: Array<PrecacheEntry> = [];
+  let totalBytes = 0;
+
+  for (const entry of entries) {
+    const estimated = estimateEntrySize(entry);
+    const withinEntryLimit = accepted.length < PRECACHE_MAX_ENTRIES;
+    const withinSizeLimit = totalBytes + estimated <= PRECACHE_MAX_TOTAL_BYTES;
+
+    if (withinEntryLimit && withinSizeLimit) {
+      accepted.push(entry);
+      totalBytes += estimated;
+    } else {
+      rejected.push(entry);
+    }
+  }
+
+  if (rejected.length > 0) {
+    logSwWarn("sw.precache_budget_evicted", {
+      rejectedCount: rejected.length,
+      maxEntries: PRECACHE_MAX_ENTRIES,
+      maxKilobytes: Math.round(PRECACHE_MAX_TOTAL_BYTES / 1024),
+      estimatedKilobytes: Math.round(totalBytes / 1024),
+      rejectedSamples: rejected.slice(0, 5).map((entry) => entry.url),
+    });
+  }
+
+  logSwInfo("sw.precache_manifest_ready", {
+    entries: accepted.length,
+    estimatedKilobytes: Math.round(totalBytes / 1024),
+  });
+
+  return accepted;
+};
 
 // Immediately activate the service worker and take control of all clients
 self.skipWaiting();
 clientsClaim();
 
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    (async () => {
+      try {
+        await enableNavigationPreload();
+      } catch (error) {
+        console.error("Failed to enable navigation preload", error);
+      }
+    })()
+  );
+});
+
 // Precache critical app shell resources
 // The workbox plugin injects the manifest at build time via __WB_MANIFEST
-precacheAndRoute([...(self.__WB_MANIFEST ?? []), { url: OFFLINE_URL, revision: BUILD_ID }], {
+const precacheManifest = enforcePrecacheBudget(self.__WB_MANIFEST ?? []);
+precacheAndRoute([...precacheManifest, { url: OFFLINE_URL, revision: BUILD_ID }], {
   // Ignore common tracking parameters that don't affect content
   ignoreURLParametersMatching: [/^utm_/, /^fbclid$/],
 });
+
+if (self.registration?.navigationPreload) {
+  self.addEventListener("activate", (event) => {
+    event.waitUntil(
+      self.registration.navigationPreload
+        .enable()
+        .then(() => {
+          logSwInfo("sw.navigation_preload_enabled");
+        })
+        .catch((error) => {
+          logSwWarn("sw.navigation_preload_enable_failed", {
+            message: error instanceof Error ? error.message : String(error),
+          });
+        })
+    );
+  });
+
+  self.addEventListener("fetch", (event) => {
+    if (event.request.mode === "navigate") {
+      event.waitUntil(
+        (async () => {
+          try {
+            const response = await event.preloadResponse;
+            if (!response) {
+              logSwInfo("sw.navigation_preload_miss");
+            }
+          } catch (error) {
+            logSwError("sw.navigation_preload_error", {
+              message: error instanceof Error ? error.message : String(error),
+            });
+          }
+        })()
+      );
+    }
+  });
+}
 
 // Remove outdated caches from previous versions
 cleanupOutdatedCaches();

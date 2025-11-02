@@ -38,6 +38,11 @@ supabase/.temp
 # Reports
 /.reports/
 
+# Coverage artifacts
+**/coverage/
+!scripts/coverage/
+**/.nyc_output/
+
 # Playwright artifacts
 test-results/
 

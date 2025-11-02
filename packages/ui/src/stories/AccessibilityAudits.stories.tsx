@@ -1,19 +1,19 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ElementType, ReactElement } from "react";
 import { AccessibleActionButton } from "../components/accessibility/AccessibleActionButton.js";
 import { MotionPreferenceToggle } from "../components/accessibility/MotionPreferenceToggle.js";
 import { meetsAaNormalText, ensureTouchTarget } from "../utils/accessibility.js";
 
-type StoryMeta<T> = {
+type StoryMeta<T extends ElementType> = {
   title: string;
   component: T;
   tags?: string[];
   parameters?: Record<string, unknown>;
 };
 
-type StoryObj<T> = {
+type StoryObj<T extends ElementType> = {
   args?: Partial<ComponentProps<T>>;
   parameters?: Record<string, unknown>;
-  render?: () => JSX.Element;
+  render?: () => ReactElement;
 };
 
 const buttonContrastPass = meetsAaNormalText("#14532d", "#ffffff");

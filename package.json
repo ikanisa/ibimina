@@ -4,7 +4,7 @@
   "packageManager": "pnpm@9.12.3",
   "scripts": {
     "dev": "cd apps/admin && pnpm dev",
-    "build": "pnpm -r run build",
+    "build": "pnpm run build:packages && pnpm run build:apps",
     "lint": "pnpm -r run lint",
     "prelint": "pnpm run check:types",
     "format": "prettier --write .",
@@ -26,6 +26,7 @@
     "start": "pnpm --filter @ibimina/admin run start",
     "setup:agent": "tsx scripts/setupAgent.ts",
     "check:flags": "node scripts/check-feature-flags.mjs",
+    "check:manifest": "node scripts/check-manifest.mjs",
     "gen:types": "supabase gen types typescript --local > apps/admin/lib/supabase/types.ts",
     "deploy:function:reconcile": "cd supabase && supabase functions deploy reconcile",
     "check:types": "bash scripts/check-supabase-types.sh",
@@ -33,6 +34,9 @@
     "validate:production": "bash scripts/validate-production-readiness.sh",
     "validate:cloudflare": "bash scripts/validate-cloudflare-deployment.sh",
     "kb:sync": "tsx scripts/kb/syncContent.ts",
+    "preview:vercel": "pnpm exec vercel deploy --cwd apps/admin --prebuilt --yes",
+    "deploy:vercel": "pnpm exec vercel deploy --cwd apps/admin --prod --yes",
+    "release": "pnpm run check:deploy && pnpm run deploy:vercel",
     "prepare": "husky"
   },
   "dependencies": {
@@ -55,11 +59,13 @@
     "eslint-plugin-react-hooks": "^7.0.0",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
+    "istanbul-lib-coverage": "^3.2.2",
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "5.9.3",
     "vercel": "^48.6.7",
     "wrangler": "^4.45.2"

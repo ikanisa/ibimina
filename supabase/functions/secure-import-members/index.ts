@@ -3,6 +3,7 @@ import { encryptField, hashField, maskMsisdn, maskNationalId } from "../_shared/
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,7 +32,7 @@ const normalizeMsisdn = (value: string) => {
   return value;
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("secure-import-members", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
