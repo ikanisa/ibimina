@@ -57,7 +57,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run lint
-        run: pnpm --filter ${{ matrix.filter }} run lint
+        run: pnpm -r --filter ${{ matrix.filter }} lint
 
   typecheck:
     name: Typecheck (@ibimina/admin)
@@ -143,7 +143,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run lint (excluding client)
-        run: pnpm --filter '!@ibimina/client' run lint
+        run: pnpm -r --filter '!@ibimina/client' lint
 
       - name: Run client lint
         id: client_lint

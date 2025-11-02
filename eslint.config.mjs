@@ -26,17 +26,7 @@ export default [
     },
   },
   {
-    files: [
-      "apps/admin/app/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/components/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/lib/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/providers/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/scripts/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/tests/**/*.{js,jsx,ts,tsx}",
-      "apps/client/**/*.{js,jsx,ts,tsx}",
-      "apps/platform-api/src/**/*.{js,ts}",
-      "packages/lib/**/*.{js,jsx,ts,tsx}",
-    ],
+    files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

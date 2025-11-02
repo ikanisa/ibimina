@@ -10,13 +10,9 @@
     "dist"
   ],
   "scripts": {
-    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true });\"",
-    "build": "pnpm run clean && pnpm run build:esm && pnpm run build:cjs",
-    "build:esm": "tsc -p tsconfig.build.esm.json",
-    "build:cjs": "tsc -p tsconfig.build.cjs.json && node ../../scripts/build/prepare-cjs.mjs dist/cjs",
-    "lint": "echo 'TODO: add linting'",
+    "lint": "eslint --config ../config/eslint.config.mjs --max-warnings=0 '{src,tests}/**/*.{ts,tsx}'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "vitest run --config vitest.config.ts"
   },
   "exports": {
     ".": {
@@ -29,6 +25,7 @@
   "devDependencies": {
     "@types/node": "20.19.21",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   }
 }

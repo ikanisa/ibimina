@@ -1,126 +1,97 @@
-/**
- * Tests for MTN Rwanda Statement Adapter
- */
+import { describe, expect, it } from "vitest";
 
-import { test } from "node:test";
-import assert from "node:assert";
 import { MTNRwandaStatementAdapter } from "../src/adapters/RW/MTNStatementAdapter.js";
 
-test("MTN Rwanda Statement Adapter - parses valid CSV row", () => {
-  const adapter = new MTNRwandaStatementAdapter();
+describe("MTN Rwanda Statement Adapter", () => {
+  it("parses valid CSV row", () => {
+    const adapter = new MTNRwandaStatementAdapter();
 
-  // Simulate a typical MTN Rwanda statement row
-  const row = [
-    "2024-03-15", // Date
-    "14:30:45", // Time
-    "MP240315.1430.A12345", // Transaction ID
-    "Payment for RWA.NYA.GAS.TWIZ.001 from 250788123456", // Details
-    "5000", // Amount
-    "15000", // Balance
-    "Success", // Status
-  ];
+    const row = [
+      "2024-03-15",
+      "14:30:45",
+      "MP240315.1430.A12345",
+      "Payment for RWA.NYA.GAS.TWIZ.001 from 250788123456",
+      "5000",
+      "15000",
+      "Success",
+    ];
 
-  const result = adapter.parseRow(row);
+    const result = adapter.parseRow(row);
 
-  assert.strictEqual(result.success, true, "Parse should succeed");
-  assert.ok(result.transaction, "Transaction should be defined");
-  assert.strictEqual(result.transaction?.amount, 5000, "Amount should be 5000");
-  assert.strictEqual(
-    result.transaction?.txn_id,
-    "MP240315.1430.A12345",
-    "Transaction ID should match"
-  );
-  assert.strictEqual(
-    result.transaction?.raw_reference,
-    "RWA.NYA.GAS.TWIZ.001",
-    "Reference should be extracted"
-  );
-  assert.strictEqual(
-    result.transaction?.payer_msisdn,
-    "250788123456",
-    "MSISDN should be extracted"
-  );
-  assert.ok(result.confidence > 0.7, "Confidence should be high");
-});
+    expect(result.success).toBe(true);
+    expect(result.transaction).toBeDefined();
+    expect(result.transaction?.amount).toBe(5000);
+    expect(result.transaction?.txn_id).toBe("MP240315.1430.A12345");
+    expect(result.transaction?.raw_reference).toBe("RWA.NYA.GAS.TWIZ.001");
+    expect(result.transaction?.payer_msisdn).toBe("250788123456");
+    expect(result.confidence ?? 0).toBeGreaterThan(0.7);
+  });
 
-test("MTN Rwanda Statement Adapter - handles missing reference", () => {
-  const adapter = new MTNRwandaStatementAdapter();
+  it("handles missing reference", () => {
+    const adapter = new MTNRwandaStatementAdapter();
 
-  const row = [
-    "2024-03-15",
-    "14:30:45",
-    "MP240315.1430.A12345",
-    "Payment without reference",
-    "5000",
-    "15000",
-    "Success",
-  ];
+    const row = [
+      "2024-03-15",
+      "14:30:45",
+      "MP240315.1430.A12345",
+      "Payment without reference",
+      "5000",
+      "15000",
+      "Success",
+    ];
 
-  const result = adapter.parseRow(row);
+    const result = adapter.parseRow(row);
 
-  assert.strictEqual(result.success, true, "Parse should succeed");
-  assert.ok(result.transaction, "Transaction should be defined");
-  assert.strictEqual(result.transaction?.raw_reference, undefined, "Reference should be undefined");
-  assert.ok(result.confidence < 0.9, "Confidence should be lower without reference");
-});
+    expect(result.success).toBe(true);
+    expect(result.transaction).toBeDefined();
+    expect(result.transaction?.raw_reference).toBeUndefined();
+    expect(result.confidence ?? 0).toBeLessThan(0.9);
+  });
 
-test("MTN Rwanda Statement Adapter - handles invalid row", () => {
-  const adapter = new MTNRwandaStatementAdapter();
+  it("handles invalid row", () => {
+    const adapter = new MTNRwandaStatementAdapter();
 
-  const row = ["invalid", "data"];
+    const result = adapter.parseRow(["invalid", "data"]);
 
-  const result = adapter.parseRow(row);
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+    expect(result.confidence ?? 0).toBe(0);
+  });
 
-  assert.strictEqual(result.success, false, "Parse should fail");
-  assert.ok(result.error, "Error message should be present");
-  assert.strictEqual(result.confidence, 0, "Confidence should be 0");
-});
+  it("validates headers", () => {
+    const adapter = new MTNRwandaStatementAdapter();
 
-test("MTN Rwanda Statement Adapter - validates headers", () => {
-  const adapter = new MTNRwandaStatementAdapter();
+    const validHeaders = ["Date", "Time", "Transaction ID", "Details", "Amount", "Balance"];
+    expect(adapter.validateHeaders(validHeaders)).toBe(true);
 
-  const validHeaders = ["Date", "Time", "Transaction ID", "Details", "Amount", "Balance"];
-  assert.strictEqual(
-    adapter.validateHeaders(validHeaders),
-    true,
-    "Should validate correct headers"
-  );
+    const invalidHeaders = ["Column1", "Column2", "Column3"];
+    expect(adapter.validateHeaders(invalidHeaders)).toBe(false);
+  });
 
-  const invalidHeaders = ["Column1", "Column2", "Column3"];
-  assert.strictEqual(
-    adapter.validateHeaders(invalidHeaders),
-    false,
-    "Should reject invalid headers"
-  );
-});
+  it("detects handleable rows", () => {
+    const adapter = new MTNRwandaStatementAdapter();
 
-test("MTN Rwanda Statement Adapter - canHandle detection", () => {
-  const adapter = new MTNRwandaStatementAdapter();
+    expect(adapter.canHandle("MTN Mobile Money Statement")).toBe(true);
+    expect(adapter.canHandle("2024-03-15,14:30,MP240315")).toBe(true);
+    expect(adapter.canHandle("Orange Money Statement")).toBe(false);
+  });
 
-  assert.strictEqual(adapter.canHandle("MTN Mobile Money Statement"), true);
-  assert.strictEqual(adapter.canHandle("2024-03-15,14:30,MP240315"), true);
-  assert.strictEqual(adapter.canHandle("Orange Money Statement"), false);
-});
+  it("parses legacy reference format", () => {
+    const adapter = new MTNRwandaStatementAdapter();
 
-test("MTN Rwanda Statement Adapter - parses legacy reference format", () => {
-  const adapter = new MTNRwandaStatementAdapter();
+    const row = [
+      "2024-03-15",
+      "14:30:45",
+      "MP240315.1430.A12345",
+      "Payment for NYA.GAS.TWIZ.001",
+      "5000",
+      "15000",
+      "Success",
+    ];
 
-  const row = [
-    "2024-03-15",
-    "14:30:45",
-    "MP240315.1430.A12345",
-    "Payment for NYA.GAS.TWIZ.001", // Legacy format (no country)
-    "5000",
-    "15000",
-    "Success",
-  ];
+    const result = adapter.parseRow(row);
 
-  const result = adapter.parseRow(row);
-
-  assert.strictEqual(result.success, true);
-  assert.strictEqual(
-    result.transaction?.raw_reference,
-    "NYA.GAS.TWIZ.001",
-    "Legacy reference should be extracted"
-  );
+    expect(result.success).toBe(true);
+    expect(result.transaction?.raw_reference).toBe("NYA.GAS.TWIZ.001");
+  });
 });
