@@ -1,0 +1,46 @@
+{
+  "name": "@ibimina/staff",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 5300 -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -p 5300 -H 0.0.0.0",
+    "lint": "pnpm exec eslint --max-warnings=0 .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run test:unit",
+    "test:unit": "pnpm exec vitest run"
+  },
+  "dependencies": {
+    "@ibimina/config": "workspace:*",
+    "@ibimina/lib": "workspace:*",
+    "@ibimina/locales": "workspace:*",
+    "@ibimina/ui": "workspace:*",
+    "@sentry/nextjs": "^10.22.0",
+    "lucide-react": "^0.545.0",
+    "next": "16.0.0",
+    "next-pwa": "^5.6.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "workbox-cacheable-response": "^6.6.0",
+    "workbox-core": "^6.6.0",
+    "workbox-expiration": "^6.6.0",
+    "workbox-precaching": "^6.6.0",
+    "workbox-routing": "^6.6.0",
+    "workbox-strategies": "^6.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

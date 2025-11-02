@@ -1,15 +1,17 @@
-# RLS Test Instructions
+# Row-Level Security Regression Tests
 
-Use this guide to execute and interpret the Supabase Row-Level Security proof
-suite.
+This document tracks the SQL fixtures that exercise row-level security (RLS) and
+country propagation logic in Supabase. Execute them through the existing admin
+workspace script:
 
-## 1. Prerequisites
+```bash
+pnpm run test:rls
+```
 
-- Docker (for local Postgres harness)
-- Supabase CLI (`supabase login` configured)
-- pnpm workspace dependencies installed (`pnpm install`)
+Running the command applies all migrations to the test database and executes
+each SQL file under `supabase/tests/rls` in alphabetical order.
 
-## 2. Command Reference
+## Country propagation safeguards
 
 | Context  | Command | Description |
 | -------- | ------- | ----------- |
@@ -17,27 +19,23 @@ suite.
 | Preview  | `apps/admin/scripts/test-rls-docker.sh --database-url <url>` | Executes harness against preview Supabase branch inside CI. |
 | CI       | GitHub Actions `ci.yml` (`rls` job) | Mandatory check before merging to `main`. |
 
-## 3. Test Coverage
+* Verifies that `country_id` is synchronized for `groups`, `group_members`,
+  `uploads`, and `allocations` whenever their `org_id` or `group_id` changes.
+* Confirms that the `tickets` trigger backfills `country_id` on insert and keeps
+  the field consistent after reassignment to a different organization.
+* Exercises the new `ticket_messages` trigger to ensure both `org_id` and
+  `country_id` mirror the parent ticket on insert and update.
 
-- **Membership isolation**: Ensures SACCO staff only access records scoped to
-  their `sacco_id`.
-- **Payments & reconciliations**: Validates insert/update permissions for payment
-  tables and verifies exceptions require elevated roles.
-- **Trusted devices**: Confirms WebAuthn credentials and device enrollments are
-  restricted to the owning profile.
-- **Reporting views**: Checks read-only access for `app.member_aggregates` and
-  similar materialised views.
+## Ticketing access controls
 
-## 4. Failure Handling
+**Fixture:** `supabase/tests/rls/ticketing_access.test.sql`
 
-1. Review failing statement in test output (stored under `supabase/tests/rls`)
-2. Update policy or fixture as needed.
-3. Re-run tests locally before pushing changes.
-4. Attach failure context to PR if policy adjustments are non-trivial.
+* Simulates staff from different organizations to confirm they only see their
+  own tickets and can create messages inside their tenancy.
+* Ensures ticket owners (customers) can read and reply to their own tickets but
+  are denied access to other tenants’ conversations.
+* Validates that cross-organization writes are rejected for both staff and
+  customers.
 
-## 5. Evidence Archival
-
-- Download CI artifact `rls-proof.tar.gz` post-merge for audit storage.
-- Record execution date and outcome in release notes (`docs/releases/2025-12-05-vercel-supabase.md`).
-
-Maintaining green RLS proofs is a release gate; do not deploy if the suite fails.
+Keep this file up to date whenever a new fixture is added so security reviewers
+and release engineers know which scenarios are covered.

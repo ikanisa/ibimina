@@ -1,6 +1,7 @@
 import { appendMessage, getOrCreateSession, rotateAgent } from "./session.js";
 import { resolveAgent } from "./agents.js";
 import { createDefaultTools } from "./tools.js";
+import { evaluateGuardrails } from "./guardrails.js";
 import type { AgentContext, ChatRequest, ChatResponse, SessionState } from "./types.js";
 
 const tools = createDefaultTools();
@@ -14,6 +15,21 @@ function buildAgentContext(session: SessionState): AgentContext {
 }
 
 async function executeTurn(session: SessionState, userMessage: string) {
+  // Check guardrails before processing
+  const guardrailCheck = evaluateGuardrails(userMessage);
+
+  if (guardrailCheck.outcome === "refuse") {
+    return {
+      reply: guardrailCheck.message ?? "I cannot process this request.",
+    };
+  }
+
+  if (guardrailCheck.outcome === "escalate") {
+    return {
+      reply: guardrailCheck.message ?? "This request requires human review.",
+    };
+  }
+
   const context = buildAgentContext(session);
   const handler = resolveAgent(session.currentAgent);
   const result = await handler(userMessage, context);
