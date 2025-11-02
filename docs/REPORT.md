@@ -58,7 +58,7 @@ graph TD
   device trust tables.
 - **Continuous verification**: GitHub Actions job `ci.yml` gates merges on the
   RLS suite; Vercel preview deployments run the same script via
-  `scripts/test-rls-docker.sh` against ephemeral Supabase branches.
+  `apps/admin/scripts/test-rls-docker.sh` against ephemeral Supabase branches.
 
 ## Operational Runbooks
 

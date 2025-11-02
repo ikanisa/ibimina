@@ -14,7 +14,7 @@ suite.
 | Context  | Command | Description |
 | -------- | ------- | ----------- |
 | Local    | `pnpm --filter @ibimina/testing run test:rls` | Runs SQL harness against local Docker Postgres, seeding fixtures for staff, member, auditor roles. |
-| Preview  | `scripts/test-rls-docker.sh --database-url <url>` | Executes harness against preview Supabase branch inside CI. |
+| Preview  | `apps/admin/scripts/test-rls-docker.sh --database-url <url>` | Executes harness against preview Supabase branch inside CI. |
 | CI       | GitHub Actions `ci.yml` (`rls` job) | Mandatory check before merging to `main`. |
 
 ## 3. Test Coverage
