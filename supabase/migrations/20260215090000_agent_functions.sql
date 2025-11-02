@@ -399,7 +399,14 @@ BEGIN
   cleaned_name := REGEXP_REPLACE(COALESCE(cleaned_name, 'ORG'), '[^A-Za-z0-9]', '', 'g');
   sacco_code := UPPER(LPAD(SUBSTRING(cleaned_name FROM 1 FOR 3), 3, 'X'));
 
-  expires := timezone('UTC', now()) + COALESCE(make_interval(mins => p_expires_in_minutes), interval '240 minutes');
+  expires := timezone('UTC', now())
+    + COALESCE(
+      CASE
+        WHEN p_expires_in_minutes IS NULL THEN NULL
+        ELSE make_interval(mins => p_expires_in_minutes)
+      END,
+      interval '240 minutes'
+    );
 
   LOOP
     attempt := attempt + 1;
