@@ -393,11 +393,8 @@ const followUpTool: ToolDefinition<FollowUpArgs, FollowUpConfirmation> = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const tools: ToolDefinition<any, any>[] = [
-  metricsSummaryTool,
-  surveySummaryTool,
-  followUpTool,
-];
+type AnyToolDefinition = typeof metricsSummaryTool | typeof surveySummaryTool | typeof followUpTool;
+
+export const tools: AnyToolDefinition[] = [metricsSummaryTool, surveySummaryTool, followUpTool];
 
 export default tools;
