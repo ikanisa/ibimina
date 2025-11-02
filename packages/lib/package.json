@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm",
     "clean": "rimraf dist",
-    "lint": "echo 'TODO: add linting'",
+    "lint": "node ../../config/tooling/scripts/run-eslint.mjs ./src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config vitest.config.ts"
   },
