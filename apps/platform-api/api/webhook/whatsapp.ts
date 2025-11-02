@@ -4,6 +4,9 @@ import { once } from "node:events";
 import type { Logger } from "pino";
 import { z } from "zod";
 
+import { withHttpObservability } from "../../src/observability";
+import type { StructuredLogger } from "../../src/observability";
+
 import {
   hashBody,
   processWebhookPayload,
@@ -366,7 +369,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     statuses: summary.statuses.length,
     failures: summary.failures.length,
   });
-}
+});
 
 export const config = {
   api: {

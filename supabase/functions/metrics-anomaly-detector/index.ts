@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { recordMetric } from "../_shared/metrics.ts";
 import { validateHmacRequest } from "../_shared/auth.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const APP_ORIGIN = Deno.env.get("APP_ORIGIN") ?? "*";
 const corsHeaders = {
@@ -491,7 +492,7 @@ const detectThresholdAnomalies = async (
   return anomalies;
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("metrics-anomaly-detector", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

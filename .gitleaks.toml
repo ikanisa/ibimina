@@ -1,0 +1,8 @@
+title = "Ibimina Gitleaks Config"
+
+[allowlist]
+  description = "Allow local test keys"
+  regexes = [
+    '''PLAYWRIGHT_OPENAI_API_KEY''',
+    '''stub-openai-key'''
+  ]

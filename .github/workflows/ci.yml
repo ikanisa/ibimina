@@ -84,6 +84,42 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare coverage and report directories
+        run: pnpm run coverage:prepare
+
+      - name: pnpm audit (production dependencies)
+        run: |
+          set -eo pipefail
+          pnpm audit --prod --audit-level=high --json | tee .reports/security/pnpm-audit.json
+          status=${PIPESTATUS[0]}
+          exit $status
+
+      - name: Install gitleaks
+        run: |
+          mkdir -p "$HOME/bin"
+          curl -sSfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/install.sh | bash -s -- -b "$HOME/bin"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Run gitleaks
+        run: |
+          set -eo pipefail
+          gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path .reports/security/gitleaks-report.json
+
+      - name: Install Semgrep
+        run: |
+          python -m pip install --upgrade --user pip
+          python -m pip install --user semgrep
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run Semgrep scan
+        run: |
+          set -eo pipefail
+          semgrep scan --config .semgrep/semgrep.yml --json --output .reports/security/semgrep-report.json
+          if jq -e '.results[] | select(.extra.severity == "ERROR" or .extra.severity == "CRITICAL")' .reports/security/semgrep-report.json >/dev/null; then
+            echo "High severity Semgrep findings detected." >&2
+            exit 1
+          fi
+
       - name: Verify required feature flags
         if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' }}
         run: pnpm run check:flags
@@ -120,8 +156,8 @@ jobs:
       - name: RLS policy tests
         run: pnpm run test:rls
 
-      - name: Check for dependency vulnerabilities
-        run: pnpm audit --audit-level=moderate
+      - name: Merge and enforce coverage thresholds
+        run: pnpm run coverage:enforce
 
       - name: Verify i18n keys
         run: pnpm run check:i18n
@@ -129,8 +165,11 @@ jobs:
       - name: Verify i18n glossary consistency
         run: pnpm run check:i18n:consistency
 
-      - name: Build
-        run: pnpm run build
+      - name: Build shared packages
+        run: pnpm run build:packages
+
+      - name: Build applications
+        run: pnpm run build:apps
         env:
           ANALYZE_BUNDLE: "1"
 
@@ -139,6 +178,9 @@ jobs:
 
       - name: Verify log drain alerting
         run: pnpm run verify:log-drain
+
+      - name: Verify PWA baseline
+        run: pnpm --filter @ibimina/admin run verify:pwa -- --skip-build
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
@@ -162,6 +204,27 @@ jobs:
           path: apps/admin/.reports/playwright
           if-no-files-found: ignore
 
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            .reports/coverage
+            apps/admin/coverage
+            apps/platform-api/coverage
+            apps/client/coverage
+            packages/ui/coverage
+          if-no-files-found: warn
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: .reports/security
+          if-no-files-found: warn
+
       - name: Start preview server
         run: |
           mkdir -p .reports
@@ -172,7 +235,18 @@ jobs:
         run: pnpm dlx wait-on http://127.0.0.1:3000
 
       - name: Lighthouse (headless)
-        run: pnpm dlx lighthouse http://127.0.0.1:3000 --quiet --chrome-flags="--headless" --output=json --output-path=.reports/lighthouse.json
+        run: >-
+          pnpm dlx lighthouse http://127.0.0.1:3000
+          --quiet
+          --chrome-flags="--headless"
+          --config-path=apps/client/lighthouse.config.cjs
+          --throttling-method=simulate
+          --throttling.cpuSlowdownMultiplier=4
+          --throttling.downloadThroughputKbps=1500
+          --throttling.uploadThroughputKbps=750
+          --throttling.rttMs=150
+          --output=json
+          --output-path=.reports/lighthouse.json
 
       - name: Upload Lighthouse artifact
         uses: actions/upload-artifact@v4

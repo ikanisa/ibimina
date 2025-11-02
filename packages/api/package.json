@@ -3,14 +3,26 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "eslint --max-warnings=0 \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "echo 'TODO: add tests'",
     "openapi:generate": "openapi-typescript openapi/platform-api.yaml --output src/generated/platform-api.ts --export-type",
     "openapi:check": "pnpm run openapi:generate && git diff --exit-code -- src/generated/platform-api.ts"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.78.0",
