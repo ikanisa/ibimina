@@ -6,6 +6,8 @@
 **/.next/
 **/out/
 **/build/
+!scripts/build/
+!scripts/build/**
 **/public/service-worker.js
 **/public/workbox-*.js
 
