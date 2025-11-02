@@ -53,6 +53,7 @@ export default async function RootLayout({
   return (
     <html 
       lang={locale} 
+      data-theme={theme}
       className={theme}
       style={{ colorScheme }}
       suppressHydrationWarning
