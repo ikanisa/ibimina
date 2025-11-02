@@ -441,6 +441,85 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  apps/staff:
+    dependencies:
+      '@ibimina/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@ibimina/lib':
+        specifier: workspace:*
+        version: link:../../packages/lib
+      '@ibimina/locales':
+        specifier: workspace:*
+        version: link:../../packages/locales
+      '@ibimina/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@sentry/nextjs':
+        specifier: ^10.22.0
+        version: 10.22.0(@opentelemetry/context-async-hooks@2.2.0(@opentelemetry/api@1.9.0))(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@2.2.0(@opentelemetry/api@1.9.0))(next@16.0.0(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(webpack@5.102.1)
+      lucide-react:
+        specifier: ^0.545.0
+        version: 0.545.0(react@19.1.0)
+      next:
+        specifier: 16.0.0
+        version: 16.0.0(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      next-pwa:
+        specifier: ^5.6.0
+        version: 5.6.0(@babel/core@7.28.5)(@types/babel__core@7.20.5)(next@16.0.0(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(webpack@5.102.1)
+      react:
+        specifier: 19.1.0
+        version: 19.1.0
+      react-dom:
+        specifier: 19.1.0
+        version: 19.1.0(react@19.1.0)
+      workbox-cacheable-response:
+        specifier: ^6.6.0
+        version: 6.6.1
+      workbox-core:
+        specifier: ^6.6.0
+        version: 6.6.1
+      workbox-expiration:
+        specifier: ^6.6.0
+        version: 6.6.1
+      workbox-precaching:
+        specifier: ^6.6.0
+        version: 6.6.1
+      workbox-routing:
+        specifier: ^6.6.0
+        version: 6.6.1
+      workbox-strategies:
+        specifier: ^6.6.0
+        version: 6.6.1
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4
+        version: 4.1.16
+      '@types/node':
+        specifier: ^20
+        version: 20.19.21
+      '@types/react':
+        specifier: ^19
+        version: 19.2.2
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.2(@types/react@19.2.2)
+      eslint:
+        specifier: ^9
+        version: 9.39.0(jiti@2.6.1)
+      eslint-config-next:
+        specifier: 16.0.0
+        version: 16.0.0(@typescript-eslint/parser@8.46.2(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3)
+      tailwindcss:
+        specifier: ^4
+        version: 4.1.16
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@edge-runtime/vm@3.2.0)(@types/node@20.19.21)(jsdom@20.0.3)(lightningcss@1.30.2)(terser@5.44.0)
+
   apps/mobile:
     dependencies:
       '@ibimina/config':
