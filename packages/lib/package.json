@@ -3,14 +3,20 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "lint": "eslint --max-warnings=0 .",
+    "build": "tsup src/index.ts --format cjs,esm",
+    "clean": "rimraf dist",
+    "lint": "echo 'TODO: add linting'",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config vitest.config.ts"
   },
@@ -22,8 +28,13 @@
     },
     "./package.json": "./package.json"
   },
+  "dependencies": {
+    "@ibimina/config": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "20.19.21",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.1.0",
     "typescript": "^5.9.3",
     "vitest": "^2.1.9"
   }
