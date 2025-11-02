@@ -8,12 +8,20 @@ declare
   result jsonb;
   group_row record;
   invite_row record;
+  identifier_uuid uuid;
 begin
   if route = 'join' then
+    begin
+      identifier_uuid := identifier::uuid;
+    exception
+      when invalid_text_representation then
+        return jsonb_build_object('status', 'not_found', 'type', route);
+    end;
+
     select g.id, g.name, g.status
     into group_row
     from public.ibimina g
-    where g.id = identifier;
+    where g.id = identifier_uuid;
 
     if not found then
       return jsonb_build_object('status', 'not_found', 'type', route);
