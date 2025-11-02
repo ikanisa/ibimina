@@ -10,9 +10,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const mobileDir = path.resolve(__dirname, "..");
 const distDir = path.join(mobileDir, "dist");
+const artifactPath = path.join(distDir, "Ibimina.ipa");
+const buildOutputPath = path.join(distDir, "eas-ios-build.json");
 
-rmSync(distDir, { recursive: true, force: true });
 mkdirSync(distDir, { recursive: true });
+rmSync(artifactPath, { force: true });
+rmSync(buildOutputPath, { force: true });
 
 const easArgs = [
   "build",
@@ -46,7 +49,6 @@ if (exitCode !== 0) {
   process.exit(exitCode ?? 1);
 }
 
-const buildOutputPath = path.join(distDir, "eas-ios-build.json");
 writeFileSync(buildOutputPath, stdout, "utf-8");
 
 let buildInfo;
