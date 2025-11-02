@@ -84,8 +84,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Prepare report directories
-        run: mkdir -p .reports/lighthouse .reports/security
+      - name: Prepare coverage and report directories
+        run: |
+          node scripts/coverage/prepare.mjs
+          mkdir -p .reports/lighthouse
 
       - name: pnpm audit (production dependencies)
         run: |
@@ -111,8 +113,26 @@ jobs:
       - name: Typecheck all workspaces
         run: pnpm run typecheck
 
-      - name: Test all workspaces
-        run: pnpm run test
+      - name: Workspace library tests
+        run: pnpm -r --filter "@ibimina/{lib,core,providers,ai-agent,testing,config}" test
+
+      - name: Unit tests
+        run: pnpm run test:unit
+
+      - name: Auth security tests
+        run: pnpm run test:auth
+
+      - name: RLS policy tests
+        run: pnpm run test:rls
+
+      - name: Merge and enforce coverage thresholds
+        run: node scripts/coverage/enforce.mjs
+
+      - name: Verify i18n keys
+        run: pnpm run check:i18n
+
+      - name: Verify i18n glossary consistency
+        run: pnpm run check:i18n:consistency
 
       - name: Build all workspaces
         env:
@@ -124,6 +144,19 @@ jobs:
 
       - name: Verify log drain alerting
         run: pnpm run verify:log-drain
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            .reports/coverage
+            apps/admin/coverage
+            apps/platform-api/coverage
+            apps/client/coverage
+            packages/ui/coverage
+          if-no-files-found: warn
 
       - name: Lighthouse · admin
         run: |
