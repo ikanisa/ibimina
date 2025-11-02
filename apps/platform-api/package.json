@@ -19,15 +19,17 @@
   },
   "dependencies": {
     "@ibimina/config": "workspace:*",
+    "@ibimina/lib": "workspace:*",
+    "@sentry/node": "^10.22.0",
+    "@sentry/types": "^8.37.1",
     "@supabase/supabase-js": "^2.74.0",
-    "@sentry/node": "^8.30.0",
-    "prom-client": "^15.1.2"
+    "posthog-node": "^5.11.0"
   },
   "devDependencies": {
+    "@types/node": "20.19.21",
     "@vercel/node": "^3.2.9",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3",
-    "@types/node": "20.19.21"
+    "typescript": "^5.9.3"
   }
 }

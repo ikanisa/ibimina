@@ -1,4 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+
+import type { ObservabilityContext } from "../observability";
+import { runWorker } from "../observability";
 import { invokeEdge, requireEnv } from "../lib/edgeClient";
 import {
   ensureObservability,
@@ -16,68 +19,60 @@ interface PollSummary {
   error?: string;
 }
 
-export async function runMomoPoller() {
-  ensureObservability();
-  logInfo("momo_poller.invocation", { worker: "momo-statement-poller" });
-
-  const response = (await invokeEdge("momo-statement-poller", {
-    method: "POST",
-    retry: { attempts: 3, backoffMs: 500 },
-  })) as PollSummary;
-  if (!response?.success) {
-    recordMomoPollerMetrics({ status: "failure" });
-    const errorMessage = response?.error ?? "unknown error";
-    const error = new Error(`MoMo polling failed: ${errorMessage}`);
-    logError("momo_poller.edge_failed", { error: errorMessage });
-    captureException(error, { stage: "edge_invocation" });
-    throw error;
-  }
-
-  const supabase = createClient(
-    requireEnv("SUPABASE_URL"),
-    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
-    {
-      auth: { persistSession: false, autoRefreshToken: false },
+export async function runMomoPoller(context?: ObservabilityContext) {
+  const execute = async (ctx: ObservabilityContext) => {
+    const response = (await invokeEdge("momo-statement-poller", { method: "POST" })) as PollSummary;
+    if (!response?.success) {
+      ctx.captureException(new Error(response?.error ?? "unknown error"), {
+        job: "momo-statement-poller",
+      });
+      throw new Error(`MoMo polling failed: ${response?.error ?? "unknown error"}`);
     }
-  );
 
-  const { data: pollers, error: pollerStatusError } = await supabase
-    .schema("app")
-    .from("momo_statement_pollers")
-    .select(
-      "display_name, provider, last_polled_at, last_latency_ms, last_error, last_polled_count"
-    )
-    .order("display_name", { ascending: true });
-
-  if (pollerStatusError) {
-    recordMomoPollerMetrics({ status: "failure" });
-    logError("momo_poller.supabase_failed", { error: pollerStatusError.message });
-    captureException(pollerStatusError, { stage: "status_fetch" });
-    throw new Error(`Failed to load MoMo poller status: ${pollerStatusError.message}`);
-  }
-
-  const processed = response.processed ?? 0;
-  const inserted = response.inserted ?? 0;
-  const jobs = response.jobs ?? 0;
-
-  recordMomoPollerMetrics({
-    status: "success",
-    processed,
-    inserted,
-    jobs,
-  });
-
-  logInfo("momo_poller.completed", { processed, inserted, jobs });
-
-  if (pollers?.length) {
-    console.table(
-      pollers.map((poller) => ({
-        poller: poller.display_name ?? poller.provider ?? "unknown",
-        lastPolledAt: poller.last_polled_at,
-        lastLatencyMs: poller.last_latency_ms,
-        lastBatchCount: poller.last_polled_count,
-        error: poller.last_error ?? "—",
-      }))
+    const supabase = createClient(
+      requireEnv("SUPABASE_URL"),
+      requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+      {
+        auth: { persistSession: false, autoRefreshToken: false },
+      }
     );
+
+    const { data: pollers } = await supabase
+      .schema("app")
+      .from("momo_statement_pollers")
+      .select(
+        "display_name, provider, last_polled_at, last_latency_ms, last_error, last_polled_count"
+      )
+      .order("display_name", { ascending: true });
+
+    ctx.logger.info("momo.poller.summary", {
+      processed: response.processed ?? 0,
+      inserted: response.inserted ?? 0,
+      jobs: response.jobs ?? 0,
+    });
+
+    if (pollers?.length) {
+      ctx.logger.info("momo.poller.status", {
+        pollers: pollers.map((poller) => ({
+          poller: poller.display_name ?? poller.provider ?? "unknown",
+          lastPolledAt: poller.last_polled_at,
+          lastLatencyMs: poller.last_latency_ms,
+          lastBatchCount: poller.last_polled_count,
+          error: poller.last_error ?? null,
+        })),
+      });
+    }
+
+    await ctx.track("momo.poller.run", {
+      processed: response.processed ?? 0,
+      inserted: response.inserted ?? 0,
+      jobs: response.jobs ?? 0,
+    });
+  };
+
+  if (context) {
+    return execute(context);
   }
+
+  return runWorker("worker.momo-poller", execute);
 }

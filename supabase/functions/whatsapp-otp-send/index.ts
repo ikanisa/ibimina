@@ -15,6 +15,7 @@ import { createServiceClient, requireEnv } from "../_shared/mod.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -483,5 +484,5 @@ export const handler = async (req: Request): Promise<Response> => {
 };
 
 if (import.meta.main) {
-  Deno.serve(handler);
+  serveWithObservability("whatsapp-otp-send", handler);
 }

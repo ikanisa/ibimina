@@ -4,6 +4,7 @@ import { encryptField, hashField, maskMsisdn } from "../_shared/crypto.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,7 +38,7 @@ const parseReference = (reference: string | null | undefined) => {
   return { groupCode, memberCode };
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("import-statement", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

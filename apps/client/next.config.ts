@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 import { featureFlagDefinitions } from "@ibimina/config";
 import { HSTS_HEADER, createSecureHeaders } from "@ibimina/lib";
 
@@ -105,4 +106,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+const sentryPluginOptions = { silent: true } as const;
+const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
+
+export default withSentryConfig(withPWA(nextConfig), sentryPluginOptions, sentryBuildOptions);

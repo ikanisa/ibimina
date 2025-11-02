@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { normalizeError } from "@ibimina/lib";
+
 import { runGsmHeartbeat } from "./workers/gsm-heartbeat";
 import { runMomoPoller } from "./workers/momo-poller";
 import { ensureObservability, logError, captureException } from "./lib/observability/index.js";
@@ -25,9 +27,13 @@ async function main() {
 }
 
 main().catch((error) => {
-  captureException(error, { command });
-  logError("platform_api.unhandled_error", {
-    error: error instanceof Error ? error.message : String(error),
-  });
+  console.error(
+    JSON.stringify({
+      level: "error",
+      event: "platform-api.worker.failure",
+      error: normalizeError(error),
+      timestamp: new Date().toISOString(),
+    })
+  );
   process.exitCode = 1;
 });
