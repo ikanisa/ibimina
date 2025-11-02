@@ -9,11 +9,11 @@
  */
 
 import {
-  FeatureFlags,
+  type FeatureFlags,
   mergeFeatureFlagSources,
   normalizeFlagKey,
   parseFeatureFlagsFromEnv,
-} from "@/components/FeatureFlagProvider";
+} from "./utils";
 import { requireSupabaseConfig } from "@/lib/supabase/config";
 
 type RemoteFlagRecord = Record<string, unknown>;

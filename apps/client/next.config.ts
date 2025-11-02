@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 import { featureFlagDefinitions } from "@ibimina/config";
 import { HSTS_HEADER, createSecureHeaders } from "@ibimina/lib";
 
@@ -59,6 +60,8 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
   },
 
+  transpilePackages: ["@ibimina/config", "@ibimina/lib", "@ibimina/locales", "@ibimina/ui"],
+
   async headers() {
     const securityHeaders = createSecureHeaders();
     const dnsPrefetchHeader = { key: "X-DNS-Prefetch-Control", value: "on" } as const;
@@ -105,4 +108,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+const sentryPluginOptions = { silent: true } as const;
+const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
+
+export default withSentryConfig(withPWA(nextConfig), sentryPluginOptions, sentryBuildOptions);

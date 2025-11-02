@@ -8,14 +8,14 @@ procedures, see the full documentation.
 
 ## 📚 Documentation Index
 
-| Document                                                       | Purpose                          | When to Use                        |
-| -------------------------------------------------------------- | -------------------------------- | ---------------------------------- |
-| [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md)          | Comprehensive go-live checklist  | Before every production deployment |
-| [DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)          | Standard release procedures      | Regular deployments and releases   |
-| [POST_DEPLOYMENT_VALIDATION.md](POST_DEPLOYMENT_VALIDATION.md) | Post-deploy verification         | Immediately after each deployment  |
-| [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md)                   | Emergency procedures             | During incidents and disasters     |
-| [SECURITY_HARDENING.md](SECURITY_HARDENING.md)                 | Security configuration checklist | During initial setup and audits    |
-| [go-live-checklist.md](go-live-checklist.md)                   | Supabase-specific setup          | Initial Supabase configuration     |
+| Document                                                                       | Purpose                          | When to Use                        |
+| ------------------------------------------------------------------------------ | -------------------------------- | ---------------------------------- |
+| [docs/go-live/production-checklist.md](go-live/production-checklist.md)        | Comprehensive go-live checklist  | Before every production deployment |
+| [DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)                          | Standard release procedures      | Regular deployments and releases   |
+| [POST_DEPLOYMENT_VALIDATION.md](POST_DEPLOYMENT_VALIDATION.md)                 | Post-deploy verification         | Immediately after each deployment  |
+| [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md)                                   | Emergency procedures             | During incidents and disasters     |
+| [SECURITY_HARDENING.md](SECURITY_HARDENING.md)                                 | Security configuration checklist | During initial setup and audits    |
+| [go-live/supabase-go-live-checklist.md](go-live/supabase-go-live-checklist.md) | Supabase-specific setup          | Initial Supabase configuration     |
 
 ## 🚀 Quick Start: First Production Deployment
 
@@ -39,13 +39,15 @@ pnpm run check:deploy     # or `make ready`
    - Enable audit logging
 
 2. **Infrastructure**: Check
-   [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md) Sections 6-8
+   [docs/go-live/production-checklist.md](go-live/production-checklist.md)
+   Sections 6-8
    - Server provisioned
    - SSL configured
    - Reverse proxy set up
    - Firewall configured
 
-3. **Database**: Review [go-live-checklist.md](go-live-checklist.md)
+3. **Database**: Review
+   [go-live/supabase-go-live-checklist.md](go-live/supabase-go-live-checklist.md)
    - Migrations applied
    - Secrets set in Supabase
    - Edge functions deployed
@@ -334,7 +336,7 @@ Monitor these metrics post-deployment:
 
 ## 📋 Pre-Deployment Checklist Summary
 
-From [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md):
+From [docs/go-live/production-checklist.md](go-live/production-checklist.md):
 
 1. ✅ Code Quality & Security
 2. 🔧 Environment Configuration

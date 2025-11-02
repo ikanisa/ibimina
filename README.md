@@ -26,6 +26,8 @@ semantic SACCO search.
   and dependency graph
 - [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) - Common issues and
   solutions
+- [**PRE_EXISTING_BUILD_ISSUES.md**](PRE_EXISTING_BUILD_ISSUES.md) - Known build
+  issues requiring separate PRs
 - [**docs/CI_WORKFLOWS.md**](docs/CI_WORKFLOWS.md) - CI/CD workflows and
   troubleshooting
 - [**docs/DB_GUIDE.md**](docs/DB_GUIDE.md) - Database procedures and migration
@@ -37,6 +39,17 @@ semantic SACCO search.
 - [**packages/README.md**](packages/README.md) - Shared packages documentation
 
 ### Deployment Documentation
+
+### Go-Live & Release
+
+- [**Go-Live documentation hub**](docs/go-live/README.md) - Central index for
+  audit collateral
+- [**Release checklist**](docs/go-live/release-checklist.md) - Step-by-step
+  launch procedure
+- [**Release artifacts inventory**](docs/go-live/artifacts-inventory.md) -
+  Evidence catalog for audits
+- [**CI workflows overview**](docs/CI_WORKFLOWS.md) - Required status checks and
+  troubleshooting
 
 - [**docs/CLOUDFLARE_DEPLOYMENT.md**](docs/CLOUDFLARE_DEPLOYMENT.md) -
   Comprehensive guide for deploying to Cloudflare Pages
@@ -302,8 +315,8 @@ docs/                   # Architecture, hosting, onboarding guides
   group.
 - Dashboard, Ikimina, Recon, Reports, and Admin pages now query Supabase
   directly in server components.
-- See `docs/go-live-checklist.md` for the full Supabase bootstrap sequence
-  (migrations, secrets, edge functions, GSM ingestion).
+- See `docs/go-live/supabase-go-live-checklist.md` for the full Supabase
+  bootstrap sequence (migrations, secrets, edge functions, GSM ingestion).
 - Refer to `docs/local-hosting.md` when wiring Supabase credentials into
   `.env.local` for local development.
 
@@ -470,7 +483,8 @@ you’re ready to release to your local or on-prem infrastructure.
   lint/type/test/build/Playwright/Lighthouse/log-drain gates that CI enforces.
 - Run `pnpm run validate:production` to verify production readiness
   prerequisites.
-- Walk through the [Production Go-Live Checklist](PRODUCTION_CHECKLIST.md) for
+- Walk through the
+  [Production Go-Live Checklist](docs/go-live/production-checklist.md) for
   comprehensive pre-deployment validation.
 - Review the [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) for standard
   release procedures.

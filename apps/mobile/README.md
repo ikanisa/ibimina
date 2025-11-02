@@ -4,7 +4,8 @@ React Native mobile app for Ibimina SACCO platform, built with Expo.
 
 ## Features
 
-- **Rwanda-inspired Design System**: Custom theme with national colors, warm accents, and glassmorphism
+- **Rwanda-inspired Design System**: Custom theme with national colors, warm
+  accents, and glassmorphism
 - **Bottom Tab Navigation**: Home, Pay, Statements, Offers, Profile
 - **Internationalization**: Support for Kinyarwanda, English, and French
 - **State Management**: Zustand for global state, React Query for data fetching
@@ -113,8 +114,12 @@ CONFIGCAT_SDK_KEY=your-configcat-key
 EXPO_PUBLIC_SUPABASE_URL=your-supabase-url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
+# API (for production builds)
+EXPO_PUBLIC_API_BASE_URL_MOBILE=https://api.ibimina.rw
+
 # EAS (for builds)
-EAS_PROJECT_ID=your-eas-project-id
+EAS_PROJECT_ID=your-eas-project-id          # used by Expo locally
+EAS_PROJECT_ID_MOBILE=your-eas-project-id   # injected automatically in CI builds
 ```
 
 ## Design System

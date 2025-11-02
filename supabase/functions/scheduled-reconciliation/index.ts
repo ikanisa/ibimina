@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { recordMetric } from "../_shared/metrics.ts";
 import { validateHmacRequest } from "../_shared/auth.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const APP_ORIGIN = Deno.env.get("APP_ORIGIN") ?? "*";
 const corsHeaders = {
@@ -11,7 +12,7 @@ const corsHeaders = {
 
 const DEFAULT_LOOKBACK_HOURS = parseInt(Deno.env.get("RECON_AUTO_ESCALATE_HOURS") ?? "48", 10);
 
-Deno.serve(async (req) => {
+serveWithObservability("scheduled-reconciliation", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

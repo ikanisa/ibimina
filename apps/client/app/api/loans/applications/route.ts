@@ -4,12 +4,48 @@
  * Create and manage loan applications (intermediation only)
  */
 
-import { createClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+
+type SupabaseClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+
+let resolveSupabaseForTests: (() => Promise<SupabaseClient>) | null = null;
+
+function detectNetworkFailure(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = (error.message ?? "").toLowerCase();
+  return (
+    message.includes("fetch failed") ||
+    message.includes("failed to fetch") ||
+    message.includes("network") ||
+    ("code" in error &&
+      typeof (error as { code?: unknown }).code === "string" &&
+      ["econnrefused", "enotfound", "etimedout"].includes(
+        ((error as { code: string }).code ?? "").toLowerCase()
+      ))
+  );
+}
+
+async function getSupabaseClient() {
+  if (resolveSupabaseForTests) {
+    return resolveSupabaseForTests();
+  }
+
+  return createSupabaseServerClient();
+}
+
+export function __setLoanApplicationsSupabaseFactoryForTests(
+  factory: (() => Promise<SupabaseClient>) | null
+) {
+  resolveSupabaseForTests = factory;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseClient();
 
     // Check authentication
     const {
@@ -74,13 +110,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ application }, { status: 201 });
   } catch (error) {
     console.error("Error in loan applications API:", error);
+    if (detectNetworkFailure(error)) {
+      return NextResponse.json({ error: "Supabase unavailable" }, { status: 503 });
+    }
+
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseClient();
 
     // Check authentication
     const {
@@ -116,6 +156,10 @@ export async function GET() {
     return NextResponse.json({ applications });
   } catch (error) {
     console.error("Error in loan applications API:", error);
+    if (detectNetworkFailure(error)) {
+      return NextResponse.json({ error: "Supabase unavailable" }, { status: 503 });
+    }
+
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

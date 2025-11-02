@@ -1,0 +1,53 @@
+rules:
+  - id: ts-no-eval
+    message: >-
+      Avoid using eval() because it executes arbitrary code and can introduce code
+      injection vulnerabilities. Prefer explicit parsing or safe helpers instead.
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern: eval($EXPR)
+    metadata:
+      cwe: "CWE-95"
+      owasp: "A03:2021-Injection"
+      category: security
+
+  - id: ts-no-new-function
+    message: >-
+      Dynamic Function constructors evaluate strings as code. Use safe alternatives
+      such as higher-order helpers or explicit branching instead of new Function().
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern: new Function(...)
+    metadata:
+      cwe: "CWE-94"
+      owasp: "A03:2021-Injection"
+      category: security
+
+  - id: ts-no-shell-exec
+    message: >-
+      Avoid child_process exec-style helpers when building commands dynamically.
+      Prefer spawn/execFile with explicit argument arrays to prevent command injection.
+    severity: ERROR
+    languages: [javascript, typescript]
+    patterns:
+      - pattern-either:
+          - pattern: child_process.exec($CMD)
+          - pattern: child_process.execSync($CMD)
+          - pattern: exec($CMD)
+          - pattern: execSync($CMD)
+    metadata:
+      cwe: "CWE-78"
+      owasp: "A03:2021-Injection"
+      category: security
+
+  - id: react-no-dangerous-inner-html
+    message: >-
+      Rendering HTML with dangerouslySetInnerHTML can introduce XSS. Sanitize content
+      before rendering or prefer safe JSX rendering helpers.
+    severity: WARNING
+    languages: [javascript, typescript]
+    pattern: "dangerouslySetInnerHTML: $VALUE"
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03:2021-Injection"
+      category: security
