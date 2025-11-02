@@ -146,7 +146,7 @@ describe("authx challenge state management - verify flow", () => {
     const testSecret = "JBSWY3DPEHPK3PXP"; // Base32 encoded test secret
 
     overrideVerifyHandlers({
-      totp: async (input: FactorVerifyInput): Promise<FactorSuccess> => ({
+      totp: async (_input: FactorVerifyInput): Promise<FactorSuccess> => ({
         ok: true,
         status: 200,
         factor: "totp",
@@ -231,7 +231,7 @@ describe("authx challenge state management - verify flow", () => {
     const backupHash = "hash_of_backup_code";
 
     overrideVerifyHandlers({
-      backup: async (input: FactorVerifyInput): Promise<FactorSuccess> => ({
+      backup: async (_input: FactorVerifyInput): Promise<FactorSuccess> => ({
         ok: true,
         status: 200,
         factor: "backup",

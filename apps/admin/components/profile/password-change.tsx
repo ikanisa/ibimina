@@ -98,7 +98,7 @@ export function PasswordChange({ onSuccess }: PasswordChangeProps) {
       setTimeout(() => {
         setSuccess(false);
       }, 5000);
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);

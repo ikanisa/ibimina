@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { once } from "node:events";
+import type { Logger } from "pino";
+import { z } from "zod";
 
 import { withHttpObservability } from "../../src/observability";
 import type { StructuredLogger } from "../../src/observability";
@@ -12,19 +14,7 @@ import {
   type WhatsAppStatusRecord,
   type WhatsAppWebhookPayload,
 } from "../../src/webhooks/whatsapp.js";
-import {
-  ensureObservability,
-  logError,
-  logInfo,
-  logWarn,
-  recordWhatsappFailure,
-  recordWhatsappIngestMetrics,
-  captureException,
-} from "../../src/lib/observability/index.js";
-import {
-  createSupabaseWebhookIdempotencyStore,
-  withWebhookIdempotency,
-} from "../../src/lib/idempotency.js";
+import { createRequestLogger } from "../../src/lib/logger.js";
 
 interface AlertPayload {
   event: string;
@@ -40,6 +30,13 @@ interface AlertPayload {
 let cachedClient: SupabaseClient | null = null;
 
 const getSupabaseClient = () => {
+  const override = (globalThis as { __TEST_SUPABASE_CLIENT__?: SupabaseClient | null })
+    .__TEST_SUPABASE_CLIENT__;
+  if (override) {
+    cachedClient = override;
+    return cachedClient;
+  }
+
   if (cachedClient) {
     return cachedClient;
   }
@@ -85,7 +82,7 @@ const readRequestBody = async (req: VercelRequest): Promise<Buffer> => {
   return Buffer.concat(chunks);
 };
 
-const persistStatuses = async (records: WhatsAppStatusRecord[]) => {
+const persistStatuses = async (records: WhatsAppStatusRecord[], log: Logger) => {
   if (!records.length) return { inserted: 0 };
 
   const supabase = getSupabaseClient();
@@ -95,13 +92,17 @@ const persistStatuses = async (records: WhatsAppStatusRecord[]) => {
   });
 
   if (error) {
+    log.error(
+      { err: error, event: "whatsapp_webhook.persist_error" },
+      "Failed to persist WhatsApp statuses"
+    );
     throw new Error(`Failed to persist WhatsApp statuses: ${error.message}`);
   }
 
   return { inserted: records.length };
 };
 
-const postAlert = async (payload: AlertPayload, logger: StructuredLogger) => {
+const postAlert = async (payload: AlertPayload, log: Logger) => {
   const webhook = process.env.WHATSAPP_ALERT_WEBHOOK?.trim();
   if (!webhook) return;
 
@@ -122,34 +123,62 @@ const postAlert = async (payload: AlertPayload, logger: StructuredLogger) => {
     });
 
     if (!response.ok) {
-      logger.warn("whatsapp_webhook.alert_non_200", {
-        status: response.status,
-        statusText: response.statusText,
-      });
-      recordWhatsappFailure("alert_non_200");
+      log.warn(
+        {
+          event: "whatsapp_webhook.alert_non_200",
+          status: response.status,
+          statusText: response.statusText,
+        },
+        "Alert webhook responded with non-200"
+      );
     }
   } catch (error) {
-    logger.error("whatsapp_webhook.alert_failed", { error });
+    log.error(
+      { err: error, event: "whatsapp_webhook.alert_failed" },
+      "Failed to dispatch alert webhook"
+    );
   }
 };
 
-const handleVerification = (req: VercelRequest, res: VercelResponse) => {
-  const mode = req.query["hub.mode"]; // Provided by Meta for verification
-  const challenge = req.query["hub.challenge"];
-  const verifyToken = req.query["hub.verify_token"];
+const verificationQuerySchema = z.object({
+  mode: z.literal("subscribe"),
+  challenge: z.string().min(1),
+  verifyToken: z.string().min(1),
+});
 
-  if (mode === "subscribe" && typeof challenge === "string") {
-    const expected = process.env.META_WHATSAPP_VERIFY_TOKEN;
-    if (!expected || verifyToken !== expected) {
-      res.status(403).json({ error: "Invalid verification token" });
-      return;
-    }
+const extractQueryValue = (value: unknown): string | undefined => {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    const [first] = value;
+    return typeof first === "string" ? first : undefined;
+  }
+  return undefined;
+};
 
-    res.status(200).send(challenge);
+const handleVerification = (req: VercelRequest, res: VercelResponse, log: Logger) => {
+  const result = verificationQuerySchema.safeParse({
+    mode: extractQueryValue(req.query["hub.mode"]),
+    challenge: extractQueryValue(req.query["hub.challenge"]),
+    verifyToken: extractQueryValue(req.query["hub.verify_token"]),
+  });
+
+  if (!result.success) {
+    log.warn(
+      { event: "whatsapp_webhook.invalid_verification", issues: result.error.issues },
+      "Invalid verification request"
+    );
+    res.status(400).json({ error: "Unsupported verification request" });
     return;
   }
 
-  res.status(400).json({ error: "Unsupported verification request" });
+  const expected = process.env.META_WHATSAPP_VERIFY_TOKEN;
+  if (!expected || result.data.verifyToken !== expected) {
+    log.warn({ event: "whatsapp_webhook.invalid_token" }, "Verification token mismatch");
+    res.status(403).json({ error: "Invalid verification token" });
+    return;
+  }
+
+  res.status(200).send(result.data.challenge);
 };
 
 const buildAlertPayload = (failures: WhatsAppStatusRecord[], bodyHash: string): AlertPayload => ({
@@ -172,22 +201,80 @@ const parsePayload = (rawBody: Buffer): WhatsAppWebhookPayload => {
   try {
     const text = rawBody.toString("utf8");
     return JSON.parse(text) as WhatsAppWebhookPayload;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    logError("whatsapp_webhook.parse_error", { error: message });
-    recordWhatsappFailure("parse_error");
+  } catch {
     throw new Error("Invalid JSON payload");
   }
 };
 
-export default withHttpObservability("webhook.whatsapp", async (req, res, context) => {
+const whatsappStatusSchema = z
+  .object({
+    id: z.string().min(1).optional(),
+    status: z.string().min(1).optional(),
+    timestamp: z.string().optional(),
+    recipient_id: z.string().optional(),
+    conversation: z
+      .object({
+        id: z.string().optional(),
+        origin: z.object({ type: z.string().optional() }).partial().optional(),
+      })
+      .partial()
+      .optional(),
+    errors: z
+      .array(
+        z
+          .object({
+            code: z.string().optional(),
+            title: z.string().optional(),
+            message: z.string().optional(),
+          })
+          .partial()
+      )
+      .optional(),
+  })
+  .passthrough();
+
+const webhookPayloadSchema = z
+  .object({
+    entry: z
+      .array(
+        z
+          .object({
+            changes: z
+              .array(
+                z
+                  .object({
+                    value: z
+                      .object({
+                        messages: z.array(z.record(z.unknown())).optional(),
+                        statuses: z.array(whatsappStatusSchema).optional(),
+                      })
+                      .passthrough()
+                      .optional(),
+                  })
+                  .passthrough()
+              )
+              .optional(),
+          })
+          .passthrough()
+      )
+      .optional(),
+  })
+  .passthrough();
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const log = createRequestLogger(req);
+
   if (req.method === "GET") {
-    handleVerification(req, res);
+    handleVerification(req, res, log);
     return;
   }
 
   if (req.method !== "POST") {
     res.setHeader("Allow", "GET, POST");
+    log.warn(
+      { event: "whatsapp_webhook.method_not_allowed", method: req.method },
+      "Received unsupported method"
+    );
     res.status(405).json({ error: "Method not allowed" });
     return;
   }
@@ -197,7 +284,10 @@ export default withHttpObservability("webhook.whatsapp", async (req, res, contex
   const appSecret = process.env.META_WHATSAPP_APP_SECRET;
 
   if (!appSecret) {
-    context.logger.error("whatsapp_webhook.misconfigured", { reason: "missing_app_secret" });
+    log.error(
+      { event: "whatsapp_webhook.misconfigured", reason: "missing_app_secret" },
+      "WhatsApp webhook is misconfigured"
+    );
     res.status(500).json({ error: "WhatsApp webhook misconfigured" });
     return;
   }
@@ -213,7 +303,10 @@ export default withHttpObservability("webhook.whatsapp", async (req, res, contex
   );
 
   if (!verification.ok) {
-    context.logger.warn("whatsapp_webhook.signature_invalid", { reason: verification.reason });
+    log.warn(
+      { event: "whatsapp_webhook.signature_invalid", reason: verification.reason },
+      "Invalid webhook signature"
+    );
     res.status(403).json({ error: "Invalid signature" });
     return;
   }
@@ -223,38 +316,52 @@ export default withHttpObservability("webhook.whatsapp", async (req, res, contex
   try {
     payload = parsePayload(rawBody);
   } catch (error) {
-    context.logger.warn("whatsapp_webhook.invalid_payload", { error: (error as Error).message });
+    log.warn(
+      { event: "whatsapp_webhook.parse_error", err: error },
+      "Failed to parse webhook payload"
+    );
     res.status(400).json({ error: (error as Error).message });
     return;
   }
 
-  const bodyHash = hashBody(rawBody);
-  const supabase = getSupabaseClient();
-  const store = createSupabaseWebhookIdempotencyStore(supabase, `whatsapp:${bodyHash}`);
-  const fallbackResponse = {
-    ok: true,
-    inboundMessages: 0,
-    statuses: 0,
-    failures: 0,
-    deduplicated: true,
-  } as const;
+  const validation = webhookPayloadSchema.safeParse(payload);
+  if (!validation.success) {
+    log.warn(
+      { event: "whatsapp_webhook.validation_failed", issues: validation.error.issues },
+      "Webhook payload validation failed"
+    );
+    res.status(400).json({ error: "Invalid webhook payload" });
+    return;
+  }
+
+  const safePayload = validation.data as WhatsAppWebhookPayload;
+  const summary = processWebhookPayload(safePayload);
 
   try {
-    await persistStatuses(summary.statuses);
+    await persistStatuses(summary.statuses, log);
   } catch (error) {
-    context.logger.error("whatsapp_webhook.persist_error", { error });
-    context.captureException(error, { path: req.url ?? "/api/webhook/whatsapp" });
+    log.error(
+      { event: "whatsapp_webhook.persist_error", err: error },
+      "Failed to persist webhook statuses"
+    );
     res.status(500).json({ error: "Failed to persist statuses" });
     return;
   }
 
   if (summary.failures.length) {
     const hash = hashBody(rawBody);
-    await postAlert(buildAlertPayload(summary.failures, hash), context.logger);
-    await context.track("whatsapp.delivery_failure", {
-      failures: summary.failures.length,
-    });
+    await postAlert(buildAlertPayload(summary.failures, hash), log);
   }
+
+  log.info(
+    {
+      event: "whatsapp_webhook.processed",
+      inboundMessages: summary.inboundMessages,
+      statuses: summary.statuses.length,
+      failures: summary.failures.length,
+    },
+    "WhatsApp webhook processed"
+  );
 
   res.status(200).json({
     ok: true,

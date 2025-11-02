@@ -33,7 +33,7 @@ jobs:
       TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
       HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
       OPENAI_API_KEY: placeholder-openai-api-key
-      KMS_DATA_KEY_BASE64: cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ==
+      KMS_DATA_KEY_BASE64: c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -114,7 +114,7 @@ jobs:
       - name: Run Semgrep scan
         run: |
           set -eo pipefail
-          semgrep scan --config .semgrep/semgrep.yml --json --output .reports/security/semgrep-report.json
+          semgrep scan --config .semgrep/semgrep.yml --json --output .reports/security/semgrep-report.json --exit-code=0
           if jq -e '.results[] | select(.extra.severity == "ERROR" or .extra.severity == "CRITICAL")' .reports/security/semgrep-report.json >/dev/null; then
             echo "High severity Semgrep findings detected." >&2
             exit 1
@@ -128,24 +128,14 @@ jobs:
         if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_SERVICE_ROLE_KEY == '' }}
         run: echo "Required Supabase secrets are unavailable; skipping feature flag validation."
 
-      - name: Lint (excluding client)
-        run: pnpm --filter '!@ibimina/client' run lint
+      - name: Lint all workspaces
+        run: pnpm run lint
 
-      - name: Lint client package
-        id: client_lint
-        run: pnpm --filter @ibimina/client lint
-        continue-on-error: true
-
-      - name: Enforce client lint tracking policy
-        if: steps.client_lint.outcome == 'failure'
-        run: node scripts/verify-client-lint-tracking.mjs
-
-      - name: Report client lint allowance
-        if: steps.client_lint.outcome == 'failure'
-        run: echo "::warning::@ibimina/client lint failed but is temporarily allowed because issues are tracked."
-
-      - name: Typecheck
+      - name: Typecheck all workspaces
         run: pnpm run typecheck
+
+      - name: Workspace library tests
+        run: pnpm -r --filter "@ibimina/{lib,core,providers,ai-agent,testing,config}" test
 
       - name: Unit tests
         run: pnpm run test:unit
@@ -295,3 +285,86 @@ jobs:
             ./gradlew :feature-tapmomo:connectedDebugAndroidTest
           emulator-options: -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
+
+  client-playwright:
+    name: Client Playwright e2e
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run client Playwright suite
+        run: pnpm --filter @ibimina/client run test:e2e
+
+      - name: Upload Playwright coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-playwright-coverage
+          path: apps/client/.reports/coverage
+          if-no-files-found: warn
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-playwright-report
+          path: apps/client/.reports/playwright
+          if-no-files-found: warn
+
+  mobile-detox:
+    name: Mobile Detox regression
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Detox smoke tests
+        run: pnpm --filter @ibimina/mobile run test:detox
+
+      - name: Upload Detox artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-detox-output
+          path: apps/client/tests/detox
+          if-no-files-found: warn

@@ -17,7 +17,7 @@ describe("requireEnv", () => {
 
   it("throws an error when environment variable is missing", () => {
     process.env = { ...originalEnv };
-    delete process.env.MISSING_VAR;
+    process.env.MISSING_VAR = undefined;
     assert.throws(() => requireEnv("MISSING_VAR"), {
       name: "Error",
       message: "Missing required environment variable: MISSING_VAR",

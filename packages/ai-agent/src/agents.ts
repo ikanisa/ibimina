@@ -1,4 +1,4 @@
-import type { AgentContext, AgentHandler, AgentName, ToolInvocation } from "./types.js";
+import type { AgentHandler, AgentName, ToolInvocation } from "./types.js";
 
 function createToolInvocation(
   name: string,

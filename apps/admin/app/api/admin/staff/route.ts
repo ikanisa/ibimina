@@ -1,19 +1,40 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { guardAdminAction } from "@/lib/admin/guard";
 import { supabaseSrv } from "@/lib/supabase/server";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 
+// Validation schema for staff list query parameters
+const staffQuerySchema = z.object({
+  role: z.enum(["SYSTEM_ADMIN", "SACCO_MANAGER", "SACCO_STAFF", "SACCO_VIEWER"]).optional(),
+  sacco_id: z.string().uuid().optional(),
+  status: z.enum(["active", "suspended"]).optional(),
+  q: z.string().max(100).optional(),
+  org_type: z.enum(["MFI", "DISTRICT"]).optional(),
+  org_id: z.string().uuid().optional(),
+});
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const role = searchParams.get("role");
-  const saccoId = searchParams.get("sacco_id");
-  const status = searchParams.get("status"); // "active" | "suspended"
-  const q = (searchParams.get("q") ?? "").trim().toLowerCase();
-  const orgTypeParam = (searchParams.get("org_type") ?? "").toUpperCase();
-  const orgId = searchParams.get("org_id");
-  if (orgTypeParam && !["MFI", "DISTRICT"].includes(orgTypeParam)) {
-    return NextResponse.json({ error: "Invalid org_type" }, { status: 400 });
+
+  // Validate query parameters
+  const validationResult = staffQuerySchema.safeParse({
+    role: searchParams.get("role"),
+    sacco_id: searchParams.get("sacco_id"),
+    status: searchParams.get("status"),
+    q: searchParams.get("q"),
+    org_type: searchParams.get("org_type"),
+    org_id: searchParams.get("org_id"),
+  });
+
+  if (!validationResult.success) {
+    return NextResponse.json(
+      { error: "Invalid query parameters", details: validationResult.error.flatten() },
+      { status: 400 }
+    );
   }
+
+  const { role, sacco_id: saccoId, status, q, org_type: orgType, org_id: orgId } = validationResult.data;
 
   const guard = await guardAdminAction(
     {
@@ -29,19 +50,19 @@ export async function GET(request: Request) {
   const supabase = supabaseSrv();
 
   let scopedUserIds: string[] | null = null;
-  if (orgTypeParam) {
+  if (orgType) {
     let membershipQuery: any = supabase
       .schema("app")
       .from("org_memberships")
       .select("user_id, org_id, organizations(type)");
-    membershipQuery = membershipQuery.eq("organizations.type", orgTypeParam);
+    membershipQuery = membershipQuery.eq("organizations.type", orgType);
     if (orgId) {
       membershipQuery = membershipQuery.eq("org_id", orgId);
     }
     const membershipResult = await membershipQuery;
     if (membershipResult.error && !isMissingRelationError(membershipResult.error)) {
       return NextResponse.json(
-        { error: membershipResult.error.message ?? "Failed to load memberships" },
+        { error: "Failed to load memberships" },
         { status: 500 }
       );
     }
@@ -74,7 +95,7 @@ export async function GET(request: Request) {
   const result = await query;
   if (result.error && !isMissingRelationError(result.error)) {
     return NextResponse.json(
-      { error: result.error.message ?? "Failed to load staff" },
+      { error: "Failed to load staff" },
       { status: 500 }
     );
   }
@@ -88,8 +109,11 @@ export async function GET(request: Request) {
     suspended?: boolean | null;
     saccos?: { name: string | null } | null;
   }>;
-  if (q) {
-    rows = rows.filter((r) => (r.email ?? "").toLowerCase().includes(q));
+  
+  // Apply search filter if provided
+  if (q && q.trim().length > 0) {
+    const searchTerm = q.trim().toLowerCase();
+    rows = rows.filter((r) => (r.email ?? "").toLowerCase().includes(searchTerm));
   }
 
   const users = rows.map((u) => ({

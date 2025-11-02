@@ -13,6 +13,7 @@ import {
 import { resolveEnvironment, scrubPII } from "@ibimina/lib";
 
 const isDev = process.env.NODE_ENV !== "production";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
 
 const middlewareImpl = (request: NextRequest) => {
   const startedAt = Date.now();
@@ -20,21 +21,26 @@ const middlewareImpl = (request: NextRequest) => {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-csp-nonce", nonce);
 
-  let response: NextResponse;
-  const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
-
   try {
-    response = NextResponse.next({
-      request: { headers: requestHeaders },
+    const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
+
+    // Initialize response properly
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
     });
 
-    const csp = createContentSecurityPolicy({ nonce, isDev });
+    // Set CSP header
+    const csp = createContentSecurityPolicy({ nonce, isDev, supabaseUrl });
     response.headers.set("Content-Security-Policy", csp);
 
+    // Apply security headers
     for (const header of SECURITY_HEADERS) {
       response.headers.set(header.key, header.value);
     }
 
+    // HSTS in production only
     if (!isDev) {
       response.headers.set(HSTS_HEADER.key, HSTS_HEADER.value);
     }
@@ -44,14 +50,18 @@ const middlewareImpl = (request: NextRequest) => {
     return response;
   } catch (error) {
     Sentry.captureException(error, {
-      data: { requestId, path: request.nextUrl.pathname, method: request.method },
+      data: {
+        requestId: requestHeaders.get("x-request-id"),
+        path: request.nextUrl.pathname,
+        method: request.method,
+      },
     });
     throw error;
   } finally {
     const logPayload = {
       event: "admin.middleware.complete",
       environment: resolveEnvironment(),
-      requestId,
+      requestId: requestHeaders.get("x-request-id"),
       method: request.method,
       url: request.nextUrl.pathname,
       durationMs: Date.now() - startedAt,

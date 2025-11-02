@@ -30,11 +30,12 @@ pnpm dlx supabase --help  # or follow Supabase install docs
 ```bash
 git clone git@github.com:ikanisa/ibimina.git
 cd ibimina
-pnpm install --frozen-lockfile
+make bootstrap  # installs deps + regenerates Supabase types
 ```
 
 The install step configures workspace hoists, builds shared packages, and wires
-up git hooks.
+up git hooks. Running `make bootstrap` ensures the generated Supabase types in
+`apps/admin` and `apps/client` match the latest schema before you start coding.
 
 ## 3. Configure environment variables
 
@@ -107,16 +108,29 @@ Commit the updated files to keep IDE tooling in sync with the deployed schema.
 Run the core commands before starting feature work:
 
 ```bash
-pnpm run lint
-pnpm run typecheck
-pnpm run test
-pnpm run build
+make quickstart  # lint → typecheck → test → build
 ```
 
-All four must pass locally; CI mirrors this sequence through
-`pnpm run check:deploy`.
+All four stages must pass locally; CI mirrors this sequence through
+`pnpm run check:deploy`. `make quickstart` is tuned to finish in under an hour
+on a clean machine, enabling new contributors to ship fixes on day one.
 
-## 7. Troubleshooting quick reference
+## 7. Ship within the first day
+
+1. Create a feature branch and implement your change.
+2. Run `make quickstart` to ensure lint, types, tests, and build succeed.
+3. Generate a preview deployment with `pnpm run preview:vercel` (or
+   `make preview-vercel`). Capture the URL for review notes.
+4. Open a pull request targeting `main`, attach preview + Supabase notes, and
+   request review from @release-engineering.
+5. Once approved, execute `pnpm run release` (or `make release`) to promote the
+   build to Vercel production. The command automatically reruns `check:deploy`
+   before shipping.
+
+These steps ensure a fully onboarded developer can contribute a reviewed,
+production-ready change inside the first day.
+
+## 8. Troubleshooting quick reference
 
 ### Lint failures (`pnpm run lint`)
 

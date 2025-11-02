@@ -20,19 +20,15 @@ interface FloatingAskToJoinFabProps {
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-export function FloatingAskToJoinFab({ 
-  onPress, 
-  label = "Ask to Join" 
+export function FloatingAskToJoinFab({
+  onPress,
+  label = "Ask to Join",
 }: FloatingAskToJoinFabProps) {
   const scale = useSharedValue(1);
 
   useEffect(() => {
     // Gentle pulse animation
-    scale.value = withRepeat(
-      withSpring(1.05, { damping: 2, stiffness: 80 }),
-      -1,
-      true
-    );
+    scale.value = withRepeat(withSpring(1.05, { damping: 2, stiffness: 80 }), -1, true);
   }, [scale]);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -42,11 +38,7 @@ export function FloatingAskToJoinFab({
   });
 
   return (
-    <AnimatedTouchable
-      style={[styles.fab, animatedStyle]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
+    <AnimatedTouchable style={[styles.fab, animatedStyle]} onPress={onPress} activeOpacity={0.8}>
       <LinearGradient
         colors={[colors.warm[500], colors.warm[600]]}
         start={{ x: 0, y: 0 }}

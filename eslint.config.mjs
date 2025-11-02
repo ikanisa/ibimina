@@ -26,17 +26,7 @@ export default [
     },
   },
   {
-    files: [
-      "apps/admin/app/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/components/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/lib/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/providers/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/scripts/**/*.{js,jsx,ts,tsx}",
-      "apps/admin/tests/**/*.{js,jsx,ts,tsx}",
-      "apps/client/**/*.{js,jsx,ts,tsx}",
-      "apps/platform-api/src/**/*.{js,ts}",
-      "packages/lib/**/*.{js,jsx,ts,tsx}",
-    ],
+    files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -59,7 +49,7 @@ export default [
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
       ],
       "no-undef": "off",
       "@typescript-eslint/no-floating-promises": "error",
@@ -70,6 +60,31 @@ export default [
       "prettier/prettier": "warn",
       "ibimina/structured-logging": "error",
       "ibimina/require-retry-options": ["error", { functions: ["invokeEdge"] }],
+    },
+  },
+  {
+    files: ["apps/platform-api/**/*.{ts,tsx}", "packages/api/**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+      globals: {
+        ...globals.node,
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+      prettier: prettierPlugin,
+    },
+    rules: {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "prettier/prettier": "warn",
     },
   },
   prettierConfig,
