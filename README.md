@@ -26,6 +26,8 @@ semantic SACCO search.
   and dependency graph
 - [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) - Common issues and
   solutions
+- [**PRE_EXISTING_BUILD_ISSUES.md**](PRE_EXISTING_BUILD_ISSUES.md) - Known build
+  issues requiring separate PRs
 - [**docs/CI_WORKFLOWS.md**](docs/CI_WORKFLOWS.md) - CI/CD workflows and
   troubleshooting
 - [**docs/DB_GUIDE.md**](docs/DB_GUIDE.md) - Database procedures and migration
