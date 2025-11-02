@@ -132,15 +132,7 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
         </div>
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-neutral-900">SACCO+ Support</h2>
-          <p className="text-xs text-neutral-500">
-            AI Assistant
-            {assistantContext?.org && (
-              <span className="ml-1 text-neutral-400">
-                • {assistantContext.org}
-                {assistantContext.country ? ` (${assistantContext.country})` : ""}
-              </span>
-            )}
-          </p>
+          <p className="text-xs text-neutral-500">AI Assistant</p>
         </div>
         {onClose && (
           <button
