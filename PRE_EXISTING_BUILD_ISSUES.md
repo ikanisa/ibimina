@@ -52,7 +52,8 @@ Projects must list all files or use an 'include' pattern.
 
 #### Option 1: Override incremental in package tsconfig (Recommended)
 
-Add `"incremental": false` to `packages/data-access/tsconfig.json`:
+Add `"incremental": false` to `packages/data-access/tsconfig.json`. Setting
+`"composite": false` is also recommended to avoid conflicts with tsup:
 
 ```json
 {
@@ -71,6 +72,9 @@ Add `"incremental": false` to `packages/data-access/tsconfig.json`:
 }
 ```
 
+Note: Both `composite` and `incremental` should be disabled when using tsup with
+DTS generation, as tsup handles builds differently than standard tsc.
+
 #### Option 2: Use tsBuildInfoFile
 
 Specify a build info file location:
@@ -86,7 +90,9 @@ Specify a build info file location:
 
 #### Option 3: Remove composite mode
 
-If not needed for project references:
+If not needed for project references. **Note**: Composite mode enables
+TypeScript project references for incremental builds across the monorepo.
+Disabling it may affect build performance if other packages reference this one.
 
 ```json
 {
@@ -158,7 +164,7 @@ Update the type definitions in the story file:
 import type { ComponentProps, JSXElementConstructor } from "react";
 
 type StoryObj<
-  T extends JSXElementConstructor<any> | keyof JSX.IntrinsicElements,
+  T extends JSXElementConstructor<unknown> | keyof JSX.IntrinsicElements,
 > = {
   args?: Partial<ComponentProps<T>>;
   parameters?: Record<string, unknown>;
