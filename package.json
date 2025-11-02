@@ -34,10 +34,9 @@
     "validate:production": "bash scripts/validate-production-readiness.sh",
     "validate:cloudflare": "bash scripts/validate-cloudflare-deployment.sh",
     "kb:sync": "tsx scripts/kb/syncContent.ts",
-    "preview:vercel": "pnpm exec vercel deploy --cwd apps/admin --prebuilt --yes",
-    "deploy:vercel": "pnpm exec vercel deploy --cwd apps/admin --prod --yes",
-    "release": "pnpm run check:deploy && pnpm run deploy:vercel",
-    "prepare": "husky"
+    "prepare": "husky",
+    "openapi:generate": "pnpm --filter @ibimina/api run openapi:generate",
+    "openapi:check": "pnpm --filter @ibimina/api run openapi:check"
   },
   "dependencies": {
     "openai": "^6.7.0"
