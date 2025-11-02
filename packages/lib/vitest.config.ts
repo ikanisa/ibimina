@@ -16,7 +16,7 @@ export default defineConfig({
       TRUSTED_COOKIE_SECRET: "test",
       OPENAI_API_KEY: "test",
       HMAC_SHARED_SECRET: "test",
-      KMS_DATA_KEY: "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=",
+      KMS_DATA_KEY: "stubkmsdatakey0123456789abcdefstubkmsdatakey0123456789abcdefabcd",
     },
     coverage: {
       provider: "v8",

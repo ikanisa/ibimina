@@ -13,6 +13,7 @@ import {
 import { resolveEnvironment, scrubPII } from "@ibimina/lib";
 
 const isDev = process.env.NODE_ENV !== "production";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
 
 const middlewareImpl = (request: NextRequest) => {
   const startedAt = Date.now();
@@ -23,10 +24,8 @@ const middlewareImpl = (request: NextRequest) => {
   let response: NextResponse;
   const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
 
-  try {
-    response = NextResponse.next({
-      request: { headers: requestHeaders },
-    });
+  const csp = createContentSecurityPolicy({ nonce, isDev, supabaseUrl });
+  response.headers.set("Content-Security-Policy", csp);
 
     const csp = createContentSecurityPolicy({ nonce, isDev });
     response.headers.set("Content-Security-Policy", csp);
