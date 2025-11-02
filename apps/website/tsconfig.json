@@ -20,7 +20,8 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@ibimina/config": ["../../packages/config/src/index.ts"]
+      "@ibimina/config": ["../../packages/config/src/index.ts"],
+      "@ibimina/locales": ["../../packages/locales/src/index.ts"]
     }
   },
   "include": [

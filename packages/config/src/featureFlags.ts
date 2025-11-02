@@ -205,7 +205,7 @@ export function isFeatureEnabledForTenant(
     return definition.defaultValue;
   }
 
-  const canonicalTenantId = resolveCanonicalTenantId(tenantId);
+  const canonicalTenantId = normalizeTenantId(tenantId);
   if (!canonicalTenantId) {
     return definition.defaultValue;
   }
