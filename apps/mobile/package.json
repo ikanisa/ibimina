@@ -12,12 +12,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "jest",
-    "test:detox": "tsx --test tests/detox/*.e2e.ts",
-    "build:validate-versioning": "node ./scripts/validate-versioning.js",
-    "build:artifacts": "node ./scripts/validate-versioning.js && node ./scripts/generate-artifacts.js",
-    "build:android:release": "node ./scripts/validate-versioning.js && node ./scripts/generate-artifacts.js --target=aab",
-    "build:android:apk": "node ./scripts/validate-versioning.js && node ./scripts/generate-artifacts.js --target=apk",
-    "build:ios:release": "node ./scripts/validate-versioning.js && node ./scripts/generate-artifacts.js --target=ipa"
+    "build:android:release": "eas build --platform android --profile production --local --non-interactive --output ./dist/ibimina-mobile.aab",
+    "build:android:apk": "eas build --platform android --profile apk --local --non-interactive --output ./dist/ibimina-mobile.apk",
+    "build:ios:release": "node ./scripts/build-ios-release.mjs"
   },
   "dependencies": {
     "@ibimina/config": "workspace:*",
