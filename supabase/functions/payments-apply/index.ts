@@ -4,6 +4,7 @@ import { enforceIdentityRateLimit } from "../_shared/rate-limit.ts";
 import { resolveReference } from "../_shared/payments.ts";
 import { encryptField, hashField, maskMsisdn } from "../_shared/crypto.ts";
 import { ensureAccount, getAccountBalance, postToLedger } from "../_shared/ledger.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 import {
   getIdempotentResponse,
   hashPayload,
@@ -90,7 +91,7 @@ const computeBalances = async (
  *
  * @see docs/API-EDGE.md for full API documentation
  */
-Deno.serve(async (req) => {
+serveWithObservability("payments-apply", async (req) => {
   if (req.method === "OPTIONS") {
     return preflightResponse({ "access-control-allow-methods": "POST,OPTIONS" });
   }
