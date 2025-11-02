@@ -19,6 +19,7 @@
 import { useState } from "react";
 import { Copy, Check, Phone, CheckCircle2, AlertCircle } from "lucide-react";
 import { trackEvent } from "@/lib/analytics/track";
+import { fmtCurrency } from "@/utils/format";
 
 interface UssdSheetProps {
   merchantCode: string;

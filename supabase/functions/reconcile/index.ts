@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import { createServiceClient, jsonResponse, verifyHmacSignature } from "../_shared/mod.ts";
 import { recordMetric } from "../_shared/metrics.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const APP_ORIGIN = Deno.env.get("APP_ORIGIN") ?? "*";
 const SIGNATURE_TOLERANCE_SECONDS = parseInt(
@@ -81,7 +82,7 @@ const jsonWithCors = (data: unknown, init?: ResponseInit) =>
     headers: { ...corsHeaders, ...(init?.headers ?? {}) },
   });
 
-Deno.serve(async (req) => {
+serveWithObservability("reconcile", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

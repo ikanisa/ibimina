@@ -1,17 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
     "rootDir": "src",
-    "declaration": true,
-    "declarationMap": true,
-    "noEmit": false,
-    "types": ["node", "react", "react-dom", "react-native"],
-    "moduleResolution": "node",
-    "module": "esnext",
-    "baseUrl": "./src",
+    "moduleResolution": "bundler",
+    "types": ["node", "react"],
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["dist", "node_modules"]
 }

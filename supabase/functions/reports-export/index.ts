@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 import { createServiceClient, errorResponse, parseJwt } from "../_shared/mod.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -44,7 +45,7 @@ const csvEscape = (value: unknown) => {
   return str;
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("reports-export", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

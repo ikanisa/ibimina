@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "path";
+import { withSentryConfig } from "@sentry/nextjs";
 import { HSTS_HEADER, SECURITY_HEADERS } from "./lib/security/headers";
 
 if (process.env.AUTH_E2E_STUB === "1") {
@@ -106,7 +107,7 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   // Performance: Transpile workspace packages
-  transpilePackages: ["@ibimina/config", "@ibimina/ui"],
+  transpilePackages: ["@ibimina/config", "@ibimina/lib", "@ibimina/locales", "@ibimina/ui"],
   // Performance: Optimize builds
   compiler: {
     removeConsole:
@@ -179,7 +180,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-// For Cloudflare builds, skip PWA and bundle analyzer wrappers as they add webpack config
-export default process.env.CLOUDFLARE_BUILD === "1"
-  ? nextConfig
-  : withBundleAnalyzer(withPWA(nextConfig));
+const enhancedConfig =
+  process.env.CLOUDFLARE_BUILD === "1" ? nextConfig : withBundleAnalyzer(withPWA(nextConfig));
+
+const sentryPluginOptions = { silent: true } as const;
+const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
+
+export default withSentryConfig(enhancedConfig, sentryPluginOptions, sentryBuildOptions);

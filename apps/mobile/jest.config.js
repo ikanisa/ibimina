@@ -39,4 +39,15 @@ module.exports = {
   transformIgnorePatterns: [],
   moduleNameMapper: combinedModuleNameMapper,
   transform: combinedTransform,
+  collectCoverage: true,
+  collectCoverageFrom: ["src/app.tsx", "src/providers/store.ts", "app/(tabs)/home.tsx"],
+  coverageThreshold: {
+    global: {
+      branches: 50,
+      functions: 60,
+      lines: 60,
+      statements: 60,
+    },
+  },
+  coverageReporters: ["text", "lcov"],
 };
