@@ -18,6 +18,19 @@ export default defineConfig({
       HMAC_SHARED_SECRET: "test",
       KMS_DATA_KEY: "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=",
     },
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["**/*.d.ts"],
+      reportsDirectory: "coverage",
+      reporter: ["text", "lcov", "json-summary"],
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
+    },
   },
   resolve: {
     alias: {

@@ -10,6 +10,7 @@ const combinedModuleNameMapper = {
   "^expo-modules-core/src/web/index\\.web$": "<rootDir>/jest.expo-modules-web.cjs",
   "^expo$": "<rootDir>/jest.expo-mock.cjs",
   "^expo/.*$": "<rootDir>/jest.expo-mock.cjs",
+  "^@/(.*)$": "<rootDir>/src/$1",
 };
 
 const combinedSetupFiles = [
@@ -39,15 +40,22 @@ module.exports = {
   transformIgnorePatterns: [],
   moduleNameMapper: combinedModuleNameMapper,
   transform: combinedTransform,
+  testMatch: ["**/__tests__/**/*.(spec|test).[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
   collectCoverage: true,
-  collectCoverageFrom: ["src/app.tsx", "src/providers/store.ts", "app/(tabs)/home.tsx"],
+  collectCoverageFrom: [
+    "src/features/auth/**/*.{ts,tsx}",
+    "src/services/api/client.ts",
+    "src/providers/store.ts",
+  ],
+  coverageDirectory: "<rootDir>/coverage",
+  coverageReporters: ["text", "lcov", "json-summary"],
+  coveragePathIgnorePatterns: ["/node_modules/", "\.stories\.(ts|tsx)$"],
   coverageThreshold: {
     global: {
-      branches: 50,
-      functions: 60,
-      lines: 60,
-      statements: 60,
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
     },
   },
-  coverageReporters: ["text", "lcov"],
 };
