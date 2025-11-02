@@ -1,9 +1,16 @@
 import { ReactNode } from "react";
+import { notFound } from "next/navigation";
 import { StaffNav } from "@/components/staff/staff-nav";
 import { requireUserAndProfile } from "@/lib/auth";
 
 export default async function StaffLayout({ children }: { children: ReactNode }) {
   const auth = await requireUserAndProfile();
+
+  const role = auth.profile.role;
+  const isStaffRole = role === "SACCO_STAFF" || role === "SACCO_MANAGER";
+  if (!isStaffRole || !auth.profile.sacco) {
+    notFound();
+  }
 
   return (
     <div className="min-h-screen bg-nyungwe text-neutral-0">
@@ -15,7 +22,8 @@ export default async function StaffLayout({ children }: { children: ReactNode })
               {auth.profile.sacco?.name ?? "Operations"}
             </h1>
             <p className="text-sm text-white/70">
-              Logged in as {auth.profile.user.email ?? auth.profile.user.phone ?? auth.profile.user.id}
+              Logged in as{" "}
+              {auth.profile.user.email ?? auth.profile.user.phone ?? auth.profile.user.id}
             </p>
           </div>
           <StaffNav />
