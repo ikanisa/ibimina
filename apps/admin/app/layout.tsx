@@ -29,6 +29,10 @@ function getInitialTheme(cookieStore: Awaited<ReturnType<typeof cookies>>) {
   return themeCookie === 'nyungwe' ? 'nyungwe' : 'light';
 }
 
+function colorSchemeFor(theme: string): 'light' | 'dark' {
+  return theme === 'nyungwe' ? 'dark' : 'light';
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -39,6 +43,7 @@ export default async function RootLayout({
   const nonce = headerList.get("x-csp-nonce") ?? undefined;
   const locale = resolveRequestLocale({ headers: headerList, cookies: cookieStore });
   const theme = getInitialTheme(cookieStore);
+  const colorScheme = colorSchemeFor(theme);
 
   const rootClass =
     theme === 'nyungwe'
@@ -46,7 +51,12 @@ export default async function RootLayout({
       : 'antialiased bg-white text-gray-900';
 
   return (
-    <html lang={locale} data-theme={theme} className={theme}>
+    <html 
+      lang={locale} 
+      className={theme}
+      style={{ colorScheme }}
+      suppressHydrationWarning
+    >
       <body className={rootClass}>
         <AppProviders nonce={nonce} locale={locale} forcedTheme={theme}>
           {children}

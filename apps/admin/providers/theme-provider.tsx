@@ -15,6 +15,7 @@ export function ThemeProvider({ children, nonce, forcedTheme }: ThemeProviderPro
       defaultTheme="light"
       forcedTheme={forcedTheme}
       enableSystem={false}
+      enableColorScheme={false}
       disableTransitionOnChange
       nonce={nonce}
     >
