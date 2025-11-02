@@ -12,9 +12,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "jest",
-    "build:android:release": "eas build --platform android --profile production --local --non-interactive --output ./dist/ibimina-mobile.aab",
-    "build:android:apk": "eas build --platform android --profile apk --local --non-interactive --output ./dist/ibimina-mobile.apk",
-    "build:ios:release": "./scripts/build-ios-release.sh"
+    "test:detox": "pnpm --filter @ibimina/client run test:detox && tsx --test tests/detox/*.e2e.ts"
   },
   "dependencies": {
     "@ibimina/config": "workspace:*",
