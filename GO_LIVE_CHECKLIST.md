@@ -20,7 +20,7 @@ release PR and attach relevant artifacts.
 - [ ] Preview deployment green (GitHub checks, manual smoke on preview URL)
 - [ ] Promote preview → staging with protected environment approval
 - [ ] Verify staging environment variables (Supabase keys, log drain, Sentry)
-- [ ] Run smoke tests on staging (`pnpm run test:smoke -- --base <staging-url>`)
+- [ ] Run smoke tests on staging (`PLAYWRIGHT_BASE_URL=<staging-url> pnpm --filter @ibimina/admin run test:e2e`)
 - [ ] Approve production promotion in Vercel dashboard
 
 ## 3. Supabase Operations
