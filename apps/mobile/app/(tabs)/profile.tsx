@@ -13,7 +13,7 @@ import mockApi from "../../src/mocks";
 
 export default function ProfileScreen() {
   const intl = useIntl();
-  
+
   const { data: user, isLoading } = useQuery({
     queryKey: ["user"],
     queryFn: mockApi.getUser,
@@ -26,7 +26,7 @@ export default function ProfileScreen() {
           title={intl.formatMessage({ id: "nav.profile", defaultMessage: "Profile" })}
           subtitle="Manage your account and settings"
         />
-        
+
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {isLoading ? (
             <Text style={styles.loadingText}>Loading profile...</Text>
@@ -35,10 +35,7 @@ export default function ProfileScreen() {
               {/* User Info Card */}
               <View style={styles.profileCard}>
                 <View style={styles.avatarContainer}>
-                  <LinearGradient
-                    colors={[colors.rw.blue, colors.rw.green]}
-                    style={styles.avatar}
-                  >
+                  <LinearGradient colors={[colors.rw.blue, colors.rw.green]} style={styles.avatar}>
                     <Text style={styles.avatarText}>
                       {user.name
                         .split(" ")

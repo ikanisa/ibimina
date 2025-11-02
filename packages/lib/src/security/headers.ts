@@ -34,6 +34,7 @@ const baseDirectives: DirectiveMap = {
   "manifest-src": ["'self'"],
   "media-src": ["'self'"],
   "object-src": ["'none'"],
+  "prefetch-src": ["'self'"],
 };
 
 /**
@@ -42,12 +43,15 @@ const baseDirectives: DirectiveMap = {
 const staticSecurityHeaders: ReadonlyArray<{ key: string; value: string }> = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Referrer-Policy", value: "no-referrer" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+  { key: "Origin-Agent-Cluster", value: "?1" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(self), payment=()",
+    value:
+      "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), display-capture=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=()",
   },
 ];
 
@@ -67,6 +71,62 @@ export type CspOptions = {
   isDev?: boolean;
   supabaseUrl?: string;
 };
+
+type AllowlistOptions = {
+  connect?: boolean;
+  image?: boolean;
+  script?: boolean;
+  style?: boolean;
+};
+
+function normalizeUrl(candidate: string): string {
+  if (!candidate) {
+    return "";
+  }
+
+  if (/^https?:/i.test(candidate)) {
+    return candidate;
+  }
+
+  return `https://${candidate}`;
+}
+
+function allowUrl(
+  directives: DirectiveMap,
+  candidate: string | undefined,
+  { connect = true, image = false, script = false, style = false }: AllowlistOptions = {}
+): void {
+  if (!candidate) {
+    return;
+  }
+
+  try {
+    const url = new URL(normalizeUrl(candidate));
+    const origin = url.origin;
+
+    if (connect) {
+      directives["connect-src"].push(origin);
+      if (url.protocol === "https:") {
+        directives["connect-src"].push(origin.replace(/^https:/, "wss:"));
+      }
+    }
+
+    if (image) {
+      directives["img-src"].push(origin);
+    }
+
+    if (script) {
+      directives["script-src"] = directives["script-src"] ?? [];
+      directives["script-src"].push(origin);
+    }
+
+    if (style) {
+      directives["style-src"].push(origin);
+    }
+  } catch (error) {
+    console.warn("Invalid URL provided for CSP allowlist", candidate, error);
+  }
+}
 
 /**
  * Serialize CSP directives into a policy string
@@ -178,6 +238,23 @@ export function createContentSecurityPolicy({
       console.warn("Invalid Supabase URL provided for CSP", error);
     }
   }
+
+  allowUrl(directives, process.env.NEXT_PUBLIC_SITE_URL, {
+    connect: true,
+    image: true,
+  });
+  allowUrl(directives, process.env.SITE_URL, {
+    connect: true,
+    image: true,
+  });
+  allowUrl(directives, process.env.NEXT_PUBLIC_POSTHOG_HOST ?? process.env.POSTHOG_HOST, {
+    connect: true,
+    image: true,
+    script: true,
+  });
+
+  const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN ?? process.env.SENTRY_DSN;
+  allowUrl(directives, sentryDsn, { connect: true });
 
   // Add additional style and image sources
   directives["style-src"].push("https://rsms.me/inter/inter.css");

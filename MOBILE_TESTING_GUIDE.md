@@ -441,4 +441,5 @@ While this guide focuses on manual testing, consider automating with:
 
 ---
 
-**Testing completed?** Update the main checklist in `PRODUCTION_CHECKLIST.md`
+**Testing completed?** Update the main checklist in
+`docs/go-live/production-checklist.md`

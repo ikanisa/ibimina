@@ -54,10 +54,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build shared workspaces
-        run: |
-          pnpm --filter @ibimina/core run build
-          pnpm --filter @ibimina/config run build
-          pnpm --filter @ibimina/ui run build
+        run: pnpm run build:packages
 
       - name: Build staff web application
         working-directory: apps/admin

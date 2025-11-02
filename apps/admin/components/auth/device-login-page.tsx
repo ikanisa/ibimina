@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { QRLogin } from "./qr-login";
 import { ArrowLeft } from "lucide-react";
@@ -31,8 +30,8 @@ export function DeviceLoginPage() {
         <h3 className="font-medium text-neutral-12 text-sm">Don't have the Staff Mobile App?</h3>
         <div className="space-y-2 text-sm text-neutral-11">
           <p>
-            Download the <strong>Ibimina Staff</strong> app from Google Play Store to use
-            biometric authentication.
+            Download the <strong>Ibimina Staff</strong> app from Google Play Store to use biometric
+            authentication.
           </p>
           <p className="text-xs">
             You'll need to enroll your device first before you can use QR login.
