@@ -163,6 +163,29 @@ create trigger trg_ticket_messages_context
 before insert or update on public.ticket_messages
 for each row execute function public.set_ticket_message_context();
 
+create or replace function public.refresh_ticket_message_context()
+returns trigger
+language plpgsql
+as $$
+begin
+  if (new.org_id is distinct from old.org_id) or (new.country_id is distinct from old.country_id) then
+    update public.ticket_messages
+    set
+      org_id = new.org_id,
+      country_id = new.country_id,
+      updated_at = timezone('UTC', now())
+    where ticket_id = new.id;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_ticket_message_ticket_context on public.tickets;
+create trigger trg_ticket_message_ticket_context
+after update on public.tickets
+for each row execute function public.refresh_ticket_message_context();
+
 alter table public.ticket_messages enable row level security;
 
 create policy ticket_messages_staff_rw on public.ticket_messages
