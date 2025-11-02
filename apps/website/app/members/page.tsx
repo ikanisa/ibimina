@@ -1,4 +1,4 @@
-import { Phone, Copy, CheckCircle, HelpCircle, Smartphone, FileText } from "lucide-react";
+import { Phone, Copy, CheckCircle, HelpCircle, Smartphone } from "lucide-react";
 import { PrintButton } from "@/components/PrintButton";
 import { getWebsiteContentPack } from "@/lib/content";
 

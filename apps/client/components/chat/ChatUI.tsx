@@ -172,7 +172,7 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
         await streamSSE<SSEPayload>({
           response,
           signal: controller.signal,
-          onMessage: async ({ event, data }) => {
+          onMessage: async ({ data }) => {
             const payload = data as SSEPayload;
             if (payload.type === "error") {
               setError(payload.message);
