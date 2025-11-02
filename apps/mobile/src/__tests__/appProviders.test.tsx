@@ -34,20 +34,25 @@ jest.mock("../lib/posthog", () => ({
   initPostHog: jest.fn(),
 }));
 
-jest.mock("../lib/featureFlags", () => ({
-  initFeatureFlags: jest.fn(),
-  getAllFeatureFlags: jest.fn(),
-}));
-
 jest.mock("../storage/authToken", () => ({
   hydrateAuthToken: jest.fn(),
   getStoredAuthToken: jest.fn(),
 }));
 
+jest.mock("../features/feature-flags/hooks/useFeatureFlags", () => ({
+  useFeatureFlags: jest.fn(() => ({
+    data: { ai_agent: { key: "ai_agent", enabled: true } },
+    isLoading: false,
+  })),
+}));
+
+jest.mock("@ibimina/data-access", () => ({
+  createSupabaseClient: jest.fn(() => ({})),
+}));
+
 describe("AppProviders", () => {
   const { initSentry } = require("../lib/sentry");
   const { initPostHog } = require("../lib/posthog");
-  const { initFeatureFlags, getAllFeatureFlags } = require("../lib/featureFlags");
   const { hydrateAuthToken, getStoredAuthToken } = require("../storage/authToken");
 
   beforeEach(() => {
@@ -55,8 +60,6 @@ describe("AppProviders", () => {
     useAppStore.getState().reset();
     initSentry.mockImplementation(() => {});
     initPostHog.mockImplementation(() => {});
-    initFeatureFlags.mockImplementation(() => {});
-    getAllFeatureFlags.mockResolvedValue({ flagship: true });
     hydrateAuthToken.mockResolvedValue("async-token");
     getStoredAuthToken.mockReturnValue(null);
   });
@@ -72,13 +75,11 @@ describe("AppProviders", () => {
 
     await waitFor(() => {
       expect(initPostHog).toHaveBeenCalledTimes(1);
-      expect(initFeatureFlags).toHaveBeenCalledTimes(1);
-      expect(getAllFeatureFlags).toHaveBeenCalledTimes(1);
     });
 
     await waitFor(() => {
       const state = useAppStore.getState();
-      expect(state.featureFlags).toEqual({ flagship: true });
+      expect(state.featureFlags).toEqual({ ai_agent: true });
       expect(state.authToken).toBe("async-token");
       expect(state.hasHydratedAuth).toBe(true);
     });

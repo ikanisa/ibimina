@@ -16,8 +16,8 @@ interface StoredRecord {
 export interface WebhookIdempotencyStore {
   tryInsertPending(requestHash: string, expiresAt: string): Promise<"inserted" | "conflict">;
   fetchRecord(): Promise<StoredRecord | null>;
-  updateRecord(response: unknown, requestHash: string, expiresAt: string): Promise<void>;
-  removeRecord(): Promise<void>;
+  updateRecord(response: unknown, expectedRequestHash: string, expiresAt: string): Promise<boolean>;
+  removeRecord(expectedRequestHash: string): Promise<boolean>;
 }
 
 function isConflictError(error: PostgrestError | null): boolean {
@@ -86,22 +86,39 @@ export function createSupabaseWebhookIdempotencyStore(
 
       return (data as StoredRecord | null) ?? null;
     },
-    async updateRecord(response: unknown, requestHash: string, expiresAt: string) {
-      const { error } = await table()
-        .update({ response, request_hash: requestHash, expires_at: expiresAt })
+    async updateRecord(
+      response: unknown,
+      expectedRequestHash: string,
+      expiresAt: string
+    ): Promise<boolean> {
+      const { error, data } = await table()
+        .update({ response, request_hash: expectedRequestHash, expires_at: expiresAt })
         .eq("key", key)
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("request_hash", expectedRequestHash)
+        .select("request_hash");
 
       if (error) {
         logError("webhook_idempotency.update_failed", { key, error: error.message });
         throw error;
       }
+
+      return Array.isArray(data) && data.length > 0;
     },
-    async removeRecord() {
-      const { error } = await table().delete().eq("key", key).eq("user_id", userId);
+    async removeRecord(expectedRequestHash: string): Promise<boolean> {
+      const { error, data } = await table()
+        .delete()
+        .eq("key", key)
+        .eq("user_id", userId)
+        .eq("request_hash", expectedRequestHash)
+        .select("request_hash");
+
       if (error) {
         logWarn("webhook_idempotency.cleanup_failed", { key, error: error.message });
+        return false;
       }
+
+      return Array.isArray(data) && data.length > 0;
     },
   };
 }
@@ -142,12 +159,27 @@ export async function withWebhookIdempotency<T>({
     if (insertResult === "inserted") {
       try {
         const result = await operation();
-        await store.updateRecord(result, requestHash, expiresAt);
+        const updated = await store.updateRecord(result, requestHash, expiresAt);
+
+        if (!updated) {
+          logWarn("webhook_idempotency.update_skipped", {
+            requestHash,
+            reason: "lock_reclaimed",
+          });
+        }
         return { fromCache: false, data: result, timedOut: false };
       } catch (error) {
-        await store.removeRecord().catch(() => {
+        try {
+          const removed = await store.removeRecord(requestHash);
+          if (!removed) {
+            logWarn("webhook_idempotency.cleanup_skipped", {
+              requestHash,
+              reason: "lock_reclaimed",
+            });
+          }
+        } catch {
           // Best effort cleanup; errors already logged in removeRecord
-        });
+        }
         throw error;
       }
     }
@@ -180,9 +212,17 @@ export async function withWebhookIdempotency<T>({
         : false;
 
       if (recordExpired) {
-        await store.removeRecord().catch(() => {
+        try {
+          const removed = await store.removeRecord(record.request_hash);
+          if (!removed) {
+            logWarn("webhook_idempotency.cleanup_skipped", {
+              requestHash: record.request_hash,
+              reason: "lock_reclaimed",
+            });
+          }
+        } catch {
           // Best effort cleanup; errors already logged in removeRecord
-        });
+        }
         shouldRetryLock = true;
         break;
       }
