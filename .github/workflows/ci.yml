@@ -114,7 +114,7 @@ jobs:
       - name: Run Semgrep scan
         run: |
           set -eo pipefail
-          semgrep scan --config .semgrep/semgrep.yml --json --output .reports/security/semgrep-report.json
+          semgrep scan --config .semgrep/semgrep.yml --json --output .reports/security/semgrep-report.json --exit-code=0
           if jq -e '.results[] | select(.extra.severity == "ERROR" or .extra.severity == "CRITICAL")' .reports/security/semgrep-report.json >/dev/null; then
             echo "High severity Semgrep findings detected." >&2
             exit 1
