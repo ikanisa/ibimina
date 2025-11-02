@@ -8,16 +8,66 @@ import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@
 const isDev = process.env.NODE_ENV !== "production";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
 
-type DeepLinkType = "join" | "invite";
+const PUBLIC_ROUTES = new Set([
+  "/login",
+  "/offline",
+  "/auth/callback",
+  "/auth/first-login",
+]);
 
-interface DeepLinkResolution {
-  status: string;
-  scheme?: string;
-  type?: DeepLinkType;
-  targetId?: string;
-  groupName?: string | null;
-  token?: string | null;
+const PUBLIC_PREFIXES = [
+  "/api",
+  "/_next",
+  "/icons",
+  "/manifest",
+  "/service-worker.js",
+  "/assets",
+  "/favicon.ico",
+  "/.well-known",
+];
+
+function hasSupabaseSessionCookie(request: NextRequest) {
+  const cookies = request.cookies.getAll();
+  return cookies.some(({ name, value }) => {
+    if (!value) {
+      return false;
+    }
+    if (name === "stub-auth" && value === "1") {
+      return true;
+    }
+    if (name === "supabase-auth-token" || name === "sb-access-token") {
+      return true;
+    }
+    return /^sb-.*-auth-token$/i.test(name) || /^supabase-session/.test(name);
+  });
 }
+
+function isPublicPath(pathname: string) {
+  if (PUBLIC_ROUTES.has(pathname)) {
+    return true;
+  }
+
+  return PUBLIC_PREFIXES.some((prefix) =>
+    pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
+const middlewareImpl = (request: NextRequest) => {
+  const startedAt = Date.now();
+  const nonce = createNonce();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-csp-nonce", nonce);
+
+  const pathname = request.nextUrl.pathname;
+  if (!hasSupabaseSessionCookie(request) && !isPublicPath(pathname)) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("redirectedFrom", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  try {
+    const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
 
 const DEEP_LINK_MATCHER = /^\/(join|invite)\/([^/?#]+)/;
 

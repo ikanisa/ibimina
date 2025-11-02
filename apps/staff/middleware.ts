@@ -3,21 +3,20 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
-import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@ibimina/lib";
-import { defaultLocale } from "./i18n";
+import {
+  HSTS_HEADER,
+  SECURITY_HEADERS,
+  createContentSecurityPolicy,
+  createNonce,
+  createRequestId,
+  resolveEnvironment,
+  scrubPII,
+} from "@ibimina/lib";
 
 const isDev = process.env.NODE_ENV !== "production";
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
 
-const PUBLIC_ROUTES = new Set([
-  "/login",
-  "/welcome",
-  "/onboard",
-  "/offline",
-  "/help",
-  "/privacy",
-  "/terms",
-]);
+const PUBLIC_ROUTES = new Set(["/login", "/offline"]);
 
 const PUBLIC_PREFIXES = [
   "/api",
@@ -26,11 +25,8 @@ const PUBLIC_PREFIXES = [
   "/manifest",
   "/service-worker.js",
   "/assets",
-  "/store-assets",
   "/favicon.ico",
   "/.well-known",
-  "/share",
-  "/share-target",
 ];
 
 function hasSupabaseSessionCookie(request: NextRequest) {
@@ -54,20 +50,14 @@ function isPublicPath(pathname: string) {
     return true;
   }
 
-  return PUBLIC_PREFIXES.some((prefix) =>
-    pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
+  return PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 const middlewareImpl = (request: NextRequest) => {
   const startedAt = Date.now();
-  const environment = resolveEnvironment();
   const nonce = createNonce();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-csp-nonce", nonce);
-
-  // Set default locale in request headers for next-intl
-  requestHeaders.set("x-next-intl-locale", defaultLocale);
 
   const pathname = request.nextUrl.pathname;
   if (!hasSupabaseSessionCookie(request) && !isPublicPath(pathname)) {
@@ -77,29 +67,43 @@ const middlewareImpl = (request: NextRequest) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  let response: NextResponse;
-  const { requestId } = securityContext;
-
   try {
-    response = NextResponse.next({
-      request: { headers: securityContext.requestHeaders },
+    const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
+
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
     });
 
-    securityContext.applyResponseHeaders(response.headers);
+    const csp = createContentSecurityPolicy({ nonce, isDev, supabaseUrl });
+    response.headers.set("Content-Security-Policy", csp);
+
+    for (const header of SECURITY_HEADERS) {
+      response.headers.set(header.key, header.value);
+    }
+
+    if (!isDev) {
+      response.headers.set(HSTS_HEADER.key, HSTS_HEADER.value);
+    }
+
+    response.headers.set("X-Request-ID", requestId);
 
     return response;
   } catch (error) {
     Sentry.captureException(error, {
-      data: { requestId, path: request.nextUrl.pathname, method: request.method },
+      data: {
+        path: request.nextUrl.pathname,
+        method: request.method,
+      },
     });
     throw error;
   } finally {
     const logPayload = {
-      event: "client.middleware.complete",
-      environment,
-      requestId,
+      event: "staff.middleware.complete",
+      environment: resolveEnvironment(),
+      path: request.nextUrl.pathname,
       method: request.method,
-      url: request.nextUrl.pathname,
       durationMs: Date.now() - startedAt,
     } as const;
 
@@ -112,13 +116,10 @@ export const middleware = withSentryMiddleware(middlewareImpl, {
   waitForTransaction: true,
 });
 
-Sentry.setTag("middleware", "client");
+Sentry.setTag("middleware", "staff");
 
-// Middleware runs on all routes except static assets and API routes
-// This pattern is standard for Next.js middleware matchers
 export const config = {
   matcher: [
-    // Run middleware on everything EXCEPT these paths
-    "/((?!_next/static|_next/image|favicon.ico|icons/|robots.txt|manifest.json|manifest.webmanifest|service-worker.js|assets|offline|api).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icons/|robots.txt|manifest.webmanifest|service-worker.js|assets|offline|api).*)",
   ],
 };
