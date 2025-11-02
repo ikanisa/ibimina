@@ -30,6 +30,10 @@ const STUB_SCHEMA = z.object({
 });
 
 function e2eEnabled() {
+  // Never allow E2E stub in production, regardless of env var
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
   return process.env.AUTH_E2E_STUB === "1";
 }
 
