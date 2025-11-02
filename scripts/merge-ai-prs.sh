@@ -88,173 +88,70 @@ remove_orchestrator_implementation() {
     log_info "Orchestrator implementation removed"
 }
 
-merge_pr_270() {
-    log_info "Merging PR #270: Sentry Observability and PostHog..."
-    
-    git fetch origin codex/integrate-sentry-with-pii-scrubbing
-    
-    # Attempt merge
-    if git merge --no-ff origin/codex/integrate-sentry-with-pii-scrubbing -m "feat: integrate Sentry observability and PostHog from PR #270"; then
-        log_info "PR #270 merged cleanly"
-    else
-        log_warn "Merge conflicts detected, resolving..."
-        
-        # Accept their version for AI agent files (since we removed ours)
-        git checkout --theirs packages/ai-agent/src/index.ts 2>/dev/null || true
-        git add packages/ai-agent/src/index.ts 2>/dev/null || true
-        
-        # Accept their version for new files
-        git checkout --theirs apps/admin/app/api/chat/route.ts 2>/dev/null || true
-        git add apps/admin/app/api/chat/route.ts 2>/dev/null || true
-        
-        git checkout --theirs apps/admin/sentry.client.config.ts 2>/dev/null || true
-        git add apps/admin/sentry.client.config.ts 2>/dev/null || true
-        
-        git checkout --theirs apps/admin/sentry.edge.config.ts 2>/dev/null || true
-        git add apps/admin/sentry.edge.config.ts 2>/dev/null || true
-        
-        git checkout --theirs apps/admin/sentry.server.config.ts 2>/dev/null || true
-        git add apps/admin/sentry.server.config.ts 2>/dev/null || true
-        
-        # Accept their version for PII scrubbing
-        git checkout --theirs packages/lib/src/observability/pii.ts 2>/dev/null || true
-        git add packages/lib/src/observability/pii.ts 2>/dev/null || true
-        
-        git checkout --theirs packages/lib/src/observability/posthog-edge.ts 2>/dev/null || true
-        git add packages/lib/src/observability/posthog-edge.ts 2>/dev/null || true
-        
-        git checkout --theirs packages/lib/src/observability/posthog-server.ts 2>/dev/null || true
-        git add packages/lib/src/observability/posthog-server.ts 2>/dev/null || true
-        
-        # For package.json and lock files, we'll need manual review
-        # Accept theirs as base and then reinstall
-        git checkout --theirs packages/lib/package.json 2>/dev/null || true
-        git add packages/lib/package.json 2>/dev/null || true
-        
-        git checkout --theirs apps/admin/instrumentation.ts 2>/dev/null || true
-        git add apps/admin/instrumentation.ts 2>/dev/null || true
-        
-        git checkout --theirs apps/platform-api/package.json 2>/dev/null || true
-        git add apps/platform-api/package.json 2>/dev/null || true
-        
-        git checkout --theirs apps/platform-api/src/index.ts 2>/dev/null || true
-        git add apps/platform-api/src/index.ts 2>/dev/null || true
-        
-        # Resolve pnpm-lock.yaml by regenerating it
-        git checkout --theirs pnpm-lock.yaml 2>/dev/null || true
-        git add pnpm-lock.yaml 2>/dev/null || true
-        
-        git commit -m "feat: integrate Sentry observability and PostHog from PR #270"
+replay_pr() {
+    local pr_number="$1"
+    local remote_branch="$2"
+    local merge_message="$3"
+    local temp_branch="tmp/merge-pr-${pr_number}"
+
+    log_info "Preparing PR #${pr_number} (${remote_branch}) for merge..."
+
+    git fetch origin "${remote_branch}"
+
+    if git rev-parse --verify "${temp_branch}" >/dev/null 2>&1; then
+        git branch -D "${temp_branch}" >/dev/null 2>&1 || true
     fi
-    
+
+    git checkout -b "${temp_branch}" "origin/${remote_branch}"
+
+    log_info "Rebasing PR #${pr_number} onto current main to preserve earlier merges..."
+
+    set +e
+    git rebase main
+    local rebase_status=$?
+    set -e
+
+    if [ ${rebase_status} -ne 0 ]; then
+        log_error "Automatic rebase for PR #${pr_number} failed. Resolve conflicts manually on branch ${temp_branch}."
+        git rebase --abort >/dev/null 2>&1 || true
+        git checkout main >/dev/null 2>&1 || true
+        exit 1
+    fi
+
+    git checkout main
+
+    log_info "Merging rebased PR #${pr_number}..."
+
+    if ! git merge --no-ff "${temp_branch}" -m "${merge_message}"; then
+        log_error "Merge of PR #${pr_number} failed after successful rebase. Resolve conflicts and retry."
+        git checkout main >/dev/null 2>&1 || true
+        exit 1
+    fi
+
+    git branch -D "${temp_branch}" >/dev/null 2>&1 || true
+
+    log_info "PR #${pr_number} merged successfully"
+}
+
+merge_pr_270() {
+    replay_pr "270" "codex/integrate-sentry-with-pii-scrubbing" "feat: integrate Sentry observability and PostHog from PR #270"
+
     log_info "Running pnpm install to sync dependencies..."
     pnpm install --frozen-lockfile || pnpm install
-    
-    log_info "PR #270 merged successfully"
 }
 
 merge_pr_305() {
-    log_info "Merging PR #305: AI Embedding Pipeline and Vector Schema..."
-    
-    git fetch origin codex/define-schema-for-embeddings-in-supabase
-    
-    # Attempt merge
-    if git merge --no-ff origin/codex/define-schema-for-embeddings-in-supabase -m "feat: add AI embedding pipeline and vector schema from PR #305"; then
-        log_info "PR #305 merged cleanly"
-    else
-        log_warn "Merge conflicts detected, resolving..."
-        
-        # Accept their version for all AI agent files
-        git checkout --theirs packages/ai-agent/src/*.ts 2>/dev/null || true
-        git add packages/ai-agent/src/*.ts 2>/dev/null || true
-        
-        git checkout --theirs packages/ai-agent/package.json 2>/dev/null || true
-        git add packages/ai-agent/package.json 2>/dev/null || true
-        
-        git checkout --theirs packages/ai-agent/tests/*.ts 2>/dev/null || true
-        git add packages/ai-agent/tests/*.ts 2>/dev/null || true
-        
-        # Accept their migrations
-        git checkout --theirs supabase/migrations/*.sql 2>/dev/null || true
-        git add supabase/migrations/*.sql 2>/dev/null || true
-        
-        # Accept their route changes
-        git checkout --theirs apps/client/app/api/agent/search/route.ts 2>/dev/null || true
-        git add apps/client/app/api/agent/search/route.ts 2>/dev/null || true
-        
-        # Regenerate lock file
-        git checkout --theirs pnpm-lock.yaml 2>/dev/null || true
-        git add pnpm-lock.yaml 2>/dev/null || true
-        
-        git commit -m "feat: add AI embedding pipeline and vector schema from PR #305"
-    fi
-    
+    replay_pr "305" "codex/define-schema-for-embeddings-in-supabase" "feat: add AI embedding pipeline and vector schema from PR #305"
+
     log_info "Running pnpm install to sync dependencies..."
     pnpm install --frozen-lockfile || pnpm install
-    
-    log_info "PR #305 merged successfully"
 }
 
 merge_pr_307() {
-    log_info "Merging PR #307: Durable Sessions and Rate Limiting..."
-    
-    git fetch origin codex/integrate-redis-for-session-storage
-    
-    # Attempt merge
-    if git merge --no-ff origin/codex/integrate-redis-for-session-storage -m "feat: add durable sessions and rate limiting from PR #307"; then
-        log_info "PR #307 merged cleanly"
-    else
-        log_warn "Merge conflicts detected, resolving..."
-        
-        # Accept their version for all files
-        git checkout --theirs packages/ai-agent/src/*.ts 2>/dev/null || true
-        git add packages/ai-agent/src/*.ts 2>/dev/null || true
-        
-        git checkout --theirs packages/ai-agent/package.json 2>/dev/null || true
-        git add packages/ai-agent/package.json 2>/dev/null || true
-        
-        git checkout --theirs packages/ai-agent/tests/*.ts 2>/dev/null || true
-        git add packages/ai-agent/tests/*.ts 2>/dev/null || true
-        
-        git checkout --theirs packages/providers/src/agent/*.ts 2>/dev/null || true
-        git add packages/providers/src/agent/*.ts 2>/dev/null || true
-        
-        git checkout --theirs packages/providers/package.json 2>/dev/null || true
-        git add packages/providers/package.json 2>/dev/null || true
-        
-        git checkout --theirs packages/providers/tests/*.ts 2>/dev/null || true
-        git add packages/providers/tests/*.ts 2>/dev/null || true
-        
-        git checkout --theirs packages/config/src/env.ts 2>/dev/null || true
-        git add packages/config/src/env.ts 2>/dev/null || true
-        
-        git checkout --theirs apps/client/app/api/agent/chat/route.ts 2>/dev/null || true
-        git add apps/client/app/api/agent/chat/route.ts 2>/dev/null || true
-        
-        git checkout --theirs apps/client/lib/supabase/service-role.ts 2>/dev/null || true
-        git add apps/client/lib/supabase/service-role.ts 2>/dev/null || true
-        
-        git checkout --theirs .env.example 2>/dev/null || true
-        git add .env.example 2>/dev/null || true
-        
-        git checkout --theirs docs/*.md 2>/dev/null || true
-        git add docs/*.md 2>/dev/null || true
-        
-        # Migrations
-        git checkout --theirs supabase/migrations/*.sql 2>/dev/null || true
-        git add supabase/migrations/*.sql 2>/dev/null || true
-        
-        # Regenerate lock file
-        git checkout --theirs pnpm-lock.yaml 2>/dev/null || true
-        git add pnpm-lock.yaml 2>/dev/null || true
-        
-        git commit -m "feat: add durable sessions and rate limiting from PR #307"
-    fi
-    
+    replay_pr "307" "codex/integrate-redis-for-session-storage" "feat: add durable sessions and rate limiting from PR #307"
+
     log_info "Running pnpm install to sync dependencies..."
     pnpm install --frozen-lockfile || pnpm install
-    
-    log_info "PR #307 merged successfully"
 }
 
 run_tests() {
