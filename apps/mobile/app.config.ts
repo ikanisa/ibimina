@@ -1,24 +1,19 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
 
-const appVersion = process.env.APP_VERSION ?? "1.0.0";
-const iosBuildNumber = process.env.IOS_BUILD_NUMBER ?? appVersion;
-const androidVersionCode = Number.parseInt(process.env.ANDROID_VERSION_CODE ?? "100", 10);
+const APP_VERSION = process.env.APP_VERSION ?? "1.0.0";
+const IOS_BUILD_NUMBER = process.env.IOS_BUILD_NUMBER ?? APP_VERSION;
+const RAW_ANDROID_VERSION_CODE = Number.parseInt(process.env.ANDROID_VERSION_CODE ?? "100", 10);
+const ANDROID_VERSION_CODE = Number.isFinite(RAW_ANDROID_VERSION_CODE) ? RAW_ANDROID_VERSION_CODE : 100;
 
 /**
  * Expo app configuration with Sentry, deep linking, and analytics
  */
-const APP_VERSION = process.env.APP_VERSION || "1.0.0";
-const parsedAndroidVersionCode = Number.parseInt(process.env.ANDROID_VERSION_CODE ?? "1", 10);
-const ANDROID_VERSION_CODE = Number.isNaN(parsedAndroidVersionCode)
-  ? 1
-  : Math.max(1, parsedAndroidVersionCode);
-const IOS_BUILD_NUMBER = process.env.IOS_BUILD_NUMBER || "1";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Ibimina",
   slug: "ibimina-mobile",
-  version: appVersion,
+  version: APP_VERSION,
   orientation: "portrait",
   icon: "./assets/icon.png",
   scheme: "ibimina",
@@ -32,7 +27,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: false,
     bundleIdentifier: "com.ibimina.mobile",
-    buildNumber: iosBuildNumber,
+    buildNumber: IOS_BUILD_NUMBER,
     config: {
       usesNonExemptEncryption: false,
     },
@@ -41,6 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSPhotoLibraryUsageDescription:
         "This app accesses your photo library to select profile pictures.",
     },
+    associatedDomains: ["applinks:app.ibimina.com"],
   },
   android: {
     adaptiveIcon: {
@@ -48,9 +44,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: "#0A0E27",
     },
     package: "com.ibimina.mobile",
-    versionCode: ANDROID_VERSION_CODE,
     permissions: ["CAMERA", "READ_EXTERNAL_STORAGE"],
-    versionCode: Number.isFinite(androidVersionCode) ? androidVersionCode : 100,
+    versionCode: ANDROID_VERSION_CODE,
     allowBackup: false,
     softwareKeyboardLayoutMode: "pan",
   },
@@ -85,6 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
+    "./scripts/with-ibimina-android-integrations",
   ],
   extra: {
     eas: {
@@ -97,8 +93,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
-    iosBuildNumber,
-    androidVersionCode: Number.isFinite(androidVersionCode) ? androidVersionCode : 100,
+    iosBuildNumber: IOS_BUILD_NUMBER,
+    androidVersionCode: ANDROID_VERSION_CODE,
   },
   experiments: {
     typedRoutes: true,

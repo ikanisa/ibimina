@@ -6,11 +6,11 @@ import {
   createNonce,
   createRequestId,
   createSecureHeaders,
-} from "../../src/security/headers";
+} from "../../src/security";
 
 declare global {
   // Extend the global scope for typed crypto overrides in tests.
-  // eslint-disable-next-line no-var
+
   var crypto: Crypto | undefined;
 }
 

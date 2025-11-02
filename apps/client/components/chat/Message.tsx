@@ -2,7 +2,13 @@
 
 import { format } from "date-fns";
 import { CheckCircle2, FileText, MessageSquareSparkles } from "lucide-react";
-import { AllocationPayload, ChatMessage, SupportedLocale, TicketPayload } from "./types";
+import {
+  AllocationPayload,
+  ChatMessage,
+  SupportedLocale,
+  TicketPayload,
+  ToolResultPayload,
+} from "./types";
 import { fmtCurrency } from "@/utils/format";
 
 const columnLabels = {
@@ -13,6 +19,8 @@ const columnLabels = {
   ticket: { rw: "Itike", en: "Ticket", fr: "Ticket" },
   submitted: { rw: "Yoherejwe", en: "Submitted", fr: "Envoyé" },
   summary: { rw: "Ibisobanuro", en: "Summary", fr: "Résumé" },
+  tool: { rw: "Igikoresho", en: "Tool", fr: "Outil" },
+  output: { rw: "Ibisohoka", en: "Output", fr: "Résultat" },
 };
 
 function bilingual(locale: SupportedLocale, copy: { rw: string; en: string; fr: string }) {
@@ -124,6 +132,44 @@ function renderTicket(locale: SupportedLocale, payload: TicketPayload) {
   );
 }
 
+function renderToolResult(locale: SupportedLocale, payload: ToolResultPayload) {
+  const statusCopy = payload.status === "success"
+    ? { rw: "Byagenze neza", en: "Success", fr: "Réussi" }
+    : { rw: "Byanze", en: "Error", fr: "Erreur" };
+
+  return (
+    <div className="mt-4 w-full rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-semibold text-neutral-800">
+          <span>{bilingual(locale, columnLabels.tool)}</span>
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
+            {payload.name}
+          </span>
+        </div>
+        <span
+          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+            payload.status === "success"
+              ? "bg-emerald-100 text-emerald-700"
+              : "bg-rose-100 text-rose-700"
+          }`}
+        >
+          {bilingual(locale, statusCopy)}
+        </span>
+      </header>
+      <div className="rounded-xl bg-neutral-900/90 p-4 text-xs leading-5 text-neutral-100">
+        <span className="mb-2 block font-semibold text-neutral-300">
+          {bilingual(locale, columnLabels.output)}
+        </span>
+        <pre className="whitespace-pre-wrap break-words font-mono text-[12px] text-neutral-100">
+          {typeof payload.data === "string"
+            ? payload.data
+            : JSON.stringify(payload.data, null, 2)}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
 interface MessageProps {
   message: ChatMessage;
   locale: SupportedLocale;
@@ -183,6 +229,14 @@ export function Message({ message, locale }: MessageProps) {
             return (
               <div key={`ticket-${index}`} className="w-full">
                 {renderTicket(locale, content.payload)}
+              </div>
+            );
+          }
+
+          if (content.type === "tool-result") {
+            return (
+              <div key={`tool-${index}`} className="w-full">
+                {renderToolResult(locale, content.payload)}
               </div>
             );
           }
