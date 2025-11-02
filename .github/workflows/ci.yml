@@ -129,6 +129,9 @@ jobs:
       - name: Verify i18n glossary consistency
         run: pnpm run check:i18n:consistency
 
+      - name: Validate PWA manifest
+        run: pnpm run check:manifest
+
       - name: Build
         run: pnpm run build
         env:
@@ -172,7 +175,18 @@ jobs:
         run: pnpm dlx wait-on http://127.0.0.1:3000
 
       - name: Lighthouse (headless)
-        run: pnpm dlx lighthouse http://127.0.0.1:3000 --quiet --chrome-flags="--headless" --output=json --output-path=.reports/lighthouse.json
+        run: >-
+          pnpm dlx lighthouse http://127.0.0.1:3000
+          --quiet
+          --chrome-flags="--headless"
+          --config-path=apps/client/lighthouse.config.cjs
+          --throttling-method=simulate
+          --throttling.cpuSlowdownMultiplier=4
+          --throttling.downloadThroughputKbps=1500
+          --throttling.uploadThroughputKbps=750
+          --throttling.rttMs=150
+          --output=json
+          --output-path=.reports/lighthouse.json
 
       - name: Upload Lighthouse artifact
         uses: actions/upload-artifact@v4

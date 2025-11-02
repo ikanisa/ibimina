@@ -26,6 +26,7 @@
     "start": "pnpm --filter @ibimina/admin run start",
     "setup:agent": "tsx scripts/setupAgent.ts",
     "check:flags": "node scripts/check-feature-flags.mjs",
+    "check:manifest": "node scripts/check-manifest.mjs",
     "gen:types": "supabase gen types typescript --local > apps/admin/lib/supabase/types.ts",
     "deploy:function:reconcile": "cd supabase && supabase functions deploy reconcile",
     "check:types": "bash scripts/check-supabase-types.sh",
