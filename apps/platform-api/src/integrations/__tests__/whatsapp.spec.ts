@@ -2,7 +2,6 @@ import { describe, it, beforeEach, mock } from "node:test";
 import assert from "node:assert/strict";
 import {
   createWhatsAppHandler,
-  FeatureFlag,
   type FeatureFlagService,
   type WhatsAppTransport,
 } from "../whatsapp/index.js";
