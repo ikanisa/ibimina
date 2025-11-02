@@ -3,8 +3,7 @@ import { z } from "zod";
 
 import { createFeatureFlagAdmin } from "@ibimina/flags";
 
-import { requireUserAndProfile } from "@/lib/auth";
-import { supabaseSrv } from "@/lib/supabase/server";
+import { AdminPermissionError, requireAdminContext } from "@/lib/admin/guard";
 
 const changeSchema = z
   .object({
@@ -38,12 +37,19 @@ const parseKeys = (request: NextRequest): string[] => {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseSrv();
-    const admin = createFeatureFlagAdmin(supabase);
     const keys = parseKeys(request);
+    const { supabase } = await requireAdminContext({
+      action: "feature_flags_snapshot",
+      reason: "Feature flag snapshot requires admin access",
+      metadata: { requestedKeyCount: keys.length },
+    });
+    const admin = createFeatureFlagAdmin(supabase);
     const snapshot = await admin.loadSnapshot(keys.length ? keys : undefined);
     return NextResponse.json(snapshot);
   } catch (error) {
+    if (error instanceof AdminPermissionError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     console.error("[feature-flags] Failed to load snapshot", error);
     return NextResponse.json({ error: "Failed to load feature flags" }, { status: 500 });
   }
@@ -53,9 +59,11 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const parsed = postSchema.parse(payload);
-    const { user } = await requireUserAndProfile();
-
-    const supabase = supabaseSrv();
+    const { supabase, user } = await requireAdminContext({
+      action: "feature_flags_update",
+      reason: "Feature flag updates require admin access",
+      metadata: { changeCount: parsed.changes.length },
+    });
     const admin = createFeatureFlagAdmin(supabase);
 
     await admin.applyChanges(
@@ -69,6 +77,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.flatten() }, { status: 400 });
+    }
+
+    if (error instanceof AdminPermissionError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     console.error("[feature-flags] Failed to apply changes", error);

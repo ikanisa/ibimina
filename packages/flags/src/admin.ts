@@ -222,10 +222,21 @@ export const createFeatureFlagAdmin = (client: SupabaseClient) => {
         const { countryId, orgId } = matchFromChange(change);
 
         if (change.value === null) {
-          const { error } = await client
-            .from("feature_flags")
-            .delete()
-            .match({ key: change.key, country_id: countryId, org_id: orgId });
+          const deleteQuery = client.from("feature_flags").delete().eq("key", change.key);
+
+          if (countryId === null) {
+            deleteQuery.is("country_id", null);
+          } else if (countryId) {
+            deleteQuery.eq("country_id", countryId);
+          }
+
+          if (orgId === null) {
+            deleteQuery.is("org_id", null);
+          } else if (orgId) {
+            deleteQuery.eq("org_id", orgId);
+          }
+
+          const { error } = await deleteQuery;
 
           if (error) {
             throw error;
