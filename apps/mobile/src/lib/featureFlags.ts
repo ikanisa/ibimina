@@ -36,11 +36,7 @@ export function initFeatureFlags() {
 /**
  * Get feature flag value
  */
-export async function getFeatureFlag<T>(
-  key: string,
-  defaultValue: T,
-  userId?: string
-): Promise<T> {
+export async function getFeatureFlag<T>(key: string, defaultValue: T, userId?: string): Promise<T> {
   if (!configCatClient) {
     console.warn(`[ConfigCat] Client not initialized, returning default for ${key}`);
     return defaultValue;

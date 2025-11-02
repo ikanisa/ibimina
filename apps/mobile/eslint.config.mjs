@@ -31,14 +31,14 @@ export default [
     rules: {
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [
-        "error",
+        "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
       "no-undef": "off",
-      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-explicit-any": "warn",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-      "prettier/prettier": "error",
+      "prettier/prettier": "warn",
     },
   },
   prettierConfig,

@@ -25,21 +25,11 @@ export function LocaleToggle() {
       {locales.map((loc) => (
         <TouchableOpacity
           key={loc.code}
-          style={[
-            styles.button,
-            loc.code === locale && styles.buttonActive,
-          ]}
+          style={[styles.button, loc.code === locale && styles.buttonActive]}
           onPress={() => setLocale(loc.code)}
         >
           <Text style={styles.flag}>{loc.flag}</Text>
-          <Text
-            style={[
-              styles.label,
-              loc.code === locale && styles.labelActive,
-            ]}
-          >
-            {loc.label}
-          </Text>
+          <Text style={[styles.label, loc.code === locale && styles.labelActive]}>{loc.label}</Text>
         </TouchableOpacity>
       ))}
     </View>

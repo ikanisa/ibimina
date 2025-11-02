@@ -92,23 +92,10 @@ jobs:
         if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_SERVICE_ROLE_KEY == '' }}
         run: echo "Required Supabase secrets are unavailable; skipping feature flag validation."
 
-      - name: Lint (excluding client)
-        run: pnpm --filter '!@ibimina/client' run lint
+      - name: Lint all workspaces
+        run: pnpm run lint
 
-      - name: Lint client package
-        id: client_lint
-        run: pnpm --filter @ibimina/client lint
-        continue-on-error: true
-
-      - name: Enforce client lint tracking policy
-        if: steps.client_lint.outcome == 'failure'
-        run: node scripts/verify-client-lint-tracking.mjs
-
-      - name: Report client lint allowance
-        if: steps.client_lint.outcome == 'failure'
-        run: echo "::warning::@ibimina/client lint failed but is temporarily allowed because issues are tracked."
-
-      - name: Typecheck
+      - name: Typecheck all workspaces
         run: pnpm run typecheck
 
       - name: Unit tests

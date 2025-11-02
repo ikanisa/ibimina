@@ -68,7 +68,7 @@ function deepClone<T>(value: T): T {
   return value;
 }
 
-function mergeDeep<T extends Record<string, any>>(base: T, override?: Partial<T>): T {
+function mergeDeep<T extends Record<string, unknown>>(base: T, override?: Partial<T>): T {
   const target = deepClone(base);
   if (!override) return target;
 

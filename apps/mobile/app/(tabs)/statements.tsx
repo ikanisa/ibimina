@@ -12,7 +12,7 @@ import mockApi from "../../src/mocks";
 
 export default function StatementsScreen() {
   const intl = useIntl();
-  
+
   const { data: statements, isLoading: statementsLoading } = useQuery({
     queryKey: ["statements"],
     queryFn: mockApi.getStatements,
@@ -30,11 +30,11 @@ export default function StatementsScreen() {
           title={intl.formatMessage({ id: "nav.statements", defaultMessage: "Statements" })}
           subtitle="View your transaction history"
         />
-        
+
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Monthly Statements */}
           <Text style={styles.sectionTitle}>Monthly Statements</Text>
-          
+
           {statementsLoading ? (
             <Text style={styles.loadingText}>Loading...</Text>
           ) : (
@@ -90,10 +90,8 @@ export default function StatementsScreen() {
           )}
 
           {/* Recent Transactions */}
-          <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>
-            Recent Transactions
-          </Text>
-          
+          <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>Recent Transactions</Text>
+
           {transactionsLoading ? (
             <Text style={styles.loadingText}>Loading...</Text>
           ) : (
@@ -105,8 +103,8 @@ export default function StatementsScreen() {
                       {transaction.type === "contribution"
                         ? "💰"
                         : transaction.type === "loan"
-                        ? "🏦"
-                        : "💸"}
+                          ? "🏦"
+                          : "💸"}
                     </Text>
                   </View>
                   <View style={styles.transactionInfo}>
