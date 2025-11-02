@@ -68,7 +68,8 @@
 
 - Supabase remains the authoritative backend; the go-live checklist outlines
   migrations, secrets, edge functions, cron, and GSM ingestion required before
-  flipping production traffic.【F:docs/go-live-checklist.md†L1-L205】
+  flipping production
+  traffic.【F:docs/go-live/supabase-go-live-checklist.md†L1-L205】
 - Security middleware still enforces CSP, HSTS (on production builds), referrer,
   and permissions headers, aligning with the expectations of typical reverse
   proxies and CDNs.【F:next.config.ts†L43-L71】
@@ -81,7 +82,8 @@
    go-live.【F:docs/security-observability.md†L31-L63】
 2. **Environment validation:** Run the Supabase go-live script against the
    production project to confirm migrations, secrets, and edge functions before
-   the first production promotion.【F:docs/go-live-checklist.md†L21-L115】
+   the first production
+   promotion.【F:docs/go-live/supabase-go-live-checklist.md†L21-L115】
 3. **Real-device MFA rehearsal:** Dry-run WhatsApp and email fallback on staging
    with production-like Supabase data to ensure message delivery and passkey
    fallbacks behave as expected.【F:components/auth/login-form.tsx†L142-L351】
@@ -91,7 +93,7 @@
 1. **Supabase foundation:** Follow the go-live checklist to link the project,
    apply migrations, set secrets, deploy edge functions, and schedule cron jobs.
    Capture CLI logs for the release
-   dossier.【F:docs/go-live-checklist.md†L21-L159】
+   dossier.【F:docs/go-live/supabase-go-live-checklist.md†L21-L159】
 2. **Environment secrets:** Configure your deployment target with the Supabase
    service keys, encryption secrets, MFA/session secrets, and optional
    rate-limit overrides that mirror `supabase/.env.production`.
@@ -104,7 +106,8 @@
    via Chrome DevTools Application tab.
 5. **Monitoring hand-off:** Ensure Supabase function logs, Grafana dashboards,
    and alerting hooks documented in the go-live checklist are active before
-   announcing availability.【F:docs/go-live-checklist.md†L161-L205】
+   announcing
+   availability.【F:docs/go-live/supabase-go-live-checklist.md†L161-L205】
 
 ## Platform Recommendation
 

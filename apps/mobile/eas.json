@@ -1,0 +1,64 @@
+{
+  "cli": {
+    "version": ">=3.20.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "credentialsSource": "remote",
+      "env": {
+        "EAS_PROJECT_ID": "${EAS_PROJECT_ID_MOBILE}"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "internal": {
+      "distribution": "internal",
+      "channel": "internal",
+      "credentialsSource": "remote",
+      "env": {
+        "EAS_PROJECT_ID": "${EAS_PROJECT_ID_MOBILE}"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "simulator": false,
+        "resourceClass": "m-medium"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "channel": "production",
+      "autoIncrement": true,
+      "credentialsSource": "remote",
+      "env": {
+        "EAS_PROJECT_ID": "${EAS_PROJECT_ID_MOBILE}",
+        "EXPO_PUBLIC_API_BASE_URL": "${EXPO_PUBLIC_API_BASE_URL_MOBILE}"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "simulator": false,
+        "resourceClass": "m-large"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "${EAS_SUBMIT_IOS_APP_ID_MOBILE}"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./credentials/google-play-service-account.json",
+        "track": "internal"
+      }
+    }
+  }
+}

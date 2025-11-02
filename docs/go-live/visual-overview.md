@@ -100,10 +100,10 @@
 │    Development:          20+ documents                       │
 │                                                               │
 │  New Documents (This Audit):                                 │
-│    ✅ EXECUTIVE_SUMMARY_AUDIT.md (17KB)                      │
-│    ✅ CURRENT_PRODUCTION_STATUS_AUDIT.md (24KB)              │
-│    ✅ PRODUCTION_GAPS_AND_RECOMMENDATIONS.md (43KB)          │
-│    ✅ AUDIT_DOCUMENTATION_INDEX.md (12KB)                    │
+│    ✅ executive-summary.md (17KB)                      │
+│    ✅ current-status.md (24KB)              │
+│    ✅ gaps-and-recommendations.md (43KB)          │
+│    ✅ README.md (12KB)                    │
 │    ✅ QUICK_LAUNCH_REFERENCE.md (3KB)                        │
 │                                                               │
 └───────────────────────────────────────────────────────────────┘
@@ -127,18 +127,18 @@
 ┌───────────────── AUDIT DELIVERABLES ────────────────────────┐
 │                                                               │
 │  For Executives/Product:                                     │
-│    📄 EXECUTIVE_SUMMARY_AUDIT.md                             │
+│    📄 executive-summary.md                             │
 │    📄 QUICK_LAUNCH_REFERENCE.md                              │
 │                                                               │
 │  For Technical Leads:                                        │
-│    📄 CURRENT_PRODUCTION_STATUS_AUDIT.md                     │
-│    📄 AUDIT_DOCUMENTATION_INDEX.md                           │
+│    📄 current-status.md                     │
+│    📄 README.md                           │
 │                                                               │
 │  For Developers:                                             │
-│    📄 PRODUCTION_GAPS_AND_RECOMMENDATIONS.md                 │
+│    📄 gaps-and-recommendations.md                 │
 │                                                               │
 │  For Operations:                                             │
-│    📄 PRODUCTION_CHECKLIST.md                                │
+│    📄 production-checklist.md                                │
 │    📄 DISASTER_RECOVERY.md                                   │
 │                                                               │
 └───────────────────────────────────────────────────────────────┘
@@ -219,12 +219,10 @@
 
 ## 📚 Quick Navigation
 
-- **Overview**: [AUDIT_DOCUMENTATION_INDEX.md](AUDIT_DOCUMENTATION_INDEX.md)
-- **Executive**: [EXECUTIVE_SUMMARY_AUDIT.md](EXECUTIVE_SUMMARY_AUDIT.md)
-- **Technical**:
-  [CURRENT_PRODUCTION_STATUS_AUDIT.md](CURRENT_PRODUCTION_STATUS_AUDIT.md)
-- **Gaps**:
-  [PRODUCTION_GAPS_AND_RECOMMENDATIONS.md](PRODUCTION_GAPS_AND_RECOMMENDATIONS.md)
+- **Overview**: [README.md](README.md)
+- **Executive**: [executive-summary.md](executive-summary.md)
+- **Technical**: [current-status.md](current-status.md)
+- **Gaps**: [gaps-and-recommendations.md](gaps-and-recommendations.md)
 - **Quick Start**: [QUICK_LAUNCH_REFERENCE.md](QUICK_LAUNCH_REFERENCE.md)
 
 ---

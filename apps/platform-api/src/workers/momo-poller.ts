@@ -3,6 +3,13 @@ import { createClient } from "@supabase/supabase-js";
 import type { ObservabilityContext } from "../observability";
 import { runWorker } from "../observability";
 import { invokeEdge, requireEnv } from "../lib/edgeClient";
+import {
+  ensureObservability,
+  logError,
+  logInfo,
+  recordMomoPollerMetrics,
+  captureException,
+} from "../lib/observability/index.js";
 
 interface PollSummary {
   success: boolean;

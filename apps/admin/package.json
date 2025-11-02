@@ -24,8 +24,8 @@
     "test": "pnpm run test:rls",
     "test:rls": "bash scripts/test-rls.sh",
     "test:rls:docker": "bash scripts/test-rls-docker.sh",
-    "test:auth": "tsx --test tests/integration/authx-security.test.ts",
-    "test:unit": "tsx --test tests/unit/*.test.ts",
+    "test:auth": "pnpm exec c8 --clean=false --temp-directory=.nyc_output --report-dir=coverage/auth --reporter=lcov --reporter=json-summary --reporter=text-summary tsx --test tests/integration/authx-security.test.ts",
+    "test:unit": "pnpm exec c8 --clean=false --temp-directory=.nyc_output --report-dir=coverage/unit --reporter=lcov --reporter=json-summary --reporter=text-summary tsx --test tests/unit/*.test.ts",
     "start:e2e": "node scripts/start-e2e.mjs",
     "verify:log-drain": "tsx scripts/verify-log-drain.ts",
     "test:e2e": "playwright test"

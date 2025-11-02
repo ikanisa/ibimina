@@ -6,7 +6,7 @@ This comprehensive checklist consolidates all requirements for production
 deployment. Complete all items in order before going live.
 
 > 📘 **Developer onboarding**: Run through
-> [`docs/dev/getting-started.md`](docs/dev/getting-started.md) to provision your
+> [`../dev/getting-started.md`](../dev/getting-started.md) to provision your
 > toolchain, environment variables, database, and Supabase types before checking
 > off these items.
 

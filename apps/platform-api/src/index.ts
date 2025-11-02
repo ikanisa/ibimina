@@ -3,10 +3,12 @@ import { normalizeError } from "@ibimina/lib";
 
 import { runGsmHeartbeat } from "./workers/gsm-heartbeat";
 import { runMomoPoller } from "./workers/momo-poller";
+import { ensureObservability, logError, captureException } from "./lib/observability/index.js";
 
 const command = process.argv[2] ?? "all";
 
 async function main() {
+  ensureObservability();
   switch (command) {
     case "momo":
       await runMomoPoller();
@@ -19,7 +21,7 @@ async function main() {
       await runGsmHeartbeat();
       break;
     default:
-      console.error(`Unknown command: ${command}`);
+      logError("platform_api.unknown_command", { command });
       process.exitCode = 1;
   }
 }

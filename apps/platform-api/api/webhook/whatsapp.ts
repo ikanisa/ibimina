@@ -12,6 +12,19 @@ import {
   type WhatsAppStatusRecord,
   type WhatsAppWebhookPayload,
 } from "../../src/webhooks/whatsapp.js";
+import {
+  ensureObservability,
+  logError,
+  logInfo,
+  logWarn,
+  recordWhatsappFailure,
+  recordWhatsappIngestMetrics,
+  captureException,
+} from "../../src/lib/observability/index.js";
+import {
+  createSupabaseWebhookIdempotencyStore,
+  withWebhookIdempotency,
+} from "../../src/lib/idempotency.js";
 
 interface AlertPayload {
   event: string;
@@ -113,6 +126,7 @@ const postAlert = async (payload: AlertPayload, logger: StructuredLogger) => {
         status: response.status,
         statusText: response.statusText,
       });
+      recordWhatsappFailure("alert_non_200");
     }
   } catch (error) {
     logger.error("whatsapp_webhook.alert_failed", { error });
@@ -159,7 +173,9 @@ const parsePayload = (rawBody: Buffer): WhatsAppWebhookPayload => {
     const text = rawBody.toString("utf8");
     return JSON.parse(text) as WhatsAppWebhookPayload;
   } catch (error) {
-    console.error("whatsapp_webhook.parse_error", error);
+    const message = error instanceof Error ? error.message : String(error);
+    logError("whatsapp_webhook.parse_error", { error: message });
+    recordWhatsappFailure("parse_error");
     throw new Error("Invalid JSON payload");
   }
 };
@@ -212,7 +228,16 @@ export default withHttpObservability("webhook.whatsapp", async (req, res, contex
     return;
   }
 
-  const summary = processWebhookPayload(payload);
+  const bodyHash = hashBody(rawBody);
+  const supabase = getSupabaseClient();
+  const store = createSupabaseWebhookIdempotencyStore(supabase, `whatsapp:${bodyHash}`);
+  const fallbackResponse = {
+    ok: true,
+    inboundMessages: 0,
+    statuses: 0,
+    failures: 0,
+    deduplicated: true,
+  } as const;
 
   try {
     await persistStatuses(summary.statuses);
