@@ -66,7 +66,7 @@ export function trackScreen(screenName: string, properties?: Record<string, any>
  */
 export async function isFeatureEnabled(flagKey: string): Promise<boolean> {
   if (!posthogInstance) return false;
-  
+
   try {
     return await posthogInstance.isFeatureEnabled(flagKey);
   } catch (error) {
@@ -80,7 +80,7 @@ export async function isFeatureEnabled(flagKey: string): Promise<boolean> {
  */
 export async function getFeatureFlagValue(flagKey: string): Promise<any> {
   if (!posthogInstance) return null;
-  
+
   try {
     return await posthogInstance.getFeatureFlag(flagKey);
   } catch (error) {

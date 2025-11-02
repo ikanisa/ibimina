@@ -85,7 +85,7 @@ export async function POST(request: Request) {
           changed_at: new Date().toISOString(),
         },
       });
-    
+
     if (auditError) {
       console.error("Audit log error:", auditError);
     }

@@ -30,11 +30,6 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [assistantContext, setAssistantContext] = useState<{
-    org: string | null;
-    country: string | null;
-    lang: string | null;
-  } | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -123,8 +118,9 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
   };
 
   useEffect(() => {
+    const controller = controllerRef.current;
     return () => {
-      controllerRef.current?.abort();
+      controller?.abort();
     };
   }, []);
 

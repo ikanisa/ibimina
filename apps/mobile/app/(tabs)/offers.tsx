@@ -12,7 +12,7 @@ import mockApi from "../../src/mocks";
 
 export default function OffersScreen() {
   const intl = useIntl();
-  
+
   const { data: offers, isLoading } = useQuery({
     queryKey: ["offers"],
     queryFn: mockApi.getOffers,
@@ -25,7 +25,7 @@ export default function OffersScreen() {
           title={intl.formatMessage({ id: "nav.offers", defaultMessage: "Offers" })}
           subtitle="Special deals and promotions"
         />
-        
+
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {isLoading ? (
             <Text style={styles.loadingText}>Loading offers...</Text>
@@ -46,7 +46,7 @@ export default function OffersScreen() {
                 <View style={styles.offerContent}>
                   <Text style={styles.offerTitle}>{offer.title}</Text>
                   <Text style={styles.offerDescription}>{offer.description}</Text>
-                  
+
                   <View style={styles.offerFooter}>
                     <View style={styles.validityContainer}>
                       <Text style={styles.validityLabel}>Valid until:</Text>
@@ -54,7 +54,7 @@ export default function OffersScreen() {
                         {new Date(offer.validUntil).toLocaleDateString()}
                       </Text>
                     </View>
-                    
+
                     <TouchableOpacity style={styles.detailsButton}>
                       <LinearGradient
                         colors={[colors.rw.blue, colors.rw.green]}

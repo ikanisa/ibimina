@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "lint": "eslint --config ../config/eslint.config.mjs --max-warnings=0 '{src,tests}/**/*.{ts,tsx}'",
+    "lint": "eslint --max-warnings=0 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config vitest.config.ts"
   },

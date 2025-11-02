@@ -24,7 +24,7 @@ describe("WhatsApp handler", () => {
 
     featureFlagMock = mock.fn(async () => true);
     featureFlags = {
-      isEnabled: featureFlagMock,
+      isEnabled: featureFlagMock as unknown as FeatureFlagService["isEnabled"],
     };
   });
 
@@ -80,9 +80,12 @@ describe("WhatsApp handler", () => {
 
     const replyCalls = getCalls(transport.sendAutomatedReply);
     assert.equal(replyCalls.length, 1);
-    assert.equal(replyCalls[0].arguments[0].to, "250788123456");
-    assert.ok(replyCalls[0].arguments[0].body.includes("Murakoze"));
-    assert.equal(replyCalls[0].arguments[0].context?.messageId, "wamid.HBgM123");
+    assert.equal((replyCalls[0].arguments[0] as { to: string }).to, "250788123456");
+    assert.ok((replyCalls[0].arguments[0] as { body: string }).body.includes("Murakoze"));
+    assert.equal(
+      (replyCalls[0].arguments[0] as { context?: { messageId: string } }).context?.messageId,
+      "wamid.HBgM123"
+    );
   });
 
   it("counts status updates without invoking transport", async () => {
@@ -178,6 +181,9 @@ describe("WhatsApp handler", () => {
 
     const replyCalls = getCalls(transport.sendAutomatedReply);
     assert.equal(replyCalls.length, 1);
-    assert.equal(replyCalls[0].arguments[0].body, "Murakoze cyane! Tuzagusubiza vuba.");
+    assert.equal(
+      (replyCalls[0].arguments[0] as { body: string }).body,
+      "Murakoze cyane! Tuzagusubiza vuba."
+    );
   });
 });
