@@ -52,23 +52,23 @@ graph TD
 
 - **Policy coverage**: Every staff- or member-facing table (`app.*`,
   `identity.*`, `operations.*`) implements `WITH CHECK` and `USING` predicates.
-- **Automated tests**: `pnpm --filter @ibimina/testing run test:rls` executes the
-  SQL harness in `supabase/tests/rls`, seeding role-specific fixtures and proving
-  denial/allow cases for SACCO scope, reconciliation exceptions, payments, and
-  device trust tables.
+- **Automated tests**: `pnpm --filter @ibimina/testing run test:rls` executes
+  the SQL harness in `supabase/tests/rls`, seeding role-specific fixtures and
+  proving denial/allow cases for SACCO scope, reconciliation exceptions,
+  payments, and device trust tables.
 - **Continuous verification**: GitHub Actions job `ci.yml` gates merges on the
   RLS suite; Vercel preview deployments run the same script via
   `scripts/test-rls-docker.sh` against ephemeral Supabase branches.
 
 ## Operational Runbooks
 
-| Area                 | Runbook                                                                 | Highlights |
-| -------------------- | ----------------------------------------------------------------------- | ---------- |
-| Incident response    | `docs/runbooks/SECURITY.md`                                             | Containment, rotation, postmortem workflow |
-| Supabase operations  | `docs/operations-runbook.md`, `docs/supabase-cicd.md`                   | Branch DB seeding, migration promotion, drift checks |
-| Deployments          | `docs/go-live/deployment-runbook.md`, `GO_LIVE_CHECKLIST.md`            | Vercel/Supabase promotion steps, rollback drills |
-| Observability        | `docs/operations-runbook.md`                                       | Log drain configuration, dashboard health checks |
-| Mobile distribution  | `docs/MOBILE_RELEASE.md`                                                | Expo EAS channels, store submission prep |
+| Area                | Runbook                                                      | Highlights                                           |
+| ------------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
+| Incident response   | `docs/runbooks/SECURITY.md`                                  | Containment, rotation, postmortem workflow           |
+| Supabase operations | `docs/operations-runbook.md`, `docs/supabase-cicd.md`        | Branch DB seeding, migration promotion, drift checks |
+| Deployments         | `docs/go-live/deployment-runbook.md`, `GO_LIVE_CHECKLIST.md` | Vercel/Supabase promotion steps, rollback drills     |
+| Observability       | `docs/operations-runbook.md`                                 | Log drain configuration, dashboard health checks     |
+| Mobile distribution | `docs/MOBILE_RELEASE.md`                                     | Expo EAS channels, store submission prep             |
 
 ## Decision Log
 
@@ -84,8 +84,8 @@ graph TD
 
 ## Acceptance Evidence
 
-- **RLS proof bundle**: RLS harness outputs are archived as CI artifacts on every
-  merge to `main` alongside Supabase plans.
+- **RLS proof bundle**: RLS harness outputs are archived as CI artifacts on
+  every merge to `main` alongside Supabase plans.
 - **Go-live rehearsal**: `docs/go-live/final-validation.md` records the
   production cutover rehearsal, including rollback validation.
 - **Change management**: `CHANGELOG.md` and
@@ -94,3 +94,25 @@ graph TD
 
 Ibimina is now operating under the finalized architecture with aligned runbooks
 and verifiable security controls.
+
+## Performance Optimization Summary
+
+- **Sampling & PII protections**: Shared Sentry/PostHog utilities now centralize
+  deterministic sampling and field-level scrubbing, and the web, edge, and
+  mobile clients are wired to consume the new helpers.
+- **Feature flag overrides**: The new `@ibimina/flags` package backs Supabase
+  override support (country/partner) with an admin workflow and API surface
+  refactor.
+- **Bundle work**: Client navigation and statements views now defer heavy
+  components, and Next image/caching tweaks reduce initial payloads.
+
+| Target                    | Command                               | Result                                                                                                             |
+| ------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Shared observability libs | `pnpm --filter @ibimina/lib build`    | ✅                                                                                                                 |
+| Feature flag package      | `pnpm --filter @ibimina/flags build`  | ✅                                                                                                                 |
+| Client app bundle         | `pnpm --filter @ibimina/client build` | ⚠️ Blocked by unresolved workspace package exports (`@ibimina/agent`, `@ibimina/locales`, `@ibimina/data-access`). |
+| Admin app bundle          | `pnpm --filter @ibimina/admin build`  | ⚠️ Blocked by `@ibimina/lib` subpath export resolution (`@ibimina/lib/security`).                                  |
+
+> **Next steps:** once the outstanding package export mappings are addressed,
+> rerun the client/admin builds to capture before/after metrics for inclusion in
+> this report.

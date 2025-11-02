@@ -9,3 +9,4 @@ export * from "./observability/pii";
 export * from "./observability/posthog-edge";
 export * from "./observability/posthog-server";
 export * from "./observability/sentry";
+export * from "./observability/sampling";

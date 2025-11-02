@@ -40,6 +40,25 @@ try {
   );
 }
 
+const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+  : process.env.SUPABASE_URL
+    ? new URL(process.env.SUPABASE_URL).hostname
+    : undefined;
+
+const remotePatterns = [
+  { protocol: "https", hostname: "images.unsplash.com" },
+  { protocol: "https", hostname: "res.cloudinary.com" },
+  { protocol: "https", hostname: "storage.googleapis.com" },
+] as const;
+
+if (supabaseHost) {
+  (remotePatterns as Array<{ protocol: string; hostname: string }>).push({
+    protocol: "https",
+    hostname: supabaseHost,
+  });
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -55,12 +74,18 @@ const nextConfig: NextConfig = {
   // Enable optimized image handling
   images: {
     formats: ["image/avif", "image/webp"],
-    unoptimized: true,
+    remotePatterns,
     minimumCacheTTL: 3600,
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
   },
 
   transpilePackages: ["@ibimina/config", "@ibimina/lib", "@ibimina/locales", "@ibimina/ui"],
+
+  modularizeImports: {
+    "lucide-react": {
+      transform: "lucide-react/dist/esm/icons/{{kebabCase member}}",
+    },
+  },
 
   async headers() {
     const securityHeaders = createSecureHeaders();
