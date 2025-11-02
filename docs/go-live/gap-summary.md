@@ -31,7 +31,7 @@ hardening, disaster recovery, and operational procedures.
 
 **Solution**:
 
-- Created **PRODUCTION_CHECKLIST.md** (16KB, 27 major sections)
+- Created **production-checklist.md** (16KB, 27 major sections)
 - Comprehensive 200+ item checklist covering:
   - Pre-deployment phase (6 sections)
   - Infrastructure setup (3 sections)
@@ -84,7 +84,7 @@ hardening, disaster recovery, and operational procedures.
 
 **Solution**:
 
-- Created **docs/DISASTER_RECOVERY.md** (17KB)
+- Created **../DISASTER_RECOVERY.md** (17KB)
 - Complete disaster recovery framework:
   - Emergency contact lists with roles and availability
   - Recovery objectives (RTO: 4 hours, RPO: 1 hour)
@@ -111,7 +111,7 @@ hardening, disaster recovery, and operational procedures.
 
 **Solution**:
 
-- Created **docs/POST_DEPLOYMENT_VALIDATION.md** (12KB)
+- Created **../POST_DEPLOYMENT_VALIDATION.md** (12KB)
 - Comprehensive 45-minute validation procedure:
   - Immediate checks (5 minutes): Health endpoints, SSL, core services
   - Functional checks (15 minutes): Auth flow, user journeys, PWA features, data
@@ -136,7 +136,7 @@ hardening, disaster recovery, and operational procedures.
 
 **Solution**:
 
-- Created **docs/SECURITY_HARDENING.md** (19KB)
+- Created **../SECURITY_HARDENING.md** (19KB)
 - Comprehensive 25-section security checklist:
   - Secrets management (rotation, storage)
   - Encryption (field-level, at-rest, in-transit)
@@ -172,7 +172,7 @@ hardening, disaster recovery, and operational procedures.
 
 **Solution**:
 
-- Created **docs/QUICK_REFERENCE.md** (10KB)
+- Created **../QUICK_REFERENCE.md** (10KB)
 - One-stop reference guide including:
   - Documentation index with purpose and usage
   - Quick start guide for first production deployment
@@ -208,14 +208,14 @@ hardening, disaster recovery, and operational procedures.
 
 ### Documents Created
 
-| Document                           | Size     | Sections | Items    |
-| ---------------------------------- | -------- | -------- | -------- |
-| PRODUCTION_CHECKLIST.md            | 16KB     | 27       | 200+     |
-| docs/DISASTER_RECOVERY.md          | 17KB     | 12       | 100+     |
-| docs/POST_DEPLOYMENT_VALIDATION.md | 12KB     | 18       | 80+      |
-| docs/SECURITY_HARDENING.md         | 19KB     | 25       | 150+     |
-| docs/QUICK_REFERENCE.md            | 10KB     | 15       | 50+      |
-| **Total**                          | **74KB** | **97**   | **580+** |
+| Document                         | Size     | Sections | Items    |
+| -------------------------------- | -------- | -------- | -------- |
+| production-checklist.md          | 16KB     | 27       | 200+     |
+| ../DISASTER_RECOVERY.md          | 17KB     | 12       | 100+     |
+| ../POST_DEPLOYMENT_VALIDATION.md | 12KB     | 18       | 80+      |
+| ../SECURITY_HARDENING.md         | 19KB     | 25       | 150+     |
+| ../QUICK_REFERENCE.md            | 10KB     | 15       | 50+      |
+| **Total**                        | **74KB** | **97**   | **580+** |
 
 ### Scripts Created
 
@@ -236,9 +236,9 @@ hardening, disaster recovery, and operational procedures.
 ### Before Implementation
 
 - ✅ Basic deployment checklist (DEPLOYMENT_CHECKLIST.md)
-- ✅ Go-live checklist for Supabase (docs/go-live-checklist.md)
+- ✅ Go-live checklist for Supabase (../go-live/supabase-go-live-checklist.md)
 - ✅ Deployment guide (DEPLOYMENT_GUIDE.md)
-- ✅ Security observability docs (docs/security-observability.md)
+- ✅ Security observability docs (../security-observability.md)
 - ❌ No consolidated production checklist
 - ❌ No automated validation
 - ❌ No disaster recovery procedures
@@ -249,10 +249,10 @@ hardening, disaster recovery, and operational procedures.
 ### After Implementation
 
 - ✅ Basic deployment checklist (DEPLOYMENT_CHECKLIST.md)
-- ✅ Go-live checklist for Supabase (docs/go-live-checklist.md)
+- ✅ Go-live checklist for Supabase (../go-live/supabase-go-live-checklist.md)
 - ✅ Deployment guide (DEPLOYMENT_GUIDE.md)
-- ✅ Security observability docs (docs/security-observability.md)
-- ✅ **Comprehensive production checklist (PRODUCTION_CHECKLIST.md)**
+- ✅ Security observability docs (../security-observability.md)
+- ✅ **Comprehensive production checklist (production-checklist.md)**
 - ✅ **Automated validation script**
 - ✅ **Complete disaster recovery procedures**
 - ✅ **Structured post-deployment validation**
@@ -319,27 +319,27 @@ hardening, disaster recovery, and operational procedures.
 
 ### First Production Deployment
 
-1. Start with [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) for overview
-2. Follow [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) completely
-3. Use [SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md) for security setup
-4. Keep [DISASTER_RECOVERY.md](docs/DISASTER_RECOVERY.md) accessible
+1. Start with [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for overview
+2. Follow [production-checklist.md](production-checklist.md) completely
+3. Use [SECURITY_HARDENING.md](../SECURITY_HARDENING.md) for security setup
+4. Keep [DISASTER_RECOVERY.md](../DISASTER_RECOVERY.md) accessible
 
 ### Regular Deployments
 
 1. Use [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for routine releases
 2. Run `pnpm run validate:production` before deployment
-3. Follow [POST_DEPLOYMENT_VALIDATION.md](docs/POST_DEPLOYMENT_VALIDATION.md)
+3. Follow [POST_DEPLOYMENT_VALIDATION.md](../POST_DEPLOYMENT_VALIDATION.md)
    after deployment
 
 ### Emergency Situations
 
-1. Refer to [DISASTER_RECOVERY.md](docs/DISASTER_RECOVERY.md) for scenarios
-2. Use [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) for quick commands
+1. Refer to [DISASTER_RECOVERY.md](../DISASTER_RECOVERY.md) for scenarios
+2. Use [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for quick commands
 3. Follow documented rollback procedures
 
 ### Security Audits
 
-1. Work through [SECURITY_HARDENING.md](docs/SECURITY_HARDENING.md)
+1. Work through [SECURITY_HARDENING.md](../SECURITY_HARDENING.md)
 2. Run security verification scripts
 3. Document findings and remediation
 

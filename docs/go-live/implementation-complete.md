@@ -227,7 +227,7 @@ CREATE TABLE members_app_profiles (
 **Files Created**:
 
 - `MOBILE_TESTING_GUIDE.md` (300+ lines)
-- `PRODUCTION_READINESS_SUMMARY.md`
+- `readiness-summary.md`
 - `scripts/validate-workers.sh`
 - `scripts/validate-production-deployment.sh`
 
@@ -428,7 +428,7 @@ GSM_HEARTBEAT_TIMEOUT_MS=8000       # Health check timeout
 ### Documentation (2 files)
 
 - `MOBILE_TESTING_GUIDE.md` - Testing procedures
-- `PRODUCTION_READINESS_SUMMARY.md` - Status report
+- `readiness-summary.md` - Status report
 
 ### Automation (2 files)
 

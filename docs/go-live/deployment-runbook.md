@@ -2,15 +2,18 @@
 
 ## Overview
 
-This guide covers deploying all Ibimina applications to production hosting platforms.
+This guide covers deploying all Ibimina applications to production hosting
+platforms.
 
 **Applications**:
+
 - **Admin PWA** (apps/admin) - Staff administration console → staff.ibimina.rw
-- **Client PWA** (apps/client) - Member-facing app → app.ibimina.rw  
+- **Client PWA** (apps/client) - Member-facing app → app.ibimina.rw
 - **Website** (apps/website) - Public marketing site → ibimina.rw
 - **Android Apps** - Mobile versions of Admin and Client apps
 
 **Recommended Stack**:
+
 - Hosting: Cloudflare Pages (primary) or Vercel
 - Database: Supabase (PostgreSQL + Edge Functions)
 - CDN: Cloudflare
@@ -42,7 +45,7 @@ pnpm --filter @ibimina/ui run build
 
 # 4. Deploy each app (see detailed instructions below)
 # Admin: See "Admin App" section
-# Client: See "Client App" section  
+# Client: See "Client App" section
 # Website: See "Website" section
 ```
 
@@ -75,7 +78,7 @@ NEXT_PUBLIC_APP_URL=https://staff.ibimina.rw
 MFA_RP_ID=staff.ibimina.rw
 MFA_RP_NAME="Ibimina Staff Console"
 
-# Client App  
+# Client App
 NEXT_PUBLIC_APP_URL=https://app.ibimina.rw
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=xxx
 VAPID_PRIVATE_KEY=xxx
@@ -150,7 +153,7 @@ vercel --prod
 # Admin
 cd apps/admin && vercel --prod
 
-# Client  
+# Client
 cd apps/client && vercel --prod
 
 # Website
@@ -203,7 +206,7 @@ Select: 2
 
 # 3. Select build type:
 #    1) Debug
-#    2) Release  
+#    2) Release
 Select: 2
 
 # 4. Enter production URL
@@ -314,16 +317,17 @@ psql "$PROD_URL" < backup.sql
 
 ```typescript
 // Track custom events
-supabase.from('analytics_events').insert({
-  event_type: 'loan_application',
+supabase.from("analytics_events").insert({
+  event_type: "loan_application",
   user_id: userId,
-  metadata: { amount, duration }
-})
+  metadata: { amount, duration },
+});
 ```
 
 ### Error Tracking
 
 Recommended tools:
+
 - Sentry - Error tracking
 - LogRocket - Session replay
 - Datadog - Infrastructure monitoring
@@ -333,13 +337,13 @@ Recommended tools:
 ```typescript
 // apps/admin/middleware.ts
 export function middleware(req: NextRequest) {
-  const start = Date.now()
-  
+  const start = Date.now();
+
   return NextResponse.next({
     headers: {
-      'X-Response-Time': `${Date.now() - start}ms`
-    }
-  })
+      "X-Response-Time": `${Date.now() - start}ms`,
+    },
+  });
 }
 ```
 
@@ -381,26 +385,26 @@ export default {
   async headers() {
     return [
       {
-        source: '/_next/static/:path*',
+        source: "/_next/static/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable'
-          }
-        ]
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
       },
       {
-        source: '/icons/:path*',
+        source: "/icons/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=604800, immutable'
-          }
-        ]
-      }
-    ]
-  }
-}
+            key: "Cache-Control",
+            value: "public, max-age=604800, immutable",
+          },
+        ],
+      },
+    ];
+  },
+};
 ```
 
 ### Database Indexing
@@ -435,9 +439,9 @@ import Image from 'next/image'
 ```typescript
 // middleware.ts
 response.headers.set(
-  'Content-Security-Policy',
+  "Content-Security-Policy",
   "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
-)
+);
 ```
 
 ### Rate Limiting
@@ -447,14 +451,14 @@ Use Cloudflare Rate Limiting rules or implement custom:
 ```typescript
 // API route
 export async function POST(req: Request) {
-  const ip = req.headers.get('CF-Connecting-IP')
-  
+  const ip = req.headers.get("CF-Connecting-IP");
+
   // Check rate limit
-  const allowed = await checkRateLimit(ip, '10/minute')
+  const allowed = await checkRateLimit(ip, "10/minute");
   if (!allowed) {
-    return new Response('Too many requests', { status: 429 })
+    return new Response("Too many requests", { status: 429 });
   }
-  
+
   // Process request
 }
 ```
@@ -462,8 +466,9 @@ export async function POST(req: Request) {
 ### Secrets Rotation
 
 Schedule regular rotation:
+
 - Supabase keys: Every 90 days
-- Encryption keys: Every 180 days  
+- Encryption keys: Every 180 days
 - Service role key: After security incidents
 - OAuth secrets: Every 90 days
 
@@ -498,7 +503,7 @@ psql "$DATABASE_URL" -c "SELECT * FROM pg_policies;"
 
 ## Support
 
-- Documentation: `/docs` directory  
+- Documentation: `/docs` directory
 - GitHub: https://github.com/ikanisa/ibimina
 - Supabase: https://supabase.com/support
 
