@@ -6,7 +6,7 @@ export type CreateClientOptions = {
   accessToken?: string;
 };
 
-const throwMissingEnv = (name: string) => {
+const throwMissingEnv = (name: string): never => {
   throw new Error(`Missing Supabase configuration: ${name}`);
 };
 
@@ -22,15 +22,10 @@ export const createSupabaseClient = ({
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!resolvedUrl) {
-    throwMissingEnv("SUPABASE_URL");
-  }
+  const safeUrl = resolvedUrl ?? throwMissingEnv("SUPABASE_URL");
+  const safeAnonKey = resolvedAnonKey ?? throwMissingEnv("SUPABASE_ANON_KEY");
 
-  if (!resolvedAnonKey) {
-    throwMissingEnv("SUPABASE_ANON_KEY");
-  }
-
-  const client = createClient(resolvedUrl, resolvedAnonKey, {
+  const client = createClient(safeUrl, safeAnonKey, {
     auth: accessToken
       ? {
           persistSession: false,

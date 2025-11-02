@@ -4,7 +4,7 @@
   "packageManager": "pnpm@9.12.3",
   "scripts": {
     "dev": "cd apps/admin && pnpm dev",
-    "build": "pnpm -r run build",
+    "build": "pnpm run build:packages && pnpm run build:apps",
     "lint": "pnpm -r run lint",
     "prelint": "pnpm run check:types",
     "format": "prettier --write .",
@@ -33,7 +33,9 @@
     "validate:production": "bash scripts/validate-production-readiness.sh",
     "validate:cloudflare": "bash scripts/validate-cloudflare-deployment.sh",
     "kb:sync": "tsx scripts/kb/syncContent.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "build:packages": "pnpm --filter @ibimina/data-access run build && pnpm --filter './packages/*' --filter '!@ibimina/data-access' --workspace-concurrency=1 run build",
+    "build:apps": "pnpm --filter './apps/*' --workspace-concurrency=1 run build"
   },
   "dependencies": {
     "openai": "^6.7.0"
@@ -57,9 +59,8 @@
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
-    "tsx": "^4.7.1",
-    "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "5.9.3",
     "vercel": "^48.6.7",
     "wrangler": "^4.45.2"

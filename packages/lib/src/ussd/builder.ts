@@ -113,7 +113,9 @@ export function buildUssdPayload(input: BuildUssdPayloadInput): UssdPayload {
 
   const telUri = canAutoDial ? `tel:${encodeURIComponent(code)}` : undefined;
 
-  const instructions = definition.instructions.map((line) => interpolate(line, replacements));
+  const instructions = definition.instructions.map((line: string) =>
+    interpolate(line, replacements)
+  );
   const copyText = interpolate(definition.copy, replacements);
   const ctaLabel = definition.cta;
 

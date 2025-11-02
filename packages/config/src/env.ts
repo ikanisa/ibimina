@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { z } from "zod";
-import requiredEnvConfig from "../required-env.json" with { type: "json" };
+import { requiredEnvConfig } from "./data/requiredEnvConfig";
 
 type ProcessEnvSource = Partial<Record<string, string | undefined>>;
 
