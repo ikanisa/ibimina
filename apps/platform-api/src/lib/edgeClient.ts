@@ -66,8 +66,9 @@ export async function invokeEdge(path: string, options: EdgeInvocationOptions = 
     }
 
     if (!response.ok) {
+      const errorData = json as { error?: unknown };
       const errorMessage =
-        typeof (json as any)?.error === "string" ? (json as any).error : response.statusText;
+        typeof errorData?.error === "string" ? errorData.error : response.statusText;
       throw new Error(`Edge invocation failed (${response.status}): ${errorMessage}`);
     }
 
