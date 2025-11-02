@@ -29,9 +29,10 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@ibimina/config": "workspace:*"
+    "posthog-node": "^4.3.0"
   },
   "devDependencies": {
+    "@sentry/types": "^8.39.0",
     "@types/node": "20.19.21",
     "rimraf": "^6.0.1",
     "tsup": "^8.1.0",
