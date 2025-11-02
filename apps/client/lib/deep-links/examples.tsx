@@ -87,7 +87,7 @@ export function DeepLinkProvider({ children }: { children: React.ReactNode }) {
  */
 
 import { Share } from "@capacitor/share";
-import { generateDeepLink, generateCustomSchemeLink } from "@/lib/deep-links";
+import { generateDeepLink } from "@/lib/deep-links";
 
 export function GroupInviteButton({ groupId }: { groupId: string }) {
   const handleShare = async () => {
@@ -124,19 +124,16 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 import { useEffect, useState } from "react";
 
 const MoMoNotificationListener = Capacitor.isNativePlatform()
-  ? registerPlugin<any>("MoMoNotificationListener")
+  ? registerPlugin<Record<string, unknown>>("MoMoNotificationListener")
   : null;
 
 export function PaymentDetectionProvider({ children }: { children: React.ReactNode }) {
-  const [hasPermission, setHasPermission] = useState(false);
-
   useEffect(() => {
     if (!MoMoNotificationListener) return;
 
     // Check permission status
     const checkPermission = async () => {
-      const { granted } = await MoMoNotificationListener.checkPermission();
-      setHasPermission(granted);
+      await MoMoNotificationListener.checkPermission();
     };
 
     checkPermission();
@@ -239,7 +236,7 @@ export function ManualPaymentCapture() {
   return (
     <div className="card">
       <h2>Manual Payment Capture</h2>
-      <p>If automatic detection didn't work, you can manually capture your payment SMS.</p>
+      <p>If automatic detection didn&apos;t work, you can manually capture your payment SMS.</p>
 
       <button onClick={handleCaptureSms} disabled={loading} className="btn-primary">
         {loading ? "Waiting for SMS..." : "I've Paid - Capture SMS"}

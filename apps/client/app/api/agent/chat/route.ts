@@ -132,7 +132,7 @@ const createSseStream = (signal: AbortSignal | undefined) => {
 const fetchUserContext = async (supabase: SupabaseClient, userId: string): Promise<UserContext> => {
   const client = supabase as unknown as Record<string, unknown>;
   const from = client.from as unknown as (table: string) => {
-    select: (columns: string) => any;
+    select: (columns: string) => unknown;
   };
 
   const profileBuilder = from("members_app_profiles")
@@ -366,7 +366,7 @@ const runAgentConversation = async (
         if (call.function?.arguments) {
           try {
             args = JSON.parse(call.function.arguments) as Record<string, unknown>;
-          } catch (error) {
+          } catch {
             await emit("tool_result", {
               id: toolId,
               name: toolName,

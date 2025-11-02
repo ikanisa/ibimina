@@ -5,18 +5,18 @@
  */
 
 // Export types
-export type { LocaleCode, CountryContentPack, TranslationMessages } from "./types/index.js";
+export type { LocaleCode, CountryContentPack, TranslationMessages } from "./types/index";
 
 // Export locale content packs
-export { rwRWContentPack, rwRWMessages } from "./locales/rw-RW.js";
-export { enRWContentPack, enRWMessages } from "./locales/en-RW.js";
-export { frSNContentPack, frSNMessages } from "./locales/fr-SN.js";
+export { rwRWContentPack, rwRWMessages } from "./locales/rw-RW";
+export { enRWContentPack, enRWMessages } from "./locales/en-RW";
+export { frSNContentPack, frSNMessages } from "./locales/fr-SN";
 
 // Locale registry
-import type { LocaleCode, CountryContentPack, TranslationMessages } from "./types/index.js";
-import { rwRWContentPack, rwRWMessages } from "./locales/rw-RW.js";
-import { enRWContentPack, enRWMessages } from "./locales/en-RW.js";
-import { frSNContentPack, frSNMessages } from "./locales/fr-SN.js";
+import type { LocaleCode, CountryContentPack, TranslationMessages } from "./types/index";
+import { rwRWContentPack, rwRWMessages } from "./locales/rw-RW";
+import { enRWContentPack, enRWMessages } from "./locales/en-RW";
+import { frSNContentPack, frSNMessages } from "./locales/fr-SN";
 
 const DEFAULT_FALLBACK_LOCALE: LocaleCode = "en-RW";
 
@@ -68,7 +68,7 @@ function deepClone<T>(value: T): T {
   return value;
 }
 
-function mergeDeep<T extends Record<string, any>>(base: T, override?: Partial<T>): T {
+function mergeDeep<T>(base: T, override?: Partial<T>): T {
   const target = deepClone(base);
   if (!override) return target;
 

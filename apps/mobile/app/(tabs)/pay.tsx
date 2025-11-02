@@ -16,7 +16,7 @@ export default function PayScreen() {
   const intl = useIntl();
   const [amount, setAmount] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  
+
   const { data: groups } = useQuery({
     queryKey: ["groups"],
     queryFn: mockApi.getGroups,
@@ -38,7 +38,7 @@ export default function PayScreen() {
           subtitle="Make your monthly contribution"
           rightElement={<LocaleToggle />}
         />
-        
+
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.card}>
             <Text style={styles.label}>Select Group</Text>

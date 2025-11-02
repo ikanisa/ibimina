@@ -4,12 +4,26 @@
  */
 
 export { colors, gradients } from "./colors";
-export { fontFamilies, fontSizes, lineHeights, letterSpacing, fontWeights, textStyles } from "./typography";
+export {
+  fontFamilies,
+  fontSizes,
+  lineHeights,
+  letterSpacing,
+  fontWeights,
+  textStyles,
+} from "./typography";
 export { spacing, borderRadius, elevation, glassmorphism } from "./spacing";
 
 // Re-export as a complete theme object
 import { colors, gradients } from "./colors";
-import { fontFamilies, fontSizes, lineHeights, letterSpacing, fontWeights, textStyles } from "./typography";
+import {
+  fontFamilies,
+  fontSizes,
+  lineHeights,
+  letterSpacing,
+  fontWeights,
+  textStyles,
+} from "./typography";
 import { spacing, borderRadius, elevation, glassmorphism } from "./spacing";
 
 export const theme = {

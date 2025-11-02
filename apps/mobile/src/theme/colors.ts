@@ -63,11 +63,7 @@ export const gradients = {
   kigaliAngle: 135,
 
   // Radial sunset effect
-  nyungwe: [
-    "rgba(0, 161, 222, 0.5)",
-    "rgba(250, 210, 1, 0.4)",
-    "rgba(32, 96, 61, 0.5)",
-  ],
+  nyungwe: ["rgba(0, 161, 222, 0.5)", "rgba(250, 210, 1, 0.4)", "rgba(32, 96, 61, 0.5)"],
 
   // Dark base for screens
   darkBase: ["#050712", "#0b122c"],

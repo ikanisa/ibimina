@@ -1,13 +1,24 @@
 import { ConfigContext, ExpoConfig } from "expo/config";
 
+const appVersion = process.env.APP_VERSION ?? "1.0.0";
+const iosBuildNumber = process.env.IOS_BUILD_NUMBER ?? appVersion;
+const androidVersionCode = Number.parseInt(process.env.ANDROID_VERSION_CODE ?? "100", 10);
+
 /**
  * Expo app configuration with Sentry, deep linking, and analytics
  */
+const APP_VERSION = process.env.APP_VERSION || "1.0.0";
+const parsedAndroidVersionCode = Number.parseInt(process.env.ANDROID_VERSION_CODE ?? "1", 10);
+const ANDROID_VERSION_CODE = Number.isNaN(parsedAndroidVersionCode)
+  ? 1
+  : Math.max(1, parsedAndroidVersionCode);
+const IOS_BUILD_NUMBER = process.env.IOS_BUILD_NUMBER || "1";
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Ibimina",
   slug: "ibimina-mobile",
-  version: "1.0.0",
+  version: appVersion,
   orientation: "portrait",
   icon: "./assets/icon.png",
   scheme: "ibimina",
@@ -21,6 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: false,
     bundleIdentifier: "com.ibimina.mobile",
+    buildNumber: iosBuildNumber,
     config: {
       usesNonExemptEncryption: false,
     },
@@ -36,7 +48,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: "#0A0E27",
     },
     package: "com.ibimina.mobile",
+    versionCode: ANDROID_VERSION_CODE,
     permissions: ["CAMERA", "READ_EXTERNAL_STORAGE"],
+    versionCode: Number.isFinite(androidVersionCode) ? androidVersionCode : 100,
+    allowBackup: false,
+    softwareKeyboardLayoutMode: "pan",
   },
   web: {
     bundler: "metro",
@@ -55,6 +71,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         url: process.env.SENTRY_URL || "https://sentry.io/",
       },
     ],
+    [
+      "expo-build-properties",
+      {
+        android: {
+          compileSdkVersion: 35,
+          targetSdkVersion: 35,
+          minSdkVersion: 24,
+          enableProguardInReleaseBuilds: true,
+        },
+        ios: {
+          deploymentTarget: "15.0",
+        },
+      },
+    ],
   ],
   extra: {
     eas: {
@@ -67,9 +97,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
+    iosBuildNumber,
+    androidVersionCode: Number.isFinite(androidVersionCode) ? androidVersionCode : 100,
   },
   experiments: {
     typedRoutes: true,
+  },
+  runtimeVersion: {
+    policy: "appVersion",
+  },
+  updates: {
+    enabled: true,
+    checkAutomatically: "ON_LOAD",
+    url: process.env.EAS_UPDATE_URL,
+    fallbackToCacheTimeout: 0,
   },
   owner: "ibimina",
 });

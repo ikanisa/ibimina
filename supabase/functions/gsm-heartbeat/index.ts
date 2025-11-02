@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { validateHmacRequest } from "../_shared/auth.ts";
 import { recordMetric } from "../_shared/metrics.ts";
 import { requireEnv } from "../_shared/mod.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,7 +76,7 @@ const checkEndpoint = async (endpoint: EndpointRow) => {
   }
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("gsm-heartbeat", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

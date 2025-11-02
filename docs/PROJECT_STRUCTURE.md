@@ -1,620 +1,162 @@
 # Project Structure and Dependency Graph
 
-**Version**: 1.0  
-**Last Updated**: 2025-10-29
+**Version**: 2.0  
+**Last Updated**: 2025-11-28
 
-This document provides a comprehensive overview of the ibimina monorepo
-structure, including all services, packages, and their dependencies.
+The ibimina monorepo hosts every surface required to ship the Umurenge SACCO
+platform: the staff console, member PWA, native mobile client, background
+workers, shared packages, infrastructure as code, and Supabase migrations.
+Everything is wired together through a pnpm workspace so upgrades propagate
+consistently.
 
 ## 📁 Repository Overview
 
-The ibimina monorepo is a TypeScript/Next.js based microservices platform for
-SACCO management, organized as a pnpm workspace with multiple applications and
-shared packages.
-
 ```
 ibimina/
-├── apps/                    # Application services
-├── packages/                # Shared workspace packages
-├── infra/                   # Infrastructure and deployment
-├── supabase/               # Database migrations and functions
-├── docs/                   # Documentation
-├── scripts/                # Automation scripts
-└── config files            # Root configuration
+├── apps/                    # Deployable applications (web, native, workers)
+├── packages/                # Shared packages reused across apps
+├── infra/                   # Observability and operations tooling
+├── supabase/                # Database schema, tests, functions, cron jobs
+├── docs/                    # Architecture, operations, and runbooks
+├── scripts/                 # Automation utilities (validation, tooling)
+└── config files             # ESLint, tsconfig, Tailwind, etc.
 ```
 
 ## 🏗️ High-Level Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Client Applications                     │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │    Admin     │  │    Client    │  │ Platform API │     │
-│  │   (Next.js)  │  │   (Next.js)  │  │   (Next.js)  │     │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘     │
-│         │                 │                  │              │
-└─────────┼─────────────────┼──────────────────┼──────────────┘
-          │                 │                  │
-          └─────────────────┴──────────────────┘
-                            │
-          ┌─────────────────┴─────────────────┐
-          │       Shared Packages             │
-          │  @ibimina/config, core, lib, ui   │
-          └─────────────────┬─────────────────┘
-                            │
-          ┌─────────────────┴─────────────────┐
-          │         Supabase Backend          │
-          │  ┌──────────┐    ┌──────────┐    │
-          │  │ Postgres │    │   Edge   │    │
-          │  │    RLS   │    │ Functions│    │
-          │  └──────────┘    └──────────┘    │
-          └───────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│ Frontend Surfaces                                                  │
+│  • Staff Console (Next.js 16) ─────────────┐                        │
+│  • Member PWA (Next.js 15) ────────────────┤──▶ Supabase (Postgres, │
+│  • Native Mobile (Expo 52) ────────────────┘    Auth, Storage,     │
+│                                                     Edge Functions) │
+│ Backend & Automations                                              │
+│  • Platform workers (@ibimina/platform-api) ──▶ Payments, SMS, RLS  │
+└────────────────────────────────────────────────────────────────────┘
+                 ▲                          │
+                 │ Shared packages (@ibimina/config, ui, data-access…)
+                 └──────────────────────────┘
 ```
+
+Every surface shares generated Supabase types, runtime configuration, and UI
+building blocks so product changes stay aligned across
+platforms.【F:package.json†L1-L76】【F:packages/README.md†L1-L120】
 
 ## 📦 Applications (`apps/`)
 
-### 1. Admin Application (`apps/admin/`)
-
-**Purpose**: Staff-facing web application for SACCO administration
-
-**Technology Stack**:
-
-- Next.js 15 (App Router)
-- React 19
-- TypeScript
-- Tailwind CSS
-- Supabase client
-
-**Key Features**:
-
-- Member management
-- Loan processing
-- Transaction monitoring
-- Reporting and analytics
-- User administration
-- Multi-factor authentication (MFA)
-- Progressive Web App (PWA) support
-
-**Dependencies**:
-
-```json
-{
-  "internal": [
-    "@ibimina/config",
-    "@ibimina/core",
-    "@ibimina/lib",
-    "@ibimina/ui"
-  ],
-  "external": ["next", "react", "supabase", "zod", "react-hook-form"]
-}
-```
-
-**Build Output**: `.next/` directory **Entry Point**:
-`apps/admin/src/app/page.tsx`
-
-**Key Directories**:
-
-```
-apps/admin/
-├── src/
-│   ├── app/              # Next.js app router pages
-│   ├── components/       # React components
-│   ├── hooks/           # Custom React hooks
-│   ├── lib/             # Utility functions
-│   └── types/           # TypeScript type definitions
-├── public/              # Static assets
-├── scripts/             # Build and deployment scripts
-└── tests/               # Test files
-```
-
-### 2. Client Application (`apps/client/`)
-
-**Purpose**: Member-facing mobile/web application
-
-**Technology Stack**:
-
-- Next.js 15 (App Router)
-- React 19
-- TypeScript
-- Tailwind CSS
-- PWA with service worker
-
-**Key Features**:
-
-- Account balance viewing
-- Transaction history
-- Loan applications
-- Savings deposits
-- Mobile money integration
-- Offline support (PWA)
-
-**Dependencies**:
-
-```json
-{
-  "internal": [
-    "@ibimina/config",
-    "@ibimina/core",
-    "@ibimina/lib",
-    "@ibimina/ui"
-  ],
-  "external": ["next", "react", "supabase"]
-}
-```
-
-**Security Notes**:
-
-- Must NOT use `SUPABASE_SERVICE_ROLE_KEY`
-- All data access via RLS-protected queries
-- Anon key only
-
-### 3. Platform API (`apps/platform-api/`)
-
-**Purpose**: Backend API for external integrations and mobile money
-
-**Technology Stack**:
-
-- Next.js API routes
-- TypeScript
-- Supabase server client
-
-**Key Features**:
-
-- Mobile money webhooks (MTN, Airtel)
-- SMS gateway integration
-- External API endpoints
-- Batch processing
-- Scheduled jobs
-
-**Dependencies**:
-
-```json
-{
-  "internal": ["@ibimina/config", "@ibimina/core", "@ibimina/lib"],
-  "external": ["next", "supabase"]
-}
-```
-
-## 📚 Shared Packages (`packages/`)
-
-### 1. Config Package (`@ibimina/config`)
-
-**Purpose**: Environment configuration and validation
-
-**Exports**:
-
-```typescript
-// packages/config/src/index.ts
-export { env } from "./env";
-export type { EnvConfig } from "./env";
-```
-
-**Key Features**:
-
-- Zod-based environment validation
-- Type-safe environment access
-- Server/client variable separation
-- Required vs optional variables
-
-**Usage**:
-
-```typescript
-import { env } from "@ibimina/config";
-
-const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY; // Server-only
-```
-
-**Dependencies**:
-
-- `zod` for validation
-
-### 2. Core Package (`@ibimina/core`)
-
-**Purpose**: Core business logic and domain models
-
-**Exports**:
-
-```typescript
-// packages/core/src/index.ts
-export * from "./types";
-export * from "./models";
-```
-
-**Key Features**:
-
-- Shared TypeScript types
-- Domain models
-- Business logic utilities
-- Constants and enums
-
-**Dependencies**: None (pure TypeScript)
-
-### 3. Lib Package (`@ibimina/lib`)
-
-**Purpose**: Shared utility functions and helpers
-
-**Exports**:
-
-```typescript
-// packages/lib/src/index.ts
-export * from "./security";
-export { logger } from "./logger";
-export { maskPII } from "./pii";
-```
-
-**Key Features**:
-
-- Security utilities (HMAC, encryption)
-- PII masking functions
-- Logging utilities
-- Date/time helpers
-- String formatting
-
-**Key Modules**:
-
-- `security/`: Webhook signature verification, encryption
-- `logger`: Structured logging with PII masking
-- `pii`: PII detection and masking
-
-### 4. UI Package (`@ibimina/ui`)
-
-**Purpose**: Shared React components and design system
-
-**Exports**:
-
-```typescript
-// packages/ui/src/index.ts
-export { Button } from "./components/Button";
-export { Input } from "./components/Input";
-export { Card } from "./components/Card";
-// ... more components
-```
-
-**Key Features**:
-
-- Reusable React components
-- Consistent styling (Tailwind)
-- Accessible components (ARIA)
-- Form components
-- Layout components
-
-**Dependencies**:
-
-- `react`
-- `tailwindcss`
-
-### 5. Testing Package (`@ibimina/testing`)
-
-**Purpose**: Shared testing utilities and helpers
-
-**Exports**:
-
-```typescript
-// packages/testing/src/index.ts
-export { createMockUser } from "./mocks";
-export { setupTestDb } from "./db";
-```
-
-**Key Features**:
-
-- Test fixtures
-- Mock factories
-- Test utilities
-- Database setup helpers
-
-## 🏗️ Infrastructure (`infra/`)
-
-### 1. SMS Gateway (`infra/sms-gateway/`)
-
-**Purpose**: SMS forwarding service
-
-**Structure**:
-
-```
-infra/sms-gateway/
-├── forwarder/           # SMS forwarding service
-│   ├── src/
-│   └── package.json
-└── docker-compose.yml   # Local development
-```
-
-### 2. Metrics (`infra/metrics/`)
-
-**Purpose**: Prometheus and Grafana monitoring setup
-
-**Components**:
-
-- Prometheus configuration
-- Grafana dashboards
-- Alert rules
-
-### 3. Infrastructure Scripts (`infra/scripts/`)
-
-**Purpose**: Deployment and infrastructure automation scripts
-
-### 4. Other Infrastructure
-
-- `caddy/`: Reverse proxy configuration
-- `cloudflared/`: Cloudflare tunnel setup
-- `docker/`: Docker configurations
-- `terraform/`: Infrastructure as code
-- `twa/`: Trusted Web Activity (Android) configuration
-
-## 🗄️ Database and Functions (`supabase/`)
-
-### Migrations (`supabase/migrations/`)
-
-Database schema migrations in chronological order. Each migration file:
-
-- Uses `BEGIN` and `COMMIT` transactions
-- Includes rollback instructions (comments)
-- Tests RLS policies
-
-**Key Migrations**:
-
-- `20251010220000_seed_admin_user.sql`: Initial admin user
-- `20251015000000_client_app.sql`: Client app tables
-- `20251110100000_multitenancy.sql`: Multi-tenancy support
-
-### Edge Functions (`supabase/functions/`)
-
-Serverless functions deployed to Supabase Edge Runtime.
-
-**Key Functions**:
-
-- Authentication helpers
-- Webhook handlers
-- Scheduled jobs
-- Background processing
-
-**Environment**:
-
-- Deno runtime
-- TypeScript
-- Environment variables via Supabase secrets
-
-### Tests (`supabase/tests/`)
-
-Database and RLS policy tests using pgTAP.
-
-## 📄 Scripts (`scripts/`)
-
-Automation and validation scripts:
-
-- `validate-production-readiness.sh`: Pre-deployment validation
-- `check-feature-flags.mjs`: Feature flag verification
-- `assert-lighthouse.mjs`: Performance budget enforcement
-
-## 🔧 Configuration Files (Root)
-
-### TypeScript Configuration
-
-**`tsconfig.base.json`**: Base TypeScript configuration
-
-```json
-{
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@ibimina/config": ["packages/config/src/index.ts"],
-      "@ibimina/core": ["packages/core/src/index.ts"],
-      "@ibimina/lib": ["packages/lib/src/index.ts"],
-      "@ibimina/testing": ["packages/testing/src/index.ts"],
-      "@ibimina/ui": ["packages/ui/src/index.ts"]
-    }
-  }
-}
-```
-
-**Service-level `tsconfig.json`**: Extends base config
-
-```json
-{
-  "extends": "../../tsconfig.base.json",
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
-}
-```
-
-### Package Management
-
-**`pnpm-workspace.yaml`**: Workspace definition
-
-```yaml
-packages:
-  - apps/*
-  - packages/*
-```
-
-**`package.json`**: Root package with workspace scripts
-
-- `pnpm run build`: Build all packages
-- `pnpm run test`: Run all tests
-- `pnpm run lint`: Lint all code
-
-### Linting and Formatting
-
-- `eslint.config.mjs`: ESLint configuration
-- `.prettierrc.json`: Prettier formatting rules
-- `.editorconfig`: Editor configuration
-
-### Git and CI/CD
-
-- `.github/workflows/`: GitHub Actions workflows
-- `.husky/`: Git hooks for pre-commit checks
-- `commitlint.config.mjs`: Commit message linting
-
-## 📊 Dependency Graph
-
-### Build Order
-
-Packages must be built in dependency order:
-
-```
-1. @ibimina/core       (no dependencies)
-   ↓
-2. @ibimina/config     (depends on: core)
-   ↓
-3. @ibimina/lib        (depends on: core, config)
-   ↓
-4. @ibimina/ui         (depends on: core)
-   ↓
-5. @ibimina/testing    (depends on: all above)
-   ↓
-6. Applications        (depend on: all packages)
-   - apps/admin
-   - apps/client
-   - apps/platform-api
-```
-
-### Inter-Package Dependencies
-
-```
-apps/admin
-  ├── @ibimina/config
-  ├── @ibimina/core
-  ├── @ibimina/lib
-  └── @ibimina/ui
-
-apps/client
-  ├── @ibimina/config
-  ├── @ibimina/core
-  ├── @ibimina/lib
-  └── @ibimina/ui
-
-apps/platform-api
-  ├── @ibimina/config
-  ├── @ibimina/core
-  └── @ibimina/lib
-
-@ibimina/lib
-  ├── @ibimina/config
-  └── @ibimina/core
-
-@ibimina/ui
-  └── @ibimina/core
-
-@ibimina/config
-  └── @ibimina/core
-
-@ibimina/testing
-  ├── @ibimina/config
-  ├── @ibimina/core
-  ├── @ibimina/lib
-  └── @ibimina/ui
-```
-
-## 🚀 Build and Deployment Flow
-
-### Development
-
-```bash
-# 1. Install dependencies
-pnpm install
-
-# 2. Build shared packages
-pnpm --filter @ibimina/core run build
-pnpm --filter @ibimina/config run build
-pnpm --filter @ibimina/lib run build
-pnpm --filter @ibimina/ui run build
-
-# 3. Start development server
-pnpm --filter @ibimina/admin run dev
-```
-
-### Production Build
-
-```bash
-# Build all packages in correct order
-pnpm -r run build
-
-# This internally runs:
-# 1. packages/core build
-# 2. packages/config build
-# 3. packages/lib build
-# 4. packages/ui build
-# 5. packages/testing build
-# 6. apps/admin build
-# 7. apps/client build
-# 8. apps/platform-api build
-```
-
-### Deployment
-
-1. Build artifacts: `.next/` directories in each app
-2. Static assets: `public/` directories
-3. Server: Node.js runtime (Next.js server)
-4. Database: Supabase (PostgreSQL + Edge Functions)
-
-## 📝 File Naming Conventions
-
-### TypeScript Files
-
-- Components: `PascalCase.tsx` (e.g., `UserProfile.tsx`)
-- Utilities: `camelCase.ts` (e.g., `formatDate.ts`)
-- Types: `types.ts` or `ComponentName.types.ts`
-- Tests: `ComponentName.test.tsx` or `util.test.ts`
-
-### Directories
-
-- Components: `components/`
-- Hooks: `hooks/`
-- Utilities: `lib/` or `utils/`
-- Types: `types/`
-- Tests: `tests/` or `__tests__/`
-
-## 🔍 Finding Code
-
-### By Feature
-
-- **Authentication**: `apps/admin/src/app/(auth)/`
-- **Dashboard**: `apps/admin/src/app/(dashboard)/`
-- **API Routes**: `apps/*/src/app/api/`
-- **Components**: `apps/*/src/components/` or `packages/ui/src/components/`
-
-### By Concern
-
-- **Security**: `packages/lib/src/security/`
-- **Database**: `supabase/migrations/`
-- **Configuration**: `packages/config/src/env.ts`
-- **Monitoring**: `infra/metrics/`
-
-## 📊 Statistics
-
-**Monorepo Composition**:
-
-- **3** Applications
-- **5** Shared Packages
-- **32** Supabase Edge Functions
-- **50+** Database Migrations
-- **1000+** Dependencies (via pnpm)
-
-**Lines of Code** (approximate):
-
-- TypeScript: ~50,000 lines
-- SQL: ~5,000 lines
-- Configuration: ~2,000 lines
-
-## 🔗 Related Documentation
-
-- [Ground Rules](GROUND_RULES.md) - Mandatory best practices
-- [Quick Reference](QUICK_REFERENCE.md) - Common commands
-- [CI Workflows](CI_WORKFLOWS.md) - CI/CD documentation
-- [Database Guide](DB_GUIDE.md) - Database procedures
-
-## 🤝 Contributing
-
-When adding new packages or services:
-
-1. Update `pnpm-workspace.yaml` if needed
-2. Add TypeScript path mapping to `tsconfig.base.json`
-3. Document dependencies in this file
-4. Update build order if dependencies change
-5. Add to CI/CD workflows if needed
-
----
-
-**Last Updated**: 2025-10-29  
-**Maintainers**: Development Team  
-**Questions?** Open an issue or discussion.
+### 1. Staff Console — `apps/admin`
+
+- **Framework**: Next.js 16 App Router with Node runtime (PWA
+  enabled).【F:apps/admin/package.json†L1-L78】【F:apps/admin/app/manifest.ts†L1-L40】
+- **Primary capabilities**:
+  - Auth & MFA flows under `app/(auth)` including passkeys, TOTP, and trusted
+    devices.【F:apps/admin/app/(auth)/login/page.tsx†L1-L160】【F:apps/admin/app/api/device-auth/challenge/route.ts†L1-L120】
+  - SACCO operations dashboards, reconciliation, Ikimina management, and
+    reporting from `app/(main)` route
+    groups.【F:apps/admin/app/(main)/dashboard/page.tsx†L1-L120】【F:apps/admin/app/(main)/reconciliation/page.tsx†L1-L200】
+  - Installable PWA with custom manifest, service worker, and offline
+    fallback.【F:apps/admin/app/manifest.ts†L1-L40】【F:apps/admin/workers/service-worker.ts†L1-L220】【F:apps/admin/app/offline/page.tsx†L1-L80】
+- **Key directories**:
+  - `components/` — shared UI (Glass cards, gradient headers, data tables).
+  - `lib/` — auth guards, Supabase clients, logging, auditing
+    utilities.【F:apps/admin/lib/auth.ts†L1-L200】【F:apps/admin/lib/observability/logger.ts†L1-L170】
+  - `providers/` — analytics, feature flags, and error boundaries.
+  - `tests/` — unit, RLS, Playwright E2E, and observability checks.
+
+### 2. Member PWA — `apps/client`
+
+- **Framework**: Next.js 15 App Router, optimized for mobile-first browsing and
+  installability.【F:apps/client/package.json†L1-L82】
+- **Key experiences**:
+  - Guided onboarding, locale-aware welcome, and account activation under
+    `app/(auth)`
+    routes.【F:apps/client/app/(auth)/welcome/page.tsx†L1-L120】【F:apps/client/app/(auth)/onboard/page.tsx†L1-L180】
+  - Group discovery, payment instructions, and offline messaging under
+    `app/(main)` and supporting
+    routes.【F:apps/client/app/groups/page.tsx†L1-L200】【F:apps/client/app/pay-sheet/page.tsx†L1-L160】
+  - PWA manifest + service worker for offline-first
+    experience.【F:apps/client/app/manifest.ts†L1-L40】【F:apps/client/workers/service-worker.ts†L1-L210】
+- **Security**: only Supabase anon key, all data behind RLS policies enforced
+  via the shared Supabase
+  client.【F:apps/client/lib/supabase/client.ts†L1-L120】
+
+### 3. Native Mobile App — `apps/mobile`
+
+- **Framework**: Expo 52 / React Native 0.76 using Expo Router and
+  NativeWind.【F:apps/mobile/package.json†L1-L72】
+- **Features**: bottom tab navigation, one-tap MoMo payments, statements, and
+  offers implemented via Expo Router routes in `app/(tabs)` and supporting
+  providers in `src/` for Zustand state, React Query, analytics, and feature
+  flags.【F:apps/mobile/app/(tabs)/home.tsx†L1-L200】【F:apps/mobile/src/providers/app.tsx†L1-L160】
+- **Release hooks**: deep linking, Sentry, PostHog, ConfigCat, and EAS project
+  metadata defined in `app.config.ts` and `package.json` scripts for Expo start
+  and
+  testing.【F:apps/mobile/app.config.ts†L1-L80】【F:apps/mobile/package.json†L1-L72】
+
+### 4. Platform Workers — `apps/platform-api`
+
+- **Runtime**: TypeScript workers orchestrated through a CLI entry point that
+  runs payment polling and GSM heartbeats
+  (`pnpm --filter @ibimina/platform-api run build && node dist/...`).【F:apps/platform-api/src/index.ts†L1-L26】
+- **Responsibilities**:
+  - `runMomoPoller` ingests mobile money statements into Supabase queues for
+    reconciliation
+    automation.【F:apps/platform-api/src/workers/momo-poller.ts†L1-L200】
+  - `runGsmHeartbeat` monitors SMS modem availability and updates the operations
+    log.【F:apps/platform-api/src/workers/gsm-heartbeat.ts†L1-L160】
+  - Integration and performance suites under `tests/` ensure idempotent jobs and
+    alerting contract
+    coverage.【F:apps/platform-api/tests/integration/reconciliation.test.ts†L1-L180】
+
+### Additional Surfaces
+
+The monorepo also includes legacy wrappers (`apps/android-auth`, `apps/ios`),
+the marketing site (`apps/website`), and white-label builds such as
+`sacco-plus-client`. They consume the same shared packages and Supabase APIs and
+inherit deployment tooling defined at the workspace
+root.【F:apps/android-auth/package.json†L1-L40】【F:apps/website/package.json†L1-L60】
+
+## 🧩 Shared Packages (`packages/`)
+
+Shared packages provide consistent primitives across surfaces:
+
+| Package                | Purpose                                                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| `@ibimina/config`      | Runtime configuration, environment schema, feature flags.【F:packages/config/src/index.ts†L1-L200】      |
+| `@ibimina/ui`          | Design system and Tailwind presets for web frontends.【F:packages/ui/src/index.ts†L1-L160】              |
+| `@ibimina/locales`     | i18n catalogs (EN/Kinyarwanda/French) shared across apps.【F:packages/locales/src/index.ts†L1-L140】     |
+| `@ibimina/data-access` | Typed Supabase queries and repository helpers.【F:packages/data-access/src/index.ts†L1-L180】            |
+| `@ibimina/providers`   | Cross-app React providers (analytics, feature flags, auth).【F:packages/providers/src/index.ts†L1-L160】 |
+| `@ibimina/testing`     | Jest/Playwright test harness utilities.【F:packages/testing/src/index.ts†L1-L200】                       |
+| `@ibimina/ai-agent`    | Agent orchestrations for SMS parsing and support automation.【F:packages/ai-agent/src/index.ts†L1-L220】 |
+
+Packages are published locally via pnpm workspaces; each app lists them as
+`workspace:*` dependencies to ensure a single source of
+truth.【F:apps/admin/package.json†L51-L79】【F:apps/client/package.json†L49-L78】【F:apps/mobile/package.json†L13-L68】
+
+## 🗄️ Data & Backend (`supabase/`)
+
+- **Migrations**: SQL migrations in `supabase/migrations` define Postgres
+  schema, RLS policies, triggers, cron schedules, and metrics views. Apply them
+  with `supabase migration up --linked --include-all` as part of bootstrap.
+- **Edge Functions**: The `supabase/functions/` directory houses Deno functions
+  for anomaly detection, reconciliation, SMS parsing, and webhook
+  dispatch.【F:supabase/functions/metrics-anomaly-detector/index.ts†L1-L260】【F:supabase/functions/reconcile/index.ts†L1-L200】
+- **Testing**: RLS and API contracts validated through `apps/admin/tests/rls`
+  and `supabase/tests` to guarantee permissions
+  coverage.【F:apps/admin/tests/rls/memberships.test.ts†L1-L160】
+
+## 🔄 Automation & Tooling
+
+- Root scripts (`pnpm run check:deploy`, `pnpm run release`) orchestrate
+  linting, type checking, multi-surface tests, bundle verification, and
+  production deploys to Vercel using the shared Makefile
+  wrappers.【F:package.json†L6-L76】【F:Makefile†L1-L104】
+- Git hooks via Husky enforce formatting and linting on staged files before
+  commits land.【F:package.json†L77-L102】
+- CI workflows mirror the same commands so local runs match pipeline behavior.
+
+Use this document as the canonical map when planning changes: it links each
+business capability to the Next.js routes, React Native screens, or worker jobs
+that implement it.

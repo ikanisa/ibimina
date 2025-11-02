@@ -264,9 +264,9 @@ main() {
   
   check_file_exists "README.md" "README"
   check_file_exists "DEPLOYMENT_CHECKLIST.md" "Deployment checklist"
-  check_file_exists "PRODUCTION_CHECKLIST.md" "Production checklist"
+  check_file_exists "docs/go-live/production-checklist.md" "Production checklist"
   check_file_exists "CHANGELOG.md" "Changelog"
-  check_file_exists "docs/go-live-checklist.md" "Go-live checklist"
+  check_file_exists "docs/go-live/supabase-go-live-checklist.md" "Go-live checklist"
   
   # 8. Check monitoring and observability
   print_header "Monitoring & Observability"
@@ -327,7 +327,7 @@ main() {
     echo -e "${YELLOW}⚠ Please review warnings and complete manual checklist items.${NC}"
     echo ""
     echo "Next steps:"
-    echo "1. Review PRODUCTION_CHECKLIST.md"
+    echo "1. Review docs/go-live/production-checklist.md"
     echo "2. Ensure all environment variables are set"
     echo "3. Run: pnpm run check:deploy"
     echo "4. Deploy Supabase migrations and functions"

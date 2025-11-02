@@ -8,27 +8,26 @@ procedures, see the full documentation.
 
 ## 📚 Documentation Index
 
-| Document                                                       | Purpose                          | When to Use                        |
-| -------------------------------------------------------------- | -------------------------------- | ---------------------------------- |
-| [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md)          | Comprehensive go-live checklist  | Before every production deployment |
-| [DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)          | Standard release procedures      | Regular deployments and releases   |
-| [POST_DEPLOYMENT_VALIDATION.md](POST_DEPLOYMENT_VALIDATION.md) | Post-deploy verification         | Immediately after each deployment  |
-| [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md)                   | Emergency procedures             | During incidents and disasters     |
-| [SECURITY_HARDENING.md](SECURITY_HARDENING.md)                 | Security configuration checklist | During initial setup and audits    |
-| [go-live-checklist.md](go-live-checklist.md)                   | Supabase-specific setup          | Initial Supabase configuration     |
+| Document                                                                       | Purpose                          | When to Use                        |
+| ------------------------------------------------------------------------------ | -------------------------------- | ---------------------------------- |
+| [docs/go-live/production-checklist.md](go-live/production-checklist.md)        | Comprehensive go-live checklist  | Before every production deployment |
+| [DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)                          | Standard release procedures      | Regular deployments and releases   |
+| [POST_DEPLOYMENT_VALIDATION.md](POST_DEPLOYMENT_VALIDATION.md)                 | Post-deploy verification         | Immediately after each deployment  |
+| [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md)                                   | Emergency procedures             | During incidents and disasters     |
+| [SECURITY_HARDENING.md](SECURITY_HARDENING.md)                                 | Security configuration checklist | During initial setup and audits    |
+| [go-live/supabase-go-live-checklist.md](go-live/supabase-go-live-checklist.md) | Supabase-specific setup          | Initial Supabase configuration     |
 
 ## 🚀 Quick Start: First Production Deployment
 
 ### Step 1: Pre-Flight Checks (30 minutes)
 
 ```bash
-# Run automated validation
-pnpm run validate:production
+# Fast path validation for new environments
+make quickstart           # install deps, lint, typecheck, test, build
 
-# Run comprehensive deployment checks
-pnpm run check:deploy
-# or
-make ready
+# Run comprehensive deployment checks (mirrors CI)
+pnpm run validate:production
+pnpm run check:deploy     # or `make ready`
 ```
 
 ### Step 2: Review Checklists (60 minutes)
@@ -40,13 +39,15 @@ make ready
    - Enable audit logging
 
 2. **Infrastructure**: Check
-   [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md) Sections 6-8
+   [docs/go-live/production-checklist.md](go-live/production-checklist.md)
+   Sections 6-8
    - Server provisioned
    - SSL configured
    - Reverse proxy set up
    - Firewall configured
 
-3. **Database**: Review [go-live-checklist.md](go-live-checklist.md)
+3. **Database**: Review
+   [go-live/supabase-go-live-checklist.md](go-live/supabase-go-live-checklist.md)
    - Migrations applied
    - Secrets set in Supabase
    - Edge functions deployed
@@ -55,23 +56,19 @@ make ready
 ### Step 3: Deploy (30-60 minutes)
 
 ```bash
-# 1. Tag the release
+# 1. Tag the release (optional but recommended)
 git tag -a v1.0.0 -m "Production release v1.0.0"
 git push --tags
 
-# 2. Build the application
-pnpm install --frozen-lockfile
-pnpm run build
+# 2. Ensure Vercel CLI is authenticated (one-time per developer)
+pnpm exec vercel login
+pnpm exec vercel link --cwd apps/admin
 
-# 3. Deploy (method varies by infrastructure)
-# Docker:
-docker-compose up -d
+# 3. Execute the release pipeline (runs tests + deploys to Vercel)
+pnpm run release           # or `make release`
 
-# PM2:
-pm2 start ecosystem.config.js
-
-# Systemd:
-sudo systemctl start ibimina-admin
+# For a dry-run preview deployment
+pnpm run preview:vercel    # or `make preview-vercel`
 ```
 
 ### Step 4: Validate (30-45 minutes)
@@ -94,36 +91,42 @@ curl https://your-domain.com/api/health
 ### Development
 
 ```bash
-pnpm dev                    # Start dev server
-pnpm build                  # Production build (Expected: ~5s cached, ~2min fresh)
-pnpm start                  # Start production server
+pnpm dev                    # Start staff console dev server
+make dev                    # Same as above via Makefile
+pnpm build                  # Production build (≈5s cached, ≈2m cold)
+pnpm start                  # Start production server locally
+pnpm --filter @ibimina/client run dev   # Member PWA dev server
+pnpm --filter @ibimina/mobile run start # Expo development server
 ```
 
 ### Testing
 
 ```bash
-pnpm run lint              # Lint code (Expected: ~8s)
-pnpm run typecheck         # Type check (Expected: ~12s)
-pnpm run test              # All tests (Expected: 84 tests pass in ~6s)
-pnpm run test:unit         # Unit tests only (Expected: ~6s)
-pnpm run test:e2e          # E2E tests (Expected: ~30s)
-pnpm run test:rls          # RLS tests (Expected: ~10s)
-pnpm run test:auth         # Auth security tests (Expected: ~5s)
+make lint                  # ESLint across workspace (≈8s)
+make typecheck             # TypeScript project references (≈12s)
+make test                  # Aggregated unit + integration suites (≈6s)
+make test-unit             # Unit tests only
+make test-e2e              # Playwright suite (~30s, headless)
+make test-rls              # Supabase RLS assertions (~10s)
+make test-auth             # Auth hardening checks (~5s)
+pnpm --filter @ibimina/mobile run test   # Mobile Jest suite
 ```
 
 ### Validation
 
 ```bash
-pnpm run validate:production  # Production readiness check (Expected: ~30s)
-pnpm run check:deploy        # Comprehensive deployment check (Expected: ~5-7min)
-make ready                   # Same as check:deploy
+pnpm run validate:production  # Production readiness check (≈30s)
+pnpm run check:deploy        # Comprehensive deployment check (≈5-7m)
+make ready                   # Makefile wrapper for `pnpm run check:deploy`
+pnpm run release -- --dry-run # Execute release pipeline without final deploy
 ```
 
 ### Package Management
 
 ```bash
-pnpm install               # Install dependencies (Expected: ~62s fresh, ~15s cached)
-pnpm -r run build          # Build all packages in order (Expected: ~90s fresh)
+pnpm install --frozen-lockfile  # Install dependencies (≈60s fresh, ≈15s cached)
+make bootstrap                  # Install + regenerate Supabase types
+pnpm -r run build               # Build all packages in dependency order
 ```
 
 ### Supabase
@@ -133,13 +136,15 @@ pnpm -r run build          # Build all packages in order (Expected: ~90s fresh)
 supabase link --project-ref $SUPABASE_PROJECT_REF
 
 # Apply migrations
-supabase migration up --linked --include-all
+supabase migration up --linked --include-all --yes
 
 # Set secrets
 supabase secrets set --env-file supabase/.env.production
 
-# Deploy functions
-./apps/admin/scripts/supabase-go-live.sh deploy-functions
+# Deploy and schedule functions
+pnpm --filter @ibimina/admin run deploy:function:reconcile
+supabase functions deploy metrics-anomaly-detector
+supabase functions schedule metrics-anomaly-detector "*/5 * * * *"
 ```
 
 ## 🔑 Required Environment Variables
@@ -331,7 +336,7 @@ Monitor these metrics post-deployment:
 
 ## 📋 Pre-Deployment Checklist Summary
 
-From [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md):
+From [docs/go-live/production-checklist.md](go-live/production-checklist.md):
 
 1. ✅ Code Quality & Security
 2. 🔧 Environment Configuration

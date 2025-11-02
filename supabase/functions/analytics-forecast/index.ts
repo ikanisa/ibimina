@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -137,7 +138,7 @@ const determineRiskLevel = (ratio: number, lastContribution: Date | null) => {
   return "LOW" as RiskLevel;
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("analytics-forecast", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

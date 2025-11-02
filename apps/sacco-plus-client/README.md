@@ -1,12 +1,14 @@
 # SACCO Plus Client
 
-A mobile application built with Expo and React Native for SACCO (Savings and Credit Cooperative) services.
+A mobile application built with Expo and React Native for SACCO (Savings and
+Credit Cooperative) services.
 
 ## Setup
 
 This app has been configured with all required navigation and UI dependencies:
 
 ### Navigation Dependencies
+
 - `@react-navigation/native` - Core navigation library
 - `@react-navigation/native-stack` - Native stack navigator
 - `@react-navigation/bottom-tabs` - Bottom tab navigator
@@ -16,6 +18,7 @@ This app has been configured with all required navigation and UI dependencies:
 - `react-native-reanimated` - Animation library
 
 ### Visual Dependencies
+
 - `expo-linear-gradient` - Linear gradient support
 - `expo-blur` - Blur effects
 - `@expo/vector-icons` - Icon library
@@ -24,25 +27,27 @@ This app has been configured with all required navigation and UI dependencies:
 ## Configuration
 
 ### Babel Configuration
+
 The `babel.config.js` includes the Reanimated plugin as required:
 
 ```javascript
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo'],
-    plugins: ['react-native-reanimated/plugin'],
+    presets: ["babel-preset-expo"],
+    plugins: ["react-native-reanimated/plugin"],
   };
 };
 ```
 
 ### Entry Point
+
 The `index.js` imports `react-native-gesture-handler` first, as required:
 
 ```javascript
-import 'react-native-gesture-handler';
-import { registerRootComponent } from 'expo';
-import App from './App';
+import "react-native-gesture-handler";
+import { registerRootComponent } from "expo";
+import App from "./App";
 registerRootComponent(App);
 ```
 
@@ -65,6 +70,7 @@ npm run web
 ## Demo Features
 
 The current `App.js` includes a demo that showcases all installed dependencies:
+
 - Navigation with Stack and Tab navigators
 - Animated components with Reanimated
 - Linear gradients
@@ -79,7 +85,7 @@ apps/sacco-plus-client/
 ├── App.js              # Main app component with demo
 ├── index.js            # Entry point (imports gesture-handler first)
 ├── babel.config.js     # Babel config with Reanimated plugin
-├── app.json            # Expo configuration
+├── app.config.js       # Expo configuration with environment support
 ├── package.json        # Dependencies
 └── assets/             # App assets (icons, splash screens)
 ```
@@ -91,3 +97,24 @@ apps/sacco-plus-client/
 3. Add authentication flows
 4. Integrate with backend APIs
 5. Add offline support as needed
+
+## Environment
+
+Set the following environment variables when building with EAS:
+
+```bash
+# Expo project identifiers
+EAS_PROJECT_ID=your-eas-project-id
+EAS_PROJECT_ID_SACCO=your-eas-project-id
+
+# Bundle identifiers
+IOS_BUNDLE_IDENTIFIER=com.ibimina.saccoplus
+ANDROID_APPLICATION_ID=rw.ibimina.saccoplus
+
+# API configuration (optional)
+EXPO_PUBLIC_API_BASE_URL=https://api.ibimina.rw
+EXPO_PUBLIC_API_BASE_URL_SACCO=https://api.ibimina.rw
+```
+
+`EAS_PROJECT_ID` is used locally by the Expo CLI, while `EAS_PROJECT_ID_SACCO`
+is injected automatically from the EAS build profiles.

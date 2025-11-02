@@ -246,7 +246,7 @@ export function generateUssdCode(
   return payload.code;
 }
 
-export interface BuildPlatformPayloadOptions extends Omit<BuildUssdPayloadInput, "platform"> {}
+export type BuildPlatformPayloadOptions = Omit<BuildUssdPayloadInput, "platform">;
 
 export function buildPlatformPayloads(options: BuildPlatformPayloadOptions): {
   android: UssdPayload;

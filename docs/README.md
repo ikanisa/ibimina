@@ -18,6 +18,14 @@ operations in Rwanda. The platform consists of multiple applications:
 This release includes final enhancements, accessibility improvements, and
 additional features to ensure production readiness.
 
+### Launch Resources
+
+- [Go-Live documentation hub](go-live/README.md)
+- [Release checklist](go-live/release-checklist.md)
+- [Release artifacts inventory](go-live/artifacts-inventory.md)
+- [Release governance & branch protection](go-live/release-governance.md)
+- [CI workflows overview](CI_WORKFLOWS.md)
+
 ## Key Features
 
 ### Web Push Notifications

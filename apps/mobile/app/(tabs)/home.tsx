@@ -13,7 +13,7 @@ import mockApi from "../../src/mocks";
 
 export default function HomeScreen() {
   const intl = useIntl();
-  
+
   const { data: groups, isLoading: groupsLoading } = useQuery({
     queryKey: ["groups"],
     queryFn: mockApi.getGroups,
@@ -33,15 +33,18 @@ export default function HomeScreen() {
       <LinearGradient colors={[colors.ink[900], colors.ink[800]]} style={styles.gradient}>
         <HeaderGradient
           title={intl.formatMessage({ id: "home.greeting", defaultMessage: "Hello" })}
-          subtitle={intl.formatMessage({ id: "home.subtitle", defaultMessage: "Track your savings in real time" })}
+          subtitle={intl.formatMessage({
+            id: "home.subtitle",
+            defaultMessage: "Track your savings in real time",
+          })}
         />
-        
+
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Groups Section */}
           <Text style={styles.sectionTitle}>
             {intl.formatMessage({ id: "home.groups", defaultMessage: "Your groups" })}
           </Text>
-          
+
           {groupsLoading ? (
             <Text style={styles.loadingText}>Loading...</Text>
           ) : (
@@ -58,7 +61,8 @@ export default function HomeScreen() {
                 <Text style={styles.cardSubtitle}>{group.description}</Text>
                 <View style={styles.cardFooter}>
                   <Text style={styles.cardInfo}>
-                    {group.memberCount} members • {(group.totalSavings / 1000).toFixed(0)}K {group.currency}
+                    {group.memberCount} members • {(group.totalSavings / 1000).toFixed(0)}K{" "}
+                    {group.currency}
                   </Text>
                   {!group.joined && (
                     <TouchableOpacity style={styles.joinButton}>
@@ -76,7 +80,7 @@ export default function HomeScreen() {
           <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>
             {intl.formatMessage({ id: "home.statements", defaultMessage: "Recent statements" })}
           </Text>
-          
+
           {statementsLoading ? (
             <Text style={styles.loadingText}>Loading...</Text>
           ) : (

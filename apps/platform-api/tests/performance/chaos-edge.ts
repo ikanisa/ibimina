@@ -148,7 +148,7 @@ const scenarios = (): ChaosScenario[] => {
       name: "oversized-payload",
       path: "ingest-sms",
       payload: {
-        rawText: "DEPOSIT " + "1".repeat(4096),
+        rawText: `DEPOSIT ${"1".repeat(4096)}`,
         receivedAt: new Date().toISOString(),
         saccoId,
         vendorMeta: { fuzz: randomUUID() },
