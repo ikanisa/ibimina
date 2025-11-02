@@ -222,9 +222,151 @@ export type Database = {
         };
         Relationships: [];
       };
+      partner_config: {
+        Row: {
+          org_id: string;
+          enabled_features: string[] | null;
+          merchant_code: string | null;
+          telco_ids: string[] | null;
+          language_pack: string[] | null;
+          reference_prefix: string | null;
+          contact: Json | null;
+        };
+        Insert: {
+          org_id: string;
+          enabled_features?: string[] | null;
+          merchant_code?: string | null;
+          telco_ids?: string[] | null;
+          language_pack?: string[] | null;
+          reference_prefix?: string | null;
+          contact?: Json | null;
+        };
+        Update: {
+          org_id?: string;
+          enabled_features?: string[] | null;
+          merchant_code?: string | null;
+          telco_ids?: string[] | null;
+          language_pack?: string[] | null;
+          reference_prefix?: string | null;
+          contact?: Json | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "partner_config_org_id_fkey";
+            columns: ["org_id"];
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      member_reference_tokens: {
+        Row: {
+          token: string | null;
+          group_id: string | null;
+          group_name: string | null;
+          sacco_id: string | null;
+          expires_at: string | null;
+          created_at: string | null;
+        };
+        Insert: {
+          token?: string | null;
+          group_id?: string | null;
+          group_name?: string | null;
+          sacco_id?: string | null;
+          expires_at?: string | null;
+          created_at?: string | null;
+        };
+        Update: {
+          token?: string | null;
+          group_id?: string | null;
+          group_name?: string | null;
+          sacco_id?: string | null;
+          expires_at?: string | null;
+          created_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "member_reference_tokens_group_id_fkey";
+            columns: ["group_id"];
+            referencedRelation: "ibimina";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "member_reference_tokens_sacco_id_fkey";
+            columns: ["sacco_id"];
+            referencedRelation: "saccos";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      allocations: {
+        Row: {
+          id: string;
+          reference_token: string | null;
+          amount: number;
+          currency: string | null;
+          status: string | null;
+          momo_txn_id: string | null;
+          posted_at: string | null;
+          created_at: string | null;
+          group_id: string | null;
+          group_name: string | null;
+          msisdn: string | null;
+          narration: string | null;
+        };
+        Insert: {
+          id?: string;
+          reference_token?: string | null;
+          amount?: number;
+          currency?: string | null;
+          status?: string | null;
+          momo_txn_id?: string | null;
+          posted_at?: string | null;
+          created_at?: string | null;
+          group_id?: string | null;
+          group_name?: string | null;
+          msisdn?: string | null;
+          narration?: string | null;
+        };
+        Update: {
+          id?: string;
+          reference_token?: string | null;
+          amount?: number;
+          currency?: string | null;
+          status?: string | null;
+          momo_txn_id?: string | null;
+          posted_at?: string | null;
+          created_at?: string | null;
+          group_id?: string | null;
+          group_name?: string | null;
+          msisdn?: string | null;
+          narration?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "allocations_group_id_fkey";
+            columns: ["group_id"];
+            referencedRelation: "ibimina";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
-      [_ in never]: never;
+      member_profiles_public: {
+        Row: {
+          id: string | null;
+          full_name: string | null;
+          primary_msisdn: string | null;
+          whatsapp_msisdn: string | null;
+          momo_msisdn: string | null;
+          locale: string | null;
+          avatar_url: string | null;
+          reference_token: string | null;
+          created_at: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       search_saccos: {

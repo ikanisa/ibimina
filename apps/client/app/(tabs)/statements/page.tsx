@@ -1,26 +1,16 @@
 /**
  * Statements Page - Allocation-Based Transaction History
- *
- * Displays member's transaction statements with filtering and PDF export.
- * Shows only transactions that match the user's reference tokens (RLS enforced).
- *
- * Features:
- * - Allocation-based entries filtered by reference token
- * - Month filters (This Month, Last Month, Custom)
- * - Status badges (CONFIRMED, PENDING)
- * - PDF export per period
- * - Summary statistics
  */
 
 import dynamic from "next/dynamic";
 
 import type { StatementEntry } from "@/components/statements/statements-table";
-import { mockStatements } from "@/utils/mock";
+import { loadStatements } from "@/lib/data/statements";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const StatementsTable = dynamic(
   () => import("@/components/statements/statements-table").then((mod) => mod.StatementsTable),
   {
-    // Using a lightweight skeleton improves perceived performance and CLS while the heavy table code loads.
     loading: () => (
       <div className="rounded-2xl border border-neutral-200 bg-white p-6">
         <div className="mb-4 h-6 w-48 animate-pulse rounded bg-neutral-200" aria-hidden="true" />
@@ -56,28 +46,34 @@ export const metadata = {
   description: "View your transaction history and statements",
 };
 
-// Mock data - replace with actual data fetching from Supabase
-// Query should be scoped to user's reference tokens via RLS
-async function getStatements(): Promise<StatementEntry[]> {
-  // TODO: Fetch allocations scoped by user's reference_token(s)
-  // SELECT * FROM allocations WHERE reference_token IN (user's tokens) ORDER BY date DESC
-  return mockStatements;
+async function exportStatements(period: string) {
+  "use server";
+
+  const supabase = await createSupabaseServerClient();
+  try {
+    await supabase.functions.invoke("export-report", {
+      body: {
+        report: "member_allocations",
+        format: "pdf",
+        period,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to request statement export", error);
+    throw new Error("We could not start the export. Please try again later.");
+  }
 }
 
 export default async function StatementsPage() {
-  const statements = await getStatements();
+  const data = await loadStatements();
 
   const handleExportPDF = async (period: string) => {
     "use server";
-    // TODO: Generate PDF export server-side
-    console.log(`Exporting PDF for period: ${period}`);
-    // Use pdfmake or server-side HTML->PDF API
-    // Return signed URL for download with watermark "For personal use only"
+    await exportStatements(period);
   };
 
   return (
     <div className="min-h-screen bg-neutral-50 pb-20">
-      {/* Header */}
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="mx-auto max-w-screen-xl px-4 py-6">
           <h1 className="text-2xl font-bold text-neutral-900">My Statements</h1>
@@ -88,7 +84,7 @@ export default async function StatementsPage() {
       </header>
 
       <main className="mx-auto max-w-screen-xl px-4 py-6">
-        {statements.length === 0 ? (
+        {data.entries.length === 0 ? (
           <div className="rounded-2xl border border-neutral-200 bg-white p-12 text-center">
             <svg
               className="mx-auto mb-4 h-16 w-16 text-neutral-400"
@@ -110,39 +106,35 @@ export default async function StatementsPage() {
             </p>
           </div>
         ) : (
-          <StatementsTable entries={statements} onExportPDF={handleExportPDF} />
+          <StatementsTable entries={data.entries as StatementEntry[]} onExportPDF={handleExportPDF} />
         )}
 
-        {/* Help Section */}
         <div className="mt-8 rounded-2xl border border-atlas-blue/20 bg-atlas-glow p-6">
-          <h2 className="mb-3 text-base font-bold text-atlas-blue-dark">About Your Statements</h2>
+          <h2 className="mb-3 text-base font-bold text-atlas-blue-dark">About your statements</h2>
           <ul className="space-y-2 text-sm text-neutral-700">
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>Confirmed:</strong> Payments that have been verified and allocated to your
-                account
+                <strong>Confirmed:</strong> Payments that have been verified and allocated to your account
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>Pending:</strong> Recent payments waiting for confirmation from mobile money
-                provider
+                <strong>Pending:</strong> Recent payments waiting for confirmation from mobile money provider
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
-                <strong>Reference Code:</strong> Each transaction is linked to your unique reference
-                code
+                <strong>Reference code:</strong> Each transaction is linked to your unique reference
+                token
               </span>
             </li>
             <li className="flex items-start gap-2">
               <span className="font-bold">•</span>
               <span>
                 <strong>Export PDF:</strong> Download your statements for personal records
-                (watermarked)
               </span>
             </li>
           </ul>

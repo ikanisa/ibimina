@@ -14,7 +14,7 @@
 
 "use client";
 
-import { Home, Users, CreditCard, FileText, User, Wallet, HandCoins } from "lucide-react";
+import { Home, Users, CreditCard, FileText, User, Wallet, HandCoins, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
@@ -66,6 +66,13 @@ const ALL_NAV_ITEMS: NavItem[] = [
     icon: FileText,
     label: "Statements",
     ariaLabel: "Navigate to statements page",
+  },
+  {
+    href: "/offers",
+    icon: Sparkles,
+    label: "Offers",
+    ariaLabel: "Navigate to offers page",
+    featureFlag: "offers-enabled",
   },
   {
     href: "/profile",
