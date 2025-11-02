@@ -12,22 +12,7 @@ import { __setRateLimitClientFactoryForTests } from "@/lib/rate-limit";
 const createSupabaseStub = () => {
   const profile = {
     lang: "rw",
-    whatsapp_msisdn: "+250788123456",
-    momo_msisdn: "+250788654321",
   };
-
-  const sacco = {
-    sacco_id: "sacco-123",
-    saccos: {
-      name: "Ikimina Coop",
-      metadata: { country: "RW" },
-    },
-  };
-
-  const groups = [
-    { id: "group-1", name: "Twiteze Imbere", status: "ACTIVE" },
-    { id: "group-2", name: "Abishyizehamwe", status: "INACTIVE" },
-  ];
 
   const builderForProfile = {
     select() {
@@ -44,42 +29,6 @@ const createSupabaseStub = () => {
     },
   } as const;
 
-  const builderForSacco = {
-    select() {
-      return this;
-    },
-    eq() {
-      return this;
-    },
-    order() {
-      return this;
-    },
-    limit() {
-      return this;
-    },
-    async maybeSingle() {
-      return { data: sacco, error: null };
-    },
-    async single() {
-      return { data: sacco, error: null };
-    },
-  } as const;
-
-  const builderForGroups = {
-    select() {
-      return this;
-    },
-    eq() {
-      return this;
-    },
-    order() {
-      return this;
-    },
-    async limit(count: number) {
-      return { data: groups.slice(0, count), error: null };
-    },
-  } as const;
-
   return {
     auth: {
       async getUser() {
@@ -89,18 +38,24 @@ const createSupabaseStub = () => {
         };
       },
     },
-    async rpc() {
-      return { data: true, error: null };
+    async rpc(functionName: string) {
+      if (functionName === "agent_resolve_org_scope") {
+        return {
+          data: [{ org_id: "org-123", org_name: "Ikimina Coop", country_code: "RW" }],
+          error: null,
+        };
+      }
+      if (functionName === "agent_reference_generate") {
+        return {
+          data: [{ token: "RWA.NYA.IBI.0001.123", expires_at: "2025-02-16T12:00:00Z" }],
+          error: null,
+        };
+      }
+      return { data: null, error: null };
     },
     from(table: string) {
       if (table === "members_app_profiles") {
         return builderForProfile;
-      }
-      if (table === "user_saccos") {
-        return builderForSacco;
-      }
-      if (table === "ibimina") {
-        return builderForGroups;
       }
       throw new Error(`Unexpected table ${table}`);
     },
@@ -139,7 +94,6 @@ describe("agent chat API", () => {
         call += 1;
         return createSseResponse([
           JSON.stringify({ type: "response.created", response: { id: "resp_1" } }),
-          JSON.stringify({ type: "response.output_text.delta", delta: { text: "Muraho " } }),
           JSON.stringify({
             type: "response.required_action",
             response: { id: "resp_1" },
@@ -151,8 +105,8 @@ describe("agent chat API", () => {
                     id: "call_1",
                     type: "function",
                     function: {
-                      name: "fetch_member_profile",
-                      arguments: JSON.stringify({ include_contacts: true }),
+                      name: "reference.generate",
+                      arguments: JSON.stringify({ org_id: "org-123", purpose: "wallet_topup" }),
                     },
                   },
                 ],
@@ -163,6 +117,7 @@ describe("agent chat API", () => {
       }
 
       return createSseResponse([
+        JSON.stringify({ type: "response.output_text.delta", delta: { text: "Muraho " } }),
         JSON.stringify({
           type: "response.output_text.delta",
           delta: { text: "Here is your profile summary." },
@@ -205,7 +160,6 @@ describe("agent chat API", () => {
     assert.ok(body.includes("event: token"));
     assert.ok(body.includes("event: tool_result"));
     assert.ok(body.includes("Ikimina Coop"));
-    assert.ok(body.includes("+250788123456"));
     assert.ok(body.includes("Here is your profile summary"));
     assert.ok(call >= 1);
   });
