@@ -2,40 +2,96 @@
  * Offers screen - View available offers and promotions
  */
 
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { useMemo } from "react";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useIntl } from "react-intl";
-import { useQuery } from "@tanstack/react-query";
 import { HeaderGradient } from "../../src/components/shared/HeaderGradient";
 import { colors, elevation, glassmorphism } from "../../src/theme";
-import mockApi from "../../src/mocks";
+import { useFeatureFlags } from "../../src/features/feature-flags/hooks/useFeatureFlags";
+
+interface FeatureOffer {
+  id: string;
+  type: "service" | "bonus" | "beta";
+  title: string;
+  description: string;
+  validUntil?: string | null;
+}
+
+const offerForFeature = (intl: ReturnType<typeof useIntl>, key: string): FeatureOffer | null => {
+  switch (key) {
+    case "ai_agent":
+      return {
+        id: "ai-agent",
+        type: "service",
+        title: intl.formatMessage({ id: "offers.ai.title", defaultMessage: "Ibimina Assist" }),
+        description: intl.formatMessage({
+          id: "offers.ai.description",
+          defaultMessage: "Chat with the SACCO+ assistant for USSD steps and statement summaries.",
+        }),
+      };
+    case "offers_marketplace":
+      return {
+        id: "marketplace",
+        type: "bonus",
+        title: intl.formatMessage({ id: "offers.marketplace.title", defaultMessage: "Marketplace Beta" }),
+        description: intl.formatMessage({
+          id: "offers.marketplace.description",
+          defaultMessage: "Early access to partner discounts and seasonal contribution boosters.",
+        }),
+        validUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString(),
+      };
+    case "statements_insights":
+      return {
+        id: "insights",
+        type: "beta",
+        title: intl.formatMessage({ id: "offers.insights.title", defaultMessage: "Statements Insights" }),
+        description: intl.formatMessage({
+          id: "offers.insights.description",
+          defaultMessage: "Unlock monthly analytics that highlight contribution trends across your groups.",
+        }),
+      };
+    default:
+      return null;
+  }
+};
 
 export default function OffersScreen() {
   const intl = useIntl();
+  const featureFlagsQuery = useFeatureFlags();
 
-  const { data: offers, isLoading } = useQuery({
-    queryKey: ["offers"],
-    queryFn: mockApi.getOffers,
-  });
+  const offers = useMemo(() => {
+    if (!featureFlagsQuery.data) {
+      return [] as FeatureOffer[];
+    }
+    const entries = Object.entries(featureFlagsQuery.data).filter(([, value]) => value.enabled);
+    const derived = entries
+      .map(([key]) => offerForFeature(intl, key))
+      .filter((offer): offer is FeatureOffer => Boolean(offer));
+    return derived;
+  }, [featureFlagsQuery.data, intl]);
 
   return (
     <View style={styles.container}>
       <LinearGradient colors={[colors.ink[900], colors.ink[800]]} style={styles.gradient}>
         <HeaderGradient
           title={intl.formatMessage({ id: "nav.offers", defaultMessage: "Offers" })}
-          subtitle="Special deals and promotions"
+          subtitle={intl.formatMessage({
+            id: "offers.subtitle",
+            defaultMessage: "Server-driven perks based on your feature access",
+          })}
         />
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {isLoading ? (
+          {featureFlagsQuery.isLoading ? (
             <Text style={styles.loadingText}>Loading offers...</Text>
-          ) : offers && offers.length > 0 ? (
+          ) : offers.length > 0 ? (
             offers.map((offer) => (
               <View key={offer.id} style={styles.offerCard}>
                 <View style={styles.imageContainer}>
                   <View style={styles.imagePlaceholder}>
                     <Text style={styles.imageEmoji}>
-                      {offer.type === "loan" ? "💰" : offer.type === "bonus" ? "🎁" : "⭐"}
+                      {offer.type === "bonus" ? "🎁" : offer.type === "beta" ? "🧪" : "🤖"}
                     </Text>
                   </View>
                   <View style={[styles.typeBadge, glassmorphism.light]}>
@@ -47,25 +103,16 @@ export default function OffersScreen() {
                   <Text style={styles.offerTitle}>{offer.title}</Text>
                   <Text style={styles.offerDescription}>{offer.description}</Text>
 
-                  <View style={styles.offerFooter}>
-                    <View style={styles.validityContainer}>
-                      <Text style={styles.validityLabel}>Valid until:</Text>
-                      <Text style={styles.validityDate}>
-                        {new Date(offer.validUntil).toLocaleDateString()}
-                      </Text>
+                  {offer.validUntil ? (
+                    <View style={styles.offerFooter}>
+                      <View style={styles.validityContainer}>
+                        <Text style={styles.validityLabel}>Valid until:</Text>
+                        <Text style={styles.validityDate}>
+                          {new Date(offer.validUntil).toLocaleDateString()}
+                        </Text>
+                      </View>
                     </View>
-
-                    <TouchableOpacity style={styles.detailsButton}>
-                      <LinearGradient
-                        colors={[colors.rw.blue, colors.rw.green]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.detailsButtonGradient}
-                      >
-                        <Text style={styles.detailsButtonText}>View Details</Text>
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  </View>
+                  ) : null}
                 </View>
               </View>
             ))
@@ -74,7 +121,10 @@ export default function OffersScreen() {
               <Text style={styles.emptyStateEmoji}>🎁</Text>
               <Text style={styles.emptyStateTitle}>No offers available</Text>
               <Text style={styles.emptyStateText}>
-                Check back later for special deals and promotions
+                {intl.formatMessage({
+                  id: "offers.empty",
+                  defaultMessage: "Toggle feature flags in the dashboard to unlock pilot programmes.",
+                })}
               </Text>
             </View>
           )}
@@ -140,18 +190,17 @@ const styles = StyleSheet.create({
   },
   offerContent: {
     padding: 16,
+    gap: 12,
   },
   offerTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: colors.neutral[50],
-    marginBottom: 8,
   },
   offerDescription: {
     fontSize: 14,
     color: colors.neutral[300],
     lineHeight: 20,
-    marginBottom: 16,
   },
   offerFooter: {
     flexDirection: "row",
@@ -172,20 +221,6 @@ const styles = StyleSheet.create({
     color: colors.warm[500],
     marginTop: 2,
   },
-  detailsButton: {
-    borderRadius: 8,
-    overflow: "hidden",
-    ...elevation[2],
-  },
-  detailsButtonGradient: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  detailsButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
   emptyState: {
     alignItems: "center",
     paddingVertical: 60,
@@ -198,20 +233,16 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: colors.neutral[200],
-    marginBottom: 8,
-    textAlign: "center",
+    color: colors.neutral[100],
   },
   emptyStateText: {
     fontSize: 14,
-    color: colors.neutral[400],
+    color: colors.neutral[300],
     textAlign: "center",
-    lineHeight: 20,
+    marginTop: 8,
   },
   loadingText: {
     fontSize: 14,
     color: colors.neutral[400],
-    textAlign: "center",
-    marginVertical: 20,
   },
 });

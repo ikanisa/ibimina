@@ -21,3 +21,11 @@ export { adapterRegistry, registerDefaultAdapters } from "./registry/index.js";
 // Export adapters
 export { MTNRwandaStatementAdapter } from "./adapters/RW/MTNStatementAdapter.js";
 export { MTNRwandaSmsAdapter } from "./adapters/RW/MTNSmsAdapter.js";
+
+// Export agent session store
+export type {
+  AgentSession,
+  AgentSessionStore,
+  RedisSessionStore,
+  SupabaseSessionStore,
+} from "./agent/session-store.js";

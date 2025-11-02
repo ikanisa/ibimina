@@ -16,8 +16,14 @@ const createSupabaseStub = () => ({
       };
     },
   },
-  async rpc() {
-    return { data: true, error: null };
+  async rpc(functionName: string) {
+    if (functionName === "agent_resolve_org_scope") {
+      return {
+        data: [{ org_id: "org-xyz", org_name: "Nyamata SACCO", country_code: "RW" }],
+        error: null,
+      };
+    }
+    return { data: null, error: null };
   },
   from(table: string) {
     if (table === "members_app_profiles") {
@@ -30,56 +36,9 @@ const createSupabaseStub = () => ({
         },
         async maybeSingle() {
           return {
-            data: {
-              lang: "en",
-              whatsapp_msisdn: "+250788000999",
-              momo_msisdn: "+250788111222",
-            },
+            data: { lang: "en" },
             error: null,
           };
-        },
-      } as const;
-    }
-
-    if (table === "user_saccos") {
-      return {
-        select() {
-          return this;
-        },
-        eq() {
-          return this;
-        },
-        order() {
-          return this;
-        },
-        limit() {
-          return this;
-        },
-        async maybeSingle() {
-          return {
-            data: {
-              sacco_id: "sacco-xyz",
-              saccos: { name: "Nyamata SACCO", metadata: { country: "RW" } },
-            },
-            error: null,
-          };
-        },
-      } as const;
-    }
-
-    if (table === "ibimina") {
-      return {
-        select() {
-          return this;
-        },
-        eq() {
-          return this;
-        },
-        order() {
-          return this;
-        },
-        async limit() {
-          return { data: [], error: null };
         },
       } as const;
     }

@@ -1,0 +1,64 @@
+name: Preview
+
+on:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      CI: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test
+        run: pnpm run test
+
+      - name: Build
+        env:
+          ANALYZE_BUNDLE: "1"
+        run: pnpm -r build
+
+      - name: Run Lighthouse suite
+        run: |
+          mkdir -p .reports/lighthouse
+          pnpm --filter @ibimina/client run start -- --hostname 0.0.0.0 --port 3001 &
+          echo $! > .reports/client.pid
+          pnpm dlx wait-on http://127.0.0.1:3001
+          pnpm dlx lighthouse http://127.0.0.1:3001 \
+            --quiet \
+            --chrome-flags="--headless" \
+            --config-path=apps/client/lighthouse.config.cjs \
+            --output=json \
+            --output-path=.reports/lighthouse/client.json
+          kill $(cat .reports/client.pid) || true
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-lighthouse
+          path: .reports/lighthouse

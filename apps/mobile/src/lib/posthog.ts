@@ -2,11 +2,18 @@
  * PostHog analytics and feature flags
  */
 
-import PostHog from "posthog-react-native";
 import Constants from "expo-constants";
+import PostHog from "posthog-react-native";
+
+import { parseSampleRate, scrubPII, shouldSampleEvent } from "@ibimina/lib";
 
 const POSTHOG_API_KEY = Constants.expoConfig?.extra?.posthogApiKey;
 const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost || "https://app.posthog.com";
+const ANALYTICS_SAMPLE_RATE = parseSampleRate(
+  (Constants.expoConfig?.extra?.posthogSampleRate as string | undefined) ??
+    (typeof process !== "undefined" ? process.env.POSTHOG_CAPTURE_SAMPLE_RATE : undefined),
+  __DEV__ ? 1 : 0.35
+);
 
 let posthogInstance: PostHog | null = null;
 
@@ -40,25 +47,58 @@ export function getPostHog(): PostHog | null {
   return posthogInstance;
 }
 
+const resolveDistinctId = () => {
+  try {
+    return posthogInstance?.getDistinctId();
+  } catch (error) {
+    console.warn("[PostHog] Failed to resolve distinct id", error);
+    return undefined;
+  }
+};
+
 /**
  * Identify user
  */
 export function identifyUser(userId: string, properties?: Record<string, any>) {
-  posthogInstance?.identify(userId, properties);
+  if (!posthogInstance) return;
+  const scrubbed = properties ? scrubPII(properties) : undefined;
+  posthogInstance.identify(userId, scrubbed);
 }
 
 /**
  * Track custom event
  */
 export function trackEvent(eventName: string, properties?: Record<string, any>) {
-  posthogInstance?.capture(eventName, properties);
+  if (!posthogInstance) return;
+  if (
+    !shouldSampleEvent({
+      event: eventName,
+      distinctId: resolveDistinctId(),
+      sampleRate: ANALYTICS_SAMPLE_RATE,
+    })
+  ) {
+    return;
+  }
+
+  posthogInstance.capture(eventName, properties ? scrubPII(properties) : undefined);
 }
 
 /**
  * Track screen view
  */
 export function trackScreen(screenName: string, properties?: Record<string, any>) {
-  posthogInstance?.screen(screenName, properties);
+  if (!posthogInstance) return;
+  if (
+    !shouldSampleEvent({
+      event: `screen:${screenName}`,
+      distinctId: resolveDistinctId(),
+      sampleRate: ANALYTICS_SAMPLE_RATE,
+    })
+  ) {
+    return;
+  }
+
+  posthogInstance.screen(screenName, properties ? scrubPII(properties) : undefined);
 }
 
 /**

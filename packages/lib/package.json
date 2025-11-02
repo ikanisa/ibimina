@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --out-extension cjs=.cjs --out-extension esm=.js",
     "clean": "rimraf dist",
-    "lint": "echo 'TODO: add linting'",
+    "lint": "node ../../config/tooling/scripts/run-eslint.mjs ./src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config vitest.config.ts"
   },
@@ -22,9 +22,10 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@ibimina/config": "workspace:*"
+    "posthog-node": "^4.3.0"
   },
   "devDependencies": {
+    "@sentry/types": "^8.39.0",
     "@types/node": "20.19.21",
     "rimraf": "^6.0.1",
     "tsup": "^8.1.0",
