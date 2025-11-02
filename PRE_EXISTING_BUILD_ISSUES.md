@@ -164,7 +164,7 @@ Update the type definitions in the story file:
 import React, { type ComponentProps, type JSXElementConstructor } from "react";
 
 type StoryObj<
-  T extends JSXElementConstructor<unknown> | keyof JSX.IntrinsicElements,
+  T extends JSXElementConstructor<unknown> | keyof React.JSX.IntrinsicElements,
 > = {
   args?: Partial<ComponentProps<T>>;
   parameters?: Record<string, unknown>;
