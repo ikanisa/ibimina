@@ -75,7 +75,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     configcatSdkKey: process.env.CONFIGCAT_SDK_KEY,
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-    apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
+    apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? process.env.EXPO_PUBLIC_API_BASE_URL_MOBILE,
   },
   experiments: {
     typedRoutes: true,

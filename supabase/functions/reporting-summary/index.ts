@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,7 +23,7 @@ const parseDate = (input: string, fallback: Date) => {
 
 const toDateOnly = (date: Date) => date.toISOString().slice(0, 10);
 
-Deno.serve(async (req) => {
+serveWithObservability("reporting-summary", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
