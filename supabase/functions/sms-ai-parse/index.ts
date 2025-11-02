@@ -6,6 +6,7 @@ import { encryptField, hashField, maskMsisdn } from "../_shared/crypto.ts";
 import { resolveReference } from "../_shared/payments.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const requestSchema = z.object({
   smsInboxId: z.string().uuid(),
@@ -29,7 +30,7 @@ const loadUserProfile = async (
   return data ?? null;
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("sms-ai-parse", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {

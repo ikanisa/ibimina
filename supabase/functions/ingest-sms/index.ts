@@ -7,6 +7,7 @@ import { recordMetric } from "../_shared/metrics.ts";
 import { validateHmacRequest } from "../_shared/auth.ts";
 import { parseWithOpenAI, parseWithRegex } from "../_shared/sms-parser.ts";
 import { errorCorsResponse, jsonCorsResponse, preflightResponse } from "../_shared/http.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const decoder = new TextDecoder();
 
@@ -17,7 +18,7 @@ interface IngestRequest {
   saccoId?: string;
 }
 
-Deno.serve(async (req) => {
+serveWithObservability("ingest-sms", async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return preflightResponse();

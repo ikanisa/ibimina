@@ -11,7 +11,7 @@ export async function register() {
     const environment = resolveEnvironment();
     console.log(
       JSON.stringify({
-        event: "admin.instrumentation.boot",
+        event: "client.instrumentation.boot",
         environment,
         timestamp: new Date().toISOString(),
       })

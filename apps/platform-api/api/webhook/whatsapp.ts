@@ -2,6 +2,9 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { once } from "node:events";
 
+import { withHttpObservability } from "../../src/observability";
+import type { StructuredLogger } from "../../src/observability";
+
 import {
   hashBody,
   processWebhookPayload,
@@ -85,7 +88,7 @@ const persistStatuses = async (records: WhatsAppStatusRecord[]) => {
   return { inserted: records.length };
 };
 
-const postAlert = async (payload: AlertPayload) => {
+const postAlert = async (payload: AlertPayload, logger: StructuredLogger) => {
   const webhook = process.env.WHATSAPP_ALERT_WEBHOOK?.trim();
   if (!webhook) return;
 
@@ -106,13 +109,13 @@ const postAlert = async (payload: AlertPayload) => {
     });
 
     if (!response.ok) {
-      console.warn("whatsapp_webhook.alert_non_200", {
+      logger.warn("whatsapp_webhook.alert_non_200", {
         status: response.status,
         statusText: response.statusText,
       });
     }
   } catch (error) {
-    console.error("whatsapp_webhook.alert_failed", error);
+    logger.error("whatsapp_webhook.alert_failed", { error });
   }
 };
 
@@ -161,7 +164,7 @@ const parsePayload = (rawBody: Buffer): WhatsAppWebhookPayload => {
   }
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default withHttpObservability("webhook.whatsapp", async (req, res, context) => {
   if (req.method === "GET") {
     handleVerification(req, res);
     return;
@@ -178,7 +181,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const appSecret = process.env.META_WHATSAPP_APP_SECRET;
 
   if (!appSecret) {
-    console.error("whatsapp_webhook.misconfigured", { reason: "missing_app_secret" });
+    context.logger.error("whatsapp_webhook.misconfigured", { reason: "missing_app_secret" });
     res.status(500).json({ error: "WhatsApp webhook misconfigured" });
     return;
   }
@@ -194,7 +197,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   );
 
   if (!verification.ok) {
-    console.warn("whatsapp_webhook.signature_invalid", { reason: verification.reason });
+    context.logger.warn("whatsapp_webhook.signature_invalid", { reason: verification.reason });
     res.status(403).json({ error: "Invalid signature" });
     return;
   }
@@ -204,6 +207,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     payload = parsePayload(rawBody);
   } catch (error) {
+    context.logger.warn("whatsapp_webhook.invalid_payload", { error: (error as Error).message });
     res.status(400).json({ error: (error as Error).message });
     return;
   }
@@ -213,14 +217,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     await persistStatuses(summary.statuses);
   } catch (error) {
-    console.error("whatsapp_webhook.persist_error", error);
+    context.logger.error("whatsapp_webhook.persist_error", { error });
+    context.captureException(error, { path: req.url ?? "/api/webhook/whatsapp" });
     res.status(500).json({ error: "Failed to persist statuses" });
     return;
   }
 
   if (summary.failures.length) {
     const hash = hashBody(rawBody);
-    await postAlert(buildAlertPayload(summary.failures, hash));
+    await postAlert(buildAlertPayload(summary.failures, hash), context.logger);
+    await context.track("whatsapp.delivery_failure", {
+      failures: summary.failures.length,
+    });
   }
 
   res.status(200).json({
@@ -229,7 +237,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     statuses: summary.statuses.length,
     failures: summary.failures.length,
   });
-}
+});
 
 export const config = {
   api: {

@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { normalizeError } from "@ibimina/lib";
+
 import { runGsmHeartbeat } from "./workers/gsm-heartbeat";
 import { runMomoPoller } from "./workers/momo-poller";
 
@@ -23,6 +25,13 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Worker execution failed", error);
+  console.error(
+    JSON.stringify({
+      level: "error",
+      event: "platform-api.worker.failure",
+      error: normalizeError(error),
+      timestamp: new Date().toISOString(),
+    })
+  );
   process.exitCode = 1;
 });
