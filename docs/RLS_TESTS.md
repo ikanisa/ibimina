@@ -13,7 +13,11 @@ each SQL file under `supabase/tests/rls` in alphabetical order.
 
 ## Country propagation safeguards
 
-**Fixture:** `supabase/tests/rls/country_propagation.test.sql`
+| Context  | Command | Description |
+| -------- | ------- | ----------- |
+| Local    | `pnpm --filter @ibimina/testing run test:rls` | Runs SQL harness against local Docker Postgres, seeding fixtures for staff, member, auditor roles. |
+| Preview  | `apps/admin/scripts/test-rls-docker.sh --database-url <url>` | Executes harness against preview Supabase branch inside CI. |
+| CI       | GitHub Actions `ci.yml` (`rls` job) | Mandatory check before merging to `main`. |
 
 * Verifies that `country_id` is synchronized for `groups`, `group_members`,
   `uploads`, and `allocations` whenever their `org_id` or `group_id` changes.

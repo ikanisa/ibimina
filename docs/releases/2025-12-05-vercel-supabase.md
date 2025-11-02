@@ -24,7 +24,7 @@
 - Supabase migrations applied via `supabase db remote commit`; diff output
   attached to release PR.
 - Vercel deployment approvals captured in dashboard audit log and linked in PR.
-- Smoke tests executed on staging: `pnpm run test:smoke -- --base https://ibimina-staging.vercel.app`.
+- Smoke tests executed on staging: `PLAYWRIGHT_BASE_URL=https://ibimina-staging.vercel.app pnpm --filter @ibimina/admin run test:e2e`.
 - Mobile builds promoted through Expo channels (`preview` → `staging`).
 
 ## Post-Deployment Actions
