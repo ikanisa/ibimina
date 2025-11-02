@@ -2,13 +2,14 @@ import { z } from "zod";
 import { createServiceClient, errorResponse, jsonResponse, parseJwt } from "../_shared/mod.ts";
 import { enforceIdentityRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const requestSchema = z.object({
   userId: z.string().uuid(),
   reason: z.string().min(5).max(500),
 });
 
-Deno.serve(async (req) => {
+serveWithObservability("admin-reset-mfa", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {

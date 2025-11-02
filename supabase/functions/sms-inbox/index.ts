@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { serveWithObservability } from "../_shared/observability.ts";
 import {
   createServiceClient,
   errorResponse,
@@ -49,7 +50,7 @@ const withCors = (response: Response) => {
   });
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("sms-inbox", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

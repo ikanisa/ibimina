@@ -3,6 +3,7 @@ import { postToLedger } from "../_shared/ledger.ts";
 import { encryptField, hashField, maskMsisdn } from "../_shared/crypto.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -189,7 +190,7 @@ const persistPayment = async (
   };
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("gsm-maintenance", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

@@ -85,13 +85,13 @@ pnpm audit --audit-level=moderate
 
 ## 📚 Essential Documents
 
-| Document                                                                         | When to Use         |
-| -------------------------------------------------------------------------------- | ------------------- |
-| [EXECUTIVE_SUMMARY_AUDIT.md](EXECUTIVE_SUMMARY_AUDIT.md)                         | High-level overview |
-| [CURRENT_PRODUCTION_STATUS_AUDIT.md](CURRENT_PRODUCTION_STATUS_AUDIT.md)         | Technical details   |
-| [PRODUCTION_GAPS_AND_RECOMMENDATIONS.md](PRODUCTION_GAPS_AND_RECOMMENDATIONS.md) | Fix issues          |
-| [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)                               | Deploy to prod      |
-| [DISASTER_RECOVERY.md](docs/DISASTER_RECOVERY.md)                                | Emergency           |
+| Document                                                                             | When to Use         |
+| ------------------------------------------------------------------------------------ | ------------------- |
+| [docs/go-live/executive-summary.md](docs/go-live/executive-summary.md)               | High-level overview |
+| [docs/go-live/current-status.md](docs/go-live/current-status.md)                     | Technical details   |
+| [docs/go-live/gaps-and-recommendations.md](docs/go-live/gaps-and-recommendations.md) | Fix issues          |
+| [docs/go-live/production-checklist.md](docs/go-live/production-checklist.md)         | Deploy to prod      |
+| [DISASTER_RECOVERY.md](docs/DISASTER_RECOVERY.md)                                    | Emergency           |
 
 ---
 
@@ -127,10 +127,10 @@ pnpm audit --audit-level=moderate
 
 ## ✅ Sign-Off
 
-- [ ] Technical Lead: ****\_\_\_****
-- [ ] Security Lead: ****\_\_\_****
-- [ ] Product Owner: ****\_\_\_****
-- [ ] Operations Lead: ****\_\_\_****
+- [ ] Technical Lead: \***\*\_\_\_\*\***
+- [ ] Security Lead: \***\*\_\_\_\*\***
+- [ ] Product Owner: \***\*\_\_\_\*\***
+- [ ] Operations Lead: \***\*\_\_\_\*\***
 
 ---
 
