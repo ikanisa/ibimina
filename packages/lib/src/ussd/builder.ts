@@ -70,7 +70,7 @@ function formatAmount(
       currency,
       maximumFractionDigits: 0,
     }).format(amount);
-  } catch (error) {
+  } catch {
     // Fallback to simple numeric formatting
     return `${amount} ${currency}`;
   }
@@ -113,7 +113,9 @@ export function buildUssdPayload(input: BuildUssdPayloadInput): UssdPayload {
 
   const telUri = canAutoDial ? `tel:${encodeURIComponent(code)}` : undefined;
 
-  const instructions = definition.instructions.map((line) => interpolate(line, replacements));
+  const instructions = definition.instructions.map((line: string) =>
+    interpolate(line, replacements)
+  );
   const copyText = interpolate(definition.copy, replacements);
   const ctaLabel = definition.cta;
 

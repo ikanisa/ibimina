@@ -37,17 +37,17 @@ export interface ProviderAdapter {
    * Provider name (e.g., 'MTN Rwanda', 'Orange Senegal')
    */
   readonly name: string;
-  
+
   /**
    * Country ISO3 code (e.g., 'RWA', 'SEN')
    */
   readonly countryISO3: string;
-  
+
   /**
    * Parse a statement line or SMS text
    */
   parse(input: string): ParseResult;
-  
+
   /**
    * Validate if this adapter can handle the input
    */
@@ -62,12 +62,12 @@ export interface StatementAdapter extends ProviderAdapter {
    * Parse CSV row (array of cell values)
    */
   parseRow(row: string[]): ParseResult;
-  
+
   /**
    * Get expected CSV headers
    */
   getExpectedHeaders(): string[];
-  
+
   /**
    * Validate headers match expected format
    */
@@ -82,7 +82,7 @@ export interface SmsAdapter extends ProviderAdapter {
    * Extract transaction from SMS text
    */
   parseSms(smsText: string): ParseResult;
-  
+
   /**
    * Get SMS sender patterns (for filtering)
    */
@@ -94,7 +94,7 @@ export interface SmsAdapter extends ProviderAdapter {
  */
 export interface AdapterRegistryEntry {
   adapter: ProviderAdapter;
-  type: 'statement' | 'sms';
+  type: "statement" | "sms";
   countryISO3: string;
   providerName: string;
   priority: number; // Higher priority tried first

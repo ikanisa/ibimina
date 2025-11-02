@@ -6,7 +6,6 @@ import { Composer } from "./Composer";
 import {
   AllocationPayload,
   ChatMessage,
-  MessageContent,
   QuickActionKey,
   SupportedLocale,
   TicketPayload,
@@ -21,11 +20,17 @@ const translations: Record<SupportedLocale, Record<string, string>> = {
     placeholder: "Andikira umufasha...",
     send: "Ohereza",
     stop: "Hagarika",
+    regenerate: "Subiramo",
     ussd: "Intambwe za USSD",
     reference: "Indangamuryango",
     statements: "Raporo",
     ticket: "Fungura itike",
     language: "Ururimi",
+    guardrail: "Ntusangize PIN cyangwa ijambobanga. Ntituzigera tubigusaba.",
+    blocked: "Ku bw'umutekano, ntutange PIN cyangwa ijambobanga hano.",
+    tooLong: "Ubutumwa bwawe ni burebure. Bugabanye mbere yo kubwohereza.",
+    wait: "Tegereza ko igisubizo kirangira mbere yo kohereza ubundi butumwa.",
+    fallback: "Ntabwo tubashije kugera ku makuru ako kanya. Ongera ugerageze hanyuma gato.",
   },
   en: {
     title: "SACCO+ Support",
@@ -33,11 +38,17 @@ const translations: Record<SupportedLocale, Record<string, string>> = {
     placeholder: "Message SACCO+ agent...",
     send: "Send",
     stop: "Stop",
+    regenerate: "Regenerate",
     ussd: "USSD steps",
     reference: "My reference",
     statements: "Statements",
     ticket: "Open ticket",
     language: "Language",
+    guardrail: "Do not share PINs or passwords. We'll never ask for them.",
+    blocked: "For your safety, please don't share passwords or PINs here.",
+    tooLong: "Your message is a bit long. Please shorten it before sending.",
+    wait: "Please wait for the current response to finish before sending another message.",
+    fallback: "I couldn't reach our knowledge base right now. Please try again in a moment.",
   },
   fr: {
     title: "Assistance SACCO+",
@@ -45,11 +56,17 @@ const translations: Record<SupportedLocale, Record<string, string>> = {
     placeholder: "Écrire à l’agent SACCO+...",
     send: "Envoyer",
     stop: "Arrêter",
+    regenerate: "Régénérer",
     ussd: "Étapes USSD",
     reference: "Mon identifiant",
     statements: "Relevés",
     ticket: "Ouvrir un ticket",
     language: "Langue",
+    guardrail: "Ne partagez jamais vos codes PIN ou mots de passe. Nous ne les demanderons jamais.",
+    blocked: "Pour votre sécurité, n'indiquez pas de mot de passe ou de code PIN ici.",
+    tooLong: "Votre message est un peu long. Merci de le raccourcir avant l'envoi.",
+    wait: "Patientez que la réponse actuelle se termine avant d'envoyer un autre message.",
+    fallback: "Je n'ai pas pu accéder aux données pour le moment. Réessayez dans un instant.",
   },
 };
 
@@ -65,13 +82,14 @@ type ChatUIProps = {
   initialLocale?: SupportedLocale;
 };
 
-type SSEPayload =
-  | { type: "message-start"; messageId: string }
-  | { type: "message-delta"; messageId: string; delta: string }
-  | { type: "message-end"; messageId: string }
-  | { type: "allocation"; messageId: string; payload: AllocationPayload }
-  | { type: "ticket"; messageId: string; payload: TicketPayload }
-  | { type: "error"; message: string };
+const MAX_PROMPT_LENGTH = 1200;
+const guardrailPatterns = [
+  /\bpin\b/i,
+  /\bpassword\b/i,
+  /\bpasscode\b/i,
+  /code\s+secret/i,
+  /ijambobanga/i,
+];
 
 export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
   const [locale, setLocale] = useState<SupportedLocale>(initialLocale);
@@ -92,8 +110,14 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const threadRef = useRef<string>(crypto.randomUUID());
   const [error, setError] = useState<string | null>(null);
+  const historyRef = useRef<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const lastPromptRef = useRef<string | null>(null);
+  const [sessionMeta, setSessionMeta] = useState<{
+    orgName: string | null;
+    lang: string;
+    hashedIp: string | null;
+  } | null>(null);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
@@ -123,44 +147,75 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
   }, []);
 
   const sendPrompt = useCallback(
-    async (prompt: string, action?: QuickActionKey) => {
-      if (!prompt.trim()) return;
+    async (
+      rawPrompt: string,
+      options?: { quickAction?: QuickActionKey; mode?: "fresh" | "regenerate" }
+    ) => {
+      const prompt = rawPrompt.trim();
+      if (!prompt) return;
+
+      if (isStreaming) {
+        setError(translations[locale].wait);
+        return;
+      }
+
+      if (prompt.length > MAX_PROMPT_LENGTH) {
+        setError(translations[locale].tooLong);
+        return;
+      }
+
+      if (guardrailPatterns.some((pattern) => pattern.test(prompt))) {
+        setError(translations[locale].blocked);
+        return;
+      }
+
       abortRef.current?.abort();
-
-      const userMessage: ChatMessage = {
-        id: `user-${Date.now()}`,
-        role: "user",
-        createdAt: Date.now(),
-        contents: [{ type: "text", text: prompt }],
-      };
-
-      const assistantMessageId = `assistant-${Date.now()}`;
-      const assistantMessage: ChatMessage = {
-        id: assistantMessageId,
-        role: "assistant",
-        createdAt: Date.now(),
-        contents: [{ type: "text", text: "", streaming: true }],
-      };
-
-      setMessages((prev) => [...prev, userMessage, assistantMessage]);
-      setInput("");
-      setIsStreaming(true);
-      setError(null);
 
       const controller = new AbortController();
       abortRef.current = controller;
 
+      const mode = options?.mode ?? "fresh";
+      const timestamp = Date.now();
+      const assistantMessageId = `assistant-${timestamp}`;
+
+      const assistantMessage: ChatMessage = {
+        id: assistantMessageId,
+        role: "assistant",
+        createdAt: timestamp,
+        contents: [{ type: "text", text: "", streaming: true }],
+      };
+
+      setIsStreaming(true);
+      setError(null);
+
+      if (mode === "fresh") {
+        const userMessage: ChatMessage = {
+          id: `user-${timestamp}`,
+          role: "user",
+          createdAt: timestamp,
+          contents: [{ type: "text", text: prompt }],
+        };
+        historyRef.current.push({ role: "user", content: prompt });
+        setMessages((prev) => [...prev, userMessage, assistantMessage]);
+      } else {
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
+
+      setInput("");
+
+      let finalText = "";
+      let completed = false;
+
       try {
-        const response = await fetch("/api/agent/respond", {
+        const response = await fetch("/api/agent/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: prompt,
-            locale,
+            messages: historyRef.current.map((message) => ({
+              role: message.role,
+              content: message.content,
+            })),
             orgId,
-            quickAction: action,
-            threadId: threadRef.current,
-            messageId: assistantMessageId,
           }),
           signal: controller.signal,
         });
@@ -169,87 +224,167 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
           throw new Error(`Request failed with status ${response.status}`);
         }
 
-        await streamSSE<SSEPayload>({
+        await streamSSE({
           response,
           signal: controller.signal,
           onMessage: async ({ event, data }) => {
-            const payload = data as SSEPayload;
-            if (payload.type === "error") {
-              setError(payload.message);
+            if (event === "metadata") {
+              const meta = data as {
+                org?: { name?: string | null } | null;
+                lang?: string;
+                ip?: string | null;
+              };
+              setSessionMeta({
+                orgName: meta?.org?.name ?? null,
+                lang: meta?.lang ?? locale,
+                hashedIp: meta?.ip ?? null,
+              });
               return;
             }
-            const targetId = payload.messageId ?? assistantMessageId;
-            setMessages((prev) => {
-              return prev.map((message) => {
-                if (message.id !== targetId) return message;
-                const updated: ChatMessage = {
-                  ...message,
-                  contents: [...message.contents],
-                };
 
-                if (payload.type === "message-start") {
-                  return updated;
-                }
-
-                if (payload.type === "message-delta") {
-                  let hasText = false;
-                  const contents = updated.contents.map((content) => {
-                    if (content.type === "text" && !hasText) {
-                      hasText = true;
-                      return {
-                        ...content,
-                        text: `${content.text}${payload.delta}`,
-                        streaming: true,
-                      };
+            if (event === "token") {
+              const token = (data as { text?: string })?.text ?? "";
+              if (!token) return;
+              finalText += token;
+              setMessages((prev) =>
+                prev.map((message) => {
+                  if (message.id !== assistantMessageId) return message;
+                  const next = { ...message, contents: [...message.contents] };
+                  let mutated = false;
+                  next.contents = next.contents.map((content) => {
+                    if (content.type === "text" && !mutated) {
+                      mutated = true;
+                      return { ...content, text: `${content.text}${token}`, streaming: true };
                     }
                     return content;
                   });
+                  if (!mutated) {
+                    next.contents.push({ type: "text", text: token, streaming: true });
+                  }
+                  return next;
+                })
+              );
+              return;
+            }
 
-                  if (!hasText) {
-                    contents.push({ type: "text", text: payload.delta, streaming: true });
+            if (event === "tool_result") {
+              const payload = data as {
+                id?: string;
+                name?: string;
+                result?: unknown;
+                error?: string;
+              };
+              const toolId = payload.id ?? crypto.randomUUID();
+              const toolName = payload.name ?? "tool";
+              const status = payload.error ? "error" : "success";
+              const resultData = payload.error ?? payload.result ?? null;
+
+              setMessages((prev) =>
+                prev.map((message) => {
+                  if (message.id !== assistantMessageId) return message;
+                  const updated: ChatMessage = {
+                    ...message,
+                    contents: [...message.contents],
+                  };
+
+                  if (
+                    resultData &&
+                    typeof resultData === "object" &&
+                    "kind" in (resultData as Record<string, unknown>)
+                  ) {
+                    const typed = resultData as {
+                      kind?: string;
+                      payload?: unknown;
+                    };
+                    if (typed.kind === "allocation" && typed.payload) {
+                      updated.contents.push({
+                        type: "allocation",
+                        payload: typed.payload as AllocationPayload,
+                      });
+                    } else if (typed.kind === "ticket" && typed.payload) {
+                      updated.contents.push({
+                        type: "ticket",
+                        payload: typed.payload as TicketPayload,
+                      });
+                    }
                   }
 
-                  return { ...updated, contents };
-                }
+                  updated.contents.push({
+                    type: "tool-result",
+                    payload: {
+                      id: toolId,
+                      name: toolName,
+                      status: status as "success" | "error",
+                      data: resultData,
+                    },
+                  });
 
-                if (payload.type === "message-end") {
-                  return {
-                    ...updated,
-                    contents: updated.contents.map((content) =>
-                      content.type === "text" ? { ...content, streaming: false } : content
-                    ),
-                  };
-                }
+                  return updated;
+                })
+              );
+              return;
+            }
 
-                if (payload.type === "allocation") {
-                  const newContent: MessageContent = {
-                    type: "allocation",
-                    payload: payload.payload,
-                  };
-                  return { ...updated, contents: [...updated.contents, newContent] };
-                }
+            if (event === "message") {
+              const text = (data as { text?: string })?.text ?? "";
+              if (text) {
+                finalText = text;
+                setMessages((prev) =>
+                  prev.map((message) =>
+                    message.id === assistantMessageId
+                      ? {
+                          ...message,
+                          contents: message.contents.map((content) =>
+                            content.type === "text"
+                              ? { ...content, text, streaming: false }
+                              : content
+                          ),
+                        }
+                      : message
+                  )
+                );
+              }
+              return;
+            }
 
-                if (payload.type === "ticket") {
-                  const newContent: MessageContent = {
-                    type: "ticket",
-                    payload: payload.payload,
-                  };
-                  return { ...updated, contents: [...updated.contents, newContent] };
-                }
+            if (event === "error") {
+              const messageText = (data as { message?: string })?.message ?? translations[locale].fallback;
+              setError(messageText);
+              return;
+            }
 
-                return updated;
-              });
-            });
-
-            if (payload.type === "message-end") {
+            if (event === "done") {
+              const statusValue = (data as { status?: string })?.status ?? "completed";
+              completed = statusValue === "completed";
+              setMessages((prev) =>
+                prev.map((message) =>
+                  message.id === assistantMessageId
+                    ? {
+                        ...message,
+                        contents: message.contents.map((content) =>
+                          content.type === "text"
+                            ? { ...content, streaming: false }
+                            : content
+                        ),
+                      }
+                    : message
+                )
+              );
               setIsStreaming(false);
               abortRef.current = null;
             }
           },
         });
 
-        setIsStreaming(false);
-        abortRef.current = null;
+        if (completed && finalText.trim()) {
+          historyRef.current.push({ role: "assistant", content: finalText });
+          lastPromptRef.current = prompt;
+        }
+
+        if (!completed) {
+          setIsStreaming(false);
+          abortRef.current = null;
+        }
       } catch (cause) {
         if ((cause as DOMException).name === "AbortError") {
           setIsStreaming(false);
@@ -258,21 +393,65 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
         console.error(cause);
         setIsStreaming(false);
         abortRef.current = null;
-        setError("Unable to reach SACCO+ agent. Please try again.");
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === assistantMessageId
+              ? {
+                  ...message,
+                  contents: message.contents.map((content) =>
+                    content.type === "text"
+                      ? { ...content, text: translations[locale].fallback, streaming: false }
+                      : content
+                  ),
+                }
+              : message
+          )
+        );
+        setError(translations[locale].fallback);
       }
     },
-    [locale, orgId]
+    [orgId, locale, isStreaming]
   );
 
   const handleSubmit = useCallback(() => {
     void sendPrompt(input);
   }, [input, sendPrompt]);
 
-  const handleQuickAction = (action: QuickActionKey) => {
-    const prompt = quickActionPrompts[action];
-    setInput("");
-    void sendPrompt(prompt, action);
-  };
+  const handleQuickAction = useCallback(
+    (action: QuickActionKey) => {
+      const prompt = quickActionPrompts[action];
+      setInput("");
+      void sendPrompt(prompt, { quickAction: action });
+    },
+    [sendPrompt]
+  );
+
+  const handleRegenerate = useCallback(() => {
+    if (isStreaming) return;
+    const lastPrompt = lastPromptRef.current;
+    if (!lastPrompt) return;
+
+    setError(null);
+    setMessages((prev) => {
+      const next = [...prev];
+      for (let index = next.length - 1; index >= 0; index -= 1) {
+        if (next[index].role === "assistant" && next[index].id !== "welcome") {
+          next.splice(index, 1);
+          break;
+        }
+      }
+      return next;
+    });
+
+    if (
+      historyRef.current.length > 0 &&
+      historyRef.current[historyRef.current.length - 1]?.role === "assistant"
+    ) {
+      historyRef.current.pop();
+    }
+
+    void sendPrompt(lastPrompt, { mode: "regenerate" });
+  }, [isStreaming, sendPrompt]);
 
   const languageControls = useMemo(
     () => (
@@ -333,6 +512,17 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
           </div>
         </section>
 
+        {sessionMeta ? (
+          <div className="border-b border-neutral-100 bg-neutral-100/70 px-4 py-2">
+            <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 text-xs text-neutral-600">
+              <span>
+                {sessionMeta.orgName ?? "SACCO+"} · {sessionMeta.lang.toUpperCase()}
+              </span>
+              {sessionMeta.hashedIp ? <span>IP {sessionMeta.hashedIp}</span> : null}
+            </div>
+          </div>
+        ) : null}
+
         <div ref={listRef} className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
             {messages.map((message) => (
@@ -354,12 +544,21 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
         onStop={() => {
           abortRef.current?.abort();
           setIsStreaming(false);
+          abortRef.current = null;
         }}
+        onRegenerate={handleRegenerate}
         disabled={isStreaming}
         isStreaming={isStreaming}
         placeholder={translations[locale].placeholder}
         sendLabel={translations[locale].send}
         stopLabel={translations[locale].stop}
+        regenerateLabel={translations[locale].regenerate}
+        canRegenerate={
+          Boolean(lastPromptRef.current) &&
+          !isStreaming &&
+          messages.some((message) => message.role === "assistant" && message.id !== "welcome")
+        }
+        footerNote={translations[locale].guardrail}
       />
     </div>
   );

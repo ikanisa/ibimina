@@ -27,7 +27,7 @@ const defaultSurveyPath = resolve(
 const followUpScheduleRelativePath = "docs/retros/review-schedule.json";
 const followUpSchedulePath = resolve(repoRoot, followUpScheduleRelativePath);
 
-interface DateRangeArgs {
+interface _DateRangeArgs {
   startDate?: string;
   endDate?: string;
   filePath?: string;
@@ -54,7 +54,7 @@ interface MetricsSummary {
   handleTimeDeltaSeconds: number;
 }
 
-interface SurveySummaryArgs {
+interface _SurveySummaryArgs {
   startDate?: string;
   endDate?: string;
   surveyPath?: string;
@@ -393,10 +393,8 @@ const followUpTool: ToolDefinition<FollowUpArgs, FollowUpConfirmation> = {
   },
 };
 
-export const tools: ToolDefinition<any, any>[] = [
-  metricsSummaryTool,
-  surveySummaryTool,
-  followUpTool,
-];
+type AnyToolDefinition = typeof metricsSummaryTool | typeof surveySummaryTool | typeof followUpTool;
+
+export const tools: AnyToolDefinition[] = [metricsSummaryTool, surveySummaryTool, followUpTool];
 
 export default tools;

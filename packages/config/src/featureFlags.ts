@@ -192,6 +192,26 @@ export function isPilotTenant(tenantId: string | null | undefined): boolean {
   return pilotTenantIdentifierSet.has(normalized);
 }
 
+export function resolveCanonicalTenantId(tenantId: string | null | undefined): string | null {
+  const normalized = normalizeTenantId(tenantId);
+  if (!normalized) {
+    return null;
+  }
+
+  const match = PILOT_TENANTS.find((tenant) => {
+    const candidates = [
+      tenant.id,
+      tenant.slug,
+      tenant.saccoId,
+      tenant.sectorCode,
+      tenant.merchantCode,
+    ];
+    return candidates.some((candidate) => candidate.toLowerCase() === normalized);
+  });
+
+  return match ? match.id.toLowerCase() : null;
+}
+
 export function isFeatureEnabledForTenant(
   flag: FeatureFlagName,
   tenantId: string | null | undefined
@@ -205,12 +225,12 @@ export function isFeatureEnabledForTenant(
     return definition.defaultValue;
   }
 
-  const canonicalTenantId = resolveCanonicalTenantId(tenantId);
-  if (!canonicalTenantId) {
+  // Normalize tenant ID (handle null/undefined)
+  if (!tenantId) {
     return definition.defaultValue;
   }
 
-  return featureFlagTargetSets[flag].has(canonicalTenantId);
+  return featureFlagTargetSets[flag].has(tenantId);
 }
 
 export function getTenantFeatureFlags(tenantId: string | null | undefined): TenantFeatureFlags {

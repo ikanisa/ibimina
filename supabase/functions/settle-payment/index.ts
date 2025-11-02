@@ -3,6 +3,7 @@ import { postToLedger, settleLedger } from "../_shared/ledger.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import { recordMetric } from "../_shared/metrics.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,7 +21,7 @@ interface SettleRequest {
   actorId?: string | null;
 }
 
-Deno.serve(async (req) => {
+serveWithObservability("settle-payment", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

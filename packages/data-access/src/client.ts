@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { resolveSupabaseEnvironment } from "@ibimina/lib";
 
 export type CreateClientOptions = {
   url?: string;
@@ -6,32 +7,15 @@ export type CreateClientOptions = {
   accessToken?: string;
 };
 
-const throwMissingEnv = (name: string) => {
-  throw new Error(`Missing Supabase configuration: ${name}`);
-};
-
 export const createSupabaseClient = ({
   url,
   anonKey,
   accessToken,
 }: CreateClientOptions = {}): SupabaseClient => {
-  const resolvedUrl =
-    url ?? process.env.EXPO_PUBLIC_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const resolvedAnonKey =
-    anonKey ??
-    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const environment = resolveSupabaseEnvironment({ url, anonKey, accessToken });
 
-  if (!resolvedUrl) {
-    throwMissingEnv("SUPABASE_URL");
-  }
-
-  if (!resolvedAnonKey) {
-    throwMissingEnv("SUPABASE_ANON_KEY");
-  }
-
-  const client = createClient(resolvedUrl, resolvedAnonKey, {
-    auth: accessToken
+  const client = createClient(environment.url, environment.anonKey, {
+    auth: environment.accessToken
       ? {
           persistSession: false,
           autoRefreshToken: true,
@@ -49,10 +33,10 @@ export const createSupabaseClient = ({
         },
   });
 
-  if (accessToken) {
-    client.auth.setSession({
-      access_token: accessToken,
-      refresh_token: accessToken,
+  if (environment.accessToken) {
+    void client.auth.setSession({
+      access_token: environment.accessToken,
+      refresh_token: environment.accessToken,
     });
   }
 

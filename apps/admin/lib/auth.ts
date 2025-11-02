@@ -12,8 +12,13 @@ const STUB_COOKIE_NAME = "stub-auth";
 /**
  * Check if E2E stub authentication is enabled
  * Used during automated testing to bypass real Supabase authentication
+ * Never allowed in production for security reasons
  */
 function isE2EStubEnabled() {
+  // Never allow E2E stub in production, regardless of env var
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
   return process.env.AUTH_E2E_STUB === "1";
 }
 

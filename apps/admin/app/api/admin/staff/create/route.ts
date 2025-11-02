@@ -107,5 +107,5 @@ export async function POST(request: Request) {
     } catch {}
   }
 
-  return NextResponse.json({ ok: true, user_id: userId, temporary_password: password });
+  return NextResponse.json({ ok: true, user_id: userId, password_sent: sendEmail });
 }

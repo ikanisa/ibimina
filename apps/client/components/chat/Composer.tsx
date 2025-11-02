@@ -8,11 +8,15 @@ type ComposerProps = {
   onChange: (value: string) => void;
   onSend: () => void;
   onStop: () => void;
+  onRegenerate?: () => void;
   disabled?: boolean;
   isStreaming: boolean;
   placeholder: string;
   sendLabel: string;
   stopLabel: string;
+  regenerateLabel?: string;
+  canRegenerate?: boolean;
+  footerNote?: string;
 };
 
 export function Composer({
@@ -20,11 +24,15 @@ export function Composer({
   onChange,
   onSend,
   onStop,
+  onRegenerate,
   disabled,
   isStreaming,
   placeholder,
   sendLabel,
   stopLabel,
+  regenerateLabel = "Regenerate",
+  canRegenerate = false,
+  footerNote = "AI assistant may be wrong. Confirm important information with SACCO staff.",
 }: ComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -60,34 +68,43 @@ export function Composer({
             aria-label={placeholder}
           />
 
-          {isStreaming ? (
-            <button
-              type="button"
-              onClick={onStop}
-              className="flex h-11 min-w-[110px] items-center justify-center gap-2 rounded-xl bg-neutral-900 px-4 text-sm font-semibold text-white shadow-atlas transition-colors duration-interactive hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2"
-            >
-              <Square className="h-4 w-4" aria-hidden="true" />
-              <span>{stopLabel}</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onSend}
-              disabled={!value.trim() || disabled}
-              className="flex h-11 min-w-[110px] items-center justify-center gap-2 rounded-xl bg-atlas-blue px-4 text-sm font-semibold text-white shadow-atlas transition-colors duration-interactive hover:bg-atlas-blue-dark focus:outline-none focus:ring-2 focus:ring-atlas-blue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {disabled ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              ) : (
-                <Send className="h-4 w-4" aria-hidden="true" />
-              )}
-              <span>{sendLabel}</span>
-            </button>
-          )}
+          <div className="flex min-w-[130px] flex-col items-stretch gap-2">
+            {!isStreaming && canRegenerate && onRegenerate ? (
+              <button
+                type="button"
+                onClick={onRegenerate}
+                className="inline-flex h-9 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-xs font-semibold text-neutral-700 transition-colors duration-interactive hover:border-neutral-400 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
+              >
+                {regenerateLabel}
+              </button>
+            ) : null}
+            {isStreaming ? (
+              <button
+                type="button"
+                onClick={onStop}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-neutral-900 px-4 text-sm font-semibold text-white shadow-atlas transition-colors duration-interactive hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2"
+              >
+                <Square className="h-4 w-4" aria-hidden="true" />
+                <span>{stopLabel}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onSend}
+                disabled={!value.trim() || disabled}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-atlas-blue px-4 text-sm font-semibold text-white shadow-atlas transition-colors duration-interactive hover:bg-atlas-blue-dark focus:outline-none focus:ring-2 focus:ring-atlas-blue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {disabled ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Send className="h-4 w-4" aria-hidden="true" />
+                )}
+                <span>{sendLabel}</span>
+              </button>
+            )}
+          </div>
         </div>
-        <p className="text-center text-xs text-neutral-500">
-          {"AI assistant may be wrong. Confirm important information with SACCO staff."}
-        </p>
+        <p className="text-center text-xs text-neutral-500">{footerNote}</p>
       </div>
     </div>
   );
