@@ -54,6 +54,7 @@ describe("AppProviders", () => {
   const { initSentry } = require("../lib/sentry");
   const { initPostHog } = require("../lib/posthog");
   const { hydrateAuthToken, getStoredAuthToken } = require("../storage/authToken");
+  const { createSupabaseClient } = require("@ibimina/data-access");
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -82,6 +83,7 @@ describe("AppProviders", () => {
       expect(state.featureFlags).toEqual({ ai_agent: true });
       expect(state.authToken).toBe("async-token");
       expect(state.hasHydratedAuth).toBe(true);
+      expect(createSupabaseClient).toHaveBeenLastCalledWith({ accessToken: "async-token" });
     });
   });
 
@@ -99,6 +101,7 @@ describe("AppProviders", () => {
       const state = useAppStore.getState();
       expect(state.authToken).toBe("persisted-token");
       expect(state.hasHydratedAuth).toBe(true);
+      expect(createSupabaseClient).toHaveBeenLastCalledWith({ accessToken: "persisted-token" });
     });
 
     expect(hydrateAuthToken).not.toHaveBeenCalled();
