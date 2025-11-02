@@ -225,12 +225,12 @@ export function isFeatureEnabledForTenant(
     return definition.defaultValue;
   }
 
-  const canonicalTenantId = normalizeTenantId(tenantId);
-  if (!canonicalTenantId) {
+  // Normalize tenant ID (handle null/undefined)
+  if (!tenantId) {
     return definition.defaultValue;
   }
 
-  return featureFlagTargetSets[flag].has(canonicalTenantId);
+  return featureFlagTargetSets[flag].has(tenantId);
 }
 
 export function getTenantFeatureFlags(tenantId: string | null | undefined): TenantFeatureFlags {

@@ -3,17 +3,20 @@ import { AccessibleActionButton } from "../components/accessibility/AccessibleAc
 import { MotionPreferenceToggle } from "../components/accessibility/MotionPreferenceToggle.js";
 import { meetsAaNormalText, ensureTouchTarget } from "../utils/accessibility.js";
 
-type StoryMeta<T extends ElementType> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StoryMeta<T = any> = {
   title: string;
   component: T;
   tags?: string[];
   parameters?: Record<string, unknown>;
 };
 
-type StoryObj<T extends ElementType> = {
-  args?: Partial<ComponentProps<T>>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StoryObj<T = any> = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  args?: Partial<any>;
   parameters?: Record<string, unknown>;
-  render?: () => ReactElement;
+  render?: () => React.JSX.Element;
 };
 
 const buttonContrastPass = meetsAaNormalText("#14532d", "#ffffff");

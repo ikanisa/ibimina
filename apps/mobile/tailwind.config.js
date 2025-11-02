@@ -1,10 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./App.{js,jsx,ts,tsx}",
-    "./app/**/*.{js,jsx,ts,tsx}",
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: ["./App.{js,jsx,ts,tsx}", "./app/**/*.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
@@ -47,7 +43,8 @@ module.exports = {
         // Rwanda gradient (horizontal sweep)
         kigali: "linear-gradient(135deg, #00A1DE 0%, #FAD201 50%, #20603D 100%)",
         // Radial Rwanda gradient (sunset effect)
-        nyungwe: "radial-gradient(ellipse at 20% 10%, rgba(0, 161, 222, 0.5), rgba(250, 210, 1, 0.4), rgba(32, 96, 61, 0.5))",
+        nyungwe:
+          "radial-gradient(ellipse at 20% 10%, rgba(0, 161, 222, 0.5), rgba(250, 210, 1, 0.4), rgba(32, 96, 61, 0.5))",
         // Dark gradient base
         "dark-base": "linear-gradient(180deg, #050712 0%, #0b122c 100%)",
       },

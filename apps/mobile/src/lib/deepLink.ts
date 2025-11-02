@@ -41,12 +41,12 @@ export function createDeepLink(path: string, params?: Record<string, string>) {
  */
 export function handleDeepLink(url: string, navigate: (path: string, params?: any) => void) {
   const parsed = parseDeepLink(url);
-  
+
   if (!parsed.path) return;
 
   // Extract route and params
   const { path, queryParams } = parsed;
-  
+
   // Navigate based on path
   navigate(path, queryParams);
 }
@@ -54,9 +54,7 @@ export function handleDeepLink(url: string, navigate: (path: string, params?: an
 /**
  * Register deep link listener
  */
-export function registerDeepLinkListener(
-  callback: (url: string) => void
-): () => void {
+export function registerDeepLinkListener(callback: (url: string) => void): () => void {
   const subscription = Linking.addEventListener("url", (event) => {
     callback(event.url);
   });

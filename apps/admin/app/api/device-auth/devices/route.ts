@@ -6,7 +6,7 @@ import { supabaseSrv } from "@/lib/supabase/server";
  *
  * GET /api/device-auth/devices
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const supabase = supabaseSrv();
 

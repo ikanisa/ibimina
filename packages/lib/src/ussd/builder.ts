@@ -70,7 +70,7 @@ function formatAmount(
       currency,
       maximumFractionDigits: 0,
     }).format(amount);
-  } catch (error) {
+  } catch {
     // Fallback to simple numeric formatting
     return `${amount} ${currency}`;
   }

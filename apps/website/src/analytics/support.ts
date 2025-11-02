@@ -95,7 +95,6 @@ function captureSupportEvent(event: string, properties: Record<string, unknown>)
 
   if (!POSTHOG_API_KEY) {
     if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
       console.warn(
         `[analytics] Skipped ${event} because NEXT_PUBLIC_POSTHOG_KEY is not configured.`
       );

@@ -232,7 +232,7 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
     TRUSTED_COOKIE_SECRET: "stub-trusted-cookie-secret",
     HMAC_SHARED_SECRET: "stub-hmac-shared-secret",
     OPENAI_API_KEY: "stub-openai-api-key",
-    KMS_DATA_KEY_BASE64: "ZGV2LWttcy1kYXRhLWtleS0zMi1ieXRlcyEhISEhISE=",
+    KMS_DATA_KEY_BASE64: "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==",
   } as const);
 
   const withFallback = (value: string | undefined, fallback: string) => {

@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "lint": "eslint --max-warnings=0 \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint --max-warnings=0 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "echo 'TODO: add tests'",
     "openapi:generate": "openapi-typescript openapi/platform-api.yaml --output src/generated/platform-api.ts --export-type",

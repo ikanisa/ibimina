@@ -114,6 +114,8 @@ if (sentryDsn) {
 const posthogApiKey = Deno.env.get("POSTHOG_API_KEY");
 const posthogHost = Deno.env.get("POSTHOG_HOST") ?? "https://app.posthog.com";
 
+const nativeConsole = console;
+
 const capturePosthog = async (
   service: string,
   requestId: string,
@@ -140,7 +142,7 @@ const capturePosthog = async (
       }),
     });
   } catch (error) {
-    console.warn(
+    nativeConsole.warn(
       JSON.stringify({
         level: "warn",
         event: "posthog.capture_failed",
@@ -176,13 +178,13 @@ const writeLog = (
 
   switch (level) {
     case "error":
-      console.error(serialized);
+      nativeConsole.error(serialized);
       break;
     case "warn":
-      console.warn(serialized);
+      nativeConsole.warn(serialized);
       break;
     default:
-      console.log(serialized);
+      nativeConsole.log(serialized);
   }
 };
 

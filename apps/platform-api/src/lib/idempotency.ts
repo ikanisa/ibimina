@@ -123,6 +123,7 @@ export interface WebhookIdempotencyResult<T> {
 
 const WAIT_INTERVAL_MS = 100;
 const MAX_WAIT_ATTEMPTS = 6;
+const MAX_LOCK_RETRIES = 3;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -134,42 +135,65 @@ export async function withWebhookIdempotency<T>({
   operation,
   onPendingTimeout,
 }: WebhookIdempotencyOptions<T>): Promise<WebhookIdempotencyResult<T>> {
-  const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
-  const insertResult = await store.tryInsertPending(requestHash, expiresAt);
+  for (let lockAttempt = 0; lockAttempt < MAX_LOCK_RETRIES; lockAttempt += 1) {
+    const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
+    const insertResult = await store.tryInsertPending(requestHash, expiresAt);
 
-  if (insertResult === "inserted") {
-    try {
-      const result = await operation();
-      await store.updateRecord(result, requestHash, expiresAt);
-      return { fromCache: false, data: result, timedOut: false };
-    } catch (error) {
-      await store.removeRecord().catch(() => {
-        // Best effort cleanup; errors already logged in removeRecord
-      });
-      throw error;
-    }
-  }
-
-  for (let attempt = 0; attempt < MAX_WAIT_ATTEMPTS; attempt += 1) {
-    const record = await store.fetchRecord();
-
-    if (!record) {
-      break;
+    if (insertResult === "inserted") {
+      try {
+        const result = await operation();
+        await store.updateRecord(result, requestHash, expiresAt);
+        return { fromCache: false, data: result, timedOut: false };
+      } catch (error) {
+        await store.removeRecord().catch(() => {
+          // Best effort cleanup; errors already logged in removeRecord
+        });
+        throw error;
+      }
     }
 
-    if (record.request_hash !== requestHash && !isPending(record.response)) {
-      logWarn("webhook_idempotency.hash_mismatch", {
-        requestHash,
-        storedHash: record.request_hash,
-      });
-      break;
+    let shouldRetryLock = false;
+
+    for (let attempt = 0; attempt < MAX_WAIT_ATTEMPTS; attempt += 1) {
+      const record = await store.fetchRecord();
+
+      if (!record) {
+        shouldRetryLock = true;
+        break;
+      }
+
+      if (record.request_hash !== requestHash && !isPending(record.response)) {
+        logWarn("webhook_idempotency.hash_mismatch", {
+          requestHash,
+          storedHash: record.request_hash,
+        });
+        break;
+      }
+
+      if (!isPending(record.response)) {
+        return { fromCache: true, data: record.response as T, timedOut: false };
+      }
+
+      const recordExpiration = Date.parse(record.expires_at);
+      const recordExpired = Number.isFinite(recordExpiration)
+        ? recordExpiration <= Date.now()
+        : false;
+
+      if (recordExpired) {
+        await store.removeRecord().catch(() => {
+          // Best effort cleanup; errors already logged in removeRecord
+        });
+        shouldRetryLock = true;
+        break;
+      }
+
+      await wait(WAIT_INTERVAL_MS * 2 ** attempt);
     }
 
-    if (!isPending(record.response)) {
-      return { fromCache: true, data: record.response as T, timedOut: false };
+    if (!shouldRetryLock) {
+      onPendingTimeout?.();
+      return { fromCache: true, data: fallback, timedOut: true };
     }
-
-    await wait(WAIT_INTERVAL_MS * 2 ** attempt);
   }
 
   onPendingTimeout?.();

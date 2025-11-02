@@ -57,7 +57,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run lint
-        run: pnpm --filter ${{ matrix.filter }} run lint
+        run: pnpm -r --filter ${{ matrix.filter }} lint
 
   typecheck:
     name: Typecheck (@ibimina/admin)
@@ -109,7 +109,7 @@ jobs:
       TRUSTED_COOKIE_SECRET: "placeholder-trusted-cookie-secret"
       HMAC_SHARED_SECRET: "placeholder-hmac-shared-secret-32"
       OPENAI_API_KEY: "placeholder-openai-api-key"
-      KMS_DATA_KEY_BASE64: "MDEyMzQ1Njc4OUFCQ0RFRjAxMjM0NTY3ODlBQkNERUY="
+      KMS_DATA_KEY_BASE64: "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ=="
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -143,7 +143,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run lint (excluding client)
-        run: pnpm --filter '!@ibimina/client' run lint
+        run: pnpm -r --filter '!@ibimina/client' lint
 
       - name: Run client lint
         id: client_lint

@@ -304,103 +304,75 @@ export function StatementsTable({ entries, onExportPDF }: StatementsTableProps) 
         </div>
       ) : (
         <div className="rounded-lg border border-gray-200 bg-white">
-          <div className="divide-y divide-gray-200">
-            <div
-              className="hidden w-full bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-700 sm:grid"
-              role="rowgroup"
-              style={{ gridTemplateColumns: GRID_TEMPLATE }}
-            >
-              <div role="columnheader">Date</div>
-              <div role="columnheader">Group</div>
-              <div role="columnheader" className="text-right">
-                Amount
-              </div>
-              <div role="columnheader">Txn ID</div>
-              <div role="columnheader">Status</div>
-            </div>
-
-            {/* Mobile layout without virtualization for readability */}
-            <div className="sm:hidden">
-              {filteredEntries.map((entry) => (
-                <article
-                  key={entry.id}
-                  className="flex flex-col gap-2 border-b border-gray-200 p-4 last:border-b-0"
-                  aria-label={`Statement for ${entry.groupName}`}
-                >
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-900">{entry.groupName}</span>
-                    <span className="font-semibold text-gray-900">{fmtCurrency(entry.amount)}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                    <span>{dateFormatter.format(new Date(entry.date))}</span>
-                    <span className="font-mono">{entry.txnId}</span>
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${
-                        entry.status === "CONFIRMED"
-                          ? "border-green-200 bg-green-100 text-green-800"
-                          : "border-yellow-200 bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {entry.status}
-                    </span>
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            <div className="hidden sm:block" role="rowgroup" aria-label="Statement history">
-              {shouldVirtualize ? (
-                <div
-                  ref={virtualizedContainerRef}
-                  className="relative max-h-[28rem] overflow-y-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                  role="rowgroup"
-                  aria-live="polite"
-                  tabIndex={0}
-                >
-                  <div aria-hidden="true" style={{ height: totalHeight }} />
-                  {visibleEntries.map((entry, visibleIndex) => {
-                    const absoluteIndex = startIndex + visibleIndex;
-                    return (
-                      <div
-                        key={entry.id}
-                        role="row"
-                        className="absolute inset-x-0 grid items-center bg-white px-4 py-4 text-sm text-gray-900 transition-colors hover:bg-gray-50"
-                        style={{
-                          transform: `translateY(${absoluteIndex * ROW_HEIGHT}px)`,
-                          gridTemplateColumns: GRID_TEMPLATE,
-                        }}
-                      >
-                        <span role="cell">{dateFormatter.format(new Date(entry.date))}</span>
-                        <span role="cell">{entry.groupName}</span>
-                        <span role="cell" className="text-right font-semibold">
-                          {fmtCurrency(entry.amount)}
-                        </span>
-                        <span role="cell" className="font-mono text-gray-600">
-                          {entry.txnId}
-                        </span>
-                        <span role="cell">
-                          <span
-                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-                              entry.status === "CONFIRMED"
-                                ? "border-green-200 bg-green-100 text-green-800"
-                                : "border-yellow-200 bg-yellow-100 text-yellow-800"
-                            }`}
-                          >
-                            {entry.status}
-                          </span>
-                        </span>
-                      </div>
-                    );
-                  })}
+          {/* Mobile layout without virtualization for readability */}
+          <div className="sm:hidden">
+            {filteredEntries.map((entry) => (
+              <article
+                key={entry.id}
+                className="flex flex-col gap-2 border-b border-gray-200 p-4 last:border-b-0"
+                aria-label={`Statement for ${entry.groupName}`}
+              >
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-gray-900">{entry.groupName}</span>
+                  <span className="font-semibold text-gray-900">{fmtCurrency(entry.amount)}</span>
                 </div>
-              ) : (
-                <div className="max-h-[28rem] overflow-y-auto" role="rowgroup" aria-live="polite">
-                  {filteredEntries.map((entry) => (
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                  <span>{dateFormatter.format(new Date(entry.date))}</span>
+                  <span className="font-mono">{entry.txnId}</span>
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${
+                      entry.status === "CONFIRMED"
+                        ? "border-green-200 bg-green-100 text-green-800"
+                        : "border-yellow-200 bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {entry.status}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div
+            className="hidden divide-y divide-gray-200 sm:block"
+            role="table"
+            aria-label="Statement history"
+          >
+            <div role="rowgroup">
+              <div
+                role="row"
+                className="grid w-full bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-700"
+                style={{ gridTemplateColumns: GRID_TEMPLATE }}
+              >
+                <div role="columnheader">Date</div>
+                <div role="columnheader">Group</div>
+                <div role="columnheader" className="text-right">
+                  Amount
+                </div>
+                <div role="columnheader">Txn ID</div>
+                <div role="columnheader">Status</div>
+              </div>
+            </div>
+
+            {shouldVirtualize ? (
+              <div
+                ref={virtualizedContainerRef}
+                className="relative max-h-[28rem] overflow-y-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                role="rowgroup"
+                aria-live="polite"
+                tabIndex={0}
+              >
+                <div aria-hidden="true" style={{ height: totalHeight }} />
+                {visibleEntries.map((entry, visibleIndex) => {
+                  const absoluteIndex = startIndex + visibleIndex;
+                  return (
                     <div
                       key={entry.id}
                       role="row"
-                      className="grid items-center px-4 py-4 text-sm text-gray-900 transition-colors hover:bg-gray-50"
-                      style={{ gridTemplateColumns: GRID_TEMPLATE }}
+                      className="absolute inset-x-0 grid items-center bg-white px-4 py-4 text-sm text-gray-900 transition-colors hover:bg-gray-50"
+                      style={{
+                        transform: `translateY(${absoluteIndex * ROW_HEIGHT}px)`,
+                        gridTemplateColumns: GRID_TEMPLATE,
+                      }}
                     >
                       <span role="cell">{dateFormatter.format(new Date(entry.date))}</span>
                       <span role="cell">{entry.groupName}</span>
@@ -422,10 +394,41 @@ export function StatementsTable({ entries, onExportPDF }: StatementsTableProps) 
                         </span>
                       </span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="max-h-[28rem] overflow-y-auto" role="rowgroup" aria-live="polite">
+                {filteredEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    role="row"
+                    className="grid items-center px-4 py-4 text-sm text-gray-900 transition-colors hover:bg-gray-50"
+                    style={{ gridTemplateColumns: GRID_TEMPLATE }}
+                  >
+                    <span role="cell">{dateFormatter.format(new Date(entry.date))}</span>
+                    <span role="cell">{entry.groupName}</span>
+                    <span role="cell" className="text-right font-semibold">
+                      {fmtCurrency(entry.amount)}
+                    </span>
+                    <span role="cell" className="font-mono text-gray-600">
+                      {entry.txnId}
+                    </span>
+                    <span role="cell">
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                          entry.status === "CONFIRMED"
+                            ? "border-green-200 bg-green-100 text-green-800"
+                            : "border-yellow-200 bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {entry.status}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

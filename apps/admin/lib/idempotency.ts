@@ -81,7 +81,7 @@ function hasStoredResponse(value: unknown): boolean {
   return !isSentinel(value, "pending");
 }
 
-type IdempotencyRecord = {
+type _IdempotencyRecord = {
   response: unknown | null;
   expires_at: string;
   request_hash: string;
