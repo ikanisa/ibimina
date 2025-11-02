@@ -15,25 +15,50 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.ibimina.mobile"
+      "bundleIdentifier": "com.ibimina.mobile",
+      "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A0E27"
       },
-      "package": "com.ibimina.mobile"
+      "package": "com.ibimina.mobile",
+      "versionCode": 100,
+      "allowBackup": false,
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": ["CAMERA", "READ_EXTERNAL_STORAGE"]
     },
     "web": {
       "bundler": "metro",
       "output": "server"
     },
-    "plugins": ["expo-router", "expo-secure-store", "react-native-mmkv"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "react-native-mmkv",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24,
+            "enableProguardInReleaseBuilds": true
+          },
+          "ios": {
+            "deploymentTarget": "15.0"
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "00000000-0000-0000-0000-000000000000"
       },
-      "apiBaseUrl": ""
+      "apiBaseUrl": "",
+      "iosBuildNumber": "1.0.0",
+      "androidVersionCode": 100
     }
   }
 }

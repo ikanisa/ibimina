@@ -343,7 +343,7 @@ section "Documentation"
 REQUIRED_DOCS=(
     "README.md"
     "DEPLOYMENT_GUIDE.md"
-    "PRODUCTION_CHECKLIST.md"
+    "docs/go-live/production-checklist.md"
     "MOBILE_TESTING_GUIDE.md"
 )
 

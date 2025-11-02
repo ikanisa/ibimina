@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createServiceClient, jsonResponse, requireEnv } from "../_shared/mod.ts";
 import { recordMetric } from "../_shared/metrics.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const requestSchema = z.object({
   email: z.string().email(),
@@ -69,7 +70,7 @@ const corsHeaders = {
 const errorWithCors = (message: string, status = 400) =>
   jsonResponse({ error: message }, { status, headers: corsHeaders });
 
-Deno.serve(async (req) => {
+serveWithObservability("mfa-email", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

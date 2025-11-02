@@ -7,7 +7,10 @@
     "noEmit": false,
     "types": ["node"],
     "moduleResolution": "node",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@ibimina/config": ["../../packages/config/src/index.ts"]
+    }
   },
   "include": ["src/**/*", "api/**/*"],
   "exclude": ["dist", "node_modules"]

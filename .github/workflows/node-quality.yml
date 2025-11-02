@@ -24,6 +24,9 @@ jobs:
           - label: Client app
             filter: "@ibimina/client"
             allow_failure: true
+          - label: Platform API
+            filter: "@ibimina/platform-api"
+            allow_failure: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -195,3 +198,27 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: scripts/check-supabase-types.sh
+
+  openapi:
+    name: OpenAPI drift detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify generated Platform API client is up to date
+        run: pnpm openapi:check

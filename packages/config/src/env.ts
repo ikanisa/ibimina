@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { z } from "zod";
-import requiredEnvConfig from "../required-env.json" with { type: "json" };
+import { requiredEnvConfig } from "./data/requiredEnvConfig";
 
 type ProcessEnvSource = Partial<Record<string, string | undefined>>;
 
@@ -17,6 +17,12 @@ function buildRawEnv(source: ProcessEnvSource) {
     NEXT_PUBLIC_SITE_URL: source.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_BUILD_ID: source.NEXT_PUBLIC_BUILD_ID,
     NEXT_PUBLIC_E2E: source.NEXT_PUBLIC_E2E,
+    NEXT_PUBLIC_SENTRY_DSN: source.NEXT_PUBLIC_SENTRY_DSN,
+    SENTRY_DSN: source.SENTRY_DSN,
+    SENTRY_TRACES_SAMPLE_RATE: source.SENTRY_TRACES_SAMPLE_RATE,
+    SENTRY_PROFILES_SAMPLE_RATE: source.SENTRY_PROFILES_SAMPLE_RATE,
+    POSTHOG_API_KEY: source.POSTHOG_API_KEY,
+    POSTHOG_HOST: source.POSTHOG_HOST,
     SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY,
     BACKUP_PEPPER: source.BACKUP_PEPPER,
     RATE_LIMIT_SECRET: source.RATE_LIMIT_SECRET,
@@ -103,6 +109,12 @@ const schema = z
     NEXT_PUBLIC_SITE_URL: optionalString,
     NEXT_PUBLIC_BUILD_ID: optionalString,
     NEXT_PUBLIC_E2E: optionalString,
+    NEXT_PUBLIC_SENTRY_DSN: optionalString,
+    SENTRY_DSN: optionalString,
+    SENTRY_TRACES_SAMPLE_RATE: optionalString,
+    SENTRY_PROFILES_SAMPLE_RATE: optionalString,
+    POSTHOG_API_KEY: optionalString,
+    POSTHOG_HOST: optionalString,
     SUPABASE_SERVICE_ROLE_KEY: z
       .string({ required_error: "SUPABASE_SERVICE_ROLE_KEY is required" })
       .trim()
@@ -275,6 +287,21 @@ function parsePositiveInteger(value: string, fallback: number): number {
   return parsed;
 }
 
+function parseSampleRateValue(value: string | undefined, fallback: number): number {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return fallback;
+  }
+
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  if (parsed < 0) return 0;
+  if (parsed > 1) return 1;
+  return parsed;
+}
+
 export type ServerEnv = ReturnType<typeof prepareServerEnv>;
 
 function prepareServerEnv(parsedEnv: RawEnv) {
@@ -295,6 +322,14 @@ function prepareServerEnv(parsedEnv: RawEnv) {
       5 * 60 * 1000
     ),
     SMTP_PORT: parsePositiveInteger(parsedEnv.SMTP_PORT, 587),
+    SENTRY_TRACES_SAMPLE_RATE: parseSampleRateValue(
+      parsedEnv.SENTRY_TRACES_SAMPLE_RATE,
+      parsedEnv.APP_ENV === "production" ? 0.2 : 1
+    ),
+    SENTRY_PROFILES_SAMPLE_RATE: parseSampleRateValue(
+      parsedEnv.SENTRY_PROFILES_SAMPLE_RATE,
+      parsedEnv.APP_ENV === "production" ? 0.1 : 1
+    ),
     rateLimitSecret,
     emailOtpPepper,
     kmsDataKey,
@@ -337,6 +372,7 @@ export const clientEnv = Object.freeze({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SITE_URL: env.NEXT_PUBLIC_SITE_URL ?? null,
   NEXT_PUBLIC_BUILD_ID: env.NEXT_PUBLIC_BUILD_ID ?? null,
+  NEXT_PUBLIC_SENTRY_DSN: env.NEXT_PUBLIC_SENTRY_DSN ?? null,
 });
 
 export const requiredServerEnv: ReadonlyArray<string> = Object.freeze(requiredEnvConfig.required);

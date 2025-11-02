@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { validateHmacRequest } from "../_shared/auth.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +25,7 @@ type MetricRow = {
   meta: Record<string, unknown> | null;
 };
 
-Deno.serve(async (req) => {
+serveWithObservability("metrics-exporter", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
