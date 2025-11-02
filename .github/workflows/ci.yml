@@ -366,5 +366,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mobile-detox-output
-          path: apps/client/tests/detox
+          path: apps/mobile/tests/detox
           if-no-files-found: warn
