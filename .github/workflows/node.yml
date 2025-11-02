@@ -20,7 +20,7 @@ jobs:
       TRUSTED_COOKIE_SECRET: "placeholder-trusted-cookie-secret"
       HMAC_SHARED_SECRET: "placeholder-hmac-shared-secret-32"
       OPENAI_API_KEY: "placeholder-openai-api-key"
-      KMS_DATA_KEY_BASE64: "cGxhY2Vob2xkZXIta21zLWRhdGEta2V5LTMyLWJ5dGVzISEhIQ=="
+      KMS_DATA_KEY_BASE64: "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ=="
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,5 +62,8 @@ jobs:
       - name: Typecheck
         run: pnpm run typecheck
 
-      - name: Build
-        run: pnpm run build
+      - name: Build shared packages
+        run: pnpm run build:packages
+
+      - name: Build applications
+        run: pnpm run build:apps

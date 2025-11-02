@@ -71,15 +71,24 @@ New to the project? Start here:
 
 ### Deployment & Production
 
-- [**PRODUCTION_CHECKLIST.md**](../PRODUCTION_CHECKLIST.md) - Comprehensive
-  pre-deployment checklist
+- [**docs/go-live/README.md**](../docs/go-live/README.md) - Go-live
+  documentation hub
+- [**docs/go-live/release-checklist.md**](../docs/go-live/release-checklist.md) -
+  Structured release flow
+- [**docs/go-live/artifacts-inventory.md**](../docs/go-live/artifacts-inventory.md) -
+  Evidence catalog
+- [**docs/go-live/release-governance.md**](../docs/go-live/release-governance.md) -
+  Branch protection and reviewer expectations
+- [**docs/go-live/production-checklist.md**](../docs/go-live/production-checklist.md) -
+  Comprehensive pre-deployment checklist
 - [**DEPLOYMENT_CHECKLIST.md**](../DEPLOYMENT_CHECKLIST.md) - Standard release
   procedures
 - [**POST_DEPLOYMENT_VALIDATION.md**](POST_DEPLOYMENT_VALIDATION.md) -
   Post-deploy verification
 - [**DISASTER_RECOVERY.md**](DISASTER_RECOVERY.md) - Emergency procedures
 - [**SECURITY_HARDENING.md**](SECURITY_HARDENING.md) - Security configuration
-- [**go-live-checklist.md**](go-live-checklist.md) - Supabase-specific setup
+- [**go-live/supabase-go-live-checklist.md**](go-live/supabase-go-live-checklist.md) -
+  Supabase-specific setup
 
 ### Architecture & Design
 
@@ -107,10 +116,27 @@ New to the project? Start here:
 
 - [**OPERATIONAL_READINESS.md**](OPERATIONAL_READINESS.md) - Operational
   readiness checklist
-- [**operations-runbook.md**](operations-runbook.md) - Operations runbook
+- [**operations-runbook.md**](operations-runbook.md) - Legacy log forwarding
+  guide (superseded by `docs/runbooks/OPERATIONS.md`)
 - [**security-observability.md**](security-observability.md) - Security and
   observability
 - [**supabase-cicd.md**](supabase-cicd.md) - Supabase CI/CD
+- [**operations/app-portfolio-status.md**](operations/app-portfolio-status.md) -
+  Application retention decisions and archival checklist
+
+### Runbooks
+
+- [**runbooks/ARCHITECTURE.md**](runbooks/ARCHITECTURE.md) - System boundaries
+  and data flow overview
+- [**runbooks/OPERATIONS.md**](runbooks/OPERATIONS.md) - Daily operations,
+  release process, and incident response
+- [**runbooks/SECURITY.md**](runbooks/SECURITY.md) - Identity, secrets, and
+  rotation procedures
+- [**runbooks/MOBILE_RELEASE.md**](runbooks/MOBILE_RELEASE.md) - Expo/EAS mobile
+  shipping checklist
+- [**runbooks/WEB_PWA_CHECKLIST.md**](runbooks/WEB_PWA_CHECKLIST.md) - Staff &
+  member PWA ship gate
+- [**runbooks/API_CONTRACT.md**](runbooks/API_CONTRACT.md) - REST API contract
 
 ## 📦 Package Documentation
 
@@ -124,19 +150,19 @@ New to the project? Start here:
 
 ### By Topic
 
-| Topic                 | Document                                              |
-| --------------------- | ----------------------------------------------------- |
-| **Standards & Rules** | [GROUND_RULES.md](GROUND_RULES.md)                    |
-| **Quick Commands**    | [QUICK_REFERENCE.md](QUICK_REFERENCE.md)              |
-| **Project Layout**    | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)          |
-| **Common Problems**   | [TROUBLESHOOTING.md](TROUBLESHOOTING.md)              |
-| **CI/CD**             | [CI_WORKFLOWS.md](CI_WORKFLOWS.md)                    |
-| **Database**          | [DB_GUIDE.md](DB_GUIDE.md)                            |
-| **Environment**       | [ENV_VARIABLES.md](ENV_VARIABLES.md)                  |
-| **Security**          | [SECURITY_HARDENING.md](SECURITY_HARDENING.md)        |
-| **Testing**           | [TESTING.md](TESTING.md)                              |
-| **Deployment**        | [PRODUCTION_CHECKLIST.md](../PRODUCTION_CHECKLIST.md) |
-| **Emergency**         | [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md)          |
+| Topic                 | Document                                                                        |
+| --------------------- | ------------------------------------------------------------------------------- |
+| **Standards & Rules** | [GROUND_RULES.md](GROUND_RULES.md)                                              |
+| **Quick Commands**    | [QUICK_REFERENCE.md](QUICK_REFERENCE.md)                                        |
+| **Project Layout**    | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)                                    |
+| **Common Problems**   | [TROUBLESHOOTING.md](TROUBLESHOOTING.md)                                        |
+| **CI/CD**             | [CI_WORKFLOWS.md](CI_WORKFLOWS.md)                                              |
+| **Database**          | [DB_GUIDE.md](DB_GUIDE.md)                                                      |
+| **Environment**       | [ENV_VARIABLES.md](ENV_VARIABLES.md)                                            |
+| **Security**          | [SECURITY_HARDENING.md](SECURITY_HARDENING.md)                                  |
+| **Testing**           | [TESTING.md](TESTING.md)                                                        |
+| **Deployment**        | [docs/go-live/production-checklist.md](../docs/go-live/production-checklist.md) |
+| **Emergency**         | [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md)                                    |
 
 ### By Role
 

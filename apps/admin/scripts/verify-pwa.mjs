@@ -5,6 +5,13 @@ import { spawn } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 
 const results = [];
+const args = new Set(process.argv.slice(2));
+
+const skipBuild = args.has("--skip-build") || process.env.SKIP_PWA_BUILD === "1";
+
+function recordSkip(name) {
+  results.push({ name, ok: true, skipped: true });
+}
 
 async function step(name, fn) {
   try {
@@ -17,7 +24,9 @@ async function step(name, fn) {
 
 function logSummary() {
   for (const item of results) {
-    if (item.ok) {
+    if (item.skipped) {
+      console.log(`⏭️  ${item.name} (skipped)`);
+    } else if (item.ok) {
       console.log(`✅  ${item.name}`);
     } else {
       console.error(`❌  ${item.name}`);
@@ -139,7 +148,11 @@ async function main() {
   await step("manifest contains 192px & 512px PNG icons", checkManifest);
   await step("root layout advertises manifest & theme color", checkLayoutHead);
   await step("service-worker.js present", checkServiceWorker);
-  await step("npm run build", runBuild);
+  if (skipBuild) {
+    recordSkip("npm run build");
+  } else {
+    await step("npm run build", runBuild);
+  }
   await step("start server and probe /api/health", runServerHealthcheck);
   logSummary();
   const failed = results.filter((item) => !item.ok);

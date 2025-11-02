@@ -63,7 +63,7 @@ const nextConfig = {
   },
 
   // Performance: Transpile workspace packages
-  transpilePackages: ["@ibimina/config", "@ibimina/ui"],
+  transpilePackages: ["@ibimina/config", "@ibimina/lib", "@ibimina/locales", "@ibimina/ui"],
 
   // Performance: Tree-shaking for lucide-react
   modularizeImports: {

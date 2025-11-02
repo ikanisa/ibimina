@@ -381,7 +381,7 @@ const followUpTool: ToolDefinition<FollowUpArgs, FollowUpConfirmation> = {
   },
 };
 
-export const tools: ToolDefinition<any, any>[] = [
+export const tools: ToolDefinition<unknown, unknown>[] = [
   metricsSummaryTool,
   surveySummaryTool,
   followUpTool,

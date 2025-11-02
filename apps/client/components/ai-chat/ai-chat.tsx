@@ -108,6 +108,8 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
 
     await new Promise((resolve) => setTimeout(resolve, 800));
 
+    const fullResponse = `I understand you're asking about "${userMessage.content}". I'm here to help with USSD payments, reference tokens, account statements, and general SACCO questions. Could you please provide more details about what you'd like to know?`;
+
     await simulateStreaming(fullResponse, agentMessageId);
 
     setIsLoading(false);

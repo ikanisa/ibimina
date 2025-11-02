@@ -1,7 +1,9 @@
 # Scheduled Task Guidance
 
 This project previously relied on GitHub Actions cron triggers. Those schedules
-have been removed while we refine the automation approach.
+have been removed while we refine the automation approach. Several checks that
+used to run via ad-hoc cron jobs—such as the PWA baseline verification—are now
+executed automatically in the main CI pipeline to remove manual overhead.
 
 ## Running scheduled work locally
 

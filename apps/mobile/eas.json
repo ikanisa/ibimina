@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 13.4.0"
+  },
+  "build": {
+    "production": {
+      "channel": "production",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "apk": {
+      "channel": "qa",
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./credentials/google-service-account.json"
+      },
+      "ios": {
+        "ascAppId": "1234567890"
+      }
+    }
+  }
+}

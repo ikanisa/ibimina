@@ -1,12 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
     "rootDir": "src",
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationDir": "dist",
-    "composite": true
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules"]
