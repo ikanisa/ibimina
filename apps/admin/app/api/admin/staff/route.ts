@@ -19,12 +19,12 @@ export async function GET(request: Request) {
 
   // Validate query parameters
   const validationResult = staffQuerySchema.safeParse({
-    role: searchParams.get("role"),
-    sacco_id: searchParams.get("sacco_id"),
-    status: searchParams.get("status"),
-    q: searchParams.get("q"),
-    org_type: searchParams.get("org_type"),
-    org_id: searchParams.get("org_id"),
+    role: searchParams.get("role") ?? undefined,
+    sacco_id: searchParams.get("sacco_id") ?? undefined,
+    status: searchParams.get("status") ?? undefined,
+    q: searchParams.get("q") ?? undefined,
+    org_type: searchParams.get("org_type") ?? undefined,
+    org_id: searchParams.get("org_id") ?? undefined,
   });
 
   if (!validationResult.success) {
@@ -34,7 +34,14 @@ export async function GET(request: Request) {
     );
   }
 
-  const { role, sacco_id: saccoId, status, q, org_type: orgType, org_id: orgId } = validationResult.data;
+  const {
+    role,
+    sacco_id: saccoId,
+    status,
+    q,
+    org_type: orgType,
+    org_id: orgId,
+  } = validationResult.data;
 
   const guard = await guardAdminAction(
     {
@@ -61,10 +68,7 @@ export async function GET(request: Request) {
     }
     const membershipResult = await membershipQuery;
     if (membershipResult.error && !isMissingRelationError(membershipResult.error)) {
-      return NextResponse.json(
-        { error: "Failed to load memberships" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to load memberships" }, { status: 500 });
     }
     const rows = (membershipResult.data ?? []) as Array<{ user_id: string | null }>;
     const ids = Array.from(
@@ -94,10 +98,7 @@ export async function GET(request: Request) {
 
   const result = await query;
   if (result.error && !isMissingRelationError(result.error)) {
-    return NextResponse.json(
-      { error: "Failed to load staff" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to load staff" }, { status: 500 });
   }
 
   let rows = (result.data ?? []) as Array<{
@@ -109,7 +110,7 @@ export async function GET(request: Request) {
     suspended?: boolean | null;
     saccos?: { name: string | null } | null;
   }>;
-  
+
   // Apply search filter if provided
   if (q && q.trim().length > 0) {
     const searchTerm = q.trim().toLowerCase();
