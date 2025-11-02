@@ -53,6 +53,7 @@
     "@capacitor/status-bar": "^7.0.3",
     "@capacitor/toast": "^7.0.2",
     "@capawesome-team/capacitor-android-foreground-service": "^7.0.1",
+    "@ibimina/data-access": "workspace:*",
     "@ibimina/config": "workspace:*",
     "@ibimina/lib": "workspace:*",
     "@ibimina/locales": "workspace:*",
