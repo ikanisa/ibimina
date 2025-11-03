@@ -386,7 +386,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
     <div className="relative flex min-h-screen flex-col">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-kigali focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-[color:var(--color-primary-500,#4a70ff)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[color:var(--color-foreground-inverse,#0d1324)] focus:bg-kigali focus:text-ink transition-colors duration-200"
       >
         Skip to content · Siga ujye ku bikorwa
       </a>
@@ -397,7 +397,10 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
 
       <header className="relative mx-auto w-full max-w-6xl px-4 pb-4 pt-6 md:px-8">
         <nav
-          className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent px-6 py-6 shadow-2xl backdrop-blur-xl"
+          className={cn(
+            "relative overflow-hidden rounded-[var(--radius-2xl,1.5rem)] border border-border/40 bg-[color:var(--surface-glass,rgba(255,255,255,0.82))] px-6 py-6 shadow-xl backdrop-blur-xl transition-colors duration-300",
+            "border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent shadow-2xl"
+          )}
           aria-label={t("nav.main", "Main navigation")}
         >
           {/* Subtle gradient overlay for depth */}
@@ -485,13 +488,13 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                 </div>
 
                 {/* Sign out button */}
-                <SignOutButton className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-md backdrop-blur-sm transition-all hover:bg-white/20 hover:shadow-lg" />
+                <SignOutButton className="rounded-xl border border-border/30 bg-[color:var(--surface-subtle,rgba(255,255,255,0.15))] px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-foreground,#111827)] shadow-sm backdrop-blur-sm transition-colors duration-200 hover:border-border/20 hover:bg-[color:var(--surface-muted,rgba(255,255,255,0.22))] hover:shadow-md border-white/15 bg-white/10 text-neutral-0 hover:bg-white/20 hover:shadow-lg" />
 
                 {/* Search button */}
                 <button
                   type="button"
                   onClick={() => setShowGlobalSearch(true)}
-                  className="group inline-flex items-center gap-2 rounded-xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-0 shadow-md backdrop-blur-sm transition-all hover:border-white/30 hover:from-white/20 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-ink"
+                  className="group inline-flex items-center gap-2 rounded-xl border border-border/40 bg-[color:var(--surface-glass,rgba(255,255,255,0.16))] px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-foreground-inverse,#0d1324)] shadow-sm backdrop-blur-sm transition-colors duration-200 hover:border-border/30 hover:bg-[color:var(--surface-glass-strong,rgba(255,255,255,0.24))] focus:outline-none focus:ring-2 focus:ring-[color:var(--state-focus-ring,#4a70ff)] focus:ring-offset-2 focus:ring-offset-[color:var(--color-canvas,#0b1020)] border-white/20 bg-gradient-to-br from-white/15 to-white/5 text-neutral-0 hover:border-white/30 hover:from-white/20 hover:to-white/10 hover:shadow-lg focus:ring-rw-blue/50 focus:ring-offset-ink"
                   aria-haspopup="dialog"
                   aria-expanded={showGlobalSearch}
                   aria-label={t("common.search", "Search")}
