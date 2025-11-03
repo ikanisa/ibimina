@@ -1,69 +1,46 @@
+@import "../../src/design/tokens.css";
+
 :root {
-  /* Core */
-  --ink: #0b1020;
-  --fg: #121417;
-  --bg: #0a0f14;
+  /* Bridge existing admin tokens onto the shared design system */
+  --ink: var(--color-ink);
+  --fg: var(--color-foreground);
+  --bg: var(--color-canvas);
 
-  /* Rwanda flag */
-  --rw-blue: #00a1de;
-  --rw-yellow: #fad201;
-  --rw-green: #20603d;
+  --rw-blue: var(--color-primary-500);
+  --rw-yellow: var(--color-warning-400);
+  --rw-green: var(--color-accent-500);
 
-  /* Neutral */
-  --neutral-0: #ffffff;
-  --neutral-1: #f7f9fb;
-  --neutral-2: #e8edf1;
-  --neutral-9: #1a1f25;
+  --neutral-0: var(--color-neutral-0);
+  --neutral-1: var(--color-neutral-50);
+  --neutral-2: var(--color-neutral-100);
+  --neutral-9: var(--color-neutral-900);
 
-  /* Brand accents */
-  --brand-1: #1bb06e;
-  --brand-2: #0674d6;
+  --brand-1: var(--color-accent-500);
+  --brand-2: var(--color-primary-500);
 
-  /* Gradients */
-  --gradient-kigali: linear-gradient(135deg, var(--rw-blue), var(--rw-yellow) 50%, var(--rw-green));
-  --nyungwe: radial-gradient(
-    1200px 800px at 20% 10%,
-    rgba(0, 161, 222, 0.45),
-    rgba(250, 210, 1, 0.35),
-    rgba(32, 96, 61, 0.45)
-  );
+  --gradient-kigali: var(--gradient-brand-hero);
+  --nyungwe: var(--gradient-brand-mesh);
 
-  /* Glass */
-  --glass-bg: rgba(255, 255, 255, 0.14);
-  --glass-stroke: rgba(255, 255, 255, 0.28);
-  --card-bg: #0f141a;
+  --glass-bg: var(--surface-glass);
+  --glass-stroke: var(--surface-glass-border);
+  --card-bg: var(--color-surface-elevated);
 
-  /* Shadows */
-  --shadow-1: 0 8px 24px rgba(0, 0, 0, 0.25);
-  --shadow-2: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --shadow-1: var(--shadow-lg);
+  --shadow-2: var(--shadow-sm);
 
-  /* Typography */
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono:
-    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 
-  /* Radii */
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 28px;
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-xl);
 
-  /* Spacing scale (unit: px) */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #05080c;
-    --fg: #f7f9fb;
-    --glass-bg: rgba(17, 26, 35, 0.68);
-    --glass-stroke: rgba(255, 255, 255, 0.18);
-  }
+  --space-1: var(--space-1);
+  --space-2: var(--space-2);
+  --space-3: var(--space-3);
+  --space-4: var(--space-4);
+  --space-5: var(--space-5);
+  --space-6: var(--space-6);
 }
 
 .bg-kigali {
@@ -76,10 +53,10 @@
 
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
   border: 1px solid var(--glass-stroke);
-  border-radius: 16px;
+  border-radius: var(--radius-lg, 16px);
   box-shadow: var(--shadow-1);
 }
 
@@ -88,15 +65,15 @@
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, var(--rw-blue), var(--rw-yellow));
+  background: var(--gradient-brand-soft);
   -webkit-background-clip: text;
   color: transparent;
 }
 
 .interactive-scale {
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform var(--motion-duration-150, 150ms) var(--motion-ease-standard, ease),
+    box-shadow var(--motion-duration-150, 150ms) var(--motion-ease-standard, ease);
 }
 
 .interactive-scale:hover {
