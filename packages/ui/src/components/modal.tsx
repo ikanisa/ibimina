@@ -146,7 +146,10 @@ export function Modal({
         )}
 
         {/* Content */}
-        <div className={`p-6 overflow-y-auto max-h-[calc(90vh-${MODAL_CHROME_HEIGHT}px)]`}>
+        <div
+          className="p-6 overflow-y-auto"
+          style={{ maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)` }}
+        >
           {children}
         </div>
 

@@ -76,7 +76,8 @@ function AddStaffDrawer({ organizations, onClose }: AddStaffDrawerProps) {
     setGeneratedPassword(password);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
 
     if (role !== "SYSTEM_ADMIN" && !selectedOrg) {
@@ -126,31 +127,8 @@ function AddStaffDrawer({ organizations, onClose }: AddStaffDrawerProps) {
       onClose={onClose}
       title={<Trans i18nKey="admin.staff.addNewStaff" fallback="Add new staff" />}
       size="lg"
-      footer={
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-neutral-0 hover:bg-white/10"
-          >
-            <Trans i18nKey="common.cancel" fallback="Cancel" />
-          </button>
-          <button
-            type="submit"
-            disabled={pending}
-            onClick={handleSubmit}
-            className="interactive-scale flex-1 rounded-xl bg-kigali px-4 py-3 text-sm font-semibold uppercase tracking-wide text-ink shadow-glass disabled:pointer-events-none disabled:opacity-60"
-          >
-            {pending ? (
-              <Trans i18nKey="common.sending" fallback="Sending..." />
-            ) : (
-              <Trans i18nKey="admin.staff.sendInvite" fallback="Send invite" />
-            )}
-          </button>
-        </div>
-      }
     >
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-neutral-2 space-y-2">
           <p>
             <Trans
@@ -284,6 +262,27 @@ function AddStaffDrawer({ organizations, onClose }: AddStaffDrawerProps) {
         {error && (
           <div className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
         )}
+
+        <div className="flex gap-3 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-neutral-0 hover:bg-white/10"
+          >
+            <Trans i18nKey="common.cancel" fallback="Cancel" />
+          </button>
+          <button
+            type="submit"
+            disabled={pending}
+            className="interactive-scale flex-1 rounded-xl bg-kigali px-4 py-3 text-sm font-semibold uppercase tracking-wide text-ink shadow-glass disabled:pointer-events-none disabled:opacity-60"
+          >
+            {pending ? (
+              <Trans i18nKey="common.sending" fallback="Sending..." />
+            ) : (
+              <Trans i18nKey="admin.staff.sendInvite" fallback="Send invite" />
+            )}
+          </button>
+        </div>
       </form>
     </Drawer>
   );

@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "../utils/cn";
 
