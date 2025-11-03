@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'kotlin-kapt'
 
 def envVersionCode = System.getenv("ANDROID_VERSION_CODE")
 def envVersionName = System.getenv("ANDROID_VERSION_NAME")
@@ -110,7 +111,7 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     
-    // Capacitor core libraries
+    // Capacitor core libraries - managed directly, no BOM in Capacitor 7
     implementation project(':capacitor-android')
     implementation project(':capacitor-cordova-android-plugins')
     
@@ -130,6 +131,11 @@ dependencies {
 
     // Kotlin coroutines for SmsReceiver
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+
+    // Room for TapMoMo nonce cache
+    implementation "androidx.room:room-runtime:2.6.1"
+    implementation "androidx.room:room-ktx:2.6.1"
+    kapt "androidx.room:room-compiler:2.6.1"
 
     testImplementation "junit:junit:$junitVersion"
     testImplementation "io.mockk:mockk:1.13.8"

@@ -1,7 +1,7 @@
 ext {
     minSdkVersion = 26
-    compileSdkVersion = 34  // Downgraded from 35 until Capacitor fully supports API 35
-    targetSdkVersion = 34   // Downgraded from 35
+    compileSdkVersion = 35  // Required for Capacitor 7.4.4
+    targetSdkVersion = 34   // Keep at 34 for compatibility
     androidxActivityVersion = '1.9.2'
     androidxAppCompatVersion = '1.7.0'
     androidxCoordinatorLayoutVersion = '1.2.0'
