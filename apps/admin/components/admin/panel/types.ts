@@ -11,6 +11,7 @@ export type PanelIconKey =
   | "saccos"
   | "groups"
   | "members"
+  | "loans"
   | "staff"
   | "approvals"
   | "reconciliation"

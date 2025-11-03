@@ -21,6 +21,7 @@ import {
   UserCog,
   Wallet,
   X,
+  Workflow,
 } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ const ICON_MAP: Record<PanelIconKey, React.ComponentType<{ className?: string }>
   saccos: Building2,
   groups: UsersRound,
   members: UserSquare2,
+  loans: Workflow,
   staff: UserCog,
   approvals: Inbox,
   reconciliation: Wallet,
