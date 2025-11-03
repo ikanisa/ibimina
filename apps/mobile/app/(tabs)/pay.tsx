@@ -66,18 +66,27 @@ export default function PayScreen() {
     );
   }, [intl]);
 
-  const handleDialUssd = useCallback(() => {
+  const handleDialUssd = useCallback(async () => {
     if (!selectedToken) {
       return;
     }
     setConfirmation(null);
+    
+    // Copy token to clipboard first for easy pasting
+    try {
+      await Clipboard.setStringAsync(selectedToken);
+    } catch (clipError) {
+      console.warn("Failed to copy token:", clipError);
+    }
+    
     const encoded = encodeURIComponent(USSD_CODE);
     Linking.openURL(`tel:${encoded}`).catch(() => {
+      // Provide manual instructions with copied token
       setConfirmation(
         intl.formatMessage({
           id: "pay.ussd.error",
-          defaultMessage: "Unable to open the dialer. Please dial *182*8*1# manually.",
-        })
+          defaultMessage: "Couldn't open the dialer. Your payment code ({token}) is copied. Manually dial *182*8*1# and paste when prompted.",
+        }, { token: selectedToken })
       );
     });
   }, [selectedToken, intl]);

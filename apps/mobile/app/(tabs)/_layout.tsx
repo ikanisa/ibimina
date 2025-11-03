@@ -22,7 +22,7 @@ function TabBarIcon({ name, focused }: { name: string; focused: boolean }) {
   const iconName = iconMap[name] || "ellipse-outline";
 
   return (
-    <Ionicons name={iconName} size={24} color={focused ? colors.rw.blue : colors.neutral[400]} />
+    <Ionicons name={iconName} size={24} color={focused ? colors.atlas.blue : colors.neutral[500]} />
   );
 }
 
@@ -45,8 +45,8 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.rw.blue,
-        tabBarInactiveTintColor: colors.neutral[400],
+        tabBarActiveTintColor: colors.atlas.blue,
+        tabBarInactiveTintColor: colors.neutral[500],
         tabBarStyle: {
           backgroundColor: colors.ink[900],
           borderTopColor: colors.ink[700],

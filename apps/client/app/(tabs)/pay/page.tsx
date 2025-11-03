@@ -29,7 +29,7 @@ async function markPaymentIntent(referenceToken: string) {
 
   if (error || !data) {
     console.error("Unable to verify reference token", error);
-    throw new Error("We could not verify your reference token. Please try again.");
+    throw new Error("We couldn't find that payment code. Please check your groups and try again.");
   }
 
   try {

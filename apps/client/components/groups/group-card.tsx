@@ -86,7 +86,7 @@ export function GroupCard({ group }: GroupCardProps) {
       }
     } catch (error) {
       console.error("Error requesting to join group:", error);
-      setErrorMessage("An unexpected error occurred. Please try again.");
+      setErrorMessage("Something went wrong. Please check your connection and try again.");
     } finally {
       setIsJoining(false);
     }
@@ -107,18 +107,11 @@ export function GroupCard({ group }: GroupCardProps) {
   };
 
   return (
-    <article
+    <button
       onClick={handleCardClick}
-      className="group flex flex-col w-full rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm hover:border-atlas-blue/30 hover:shadow-atlas hover:shadow-atlas-blue/10 transition-all duration-interactive cursor-pointer hover:-translate-y-0.5"
-      aria-label={`${group.name} group details`}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleCardClick();
-        }
-      }}
+      className="group flex flex-col w-full rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm hover:border-atlas-blue/30 hover:shadow-atlas hover:shadow-atlas-blue/10 transition-all duration-interactive cursor-pointer hover:-translate-y-0.5 text-left"
+      aria-label={`View details for ${group.name} group`}
+      type="button"
     >
       {/* Group header - Atlas redesigned */}
       <div className="mb-5">
@@ -203,6 +196,6 @@ export function GroupCard({ group }: GroupCardProps) {
       >
         {hasRequested ? "Request Sent ✓" : isJoining ? "Sending..." : "Ask to Join"}
       </button>
-    </article>
+    </button>
   );
 }
