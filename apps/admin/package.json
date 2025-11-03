@@ -39,6 +39,7 @@
     "@capacitor/device": "^7.0.2",
     "@capacitor/haptics": "^7.0.2",
     "@capacitor/preferences": "^7.0.2",
+    "@headlessui/react": "^2.1.10",
     "@capacitor/push-notifications": "^7.0.3",
     "@ibimina/config": "workspace:*",
     "@ibimina/flags": "workspace:*",

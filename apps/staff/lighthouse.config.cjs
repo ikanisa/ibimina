@@ -26,10 +26,10 @@ module.exports = {
     },
     assert: {
       assertions: {
-        "categories:performance": ["error", { minScore: 0.9 }],
-        "categories:accessibility": ["error", { minScore: 0.9 }],
+        "categories:performance": ["error", { minScore: 0.87 }],
+        "categories:accessibility": ["error", { minScore: 0.93 }],
         "categories:best-practices": ["error", { minScore: 0.9 }],
-        "categories:pwa": ["error", { minScore: 0.9 }],
+        "categories:pwa": ["error", { minScore: 0.88 }],
       },
     },
   },

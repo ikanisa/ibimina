@@ -57,16 +57,6 @@ const BADGE_DOT_STYLES = {
   warning: "bg-amber-400",
 } as const;
 
-const FOCUSABLE_SELECTORS =
-  'a[href]:not([tabindex="-1"]):not([aria-hidden="true"]),button:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),textarea:not([disabled]):not([tabindex="-1"]),select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"]):not([aria-hidden="true"])';
-
-const getFocusableElements = (container: HTMLElement | null) => {
-  if (!container) return [] as HTMLElement[];
-  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter(
-    (element) => !element.hasAttribute("disabled") && element.offsetParent !== null
-  );
-};
-
 type QuickActionBadge = { label: string; tone: keyof typeof BADGE_TONE_STYLES };
 
 type QuickActionDefinition = {
@@ -373,63 +363,8 @@ function DefaultAppShellView({
     const container = quickActionsRef.current;
 
     if (!showActions) {
-      quickActionsTriggerRef.current?.focus();
-      return;
+      firstQuickActionRef.current = null;
     }
-
-    if (!container) {
-      return;
-    }
-
-    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
-    const getFocusable = () =>
-      Array.from(container.querySelectorAll<HTMLElement>(focusableSelector)).filter(
-        (element) => element.offsetParent !== null
-      );
-
-    const focusFirst = () => {
-      const [first] = getFocusable();
-      if (first) {
-        setTimeout(() => first.focus(), 0);
-      }
-    };
-
-    focusFirst();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setShowActions(false);
-        return;
-      }
-
-      if (event.key !== "Tab") {
-        return;
-      }
-
-      const focusable = getFocusable();
-      if (focusable.length === 0) {
-        return;
-      }
-
-      const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
-      let nextIndex = currentIndex;
-
-      if (event.shiftKey) {
-        nextIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
-      } else {
-        nextIndex = currentIndex === focusable.length - 1 ? 0 : currentIndex + 1;
-      }
-
-      focusable[nextIndex].focus();
-      event.preventDefault();
-    };
-
-    container.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      container.removeEventListener("keydown", handleKeyDown);
-    };
   }, [showActions]);
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
@@ -438,7 +373,7 @@ function DefaultAppShellView({
     <div className="relative flex min-h-screen flex-col">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-kigali focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-[color:var(--color-primary-500,#4a70ff)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[color:var(--color-foreground-inverse,#0d1324)] focus:bg-kigali focus:text-ink transition-colors duration-200"
       >
         Skip to content · Siga ujye ku bikorwa
       </a>
@@ -449,7 +384,10 @@ function DefaultAppShellView({
 
       <header className="relative mx-auto w-full max-w-6xl px-4 pb-4 pt-6 md:px-8">
         <nav
-          className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent px-6 py-6 shadow-2xl backdrop-blur-xl"
+          className={cn(
+            "relative overflow-hidden rounded-[var(--radius-2xl,1.5rem)] border border-border/40 bg-[color:var(--surface-glass,rgba(255,255,255,0.82))] px-6 py-6 shadow-xl backdrop-blur-xl transition-colors duration-300",
+            "border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent shadow-2xl"
+          )}
           aria-label={t("nav.main", "Main navigation")}
         >
           {/* Subtle gradient overlay for depth */}
@@ -536,7 +474,7 @@ function DefaultAppShellView({
                 </div>
 
                 {/* Sign out button */}
-                <SignOutButton className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-md backdrop-blur-sm transition-all hover:bg-white/20 hover:shadow-lg" />
+                <SignOutButton className="rounded-xl border border-border/30 bg-[color:var(--surface-subtle,rgba(255,255,255,0.15))] px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-foreground,#111827)] shadow-sm backdrop-blur-sm transition-colors duration-200 hover:border-border/20 hover:bg-[color:var(--surface-muted,rgba(255,255,255,0.22))] hover:shadow-md border-white/15 bg-white/10 text-neutral-0 hover:bg-white/20 hover:shadow-lg" />
 
                 {/* Search button */}
                 <button
@@ -622,31 +560,26 @@ function DefaultAppShellView({
         </button>
       </nav>
 
-      {showActions && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-md md:items-center md:justify-end md:pr-6"
-          onClick={() => setShowActions(false)}
-          role="presentation"
-        >
-          <div
-            id="quick-actions"
-            className="m-6 w-full max-w-md rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("dashboard.quick.title", "Quick actions")}
-            onClick={(event) => event.stopPropagation()}
-            ref={quickActionsRef}
-            tabIndex={-1}
-          >
-            {/* Header */}
-            <div className="mb-6 flex items-center gap-2.5 border-b border-white/10 pb-4">
+      <Modal
+        open={showActions}
+        onClose={() => setShowActions(false)}
+        size="md"
+        labelledBy="quick-actions-heading"
+        initialFocusRef={firstQuickActionRef}
+        className="bg-gradient-to-br from-white/10 via-white/5 to-transparent text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
+      >
+        {() => (
+          <div className="space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-white/10 pb-4">
               <ListPlus className="h-5 w-5 text-rw-blue" aria-hidden="true" />
-              <h2 className="text-base font-bold uppercase tracking-wider text-neutral-0">
+              <h2
+                id="quick-actions-heading"
+                className="text-base font-bold uppercase tracking-wider text-neutral-0"
+              >
                 {t("dashboard.quick.title", "Quick actions")}
               </h2>
             </div>
 
-            {/* Action groups */}
             <div className="space-y-6">
               {quickActionGroups.map((group) => (
                 <section key={group.id} className="space-y-3">
@@ -663,7 +596,11 @@ function DefaultAppShellView({
                           href={action.href}
                           onClick={() => setShowActions(false)}
                           className="group block rounded-xl border border-white/15 bg-gradient-to-br from-white/10 to-white/5 px-4 py-3.5 text-left transition-all hover:border-white/25 hover:from-white/15 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-transparent"
-                          data-quick-focus
+                          ref={(element) => {
+                            if (!firstQuickActionRef.current && element) {
+                              firstQuickActionRef.current = element;
+                            }
+                          }}
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-1">
@@ -700,12 +637,10 @@ function DefaultAppShellView({
               ))}
             </div>
 
-            {/* Close button */}
             <button
               type="button"
               onClick={() => setShowActions(false)}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
-              data-quick-focus
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
             >
               <Settings2 className="h-4 w-4" aria-hidden="true" />
               {t("common.close", "Close")}

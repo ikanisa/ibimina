@@ -14,6 +14,7 @@ import {
 } from "@/lib/imports/validation";
 import { parseTabularFile } from "@/lib/imports/file-parser";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Modal } from "@/components/ui/modal";
 // BilingualText removed; using t()
 import { useTranslation } from "@/providers/i18n-provider";
 
@@ -258,9 +259,15 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
         {t("ikimina.import.button", "Spreadsheet import")}
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="glass w-full max-w-2xl rounded-3xl p-6 text-neutral-0">
+      <Modal
+        open={open}
+        onClose={reset}
+        size="xl"
+        labelledBy="member-import-heading"
+        className="glass relative w-full max-w-2xl rounded-3xl p-6 text-neutral-0"
+      >
+        {() => (
+          <div className="relative space-y-6">
             {parsing && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-3xl bg-black/40">
                 <Skeleton className="h-6 w-48" />
@@ -272,7 +279,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
                 <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                   {t("ikimina.import.title", "Ikimina import")}
                 </p>
-                <h2 className="text-lg font-semibold">
+                <h2 id="member-import-heading" className="text-lg font-semibold">
                   {t("ikimina.import.step", "Step")} {step} ·{" "}
                   {fileName ?? t("ikimina.import.uploadCsv", "Upload CSV")}
                 </h2>
@@ -591,8 +598,8 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

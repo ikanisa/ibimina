@@ -1,18 +1,25 @@
 "use client";
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { nextThemeValueMap } from "../../../src/design/theme";
+
+type ForcedTheme = keyof typeof nextThemeValueMap;
 
 interface ThemeProviderProps {
   children: React.ReactNode;
   nonce?: string;
-  forcedTheme?: 'light' | 'nyungwe';
+  forcedTheme?: ForcedTheme;
 }
+
+const themes = Object.keys(nextThemeValueMap) as ForcedTheme[];
 
 export function ThemeProvider({ children, nonce, forcedTheme }: ThemeProviderProps) {
   return (
     <NextThemesProvider
-      attribute="class"
+      attribute="data-theme"
       defaultTheme="light"
+      themes={themes}
+      value={nextThemeValueMap}
       forcedTheme={forcedTheme}
       enableSystem={false}
       enableColorScheme={false}

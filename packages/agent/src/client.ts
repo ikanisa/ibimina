@@ -51,11 +51,35 @@ interface UserContext {
   };
 }
 
+type ProfileQueryResult = {
+  data: { lang?: string } | null;
+  error: unknown;
+};
+
+function hasMaybeSingle(
+  query: unknown
+): query is { maybeSingle: () => Promise<ProfileQueryResult> } {
+  return (
+    typeof query === "object" &&
+    query !== null &&
+    "maybeSingle" in query &&
+    typeof (query as { maybeSingle?: unknown }).maybeSingle === "function"
+  );
+}
+
+function hasSingle(query: unknown): query is { single: () => Promise<ProfileQueryResult> } {
+  return (
+    typeof query === "object" &&
+    query !== null &&
+    "single" in query &&
+    typeof (query as { single?: unknown }).single === "function"
+  );
+}
+
 const DEFAULT_RESPONSES_URL = "https://api.openai.com/v1/responses";
 
-const DEFAULT_SYSTEM_PROMPT = (
-  context: AgentPromptContext
-) => `You are the Ibimina SACCO+ member support assistant. Respond primarily in ${context.language} and use short, factual answers. The member belongs to ${context.orgName ?? "their SACCO"} in ${context.country ?? "the region"}. Use internal tools when available, never fabricate data, and remind members not to share passwords or PINs.`;
+const DEFAULT_SYSTEM_PROMPT = (context: AgentPromptContext) =>
+  `You are the Ibimina SACCO+ member support assistant. Respond primarily in ${context.language} and use short, factual answers. The member belongs to ${context.orgName ?? "their SACCO"} in ${context.country ?? "the region"}. Use internal tools when available, never fabricate data, and remind members not to share passwords or PINs.`;
 
 export class AgentClient {
   private readonly supabase: SupabaseLikeClient;
@@ -132,10 +156,7 @@ export class AgentClient {
     }
   }
 
-  private buildInputMessages(
-    messages: AgentMessage[],
-    metadata: AgentSessionMetadata
-  ) {
+  private buildInputMessages(messages: AgentMessage[], metadata: AgentSessionMetadata) {
     const promptSource = this.systemPrompt ?? DEFAULT_SYSTEM_PROMPT;
     const prompt =
       typeof promptSource === "function"
@@ -178,10 +199,7 @@ export class AgentClient {
         responseId = result.responseId;
       }
       if (result.status === "requires_action") {
-        const toolOutputs = await this.handleToolCalls(
-          result.toolCalls,
-          context
-        );
+        const toolOutputs = await this.handleToolCalls(result.toolCalls, context);
         if (!responseId) {
           throw new Error("Missing response id for tool submission");
         }
@@ -411,17 +429,15 @@ export class AgentClient {
         .select("lang")
         .eq("user_id", userId);
 
-      const profileResult =
-        typeof (profileBuilder as { maybeSingle?: unknown }).maybeSingle ===
-        "function"
-          ? await (profileBuilder as {
-              maybeSingle: () => Promise<{ data: { lang?: string } | null; error: unknown }>;
-            }).maybeSingle()
-          : await (profileBuilder as {
-              single: () => Promise<{ data: { lang?: string } | null; error: unknown }>;
-            }).single();
+      let profileResult: ProfileQueryResult | null = null;
 
-      if (!profileResult.error && profileResult.data?.lang) {
+      if (hasMaybeSingle(profileBuilder)) {
+        profileResult = await profileBuilder.maybeSingle();
+      } else if (hasSingle(profileBuilder)) {
+        profileResult = await profileBuilder.single();
+      }
+
+      if (profileResult && !profileResult.error && profileResult.data?.lang) {
         lang = profileResult.data.lang;
       }
     } catch {

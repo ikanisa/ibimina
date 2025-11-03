@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useToast } from "@/providers/toast-provider";
+import { useMemo, useRef, useState, useTransition } from "react";
+
+import { Drawer } from "@/components/ui/drawer";
+import { FormField, FormLayout, FormSummaryBanner } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Stepper } from "@/components/ui/stepper";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_MEMBER_MASKS,
@@ -12,7 +14,9 @@ import {
   type ProcessedCell,
   type ProcessedRow,
 } from "@/lib/imports/validation";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
+import { useToast } from "@/providers/toast-provider";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -42,7 +46,7 @@ export function MemberPdfImportDialog({
   disabledReason,
 }: MemberPdfImportDialogProps) {
   const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [records, setRecords] = useState<AiMemberRecord[]>([]);
@@ -52,6 +56,7 @@ export function MemberPdfImportDialog({
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const { success, error: toastError } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toBilingual = (en: string, rw: string) => `${en} / ${rw}`;
 
@@ -92,7 +97,7 @@ export function MemberPdfImportDialog({
 
   const reset = () => {
     setOpen(false);
-    setStep(1);
+    setStep(0);
     setRecords([]);
     setWarnings([]);
     setMasks({ ...DEFAULT_MEMBER_MASKS });
@@ -138,7 +143,7 @@ export function MemberPdfImportDialog({
 
       setRecords(sanitized);
       setWarnings(payload.warnings ?? []);
-      setStep(2);
+      setStep(1);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to process PDF";
       const bilingual = toBilingual(message, "Gucapa PDF byanze");
@@ -238,6 +243,21 @@ export function MemberPdfImportDialog({
     });
   };
 
+  const stepperSteps = useMemo(
+    () => [
+      {
+        title: "Upload PDF",
+        description:
+          fileName && step > 0 ? `Selected ${fileName}` : "Drop or browse a member roster PDF",
+      },
+      {
+        title: "Review & confirm",
+        description: `${validRows.length} ready · ${invalidRows.length} need attention`,
+      },
+    ],
+    [fileName, invalidRows.length, step, validRows.length]
+  );
+
   return (
     <div className="space-y-3">
       <button
@@ -256,78 +276,95 @@ export function MemberPdfImportDialog({
         AI PDF import
       </button>
 
-      {open && canImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="glass relative w-full max-w-3xl rounded-3xl p-6 text-neutral-0">
-            {loading && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-3xl bg-black/40">
-                <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            )}
-            <header className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                  AI member import
-                </p>
-                <h2 className="text-lg font-semibold">
-                  {step === 1 ? "Upload PDF" : "Review & edit"}
-                </h2>
-                {fileName && <p className="text-xs text-neutral-2">{fileName}</p>}
-              </div>
-              <button className="text-sm text-neutral-2 hover:text-neutral-0" onClick={reset}>
-                Close ✕
-              </button>
-            </header>
+      <Drawer
+        open={open && canImport}
+        onClose={reset}
+        title="AI member import"
+        description="Process scanned member rosters with OCR, validate results, and confirm import before syncing."
+        size="lg"
+        initialFocusRef={fileInputRef}
+      >
+        <div className="relative flex h-full flex-col gap-5">
+          {loading ? (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-[calc(var(--radius-xl)_*_1.1)] bg-black/40">
+              <Skeleton className="h-6 w-48" aria-label="Processing PDF" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          ) : null}
 
-            {step === 1 && (
-              <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>
-                  Upload a scanned or digital PDF containing ikimina member lists. The AI will
-                  extract rows for review.
-                </p>
-                <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 p-10 text-center transition hover:bg-white/10">
-                  <span className="text-sm font-semibold">Drop PDF here or click to browse</span>
-                  <span className="text-xs text-neutral-2">Supported: .pdf (max 8MB)</span>
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    className="hidden"
-                    onChange={(event) => handleFile(event.target.files?.[0])}
-                  />
-                </label>
-                <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                  The PDF is processed with OpenAI OCR. Member data is reviewed locally before
-                  saving.
-                </p>
-                {error && (
-                  <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>
-                )}
-              </div>
-            )}
+          <Stepper steps={stepperSteps} currentStep={step} onStepChange={setStep} />
 
-            {step === 2 && (
-              <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                {warnings.length > 0 && (
-                  <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-100">
-                    <p className="font-semibold">Model warnings</p>
-                    <ul className="mt-2 list-disc space-y-1 pl-4">
-                      {warnings.map((warning, idx) => (
-                        <li key={`${warning}-${idx}`}>{warning}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+          {message ? (
+            <FormSummaryBanner
+              status="success"
+              title={message}
+              description="Imported records will sync automatically once online."
+            />
+          ) : null}
 
-                <div className="flex flex-wrap gap-3 text-xs text-neutral-2">
-                  <label>
-                    Validation mask · Full name
+          {error ? (
+            <FormSummaryBanner
+              status="error"
+              title="Import requires attention"
+              description={error}
+              items={
+                invalidRows.length > 0
+                  ? [
+                      `${invalidRows.length} row${invalidRows.length === 1 ? "" : "s"} need fixes before continuing.`,
+                    ]
+                  : undefined
+              }
+            />
+          ) : null}
+
+          {warnings.length > 0 && step === 1 ? (
+            <FormSummaryBanner
+              status="warning"
+              title="Model warnings"
+              description="Review and adjust the highlighted rows before confirming."
+              items={warnings.map((warning, idx) => (
+                <span key={`${warning}-${idx}`}>{warning}</span>
+              ))}
+            />
+          ) : null}
+
+          {step === 0 ? (
+            <div className="space-y-4 text-sm text-neutral-0">
+              <p>
+                Upload a scanned or digital PDF containing ikimina member lists. The AI will extract
+                rows for review.
+              </p>
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 p-10 text-center transition hover:bg-white/10">
+                <span className="text-sm font-semibold">Drop PDF here or click to browse</span>
+                <span className="text-xs text-neutral-2">Supported: .pdf (max 8MB)</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  className="hidden"
+                  onChange={(event) => handleFile(event.target.files?.[0])}
+                />
+              </label>
+              <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                The PDF is processed with OpenAI OCR. Member data is reviewed locally before saving.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-1 flex-col gap-4 text-sm text-neutral-0">
+              <FormLayout variant="double" className="text-xs">
+                <FormField
+                  label="Validation mask · Full name"
+                  inputId="mask-full-name"
+                  optionalLabel="Adjust"
+                >
+                  {({ id }) => (
                     <select
+                      id={id}
                       value={masks.full_name}
                       onChange={(event) =>
                         setMasks((current) => ({ ...current, full_name: event.target.value }))
                       }
-                      className="ml-2 rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-neutral-0"
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                     >
                       {getMaskOptions("full_name").map((mask) => (
                         <option key={mask.id} value={mask.id}>
@@ -335,15 +372,21 @@ export function MemberPdfImportDialog({
                         </option>
                       ))}
                     </select>
-                  </label>
-                  <label>
-                    Validation mask · MSISDN
+                  )}
+                </FormField>
+                <FormField
+                  label="Validation mask · MSISDN"
+                  inputId="mask-msisdn"
+                  optionalLabel="Adjust"
+                >
+                  {({ id }) => (
                     <select
+                      id={id}
                       value={masks.msisdn}
                       onChange={(event) =>
                         setMasks((current) => ({ ...current, msisdn: event.target.value }))
                       }
-                      className="ml-2 rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-neutral-0"
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                     >
                       {getMaskOptions("msisdn").map((mask) => (
                         <option key={mask.id} value={mask.id}>
@@ -351,15 +394,21 @@ export function MemberPdfImportDialog({
                         </option>
                       ))}
                     </select>
-                  </label>
-                  <label>
-                    Validation mask · Member code
+                  )}
+                </FormField>
+                <FormField
+                  label="Validation mask · Member code"
+                  inputId="mask-member-code"
+                  optionalLabel="Adjust"
+                >
+                  {({ id }) => (
                     <select
+                      id={id}
                       value={masks.member_code}
                       onChange={(event) =>
                         setMasks((current) => ({ ...current, member_code: event.target.value }))
                       }
-                      className="ml-2 rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-neutral-0"
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
                     >
                       {getMaskOptions("member_code").map((mask) => (
                         <option key={mask.id} value={mask.id}>
@@ -367,17 +416,26 @@ export function MemberPdfImportDialog({
                         </option>
                       ))}
                     </select>
-                  </label>
-                </div>
+                  )}
+                </FormField>
+              </FormLayout>
 
-                <div className="max-h-[360px] overflow-auto rounded-2xl border border-white/10">
+              <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-white/10">
+                <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.2em] text-neutral-2">
+                  <span>
+                    Preview ({Math.min(processedRows.length, MAX_PREVIEW_ROWS)} of{" "}
+                    {processedRows.length})
+                  </span>
+                  {processedRows.length > MAX_PREVIEW_ROWS ? <span>Truncated</span> : null}
+                </div>
+                <div className="max-h-[360px] overflow-auto">
                   <table className="w-full border-collapse text-xs">
                     <thead className="bg-white/5 text-left uppercase tracking-[0.2em] text-neutral-2">
                       <tr>
                         <th className="px-4 py-2">Full name</th>
                         <th className="px-4 py-2">MSISDN</th>
                         <th className="px-4 py-2">Member code</th>
-                        <th className="px-4 py-2">Actions</th>
+                        <th className="px-4 py-2 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -398,10 +456,11 @@ export function MemberPdfImportDialog({
                                   handleUpdateRecord(row.index, "full_name", event.target.value)
                                 }
                                 className="w-full rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
+                                aria-invalid={fullNameCell.errors.length > 0}
                               />
-                              {!fullNameCell?.valid && fullNameCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">
-                                  {fullNameCell.reason}
+                              {fullNameCell.errors.length > 0 && (
+                                <p className="mt-1 text-[11px] text-red-300">
+                                  {fullNameCell.errors[0]}
                                 </p>
                               )}
                             </td>
@@ -412,11 +471,11 @@ export function MemberPdfImportDialog({
                                   handleUpdateRecord(row.index, "msisdn", event.target.value)
                                 }
                                 className="w-full rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                                placeholder="07########"
+                                aria-invalid={msisdnCell.errors.length > 0}
                               />
-                              {!msisdnCell?.valid && msisdnCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">
-                                  {msisdnCell.reason}
+                              {msisdnCell.errors.length > 0 && (
+                                <p className="mt-1 text-[11px] text-red-300">
+                                  {msisdnCell.errors[0]}
                                 </p>
                               )}
                             </td>
@@ -427,19 +486,19 @@ export function MemberPdfImportDialog({
                                   handleUpdateRecord(row.index, "member_code", event.target.value)
                                 }
                                 className="w-full rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                                placeholder="Optional"
+                                aria-invalid={memberCodeCell.errors.length > 0}
                               />
-                              {!memberCodeCell?.valid && memberCodeCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">
-                                  {memberCodeCell.reason}
+                              {memberCodeCell.errors.length > 0 && (
+                                <p className="mt-1 text-[11px] text-red-300">
+                                  {memberCodeCell.errors[0]}
                                 </p>
                               )}
                             </td>
-                            <td className="px-4 py-2">
+                            <td className="px-4 py-2 text-right">
                               <button
                                 type="button"
+                                className="rounded-xl border border-white/15 px-3 py-1 text-xs text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
                                 onClick={() => handleDeleteRecord(row.index)}
-                                className="text-[11px] text-rose-300 underline-offset-2 hover:underline"
                               >
                                 Remove
                               </button>
@@ -447,72 +506,76 @@ export function MemberPdfImportDialog({
                           </tr>
                         );
                       })}
-                      {processedRows.length > MAX_PREVIEW_ROWS && (
-                        <tr>
-                          <td
-                            colSpan={4}
-                            className="px-4 py-2 text-center text-[11px] text-neutral-2"
-                          >
-                            Showing first {MAX_PREVIEW_ROWS} rows.{" "}
-                            {processedRows.length - MAX_PREVIEW_ROWS} additional row(s) hidden.
-                          </td>
-                        </tr>
-                      )}
                     </tbody>
                   </table>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-2">
-                  <div>
-                    Valid rows: {validRows.length} / {processedRows.length}
-                    {invalidRows.length > 0 && (
-                      <span className="ml-2 text-amber-200">
-                        Resolve {invalidRows.length} issue(s)
-                      </span>
-                    )}
-                  </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">
+                <div>
+                  <span className="font-semibold text-neutral-0">{validRows.length}</span> ready ·
+                  <span className="ml-1 font-semibold text-amber-200">{invalidRows.length}</span>{" "}
+                  need review
+                </div>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.35em] text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
                     onClick={handleAddRecord}
-                    className="rounded-xl border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-2"
                   >
                     Add row
                   </button>
-                </div>
-
-                <div className="flex flex-col gap-2 text-right text-xs text-neutral-2">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      className="rounded-xl border border-white/10 px-4 py-2 uppercase tracking-[0.3em] text-neutral-2"
-                      onClick={() => setStep(1)}
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleImport}
-                      disabled={pending || validRows.length === 0}
-                      className="rounded-xl bg-kigali px-4 py-2 uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
-                    >
-                      {pending ? "Importing…" : "Confirm import"}
-                    </button>
-                  </div>
-                  {error && (
-                    <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">
-                      {error}
-                    </p>
-                  )}
-                  {message && (
-                    <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
-                      {message}
-                    </p>
-                  )}
+                  <button
+                    type="button"
+                    className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.35em] text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
+                    onClick={() => setRecords([])}
+                  >
+                    Clear list
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs">
+            <div className="text-neutral-2">
+              {step === 0
+                ? "Upload a PDF to preview members."
+                : `${processedRows.length} row${processedRows.length === 1 ? "" : "s"} parsed.`}
+            </div>
+            <div className="flex items-center gap-2">
+              {step === 1 ? (
+                <button
+                  type="button"
+                  className="rounded-full border border-white/15 px-4 py-2 uppercase tracking-[0.3em] text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
+                  onClick={() => setStep(0)}
+                >
+                  Back
+                </button>
+              ) : null}
+              {step === 0 ? (
+                <button
+                  type="button"
+                  className="rounded-full bg-white/15 px-4 py-2 uppercase tracking-[0.3em] text-neutral-0 transition hover:bg-white/25 disabled:opacity-60"
+                  onClick={() => setStep(1)}
+                  disabled={records.length === 0}
+                >
+                  Review extracted rows
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-full bg-emerald-500/80 px-5 py-2 uppercase tracking-[0.3em] text-neutral-0 transition hover:bg-emerald-500 disabled:opacity-60"
+                  onClick={handleImport}
+                  disabled={pending}
+                >
+                  {pending ? "Importing…" : "Confirm import"}
+                </button>
+              )}
+            </div>
+          </footer>
         </div>
-      )}
+      </Drawer>
     </div>
   );
 }

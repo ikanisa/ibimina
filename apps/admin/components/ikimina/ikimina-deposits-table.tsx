@@ -75,10 +75,15 @@ export function IkiminaDepositsTable({ data, tableHeight = 360 }: IkiminaDeposit
 
   const empty = (
     <EmptyState
+      tone="quiet"
       title={t("ikimina.deposits.emptyTitle", "No deposits")}
       description={t(
         "ikimina.deposits.emptyDescription",
         "Use the statement wizard to ingest CSV files."
+      )}
+      offlineHint={t(
+        "ikimina.deposits.offlineHint",
+        "Uploads queue automatically if you're offline."
       )}
     />
   );
