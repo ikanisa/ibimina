@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 import { cn } from "../utils/cn";
+import { designTokens } from "../theme/design-tokens";
 
 const FOCUSABLE_SELECTOR =
   'a[href]:not([tabindex="-1"]),button:not([disabled]):not([tabindex="-1"]),textarea:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"])';
@@ -178,8 +179,15 @@ export function Drawer({
       >
         <div
           ref={panelRef}
+          style={{
+            backgroundColor: "white",
+            boxShadow: designTokens.shadow.lg,
+            padding: designTokens.spacing[6],
+            gap: designTokens.spacing[6],
+            borderColor: designTokens.colors.border.default,
+          }}
           className={cn(
-            "flex h-full w-full transform flex-col gap-6 border-l border-white/10 bg-[color-mix(in_srgb,rgba(17,24,39,0.92)_80%,rgba(255,255,255,0.05))] p-6 text-neutral-0 shadow-2xl outline-none transition-transform duration-300",
+            "flex h-full w-full transform flex-col border-l bg-white text-neutral-900 outline-none transition-transform",
             SIZE_STYLES[size],
             side === "right"
               ? open
@@ -199,19 +207,39 @@ export function Drawer({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-neutral-2 transition hover:border-white/40 hover:text-neutral-0"
+            style={{
+              minWidth: designTokens.size.touchTarget.comfortable,
+              minHeight: designTokens.size.touchTarget.comfortable,
+            }}
+            className="absolute right-4 top-4 inline-flex items-center justify-center rounded-full border border-neutral-300 text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-100"
             aria-label="Close drawer"
           >
-            <X className="h-4 w-4" aria-hidden />
+            <X className="h-5 w-5" aria-hidden />
           </button>
 
           {title ? (
             <div className="pr-10">
-              <h2 id={titleId} className="text-lg font-semibold text-neutral-0">
+              <h2
+                id={titleId}
+                className="text-lg font-semibold"
+                style={{
+                  fontSize: designTokens.typography.fontSize.lg,
+                  fontWeight: designTokens.typography.fontWeight.semibold,
+                  color: designTokens.colors.text.primary,
+                }}
+              >
                 {title}
               </h2>
               {description ? (
-                <p id={descriptionId} className="mt-2 text-sm text-neutral-2">
+                <p
+                  id={descriptionId}
+                  className="mt-2 text-sm"
+                  style={{
+                    fontSize: designTokens.typography.fontSize.sm,
+                    color: designTokens.colors.text.secondary,
+                    marginTop: designTokens.spacing[2],
+                  }}
+                >
                   {description}
                 </p>
               ) : null}
