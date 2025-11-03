@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState } from "react";
-import { createPortal } from "react-dom";
+import { useRef } from "react";
+
+import { Modal } from "@/components/ui/modal";
 
 interface ConfirmOptions {
   title: string;
@@ -34,37 +36,38 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({ ...prev, open: false }));
   };
 
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
   return (
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
-      {state.open &&
-        createPortal(
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="glass w-full max-w-sm rounded-3xl p-6 text-neutral-0">
-              <h3 className="text-lg font-semibold">{state.options.title}</h3>
-              {state.options.description && (
-                <p className="mt-2 text-sm text-neutral-2">{state.options.description}</p>
-              )}
-              <div className="mt-6 flex justify-end gap-2 text-xs uppercase tracking-[0.3em]">
-                <button
-                  type="button"
-                  onClick={() => close(false)}
-                  className="interactive-scale rounded-full border border-white/15 px-4 py-2 text-neutral-2"
-                >
-                  {state.options.cancelLabel ?? "Cancel"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => close(true)}
-                  className="interactive-scale rounded-full bg-kigali px-4 py-2 text-ink shadow-glass"
-                >
-                  {state.options.confirmLabel ?? "Confirm"}
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <Modal
+        open={state.open}
+        onClose={() => close(false)}
+        title={state.options.title}
+        description={state.options.description}
+        size="sm"
+        initialFocusRef={cancelRef}
+        footer={
+          <>
+            <button
+              type="button"
+              ref={cancelRef}
+              onClick={() => close(false)}
+              className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-2 transition hover:border-white/40 hover:text-neutral-0"
+            >
+              {state.options.cancelLabel ?? "Cancel"}
+            </button>
+            <button
+              type="button"
+              onClick={() => close(true)}
+              className="rounded-full bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass transition hover:bg-[#ffe066]"
+            >
+              {state.options.confirmLabel ?? "Confirm"}
+            </button>
+          </>
+        }
+      />
     </ConfirmContext.Provider>
   );
 }

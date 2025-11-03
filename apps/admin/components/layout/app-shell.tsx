@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
+import { Modal } from "@/components/ui/modal";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator.ssr-wrapper";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 
@@ -49,16 +50,6 @@ const BADGE_DOT_STYLES = {
   info: "bg-sky-400",
   success: "bg-emerald-400",
 } as const;
-
-const FOCUSABLE_SELECTORS =
-  'a[href]:not([tabindex="-1"]):not([aria-hidden="true"]),button:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),textarea:not([disabled]):not([tabindex="-1"]),select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"]):not([aria-hidden="true"])';
-
-const getFocusableElements = (container: HTMLElement | null) => {
-  if (!container) return [] as HTMLElement[];
-  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter(
-    (element) => !element.hasAttribute("disabled") && element.offsetParent !== null
-  );
-};
 
 type QuickActionBadge = { label: string; tone: keyof typeof BADGE_TONE_STYLES };
 
@@ -90,13 +81,11 @@ export function AppShell({ children, profile }: AppShellProps) {
 function DefaultAppShell({ children, profile }: AppShellProps) {
   const pathname = usePathname();
   const [showActions, setShowActions] = useState(false);
-  const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
+  const firstQuickActionRef = useRef<HTMLAnchorElement | null>(null);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const globalSearchTriggerRef = useRef<HTMLButtonElement | null>(null);
   const wasGlobalSearchOpenRef = useRef(false);
-  const wasQuickActionsOpenRef = useRef(false);
   const { t } = useTranslation();
 
   const saccoName = useMemo(
@@ -219,60 +208,6 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
   }, [profile.failed_mfa_count, profile.mfa_enabled, t]);
 
   useEffect(() => {
-    if (!showActions) {
-      if (wasQuickActionsOpenRef.current) {
-        wasQuickActionsOpenRef.current = false;
-        (quickActionsTriggerRef.current ?? quickActionsLastFocusRef.current)?.focus();
-      }
-      return;
-    }
-
-    wasQuickActionsOpenRef.current = true;
-    quickActionsLastFocusRef.current = document.activeElement as HTMLElement | null;
-    const container = quickActionsRef.current;
-    const firstFocusable = getFocusableElements(container).at(0);
-    if (firstFocusable) {
-      queueMicrotask(() => firstFocusable.focus());
-    } else {
-      container?.focus();
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!container) return;
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setShowActions(false);
-        return;
-      }
-      if (event.key !== "Tab") {
-        return;
-      }
-
-      const focusable = getFocusableElements(container);
-      if (focusable.length === 0) {
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const activeElement = document.activeElement as HTMLElement | null;
-
-      if (event.shiftKey) {
-        if (activeElement === first || activeElement === container) {
-          event.preventDefault();
-          last.focus();
-        }
-      } else if (activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    container?.addEventListener("keydown", handleKeyDown);
-    return () => container?.removeEventListener("keydown", handleKeyDown);
-  }, [showActions]);
-
-  useEffect(() => {
     if (showGlobalSearch) {
       wasGlobalSearchOpenRef.current = true;
       return;
@@ -296,66 +231,9 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
   }, []);
 
   useEffect(() => {
-    const container = quickActionsRef.current;
-
     if (!showActions) {
-      quickActionsTriggerRef.current?.focus();
-      return;
+      firstQuickActionRef.current = null;
     }
-
-    if (!container) {
-      return;
-    }
-
-    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
-    const getFocusable = () =>
-      Array.from(container.querySelectorAll<HTMLElement>(focusableSelector)).filter(
-        (element) => element.offsetParent !== null
-      );
-
-    const focusFirst = () => {
-      const [first] = getFocusable();
-      if (first) {
-        setTimeout(() => first.focus(), 0);
-      }
-    };
-
-    focusFirst();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setShowActions(false);
-        return;
-      }
-
-      if (event.key !== "Tab") {
-        return;
-      }
-
-      const focusable = getFocusable();
-      if (focusable.length === 0) {
-        return;
-      }
-
-      const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
-      let nextIndex = currentIndex;
-
-      if (event.shiftKey) {
-        nextIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
-      } else {
-        nextIndex = currentIndex === focusable.length - 1 ? 0 : currentIndex + 1;
-      }
-
-      focusable[nextIndex].focus();
-      event.preventDefault();
-    };
-
-    container.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      container.removeEventListener("keydown", handleKeyDown);
-    };
   }, [showActions]);
 
   const navTargets = useMemo(
@@ -572,31 +450,26 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
         </button>
       </nav>
 
-      {showActions && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-md md:items-center md:justify-end md:pr-6"
-          onClick={() => setShowActions(false)}
-          role="presentation"
-        >
-          <div
-            id="quick-actions"
-            className="m-6 w-full max-w-md rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("dashboard.quick.title", "Quick actions")}
-            onClick={(event) => event.stopPropagation()}
-            ref={quickActionsRef}
-            tabIndex={-1}
-          >
-            {/* Header */}
-            <div className="mb-6 flex items-center gap-2.5 border-b border-white/10 pb-4">
+      <Modal
+        open={showActions}
+        onClose={() => setShowActions(false)}
+        size="md"
+        labelledBy="quick-actions-heading"
+        initialFocusRef={firstQuickActionRef}
+        className="bg-gradient-to-br from-white/10 via-white/5 to-transparent text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
+      >
+        {() => (
+          <div className="space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-white/10 pb-4">
               <ListPlus className="h-5 w-5 text-rw-blue" aria-hidden="true" />
-              <h2 className="text-base font-bold uppercase tracking-wider text-neutral-0">
+              <h2
+                id="quick-actions-heading"
+                className="text-base font-bold uppercase tracking-wider text-neutral-0"
+              >
                 {t("dashboard.quick.title", "Quick actions")}
               </h2>
             </div>
 
-            {/* Action groups */}
             <div className="space-y-6">
               {quickActionGroups.map((group) => (
                 <section key={group.id} className="space-y-3">
@@ -613,7 +486,11 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                           href={action.href}
                           onClick={() => setShowActions(false)}
                           className="group block rounded-xl border border-white/15 bg-gradient-to-br from-white/10 to-white/5 px-4 py-3.5 text-left transition-all hover:border-white/25 hover:from-white/15 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-transparent"
-                          data-quick-focus
+                          ref={(element) => {
+                            if (!firstQuickActionRef.current && element) {
+                              firstQuickActionRef.current = element;
+                            }
+                          }}
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-1">
@@ -650,19 +527,17 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
               ))}
             </div>
 
-            {/* Close button */}
             <button
               type="button"
               onClick={() => setShowActions(false)}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
-              data-quick-focus
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
             >
               <Settings2 className="h-4 w-4" aria-hidden="true" />
               {t("common.close", "Close")}
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       <GlobalSearchDialog
         open={showGlobalSearch}
