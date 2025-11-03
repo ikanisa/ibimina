@@ -4,6 +4,12 @@
   "packageManager": "pnpm@9.12.3",
   "scripts": {
     "dev": "cd apps/admin && pnpm dev",
+    "dev:admin": "pnpm --filter @ibimina/admin dev",
+    "dev:staff": "pnpm --filter @ibimina/staff dev",
+    "dev:staff-admin-pwa": "pnpm --filter @ibimina/staff-admin-pwa dev",
+    "dev:client": "pnpm --filter @ibimina/client dev",
+    "dev:mobile": "pnpm --filter @ibimina/mobile dev",
+    "dev:website": "pnpm --filter @ibimina/website dev",
     "build": "pnpm -r run build",
     "lint": "pnpm -r --parallel run lint",
     "prelint": "pnpm run check:types",
@@ -41,9 +47,12 @@
     "openapi:check": "pnpm --filter @ibimina/api run openapi:check"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
     "openai": "^6.7.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.4.4",
     "@cloudflare/next-on-pages": "^1.13.16",
     "@cloudflare/workers-types": "^4.20241127.0",
     "@commitlint/cli": "^20.1.0",

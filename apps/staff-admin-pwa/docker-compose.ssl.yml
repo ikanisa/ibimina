@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  web-ssl:
+    build:
+      context: .
+      dockerfile: deploy/nginx/Dockerfile.ssl
+    ports:
+      - "8443:443"
+    restart: unless-stopped
+    volumes:
+      - ./deploy/nginx/certs:/etc/nginx/certs:ro
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
