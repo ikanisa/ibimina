@@ -128,6 +128,11 @@ class PayeeCardService : HostApduService() {
             expiresAt = 0
             Log.d(TAG, "Payload disarmed")
         }
+
+        /**
+         * Clear payload (alias for disarm)
+         */
+        fun clear() = disarm()
     }
 
     private fun ByteArray.startsWith(prefix: ByteArray): Boolean {
