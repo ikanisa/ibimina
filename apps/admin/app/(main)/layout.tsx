@@ -1,7 +1,8 @@
 import { requireUserAndProfile } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { ProfileProvider } from "@/providers/profile-provider";
-import { AppShell } from "@/components/layout/app-shell";
+import { AtlasShell } from "@/src/layout/AtlasShell";
+import { ATLAS_NAVIGATION } from "@/src/navigation/atlas-navigation";
 
 export default async function MainLayout({
   children,
@@ -22,7 +23,9 @@ export default async function MainLayout({
 
   return (
     <ProfileProvider value={auth}>
-      <AppShell profile={auth.profile}>{children}</AppShell>
+      <AtlasShell profile={auth.profile} navigation={ATLAS_NAVIGATION}>
+        {children}
+      </AtlasShell>
     </ProfileProvider>
   );
 }
