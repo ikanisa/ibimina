@@ -14,6 +14,11 @@ import {
 import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
+import {
+  markTimeToFirstResult,
+  startTimeToFirstResult,
+  trackCommandPalette,
+} from "@/src/instrumentation/ux";
 
 let cachedSupabaseClient: ReturnType<typeof getSupabaseBrowserClient> | null = null;
 let supabaseClientInitError: Error | null = null;
@@ -202,6 +207,62 @@ export function GlobalSearchDialog({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const dialogTitleId = useId();
+  const requestSequenceRef = useRef(0);
+  const requestTokenRef = useRef<string | null>(null);
+  const requestMarkedRef = useRef<Record<string, boolean>>({});
+  const lastQueryLoggedRef = useRef<string>("");
+
+  const beginResultTimers = useCallback((context: Record<string, unknown>) => {
+    requestSequenceRef.current += 1;
+    const token = `${requestSequenceRef.current}`;
+    requestTokenRef.current = token;
+    requestMarkedRef.current = {};
+    const base = { ...context, requestToken: token } satisfies Record<string, unknown>;
+    startTimeToFirstResult(`commandPalette.ikimina:${token}`, base);
+    startTimeToFirstResult(`commandPalette.members:${token}`, base);
+    startTimeToFirstResult(`commandPalette.payments:${token}`, base);
+    return token;
+  }, []);
+
+  const markResultReady = useCallback(
+    (category: "ikimina" | "members" | "payments", extra?: Record<string, unknown>) => {
+      const token = requestTokenRef.current;
+      if (!token || requestMarkedRef.current[category]) {
+        return;
+      }
+      requestMarkedRef.current[category] = true;
+      markTimeToFirstResult(`commandPalette.${category}:${token}`, {
+        category,
+        ...(extra ?? {}),
+      });
+    },
+    []
+  );
+
+  const handleNavigate = useCallback(
+    (type: string, detail: Record<string, unknown>) => {
+      trackCommandPalette("navigate", {
+        targetType: type,
+        ...detail,
+      });
+      onClose();
+    },
+    [onClose]
+  );
+
+  useEffect(() => {
+    if (open) {
+      trackCommandPalette("opened", {
+        role: profile.role,
+        saccoId: profile.sacco_id ?? null,
+      });
+    } else {
+      trackCommandPalette("closed", {
+        role: profile.role,
+        saccoId: profile.sacco_id ?? null,
+      });
+    }
+  }, [open, profile.role, profile.sacco_id]);
 
   useEffect(() => {
     if (!open) return;
@@ -237,6 +298,12 @@ export function GlobalSearchDialog({
     const cacheKey = `${profile.role}-${profile.sacco_id ?? "all"}`;
     const cached = SEARCH_CACHE.get(cacheKey);
     const cacheFresh = cached ? Date.now() - cached.timestamp < CACHE_TTL_MS : false;
+    beginResultTimers({
+      role: profile.role,
+      saccoId: profile.sacco_id ?? null,
+      hasCache: Boolean(cached),
+      cacheFresh,
+    });
 
     if (!supabase) {
       const unavailableMessage = t(
@@ -264,6 +331,13 @@ export function GlobalSearchDialog({
         paymentsError: unavailableMessage,
         timestamp: Date.now(),
       });
+      markResultReady("ikimina", { source: "unavailable", resultCount: 0 });
+      markResultReady("members", { source: "unavailable", resultCount: 0 });
+      markResultReady("payments", { source: "unavailable", resultCount: 0 });
+      trackCommandPalette("search_unavailable", {
+        reason: "supabase_missing",
+        role: profile.role,
+      });
       return () => {
         active = false;
       };
@@ -282,11 +356,28 @@ export function GlobalSearchDialog({
         setPaymentsLoading(false);
         setLastSyncedAt(new Date(cached.timestamp));
       });
+      markResultReady("ikimina", {
+        source: "cache",
+        resultCount: cached.ikimina.length,
+      });
+      markResultReady("members", {
+        source: "cache",
+        resultCount: cached.members.length,
+      });
+      markResultReady("payments", {
+        source: "cache",
+        resultCount: cached.payments.length,
+      });
       if (cacheFresh) {
         return () => {
           active = false;
         };
       }
+      beginResultTimers({
+        role: profile.role,
+        saccoId: profile.sacco_id ?? null,
+        source: "network",
+      });
     } else {
       scheduleStateUpdate(() => {
         setLoading(true);
@@ -331,6 +422,13 @@ export function GlobalSearchDialog({
             timestamp: Date.now(),
           });
           setLastSyncedAt(new Date());
+          markResultReady("ikimina", { source: "forbidden", resultCount: 0 });
+          markResultReady("members", { source: "forbidden", resultCount: 0 });
+          markResultReady("payments", { source: "forbidden", resultCount: 0 });
+          trackCommandPalette("search_unavailable", {
+            reason: "sacco_missing",
+            role: profile.role,
+          });
           return;
         }
         queryBuilder = queryBuilder.eq("sacco_id", profile.sacco_id);
@@ -360,6 +458,13 @@ export function GlobalSearchDialog({
           timestamp: Date.now(),
         });
         setLastSyncedAt(new Date());
+        markResultReady("ikimina", { source: "network_error", resultCount: 0 });
+        markResultReady("members", { source: "network_error", resultCount: 0 });
+        markResultReady("payments", { source: "network_error", resultCount: 0 });
+        trackCommandPalette("search_failed", {
+          stage: "ikimina",
+          message: error.message ?? "unknown",
+        });
         return;
       }
 
@@ -381,6 +486,10 @@ export function GlobalSearchDialog({
 
       setIkimina(rows);
       setLoading(false);
+      markResultReady("ikimina", {
+        source: "network",
+        resultCount: rows.length,
+      });
 
       const groupIds = rows.map((row) => row.id);
       if (groupIds.length === 0) {
@@ -398,6 +507,14 @@ export function GlobalSearchDialog({
           timestamp: Date.now(),
         });
         setLastSyncedAt(new Date());
+        markResultReady("members", {
+          source: "network",
+          resultCount: 0,
+        });
+        markResultReady("payments", {
+          source: "network",
+          resultCount: 0,
+        });
         return;
       }
 
@@ -430,6 +547,14 @@ export function GlobalSearchDialog({
         console.error(membersRes.error);
         setMembers([]);
         setMembersError(membersRes.error.message ?? "Failed to load members");
+        markResultReady("members", {
+          source: "network_error",
+          resultCount: 0,
+        });
+        trackCommandPalette("search_failed", {
+          stage: "members",
+          message: membersRes.error.message ?? "unknown",
+        });
       } else {
         memberRows = (
           (membersRes.data ?? []) as Array<{
@@ -450,6 +575,10 @@ export function GlobalSearchDialog({
         }));
         setMembers(memberRows);
         setMembersError(null);
+        markResultReady("members", {
+          source: "network",
+          resultCount: memberRows.length,
+        });
       }
       setMembersLoading(false);
 
@@ -460,6 +589,14 @@ export function GlobalSearchDialog({
         console.error(paymentsRes.error);
         setPayments([]);
         setPaymentsError(paymentsRes.error.message ?? "Failed to load payments");
+        markResultReady("payments", {
+          source: "network_error",
+          resultCount: 0,
+        });
+        trackCommandPalette("search_failed", {
+          stage: "payments",
+          message: paymentsRes.error.message ?? "unknown",
+        });
       } else {
         paymentRows = (
           (paymentsRes.data ?? []) as Array<{
@@ -485,6 +622,10 @@ export function GlobalSearchDialog({
         }));
         setPayments(paymentRows);
         setPaymentsError(null);
+        markResultReady("payments", {
+          source: "network",
+          resultCount: paymentRows.length,
+        });
       }
       setPaymentsLoading(false);
 
@@ -807,7 +948,18 @@ export function GlobalSearchDialog({
           <input
             ref={inputRef}
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setQuery(value);
+              const trimmed = value.trim();
+              if (lastQueryLoggedRef.current !== trimmed) {
+                lastQueryLoggedRef.current = trimmed;
+                trackCommandPalette("query_change", {
+                  length: trimmed.length,
+                  empty: trimmed.length === 0,
+                });
+              }
+            }}
             onKeyDown={handleInputKeyDown}
             placeholder={t(
               "search.console.placeholder",
@@ -848,7 +1000,13 @@ export function GlobalSearchDialog({
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        onClick={onClose}
+                        onClick={() =>
+                          handleNavigate("nav", {
+                            href: item.href,
+                            index: globalIndex,
+                            query: query.trim(),
+                          })
+                        }
                         ref={registerFocus(globalIndex)}
                         onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
                         tabIndex={-1}
@@ -907,7 +1065,15 @@ export function GlobalSearchDialog({
                             <li key={`${group.id}-${action.primary}`}>
                               <Link
                                 href={action.href}
-                                onClick={onClose}
+                                onClick={() =>
+                                  handleNavigate("quick_action", {
+                                    href: action.href,
+                                    groupId: group.id,
+                                    action: action.primary,
+                                    index: globalIndex,
+                                    query: query.trim(),
+                                  })
+                                }
                                 ref={registerFocus(globalIndex)}
                                 onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
                                 tabIndex={-1}
@@ -985,7 +1151,14 @@ export function GlobalSearchDialog({
                         <li key={item.id}>
                           <Link
                             href={`/ikimina/${item.id}`}
-                            onClick={onClose}
+                            onClick={() =>
+                              handleNavigate("ikimina", {
+                                id: item.id,
+                                code: item.code,
+                                index: globalIndex,
+                                query: query.trim(),
+                              })
+                            }
                             ref={registerFocus(globalIndex)}
                             onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
                             tabIndex={-1}
@@ -1042,7 +1215,14 @@ export function GlobalSearchDialog({
                         <li key={member.id}>
                           <Link
                             href={memberHref}
-                            onClick={onClose}
+                            onClick={() =>
+                              handleNavigate("member", {
+                                memberId: member.id,
+                                ikiminaId: member.ikiminaId,
+                                index: globalIndex,
+                                query: query.trim(),
+                              })
+                            }
                             ref={registerFocus(globalIndex)}
                             onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
                             tabIndex={-1}
@@ -1117,7 +1297,14 @@ export function GlobalSearchDialog({
                         <li key={payment.id}>
                           <Link
                             href={paymentHref}
-                            onClick={onClose}
+                            onClick={() =>
+                              handleNavigate("payment", {
+                                paymentId: payment.id,
+                                ikiminaId: payment.ikiminaId,
+                                index: globalIndex,
+                                query: query.trim(),
+                              })
+                            }
                             ref={registerFocus(globalIndex)}
                             onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
                             tabIndex={-1}
@@ -1160,7 +1347,13 @@ export function GlobalSearchDialog({
               </header>
               <SaccoSearchCombobox
                 value={selectedSacco}
-                onChange={(value) => setSelectedSacco(value)}
+                onChange={(value) => {
+                  setSelectedSacco(value);
+                  trackCommandPalette("sacco_filter", {
+                    saccoId: value?.id ?? null,
+                    query: query.trim(),
+                  });
+                }}
                 placeholder={t(
                   "search.saccoPicker.placeholder",
                   "Search Umurenge SACCOs by name or district"

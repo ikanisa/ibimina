@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
 import { useOfflineQueue } from "@/providers/offline-queue-provider";
+import { markFilterLatency, startFilterLatency, trackTaskFunnel } from "@/src/instrumentation/ux";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -184,6 +185,32 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
   const [pending, startTransition] = useTransition();
   const { success: toastSuccess, error: toastError } = useToast();
   const offlineQueue = useOfflineQueue();
+
+  const filterSequence = useRef(0);
+  const pendingFilterRef = useRef<{
+    key: string;
+    metadata: Record<string, unknown>;
+  } | null>(null);
+
+  const beginFilterMeasurement = useCallback(
+    (filterId: string, metadata: Record<string, unknown>) => {
+      filterSequence.current += 1;
+      const key = `${filterId}:${filterSequence.current}`;
+      const enriched = { filterId, ...metadata } satisfies Record<string, unknown>;
+      pendingFilterRef.current = { key, metadata: enriched };
+      startFilterLatency(key, enriched);
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!pendingFilterRef.current) {
+      return;
+    }
+    const current = pendingFilterRef.current;
+    markFilterLatency(current.key, { ...current.metadata, resultCount: filteredRows.length });
+    pendingFilterRef.current = null;
+  }, [filteredRows.length]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -431,6 +458,11 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       const messageEn = `Updated ${count} payment(s) to ${statusLabel.primary}. Refresh to verify.`;
       setBulkMessage(messageEn);
       toastSuccess(`Marked ${count} payment(s) as ${statusLabel.primary}`);
+      trackTaskFunnel("recon.bulk_status.updated", {
+        status,
+        count,
+        saccoId: saccoId ?? null,
+      });
       setSelectedIds([]);
     });
   };
@@ -473,6 +505,11 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       const assignedEn = `Assigned ${count} payment(s) to ikimina.`;
       setBulkMessage(assignedEn);
       toastSuccess(`Assigned ${count} payment(s).`);
+      trackTaskFunnel("recon.bulk_assign.completed", {
+        count,
+        ikiminaId: trimmed,
+        saccoId: saccoId ?? null,
+      });
       setSelectedIds([]);
       setBulkIkiminaId("");
     });
@@ -896,7 +933,11 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
             label={t("common.search", "Search")}
             placeholder={t("recon.search.placeholder", "Reference, MSISDN, txn id")}
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              beginFilterMeasurement("recon.search", { queryLength: value.length });
+              setSearchTerm(value);
+            }}
           />
         </div>
         <div className="flex items-center gap-2 text-xs text-neutral-2">
@@ -906,7 +947,11 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
           <select
             id="status-filter"
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
+            onChange={(event) => {
+              const next = event.target.value;
+              beginFilterMeasurement("recon.status", { status: next });
+              setStatusFilter(next);
+            }}
             className="rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs uppercase tracking-[0.3em] text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
           >
             <option value="ALL">{t("common.all", "All")}</option>
@@ -919,7 +964,11 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         </div>
         <button
           type="button"
-          onClick={() => setShowDuplicatesOnly((value) => !value)}
+          onClick={() => {
+            const next = !showDuplicatesOnly;
+            beginFilterMeasurement("recon.duplicates", { enabled: next });
+            setShowDuplicatesOnly(next);
+          }}
           className={cn(
             "rounded-full px-4 py-2 text-xs uppercase tracking-[0.3em]",
             showDuplicatesOnly ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
@@ -929,7 +978,11 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         </button>
         <button
           type="button"
-          onClick={() => setShowLowConfidence((value) => !value)}
+          onClick={() => {
+            const next = !showLowConfidence;
+            beginFilterMeasurement("recon.lowConfidence", { enabled: next });
+            setShowLowConfidence(next);
+          }}
           className={cn(
             "rounded-full px-4 py-2 text-xs uppercase tracking-[0.3em]",
             showLowConfidence ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"
@@ -944,13 +997,18 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
               <button
                 key={reason.id}
                 type="button"
-                onClick={() =>
-                  setReasonFilters((current) =>
-                    current.includes(reason.id)
+                onClick={() => {
+                  setReasonFilters((current) => {
+                    const next = current.includes(reason.id)
                       ? current.filter((item) => item !== reason.id)
-                      : [...current, reason.id]
-                  )
-                }
+                      : [...current, reason.id];
+                    beginFilterMeasurement("recon.reason", {
+                      reason: reason.id,
+                      activeCount: next.length,
+                    });
+                    return next;
+                  });
+                }}
                 className={cn(
                   "rounded-full px-4 py-2 text-xs uppercase tracking-[0.3em]",
                   isActive ? "bg-white/15 text-neutral-0" : "bg-white/5 text-neutral-2"

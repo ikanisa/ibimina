@@ -83,7 +83,26 @@ export function IkiminaDepositsTable({ data, tableHeight = 360 }: IkiminaDeposit
     />
   );
 
+  const dataSignature = useMemo(() => {
+    if (data.length === 0) {
+      return "empty";
+    }
+    const first = data[0]?.id ?? "none";
+    const last = data[data.length - 1]?.id ?? "none";
+    return `${first}:${data.length}:${last}`;
+  }, [data]);
+
   return (
-    <VirtualTable data={data} columns={columns} tableHeight={tableHeight} emptyState={empty} />
+    <VirtualTable
+      data={data}
+      columns={columns}
+      tableHeight={tableHeight}
+      emptyState={empty}
+      ux={{
+        tableId: "ikimina.deposits",
+        requestToken: dataSignature,
+        context: { rowCount: data.length },
+      }}
+    />
   );
 }

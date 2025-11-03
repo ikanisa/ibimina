@@ -22,6 +22,10 @@ import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator.ssr-wrapper";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { NetworkStatusIndicator } from "@/components/system/network-status-indicator";
+import { OfflineBanner } from "@/components/system/offline-banner";
+import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
+import { OfflineConflictDialog } from "@/components/system/offline-conflict-dialog";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -479,6 +483,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                 role="group"
                 aria-label={t("nav.actions", "Navigation actions")}
               >
+                <NetworkStatusIndicator />
                 {/* Language switcher */}
                 <div className="hidden md:block">
                   <LanguageSwitcher className="text-xs font-semibold" />
@@ -509,10 +514,17 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
         </nav>
       </header>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-1 px-4 pb-28 md:px-8">
-        {children}
+      <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pb-28 md:px-8">
+        <OfflineBanner />
+        <div className="flex flex-col gap-6 md:flex-row md:items-start">
+          <div className="flex-1">{children}</div>
+          <div className="md:w-64">
+            <QueuedSyncSummary />
+          </div>
+        </div>
       </div>
       <OfflineQueueIndicator />
+      <OfflineConflictDialog />
 
       <nav
         className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-2xl border border-white/25 bg-gradient-to-br from-ink/95 to-ink/90 px-3 py-3.5 shadow-2xl backdrop-blur-xl md:hidden"

@@ -19,6 +19,7 @@
     "analyze:pwa": "lighthouse https://localhost:3000 --only-categories=pwa --preset=desktop || true",
     "verify:pwa": "node scripts/verify-pwa.mjs",
     "assert:lighthouse": "node scripts/assert-lighthouse.mjs",
+    "perf:budget": "node scripts/run-performance-budgets.mjs",
     "analyze:bundle": "node scripts/analyze-bundle.mjs",
     "assert:bundle": "node scripts/assert-bundle-budgets.mjs",
     "test": "pnpm run test:rls",

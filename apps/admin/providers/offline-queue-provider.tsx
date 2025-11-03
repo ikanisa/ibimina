@@ -24,6 +24,7 @@ import {
 } from "@/lib/offline/sync";
 import { useToast } from "@/providers/toast-provider";
 import type { Database } from "@/lib/supabase/types";
+import { trackConflictResolution, trackQueuedSyncSummary } from "@/src/instrumentation/ux";
 
 type QueueInput = {
   type: string;
@@ -36,9 +37,20 @@ interface OfflineQueueContextValue {
   processing: boolean;
   actions: OfflineAction[];
   pendingCount: number;
+  lastSyncedAt: Date | null;
+  lastConflict: OfflineConflictState | null;
   queueAction: (input: QueueInput) => Promise<OfflineAction>;
   retryFailed: () => Promise<void>;
   clearAction: (id: string) => Promise<void>;
+  clearConflict: () => void;
+}
+
+interface OfflineConflictState {
+  action: OfflineAction;
+  status?: number;
+  message: string;
+  details?: unknown;
+  occurredAt: string;
 }
 
 const OfflineQueueContext = createContext<OfflineQueueContextValue | null>(null);
@@ -59,6 +71,8 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
   const [actions, setActions] = useState<OfflineAction[]>([]);
   const [processing, setProcessing] = useState(false);
   const lastBroadcastCount = useRef(0);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const [lastConflict, setLastConflict] = useState<OfflineConflictState | null>(null);
 
   const refresh = useCallback(async () => {
     const all = await safeListActions();
@@ -88,6 +102,17 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
 
   type QueueHandler = (action: OfflineAction) => Promise<void>;
 
+  class OfflineSyncError extends Error {
+    constructor(
+      message: string,
+      public readonly status?: number,
+      public readonly details?: unknown
+    ) {
+      super(message);
+      this.name = "OfflineSyncError";
+    }
+  }
+
   const callPaymentsEndpoint = useCallback(
     async (path: string, payload: Record<string, unknown>) => {
       const response = await fetch(path, {
@@ -98,7 +123,7 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(body.error ?? "Request failed");
+        throw new OfflineSyncError(body.error ?? "Request failed", response.status, body);
       }
     },
     []
@@ -175,6 +200,14 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
           await handler(action);
           await removeAction(action.id);
           toast.success(action.summary.primary);
+          setLastSyncedAt(new Date());
+          trackConflictResolution("synced", {
+            type: action.type,
+            attempts: action.attempts + 1,
+          });
+          if (lastConflict?.action.id === action.id) {
+            setLastConflict(null);
+          }
         } catch (error) {
           const message = error instanceof Error ? error.message : "Sync failed";
           await updateAction(action.id, {
@@ -183,13 +216,27 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
             lastError: message,
           });
           toast.error(`${action.summary.primary}: ${message}`);
+          if (error instanceof OfflineSyncError && error.status === 409) {
+            const conflict: OfflineConflictState = {
+              action,
+              status: error.status,
+              message,
+              details: error.details,
+              occurredAt: new Date().toISOString(),
+            };
+            setLastConflict(conflict);
+            trackConflictResolution("detected", {
+              type: action.type,
+              attempts: action.attempts + 1,
+            });
+          }
         }
       }
     } finally {
       setProcessing(false);
       await refresh();
     }
-  }, [handlers, isOnline, processing, refresh, toast]);
+  }, [handlers, isOnline, lastConflict, processing, refresh, toast]);
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
@@ -225,6 +272,31 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
     }
   }, [actions]);
 
+  useEffect(() => {
+    const pending = actions.filter((action) => action.status !== "syncing").length;
+    const failed = actions.filter((action) => action.status === "failed").length;
+    const syncing = actions.filter((action) => action.status === "syncing").length;
+    trackQueuedSyncSummary({
+      pending,
+      failed,
+      syncing,
+      online: isOnline,
+    });
+  }, [actions, isOnline]);
+
+  useEffect(() => {
+    if (!lastConflict) {
+      return;
+    }
+    const stillFailed = actions.some(
+      (action) => action.id === lastConflict.action.id && action.status === "failed"
+    );
+    if (!stillFailed) {
+      trackConflictResolution("cleared", { type: lastConflict.action.type });
+      setLastConflict(null);
+    }
+  }, [actions, lastConflict]);
+
   const queueAction = useCallback(
     async (input: QueueInput) => {
       const record = await enqueueAction(input);
@@ -258,6 +330,13 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
     await refresh();
   }, [refresh]);
 
+  const clearConflict = useCallback(() => {
+    if (lastConflict) {
+      trackConflictResolution("dismissed", { type: lastConflict.action.type });
+    }
+    setLastConflict(null);
+  }, [lastConflict]);
+
   const setOnlineState = useCallback((value: boolean) => {
     setIsOnline(value);
   }, []);
@@ -268,11 +347,24 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
       processing,
       actions,
       pendingCount: actions.filter((action) => action.status !== "syncing").length,
+      lastSyncedAt,
+      lastConflict,
       queueAction,
       retryFailed,
       clearAction,
+      clearConflict,
     }),
-    [actions, clearAction, isOnline, processing, queueAction, retryFailed]
+    [
+      actions,
+      clearAction,
+      clearConflict,
+      isOnline,
+      lastConflict,
+      lastSyncedAt,
+      processing,
+      queueAction,
+      retryFailed,
+    ]
   );
 
   useEffect(() => {
@@ -301,6 +393,8 @@ export function useOfflineQueue() {
   }
   return context;
 }
+
+export type { OfflineConflictState };
 
 declare global {
   interface Window {

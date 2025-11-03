@@ -126,6 +126,21 @@ export function MemberDirectoryCard({
     });
   }, [members, deferredQuery, status]);
 
+  const membersSignature = useMemo(() => {
+    if (members.length === 0) {
+      return "empty";
+    }
+    const first = members[0]?.id ?? members[0]?.member_code ?? members[0]?.msisdn ?? "none";
+    const lastMember = members[members.length - 1];
+    const last = lastMember?.id ?? lastMember?.member_code ?? lastMember?.msisdn ?? "none";
+    return `${first}:${members.length}:${last}`;
+  }, [members]);
+
+  const tableRequestToken = useMemo(
+    () => [membersSignature, status, deferredQuery.trim().toLowerCase() || "all"].join("|"),
+    [deferredQuery, membersSignature, status]
+  );
+
   const desktopActions = allowImports ? (
     <div className="hidden items-center gap-2 md:flex">
       <MemberImportWizard ikiminaId={ikiminaId} saccoId={saccoId} />
@@ -188,6 +203,17 @@ export function MemberDirectoryCard({
                 )}
               />
             }
+            ux={{
+              tableId: "ikimina.members.directory",
+              requestToken: tableRequestToken,
+              context: {
+                group: groupName,
+                totalMembers: members.length,
+                filteredMembers: filteredMembers.length,
+                statusFilter: status,
+                queryLength: deferredQuery.length,
+              },
+            }}
           />
         </div>
       </GlassCard>

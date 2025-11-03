@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, MailCheck, RefreshCcw, ShieldCheck, ShieldX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import {
 import type { ApprovalActionResult } from "@/app/(main)/admin/(panel)/approvals/actions";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface JoinRequestItem {
   id: string;
@@ -40,11 +42,41 @@ interface AdminApprovalsPanelProps {
   invites: InviteItem[];
 }
 
-export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPanelProps) {
+export function AdminApprovalsPanel({
+  joinRequests: initialJoinRequests,
+  invites: initialInvites,
+}: AdminApprovalsPanelProps) {
+  const router = useRouter();
+  const [joinRequests, setJoinRequests] = useState(initialJoinRequests);
+  const [invites, setInvites] = useState(initialInvites);
+  useEffect(() => setJoinRequests(initialJoinRequests), [initialJoinRequests]);
+  const optimisticInviteRef = useRef<{ id: string; msisdn: string; group: string } | null>(null);
+  useEffect(() => {
+    setInvites(initialInvites);
+    if (!optimisticInviteRef.current) {
+      return;
+    }
+    const { id, msisdn, group } = optimisticInviteRef.current;
+    const replacement = initialInvites.find((invite) => {
+      const msisdnMatch = invite.invitee_msisdn === msisdn;
+      const groupMatch = group ? invite.group_name === group : true;
+      return msisdnMatch && groupMatch;
+    });
+    if (replacement) {
+      setRequestedInviteId(replacement.id);
+      optimisticInviteRef.current = null;
+      return;
+    }
+    if (!initialInvites.some((invite) => invite.id === id)) {
+      optimisticInviteRef.current = null;
+    }
+  }, [initialInvites]);
   const [requestedJoinId, setRequestedJoinId] = useState<string | null>(
-    joinRequests[0]?.id ?? null
+    initialJoinRequests[0]?.id ?? null
   );
-  const [requestedInviteId, setRequestedInviteId] = useState<string | null>(invites[0]?.id ?? null);
+  const [requestedInviteId, setRequestedInviteId] = useState<string | null>(
+    initialInvites[0]?.id ?? null
+  );
   const [pendingAction, startTransition] = useTransition();
   const { success, error } = useToast();
   const [inviteGroup, setInviteGroup] = useState("");
@@ -72,9 +104,10 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
     (result: ApprovalActionResult, successMessage: string) => {
       if (result.status === "error") {
         error(result.message ?? "Operation failed");
-        return;
+        return false;
       }
       success(successMessage);
+      return true;
     },
     [error, success]
   );
@@ -82,27 +115,43 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
   const resolveJoinRequest = useCallback(
     (decision: "approved" | "rejected") => {
       if (!selectedJoin) return;
+      const optimistic = joinRequests.find((request) => request.id === selectedJoin);
+      if (!optimistic) return;
+      setJoinRequests((current) => current.filter((request) => request.id !== selectedJoin));
       startTransition(async () => {
         const result = await decideJoinRequest({ requestId: selectedJoin, decision });
-        handleResult(
+        const ok = handleResult(
           result,
           decision === "approved" ? "Join request approved" : "Join request rejected"
         );
+        if (!ok) {
+          setJoinRequests((current) => [optimistic, ...current]);
+          return;
+        }
+        router.refresh();
       });
     },
-    [selectedJoin, handleResult]
+    [handleResult, joinRequests, router, selectedJoin]
   );
 
   const handleInviteAction = useCallback(
     (type: "resend" | "revoke") => {
       if (!selectedInvite) return;
+      const optimistic = invites.find((invite) => invite.id === selectedInvite);
+      if (!optimistic) return;
+      setInvites((current) => current.filter((invite) => invite.id !== selectedInvite));
       startTransition(async () => {
         const action = type === "resend" ? resendInvite : revokeInvite;
         const result = await action({ inviteId: selectedInvite });
-        handleResult(result, type === "resend" ? "Invite resent" : "Invite revoked");
+        const ok = handleResult(result, type === "resend" ? "Invite resent" : "Invite revoked");
+        if (!ok) {
+          setInvites((current) => [optimistic, ...current]);
+          return;
+        }
+        router.refresh();
       });
     },
-    [selectedInvite, handleResult]
+    [handleResult, invites, router, selectedInvite]
   );
 
   useEffect(() => {
@@ -127,14 +176,37 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
       error("Group ID and MSISDN are required");
       return;
     }
+    const optimisticInvite: InviteItem = {
+      id: `temp-${Date.now()}`,
+      created_at: new Date().toISOString(),
+      status: "pending",
+      invitee_msisdn: inviteMsisdn,
+      group_name: inviteGroup,
+      sacco_id: null,
+    };
+    setInvites((current) => [optimisticInvite, ...current]);
+    setRequestedInviteId(optimisticInvite.id);
+    optimisticInviteRef.current = {
+      id: optimisticInvite.id,
+      msisdn: inviteMsisdn,
+      group: inviteGroup,
+    };
     startTransition(async () => {
       const result = await sendInvite({ groupId: inviteGroup, msisdn: inviteMsisdn });
-      handleResult(result, "Invite queued");
+      const ok = handleResult(result, "Invite queued");
+      if (!ok) {
+        setInvites((current) => current.filter((invite) => invite.id !== optimisticInvite.id));
+        if (optimisticInviteRef.current?.id === optimisticInvite.id) {
+          optimisticInviteRef.current = null;
+        }
+        return;
+      }
       if (result.status === "success") {
         setInviteMsisdn("");
+        router.refresh();
       }
     });
-  }, [error, handleResult, inviteGroup, inviteMsisdn]);
+  }, [error, handleResult, inviteGroup, inviteMsisdn, router]);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[2fr,1fr]">
@@ -147,6 +219,11 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
         </header>
         <div className="overflow-hidden rounded-2xl border border-white/10">
           <ul className="divide-y divide-white/5">
+            {pending && (
+              <li className="px-4 py-3">
+                <Skeleton className="h-12 w-full rounded-xl bg-white/10" />
+              </li>
+            )}
             {joinRequests.map((request) => {
               const isSelected = selectedJoin === request.id;
               return (
@@ -205,8 +282,19 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
           </p>
           <div className="overflow-hidden rounded-2xl border border-white/10">
             <ul className="divide-y divide-white/5">
+              {pending && (
+                <li className="px-4 py-3">
+                  <Skeleton className="h-10 w-full rounded-xl bg-white/10" />
+                </li>
+              )}
               {invites.map((invite) => {
                 const isSelected = selectedInvite === invite.id;
+                const createdLabel =
+                  invite.status === "pending"
+                    ? "Queued for sync"
+                    : invite.created_at
+                      ? new Date(invite.created_at).toLocaleString()
+                      : "—";
                 return (
                   <li
                     key={invite.id}
@@ -222,8 +310,7 @@ export function AdminApprovalsPanel({ joinRequests, invites }: AdminApprovalsPan
                           {invite.invitee_msisdn ?? "Unknown"}
                         </p>
                         <p className="text-xs text-neutral-3">
-                          {invite.group_name ?? "—"} ·{" "}
-                          {invite.created_at ? new Date(invite.created_at).toLocaleString() : "—"}
+                          {invite.group_name ?? "—"} · {createdLabel}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">

@@ -81,6 +81,27 @@ export function IkiminaTable({
     });
   }, [rows, deferredSearch, status, type, sacco]);
 
+  const rowsSignature = useMemo(() => {
+    if (rows.length === 0) {
+      return "empty";
+    }
+    const first = rows[0]?.id ?? rows[0]?.code ?? "none";
+    const last = rows[rows.length - 1]?.id ?? rows[rows.length - 1]?.code ?? "none";
+    return `${first}:${rows.length}:${last}`;
+  }, [rows]);
+
+  const tableRequestToken = useMemo(
+    () =>
+      [
+        rowsSignature,
+        deferredSearch.trim().toLowerCase() || "all",
+        status || "all",
+        type || "all",
+        sacco || "all",
+      ].join("|"),
+    [deferredSearch, rowsSignature, sacco, status, type]
+  );
+
   const columns = useMemo<ColumnDef<IkiminaTableRow, unknown>[]>(() => {
     const baseColumns: ColumnDef<IkiminaTableRow, unknown>[] = [
       showSaccoColumn
@@ -273,6 +294,18 @@ export function IkiminaTable({
             )}
           />
         }
+        ux={{
+          tableId: "ikimina.list",
+          requestToken: tableRequestToken,
+          context: {
+            totalRows: rows.length,
+            filteredRows: filteredRows.length,
+            statusFilter: status || "all",
+            typeFilter: type || "all",
+            saccoFilter: sacco || "all",
+            queryLength: deferredSearch.length,
+          },
+        }}
       />
     </div>
   );

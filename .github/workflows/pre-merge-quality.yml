@@ -85,3 +85,28 @@ jobs:
 
       - name: Platform API integration tests
         run: pnpm --filter @ibimina/platform-api test:integration
+
+  web-performance:
+    name: Web performance budgets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run performance budgets
+        run: pnpm perf:budget
