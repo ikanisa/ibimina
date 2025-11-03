@@ -30,7 +30,7 @@ export function usePersistentState<T>(key: string, initialValue: T) {
   }, [key, state]);
 
   const update = useCallback((value: Updater<T>) => {
-    setState((prev) => (typeof value === "function" ? (value as (previous: T) => T)(prev) : value));
+    setState((prev) => (typeof value === "function" ? value(prev) : value));
   }, []);
 
   return [state, update] as const;
