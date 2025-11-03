@@ -51,3 +51,19 @@ deploy/nginx/certs/*.key
 # Misc
 .turbo
 .cache
+
+# Android (Capacitor)
+android/
+!android/.gitkeep
+*.jks
+*.keystore
+
+# iOS (Capacitor)
+ios/
+!ios/.gitkeep
+
+# Capacitor
+.capacitor/
+
+# Generated resources
+resources/
