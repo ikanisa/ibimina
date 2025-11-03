@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useRef, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { VirtualTable } from "@/components/datagrid/virtual-table";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,10 @@ import { MemberImportWizard } from "@/components/ikimina/member-import-wizard";
 import { MemberPdfImportDialog } from "@/components/ikimina/member-pdf-import-dialog";
 import type { Database } from "@/lib/supabase/types";
 import { useTranslation } from "@/providers/i18n-provider";
+import {
+  useCommandPaletteActions,
+  useCommandPaletteFilters,
+} from "@/src/components/common/CommandPalette";
 
 const STATUS_FILTERS = ["all", "active", "inactive"] as const;
 
@@ -38,8 +42,105 @@ export function MemberDirectoryCard({
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const deferredQuery = useDeferredValue(query);
   const quickActionsLabel = t("ikimina.members.quickActions", "Member actions");
+
+  useCommandPaletteActions(() => {
+    const actions = [
+      {
+        id: `ikimina:${ikiminaId}:members:focus-search`,
+        label: t("ikimina.members.palette.focusSearch", "Focus member search"),
+        description: t(
+          "ikimina.members.palette.focusSearchDescription",
+          "Jump to the member search field."
+        ),
+        onSelect: () => searchInputRef.current?.focus(),
+        keywords: ["members", "search", groupName],
+      },
+      {
+        id: `ikimina:${ikiminaId}:members:show-active`,
+        label: t("ikimina.members.palette.filterActive", "Show active members"),
+        description: t(
+          "ikimina.members.palette.filterActiveDescription",
+          "Filter the table to active members only."
+        ),
+        onSelect: () => setStatus("active"),
+        badge:
+          status === "active"
+            ? { label: t("common.active", "Active"), tone: "success" }
+            : undefined,
+        keywords: ["members", "active", groupName],
+      },
+      {
+        id: `ikimina:${ikiminaId}:members:show-inactive`,
+        label: t("ikimina.members.palette.filterInactive", "Show inactive members"),
+        description: t(
+          "ikimina.members.palette.filterInactiveDescription",
+          "Filter the table to inactive members."
+        ),
+        onSelect: () => setStatus("inactive"),
+        badge:
+          status === "inactive"
+            ? { label: t("ikimina.members.inactive", "Inactive"), tone: "info" }
+            : undefined,
+        keywords: ["members", "inactive", groupName],
+      },
+      {
+        id: `ikimina:${ikiminaId}:members:clear-filters`,
+        label: t("ikimina.members.palette.clearFilters", "Show all members"),
+        description: t(
+          "ikimina.members.palette.clearFiltersDescription",
+          "Clear member status filters."
+        ),
+        onSelect: () => setStatus("all"),
+        badge:
+          status === "all"
+            ? { label: t("ikimina.members.all", "All"), tone: "success" }
+            : undefined,
+        keywords: ["members", "filters", groupName],
+      },
+    ];
+    return allowImports
+      ? [
+          ...actions,
+          {
+            id: `ikimina:${ikiminaId}:members:import`,
+            label: t("ikimina.members.palette.import", "Open member import wizard"),
+            description: t(
+              "ikimina.members.palette.importDescription",
+              "Launch the spreadsheet import workflow."
+            ),
+            onSelect: () => {
+              document
+                .querySelector<HTMLButtonElement>(`[data-member-import-trigger='${ikiminaId}']`)
+                ?.click();
+            },
+            keywords: ["members", "import", groupName],
+          },
+        ]
+      : actions;
+  }, [allowImports, groupName, ikiminaId, status, t]);
+
+  useCommandPaletteFilters(
+    () => [
+      {
+        id: `ikimina:${ikiminaId}:filter-active`,
+        label: t("ikimina.members.filter.active", "Status: Active"),
+        active: status === "active",
+        onActivate: () => setStatus("active"),
+        onClear: status === "active" ? () => setStatus("all") : undefined,
+      },
+      {
+        id: `ikimina:${ikiminaId}:filter-inactive`,
+        label: t("ikimina.members.filter.inactive", "Status: Inactive"),
+        active: status === "inactive",
+        onActivate: () => setStatus("inactive"),
+        onClear: status === "inactive" ? () => setStatus("all") : undefined,
+      },
+    ],
+    [ikiminaId, status, t]
+  );
 
   const columns = useMemo<ColumnDef<MemberRow>[]>(
     () => [
@@ -155,6 +256,7 @@ export function MemberDirectoryCard({
                 )}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                ref={searchInputRef}
               />
             </div>
             <SegmentedControl

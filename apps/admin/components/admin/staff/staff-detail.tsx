@@ -9,6 +9,7 @@ import {
   type SaccoSearchResult,
 } from "@/components/saccos/sacco-search-combobox";
 import { OrgSearchCombobox, type OrgSearchResult } from "@/components/admin/org-search-combobox";
+import { Drawer } from "@/components/ui/drawer";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -35,9 +36,16 @@ interface StaffDetailProps {
   saccos: Array<{ id: string; name: string }>;
   onClose: () => void;
   onUpdated?: () => void;
+  open?: boolean;
 }
 
-export function StaffDetail({ user, saccos: _saccos, onClose, onUpdated }: StaffDetailProps) {
+export function StaffDetail({
+  user,
+  saccos: _saccos,
+  onClose,
+  onUpdated,
+  open = true,
+}: StaffDetailProps) {
   const [pending, startTransition] = useTransition();
   const { success, error } = useToast();
   const [role, setRole] = useState<AppRole>(user.role);
@@ -172,84 +180,81 @@ export function StaffDetail({ user, saccos: _saccos, onClose, onUpdated }: Staff
   const isMfiRoleSel = role === "MFI_MANAGER" || role === "MFI_STAFF";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-end bg-black/50 p-4 backdrop-blur">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-neutral-950 p-4 shadow-xl">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-neutral-0">Staff Detail</h2>
-          <button onClick={onClose} className="text-neutral-2 hover:text-neutral-0">
-            Close
+    <Drawer open={open} onClose={onClose} size="lg" title="Staff Detail" className="bg-neutral-950">
+      <div className="space-y-5 text-sm text-neutral-0">
+        <div>
+          <div className="text-xs uppercase tracking-[0.3em] text-neutral-2">Email</div>
+          <div className="break-words text-neutral-0">{user.email}</div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as AppRole)}
+              className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-neutral-0"
+            >
+              {ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {r.replace(/_/g, " ")}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">Status</label>
+            <div className="mt-2 text-neutral-0">{user.suspended ? "Suspended" : "Active"}</div>
+          </div>
+        </div>
+
+        {isSaccoRoleSel && <SaccoSearchCombobox value={sacco} onChange={setSacco} />}
+        {isDistrictRoleSel && <OrgSearchCombobox type="DISTRICT" value={org} onChange={setOrg} />}
+        {isMfiRoleSel && <OrgSearchCombobox type="MFI" value={org} onChange={setOrg} />}
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={assignRole}
+            disabled={pending}
+            className="rounded-xl bg-kigali px-4 py-2 text-sm font-semibold text-ink shadow-glass"
+          >
+            Save
+          </button>
+          <button
+            onClick={doResetPassword}
+            disabled={pending}
+            className="rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-0"
+          >
+            Reset password
+          </button>
+          <button
+            onClick={doToggleSuspend}
+            disabled={pending}
+            className="rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-0"
+          >
+            {user.suspended ? "Activate" : "Suspend"}
           </button>
         </div>
-        <div className="space-y-4 text-sm">
-          <div>
-            <div className="text-xs uppercase tracking-[0.3em] text-neutral-2">Email</div>
-            <div className="text-neutral-0">{user.email}</div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">Role</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as AppRole)}
-                className="mt-2 w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-neutral-0"
-              >
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r.replace(/_/g, " ")}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">Status</label>
-              <div className="mt-2 text-neutral-0">{user.suspended ? "Suspended" : "Active"}</div>
-            </div>
-          </div>
 
-          {isSaccoRoleSel && <SaccoSearchCombobox value={sacco} onChange={setSacco} />}
-          {isDistrictRoleSel && <OrgSearchCombobox type="DISTRICT" value={org} onChange={setOrg} />}
-          {isMfiRoleSel && <OrgSearchCombobox type="MFI" value={org} onChange={setOrg} />}
-
-          <div className="flex gap-2">
-            <button
-              onClick={assignRole}
-              disabled={pending}
-              className="rounded-xl bg-kigali px-4 py-2 text-sm font-semibold text-ink shadow-glass"
-            >
-              Save
-            </button>
-            <button
-              onClick={doResetPassword}
-              disabled={pending}
-              className="rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-0"
-            >
-              Reset password
-            </button>
-            <button
-              onClick={doToggleSuspend}
-              disabled={pending}
-              className="rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-0"
-            >
-              {user.suspended ? "Activate" : "Suspend"}
-            </button>
-          </div>
-
-          {/* Memberships */}
-          <div className="pt-2">
-            <div className="mb-2 text-xs uppercase tracking-[0.3em] text-neutral-2">
-              Org memberships
-            </div>
-            <ul className="space-y-1 text-neutral-0">
-              {memberships.length === 0 && <li className="text-neutral-2">None</li>}
-              {memberships.map((m) => (
+        <section className="space-y-3 rounded-xl border border-white/10 bg-white/5 p-4">
+          <header className="flex items-center justify-between">
+            <h3 className="text-xs uppercase tracking-[0.3em] text-neutral-2">Org memberships</h3>
+          </header>
+          <ul className="space-y-2 text-sm text-neutral-0">
+            {memberships.length === 0 ? (
+              <li className="text-neutral-2">None</li>
+            ) : (
+              memberships.map((m) => (
                 <li
                   key={`${m.org_id}-${m.role}`}
-                  className="flex items-center justify-between gap-2"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-white/10 px-3 py-2"
                 >
-                  <span>
-                    {(m.organizations?.type ?? "").toString()} —{" "}
-                    {(m.organizations?.name ?? m.org_id).toString()} ({m.role})
-                  </span>
+                  <div className="space-y-1 text-left">
+                    <p className="font-medium">{(m.organizations?.name ?? m.org_id).toString()}</p>
+                    <p className="text-[11px] uppercase tracking-[0.25em] text-neutral-3">
+                      {(m.organizations?.type ?? "").toString()} · {m.role.replace(/_/g, " ")}
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={async () => {
@@ -257,7 +262,6 @@ export function StaffDetail({ user, saccos: _saccos, onClose, onUpdated }: Staff
                         `/api/admin/staff/memberships?user_id=${encodeURIComponent(user.id)}&org_id=${encodeURIComponent(m.org_id)}`,
                         { method: "DELETE" }
                       );
-                      // refresh
                       const res = await fetch(
                         `/api/admin/staff/memberships?user_id=${encodeURIComponent(user.id)}`
                       );
@@ -267,88 +271,90 @@ export function StaffDetail({ user, saccos: _saccos, onClose, onUpdated }: Staff
                         onUpdated?.();
                       }
                     }}
-                    className="rounded-lg border border-white/15 px-2 py-1 text-xs text-neutral-0"
+                    className="rounded-lg border border-white/15 px-2 py-1 text-xs text-neutral-0 transition hover:border-white/30 hover:text-white"
                   >
                     Remove
                   </button>
                 </li>
-              ))}
-            </ul>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div className="flex flex-col gap-2">
-                <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">Type</label>
-                <select
-                  value={membershipType}
-                  onChange={(e) => setMembershipType(e.target.value as any)}
-                  className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0"
-                >
-                  <option value="SACCO">SACCO</option>
-                  <option value="MFI">MFI</option>
-                  <option value="DISTRICT">District</option>
-                </select>
-                {membershipType === "SACCO" && (
-                  <SaccoSearchCombobox value={sacco} onChange={setSacco} />
-                )}
-                {membershipType === "MFI" && (
-                  <OrgSearchCombobox type="MFI" value={org} onChange={setOrg} />
-                )}
-                {membershipType === "DISTRICT" && (
-                  <OrgSearchCombobox type="DISTRICT" value={org} onChange={setOrg} />
-                )}
-                <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">Role</label>
-                <select
-                  value={membershipRole}
-                  onChange={(e) => setMembershipRole(e.target.value as AppRole)}
-                  className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0"
-                >
-                  {(
-                    [
-                      "SYSTEM_ADMIN",
-                      "SACCO_MANAGER",
-                      "SACCO_STAFF",
-                      "SACCO_VIEWER",
-                      "DISTRICT_MANAGER",
-                      "MFI_MANAGER",
-                      "MFI_STAFF",
-                    ] as AppRole[]
-                  ).map((r) => (
+              ))
+            )}
+          </ul>
+        </section>
+
+        <section className="space-y-3 rounded-xl border border-white/10 bg-white/5 p-4">
+          <header>
+            <h3 className="text-xs uppercase tracking-[0.3em] text-neutral-2">Add membership</h3>
+          </header>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">Type</label>
+              <select
+                value={membershipType}
+                onChange={(e) => setMembershipType(e.target.value as typeof membershipType)}
+                className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0"
+              >
+                <option value="SACCO">SACCO</option>
+                <option value="MFI">MFI</option>
+                <option value="DISTRICT">District</option>
+              </select>
+              <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">Role</label>
+              <select
+                value={membershipRole}
+                onChange={(e) => setMembershipRole(e.target.value as AppRole)}
+                className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0"
+              >
+                {(ROLES as AppRole[])
+                  .filter((r) => resolveOrgTypeFromRole(r) === membershipType)
+                  .map((r) => (
                     <option key={r} value={r}>
                       {r.replace(/_/g, " ")}
                     </option>
                   ))}
-                </select>
-              </div>
+              </select>
+            </div>
+            <div className="space-y-2">
+              {membershipType === "SACCO" && (
+                <SaccoSearchCombobox value={sacco} onChange={setSacco} />
+              )}
+              {membershipType === "MFI" && (
+                <OrgSearchCombobox type="MFI" value={org} onChange={setOrg} />
+              )}
+              {membershipType === "DISTRICT" && (
+                <OrgSearchCombobox type="DISTRICT" value={org} onChange={setOrg} />
+              )}
               <button
-                type="button"
-                onClick={async () => {
-                  const selectedOrgId = membershipType === "SACCO" ? sacco?.id : org?.id;
-                  if (!selectedOrgId) return;
-                  await fetch(`/api/admin/staff/memberships`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      user_id: user.id,
-                      org_id: selectedOrgId,
-                      role: membershipRole,
-                    }),
-                  });
-                  const res = await fetch(
-                    `/api/admin/staff/memberships?user_id=${encodeURIComponent(user.id)}`
-                  );
-                  if (res.ok) {
-                    const data = (await res.json()) as { memberships: typeof memberships };
-                    setMemberships(data.memberships ?? []);
-                    onUpdated?.();
-                  }
-                }}
-                className="rounded-xl bg-white/10 px-3 py-2 text-sm text-neutral-0"
+                onClick={addMembership}
+                disabled={pending}
+                className="w-full rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-neutral-0"
               >
                 Add membership
               </button>
             </div>
           </div>
-        </div>
+        </section>
+
+        <section className="space-y-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-neutral-0">
+          <header>
+            <h3 className="text-xs uppercase tracking-[0.3em] text-red-200">Danger zone</h3>
+          </header>
+          <div className="space-y-2 text-sm">
+            <button
+              onClick={doResetPassword}
+              disabled={pending}
+              className="w-full rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-0"
+            >
+              Send password reset email
+            </button>
+            <button
+              onClick={doToggleSuspend}
+              disabled={pending}
+              className="w-full rounded-xl border border-red-400/40 px-4 py-2 text-sm text-red-200"
+            >
+              {user.suspended ? "Unsuspend user" : "Suspend user"}
+            </button>
+          </div>
+        </section>
       </div>
-    </div>
+    </Drawer>
   );
 }

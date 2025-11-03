@@ -8,6 +8,7 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const host = process.env.HOSTNAME ?? "127.0.0.1";
 const port = process.env.PORT ?? "3000";
 const preferStandalone = process.env.ADMIN_USE_STANDALONE_START === "1";
+const useDevServer = process.env.E2E_USE_DEV === "1";
 const standaloneEntry = path.resolve(projectRoot, ".next/standalone/server.js");
 const standaloneCpuProfile = path.resolve(
   projectRoot,
@@ -19,21 +20,27 @@ const run = (command, args) =>
 
 let child;
 
-const canUseStandalone =
-  preferStandalone && existsSync(standaloneEntry) && existsSync(standaloneCpuProfile);
+const require = createRequire(import.meta.url);
+const nextCli = require.resolve("next/dist/bin/next");
 
-if (canUseStandalone) {
-  child = run(process.execPath, [standaloneEntry]);
-} else {
-  if (preferStandalone) {
-    console.warn(
-      "ADMIN_USE_STANDALONE_START requested but standalone bundle is incomplete; falling back to next start."
-    );
-  }
-  const require = createRequire(import.meta.url);
-  const nextCli = require.resolve("next/dist/bin/next");
-  const args = ["start", "--hostname", host, "--port", port];
+if (useDevServer) {
+  const args = ["dev", "--hostname", host, "--port", port];
   child = run(process.execPath, [nextCli, ...args]);
+} else {
+  const canUseStandalone =
+    preferStandalone && existsSync(standaloneEntry) && existsSync(standaloneCpuProfile);
+
+  if (canUseStandalone) {
+    child = run(process.execPath, [standaloneEntry]);
+  } else {
+    if (preferStandalone) {
+      console.warn(
+        "ADMIN_USE_STANDALONE_START requested but standalone bundle is incomplete; falling back to next start."
+      );
+    }
+    const args = ["start", "--hostname", host, "--port", port];
+    child = run(process.execPath, [nextCli, ...args]);
+  }
 }
 
 child.on("close", (code, signal) => {

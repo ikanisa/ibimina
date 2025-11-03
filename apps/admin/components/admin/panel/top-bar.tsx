@@ -1,15 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { Bell, Menu, Search } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator.ssr-wrapper";
-import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { TenantSwitcher } from "@/components/admin/panel/tenant-switcher";
 import type { TenantOption } from "@/components/admin/panel/types";
-import { ADMIN_NAV_LINKS } from "@/components/admin/panel/nav-items";
+import { useCommandPalette } from "@/src/components/common/CommandPalette";
 
 interface AdminPanelTopBarProps {
   profile: ProfileRow;
@@ -24,37 +22,9 @@ export function AdminPanelTopBar({
   tenantOptions,
   alertsCount,
   onToggleNav,
-  alertsBreakdown,
+  alertsBreakdown: _alertsBreakdown,
 }: AdminPanelTopBarProps) {
-  const [showSearch, setShowSearch] = useState(false);
-  const navTargets = useMemo(
-    () =>
-      ADMIN_NAV_LINKS.map((item) => {
-        if (item.href === "/admin/approvals" && alertsBreakdown.approvals > 0) {
-          return {
-            href: item.href,
-            primary: item.label,
-            secondary: "",
-            badge: { label: String(alertsBreakdown.approvals), tone: "critical" as const },
-          };
-        }
-        if (item.href === "/admin/reconciliation" && alertsBreakdown.reconciliation > 0) {
-          return {
-            href: item.href,
-            primary: item.label,
-            secondary: "",
-            badge: { label: String(alertsBreakdown.reconciliation), tone: "critical" as const },
-          };
-        }
-        return {
-          href: item.href,
-          primary: item.label,
-          secondary: "",
-          badge: undefined,
-        };
-      }),
-    [alertsBreakdown]
-  );
+  const { open: paletteOpen, openPalette } = useCommandPalette();
 
   return (
     <header className="fixed inset-x-0 top-0 z-30 border-b border-white/5 bg-neutral-950/70 backdrop-blur">
@@ -76,8 +46,11 @@ export function AdminPanelTopBar({
           <OfflineQueueIndicator />
           <button
             type="button"
-            onClick={() => setShowSearch(true)}
+            onClick={openPalette}
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-1 shadow-sm transition hover:bg-white/10"
+            aria-haspopup="dialog"
+            aria-expanded={paletteOpen}
+            aria-label="Search"
           >
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Search</span>
@@ -107,13 +80,6 @@ export function AdminPanelTopBar({
           </div>
         </div>
       </div>
-      <GlobalSearchDialog
-        open={showSearch}
-        onClose={() => setShowSearch(false)}
-        profile={profile}
-        navItems={navTargets}
-        quickActions={[]}
-      />
     </header>
   );
 }

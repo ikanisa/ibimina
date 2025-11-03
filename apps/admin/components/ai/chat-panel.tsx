@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useAtlasAssistant } from "@/providers/atlas-assistant-provider";
 
 interface Message {
   id: string;
@@ -10,6 +11,7 @@ interface Message {
 }
 
 export function ChatPanel() {
+  const { context } = useAtlasAssistant();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -22,6 +24,7 @@ export function ChatPanel() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const sessionId = useMemo(() => crypto.randomUUID(), []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -47,16 +50,33 @@ export function ChatPanel() {
     setIsLoading(true);
 
     try {
+      const enrichedMessage = (() => {
+        if (!context) {
+          return userMessage.content;
+        }
+        const metadataEntries = context.metadata
+          ? Object.entries(context.metadata)
+              .filter(([, value]) => value !== null && value !== undefined && value !== "")
+              .map(([key, value]) => `${key}: ${value}`)
+          : [];
+        const contextLines = [context.title];
+        if (context.subtitle) {
+          contextLines.push(context.subtitle);
+        }
+        if (metadataEntries.length > 0) {
+          contextLines.push(...metadataEntries);
+        }
+        return `Context\n${contextLines.join("\n")}\n\n${userMessage.content}`;
+      })();
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
+          sessionId,
+          message: enrichedMessage,
         }),
       });
 
@@ -69,7 +89,10 @@ export function ChatPanel() {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.message || "I'm sorry, I couldn't generate a response.",
+        content:
+          (typeof data === "object" && data !== null && "message" in data
+            ? (data as { message?: string }).message
+            : null) || "I'm sorry, I couldn't generate a response.",
         timestamp: new Date(),
       };
 
@@ -91,7 +114,27 @@ export function ChatPanel() {
   return (
     <div className="flex h-full flex-col rounded-lg border border-white/10 bg-white/5">
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+        {context && (
+          <div className="rounded-2xl border border-white/10 bg-white/10 p-4 text-xs text-white/80">
+            <p className="text-sm font-semibold text-white">{context.title}</p>
+            {context.subtitle && <p className="mt-1 text-white/70">{context.subtitle}</p>}
+            {context.metadata && (
+              <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+                {Object.entries(context.metadata)
+                  .filter(([, value]) => value !== null && value !== undefined && value !== "")
+                  .map(([key, value]) => (
+                    <div key={key}>
+                      <dt className="text-[11px] uppercase tracking-[0.3em] text-white/50">
+                        {key}
+                      </dt>
+                      <dd className="text-sm text-white/80">{String(value)}</dd>
+                    </div>
+                  ))}
+              </dl>
+            )}
+          </div>
+        )}
         {messages.map((message) => (
           <div
             key={message.id}

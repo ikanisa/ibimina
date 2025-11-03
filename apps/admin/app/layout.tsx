@@ -24,13 +24,18 @@ export const viewport: Viewport = {
   themeColor: "#0b1020",
 };
 
-function getInitialTheme(cookieStore: Awaited<ReturnType<typeof cookies>>) {
-  const themeCookie = cookieStore.get('theme')?.value;
-  return themeCookie === 'nyungwe' ? 'nyungwe' : 'light';
+type StoredTheme = "light" | "dark" | "nyungwe";
+
+function readThemeCookie(cookieStore: Awaited<ReturnType<typeof cookies>>): StoredTheme {
+  const themeCookie = cookieStore.get("theme")?.value as StoredTheme | undefined;
+  if (themeCookie === "dark" || themeCookie === "nyungwe") {
+    return themeCookie;
+  }
+  return "light";
 }
 
-function colorSchemeFor(theme: string): 'light' | 'dark' {
-  return theme === 'nyungwe' ? 'dark' : 'light';
+function resolveColorScheme(theme: StoredTheme): "light" | "dark" {
+  return theme === "light" ? "light" : "dark";
 }
 
 export default async function RootLayout({
@@ -42,24 +47,28 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const nonce = headerList.get("x-csp-nonce") ?? undefined;
   const locale = resolveRequestLocale({ headers: headerList, cookies: cookieStore });
-  const theme = getInitialTheme(cookieStore);
-  const colorScheme = colorSchemeFor(theme);
+  const storedTheme = readThemeCookie(cookieStore);
+  const colorScheme = resolveColorScheme(storedTheme);
 
-  const rootClass =
-    theme === 'nyungwe'
-      ? 'antialiased bg-nyungwe text-neutral-0'
-      : 'antialiased bg-white text-gray-900';
+  const htmlClass = `${storedTheme} theme-${colorScheme}`;
+  const baseBodyClass =
+    colorScheme === "dark"
+      ? "antialiased bg-[color:var(--color-canvas,#05080f)] text-[color:var(--color-foreground,#f5f7fb)]"
+      : "antialiased bg-[color:var(--color-canvas,#ffffff)] text-[color:var(--color-foreground,#111827)]";
+  const fallbackBodyClass =
+    storedTheme === "nyungwe" ? "bg-nyungwe text-neutral-0" : "bg-white text-gray-900";
+  const rootClass = `${baseBodyClass} ${fallbackBodyClass} transition-colors duration-300`;
 
   return (
-    <html 
-      lang={locale} 
-      data-theme={theme}
-      className={theme}
+    <html
+      lang={locale}
+      data-theme={colorScheme}
+      className={htmlClass}
       style={{ colorScheme }}
       suppressHydrationWarning
     >
       <body className={rootClass}>
-        <AppProviders nonce={nonce} locale={locale} forcedTheme={theme}>
+        <AppProviders nonce={nonce} locale={locale} forcedTheme={storedTheme}>
           {children}
         </AppProviders>
       </body>

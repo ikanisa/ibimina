@@ -11,6 +11,7 @@ export const ADMIN_NAV_LINKS: ReadonlyArray<AdminNavLink> = [
   { href: "/admin/saccos", label: "SACCOs", icon: "saccos" },
   { href: "/admin/groups", label: "Groups", icon: "groups" },
   { href: "/admin/members", label: "Members", icon: "members" },
+  { href: "/admin/loans", label: "Loans pipeline", icon: "loans" },
   { href: "/admin/staff", label: "Staff", icon: "staff" },
   { href: "/admin/approvals", label: "Approvals & Invites", icon: "approvals" },
   { href: "/admin/reconciliation", label: "Deposits & Reconciliation", icon: "reconciliation" },
