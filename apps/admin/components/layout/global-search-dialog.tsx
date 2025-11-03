@@ -116,16 +116,6 @@ const BADGE_TONE_STYLES = {
   success: "border-emerald-500/40 bg-emerald-500/15 text-emerald-200",
 } as const;
 
-const DIALOG_FOCUSABLE_SELECTORS =
-  'a[href]:not([tabindex="-1"]):not([aria-hidden="true"]),button:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),textarea:not([disabled]):not([tabindex="-1"]),select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"]):not([aria-hidden="true"])';
-
-const getDialogFocusable = (root: HTMLElement | null) => {
-  if (!root) return [] as HTMLElement[];
-  return Array.from(root.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTORS)).filter(
-    (element) => !element.hasAttribute("disabled")
-  );
-};
-
 interface GlobalSearchDialogProps {
   open: boolean;
   onClose: () => void;
@@ -204,8 +194,6 @@ export function GlobalSearchDialog({
   const refreshBadgeTimer = useRef<NodeJS.Timeout | null>(null);
   const lastRefreshToastAt = useRef<number>(0);
   const focusRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const dialogTitleId = useId();
   const requestSequenceRef = useRef(0);
   const requestTokenRef = useRef<string | null>(null);
@@ -836,52 +824,10 @@ export function GlobalSearchDialog({
   }, [totalFocusCount]);
 
   useEffect(() => {
-    if (open) {
-      previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
-    } else {
+    if (!open) {
       focusRefs.current = [];
-      previouslyFocusedRef.current?.focus();
     }
   }, [open]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const panel = panelRef.current;
-    if (!panel) {
-      return;
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-      if (event.key !== "Tab") {
-        return;
-      }
-      const focusable = getDialogFocusable(panel);
-      if (focusable.length === 0) {
-        return;
-      }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const active = document.activeElement as HTMLElement | null;
-      if (event.shiftKey) {
-        if (active === first || active === panel) {
-          event.preventDefault();
-          last.focus();
-        }
-      } else if (active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    panel.addEventListener("keydown", handleKeyDown);
-    return () => panel.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
 
   const currencyFormatter = useMemo(
     () =>
@@ -912,36 +858,34 @@ export function GlobalSearchDialog({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 md:items-center"
-      role="presentation"
-      onClick={onClose}
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="xl"
+      hideCloseButton
+      labelledBy={dialogTitleId}
+      initialFocusRef={inputRef}
+      className="glass relative flex h-[min(90vh,720px)] max-w-4xl flex-col rounded-3xl p-6 text-neutral-0 shadow-2xl"
     >
-      <div
-        className="glass relative w-full max-w-4xl rounded-3xl p-6 shadow-2xl"
-        onClick={(event) => event.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={dialogTitleId}
-        ref={panelRef}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span id={dialogTitleId} className="text-lg font-semibold text-neutral-0">
-            {t("search.console.title", "Search console")}
-          </span>
-          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-            <span className="hidden rounded-full border border-white/15 px-3 py-1 md:inline-flex">
-              ⌘K
+      {() => (
+        <div className="flex h-full flex-col gap-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span id={dialogTitleId} className="text-lg font-semibold text-neutral-0">
+              {t("search.console.title", "Search console")}
             </span>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
-            >
-              {t("actions.close", "Close")}
-            </button>
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+              <span className="hidden rounded-full border border-white/15 px-3 py-1 md:inline-flex">
+                ⌘K
+              </span>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
+              >
+                {t("actions.close", "Close")}
+              </button>
+            </div>
           </div>
-        </div>
 
         <div className="relative mt-5">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-2" />
@@ -965,20 +909,7 @@ export function GlobalSearchDialog({
               "search.console.placeholder",
               "Search ikimina, quick actions, or SACCO registry"
             )}
-            className="w-full rounded-2xl border border-white/10 bg-white/10 py-3 pl-11 pr-4 text-sm text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 text-neutral-2 transition hover:text-neutral-0"
-              aria-label={t("search.actions.clear", "Clear search")}
-            >
-              <span className="sr-only">{t("common.clear", "Clear")}</span>
-              <X className="h-3.5 w-3.5" aria-hidden />
-            </button>
-          )}
-        </div>
+          </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
           <aside className="space-y-5">
@@ -1165,11 +1096,12 @@ export function GlobalSearchDialog({
                             className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
                           >
                             <div>
-                              <p className="font-medium">{renderHighlighted(item.name, query)}</p>
-                              <p className="text-xs text-neutral-2">
-                                Code · <span className="font-mono text-neutral-1">{item.code}</span>
-                                {item.saccoName ? ` • ${item.saccoName}` : ""}
-                              </p>
+                              <span className="font-medium">
+                                {renderHighlighted(item.primary, query)}
+                              </span>
+                              <span className="block text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                                {item.secondary}
+                              </span>
                             </div>
                             <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
                           </Link>
@@ -1243,21 +1175,84 @@ export function GlobalSearchDialog({
                                 ) : (
                                   <span>{t("search.members.noCode", "No member code")}</span>
                                 )}
-                                {member.msisdn && (
-                                  <> • {renderHighlighted(member.msisdn ?? "", query)}</>
-                                )}
-                                {member.ikiminaName && <> • {member.ikiminaName}</>}
-                              </p>
-                            </div>
-                            <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
-                          </Link>
-                        </li>
-                      );
+                              >
+                                {item.badge.label}
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              <section role="region" aria-labelledby="actions-heading">
+                <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                  <h3 id="actions-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                    {t("search.console.quickActions", "Quick actions")}
+                  </h3>
+                </header>
+                <ul className="space-y-2">
+                  {flattenedQuickActions.length === 0 && (
+                    <li className="text-xs text-neutral-2">
+                      {t("search.console.noQuickActions", "No quick actions match")}
+                    </li>
+                  )}
+                  {flattenedQuickActions.map((entry, idx) => {
+                    const globalIndex = quickActionsOffset + idx;
+                    return (
+                      <li key={`${entry.groupId}-${entry.action.primary}`}>
+                        <Link
+                          href={entry.action.href}
+                          onClick={onClose}
+                          ref={registerFocus(globalIndex)}
+                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                          tabIndex={-1}
+                          className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <span className="font-medium">
+                            {renderHighlighted(entry.action.primary, query)}
+                          </span>
+                          <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                            {entry.action.secondary}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              <section
+                className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-neutral-2"
+                aria-live="polite"
+              >
+                <header className="mb-1 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                  {t("search.console.lastSynced", "Last synced")}
+                </header>
+                <p className="text-sm text-neutral-0">{lastSyncedLabel}</p>
+                <p className="mt-2 text-xs">
+                  {t("search.console.refreshHint", "Results auto-refresh every few minutes.")}
+                </p>
+              </section>
+            </aside>
+
+            <main className="space-y-6">
+              <section aria-labelledby="ikimina-heading" className="space-y-3">
+                <header className="flex items-baseline justify-between">
+                  <h2
+                    id="ikimina-heading"
+                    className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0"
+                  >
+                    {t("search.console.ikimina", "Ikimina")}
+                  </h2>
+                  <span className="text-[11px] text-neutral-2">
+                    {t("search.console.resultsCount", "{count} results", {
+                      count: filteredIkimina.length,
                     })}
-                  </ul>
-                )}
-              </div>
-            </div>
+                  </span>
+                </header>
 
             <div role="region" aria-labelledby="payments-search-heading">
               <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
@@ -1387,12 +1382,111 @@ export function GlobalSearchDialog({
                       )}
                     </p>
                   )}
+                  {membersError && <div className="text-xs text-red-300">{membersError}</div>}
                 </div>
-              )}
-            </div>
-          </section>
+
+                <ul className="space-y-2">
+                  {filteredMembers.length === 0 && !membersLoading && (
+                    <li className="text-xs text-neutral-2">
+                      {t("search.console.noMembers", "No members found")}
+                    </li>
+                  )}
+                  {filteredMembers.map((member, idx) => {
+                    const globalIndex = membersOffset + idx;
+                    return (
+                      <li key={member.id}>
+                        <Link
+                          href={`/members/${member.id}`}
+                          onClick={onClose}
+                          ref={registerFocus(globalIndex)}
+                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                          tabIndex={-1}
+                          className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <span className="font-semibold">
+                            {renderHighlighted(member.fullName, query)}
+                          </span>
+                          <span className="text-xs text-neutral-2">
+                            {member.memberCode ??
+                              t("search.console.noMemberCode", "No member code")}
+                          </span>
+                          <span className="text-xs text-neutral-3">
+                            {member.msisdn ?? t("search.console.noPhone", "No phone")}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              <section aria-labelledby="payments-heading" className="space-y-3">
+                <header className="flex items-baseline justify-between">
+                  <h2
+                    id="payments-heading"
+                    className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0"
+                  >
+                    {t("search.console.payments", "Payments")}
+                  </h2>
+                  <span className="text-[11px] text-neutral-2">
+                    {paymentsLoading
+                      ? t("search.console.loading", "Loading…")
+                      : t("search.console.resultsCount", "{count} results", {
+                          count: filteredPayments.length,
+                        })}
+                  </span>
+                </header>
+
+                <div className="space-y-2">
+                  {paymentsLoading && (
+                    <div className="flex items-center gap-2 text-xs text-neutral-2">
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      {t("search.console.loadingPayments", "Loading payments")}
+                    </div>
+                  )}
+                  {paymentsError && <div className="text-xs text-red-300">{paymentsError}</div>}
+                </div>
+
+                <ul className="space-y-2">
+                  {filteredPayments.length === 0 && !paymentsLoading && (
+                    <li className="text-xs text-neutral-2">
+                      {t("search.console.noPayments", "No payments found")}
+                    </li>
+                  )}
+                  {filteredPayments.map((payment, idx) => {
+                    const globalIndex = paymentsOffset + idx;
+                    return (
+                      <li key={payment.id}>
+                        <Link
+                          href={`/payments/${payment.id}`}
+                          onClick={onClose}
+                          ref={registerFocus(globalIndex)}
+                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                          tabIndex={-1}
+                          className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <span className="font-semibold">
+                            {currencyFormatter.format(payment.amount)}
+                          </span>
+                          <span className="text-xs text-neutral-2">
+                            {formatRelativeDate(
+                              payment.occurredAt ?? payment.occurred_at,
+                              dateTimeFormatter
+                            )}
+                          </span>
+                          <span className="text-xs text-neutral-3">
+                            {payment.reference ?? t("search.console.noReference", "No reference")}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            </main>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Modal>
   );
 }

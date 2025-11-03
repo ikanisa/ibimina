@@ -2,59 +2,43 @@
 @import "../styles/tokens.css";
 
 /**
- * Global styles for SACCO+ Admin App
- * 
- * Atlas-inspired design system:
- * - Professional, clean interface
- * - ChatGPT Atlas color palette
- * - Smooth animations and transitions
+ * Global styles for the Ibimina admin console.
+ * Foundation tokens live in `src/design/tokens.css` and are bridged
+ * through `styles/tokens.css`. This file only applies global resets
+ * and document level affordances.
  */
 
 :root {
   color-scheme: light dark;
-  
-  /* Atlas color palette */
-  --atlas-blue: #0066FF;
-  --atlas-blue-light: #3385FF;
-  --atlas-blue-dark: #0052CC;
-  --atlas-glow: rgba(0, 102, 255, 0.15);
-  
-  /* Light mode */
-  --bg: #FFFFFF;
-  --fg: #111827;
-  --surface: #F9FAFB;
-  --border: #E5E7EB;
-  
-  --background: #FFFFFF;
-  --foreground: #111827;
-  --input: #9CA3AF;
-  --primary: #0066FF;
-  --primary-foreground: #FFFFFF;
-  --muted-foreground: #4B5563;
-  --destructive: #EF4444;
-  --success: #10B981;
-  --ring: #0066FF;
-  
-  --focus-ring: 0 0 0 3px var(--atlas-glow);
+
+  --atlas-blue: var(--color-primary-500);
+  --atlas-blue-light: var(--color-primary-400);
+  --atlas-blue-dark: var(--color-primary-700);
+  --atlas-glow: rgba(74, 112, 255, 0.18);
+
+  --bg: var(--color-canvas);
+  --fg: var(--color-foreground);
+  --surface: var(--color-surface);
+  --border: var(--color-border);
+
+  --background: var(--color-canvas);
+  --foreground: var(--color-foreground);
+  --input: var(--color-border-strong);
+  --primary: var(--color-primary-500);
+  --primary-foreground: var(--color-foreground-inverse);
+  --muted-foreground: var(--color-foreground-subtle);
+  --destructive: var(--color-danger-500);
+  --success: var(--color-success-500);
+  --ring: var(--state-focus-ring);
+  --focus-ring: var(--shadow-focus);
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0B1020;
-    --fg: #F9FAFB;
-    --surface: #1F2937;
-    --border: #374151;
-    
-    --background: #0B1020;
-    --foreground: #F9FAFB;
-    --input: #374151;
-    --primary: #3385FF;
-    --primary-foreground: #FFFFFF;
-    --muted-foreground: #9CA3AF;
-    --destructive: #F87171;
-    --success: #34D399;
-  }
+[data-theme="dark"],
+[data-theme="nyungwe"],
+.theme-dark,
+.theme-nyungwe {
+  --atlas-blue-dark: var(--color-primary-200);
+  --atlas-glow: rgba(108, 132, 255, 0.22);
 }
 
 @theme inline {
@@ -74,32 +58,26 @@
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--foreground);
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
-  /* Atlas-inspired subtle background glow for admin interface */
   background-image: radial-gradient(
     circle at 50% 0%,
-    rgba(0, 102, 255, 0.03),
-    transparent 50%
+    rgba(74, 112, 255, 0.12),
+    transparent 55%
   );
   background-attachment: fixed;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color var(--motion-duration-300, 300ms) var(--motion-ease-standard, ease),
+    color var(--motion-duration-300, 300ms) var(--motion-ease-standard, ease);
 }
 
 a {
   color: inherit;
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: color var(--motion-duration-150, 150ms) var(--motion-ease-standard, ease);
 }
 
 button {
@@ -112,10 +90,10 @@ button {
 }
 
 [data-glass] {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px) saturate(1.1);
-  border: 1px solid rgba(0, 102, 255, 0.1);
-  box-shadow: 0 4px 16px rgba(0, 102, 255, 0.08);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(1.05);
+  border: 1px solid var(--glass-stroke);
+  box-shadow: var(--shadow-1);
 }
 
 .animate-shimmer {
@@ -125,12 +103,16 @@ button {
 *:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
-  transition: box-shadow 0.15s ease;
+  transition: box-shadow var(--motion-duration-150, 150ms) var(--motion-ease-standard, ease);
 }
 
-/* Smooth hover transitions */
-a, button {
-  transition: all 0.15s ease;
+a,
+button {
+  transition:
+    color var(--motion-duration-150, 150ms) var(--motion-ease-standard, ease),
+    background-color var(--motion-duration-150, 150ms) var(--motion-ease-standard, ease),
+    border-color var(--motion-duration-150, 150ms) var(--motion-ease-standard, ease),
+    box-shadow var(--motion-duration-150, 150ms) var(--motion-ease-standard, ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -158,7 +140,6 @@ a, button {
   background: transparent;
 }
 
-/* Mobile scrollbar improvements */
 @media (max-width: 768px) {
   ::-webkit-scrollbar {
     width: 6px;
@@ -166,21 +147,18 @@ a, button {
   }
 }
 
-/* Smooth scrolling for supported browsers */
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
   }
 }
 
-/* Safe area insets for notched devices */
 @supports (padding: env(safe-area-inset-bottom)) {
   body {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
-/* Improve text rendering on mobile */
 @media (max-width: 768px) {
   body {
     -webkit-text-size-adjust: 100%;
@@ -188,24 +166,13 @@ a, button {
   }
 }
 
-/* Atlas blue tap highlighting */
 * {
   -webkit-tap-highlight-color: var(--atlas-glow);
 }
 
-/* Improve form element appearance on mobile */
 input,
 textarea,
 select,
 button {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-input[type="checkbox"],
-input[type="radio"] {
-  -webkit-appearance: auto;
-  -moz-appearance: auto;
-  appearance: auto;
+  font: inherit;
 }

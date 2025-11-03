@@ -27,6 +27,7 @@ export default defineConfig({
       `AUTH_E2E_STUB=1`,
       `ADMIN_USE_STANDALONE_START=1`,
       `NEXT_PUBLIC_E2E=1`,
+      `E2E_USE_DEV=${process.env.E2E_USE_DEV ?? "1"}`,
       `NEXT_PUBLIC_SUPABASE_URL=${process.env.PLAYWRIGHT_SUPABASE_URL ?? "http://127.0.0.1:54321"}`,
       `NEXT_PUBLIC_SUPABASE_ANON_KEY=${process.env.PLAYWRIGHT_SUPABASE_ANON_KEY ?? "stub-anon-key"}`,
       `MFA_SESSION_SECRET=${process.env.E2E_MFA_SESSION_SECRET ?? "stub-session-secret"}`,

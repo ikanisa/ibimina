@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file. Dates are
 in YYYY-MM-DD.
 
+## [Unreleased]
+
+### Added
+
+- Published Atlas admin UX review (`docs/atlas-admin-ux-review.md`) and
+  specification (`docs/atlas-admin-ux-spec.md`) with architecture, IA, and
+  design system baselines.
+- Captured Atlas admin regression inventory
+  (`docs/testing/atlas-admin-regressions.md`) to formalize coverage
+  expectations.
+
+### Changed
+
+- Expanded PR template checklists to cover accessibility, internationalization,
+  performance metrics, regression evidence, and documentation handoffs.
+- Updated go-live release collateral to include Atlas admin rollout validation
+  steps and evidence capture requirements.
+
 ## [1.0.0] - 2025-12-05
 
 ### Added

@@ -1,6 +1,7 @@
 ## Summary
 
-Describe what this PR changes and why.
+Describe what this PR changes and why. Link to relevant specs, tickets, and
+release docs.
 
 ## Type of Change
 
@@ -20,28 +21,60 @@ Describe what this PR changes and why.
 - [ ] Typecheck passes: `pnpm run typecheck`
 - [ ] Code is properly formatted: `pnpm format:check`
 - [ ] Commits follow conventional commits format
-- [ ] i18n parity passes: `pnpm run check:i18n`
-- [ ] i18n glossary consistent: `pnpm run check:i18n:consistency`
+- [ ] Static analysis / schema diff reviewed (note tooling)
+
+### Accessibility
+
+- [ ] Axe/Pa11y or equivalent automated scan captured (attach output or link)
+- [ ] Keyboard navigation validated for new or changed UI
+- [ ] Color contrast verified for updated visual elements
+- [ ] Screen reader labels / live regions updated where applicable
+
+### Internationalization
+
+- [ ] All UI strings externalized (no inline literals)
+- [ ] `pnpm run check:i18n` passes
+- [ ] Glossary / tone guidance followed (update
+      `docs/operations/i18n-glossary.md` if wording changed)
+- [ ] RTL layout or locale-specific formatting verified when applicable
+
+### Performance & Telemetry
+
+- [ ] Performance budget impact assessed (LCP/TTI/CLS) and documented in the PR
+- [ ] New data fetching or heavy components instrumented with observability
+      hooks
+- [ ] Added/updated routes tested with Lighthouse or Web Vitals capture (attach
+      evidence)
+- [ ] No new regressions in bundle size thresholds (`pnpm run analyze:bundle` if
+      UI impacted)
+
+### Regression & Release Evidence
+
+- [ ] Regression scenarios covered (link to updated regression inventory or test
+      plan)
+- [ ] Docs updated for rollout (`docs/go-live/*`, `CHANGELOG.md`, specs)
+- [ ] Screenshots / recordings attached for modified UI states
+- [ ] Rollback/feature flag strategy documented
 
 ### Testing
 
 - [ ] Unit tests added/updated (if applicable)
 - [ ] Integration tests added/updated (if applicable)
 - [ ] E2E tests pass: `pnpm test:e2e`
-- [ ] Manual testing completed
+- [ ] Manual testing completed (document environment + accounts)
 
 ### Dependencies & Security
 
 - [ ] No new security vulnerabilities introduced: `pnpm audit`
 - [ ] New dependencies are necessary and properly scoped
-- [ ] Dependencies follow the project's security guidelines
+- [ ] Dependency changes follow project security guidelines
 
 ### Deployment & Configuration
 
 - [ ] macOS dependencies install cleanly (document new Homebrew/binary
       requirements or note N/A)
-- [ ] App validation performed (note simulator/device, workflows, and
-      screenshots or attach test evidence)
+- [ ] App validation performed (note simulator/device, workflows, and link
+      evidence)
 - [ ] Proxy/tunnel configuration verified (ngrok/Cloudflare/SSH instructions
       still accurate)
 - [ ] Cloudflare Access policies reviewed/updated for new endpoints
@@ -54,11 +87,12 @@ Describe what this PR changes and why.
 - [ ] CONTRIBUTING.md updated (if applicable)
 - [ ] DEVELOPMENT.md updated (if applicable)
 - [ ] Inline code comments added for complex logic
-- [ ] Updated docs if needed (e.g., i18n glossary)
+- [ ] Related specs / design docs updated (link below)
 
-## Screenshots (if applicable)
+## Screenshots / Evidence
 
-Please add screenshots for UI changes.
+Provide screenshots, recordings, or logs relevant to the change. If not
+applicable, explain why.
 
 ## Notes
 

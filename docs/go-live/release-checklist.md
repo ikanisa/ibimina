@@ -30,6 +30,13 @@ checklist with the [production checklist](production-checklist.md) and
 ## 3. Pre-Release Validation
 
 - [ ] Run `pnpm run validate:production` locally.
+- [ ] Review Atlas admin UX artifacts (`docs/atlas-admin-ux-review.md`,
+      `docs/atlas-admin-ux-spec.md`) and confirm deltas signed off.
+- [ ] Update regression inventory (`docs/testing/atlas-admin-regressions.md`)
+      with scenarios exercised in this release.
+- [ ] Capture latest Lighthouse + Web Vitals for `/admin`, `/admin/members`,
+      `/admin/loans`; attach to release issue.
+- [ ] Ensure bilingual (en/rw) sanity checks recorded with evidence links.
 - [ ] Execute `scripts/validate-production-readiness.sh`.
 - [ ] Review latest run of `.github/workflows/pre-merge-quality.yml` for flakes.
 - [ ] Confirm Supabase migrations applied successfully in staging
@@ -40,6 +47,10 @@ checklist with the [production checklist](production-checklist.md) and
 ## 4. Release Candidate Tagging
 
 - [ ] Create annotated tag `vX.Y.Z-rcN` on `work` after CI success.
+- [ ] Bundle Atlas admin screenshot catalog from `attached_assets/` into release
+      evidence folder.
+- [ ] Verify telemetry dashboards (Prometheus/Grafana) show Atlas admin widgets
+      reporting.
 - [ ] Trigger deploy to staging via `deploy-cloudflare.yml` dispatch.
 - [ ] Run smoke tests against staging (Playwright suite and manual
       verification).

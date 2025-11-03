@@ -13,7 +13,11 @@ export type FeatureFlagName =
   | "nfcReferenceCards"
   | "memberVouchers"
   | "memberLoans"
-  | "pwaFallback";
+  | "pwaFallback"
+  | "commandPalette"
+  | "atlasAssistant"
+  | "offlineBanner"
+  | "migratedWorkflows";
 
 export interface PilotDistrict {
   /** UUID for the pilot district organization. */
@@ -108,6 +112,16 @@ export const PILOT_TENANTS: ReadonlyArray<PilotTenant> = Object.freeze([
 
 export const PILOT_TENANT_IDS = Object.freeze(PILOT_TENANTS.map((tenant) => tenant.id));
 
+/**
+ * Dedicated beta cohort for staged staff console rollouts.
+ *
+ * The initial beta focuses on two Nyamagabe SACCOs that have an
+ * embedded change-management team and are already participating in
+ * Atlas UI research. They provide rapid feedback without impacting the
+ * wider pilot pool.
+ */
+export const STAFF_BETA_TENANT_IDS = Object.freeze([PILOT_TENANTS[0]!.id, PILOT_TENANTS[1]!.id]);
+
 const pilotTenantIdentifierSet = new Set(
   PILOT_TENANTS.flatMap(({ id, slug }) => [id, slug]).map((identifier) => identifier.toLowerCase())
 );
@@ -159,6 +173,38 @@ const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFl
       pilotTenants: PILOT_TENANT_IDS,
       defaultValue: true,
       rollout: "graduated",
+    },
+    commandPalette: {
+      key: "commandPalette",
+      description:
+        "Enable the Atlas command palette for keyboard-driven navigation and quick actions.",
+      pilotTenants: STAFF_BETA_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
+    },
+    atlasAssistant: {
+      key: "atlasAssistant",
+      description:
+        "Expose the Atlas AI assistant toggle and chat workflows to staffed beta cohorts.",
+      pilotTenants: STAFF_BETA_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
+    },
+    offlineBanner: {
+      key: "offlineBanner",
+      description:
+        "Show the resilient offline banner and queue controls during connectivity disruptions.",
+      pilotTenants: STAFF_BETA_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
+    },
+    migratedWorkflows: {
+      key: "migratedWorkflows",
+      description:
+        "Route staff beta tenants to the migrated analytics, reports, and ops flows in Atlas UI.",
+      pilotTenants: STAFF_BETA_TENANT_IDS,
+      defaultValue: false,
+      rollout: "pilot",
     },
   });
 
@@ -241,5 +287,9 @@ export function getTenantFeatureFlags(tenantId: string | null | undefined): Tena
     memberVouchers: isFeatureEnabledForTenant("memberVouchers", tenantId),
     memberLoans: isFeatureEnabledForTenant("memberLoans", tenantId),
     pwaFallback: isFeatureEnabledForTenant("pwaFallback", tenantId),
+    commandPalette: isFeatureEnabledForTenant("commandPalette", tenantId),
+    atlasAssistant: isFeatureEnabledForTenant("atlasAssistant", tenantId),
+    offlineBanner: isFeatureEnabledForTenant("offlineBanner", tenantId),
+    migratedWorkflows: isFeatureEnabledForTenant("migratedWorkflows", tenantId),
   });
 }

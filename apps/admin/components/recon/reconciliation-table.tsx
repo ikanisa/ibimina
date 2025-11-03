@@ -13,6 +13,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { StatusChip } from "@/components/common/status-chip";
 import { Input } from "@/components/ui/input";
+import { Drawer } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
@@ -1197,352 +1198,71 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         </table>
       </div>
 
-      {selected && (
-        <div className="fixed inset-0 z-40 flex justify-end bg-black/40 backdrop-blur-sm">
-          <aside className="relative flex h-full w-full max-w-md flex-col gap-6 overflow-y-auto bg-ink/95 p-6 shadow-2xl">
-            <button
-              type="button"
-              className="interactive-scale absolute right-4 top-4 text-sm text-neutral-2 hover:text-neutral-0"
-              onClick={handleClose}
-            >
-              {t("common.close", "Close")}
-              <span aria-hidden className="ml-1">
-                ✕
-              </span>
-            </button>
-            <div className="pt-6 text-sm text-neutral-0">
-              <h3 className="text-lg font-semibold">
-                {t("recon.detail.title", "Transaction Details")}
-              </h3>
-              <dl className="mt-3 space-y-2 text-xs text-neutral-2">
-                <div>
-                  <dt className="uppercase tracking-[0.2em]">{t("table.occurred", "Occurred")}</dt>
-                  <dd>{new Date(selected.occurred_at).toLocaleString()}</dd>
-                </div>
-                <div>
-                  <dt className="uppercase tracking-[0.2em]">{t("table.amount", "Amount")}</dt>
-                  <dd>
-                    {new Intl.NumberFormat("en-RW", {
-                      style: "currency",
-                      currency: selected.currency ?? "RWF",
-                      maximumFractionDigits: 0,
-                    }).format(selected.amount)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="uppercase tracking-[0.2em]">
-                    {t("table.reference", "Reference")}
-                  </dt>
-                  <dd>{selected.reference ?? "—"}</dd>
-                </div>
-                <div>
-                  <dt className="uppercase tracking-[0.2em]">{t("table.msisdn", "MSISDN")}</dt>
-                  <dd>{selected.msisdn ?? "—"}</dd>
-                </div>
-                <div>
-                  <dt className="uppercase tracking-[0.2em]">{t("table.status", "Status")}</dt>
-                  <dd>
-                    {(() => {
-                      return selected.status;
-                    })()}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="uppercase tracking-[0.2em]">
-                    {t("recon.detail.confidence", "Confidence")}
-                  </dt>
-                  <dd>
-                    {selected.confidence != null
-                      ? `${Math.round(selected.confidence * 100)}%`
-                      : "—"}
-                  </dd>
-                </div>
-                {selectedReasons.length > 0 && (
-                  <div>
-                    <dt className="uppercase tracking-[0.2em]">
-                      {t("recon.detail.reasonTags", "Reason tags")}
-                    </dt>
-                    <dd>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {selectedReasons.map((reason) => (
-                          <span
-                            key={reason.id}
-                            className={cn(
-                              "rounded-full px-2 py-1 text-[11px] uppercase tracking-[0.2em]",
-                              reason.tone === "critical" && "bg-red-500/20 text-red-200",
-                              reason.tone === "warning" && "bg-amber-500/20 text-amber-200",
-                              reason.tone === "info" && "bg-white/10 text-neutral-0"
-                            )}
-                          >
-                            {reason.label.primary}
-                          </span>
-                        ))}
-                      </div>
-                    </dd>
-                  </div>
-                )}
-                {selectedReasons.length > 0 && (
-                  <div>
-                    <dt className="uppercase tracking-[0.2em]">
-                      {t("recon.detail.auditHints", "Audit hints")}
-                    </dt>
-                    <dd>
-                      <ul className="mt-2 space-y-2">
-                        {selectedReasons.map((reason) => {
-                          const guidance = reasonGuidance[reason.id];
-                          if (!guidance) return null;
-                          return (
-                            <li
-                              key={`hint-${reason.id}`}
-                              className="rounded-xl bg-white/10 px-3 py-2 text-neutral-0"
-                            >
-                              {guidance.primary}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </dd>
-                  </div>
-                )}
-              </dl>
+      <Drawer
+        open={Boolean(selected)}
+        onClose={handleClose}
+        size="md"
+        title={t("recon.detail.title", "Transaction Details")}
+      >
+        {selected && (
+          <div className="flex h-full flex-col gap-6 overflow-y-auto pr-1">
+            <div className="space-y-3 text-sm text-neutral-0">
+              <div>
+                <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                  {t("table.occurred", "Occurred")}
+                </dt>
+                <dd>{new Date(selected.occurred_at).toLocaleString()}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                  {t("table.amount", "Amount")}
+                </dt>
+                <dd>
+                  {new Intl.NumberFormat("en-RW", {
+                    style: "currency",
+                    currency: selected.currency ?? "RWF",
+                    maximumFractionDigits: 0,
+                  }).format(selected.amount)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                  {t("table.reference", "Reference")}
+                </dt>
+                <dd>{selected.reference ?? "—"}</dd>
+              </div>
             </div>
 
-            <div className="space-y-3 text-sm text-neutral-0">
-              <h4 className="font-semibold">{t("recon.detail.rawSms", "Raw SMS")}</h4>
-              <pre className="max-h-48 overflow-y-auto rounded-xl bg-black/40 p-4 text-xs text-neutral-2">
-                {selected.source?.raw_text ?? t("recon.detail.noSmsSource", "No SMS source")}
-              </pre>
-            </div>
-            <div className="space-y-3 text-sm text-neutral-0">
-              <h4 className="font-semibold">{t("recon.detail.parsedJson", "Parsed JSON")}</h4>
-              <pre className="max-h-48 overflow-y-auto rounded-xl bg-black/40 p-4 text-xs text-neutral-2">
-                {selected.source?.parsed_json
-                  ? JSON.stringify(selected.source.parsed_json, null, 2)
-                  : t("recon.detail.noParserOutput", "No parser output")}
-              </pre>
+            <div className="space-y-4 text-sm text-neutral-0">
+              <div>
+                <h4 className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                  {t("recon.detail.member", "Member")}
+                </h4>
+                <p className="mt-1">
+                  {selected.member_name ?? t("recon.detail.noMember", "Not linked")}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                  {t("recon.detail.ikimina", "Ikimina")}
+                </h4>
+                <p className="mt-1">
+                  {selected.ikimina_name ?? t("recon.detail.noIkimina", "Not linked")}
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-3 text-sm text-neutral-0">
-              <h4 className="font-semibold">{t("common.actions", "Actions")}</h4>
-              <div className="space-y-2 text-xs text-neutral-2">
-                <label className="block uppercase tracking-[0.2em]">
-                  {t("recon.detail.updateStatus", "Update status")}
-                </label>
-                <select
-                  value={newStatus}
-                  onChange={(event) => setNewStatus(event.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                >
-                  {STATUS_OPTIONS.map((status) => {
-                    const label = getStatusLabel(status);
-                    return (
-                      <option key={status} value={status}>
-                        {label.primary}
-                      </option>
-                    );
-                  })}
-                </select>
-                <button
-                  type="button"
-                  onClick={handleUpdateStatus}
-                  disabled={pending}
-                  className="interactive-scale w-full rounded-xl bg-kigali py-2 text-xs font-semibold uppercase tracking-wide text-ink shadow-glass disabled:opacity-60"
-                >
-                  {pending
-                    ? t("common.saving", "Saving…")
-                    : t("recon.detail.saveStatus", "Save status")}
-                </button>
-              </div>
-              <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-2">
-                <div className="flex items-center justify-between">
-                  <span className="uppercase tracking-[0.2em] text-neutral-2">
-                    {t("recon.ai.title", "AI suggestion")}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={refreshAiSuggestion}
-                    className="text-[11px] text-neutral-2 underline-offset-2 hover:underline"
-                  >
-                    {t("common.retry", "Retry")}
-                  </button>
-                </div>
-                {aiStatus === "loading" && <p>{t("recon.ai.analyzing", "Analyzing payment…")}</p>}
-                {aiStatus === "error" && aiError && <p className="text-rose-300">{aiError}</p>}
-                {aiStatus === "ready" && aiSuggestion && (
-                  <div className="space-y-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-neutral-0">
-                    <p className="font-semibold text-sm">
-                      {t("recon.ai.suggestedMember", "Suggested member")}
-                    </p>
-                    <p className="text-xs text-neutral-2">{aiSuggestion.reason}</p>
-                    <div className="flex items-center justify-between text-[11px] text-neutral-2">
-                      <span>
-                        {t("recon.detail.confidence", "Confidence")}{" "}
-                        {Math.round(aiSuggestion.confidence * 100)}%
-                      </span>
-                      {aiSuggestion.member_code && (
-                        <span>
-                          {t("recon.ai.code", "Code")} {aiSuggestion.member_code}
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => applyAiSuggestion(aiSuggestion)}
-                      disabled={!canWrite}
-                      className="w-full rounded-xl bg-kigali py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {t("recon.ai.apply", "Apply suggestion")}
-                    </button>
-                  </div>
-                )}
-                {aiStatus === "ready" && !aiSuggestion && (
-                  <p>
-                    {t(
-                      "recon.ai.noConfident",
-                      "No confident suggestion. Review alternatives or assign manually."
-                    )}
-                  </p>
-                )}
-                {aiStatus === "ready" && aiAlternatives.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-2">
-                      {t("recon.ai.otherOptions", "Other options")}
-                    </p>
-                    <ul className="space-y-1">
-                      {aiAlternatives.map((option) => (
-                        <li
-                          key={`${option.member_id}-${option.reason}`}
-                          className="flex items-center justify-between gap-3 rounded-xl bg-black/15 px-3 py-2"
-                        >
-                          <div className="text-left text-[11px] text-neutral-0">
-                            <p className="font-semibold">{option.reason}</p>
-                            <p className="text-neutral-2">
-                              {t("common.confidence", "Confidence")}{" "}
-                              {Math.round(option.confidence * 100)}%
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => applyAiSuggestion(option)}
-                            disabled={!canWrite}
-                            title={!canWrite ? t("common.readOnly", "Read-only access") : undefined}
-                            className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-neutral-0 hover:border-white/40 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {t("common.apply", "Apply")}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2 text-xs text-neutral-2">
-                <label className="block uppercase tracking-[0.2em]">
-                  {t("recon.detail.assignLabel", "Assign to ikimina (ID)")}
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    className="flex-1 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                    placeholder={t("recon.detail.assignPlaceholder", "Paste ikimina UUID")}
-                    onBlur={(event) => {
-                      const value = event.currentTarget.value.trim();
-                      if (value) {
-                        handleAssignToIkimina(value);
-                        event.currentTarget.value = "";
-                      }
-                    }}
-                  />
-                  <span className="text-[10px] text-neutral-2">
-                    {t("recon.detail.assignHint", "On blur to apply")}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-2 text-xs text-neutral-2">
-                <label className="block uppercase tracking-[0.2em]">
-                  {t("recon.detail.linkMember", "Link to member")}
-                </label>
-                {recommendedQueries.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {recommendedQueries.map((item) => (
-                      <button
-                        key={item.value}
-                        type="button"
-                        onClick={() => setMemberQuery(item.value)}
-                        className="rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-neutral-0 hover:border-white/30"
-                      >
-                        <span className="items-center gap-1">{item.primary}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <input
-                  type="search"
-                  value={memberQuery}
-                  onChange={(event) => setMemberQuery(event.target.value)}
-                  placeholder={t(
-                    "recon.detail.memberSearchPlaceholder",
-                    "Search by name, MSISDN, or code"
-                  )}
-                  className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                />
-                {memberQuery.trim().length > 0 && memberQuery.trim().length < 2 && (
-                  <p className="text-[10px] text-neutral-2">
-                    {t("recon.detail.memberSearchHint", "Type at least 2 characters.")}
-                  </p>
-                )}
-                {memberLoading && (
-                  <p className="text-[10px] text-neutral-2">
-                    {t("common.searching", "Searching…")}
-                  </p>
-                )}
-                {!memberLoading && memberQuery.trim().length >= 2 && memberResults.length === 0 && (
-                  <p className="text-[10px] text-neutral-2">
-                    {t("recon.detail.noMatches", "No matches yet.")}
-                  </p>
-                )}
-                {memberResults.length > 0 && (
-                  <ul className="space-y-1">
-                    {memberResults.map((member) => (
-                      <li key={member.id}>
-                        <button
-                          type="button"
-                          onClick={() => handleLinkMember(member)}
-                          disabled={pending}
-                          className="interactive-scale w-full rounded-xl bg-white/10 px-3 py-2 text-left text-neutral-0 disabled:opacity-60"
-                        >
-                          <span className="font-medium">{member.full_name}</span>
-                          <span className="ml-2 text-[11px] uppercase tracking-[0.2em] text-neutral-2">
-                            {member.member_code ?? t("recon.detail.noCode", "No code")}
-                          </span>
-                          <div className="text-[11px] text-neutral-2">
-                            {member.msisdn ?? t("recon.detail.noMsisdn", "No MSISDN")} ·{" "}
-                            {member.ikimina_name ??
-                              t("recon.detail.unknownIkimina", "Unknown ikimina")}
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              {actionError && (
-                <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">
-                  {actionError}
-                </p>
-              )}
-              {actionMessage && (
-                <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
-                  {actionMessage}
-                </p>
-              )}
-              <p className="text-[10px] text-neutral-2">
-                SACCO scope: {saccoId ?? "System"}. Some actions may be limited by RLS policies.
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-neutral-2">
+              <h4 className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                {t("recon.detail.rawSms", "Raw SMS")}
+              </h4>
+              <p className="mt-2 whitespace-pre-wrap text-neutral-0">
+                {selected.source?.raw_text ?? t("recon.detail.noSms", "No SMS captured")}
               </p>
             </div>
-          </aside>
-        </div>
-      )}
+          </div>
+        )}
+      </Drawer>
     </div>
   );
 }

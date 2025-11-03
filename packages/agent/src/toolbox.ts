@@ -212,6 +212,22 @@ function normalizeCopy(value: string): LocalizedCopy {
   };
 }
 
+function toIsoString(value: unknown, fallbackFactory: () => Date = () => new Date()): string {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+  }
+
+  const fallback = fallbackFactory();
+  return fallback.toISOString();
+}
+
 export class AgentToolbox {
   constructor(
     private readonly supabase: SupabaseLikeClient,
@@ -302,16 +318,13 @@ export class AgentToolbox {
     const limit = clamp(Number(args.limit ?? 25), 1, 100);
     const orgId = typeof args.org_id === "string" ? args.org_id : context.orgId;
 
-    const { data, error } = await this.supabase.rpc(
-      "agent_allocations_read_mine",
-      {
-        p_user: context.userId,
-        p_reference_token: referenceToken,
-        p_org: orgId ?? null,
-        p_include_pending: includePending,
-        p_limit: limit,
-      }
-    );
+    const { data, error } = await this.supabase.rpc("agent_allocations_read_mine", {
+      p_user: context.userId,
+      p_reference_token: referenceToken,
+      p_org: orgId ?? null,
+      p_include_pending: includePending,
+      p_limit: limit,
+    });
 
     if (error) {
       throw new Error(error.message ?? "allocations_lookup_failed");
@@ -330,15 +343,13 @@ export class AgentToolbox {
           "Unknown group"
       ),
       amount: Number((row as Record<string, unknown>).amount ?? 0),
-      reference: String(
-        (row as Record<string, unknown>).reference ?? referenceToken
-      ),
+      reference: String((row as Record<string, unknown>).reference ?? referenceToken),
       status: String((row as Record<string, unknown>).status ?? "UNKNOWN"),
-      allocatedAt: new Date(
+      allocatedAt: toIsoString(
         (row as Record<string, unknown>).allocated_at ??
           (row as Record<string, unknown>).ts ??
           Date.now()
-      ).toISOString(),
+      ),
     }));
 
     const heading: LocalizedCopy = {
@@ -386,21 +397,16 @@ export class AgentToolbox {
       throw new Error("purpose is required to generate a reference token");
     }
 
-    const { data, error } = await this.supabase.rpc(
-      "agent_reference_generate",
-      {
-        p_user: context.userId,
-        p_org: orgId,
-        p_channel: (args.channel as string) ?? "app",
-        p_purpose: purpose,
-        p_member_id: (args.member_id as string) ?? null,
-        p_expires_in_minutes:
-          typeof args.expires_in_minutes === "number"
-            ? args.expires_in_minutes
-            : null,
-        p_notes: (args.notes as string) ?? null,
-      }
-    );
+    const { data, error } = await this.supabase.rpc("agent_reference_generate", {
+      p_user: context.userId,
+      p_org: orgId,
+      p_channel: (args.channel as string) ?? "app",
+      p_purpose: purpose,
+      p_member_id: (args.member_id as string) ?? null,
+      p_expires_in_minutes:
+        typeof args.expires_in_minutes === "number" ? args.expires_in_minutes : null,
+      p_notes: (args.notes as string) ?? null,
+    });
 
     if (error) {
       throw new Error(error.message ?? "reference_token_failed");
@@ -468,10 +474,9 @@ export class AgentToolbox {
           ""
       ),
       status: statusCopy,
-      submittedAt: new Date(
-        (ticketRecord as Record<string, unknown>)?.submitted_at ??
-          Date.now()
-      ).toISOString(),
+      submittedAt: toIsoString(
+        (ticketRecord as Record<string, unknown>)?.submitted_at ?? Date.now()
+      ),
       summary: normalizeCopy(summary),
     };
 

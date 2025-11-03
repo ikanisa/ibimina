@@ -28,10 +28,14 @@ test.describe("offline experience", () => {
       await page.waitForSelector('button[aria-controls="offline-queue-panel"]');
       const indicator = page.locator('button[aria-controls="offline-queue-panel"]');
       await expect(indicator).toBeVisible();
+      await expect(indicator).toHaveAttribute("aria-expanded", "false");
       await indicator.click();
       const panel = page.locator("#offline-queue-panel");
       await expect(panel).toBeVisible();
+      await expect(indicator).toHaveAttribute("aria-expanded", "true");
       await expect(panel.getByText(/offline queue/i)).toBeVisible();
+      await panel.getByRole("button", { name: /close offline queue/i }).click();
+      await expect(indicator).toHaveAttribute("aria-expanded", "false");
     } finally {
       await page.context().setOffline(false);
     }

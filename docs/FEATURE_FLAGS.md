@@ -84,11 +84,15 @@ export function MyComponent() {
 
 ### Current Feature Flags
 
-| Flag Name       | Environment Variable                     | Description                   | Default |
-| --------------- | ---------------------------------------- | ----------------------------- | ------- |
-| `web-push`      | `NEXT_PUBLIC_FEATURE_FLAG_WEB_PUSH`      | Enable Web Push notifications | `false` |
-| `beta-features` | `NEXT_PUBLIC_FEATURE_FLAG_BETA_FEATURES` | Enable all beta features      | `false` |
-| `new-ui`        | `NEXT_PUBLIC_FEATURE_FLAG_NEW_UI`        | Enable new UI components      | `false` |
+| Flag Name            | Environment Variable                          | Description                                         | Default |
+| -------------------- | --------------------------------------------- | --------------------------------------------------- | ------- |
+| `web-push`           | `NEXT_PUBLIC_FEATURE_FLAG_WEB_PUSH`           | Enable Web Push notifications                       | `false` |
+| `beta-features`      | `NEXT_PUBLIC_FEATURE_FLAG_BETA_FEATURES`      | Enable all beta features                            | `false` |
+| `new-ui`             | `NEXT_PUBLIC_FEATURE_FLAG_NEW_UI`             | Enable new UI components                            | `false` |
+| `command-palette`    | `NEXT_PUBLIC_FEATURE_FLAG_COMMAND_PALETTE`    | Enable Atlas command palette for staff console      | `false` |
+| `atlas-assistant`    | `NEXT_PUBLIC_FEATURE_FLAG_ATLAS_ASSISTANT`    | Toggle Atlas AI assistant chat surface              | `false` |
+| `offline-banner`     | `NEXT_PUBLIC_FEATURE_FLAG_OFFLINE_BANNER`     | Show offline queue banner and controls              | `false` |
+| `migrated-workflows` | `NEXT_PUBLIC_FEATURE_FLAG_MIGRATED_WORKFLOWS` | Route staff to migrated analytics/reports/ops flows | `false` |
 
 ### Adding New Feature Flags
 

@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useDeferredValue, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useMemo, useState } from "react";
 import type { CellContext, ColumnDef } from "@tanstack/react-table";
-import { VirtualTable } from "@/components/datagrid/virtual-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { StatusChip } from "@/components/common/status-chip";
+import { DataTable } from "@/src/components/common/DataTable";
+import { FilterBar, type FilterChipDefinition } from "@/src/components/common/FilterBar";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
 
@@ -68,6 +68,11 @@ export function IkiminaTable({
 
   const deferredSearch = useDeferredValue(search);
 
+  const filtersState = useMemo(
+    () => ({ search, status, type, sacco }),
+    [search, status, type, sacco]
+  );
+
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
       const matchesSearch = deferredSearch
@@ -116,7 +121,8 @@ export function IkiminaTable({
               const value = info.getValue<string | null>();
               return <span className="text-sm text-neutral-2">{value ?? "—"}</span>;
             },
-            meta: { template: "minmax(160px, 1fr)" },
+            size: 180,
+            meta: { align: "left" },
           }
         : undefined,
       {
@@ -132,7 +138,8 @@ export function IkiminaTable({
             <p className="text-xs text-neutral-2">Code · {info.row.original.code}</p>
           </div>
         ),
-        meta: { template: "minmax(220px, 2fr)" },
+        size: 260,
+        meta: { pinned: "left" },
       },
       {
         accessorKey: "type",
@@ -144,7 +151,7 @@ export function IkiminaTable({
         cell: (info: CellContext<IkiminaTableRow, unknown>) => (
           <span className="text-sm text-neutral-0">{String(info.getValue() ?? "—")}</span>
         ),
-        meta: { template: "minmax(120px, 0.8fr)" },
+        size: 150,
       },
       {
         accessorKey: "members_count",
@@ -156,7 +163,8 @@ export function IkiminaTable({
         cell: (info: CellContext<IkiminaTableRow, unknown>) => (
           <span className="font-semibold text-neutral-0">{String(info.getValue() ?? 0)}</span>
         ),
-        meta: { align: "right", template: "minmax(110px, 0.7fr)", cellClassName: "font-semibold" },
+        size: 130,
+        meta: { align: "right", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "month_total",
@@ -167,7 +175,8 @@ export function IkiminaTable({
         ),
         cell: (info: CellContext<IkiminaTableRow, unknown>) =>
           currencyFormatter.format(Number(info.getValue() ?? 0)),
-        meta: { align: "right", template: "minmax(140px, 0.9fr)", cellClassName: "font-semibold" },
+        size: 180,
+        meta: { align: "right", cellClassName: "font-semibold" },
       },
       {
         accessorKey: "last_payment_at",
@@ -181,7 +190,7 @@ export function IkiminaTable({
             {relativeDate(info.getValue<string | null>() ?? null)}
           </span>
         ),
-        meta: { template: "minmax(150px, 0.9fr)" },
+        size: 180,
       },
       {
         accessorKey: "unallocated_count",
@@ -203,7 +212,8 @@ export function IkiminaTable({
             </span>
           );
         },
-        meta: { align: "right", template: "minmax(120px, 0.7fr)" },
+        size: 150,
+        meta: { align: "right" },
       },
       {
         accessorKey: "status",
@@ -215,63 +225,45 @@ export function IkiminaTable({
         cell: (info: CellContext<IkiminaTableRow, unknown>) => (
           <StatusChip tone="neutral">{String(info.getValue() ?? "")}</StatusChip>
         ),
-        meta: { template: "minmax(120px, 0.7fr)" },
+        size: 150,
       },
       {
         id: "actions",
-        header: () => null,
+        header: () => <span className="sr-only">{t("common.actions", "Actions")}</span>,
         cell: ({ row }: CellContext<IkiminaTableRow, unknown>) => (
           <Link
             href={`/ikimina/${row.original.id}`}
-            className="inline-flex items-center justify-center rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-0 transition hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-0 transition hover:bg-white/10"
           >
             {t("common.open", "Open")}
           </Link>
         ),
-        meta: { align: "right", template: "minmax(90px, 0.6fr)" },
+        size: 160,
+        meta: { align: "right", cellClassName: "justify-end", pinned: "right" },
       },
     ].filter(Boolean) as ColumnDef<IkiminaTableRow, unknown>[];
 
     return baseColumns;
   }, [showSaccoColumn, t]);
 
-  const showSaccoFilter = Boolean(saccoOptions && saccoOptions.length > 1);
-
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 md:grid-cols-4">
-        <Input
-          label={t("ikimina.list.searchLabel", "Search")}
-          placeholder={t("ikimina.list.searchPlaceholder", "Search name or code")}
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
+    <DataTable
+      data={filteredRows}
+      columns={columns}
+      tableHeight={560}
+      empty={
+        <EmptyState
+          title={t("ikimina.list.emptyTitle", "No ikimina")}
+          description={t(
+            "ikimina.list.emptyDescription",
+            "Try adjusting filters or create a new group."
+          )}
         />
-        {showSaccoFilter && (
-          <Select
-            label={t("table.sacco", "SACCO")}
-            value={sacco}
-            onChange={(event) => setSacco(event.target.value)}
-            options={["", ...(saccoOptions ?? [])]}
-            emptyLabel={t("common.all", "All")}
-          />
-        )}
-        <Select
-          label={t("table.status", "Status")}
-          value={status}
-          onChange={(event) => setStatus(event.target.value)}
-          options={["", ...statusOptions]}
-          emptyLabel={t("common.all", "All")}
-        />
-        <Select
-          label={t("table.type", "Type")}
-          value={type}
-          onChange={(event) => setType(event.target.value)}
-          options={["", ...typeOptions]}
-          emptyLabel={t("common.all", "All")}
-        />
-        <button
-          type="button"
-          onClick={() => {
+      }
+      filterBar={
+        <FilterBar
+          filters={filterChips}
+          onClearAll={() => {
             setSearch("");
             setStatus("");
             setType("");
