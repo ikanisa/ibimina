@@ -32,6 +32,7 @@ export interface FormFieldProps {
   required?: boolean;
   className?: string;
   fullWidth?: boolean;
+  htmlFor?: string;
 }
 
 /**
@@ -43,7 +44,7 @@ export interface FormFieldProps {
  * - Optional hint text
  * - Required indicator
  * - Full-width option for spanning both columns
- * - Accessible with proper ARIA attributes
+ * - Accessible with proper ARIA attributes and label association
  */
 export function FormField({
   label,
@@ -53,10 +54,14 @@ export function FormField({
   required,
   className,
   fullWidth,
+  htmlFor,
 }: FormFieldProps) {
   return (
     <div className={cn("flex flex-col gap-2", fullWidth && "sm:col-span-2", className)}>
-      <label className="flex items-baseline gap-1 text-sm font-medium text-neutral-200">
+      <label
+        htmlFor={htmlFor}
+        className="flex items-baseline gap-1 text-sm font-medium text-neutral-200"
+      >
         <span>{label}</span>
         {required && (
           <span className="text-red-400" aria-label="required">

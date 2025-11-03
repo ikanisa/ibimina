@@ -24,6 +24,7 @@ export * from "./components/validation-banner";
 export * from "./theme";
 export * from "./utils/cn";
 export * from "./utils/blur-placeholder";
+export * from "./utils/focus";
 export * from "./components/accessibility/AccessibleActionButton";
 export * from "./components/accessibility/MotionPreferenceToggle";
 export * from "./utils/accessibility";

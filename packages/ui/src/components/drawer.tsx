@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "../utils/cn";
+import { focusFirstElement } from "../utils/focus";
 
 export interface DrawerProps {
   isOpen: boolean;
@@ -95,11 +96,7 @@ export function Drawer({
   // Focus management
   useEffect(() => {
     if (isOpen && drawerRef.current) {
-      const focusableElements = drawerRef.current.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      const firstElement = focusableElements[0];
-      firstElement?.focus();
+      focusFirstElement(drawerRef.current);
     }
   }, [isOpen]);
 

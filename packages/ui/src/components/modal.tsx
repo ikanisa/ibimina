@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "../utils/cn";
+import { focusFirstElement } from "../utils/focus";
 
 export interface ModalProps {
   isOpen: boolean;
@@ -24,6 +25,9 @@ const sizeClasses = {
   xl: "max-w-6xl",
   full: "max-w-[95vw]",
 };
+
+// Height reserved for header and footer
+const MODAL_CHROME_HEIGHT = 200;
 
 /**
  * Modal - A centered dialog overlay component
@@ -82,11 +86,7 @@ export function Modal({
   // Focus management
   useEffect(() => {
     if (isOpen && modalRef.current) {
-      const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      const firstElement = focusableElements[0];
-      firstElement?.focus();
+      focusFirstElement(modalRef.current);
     }
   }, [isOpen]);
 
@@ -146,7 +146,9 @@ export function Modal({
         )}
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">{children}</div>
+        <div className={`p-6 overflow-y-auto max-h-[calc(90vh-${MODAL_CHROME_HEIGHT}px)]`}>
+          {children}
+        </div>
 
         {/* Footer */}
         {footer && <div className="border-t border-white/10 p-6">{footer}</div>}
