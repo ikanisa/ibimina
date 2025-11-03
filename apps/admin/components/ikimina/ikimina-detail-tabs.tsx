@@ -119,6 +119,49 @@ export function IkiminaDetailTabs({
 
   const deferredMemberSearch = useDeferredValue(memberSearch);
 
+  const membersSignature = useMemo(() => {
+    if (members.length === 0) {
+      return "empty";
+    }
+    const first = members[0]?.id ?? members[0]?.member_code ?? members[0]?.msisdn ?? "none";
+    const lastMember = members[members.length - 1];
+    const last = lastMember?.id ?? lastMember?.member_code ?? lastMember?.msisdn ?? "none";
+    return `${first}:${members.length}:${last}`;
+  }, [members]);
+
+  const paymentsSignature = useMemo(() => {
+    if (payments.length === 0) {
+      return "empty";
+    }
+    const first =
+      payments[0]?.id ?? (payments[0] as { reference?: string | null }).reference ?? "none";
+    const lastPayment = payments[payments.length - 1];
+    const last =
+      lastPayment?.id ?? (lastPayment as { reference?: string | null }).reference ?? "none";
+    return `${first}:${payments.length}:${last}`;
+  }, [payments]);
+
+  const statementsSignature = useMemo(() => {
+    if (statements.length === 0) {
+      return "empty";
+    }
+    const first = statements[0]?.label ?? "none";
+    const last = statements[statements.length - 1]?.label ?? "none";
+    return `${first}:${statements.length}:${last}`;
+  }, [statements]);
+
+  const memberTableRequestToken = useMemo(
+    () => [membersSignature, deferredMemberSearch.trim().toLowerCase() || "all"].join("|"),
+    [deferredMemberSearch, membersSignature]
+  );
+
+  const depositTableRequestToken = useMemo(
+    () => [paymentsSignature, depositFilter].join("|"),
+    [depositFilter, paymentsSignature]
+  );
+
+  const statementsRequestToken = useMemo(() => statementsSignature, [statementsSignature]);
+
   const memberColumns = useMemo<ColumnDef<MemberRow, unknown>[]>(
     () => [
       {
@@ -350,6 +393,16 @@ export function IkiminaDetailTabs({
                 )}
               />
             }
+            ux={{
+              tableId: "ikimina.detail.members",
+              requestToken: memberTableRequestToken,
+              context: {
+                ikiminaId: detail.id,
+                filteredCount: filteredMembers.length,
+                totalMembers: members.length,
+                queryLength: deferredMemberSearch.length,
+              },
+            }}
           />
         </div>
       )}
@@ -384,6 +437,16 @@ export function IkiminaDetailTabs({
                 )}
               />
             }
+            ux={{
+              tableId: "ikimina.detail.deposits",
+              requestToken: depositTableRequestToken,
+              context: {
+                ikiminaId: detail.id,
+                filter: depositFilter,
+                filteredCount: filteredPayments.length,
+                totalPayments: payments.length,
+              },
+            }}
           />
         </div>
       )}
@@ -401,6 +464,14 @@ export function IkiminaDetailTabs({
               )}
             />
           }
+          ux={{
+            tableId: "ikimina.detail.statements",
+            requestToken: statementsRequestToken,
+            context: {
+              ikiminaId: detail.id,
+              statementCount: statements.length,
+            },
+          }}
         />
       )}
 

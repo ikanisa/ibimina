@@ -36,6 +36,7 @@
     "gen:types": "supabase gen types typescript --local > apps/admin/lib/supabase/types.ts",
     "deploy:function:reconcile": "cd supabase && supabase functions deploy reconcile",
     "check:types": "bash scripts/check-supabase-types.sh",
+    "perf:budget": "pnpm --filter @ibimina/admin perf:budget",
     "lint:supabase": "cd supabase/functions && deno lint",
     "typecheck:supabase": "cd supabase/functions && deno check **/*.ts",
     "check:deploy": "pnpm run check:flags && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm --filter @ibimina/admin run verify:log-drain && pnpm --filter @ibimina/admin run build && pnpm --filter @ibimina/admin run test:e2e && pnpm --filter @ibimina/admin run assert:lighthouse",

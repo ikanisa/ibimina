@@ -86,124 +86,25 @@ export function IkiminaTable({
     });
   }, [rows, deferredSearch, status, type, sacco]);
 
-  const handleRestoreFilters = useCallback((next: Record<string, unknown>) => {
-    setSearch(String(next.search ?? ""));
-    setStatus(next.status ? String(next.status) : "");
-    setType(next.type ? String(next.type) : "");
-    setSacco(next.sacco ? String(next.sacco) : "");
-  }, []);
+  const rowsSignature = useMemo(() => {
+    if (rows.length === 0) {
+      return "empty";
+    }
+    const first = rows[0]?.id ?? rows[0]?.code ?? "none";
+    const last = rows[rows.length - 1]?.id ?? rows[rows.length - 1]?.code ?? "none";
+    return `${first}:${rows.length}:${last}`;
+  }, [rows]);
 
-  const filterChips = useMemo<FilterChipDefinition[]>(
-    () => [
-      {
-        id: "search",
-        label: t("table.search", "Search"),
-        valueLabel: search ? `“${search}”` : undefined,
-        active: Boolean(search),
-        renderEditor: () => (
-          <Input
-            autoFocus
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={t("table.searchPlaceholder", "Search by name or code")}
-            className="w-full"
-          />
-        ),
-        onClear: () => setSearch(""),
-      },
-      {
-        id: "status",
-        label: t("table.status", "Status"),
-        valueLabel: status || undefined,
-        active: Boolean(status),
-        renderEditor: ({ close }) => (
-          <div className="space-y-2">
-            {statusOptions.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={cn(
-                  "w-full rounded-lg border border-white/10 px-3 py-2 text-left text-sm transition",
-                  status === option
-                    ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
-                    : "hover:border-white/20"
-                )}
-                onClick={() => {
-                  setStatus(option === status ? "" : option);
-                  close();
-                }}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        ),
-        onClear: () => setStatus(""),
-      },
-      {
-        id: "type",
-        label: t("table.type", "Type"),
-        valueLabel: type || undefined,
-        active: Boolean(type),
-        renderEditor: ({ close }) => (
-          <div className="space-y-2">
-            {typeOptions.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={cn(
-                  "w-full rounded-lg border border-white/10 px-3 py-2 text-left text-sm transition",
-                  type === option
-                    ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
-                    : "hover:border-white/20"
-                )}
-                onClick={() => {
-                  setType(option === type ? "" : option);
-                  close();
-                }}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        ),
-        onClear: () => setType(""),
-      },
-      ...(saccoOptions && saccoOptions.length > 0
-        ? ([
-            {
-              id: "sacco",
-              label: t("table.sacco", "SACCO"),
-              valueLabel: sacco || undefined,
-              active: Boolean(sacco),
-              renderEditor: ({ close }) => (
-                <div className="space-y-2">
-                  {saccoOptions.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      className={cn(
-                        "w-full rounded-lg border border-white/10 px-3 py-2 text-left text-sm transition",
-                        sacco === option
-                          ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
-                          : "hover:border-white/20"
-                      )}
-                      onClick={() => {
-                        setSacco(option === sacco ? "" : option);
-                        close();
-                      }}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              ),
-              onClear: () => setSacco(""),
-            },
-          ] satisfies FilterChipDefinition[])
-        : []),
-    ],
-    [sacco, saccoOptions, search, status, statusOptions, t, type, typeOptions]
+  const tableRequestToken = useMemo(
+    () =>
+      [
+        rowsSignature,
+        deferredSearch.trim().toLowerCase() || "all",
+        status || "all",
+        type || "all",
+        sacco || "all",
+      ].join("|"),
+    [deferredSearch, rowsSignature, sacco, status, type]
   );
 
   const columns = useMemo<ColumnDef<IkiminaTableRow, unknown>[]>(() => {
@@ -368,13 +269,36 @@ export function IkiminaTable({
             setType("");
             setSacco("");
           }}
-        />
-      }
-      filtersState={filtersState}
-      onFiltersStateChange={handleRestoreFilters}
-      viewScope="ikimina-directory"
-      initialDensity="cozy"
-      disableVirtualization={filteredRows.length < 20}
-    />
+          className="self-end rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
+        >
+          {t("reports.filters.reset", "Reset filters")}
+        </button>
+      </div>
+      <VirtualTable
+        data={filteredRows}
+        columns={columns}
+        emptyState={
+          <EmptyState
+            title={t("ikimina.list.emptyTitle", "No ikimina")}
+            description={t(
+              "ikimina.list.emptyDescription",
+              "Try adjusting filters or create a new group."
+            )}
+          />
+        }
+        ux={{
+          tableId: "ikimina.list",
+          requestToken: tableRequestToken,
+          context: {
+            totalRows: rows.length,
+            filteredRows: filteredRows.length,
+            statusFilter: status || "all",
+            typeFilter: type || "all",
+            saccoFilter: sacco || "all",
+            queryLength: deferredSearch.length,
+          },
+        }}
+      />
+    </div>
   );
 }

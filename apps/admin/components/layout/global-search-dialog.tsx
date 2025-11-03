@@ -14,7 +14,11 @@ import {
 import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
-import { Modal } from "@/components/ui/modal";
+import {
+  markTimeToFirstResult,
+  startTimeToFirstResult,
+  trackCommandPalette,
+} from "@/src/instrumentation/ux";
 
 let cachedSupabaseClient: ReturnType<typeof getSupabaseBrowserClient> | null = null;
 let supabaseClientInitError: Error | null = null;
@@ -191,6 +195,62 @@ export function GlobalSearchDialog({
   const lastRefreshToastAt = useRef<number>(0);
   const focusRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const dialogTitleId = useId();
+  const requestSequenceRef = useRef(0);
+  const requestTokenRef = useRef<string | null>(null);
+  const requestMarkedRef = useRef<Record<string, boolean>>({});
+  const lastQueryLoggedRef = useRef<string>("");
+
+  const beginResultTimers = useCallback((context: Record<string, unknown>) => {
+    requestSequenceRef.current += 1;
+    const token = `${requestSequenceRef.current}`;
+    requestTokenRef.current = token;
+    requestMarkedRef.current = {};
+    const base = { ...context, requestToken: token } satisfies Record<string, unknown>;
+    startTimeToFirstResult(`commandPalette.ikimina:${token}`, base);
+    startTimeToFirstResult(`commandPalette.members:${token}`, base);
+    startTimeToFirstResult(`commandPalette.payments:${token}`, base);
+    return token;
+  }, []);
+
+  const markResultReady = useCallback(
+    (category: "ikimina" | "members" | "payments", extra?: Record<string, unknown>) => {
+      const token = requestTokenRef.current;
+      if (!token || requestMarkedRef.current[category]) {
+        return;
+      }
+      requestMarkedRef.current[category] = true;
+      markTimeToFirstResult(`commandPalette.${category}:${token}`, {
+        category,
+        ...(extra ?? {}),
+      });
+    },
+    []
+  );
+
+  const handleNavigate = useCallback(
+    (type: string, detail: Record<string, unknown>) => {
+      trackCommandPalette("navigate", {
+        targetType: type,
+        ...detail,
+      });
+      onClose();
+    },
+    [onClose]
+  );
+
+  useEffect(() => {
+    if (open) {
+      trackCommandPalette("opened", {
+        role: profile.role,
+        saccoId: profile.sacco_id ?? null,
+      });
+    } else {
+      trackCommandPalette("closed", {
+        role: profile.role,
+        saccoId: profile.sacco_id ?? null,
+      });
+    }
+  }, [open, profile.role, profile.sacco_id]);
 
   useEffect(() => {
     if (!open) return;
@@ -226,6 +286,12 @@ export function GlobalSearchDialog({
     const cacheKey = `${profile.role}-${profile.sacco_id ?? "all"}`;
     const cached = SEARCH_CACHE.get(cacheKey);
     const cacheFresh = cached ? Date.now() - cached.timestamp < CACHE_TTL_MS : false;
+    beginResultTimers({
+      role: profile.role,
+      saccoId: profile.sacco_id ?? null,
+      hasCache: Boolean(cached),
+      cacheFresh,
+    });
 
     if (!supabase) {
       const unavailableMessage = t(
@@ -253,6 +319,13 @@ export function GlobalSearchDialog({
         paymentsError: unavailableMessage,
         timestamp: Date.now(),
       });
+      markResultReady("ikimina", { source: "unavailable", resultCount: 0 });
+      markResultReady("members", { source: "unavailable", resultCount: 0 });
+      markResultReady("payments", { source: "unavailable", resultCount: 0 });
+      trackCommandPalette("search_unavailable", {
+        reason: "supabase_missing",
+        role: profile.role,
+      });
       return () => {
         active = false;
       };
@@ -271,11 +344,28 @@ export function GlobalSearchDialog({
         setPaymentsLoading(false);
         setLastSyncedAt(new Date(cached.timestamp));
       });
+      markResultReady("ikimina", {
+        source: "cache",
+        resultCount: cached.ikimina.length,
+      });
+      markResultReady("members", {
+        source: "cache",
+        resultCount: cached.members.length,
+      });
+      markResultReady("payments", {
+        source: "cache",
+        resultCount: cached.payments.length,
+      });
       if (cacheFresh) {
         return () => {
           active = false;
         };
       }
+      beginResultTimers({
+        role: profile.role,
+        saccoId: profile.sacco_id ?? null,
+        source: "network",
+      });
     } else {
       scheduleStateUpdate(() => {
         setLoading(true);
@@ -320,6 +410,13 @@ export function GlobalSearchDialog({
             timestamp: Date.now(),
           });
           setLastSyncedAt(new Date());
+          markResultReady("ikimina", { source: "forbidden", resultCount: 0 });
+          markResultReady("members", { source: "forbidden", resultCount: 0 });
+          markResultReady("payments", { source: "forbidden", resultCount: 0 });
+          trackCommandPalette("search_unavailable", {
+            reason: "sacco_missing",
+            role: profile.role,
+          });
           return;
         }
         queryBuilder = queryBuilder.eq("sacco_id", profile.sacco_id);
@@ -349,6 +446,13 @@ export function GlobalSearchDialog({
           timestamp: Date.now(),
         });
         setLastSyncedAt(new Date());
+        markResultReady("ikimina", { source: "network_error", resultCount: 0 });
+        markResultReady("members", { source: "network_error", resultCount: 0 });
+        markResultReady("payments", { source: "network_error", resultCount: 0 });
+        trackCommandPalette("search_failed", {
+          stage: "ikimina",
+          message: error.message ?? "unknown",
+        });
         return;
       }
 
@@ -370,6 +474,10 @@ export function GlobalSearchDialog({
 
       setIkimina(rows);
       setLoading(false);
+      markResultReady("ikimina", {
+        source: "network",
+        resultCount: rows.length,
+      });
 
       const groupIds = rows.map((row) => row.id);
       if (groupIds.length === 0) {
@@ -387,6 +495,14 @@ export function GlobalSearchDialog({
           timestamp: Date.now(),
         });
         setLastSyncedAt(new Date());
+        markResultReady("members", {
+          source: "network",
+          resultCount: 0,
+        });
+        markResultReady("payments", {
+          source: "network",
+          resultCount: 0,
+        });
         return;
       }
 
@@ -419,6 +535,14 @@ export function GlobalSearchDialog({
         console.error(membersRes.error);
         setMembers([]);
         setMembersError(membersRes.error.message ?? "Failed to load members");
+        markResultReady("members", {
+          source: "network_error",
+          resultCount: 0,
+        });
+        trackCommandPalette("search_failed", {
+          stage: "members",
+          message: membersRes.error.message ?? "unknown",
+        });
       } else {
         memberRows = (
           (membersRes.data ?? []) as Array<{
@@ -439,6 +563,10 @@ export function GlobalSearchDialog({
         }));
         setMembers(memberRows);
         setMembersError(null);
+        markResultReady("members", {
+          source: "network",
+          resultCount: memberRows.length,
+        });
       }
       setMembersLoading(false);
 
@@ -449,6 +577,14 @@ export function GlobalSearchDialog({
         console.error(paymentsRes.error);
         setPayments([]);
         setPaymentsError(paymentsRes.error.message ?? "Failed to load payments");
+        markResultReady("payments", {
+          source: "network_error",
+          resultCount: 0,
+        });
+        trackCommandPalette("search_failed", {
+          stage: "payments",
+          message: paymentsRes.error.message ?? "unknown",
+        });
       } else {
         paymentRows = (
           (paymentsRes.data ?? []) as Array<{
@@ -474,6 +610,10 @@ export function GlobalSearchDialog({
         }));
         setPayments(paymentRows);
         setPaymentsError(null);
+        markResultReady("payments", {
+          source: "network",
+          resultCount: paymentRows.length,
+        });
       }
       setPaymentsLoading(false);
 
@@ -747,59 +887,214 @@ export function GlobalSearchDialog({
             </div>
           </div>
 
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-2" />
-            <input
-              ref={inputRef}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={handleInputKeyDown}
-              placeholder={t(
-                "search.console.placeholder",
-                "Search ikimina, quick actions, or SACCO registry"
-              )}
-              className="w-full rounded-2xl border border-white/10 bg-white/10 py-3 pl-11 pr-4 text-sm text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 text-neutral-2 transition hover:text-neutral-0"
-                aria-label={t("search.actions.clear", "Clear search")}
-              >
-                <span className="sr-only">{t("common.clear", "Clear")}</span>
-                <X className="h-3.5 w-3.5" aria-hidden />
-              </button>
+        <div className="relative mt-5">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-2" />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(event) => {
+              const value = event.target.value;
+              setQuery(value);
+              const trimmed = value.trim();
+              if (lastQueryLoggedRef.current !== trimmed) {
+                lastQueryLoggedRef.current = trimmed;
+                trackCommandPalette("query_change", {
+                  length: trimmed.length,
+                  empty: trimmed.length === 0,
+                });
+              }
+            }}
+            onKeyDown={handleInputKeyDown}
+            placeholder={t(
+              "search.console.placeholder",
+              "Search ikimina, quick actions, or SACCO registry"
             )}
           </div>
 
-          <div className="grid flex-1 gap-6 overflow-y-auto pr-1 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
-            <aside className="space-y-5">
-              <section role="region" aria-labelledby="navigation-heading">
-                <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                  <h3 id="navigation-heading" className="text-[11px] uppercase tracking-[0.35em]">
-                    {t("search.console.navigate", "Navigate")}
-                  </h3>
-                </header>
-                <ul className="space-y-2">
-                  {filteredNav.length === 0 && (
-                    <li className="text-xs text-neutral-2">
-                      {t("search.console.noSections", "No sections found.")}
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
+          <aside className="space-y-5">
+            <section role="region" aria-labelledby="navigation-heading">
+              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                <h3 id="navigation-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.console.navigate", "Navigate")}
+                </h3>
+              </header>
+              <ul className="space-y-2">
+                {filteredNav.length === 0 && (
+                  <li className="text-xs text-neutral-2">
+                    {t("search.console.noSections", "No sections found.")}
+                  </li>
+                )}
+                {filteredNav.map((item, idx) => {
+                  const globalIndex = navOffset + idx;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() =>
+                          handleNavigate("nav", {
+                            href: item.href,
+                            index: globalIndex,
+                            query: query.trim(),
+                          })
+                        }
+                        ref={registerFocus(globalIndex)}
+                        onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                        tabIndex={-1}
+                        className="flex flex-col rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <span className="font-medium">
+                              {renderHighlighted(item.primary, query)}
+                            </span>
+                            <span className="block text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                              {item.secondary}
+                            </span>
+                          </div>
+                          {item.badge && (
+                            <span
+                              className={cn(
+                                "inline-flex h-min items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
+                                BADGE_TONE_STYLES[item.badge.tone]
+                              )}
+                            >
+                              {item.badge.label}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
                     </li>
+                  );
+                })}
+              </ul>
+            </section>
+
+            <section role="region" aria-labelledby="quick-actions-heading">
+              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                <h3 id="quick-actions-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.console.quickActions", "Quick actions")}
+                </h3>
+              </header>
+              <div className="space-y-3">
+                {filteredQuickActionGroups.length === 0 && (
+                  <p className="text-xs text-neutral-2">
+                    {t("search.console.tryAnother", "Try another phrase to find workflows.")}
+                  </p>
+                )}
+                {filteredQuickActionGroups.map((group) => {
+                  const baseIndex = actionIndexByGroup.get(group.id) ?? 0;
+                  return (
+                    <div key={group.id} className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-[0.35em] text-neutral-3">
+                        {group.title}
+                      </p>
+                      <ul className="space-y-2">
+                        {group.actions.map((action, idx) => {
+                          const globalIndex = actionOffset + baseIndex + idx;
+                          return (
+                            <li key={`${group.id}-${action.primary}`}>
+                              <Link
+                                href={action.href}
+                                onClick={() =>
+                                  handleNavigate("quick_action", {
+                                    href: action.href,
+                                    groupId: group.id,
+                                    action: action.primary,
+                                    index: globalIndex,
+                                    query: query.trim(),
+                                  })
+                                }
+                                ref={registerFocus(globalIndex)}
+                                onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                                tabIndex={-1}
+                                className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                              >
+                                <span className="font-medium">
+                                  {renderHighlighted(action.primary, query)}
+                                </span>
+                                <span className="text-xs text-neutral-2">{action.description}</span>
+                                <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                                  {action.secondary} · {action.secondaryDescription}
+                                </span>
+                                {action.badge && (
+                                  <span
+                                    className={cn(
+                                      "mt-1 inline-flex w-max items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
+                                      BADGE_TONE_STYLES[action.badge.tone]
+                                    )}
+                                  >
+                                    {action.badge.label}
+                                  </span>
+                                )}
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </aside>
+
+          <section className="space-y-5" aria-labelledby="ikimina-search-heading">
+            <div>
+              <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                <h3 id="ikimina-search-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.ikimina.title", "Ikimina search")}
+                </h3>
+                <span className="flex flex-col text-[10px] text-neutral-3" aria-live="polite">
+                  <span>
+                    {ikimina.length} {t("search.common.loadedSuffix", "loaded")}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-neutral-3/80">
+                    {t("search.common.lastSyncedPrefix", "Last synced")} · {lastSyncedLabel}
+                  </span>
+                  {showRefreshBadge && (
+                    <span className="mt-1 inline-flex items-center gap-1 self-start rounded-full bg-rw-blue/20 px-2 py-1 text-[9px] uppercase tracking-[0.3em] text-neutral-0">
+                      <span className="h-2 w-2 rounded-full bg-rw-yellow" />{" "}
+                      {t("common.updated", "Updated")}
+                    </span>
                   )}
-                  {filteredNav.map((item, idx) => {
-                    const globalIndex = navOffset + idx;
-                    return (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          onClick={onClose}
-                          ref={registerFocus(globalIndex)}
-                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
-                          tabIndex={-1}
-                          className="flex flex-col rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
-                        >
-                          <div className="flex items-center justify-between gap-3">
+                </span>
+              </header>
+              <div className="max-h-80 overflow-y-auto rounded-2xl border border-white/10">
+                {loading ? (
+                  <div className="flex items-center gap-2 px-4 py-6 text-sm text-neutral-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Loading ikimina…
+                  </div>
+                ) : error ? (
+                  <div className="px-4 py-6 text-sm text-red-300">{error}</div>
+                ) : filteredIkimina.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-neutral-2">
+                    {t(
+                      "search.ikimina.noMatch",
+                      "No ikimina match your search. Try refining the term or clear the search."
+                    )}
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-white/5 text-sm text-neutral-0">
+                    {filteredIkimina.map((item, idx) => {
+                      const globalIndex = ikiminaOffset + idx;
+                      return (
+                        <li key={item.id}>
+                          <Link
+                            href={`/ikimina/${item.id}`}
+                            onClick={() =>
+                              handleNavigate("ikimina", {
+                                id: item.id,
+                                code: item.code,
+                                index: globalIndex,
+                                query: query.trim(),
+                              })
+                            }
+                            ref={registerFocus(globalIndex)}
+                            onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                            tabIndex={-1}
+                            className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
+                          >
                             <div>
                               <span className="font-medium">
                                 {renderHighlighted(item.primary, query)}
@@ -808,11 +1103,77 @@ export function GlobalSearchDialog({
                                 {item.secondary}
                               </span>
                             </div>
-                            {item.badge && (
-                              <span
-                                className={cn(
-                                  "inline-flex h-min items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
-                                  BADGE_TONE_STYLES[item.badge.tone]
+                            <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <div role="region" aria-labelledby="members-search-heading">
+              <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                <h3 id="members-search-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.members.title", "Member search")}
+                </h3>
+                <span className="text-[10px] text-neutral-3" aria-live="polite">
+                  {members.length} {t("search.common.loadedSuffix", "loaded")}
+                </span>
+              </header>
+              <div className="max-h-72 overflow-y-auto rounded-2xl border border-white/10">
+                {membersLoading ? (
+                  <div className="flex items-center gap-2 px-4 py-6 text-sm text-neutral-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Loading members…
+                  </div>
+                ) : membersError ? (
+                  <div className="px-4 py-6 text-sm text-red-300">{membersError}</div>
+                ) : filteredMembers.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-neutral-2">
+                    {t(
+                      "search.members.none",
+                      "No members match your search. Try another code, name, or phone number."
+                    )}
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-white/5 text-sm text-neutral-0">
+                    {filteredMembers.map((member, idx) => {
+                      const globalIndex = membersOffset + idx;
+                      const memberHref = member.ikiminaId
+                        ? `/ikimina/${member.ikiminaId}`
+                        : "/ikimina";
+                      return (
+                        <li key={member.id}>
+                          <Link
+                            href={memberHref}
+                            onClick={() =>
+                              handleNavigate("member", {
+                                memberId: member.id,
+                                ikiminaId: member.ikiminaId,
+                                index: globalIndex,
+                                query: query.trim(),
+                              })
+                            }
+                            ref={registerFocus(globalIndex)}
+                            onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                            tabIndex={-1}
+                            className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
+                          >
+                            <div>
+                              <p className="font-medium">
+                                {renderHighlighted(member.fullName, query)}
+                              </p>
+                              <p className="text-xs text-neutral-2">
+                                {member.memberCode ? (
+                                  <>
+                                    Code ·{" "}
+                                    <span className="font-mono text-neutral-1">
+                                      {renderHighlighted(member.memberCode ?? "", query)}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span>{t("search.members.noCode", "No member code")}</span>
                                 )}
                               >
                                 {item.badge.label}
@@ -893,68 +1254,133 @@ export function GlobalSearchDialog({
                   </span>
                 </header>
 
-                <ul className="space-y-2">
-                  {filteredIkimina.length === 0 && (
-                    <li className="text-xs text-neutral-2">
-                      {t("search.console.noIkimina", "No ikimina found")}
-                    </li>
-                  )}
-                  {filteredIkimina.map((ikimina, idx) => {
-                    const globalIndex = ikiminaOffset + idx;
-                    return (
-                      <li key={ikimina.id}>
-                        <Link
-                          href={`/ikimina/${ikimina.id}`}
-                          onClick={onClose}
-                          ref={registerFocus(globalIndex)}
-                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
-                          tabIndex={-1}
-                          className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold">
-                              {renderHighlighted(ikimina.name, query)}
-                            </span>
-                            <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-3">
-                              {ikimina.code}
-                            </span>
-                          </div>
-                          <span className="text-xs text-neutral-2">
-                            {ikimina.saccoName ?? t("search.console.noSacco", "No SACCO")}
-                          </span>
-                          <span className="text-xs text-neutral-3">
-                            {t("search.console.status", "Status")}: {ikimina.status}
-                          </span>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
+            <div role="region" aria-labelledby="payments-search-heading">
+              <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                <h3
+                  id="payments-search-heading"
+                  className="text-[11px] uppercase tracking-[0.35em]"
+                >
+                  {t("search.payments.title", "Recent payments")}
+                </h3>
+                <span className="text-[10px] text-neutral-3" aria-live="polite">
+                  {payments.length} {t("search.common.loadedSuffix", "loaded")}
+                </span>
+              </header>
+              <div className="max-h-72 overflow-y-auto rounded-2xl border border-white/10">
+                {paymentsLoading ? (
+                  <div className="flex items-center gap-2 px-4 py-6 text-sm text-neutral-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                    {t("search.payments.loading", "Loading payments…")}
+                  </div>
+                ) : paymentsError ? (
+                  <div className="px-4 py-6 text-sm text-red-300">{paymentsError}</div>
+                ) : filteredPayments.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-neutral-2">
+                    {t(
+                      "search.payments.none",
+                      "No payments match your search. Search by reference, member, or status."
+                    )}
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-white/5 text-sm text-neutral-0">
+                    {filteredPayments.map((payment, idx) => {
+                      const globalIndex = paymentsOffset + idx;
+                      const paymentHref = payment.ikiminaId
+                        ? `/ikimina/${payment.ikiminaId}`
+                        : "/recon";
+                      return (
+                        <li key={payment.id}>
+                          <Link
+                            href={paymentHref}
+                            onClick={() =>
+                              handleNavigate("payment", {
+                                paymentId: payment.id,
+                                ikiminaId: payment.ikiminaId,
+                                index: globalIndex,
+                                query: query.trim(),
+                              })
+                            }
+                            ref={registerFocus(globalIndex)}
+                            onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                            tabIndex={-1}
+                            className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
+                          >
+                            <div>
+                              <p className="font-medium">
+                                {currencyFormatter.format(payment.amount)} · {payment.status}
+                              </p>
+                              <p className="text-xs text-neutral-2">
+                                {payment.memberName ? `${payment.memberName} • ` : ""}
+                                {payment.ikiminaName ??
+                                  t("search.payments.noIkimina", "No ikimina")}
+                              </p>
+                              {payment.reference && (
+                                <p className="text-[11px] font-mono text-neutral-2">
+                                  {renderHighlighted(payment.reference ?? "", query)}
+                                </p>
+                              )}
+                              <p className="text-[11px] text-neutral-3">
+                                {formatRelativeDate(payment.occurredAt, dateTimeFormatter)} ·{" "}
+                                {dateTimeFormatter.format(new Date(payment.occurredAt))}
+                              </p>
+                            </div>
+                            <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            </div>
 
-              <section aria-labelledby="members-heading" className="space-y-3">
-                <header className="flex items-baseline justify-between">
-                  <h2
-                    id="members-heading"
-                    className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0"
-                  >
-                    {t("search.console.members", "Members")}
-                  </h2>
-                  <span className="text-[11px] text-neutral-2">
-                    {membersLoading
-                      ? t("search.console.loading", "Loading…")
-                      : t("search.console.resultsCount", "{count} results", {
-                          count: filteredMembers.length,
-                        })}
-                  </span>
-                </header>
-
-                <div className="space-y-2">
-                  {membersLoading && (
-                    <div className="flex items-center gap-2 text-xs text-neutral-2">
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                      {t("search.console.loadingMembers", "Loading members")}
-                    </div>
+            <div role="region" aria-labelledby="sacco-picker-heading">
+              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                <h3 id="sacco-picker-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                  {t("search.saccoPicker.title", "Semantic SACCO picker")}
+                </h3>
+              </header>
+              <SaccoSearchCombobox
+                value={selectedSacco}
+                onChange={(value) => {
+                  setSelectedSacco(value);
+                  trackCommandPalette("sacco_filter", {
+                    saccoId: value?.id ?? null,
+                    query: query.trim(),
+                  });
+                }}
+                placeholder={t(
+                  "search.saccoPicker.placeholder",
+                  "Search Umurenge SACCOs by name or district"
+                )}
+              />
+              {selectedSacco && (
+                <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-0">
+                  <p>
+                    <span className="font-semibold">{selectedSacco.name}</span> —{" "}
+                    {selectedSacco.district} · {selectedSacco.province}
+                  </p>
+                  <p className="mt-1 text-neutral-2">{selectedSacco.category}</p>
+                  {profile.role === "SYSTEM_ADMIN" ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedSacco(null);
+                        router.push("/admin");
+                        onClose();
+                      }}
+                      className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/25 hover:bg-white/10"
+                    >
+                      {t("search.saccoPicker.manageInAdmin", "Manage in admin")}{" "}
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                    </button>
+                  ) : (
+                    <p className="mt-3 text-[11px] text-neutral-2">
+                      {t(
+                        "search.saccoPicker.contactAdmin",
+                        "Contact your system administrator to update SACCO metadata."
+                      )}
+                    </p>
                   )}
                   {membersError && <div className="text-xs text-red-300">{membersError}</div>}
                 </div>

@@ -8,9 +8,16 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
+import { markTimeToFirstResult, startTimeToFirstResult } from "@/src/instrumentation/ux";
+
+interface VirtualTableUxConfig {
+  tableId: string;
+  requestToken?: string;
+  context?: Record<string, unknown>;
+}
 
 export interface VirtualTableProps<TData> {
   data: TData[];
@@ -18,6 +25,7 @@ export interface VirtualTableProps<TData> {
   className?: string;
   tableHeight?: number;
   emptyState?: React.ReactNode;
+  ux?: VirtualTableUxConfig;
 }
 
 interface ColumnMeta {
@@ -33,6 +41,7 @@ export function VirtualTable<TData>({
   className,
   tableHeight = 480,
   emptyState,
+  ux,
 }: VirtualTableProps<TData>) {
   // TanStack Table cannot be memoized safely by React Compiler; this hook needs to run on every render.
 
@@ -75,6 +84,41 @@ export function VirtualTable<TData>({
     }),
     [gridTemplate]
   );
+
+  const ttfrRequestRef = useRef<string | null>(null);
+  const ttfrMarkedRef = useRef(false);
+
+  useEffect(() => {
+    if (!ux?.tableId) {
+      return;
+    }
+    const token = ux.requestToken ?? "default";
+    const metricId = `${ux.tableId}:${token}`;
+    if (ttfrRequestRef.current === metricId) {
+      return;
+    }
+    ttfrRequestRef.current = metricId;
+    ttfrMarkedRef.current = false;
+    startTimeToFirstResult(metricId, {
+      tableId: ux.tableId,
+      requestToken: token,
+      ...(ux.context ?? {}),
+    });
+  }, [ux?.tableId, ux?.requestToken]);
+
+  useEffect(() => {
+    if (!ux?.tableId || ttfrMarkedRef.current || !ttfrRequestRef.current) {
+      return;
+    }
+    if (data.length === 0) {
+      return;
+    }
+    ttfrMarkedRef.current = true;
+    markTimeToFirstResult(ttfrRequestRef.current, {
+      tableId: ux.tableId,
+      rowCount: data.length,
+    });
+  }, [data.length, ux?.tableId]);
 
   const content = useMemo(() => {
     if (table.getRowModel().rows.length === 0 && emptyState) {

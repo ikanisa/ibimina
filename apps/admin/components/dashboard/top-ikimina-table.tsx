@@ -95,6 +95,12 @@ export function TopIkiminaTable({ data, tableHeight = 260 }: TopIkiminaTableProp
   );
 
   return (
-    <VirtualTable data={data} columns={columns} tableHeight={tableHeight} emptyState={empty} />
+    <VirtualTable
+      data={data}
+      columns={columns}
+      tableHeight={tableHeight}
+      emptyState={empty}
+      ux={{ tableId: "dashboard.topIkimina" }}
+    />
   );
 }

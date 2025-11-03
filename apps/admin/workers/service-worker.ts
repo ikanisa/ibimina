@@ -31,6 +31,30 @@ declare let self: ServiceWorkerGlobalScope & {
 
 const BUILD_ID = process.env.NEXT_PUBLIC_BUILD_ID ?? "dev-build";
 const OFFLINE_URL = "/offline";
+const BG_SYNC_TAG = "ibimina-offline-sync";
+
+let lastQueueCount = 0;
+let authScopeHash = "guest";
+const AUTH_SCOPED_CACHE_PREFIXES = ["app-shell", "api-routes"];
+
+async function broadcast(message: Record<string, unknown>) {
+  const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  for (const client of clientList) {
+    client.postMessage(message);
+  }
+}
+
+async function clearAuthScopedCaches() {
+  try {
+    const cacheNames = await caches.keys();
+    const deletions = cacheNames.filter((name) =>
+      AUTH_SCOPED_CACHE_PREFIXES.some((prefix) => name.startsWith(prefix))
+    );
+    await Promise.all(deletions.map((cacheName) => caches.delete(cacheName)));
+  } catch (error) {
+    console.warn("sw.auth_cache_clear_failed", error);
+  }
+}
 
 // Immediately activate the service worker and take control of all clients
 self.skipWaiting();
@@ -215,7 +239,70 @@ setCatchHandler(async ({ event }) => {
  * version without waiting for all tabs to close.
  */
 self.addEventListener("message", (event) => {
-  if (event.data?.type === "SKIP_WAITING") {
-    self.skipWaiting();
+  const { data } = event;
+  if (!data || typeof data !== "object") {
+    return;
+  }
+
+  switch (data.type) {
+    case "SKIP_WAITING":
+      self.skipWaiting();
+      break;
+    case "OFFLINE_QUEUE_REGISTER":
+      event.waitUntil(
+        broadcast({
+          type: "SW_QUEUE_STATUS",
+          count: lastQueueCount,
+          scope: authScopeHash,
+          timestamp: Date.now(),
+        })
+      );
+      break;
+    case "OFFLINE_QUEUE_UPDATED":
+      lastQueueCount = typeof data.count === "number" ? data.count : 0;
+      event.waitUntil(
+        broadcast({
+          type: "SW_QUEUE_STATUS",
+          count: lastQueueCount,
+          scope: authScopeHash,
+          timestamp: Date.now(),
+        })
+      );
+      break;
+    case "OFFLINE_QUEUE_PROCESS":
+      event.waitUntil(
+        broadcast({
+          type: "OFFLINE_QUEUE_PROCESS",
+          reason: data.reason ?? "manual",
+        })
+      );
+      break;
+    case "AUTH_SCOPE_UPDATE":
+      authScopeHash = typeof data.hash === "string" ? data.hash : authScopeHash;
+      break;
+    case "AUTH_CACHE_RESET":
+      authScopeHash = "guest";
+      event.waitUntil(
+        (async () => {
+          await clearAuthScopedCaches();
+          await broadcast({
+            type: "AUTH_CACHE_RESET",
+          });
+        })()
+      );
+      break;
+    default:
+      break;
+  }
+});
+
+self.addEventListener("sync", (event) => {
+  if (event.tag === BG_SYNC_TAG) {
+    event.waitUntil(
+      broadcast({
+        type: "OFFLINE_QUEUE_PROCESS",
+        reason: "background-sync",
+      })
+    );
   }
 });

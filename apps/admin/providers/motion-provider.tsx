@@ -7,22 +7,23 @@ interface MotionProviderProps {
   children: React.ReactNode;
 }
 
-const transition = {
-  duration: 0.2,
-  ease: "easeOut" as const,
-};
-
 export function MotionProvider({ children }: MotionProviderProps) {
   const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
+  const transition = prefersReducedMotion
+    ? { duration: 0 }
+    : { duration: 0.16, ease: "easeOut" as const };
+  const initialState = prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 };
+  const animateState = prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 };
+  const exitState = prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -4 };
 
   return (
     <AnimatePresence mode="wait">
       <motion.main
         key={pathname}
-        initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-        animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-        exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
+        initial={initialState}
+        animate={animateState}
+        exit={exitState}
         transition={transition}
         id="main-content"
         tabIndex={-1}
