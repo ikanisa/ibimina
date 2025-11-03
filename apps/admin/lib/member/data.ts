@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createSupabaseServerClient, supabaseSrv } from "@/lib/supabase/server";
+import { isMissingRelationError } from "@/lib/supabase/errors";
 import type { Database } from "@/lib/supabase/types";
 
 export interface MemberProfileRow {
@@ -26,6 +27,17 @@ export interface MemberJoinRequestRow {
   created_at: string | null;
   note?: string | null;
 }
+
+export interface MemberLoanApplication {
+  id: string;
+  status: string;
+  requestedAmount: number | null;
+  tenorMonths: number | null;
+  createdAt: string | null;
+  statusUpdatedAt: string | null;
+  productName: string | null;
+  partnerName: string | null;
+}
 export type MemberSaccoSummary = Pick<
   MemberSaccoRow,
   "id" | "name" | "district" | "sector_code" | "province" | "category"
@@ -36,6 +48,7 @@ interface MemberHomeData {
   saccos: MemberSaccoRow[];
   groups: MemberGroupRow[];
   joinRequests: MemberJoinRequestRow[];
+  loans: MemberLoanApplication[];
 }
 
 export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
@@ -49,14 +62,25 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { profile: null, saccos: [], groups: [], joinRequests: [] };
+    return { profile: null, saccos: [], groups: [], joinRequests: [], loans: [] };
   }
 
-  const [{ data: profile, error: profileError }, { data: linkedSaccos, error: linkedError }] =
-    await Promise.all([
-      legacyClient.from("members_app_profiles").select("*").eq("user_id", user.id).maybeSingle(),
-      legacyClient.from("user_saccos").select("sacco_id, created_at").eq("user_id", user.id),
-    ]);
+  const [
+    { data: profile, error: profileError },
+    { data: linkedSaccos, error: linkedError },
+    { data: loanRows, error: loansError },
+  ] = await Promise.all([
+    legacyClient.from("members_app_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+    legacyClient.from("user_saccos").select("sacco_id, created_at").eq("user_id", user.id),
+    appSupabase
+      .from("loan_applications")
+      .select(
+        "id, status, requested_amount, tenor_months, created_at, status_updated_at, product:loan_products(name, partner_name)"
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(25),
+  ]);
 
   if (profileError) {
     console.error("Failed to load member profile", profileError);
@@ -65,6 +89,38 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
   if (linkedError) {
     console.error("Failed to load linked SACCOs", linkedError);
     throw new Error("Unable to load SACCO list");
+  }
+
+  let loans: MemberLoanApplication[] = [];
+  if (loansError) {
+    if (!isMissingRelationError(loansError)) {
+      console.error("Failed to load loan applications", loansError);
+      throw new Error("Unable to load loan applications");
+    }
+  } else {
+    type LoanRow = {
+      id: string;
+      status: string;
+      requested_amount: number | string | null;
+      tenor_months: number | null;
+      created_at: string | null;
+      status_updated_at: string | null;
+      product: { name: string | null; partner_name: string | null } | null;
+    };
+    const typedRows = Array.isArray(loanRows) ? (loanRows as LoanRow[]) : [];
+    loans = typedRows.map((row) => ({
+      id: row.id,
+      status: row.status,
+      requestedAmount:
+        typeof row.requested_amount === "string"
+          ? Number(row.requested_amount)
+          : row.requested_amount,
+      tenorMonths: row.tenor_months ?? null,
+      createdAt: row.created_at ?? null,
+      statusUpdatedAt: row.status_updated_at ?? null,
+      productName: row.product?.name ?? null,
+      partnerName: row.product?.partner_name ?? null,
+    }));
   }
 
   const profileRow = profile ? (profile as MemberProfileRow) : null;
@@ -119,6 +175,7 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
     saccos: saccoRows,
     groups,
     joinRequests: (joinRequests ?? []) as MemberJoinRequestRow[],
+    loans,
   };
 });
 

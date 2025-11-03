@@ -4,7 +4,7 @@ import { ProfileOverview } from "@/components/member/profile/profile-overview";
 
 export default async function MemberProfilePage() {
   const session = await getMemberSession();
-  const { profile } = await getMemberHomeData();
+  const { profile, saccos, groups, joinRequests, loans } = await getMemberHomeData();
 
   return (
     <div className="space-y-6 text-neutral-0">
@@ -14,7 +14,14 @@ export default async function MemberProfilePage() {
           Manage your contact info, documents, and notification preferences.
         </p>
       </header>
-      <ProfileOverview profile={profile} email={session?.email ?? null} />
+      <ProfileOverview
+        profile={profile}
+        email={session?.email ?? null}
+        saccos={saccos}
+        groups={groups}
+        joinRequests={joinRequests}
+        loans={loans}
+      />
     </div>
   );
 }
