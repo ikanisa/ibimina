@@ -129,6 +129,9 @@ importers:
       '@ibimina/flags':
         specifier: workspace:*
         version: link:../../packages/flags
+      '@ibimina/lib':
+        specifier: workspace:^
+        version: link:../../packages/lib
       '@ibimina/locales':
         specifier: workspace:*
         version: link:../../packages/locales
