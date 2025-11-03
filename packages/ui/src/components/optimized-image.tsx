@@ -3,6 +3,7 @@
 import Image, { type ImageProps } from "next/image";
 
 import { getBlurDataURL } from "../utils/blur-placeholder";
+import { designTokens } from "../theme/design-tokens";
 
 export interface OptimizedImageProps extends Omit<ImageProps, "placeholder"> {
   withPlaceholder?: boolean;
@@ -11,7 +12,7 @@ export interface OptimizedImageProps extends Omit<ImageProps, "placeholder"> {
 
 export function OptimizedImage({
   withPlaceholder = true,
-  accentColor,
+  accentColor = designTokens.colors.brand.primary,
   blurDataURL,
   loading,
   priority,

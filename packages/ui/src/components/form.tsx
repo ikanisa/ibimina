@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { AlertCircle, CheckCircle2, Info, ShieldAlert } from "lucide-react";
 
 import { cn } from "../utils/cn";
+import { designTokens } from "../theme/design-tokens";
 
 export type FormLayoutVariant = "single" | "double";
 
@@ -20,6 +21,9 @@ export function FormLayout({
 }: FormLayoutProps) {
   return (
     <div
+      style={{
+        gap: designTokens.spacing[6],
+      }}
       className={cn(
         "grid",
         variant === "single" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2",
@@ -67,35 +71,52 @@ export function FormField({
     typeof children === "function" ? children({ id: inputId, describedBy }) : children;
 
   return (
-    <div className={cn("space-y-2", className)}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className={cn("space-y-2", className)} style={{ gap: designTokens.spacing[2] }}>
+      <div className="flex flex-wrap items-center justify-between gap-2" style={{ gap: designTokens.spacing[2] }}>
         <label
           htmlFor={typeof inputId === "string" ? inputId : undefined}
-          className="text-xs font-semibold uppercase tracking-[0.35em] text-neutral-2"
+          style={{
+            fontSize: designTokens.typography.fontSize.sm,
+            fontWeight: designTokens.typography.fontWeight.medium,
+            color: designTokens.colors.text.primary,
+          }}
+          className="text-sm font-medium text-neutral-900"
         >
           {label}
-          {required ? <span className="ml-2 text-[11px] text-rose-200">*</span> : null}
+          {required ? (
+            <span className="ml-2 text-sm" style={{ color: designTokens.colors.semantic.errorDark }}>
+              *
+            </span>
+          ) : null}
           {!required && optionalLabel ? (
-            <span className="ml-2 text-[11px] text-neutral-3">{optionalLabel}</span>
+            <span className="ml-2 text-xs" style={{ color: designTokens.colors.text.tertiary }}>
+              {optionalLabel}
+            </span>
           ) : null}
         </label>
         {actions ? (
-          <div className="text-xs uppercase tracking-[0.3em] text-neutral-3">{actions}</div>
+          <div className="text-xs font-medium uppercase tracking-wide" style={{ color: designTokens.colors.text.tertiary }}>
+            {actions}
+          </div>
         ) : null}
       </div>
 
       {description ? (
-        <p id={helperId} className="text-xs text-neutral-3">
+        <p id={helperId} className="text-xs" style={{ color: designTokens.colors.text.secondary, fontSize: designTokens.typography.fontSize.xs }}>
           {description}
         </p>
       ) : null}
 
       <div aria-describedby={describedBy}>{control}</div>
 
-      {hint ? <p className="text-[11px] text-neutral-3">{hint}</p> : null}
+      {hint ? (
+        <p className="text-xs" style={{ color: designTokens.colors.text.tertiary, fontSize: designTokens.typography.fontSize.xs }}>
+          {hint}
+        </p>
+      ) : null}
 
       {error ? (
-        <p id={errorId} role="alert" className="flex items-start gap-2 text-xs text-red-200">
+        <p id={errorId} role="alert" className="flex items-start gap-2 text-sm" style={{ color: designTokens.colors.semantic.errorDark, gap: designTokens.spacing[2] }}>
           <AlertCircle className="mt-0.5 h-4 w-4 flex-none" aria-hidden />
           <span>{error}</span>
         </p>

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "../utils/cn";
+import { designTokens } from "../theme/design-tokens";
 
 export interface GradientHeaderProps {
   title: ReactNode;
@@ -19,20 +20,46 @@ export function GradientHeader({
 }: GradientHeaderProps) {
   return (
     <div
+      style={{
+        padding: designTokens.spacing[6],
+        borderRadius: designTokens.borderRadius.xl,
+      }}
       className={cn(
-        "relative overflow-hidden rounded-2xl bg-gradient-to-br from-atlas-blue to-atlas-blue-dark p-6 text-white",
+        "relative overflow-hidden rounded-2xl bg-gradient-to-br from-atlas-blue to-atlas-blue-dark p-6 text-white shadow-lg",
         className
       )}
     >
-      <div className="relative z-10 space-y-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative z-10 space-y-3" style={{ gap: designTokens.spacing[3] }}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" style={{ gap: designTokens.spacing[3] }}>
           <div>
-            <h1 className="text-2xl font-bold">{title}</h1>
-            {subtitle && <div className="text-sm text-white/80">{subtitle}</div>}
+            <h1
+              className="text-2xl font-bold"
+              style={{
+                fontSize: designTokens.typography.fontSize["2xl"],
+                fontWeight: designTokens.typography.fontWeight.bold,
+              }}
+            >
+              {title}
+            </h1>
+            {subtitle && (
+              <div
+                className="text-sm text-white/90"
+                style={{
+                  fontSize: designTokens.typography.fontSize.sm,
+                  marginTop: designTokens.spacing[1],
+                }}
+              >
+                {subtitle}
+              </div>
+            )}
           </div>
           {badge}
         </div>
-        {children && <div className="mt-4">{children}</div>}
+        {children && (
+          <div className="mt-4" style={{ marginTop: designTokens.spacing[4] }}>
+            {children}
+          </div>
+        )}
       </div>
       <div
         className="absolute inset-0 opacity-10"

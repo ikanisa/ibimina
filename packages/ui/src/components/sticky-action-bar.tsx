@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "../utils/cn";
+import { designTokens } from "../theme/design-tokens";
 
 export interface StickyActionBarProps {
   children: ReactNode;
@@ -19,7 +20,16 @@ export function StickyActionBar({ children, label, className }: StickyActionBarP
       )}
     >
       <div
-        className="pointer-events-auto flex w-[min(440px,92%)] items-center justify-between gap-3 rounded-3xl border border-white/10 bg-ink/90 px-4 py-3 text-xs text-neutral-0 shadow-glass backdrop-blur"
+        style={{
+          padding: `${designTokens.spacing[3]} ${designTokens.spacing[4]}`,
+          gap: designTokens.spacing[3],
+          borderRadius: designTokens.borderRadius["3xl"],
+          borderWidth: designTokens.borderWidth.default,
+          backgroundColor: "white",
+          boxShadow: designTokens.shadow.lg,
+          minHeight: designTokens.size.touchTarget.comfortable,
+        }}
+        className="pointer-events-auto flex w-[min(440px,92%)] items-center justify-between gap-3 rounded-3xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 shadow-lg"
         role="region"
         aria-label={label}
       >
