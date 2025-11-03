@@ -15,6 +15,21 @@ now features:
 - ✅ Mobile-specific CSS optimizations
 - ✅ Comprehensive documentation
 
+## Atlas Admin Rollout Validation Addendum
+
+- [ ] Align implementation with
+      [docs/atlas-admin-ux-spec.md](../atlas-admin-ux-spec.md) and
+      [docs/atlas-admin-ux-review.md](../atlas-admin-ux-review.md).
+- [ ] Capture Lighthouse, Pa11y, and Web Vitals reports for `/admin`,
+      `/admin/members`, and `/admin/loans`; archive outputs in
+      `artifacts/atlas-admin`.
+- [ ] Verify bilingual (en/rw) regression coverage recorded in
+      `docs/testing/atlas-admin-regressions.md`.
+- [ ] Confirm screenshot catalog listed in the specification is attached to
+      release evidence.
+- [ ] Validate go-live checklist updates completed (risk controls, rollback
+      plan, regression owners).
+
 ## Build Validation
 
 ### Compilation Status
