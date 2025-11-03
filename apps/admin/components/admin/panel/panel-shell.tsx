@@ -28,6 +28,7 @@ import { AdminPanelTopBar } from "@/components/admin/panel/top-bar";
 import type { PanelBadgeTone, PanelIconKey, TenantOption } from "@/components/admin/panel/types";
 import { ADMIN_NAV_LINKS } from "@/components/admin/panel/nav-items";
 import { AdminPanelShortcuts } from "@/components/admin/panel/shortcuts";
+import { Drawer } from "@/components/ui/drawer";
 
 interface AdminPanelShellProps {
   children: React.ReactNode;
@@ -185,23 +186,16 @@ export function AdminPanelShell({
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
-          {mobileOpen && (
-            <div
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-              onClick={() => setMobileOpen(false)}
-              role="presentation"
-            >
-              <div
-                className="absolute inset-x-4 bottom-20 rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
-                onClick={(e) => e.stopPropagation()}
-                role="dialog"
-                aria-modal="true"
-                aria-label="Mobile navigation menu"
-              >
-                {nav}
-              </div>
-            </div>
-          )}
+          <Drawer
+            open={mobileOpen}
+            onClose={() => setMobileOpen(false)}
+            side="left"
+            size="md"
+            title="Navigation"
+            className="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-0"
+          >
+            {nav}
+          </Drawer>
         </div>
       </div>
     </AdminPanelShortcuts>
