@@ -93,7 +93,7 @@ release packaging._
 ## Accessibility & Internationalization Requirements
 
 - Lighthouse a11y ≥ 95 on `/admin` and `/admin/members/:id`.
-- Keyboard coverage validated via Cypress `a11y.spec.ts` for main flows.
+- Keyboard coverage validated via Playwright `a11y.spec.ts` for main flows.
 - All charts provide textual summaries via `aria-describedby` linking to hidden
   `<dl>` components.
 - Strings stored in `locales/en/atlas-admin.json` and
