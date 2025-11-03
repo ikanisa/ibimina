@@ -18,13 +18,7 @@ buildscript {
 
 apply from: "variables.gradle"
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-    }
-}
+// Removed allprojects repositories - now handled by settings.gradle dependencyResolutionManagement
 
 subprojects {
     configurations.all { config ->
@@ -62,13 +56,6 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 apply from: 'dependencies-constraints.gradle'
-
-allprojects {
-  repositories {
-    google()
-    mavenCentral()
-  }
-}
 
 /**
  * Force Java 17 + Kotlin jvmTarget 17 for all Android modules.
