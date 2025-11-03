@@ -1,0 +1,21 @@
+// Add to App.tsx imports:
+import { notificationService } from './services/notificationService';
+
+// Add to App component useEffect:
+useEffect(() => {
+  // Initialize notifications
+  notificationService.initialize();
+  
+  // Subscribe to user-specific topics if authenticated
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session?.user) {
+      notificationService.subscribeToTopic(`user_${session.user.id}`);
+    } else if (event === 'SIGNED_OUT') {
+      // Unsubscribe handled by backend
+    }
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);

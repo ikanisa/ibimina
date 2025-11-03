@@ -44,6 +44,7 @@
     "@capacitor/push-notifications": "^7.0.3",
     "@ibimina/config": "workspace:*",
     "@ibimina/flags": "workspace:*",
+    "@ibimina/lib": "workspace:^",
     "@ibimina/locales": "workspace:*",
     "@ibimina/ui": "workspace:*",
     "@openai/agents": "^0.1.11",
