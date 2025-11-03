@@ -15,11 +15,17 @@ import {
   Search,
   LineChart,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
-import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
+import {
+  CommandPaletteProvider,
+  useCommandPalette,
+  type CommandActionGroup as PaletteActionGroup,
+  type CommandNavTarget as PaletteNavTarget,
+} from "@/src/components/common/CommandPalette";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator.ssr-wrapper";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 
@@ -48,17 +54,8 @@ const BADGE_DOT_STYLES = {
   critical: "bg-red-400",
   info: "bg-sky-400",
   success: "bg-emerald-400",
+  warning: "bg-amber-400",
 } as const;
-
-const FOCUSABLE_SELECTORS =
-  'a[href]:not([tabindex="-1"]):not([aria-hidden="true"]),button:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),textarea:not([disabled]):not([tabindex="-1"]),select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"]):not([aria-hidden="true"])';
-
-const getFocusableElements = (container: HTMLElement | null) => {
-  if (!container) return [] as HTMLElement[];
-  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)).filter(
-    (element) => !element.hasAttribute("disabled") && element.offsetParent !== null
-  );
-};
 
 type QuickActionBadge = { label: string; tone: keyof typeof BADGE_TONE_STYLES };
 
@@ -78,6 +75,14 @@ type QuickActionGroupDefinition = {
   actions: QuickActionDefinition[];
 };
 
+type UiNavTarget = {
+  href: string;
+  primary: string;
+  secondary: string;
+  icon: LucideIcon;
+  badge?: { label: string; tone: keyof typeof BADGE_TONE_STYLES } | null;
+};
+
 export function AppShell({ children, profile }: AppShellProps) {
   const pathname = usePathname();
   const isAdminPanel = pathname?.startsWith("/admin");
@@ -88,15 +93,6 @@ export function AppShell({ children, profile }: AppShellProps) {
 }
 
 function DefaultAppShell({ children, profile }: AppShellProps) {
-  const pathname = usePathname();
-  const [showActions, setShowActions] = useState(false);
-  const quickActionsRef = useRef<HTMLDivElement | null>(null);
-  const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
-  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
-  const globalSearchTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const wasGlobalSearchOpenRef = useRef(false);
-  const wasQuickActionsOpenRef = useRef(false);
   const { t } = useTranslation();
 
   const saccoName = useMemo(
@@ -218,6 +214,97 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
     ];
   }, [profile.failed_mfa_count, profile.mfa_enabled, t]);
 
+  const uiNavTargets = useMemo<UiNavTarget[]>(
+    () =>
+      NAV_ITEMS.map((item) => ({
+        href: item.href,
+        primary: t(item.key),
+        secondary: t(item.key),
+        icon: item.icon,
+        badge: navBadges[item.href] ?? null,
+      })),
+    [navBadges, t]
+  );
+
+  const paletteNavTargets = useMemo<PaletteNavTarget[]>(
+    () =>
+      uiNavTargets.map((item) => ({
+        id: item.href,
+        href: item.href,
+        label: item.primary,
+        description: item.secondary,
+        badge: item.badge ?? null,
+        keywords: [item.href, item.primary].filter(Boolean),
+      })),
+    [uiNavTargets]
+  );
+
+  const paletteActionGroups = useMemo<PaletteActionGroup[]>(
+    () =>
+      quickActionGroups.map((group) => ({
+        id: group.id,
+        title: group.title,
+        subtitle: group.subtitle,
+        actions: group.actions.map((action) => {
+          const secondaryParts = [action.secondary, action.secondaryDescription].filter(Boolean);
+          return {
+            id: `${group.id}:${action.href}`,
+            label: action.primary,
+            description: action.description,
+            secondaryLabel: secondaryParts.length ? secondaryParts.join(" · ") : undefined,
+            href: action.href,
+            badge: action.badge ?? null,
+            keywords: [
+              action.primary,
+              action.description,
+              action.secondary,
+              action.secondaryDescription,
+            ].filter(Boolean) as string[],
+          };
+        }),
+      })),
+    [quickActionGroups]
+  );
+
+  return (
+    <CommandPaletteProvider
+      profile={profile}
+      navTargets={paletteNavTargets}
+      actionGroups={paletteActionGroups}
+    >
+      <DefaultAppShellView
+        saccoName={saccoName}
+        navTargets={uiNavTargets}
+        quickActionGroups={quickActionGroups}
+      >
+        {children}
+      </DefaultAppShellView>
+    </CommandPaletteProvider>
+  );
+}
+
+interface DefaultAppShellViewProps {
+  children: React.ReactNode;
+  saccoName: string;
+  navTargets: UiNavTarget[];
+  quickActionGroups: QuickActionGroupDefinition[];
+}
+
+function DefaultAppShellView({
+  children,
+  saccoName,
+  navTargets,
+  quickActionGroups,
+}: DefaultAppShellViewProps) {
+  const pathname = usePathname();
+  const [showActions, setShowActions] = useState(false);
+  const quickActionsRef = useRef<HTMLDivElement | null>(null);
+  const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
+  const wasQuickActionsOpenRef = useRef(false);
+  const { open: paletteOpen, openPalette } = useCommandPalette();
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!showActions) {
       if (wasQuickActionsOpenRef.current) {
@@ -273,112 +360,12 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
   }, [showActions]);
 
   useEffect(() => {
-    if (showGlobalSearch) {
-      wasGlobalSearchOpenRef.current = true;
-      return;
-    }
-    if (wasGlobalSearchOpenRef.current) {
-      wasGlobalSearchOpenRef.current = false;
-      globalSearchTriggerRef.current?.focus();
-    }
-  }, [showGlobalSearch]);
-
-  useEffect(() => {
-    const handleKeydown = (event: KeyboardEvent) => {
-      if ((event.key === "k" || event.key === "K") && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        setShowGlobalSearch(true);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeydown);
-    return () => window.removeEventListener("keydown", handleKeydown);
-  }, []);
-
-  useEffect(() => {
     const container = quickActionsRef.current;
 
     if (!showActions) {
-      quickActionsTriggerRef.current?.focus();
-      return;
+      firstQuickActionRef.current = null;
     }
-
-    if (!container) {
-      return;
-    }
-
-    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
-    const getFocusable = () =>
-      Array.from(container.querySelectorAll<HTMLElement>(focusableSelector)).filter(
-        (element) => element.offsetParent !== null
-      );
-
-    const focusFirst = () => {
-      const [first] = getFocusable();
-      if (first) {
-        setTimeout(() => first.focus(), 0);
-      }
-    };
-
-    focusFirst();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setShowActions(false);
-        return;
-      }
-
-      if (event.key !== "Tab") {
-        return;
-      }
-
-      const focusable = getFocusable();
-      if (focusable.length === 0) {
-        return;
-      }
-
-      const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
-      let nextIndex = currentIndex;
-
-      if (event.shiftKey) {
-        nextIndex = currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1;
-      } else {
-        nextIndex = currentIndex === focusable.length - 1 ? 0 : currentIndex + 1;
-      }
-
-      focusable[nextIndex].focus();
-      event.preventDefault();
-    };
-
-    container.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      container.removeEventListener("keydown", handleKeyDown);
-    };
   }, [showActions]);
-
-  const navTargets = useMemo(
-    () =>
-      NAV_ITEMS.map((item) => ({
-        href: item.href,
-        primary: t(item.key),
-        secondary: t(item.key),
-        badge: navBadges[item.href],
-      })),
-    [navBadges, t]
-  );
-
-  const quickActionTargets = useMemo(
-    () =>
-      quickActionGroups.map((group) => ({
-        id: group.id,
-        title: group.title,
-        subtitle: group.subtitle,
-        actions: group.actions,
-      })),
-    [quickActionGroups]
-  );
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
@@ -386,7 +373,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
     <div className="relative flex min-h-screen flex-col">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-kigali focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-[color:var(--color-primary-500,#4a70ff)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[color:var(--color-foreground-inverse,#0d1324)] focus:bg-kigali focus:text-ink transition-colors duration-200"
       >
         Skip to content · Siga ujye ku bikorwa
       </a>
@@ -397,7 +384,10 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
 
       <header className="relative mx-auto w-full max-w-6xl px-4 pb-4 pt-6 md:px-8">
         <nav
-          className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent px-6 py-6 shadow-2xl backdrop-blur-xl"
+          className={cn(
+            "relative overflow-hidden rounded-[var(--radius-2xl,1.5rem)] border border-border/40 bg-[color:var(--surface-glass,rgba(255,255,255,0.82))] px-6 py-6 shadow-xl backdrop-blur-xl transition-colors duration-300",
+            "border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent shadow-2xl"
+          )}
           aria-label={t("nav.main", "Main navigation")}
         >
           {/* Subtle gradient overlay for depth */}
@@ -427,8 +417,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                 aria-label={t("nav.sections", "Section navigation")}
               >
                 <ul className="flex items-center gap-1.5">
-                  {navTargets.map(({ href, primary, badge }, idx) => {
-                    const Icon = NAV_ITEMS[idx].icon;
+                  {navTargets.map(({ href, primary, badge, icon: Icon }) => {
                     return (
                       <li key={href}>
                         <Link
@@ -485,17 +474,16 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                 </div>
 
                 {/* Sign out button */}
-                <SignOutButton className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-md backdrop-blur-sm transition-all hover:bg-white/20 hover:shadow-lg" />
+                <SignOutButton className="rounded-xl border border-border/30 bg-[color:var(--surface-subtle,rgba(255,255,255,0.15))] px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-foreground,#111827)] shadow-sm backdrop-blur-sm transition-colors duration-200 hover:border-border/20 hover:bg-[color:var(--surface-muted,rgba(255,255,255,0.22))] hover:shadow-md border-white/15 bg-white/10 text-neutral-0 hover:bg-white/20 hover:shadow-lg" />
 
                 {/* Search button */}
                 <button
                   type="button"
-                  onClick={() => setShowGlobalSearch(true)}
+                  onClick={openPalette}
                   className="group inline-flex items-center gap-2 rounded-xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-0 shadow-md backdrop-blur-sm transition-all hover:border-white/30 hover:from-white/20 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-ink"
                   aria-haspopup="dialog"
-                  aria-expanded={showGlobalSearch}
+                  aria-expanded={paletteOpen}
                   aria-label={t("common.search", "Search")}
-                  ref={globalSearchTriggerRef}
                 >
                   <Search
                     className="h-4 w-4 transition-transform group-hover:scale-110"
@@ -518,25 +506,25 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
         className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-2xl border border-white/25 bg-gradient-to-br from-ink/95 to-ink/90 px-3 py-3.5 shadow-2xl backdrop-blur-xl md:hidden"
         aria-label={t("nav.mobile", "Mobile navigation")}
       >
-        {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
-          const badge = navBadges[href];
+        {navTargets.map(({ href, primary, badge, icon: Icon }) => {
+          const isCurrent = isActive(href);
           return (
             <Link
               key={href}
               href={href}
               className={cn(
                 "group relative flex flex-col items-center gap-1 rounded-lg px-2.5 py-2 text-[0.7rem] font-semibold transition-all",
-                isActive(href)
+                isCurrent
                   ? "text-neutral-0"
                   : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
               )}
-              aria-current={isActive(href) ? "page" : undefined}
-              aria-label={t(key)}
+              aria-current={isCurrent ? "page" : undefined}
+              aria-label={primary}
             >
               <Icon
                 className={cn(
                   "h-5 w-5 transition-all",
-                  isActive(href) && "drop-shadow-[0_0_8px_rgba(0,161,222,0.5)]"
+                  isCurrent && "drop-shadow-[0_0_8px_rgba(0,161,222,0.5)]"
                 )}
                 aria-hidden="true"
               />
@@ -549,7 +537,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                   aria-label={`${badge.label} notification`}
                 />
               )}
-              <span className="leading-none">{t(key)}</span>
+              <span className="leading-none">{primary}</span>
             </Link>
           );
         })}
@@ -572,31 +560,26 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
         </button>
       </nav>
 
-      {showActions && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-md md:items-center md:justify-end md:pr-6"
-          onClick={() => setShowActions(false)}
-          role="presentation"
-        >
-          <div
-            id="quick-actions"
-            className="m-6 w-full max-w-md rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("dashboard.quick.title", "Quick actions")}
-            onClick={(event) => event.stopPropagation()}
-            ref={quickActionsRef}
-            tabIndex={-1}
-          >
-            {/* Header */}
-            <div className="mb-6 flex items-center gap-2.5 border-b border-white/10 pb-4">
+      <Modal
+        open={showActions}
+        onClose={() => setShowActions(false)}
+        size="md"
+        labelledBy="quick-actions-heading"
+        initialFocusRef={firstQuickActionRef}
+        className="bg-gradient-to-br from-white/10 via-white/5 to-transparent text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
+      >
+        {() => (
+          <div className="space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-white/10 pb-4">
               <ListPlus className="h-5 w-5 text-rw-blue" aria-hidden="true" />
-              <h2 className="text-base font-bold uppercase tracking-wider text-neutral-0">
+              <h2
+                id="quick-actions-heading"
+                className="text-base font-bold uppercase tracking-wider text-neutral-0"
+              >
                 {t("dashboard.quick.title", "Quick actions")}
               </h2>
             </div>
 
-            {/* Action groups */}
             <div className="space-y-6">
               {quickActionGroups.map((group) => (
                 <section key={group.id} className="space-y-3">
@@ -613,7 +596,11 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                           href={action.href}
                           onClick={() => setShowActions(false)}
                           className="group block rounded-xl border border-white/15 bg-gradient-to-br from-white/10 to-white/5 px-4 py-3.5 text-left transition-all hover:border-white/25 hover:from-white/15 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-transparent"
-                          data-quick-focus
+                          ref={(element) => {
+                            if (!firstQuickActionRef.current && element) {
+                              firstQuickActionRef.current = element;
+                            }
+                          }}
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-1">
@@ -650,12 +637,10 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
               ))}
             </div>
 
-            {/* Close button */}
             <button
               type="button"
               onClick={() => setShowActions(false)}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
-              data-quick-focus
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
             >
               <Settings2 className="h-4 w-4" aria-hidden="true" />
               {t("common.close", "Close")}
@@ -663,14 +648,6 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
           </div>
         </div>
       )}
-
-      <GlobalSearchDialog
-        open={showGlobalSearch}
-        onClose={() => setShowGlobalSearch(false)}
-        profile={profile}
-        navItems={navTargets}
-        quickActions={quickActionTargets}
-      />
     </div>
   );
 }

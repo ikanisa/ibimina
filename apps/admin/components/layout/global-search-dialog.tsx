@@ -14,6 +14,7 @@ import {
 import { useTranslation } from "@/providers/i18n-provider";
 import { useToast } from "@/providers/toast-provider";
 import { cn } from "@/lib/utils";
+import { Modal } from "@/components/ui/modal";
 
 let cachedSupabaseClient: ReturnType<typeof getSupabaseBrowserClient> | null = null;
 let supabaseClientInitError: Error | null = null;
@@ -111,16 +112,6 @@ const BADGE_TONE_STYLES = {
   success: "border-emerald-500/40 bg-emerald-500/15 text-emerald-200",
 } as const;
 
-const DIALOG_FOCUSABLE_SELECTORS =
-  'a[href]:not([tabindex="-1"]):not([aria-hidden="true"]),button:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),textarea:not([disabled]):not([tabindex="-1"]),select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"]):not([aria-hidden="true"])';
-
-const getDialogFocusable = (root: HTMLElement | null) => {
-  if (!root) return [] as HTMLElement[];
-  return Array.from(root.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTORS)).filter(
-    (element) => !element.hasAttribute("disabled")
-  );
-};
-
 interface GlobalSearchDialogProps {
   open: boolean;
   onClose: () => void;
@@ -199,8 +190,6 @@ export function GlobalSearchDialog({
   const refreshBadgeTimer = useRef<NodeJS.Timeout | null>(null);
   const lastRefreshToastAt = useRef<number>(0);
   const focusRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const dialogTitleId = useId();
 
   useEffect(() => {
@@ -695,52 +684,10 @@ export function GlobalSearchDialog({
   }, [totalFocusCount]);
 
   useEffect(() => {
-    if (open) {
-      previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
-    } else {
+    if (!open) {
       focusRefs.current = [];
-      previouslyFocusedRef.current?.focus();
     }
   }, [open]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const panel = panelRef.current;
-    if (!panel) {
-      return;
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-      if (event.key !== "Tab") {
-        return;
-      }
-      const focusable = getDialogFocusable(panel);
-      if (focusable.length === 0) {
-        return;
-      }
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const active = document.activeElement as HTMLElement | null;
-      if (event.shiftKey) {
-        if (active === first || active === panel) {
-          event.preventDefault();
-          last.focus();
-        }
-      } else if (active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    panel.addEventListener("keydown", handleKeyDown);
-    return () => panel.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
 
   const currencyFormatter = useMemo(
     () =>
@@ -771,435 +718,349 @@ export function GlobalSearchDialog({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 md:items-center"
-      role="presentation"
-      onClick={onClose}
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="xl"
+      hideCloseButton
+      labelledBy={dialogTitleId}
+      initialFocusRef={inputRef}
+      className="glass relative flex h-[min(90vh,720px)] max-w-4xl flex-col rounded-3xl p-6 text-neutral-0 shadow-2xl"
     >
-      <div
-        className="glass relative w-full max-w-4xl rounded-3xl p-6 shadow-2xl"
-        onClick={(event) => event.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={dialogTitleId}
-        ref={panelRef}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span id={dialogTitleId} className="text-lg font-semibold text-neutral-0">
-            {t("search.console.title", "Search console")}
-          </span>
-          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-            <span className="hidden rounded-full border border-white/15 px-3 py-1 md:inline-flex">
-              ⌘K
+      {() => (
+        <div className="flex h-full flex-col gap-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span id={dialogTitleId} className="text-lg font-semibold text-neutral-0">
+              {t("search.console.title", "Search console")}
             </span>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
-            >
-              {t("actions.close", "Close")}
-            </button>
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+              <span className="hidden rounded-full border border-white/15 px-3 py-1 md:inline-flex">
+                ⌘K
+              </span>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
+              >
+                {t("actions.close", "Close")}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="relative mt-5">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-2" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={handleInputKeyDown}
-            placeholder={t(
-              "search.console.placeholder",
-              "Search ikimina, quick actions, or SACCO registry"
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-2" />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={handleInputKeyDown}
+              placeholder={t(
+                "search.console.placeholder",
+                "Search ikimina, quick actions, or SACCO registry"
+              )}
+              className="w-full rounded-2xl border border-white/10 bg-white/10 py-3 pl-11 pr-4 text-sm text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 text-neutral-2 transition hover:text-neutral-0"
+                aria-label={t("search.actions.clear", "Clear search")}
+              >
+                <span className="sr-only">{t("common.clear", "Clear")}</span>
+                <X className="h-3.5 w-3.5" aria-hidden />
+              </button>
             )}
-            className="w-full rounded-2xl border border-white/10 bg-white/10 py-3 pl-11 pr-4 text-sm text-neutral-0 placeholder:text-neutral-2 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 text-neutral-2 transition hover:text-neutral-0"
-              aria-label={t("search.actions.clear", "Clear search")}
-            >
-              <span className="sr-only">{t("common.clear", "Clear")}</span>
-              <X className="h-3.5 w-3.5" aria-hidden />
-            </button>
-          )}
-        </div>
+          </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
-          <aside className="space-y-5">
-            <section role="region" aria-labelledby="navigation-heading">
-              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <h3 id="navigation-heading" className="text-[11px] uppercase tracking-[0.35em]">
-                  {t("search.console.navigate", "Navigate")}
-                </h3>
-              </header>
-              <ul className="space-y-2">
-                {filteredNav.length === 0 && (
-                  <li className="text-xs text-neutral-2">
-                    {t("search.console.noSections", "No sections found.")}
-                  </li>
-                )}
-                {filteredNav.map((item, idx) => {
-                  const globalIndex = navOffset + idx;
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={onClose}
-                        ref={registerFocus(globalIndex)}
-                        onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
-                        tabIndex={-1}
-                        className="flex flex-col rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <span className="font-medium">
-                              {renderHighlighted(item.primary, query)}
+          <div className="grid flex-1 gap-6 overflow-y-auto pr-1 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
+            <aside className="space-y-5">
+              <section role="region" aria-labelledby="navigation-heading">
+                <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                  <h3 id="navigation-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                    {t("search.console.navigate", "Navigate")}
+                  </h3>
+                </header>
+                <ul className="space-y-2">
+                  {filteredNav.length === 0 && (
+                    <li className="text-xs text-neutral-2">
+                      {t("search.console.noSections", "No sections found.")}
+                    </li>
+                  )}
+                  {filteredNav.map((item, idx) => {
+                    const globalIndex = navOffset + idx;
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          onClick={onClose}
+                          ref={registerFocus(globalIndex)}
+                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                          tabIndex={-1}
+                          className="flex flex-col rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <span className="font-medium">
+                                {renderHighlighted(item.primary, query)}
+                              </span>
+                              <span className="block text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                                {item.secondary}
+                              </span>
+                            </div>
+                            {item.badge && (
+                              <span
+                                className={cn(
+                                  "inline-flex h-min items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
+                                  BADGE_TONE_STYLES[item.badge.tone]
+                                )}
+                              >
+                                {item.badge.label}
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              <section role="region" aria-labelledby="actions-heading">
+                <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                  <h3 id="actions-heading" className="text-[11px] uppercase tracking-[0.35em]">
+                    {t("search.console.quickActions", "Quick actions")}
+                  </h3>
+                </header>
+                <ul className="space-y-2">
+                  {flattenedQuickActions.length === 0 && (
+                    <li className="text-xs text-neutral-2">
+                      {t("search.console.noQuickActions", "No quick actions match")}
+                    </li>
+                  )}
+                  {flattenedQuickActions.map((entry, idx) => {
+                    const globalIndex = quickActionsOffset + idx;
+                    return (
+                      <li key={`${entry.groupId}-${entry.action.primary}`}>
+                        <Link
+                          href={entry.action.href}
+                          onClick={onClose}
+                          ref={registerFocus(globalIndex)}
+                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                          tabIndex={-1}
+                          className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <span className="font-medium">
+                            {renderHighlighted(entry.action.primary, query)}
+                          </span>
+                          <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                            {entry.action.secondary}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              <section
+                className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-neutral-2"
+                aria-live="polite"
+              >
+                <header className="mb-1 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
+                  {t("search.console.lastSynced", "Last synced")}
+                </header>
+                <p className="text-sm text-neutral-0">{lastSyncedLabel}</p>
+                <p className="mt-2 text-xs">
+                  {t("search.console.refreshHint", "Results auto-refresh every few minutes.")}
+                </p>
+              </section>
+            </aside>
+
+            <main className="space-y-6">
+              <section aria-labelledby="ikimina-heading" className="space-y-3">
+                <header className="flex items-baseline justify-between">
+                  <h2
+                    id="ikimina-heading"
+                    className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0"
+                  >
+                    {t("search.console.ikimina", "Ikimina")}
+                  </h2>
+                  <span className="text-[11px] text-neutral-2">
+                    {t("search.console.resultsCount", "{count} results", {
+                      count: filteredIkimina.length,
+                    })}
+                  </span>
+                </header>
+
+                <ul className="space-y-2">
+                  {filteredIkimina.length === 0 && (
+                    <li className="text-xs text-neutral-2">
+                      {t("search.console.noIkimina", "No ikimina found")}
+                    </li>
+                  )}
+                  {filteredIkimina.map((ikimina, idx) => {
+                    const globalIndex = ikiminaOffset + idx;
+                    return (
+                      <li key={ikimina.id}>
+                        <Link
+                          href={`/ikimina/${ikimina.id}`}
+                          onClick={onClose}
+                          ref={registerFocus(globalIndex)}
+                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                          tabIndex={-1}
+                          className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">
+                              {renderHighlighted(ikimina.name, query)}
                             </span>
-                            <span className="block text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-                              {item.secondary}
+                            <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-3">
+                              {ikimina.code}
                             </span>
                           </div>
-                          {item.badge && (
-                            <span
-                              className={cn(
-                                "inline-flex h-min items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
-                                BADGE_TONE_STYLES[item.badge.tone]
-                              )}
-                            >
-                              {item.badge.label}
-                            </span>
-                          )}
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
+                          <span className="text-xs text-neutral-2">
+                            {ikimina.saccoName ?? t("search.console.noSacco", "No SACCO")}
+                          </span>
+                          <span className="text-xs text-neutral-3">
+                            {t("search.console.status", "Status")}: {ikimina.status}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
 
-            <section role="region" aria-labelledby="quick-actions-heading">
-              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <h3 id="quick-actions-heading" className="text-[11px] uppercase tracking-[0.35em]">
-                  {t("search.console.quickActions", "Quick actions")}
-                </h3>
-              </header>
-              <div className="space-y-3">
-                {filteredQuickActionGroups.length === 0 && (
-                  <p className="text-xs text-neutral-2">
-                    {t("search.console.tryAnother", "Try another phrase to find workflows.")}
-                  </p>
-                )}
-                {filteredQuickActionGroups.map((group) => {
-                  const baseIndex = actionIndexByGroup.get(group.id) ?? 0;
-                  return (
-                    <div key={group.id} className="space-y-2">
-                      <p className="text-[10px] uppercase tracking-[0.35em] text-neutral-3">
-                        {group.title}
-                      </p>
-                      <ul className="space-y-2">
-                        {group.actions.map((action, idx) => {
-                          const globalIndex = actionOffset + baseIndex + idx;
-                          return (
-                            <li key={`${group.id}-${action.primary}`}>
-                              <Link
-                                href={action.href}
-                                onClick={onClose}
-                                ref={registerFocus(globalIndex)}
-                                onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
-                                tabIndex={-1}
-                                className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
-                              >
-                                <span className="font-medium">
-                                  {renderHighlighted(action.primary, query)}
-                                </span>
-                                <span className="text-xs text-neutral-2">{action.description}</span>
-                                <span className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-                                  {action.secondary} · {action.secondaryDescription}
-                                </span>
-                                {action.badge && (
-                                  <span
-                                    className={cn(
-                                      "mt-1 inline-flex w-max items-center rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.3em]",
-                                      BADGE_TONE_STYLES[action.badge.tone]
-                                    )}
-                                  >
-                                    {action.badge.label}
-                                  </span>
-                                )}
-                              </Link>
-                            </li>
-                          );
+              <section aria-labelledby="members-heading" className="space-y-3">
+                <header className="flex items-baseline justify-between">
+                  <h2
+                    id="members-heading"
+                    className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0"
+                  >
+                    {t("search.console.members", "Members")}
+                  </h2>
+                  <span className="text-[11px] text-neutral-2">
+                    {membersLoading
+                      ? t("search.console.loading", "Loading…")
+                      : t("search.console.resultsCount", "{count} results", {
+                          count: filteredMembers.length,
                         })}
-                      </ul>
+                  </span>
+                </header>
+
+                <div className="space-y-2">
+                  {membersLoading && (
+                    <div className="flex items-center gap-2 text-xs text-neutral-2">
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      {t("search.console.loadingMembers", "Loading members")}
                     </div>
-                  );
-                })}
-              </div>
-            </section>
-          </aside>
-
-          <section className="space-y-5" aria-labelledby="ikimina-search-heading">
-            <div>
-              <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <h3 id="ikimina-search-heading" className="text-[11px] uppercase tracking-[0.35em]">
-                  {t("search.ikimina.title", "Ikimina search")}
-                </h3>
-                <span className="flex flex-col text-[10px] text-neutral-3" aria-live="polite">
-                  <span>
-                    {ikimina.length} {t("search.common.loadedSuffix", "loaded")}
-                  </span>
-                  <span className="text-[9px] uppercase tracking-[0.3em] text-neutral-3/80">
-                    {t("search.common.lastSyncedPrefix", "Last synced")} · {lastSyncedLabel}
-                  </span>
-                  {showRefreshBadge && (
-                    <span className="mt-1 inline-flex items-center gap-1 self-start rounded-full bg-rw-blue/20 px-2 py-1 text-[9px] uppercase tracking-[0.3em] text-neutral-0">
-                      <span className="h-2 w-2 rounded-full bg-rw-yellow" />{" "}
-                      {t("common.updated", "Updated")}
-                    </span>
                   )}
-                </span>
-              </header>
-              <div className="max-h-80 overflow-y-auto rounded-2xl border border-white/10">
-                {loading ? (
-                  <div className="flex items-center gap-2 px-4 py-6 text-sm text-neutral-2">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Loading ikimina…
-                  </div>
-                ) : error ? (
-                  <div className="px-4 py-6 text-sm text-red-300">{error}</div>
-                ) : filteredIkimina.length === 0 ? (
-                  <div className="px-4 py-6 text-sm text-neutral-2">
-                    {t(
-                      "search.ikimina.noMatch",
-                      "No ikimina match your search. Try refining the term or clear the search."
-                    )}
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-white/5 text-sm text-neutral-0">
-                    {filteredIkimina.map((item, idx) => {
-                      const globalIndex = ikiminaOffset + idx;
-                      return (
-                        <li key={item.id}>
-                          <Link
-                            href={`/ikimina/${item.id}`}
-                            onClick={onClose}
-                            ref={registerFocus(globalIndex)}
-                            onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
-                            tabIndex={-1}
-                            className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
-                          >
-                            <div>
-                              <p className="font-medium">{renderHighlighted(item.name, query)}</p>
-                              <p className="text-xs text-neutral-2">
-                                Code · <span className="font-mono text-neutral-1">{item.code}</span>
-                                {item.saccoName ? ` • ${item.saccoName}` : ""}
-                              </p>
-                            </div>
-                            <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            </div>
-
-            <div role="region" aria-labelledby="members-search-heading">
-              <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <h3 id="members-search-heading" className="text-[11px] uppercase tracking-[0.35em]">
-                  {t("search.members.title", "Member search")}
-                </h3>
-                <span className="text-[10px] text-neutral-3" aria-live="polite">
-                  {members.length} {t("search.common.loadedSuffix", "loaded")}
-                </span>
-              </header>
-              <div className="max-h-72 overflow-y-auto rounded-2xl border border-white/10">
-                {membersLoading ? (
-                  <div className="flex items-center gap-2 px-4 py-6 text-sm text-neutral-2">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Loading members…
-                  </div>
-                ) : membersError ? (
-                  <div className="px-4 py-6 text-sm text-red-300">{membersError}</div>
-                ) : filteredMembers.length === 0 ? (
-                  <div className="px-4 py-6 text-sm text-neutral-2">
-                    {t(
-                      "search.members.none",
-                      "No members match your search. Try another code, name, or phone number."
-                    )}
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-white/5 text-sm text-neutral-0">
-                    {filteredMembers.map((member, idx) => {
-                      const globalIndex = membersOffset + idx;
-                      const memberHref = member.ikiminaId
-                        ? `/ikimina/${member.ikiminaId}`
-                        : "/ikimina";
-                      return (
-                        <li key={member.id}>
-                          <Link
-                            href={memberHref}
-                            onClick={onClose}
-                            ref={registerFocus(globalIndex)}
-                            onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
-                            tabIndex={-1}
-                            className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
-                          >
-                            <div>
-                              <p className="font-medium">
-                                {renderHighlighted(member.fullName, query)}
-                              </p>
-                              <p className="text-xs text-neutral-2">
-                                {member.memberCode ? (
-                                  <>
-                                    Code ·{" "}
-                                    <span className="font-mono text-neutral-1">
-                                      {renderHighlighted(member.memberCode ?? "", query)}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span>{t("search.members.noCode", "No member code")}</span>
-                                )}
-                                {member.msisdn && (
-                                  <> • {renderHighlighted(member.msisdn ?? "", query)}</>
-                                )}
-                                {member.ikiminaName && <> • {member.ikiminaName}</>}
-                              </p>
-                            </div>
-                            <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            </div>
-
-            <div role="region" aria-labelledby="payments-search-heading">
-              <header className="mb-3 flex items-center justify-between text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <h3
-                  id="payments-search-heading"
-                  className="text-[11px] uppercase tracking-[0.35em]"
-                >
-                  {t("search.payments.title", "Recent payments")}
-                </h3>
-                <span className="text-[10px] text-neutral-3" aria-live="polite">
-                  {payments.length} {t("search.common.loadedSuffix", "loaded")}
-                </span>
-              </header>
-              <div className="max-h-72 overflow-y-auto rounded-2xl border border-white/10">
-                {paymentsLoading ? (
-                  <div className="flex items-center gap-2 px-4 py-6 text-sm text-neutral-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                    {t("search.payments.loading", "Loading payments…")}
-                  </div>
-                ) : paymentsError ? (
-                  <div className="px-4 py-6 text-sm text-red-300">{paymentsError}</div>
-                ) : filteredPayments.length === 0 ? (
-                  <div className="px-4 py-6 text-sm text-neutral-2">
-                    {t(
-                      "search.payments.none",
-                      "No payments match your search. Search by reference, member, or status."
-                    )}
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-white/5 text-sm text-neutral-0">
-                    {filteredPayments.map((payment, idx) => {
-                      const globalIndex = paymentsOffset + idx;
-                      const paymentHref = payment.ikiminaId
-                        ? `/ikimina/${payment.ikiminaId}`
-                        : "/recon";
-                      return (
-                        <li key={payment.id}>
-                          <Link
-                            href={paymentHref}
-                            onClick={onClose}
-                            ref={registerFocus(globalIndex)}
-                            onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
-                            tabIndex={-1}
-                            className="flex items-center justify-between gap-4 px-4 py-3 transition hover:bg-white/8"
-                          >
-                            <div>
-                              <p className="font-medium">
-                                {currencyFormatter.format(payment.amount)} · {payment.status}
-                              </p>
-                              <p className="text-xs text-neutral-2">
-                                {payment.memberName ? `${payment.memberName} • ` : ""}
-                                {payment.ikiminaName ??
-                                  t("search.payments.noIkimina", "No ikimina")}
-                              </p>
-                              {payment.reference && (
-                                <p className="text-[11px] font-mono text-neutral-2">
-                                  {renderHighlighted(payment.reference ?? "", query)}
-                                </p>
-                              )}
-                              <p className="text-[11px] text-neutral-3">
-                                {formatRelativeDate(payment.occurredAt, dateTimeFormatter)} ·{" "}
-                                {dateTimeFormatter.format(new Date(payment.occurredAt))}
-                              </p>
-                            </div>
-                            <ArrowUpRight className="h-4 w-4 text-neutral-2" aria-hidden />
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            </div>
-
-            <div role="region" aria-labelledby="sacco-picker-heading">
-              <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
-                <h3 id="sacco-picker-heading" className="text-[11px] uppercase tracking-[0.35em]">
-                  {t("search.saccoPicker.title", "Semantic SACCO picker")}
-                </h3>
-              </header>
-              <SaccoSearchCombobox
-                value={selectedSacco}
-                onChange={(value) => setSelectedSacco(value)}
-                placeholder={t(
-                  "search.saccoPicker.placeholder",
-                  "Search Umurenge SACCOs by name or district"
-                )}
-              />
-              {selectedSacco && (
-                <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-neutral-0">
-                  <p>
-                    <span className="font-semibold">{selectedSacco.name}</span> —{" "}
-                    {selectedSacco.district} · {selectedSacco.province}
-                  </p>
-                  <p className="mt-1 text-neutral-2">{selectedSacco.category}</p>
-                  {profile.role === "SYSTEM_ADMIN" ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedSacco(null);
-                        router.push("/admin");
-                        onClose();
-                      }}
-                      className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-0 transition hover:border-white/25 hover:bg-white/10"
-                    >
-                      {t("search.saccoPicker.manageInAdmin", "Manage in admin")}{" "}
-                      <ArrowUpRight className="h-3.5 w-3.5" />
-                    </button>
-                  ) : (
-                    <p className="mt-3 text-[11px] text-neutral-2">
-                      {t(
-                        "search.saccoPicker.contactAdmin",
-                        "Contact your system administrator to update SACCO metadata."
-                      )}
-                    </p>
-                  )}
+                  {membersError && <div className="text-xs text-red-300">{membersError}</div>}
                 </div>
-              )}
-            </div>
-          </section>
+
+                <ul className="space-y-2">
+                  {filteredMembers.length === 0 && !membersLoading && (
+                    <li className="text-xs text-neutral-2">
+                      {t("search.console.noMembers", "No members found")}
+                    </li>
+                  )}
+                  {filteredMembers.map((member, idx) => {
+                    const globalIndex = membersOffset + idx;
+                    return (
+                      <li key={member.id}>
+                        <Link
+                          href={`/members/${member.id}`}
+                          onClick={onClose}
+                          ref={registerFocus(globalIndex)}
+                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                          tabIndex={-1}
+                          className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <span className="font-semibold">
+                            {renderHighlighted(member.fullName, query)}
+                          </span>
+                          <span className="text-xs text-neutral-2">
+                            {member.memberCode ??
+                              t("search.console.noMemberCode", "No member code")}
+                          </span>
+                          <span className="text-xs text-neutral-3">
+                            {member.msisdn ?? t("search.console.noPhone", "No phone")}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+
+              <section aria-labelledby="payments-heading" className="space-y-3">
+                <header className="flex items-baseline justify-between">
+                  <h2
+                    id="payments-heading"
+                    className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-0"
+                  >
+                    {t("search.console.payments", "Payments")}
+                  </h2>
+                  <span className="text-[11px] text-neutral-2">
+                    {paymentsLoading
+                      ? t("search.console.loading", "Loading…")
+                      : t("search.console.resultsCount", "{count} results", {
+                          count: filteredPayments.length,
+                        })}
+                  </span>
+                </header>
+
+                <div className="space-y-2">
+                  {paymentsLoading && (
+                    <div className="flex items-center gap-2 text-xs text-neutral-2">
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      {t("search.console.loadingPayments", "Loading payments")}
+                    </div>
+                  )}
+                  {paymentsError && <div className="text-xs text-red-300">{paymentsError}</div>}
+                </div>
+
+                <ul className="space-y-2">
+                  {filteredPayments.length === 0 && !paymentsLoading && (
+                    <li className="text-xs text-neutral-2">
+                      {t("search.console.noPayments", "No payments found")}
+                    </li>
+                  )}
+                  {filteredPayments.map((payment, idx) => {
+                    const globalIndex = paymentsOffset + idx;
+                    return (
+                      <li key={payment.id}>
+                        <Link
+                          href={`/payments/${payment.id}`}
+                          onClick={onClose}
+                          ref={registerFocus(globalIndex)}
+                          onKeyDown={(event) => handleResultKeyDown(event, globalIndex)}
+                          tabIndex={-1}
+                          className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-neutral-0 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <span className="font-semibold">
+                            {currencyFormatter.format(payment.amount)}
+                          </span>
+                          <span className="text-xs text-neutral-2">
+                            {formatRelativeDate(
+                              payment.occurredAt ?? payment.occurred_at,
+                              dateTimeFormatter
+                            )}
+                          </span>
+                          <span className="text-xs text-neutral-3">
+                            {payment.reference ?? t("search.console.noReference", "No reference")}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            </main>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Modal>
   );
 }

@@ -67,6 +67,12 @@ export default defineConfig({
     url: "http://localhost:5000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    env: {
+      NEXT_PUBLIC_FEATURE_FLAG_ATLAS_ASSISTANT: "true",
+      NEXT_PUBLIC_FEATURE_FLAG_MIGRATED_WORKFLOWS: "true",
+      NEXT_PUBLIC_FEATURE_FLAG_COMMAND_PALETTE: "true",
+      NEXT_PUBLIC_FEATURE_FLAG_OFFLINE_BANNER: "true",
+    },
   },
   // @ts-expect-error Coverage configuration is available in Playwright 1.56+
   coverage: {
