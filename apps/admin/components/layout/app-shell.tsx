@@ -28,6 +28,12 @@ import {
 } from "@/src/components/common/CommandPalette";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator.ssr-wrapper";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { AssistantProvider } from "@/providers/assistant-provider";
+import {
+  AssistantLauncher,
+  AssistantVisibilityToggle,
+  AtlasAssistantSidebar,
+} from "@/components/assistant/atlas-assistant-sidebar";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -370,284 +376,306 @@ function DefaultAppShellView({
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-[color:var(--color-primary-500,#4a70ff)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[color:var(--color-foreground-inverse,#0d1324)] focus:bg-kigali focus:text-ink transition-colors duration-200"
-      >
-        Skip to content · Siga ujye ku bikorwa
-      </a>
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute -left-20 top-6 h-60 w-60 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute right-[-10%] top-32 h-72 w-72 rounded-full bg-[#1bb06e26] blur-3xl" />
-      </div>
-
-      <header className="relative mx-auto w-full max-w-6xl px-4 pb-4 pt-6 md:px-8">
-        <nav
-          className={cn(
-            "relative overflow-hidden rounded-[var(--radius-2xl,1.5rem)] border border-border/40 bg-[color:var(--surface-glass,rgba(255,255,255,0.82))] px-6 py-6 shadow-xl backdrop-blur-xl transition-colors duration-300",
-            "border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent shadow-2xl"
-          )}
-          aria-label={t("nav.main", "Main navigation")}
+    <AssistantProvider>
+      <div className="relative flex min-h-screen flex-col">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-kigali focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"
         >
-          {/* Subtle gradient overlay for depth */}
-          <div
-            className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/5"
-            aria-hidden="true"
-          />
+          Skip to content · Siga ujye ku bikorwa
+        </a>
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+          <div className="absolute -left-20 top-6 h-60 w-60 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute right-[-10%] top-32 h-72 w-72 rounded-full bg-[#1bb06e26] blur-3xl" />
+        </div>
 
-          {/* Main content container */}
-          <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-8">
-            {/* Brand section */}
-            <div className="flex flex-col space-y-1.5">
-              <p className="text-[0.65rem] font-bold uppercase tracking-[0.25em] text-neutral-2/90 md:text-[0.7rem]">
-                {t("brand.org", "Umurenge SACCO")}
-              </p>
-              <h1 className="text-gradient text-2xl font-bold leading-tight tracking-tight md:text-3xl">
-                {t("brand.consoleTitle", "Ibimina Staff Console")}
-              </h1>
-              <p className="text-sm font-medium text-neutral-2/80">{saccoName}</p>
-            </div>
+        <header className="relative mx-auto w-full max-w-6xl px-4 pb-4 pt-6 md:px-8">
+          <nav
+            className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent px-6 py-6 shadow-2xl backdrop-blur-xl"
+            aria-label={t("nav.main", "Main navigation")}
+          >
+            {/* Subtle gradient overlay for depth */}
+            <div
+              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/5"
+              aria-hidden="true"
+            />
 
-            {/* Navigation and actions container */}
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
-              {/* Desktop Navigation Links */}
-              <nav
-                className="hidden items-center gap-1.5 md:flex"
-                aria-label={t("nav.sections", "Section navigation")}
-              >
-                <ul className="flex items-center gap-1.5">
-                  {navTargets.map(({ href, primary, badge, icon: Icon }) => {
-                    return (
-                      <li key={href}>
-                        <Link
-                          href={href}
-                          className={cn(
-                            "group relative flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold tracking-tight transition-all duration-200",
-                            isActive(href)
-                              ? "bg-white/25 text-neutral-0 shadow-lg"
-                              : "text-neutral-2 hover:bg-white/15 hover:text-neutral-0 hover:shadow-md"
-                          )}
-                          aria-current={isActive(href) ? "page" : undefined}
-                        >
-                          {/* Active indicator glow */}
-                          {isActive(href) && (
-                            <span
-                              className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-rw-blue/20 to-rw-yellow/10 opacity-50"
+            {/* Main content container */}
+            <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-8">
+              {/* Brand section */}
+              <div className="flex flex-col space-y-1.5">
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.25em] text-neutral-2/90 md:text-[0.7rem]">
+                  {t("brand.org", "Umurenge SACCO")}
+                </p>
+                <h1 className="text-gradient text-2xl font-bold leading-tight tracking-tight md:text-3xl">
+                  {t("brand.consoleTitle", "Ibimina Staff Console")}
+                </h1>
+                <p className="text-sm font-medium text-neutral-2/80">{saccoName}</p>
+              </div>
+
+              {/* Navigation and actions container */}
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
+                {/* Desktop Navigation Links */}
+                <nav
+                  className="hidden items-center gap-1.5 md:flex"
+                  aria-label={t("nav.sections", "Section navigation")}
+                >
+                  <ul className="flex items-center gap-1.5">
+                    {navTargets.map(({ href, primary, badge }, idx) => {
+                      const Icon = NAV_ITEMS[idx].icon;
+                      return (
+                        <li key={href}>
+                          <Link
+                            href={href}
+                            className={cn(
+                              "group relative flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold tracking-tight transition-all duration-200",
+                              isActive(href)
+                                ? "bg-white/25 text-neutral-0 shadow-lg"
+                                : "text-neutral-2 hover:bg-white/15 hover:text-neutral-0 hover:shadow-md"
+                            )}
+                            aria-current={isActive(href) ? "page" : undefined}
+                          >
+                            {/* Active indicator glow */}
+                            {isActive(href) && (
+                              <span
+                                className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-rw-blue/20 to-rw-yellow/10 opacity-50"
+                                aria-hidden="true"
+                              />
+                            )}
+
+                            <Icon
+                              className="relative h-4 w-4 transition-transform group-hover:scale-110"
                               aria-hidden="true"
                             />
-                          )}
+                            <span className="relative leading-none">{primary}</span>
 
-                          <Icon
-                            className="relative h-4 w-4 transition-transform group-hover:scale-110"
-                            aria-hidden="true"
-                          />
-                          <span className="relative leading-none">{primary}</span>
-
-                          {badge && (
-                            <span
-                              className={cn(
-                                "relative ml-1.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                                BADGE_TONE_STYLES[badge.tone]
-                              )}
-                              aria-label={`${badge.label} notification`}
-                            >
-                              {badge.label}
-                            </span>
-                          )}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
-
-              {/* Action buttons */}
-              <div
-                className="flex flex-wrap items-center gap-2.5"
-                role="group"
-                aria-label={t("nav.actions", "Navigation actions")}
-              >
-                {/* Language switcher */}
-                <div className="hidden md:block">
-                  <LanguageSwitcher className="text-xs font-semibold" />
-                </div>
-
-                {/* Sign out button */}
-                <SignOutButton className="rounded-xl border border-border/30 bg-[color:var(--surface-subtle,rgba(255,255,255,0.15))] px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-foreground,#111827)] shadow-sm backdrop-blur-sm transition-colors duration-200 hover:border-border/20 hover:bg-[color:var(--surface-muted,rgba(255,255,255,0.22))] hover:shadow-md border-white/15 bg-white/10 text-neutral-0 hover:bg-white/20 hover:shadow-lg" />
-
-                {/* Search button */}
-                <button
-                  type="button"
-                  onClick={openPalette}
-                  className="group inline-flex items-center gap-2 rounded-xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-0 shadow-md backdrop-blur-sm transition-all hover:border-white/30 hover:from-white/20 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-ink"
-                  aria-haspopup="dialog"
-                  aria-expanded={paletteOpen}
-                  aria-label={t("common.search", "Search")}
-                >
-                  <Search
-                    className="h-4 w-4 transition-transform group-hover:scale-110"
-                    aria-hidden="true"
-                  />
-                  <span>{t("common.search", "Search")}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
-      </header>
-
-      <div className="relative mx-auto flex w-full max-w-6xl flex-1 px-4 pb-28 md:px-8">
-        {children}
-      </div>
-      <OfflineQueueIndicator />
-
-      <nav
-        className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-2xl border border-white/25 bg-gradient-to-br from-ink/95 to-ink/90 px-3 py-3.5 shadow-2xl backdrop-blur-xl md:hidden"
-        aria-label={t("nav.mobile", "Mobile navigation")}
-      >
-        {navTargets.map(({ href, primary, badge, icon: Icon }) => {
-          const isCurrent = isActive(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "group relative flex flex-col items-center gap-1 rounded-lg px-2.5 py-2 text-[0.7rem] font-semibold transition-all",
-                isCurrent
-                  ? "text-neutral-0"
-                  : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
-              )}
-              aria-current={isCurrent ? "page" : undefined}
-              aria-label={primary}
-            >
-              <Icon
-                className={cn(
-                  "h-5 w-5 transition-all",
-                  isCurrent && "drop-shadow-[0_0_8px_rgba(0,161,222,0.5)]"
-                )}
-                aria-hidden="true"
-              />
-              {badge && (
-                <span
-                  className={cn(
-                    "absolute right-1 top-1 h-2 w-2 rounded-full ring-2 ring-ink",
-                    BADGE_DOT_STYLES[badge.tone]
-                  )}
-                  aria-label={`${badge.label} notification`}
-                />
-              )}
-              <span className="leading-none">{primary}</span>
-            </Link>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => setShowActions((v) => !v)}
-          className="group absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-xl bg-kigali px-5 py-3 text-sm font-bold tracking-tight text-ink shadow-2xl transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(0,161,222,0.3)]"
-          aria-expanded={showActions}
-          aria-controls="quick-actions"
-          aria-label={t("dashboard.quick.title", "Quick actions")}
-          ref={quickActionsTriggerRef}
-        >
-          <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" aria-hidden="true" />
-          <span className="flex flex-col text-left leading-none">
-            <span>{t("dashboard.quick.newPrimary", "New")}</span>
-            <span className="text-[0.65rem] font-semibold text-ink/70">
-              {t("dashboard.quick.newSecondary", "New")}
-            </span>
-          </span>
-        </button>
-      </nav>
-
-      <Modal
-        open={showActions}
-        onClose={() => setShowActions(false)}
-        size="md"
-        labelledBy="quick-actions-heading"
-        initialFocusRef={firstQuickActionRef}
-        className="bg-gradient-to-br from-white/10 via-white/5 to-transparent text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
-      >
-        {() => (
-          <div className="space-y-6">
-            <div className="flex items-center gap-2.5 border-b border-white/10 pb-4">
-              <ListPlus className="h-5 w-5 text-rw-blue" aria-hidden="true" />
-              <h2
-                id="quick-actions-heading"
-                className="text-base font-bold uppercase tracking-wider text-neutral-0"
-              >
-                {t("dashboard.quick.title", "Quick actions")}
-              </h2>
-            </div>
-
-            <div className="space-y-6">
-              {quickActionGroups.map((group) => (
-                <section key={group.id} className="space-y-3">
-                  <header className="flex items-baseline justify-between">
-                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-0">
-                      {group.title}
-                    </h3>
-                    <p className="text-[10px] font-medium text-neutral-3">{group.subtitle}</p>
-                  </header>
-                  <ul className="space-y-2.5">
-                    {group.actions.map((action) => (
-                      <li key={`${group.id}-${action.primary}`}>
-                        <Link
-                          href={action.href}
-                          onClick={() => setShowActions(false)}
-                          className="group block rounded-xl border border-white/15 bg-gradient-to-br from-white/10 to-white/5 px-4 py-3.5 text-left transition-all hover:border-white/25 hover:from-white/15 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-transparent"
-                          ref={(element) => {
-                            if (!firstQuickActionRef.current && element) {
-                              firstQuickActionRef.current = element;
-                            }
-                          }}
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 space-y-1">
-                              <p className="text-sm font-bold text-neutral-0 group-hover:text-white">
-                                {action.primary}
-                              </p>
-                              <p className="text-xs leading-relaxed text-neutral-2">
-                                {action.description}
-                              </p>
-                              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-3">
-                                {action.secondary}
-                              </p>
-                              <p className="text-[11px] leading-relaxed text-neutral-3">
-                                {action.secondaryDescription}
-                              </p>
-                            </div>
-                            {action.badge && (
+                            {badge && (
                               <span
                                 className={cn(
-                                  "inline-flex h-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-                                  BADGE_TONE_STYLES[action.badge.tone]
+                                  "relative ml-1.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                                  BADGE_TONE_STYLES[badge.tone]
                                 )}
-                                aria-label={`${action.badge.label} notification`}
+                                aria-label={`${badge.label} notification`}
                               >
-                                {action.badge.label}
+                                {badge.label}
                               </span>
                             )}
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
-                </section>
-              ))}
-            </div>
+                </nav>
 
-            <button
-              type="button"
-              onClick={() => setShowActions(false)}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
-            >
-              <Settings2 className="h-4 w-4" aria-hidden="true" />
-              {t("common.close", "Close")}
-            </button>
-          </div>
+                {/* Action buttons */}
+                <div
+                  className="flex flex-wrap items-center gap-2.5"
+                  role="group"
+                  aria-label={t("nav.actions", "Navigation actions")}
+                >
+                  {/* Language switcher */}
+                  <div className="hidden md:block">
+                    <LanguageSwitcher className="text-xs font-semibold" />
+                  </div>
+
+                  <AssistantVisibilityToggle />
+                  <AssistantLauncher />
+
+                  {/* Sign out button */}
+                  <SignOutButton className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-md backdrop-blur-sm transition-all hover:bg-white/20 hover:shadow-lg" />
+
+                  {/* Search button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowGlobalSearch(true)}
+                    className="group inline-flex items-center gap-2 rounded-xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-0 shadow-md backdrop-blur-sm transition-all hover:border-white/30 hover:from-white/20 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-ink"
+                    aria-haspopup="dialog"
+                    aria-expanded={showGlobalSearch}
+                    aria-label={t("common.search", "Search")}
+                    ref={globalSearchTriggerRef}
+                  >
+                    <Search
+                      className="h-4 w-4 transition-transform group-hover:scale-110"
+                      aria-hidden="true"
+                    />
+                    <span>{t("common.search", "Search")}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </header>
+
+        <div className="relative mx-auto flex w-full max-w-6xl flex-1 px-4 pb-28 md:px-8">
+          <main id="main-content" className="relative z-10 flex-1">
+            {children}
+          </main>
         </div>
-      )}
-    </div>
+        <OfflineQueueIndicator />
+
+        <nav
+          className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-2xl border border-white/25 bg-gradient-to-br from-ink/95 to-ink/90 px-3 py-3.5 shadow-2xl backdrop-blur-xl md:hidden"
+          aria-label={t("nav.mobile", "Mobile navigation")}
+        >
+          {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
+            const badge = navBadges[href];
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "group relative flex flex-col items-center gap-1 rounded-lg px-2.5 py-2 text-[0.7rem] font-semibold transition-all",
+                  isActive(href)
+                    ? "text-neutral-0"
+                    : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
+                )}
+                aria-current={isActive(href) ? "page" : undefined}
+                aria-label={t(key)}
+              >
+                <Icon
+                  className={cn(
+                    "h-5 w-5 transition-all",
+                    isActive(href) && "drop-shadow-[0_0_8px_rgba(0,161,222,0.5)]"
+                  )}
+                  aria-hidden="true"
+                />
+                {badge && (
+                  <span
+                    className={cn(
+                      "absolute right-1 top-1 h-2 w-2 rounded-full ring-2 ring-ink",
+                      BADGE_DOT_STYLES[badge.tone]
+                    )}
+                    aria-label={`${badge.label} notification`}
+                  />
+                )}
+                <span className="leading-none">{t(key)}</span>
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setShowActions((v) => !v)}
+            className="group absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-xl bg-kigali px-5 py-3 text-sm font-bold tracking-tight text-ink shadow-2xl transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(0,161,222,0.3)]"
+            aria-expanded={showActions}
+            aria-controls="quick-actions"
+            aria-label={t("dashboard.quick.title", "Quick actions")}
+            ref={quickActionsTriggerRef}
+          >
+            <Plus
+              className="h-5 w-5 transition-transform group-hover:rotate-90"
+              aria-hidden="true"
+            />
+            <span className="flex flex-col text-left leading-none">
+              <span>{t("dashboard.quick.newPrimary", "New")}</span>
+              <span className="text-[0.65rem] font-semibold text-ink/70">
+                {t("dashboard.quick.newSecondary", "New")}
+              </span>
+            </span>
+          </button>
+        </nav>
+
+        {showActions && (
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-md md:items-center md:justify-end md:pr-6"
+            onClick={() => setShowActions(false)}
+            role="presentation"
+          >
+            <div
+              id="quick-actions"
+              className="m-6 w-full max-w-md rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("dashboard.quick.title", "Quick actions")}
+              onClick={(event) => event.stopPropagation()}
+              ref={quickActionsRef}
+              tabIndex={-1}
+            >
+              {/* Header */}
+              <div className="mb-6 flex items-center gap-2.5 border-b border-white/10 pb-4">
+                <ListPlus className="h-5 w-5 text-rw-blue" aria-hidden="true" />
+                <h2 className="text-base font-bold uppercase tracking-wider text-neutral-0">
+                  {t("dashboard.quick.title", "Quick actions")}
+                </h2>
+              </div>
+
+              {/* Action groups */}
+              <div className="space-y-6">
+                {quickActionGroups.map((group) => (
+                  <section key={group.id} className="space-y-3">
+                    <header className="flex items-baseline justify-between">
+                      <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-0">
+                        {group.title}
+                      </h3>
+                      <p className="text-[10px] font-medium text-neutral-3">{group.subtitle}</p>
+                    </header>
+                    <ul className="space-y-2.5">
+                      {group.actions.map((action) => (
+                        <li key={`${group.id}-${action.primary}`}>
+                          <Link
+                            href={action.href}
+                            onClick={() => setShowActions(false)}
+                            className="group block rounded-xl border border-white/15 bg-gradient-to-br from-white/10 to-white/5 px-4 py-3.5 text-left transition-all hover:border-white/25 hover:from-white/15 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-transparent"
+                            data-quick-focus
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 space-y-1">
+                                <p className="text-sm font-bold text-neutral-0 group-hover:text-white">
+                                  {action.primary}
+                                </p>
+                                <p className="text-xs leading-relaxed text-neutral-2">
+                                  {action.description}
+                                </p>
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-3">
+                                  {action.secondary}
+                                </p>
+                                <p className="text-[11px] leading-relaxed text-neutral-3">
+                                  {action.secondaryDescription}
+                                </p>
+                              </div>
+                              {action.badge && (
+                                <span
+                                  className={cn(
+                                    "inline-flex h-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+                                    BADGE_TONE_STYLES[action.badge.tone]
+                                  )}
+                                  aria-label={`${action.badge.label} notification`}
+                                >
+                                  {action.badge.label}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={() => setShowActions(false)}
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
+                data-quick-focus
+              >
+                <Settings2 className="h-4 w-4" aria-hidden="true" />
+                {t("common.close", "Close")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <AtlasAssistantSidebar />
+
+        <GlobalSearchDialog
+          open={showGlobalSearch}
+          onClose={() => setShowGlobalSearch(false)}
+          profile={profile}
+          navItems={navTargets}
+          quickActions={quickActionTargets}
+        />
+      </div>
+    </AssistantProvider>
   );
 }
