@@ -1,0 +1,513 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format-schema/design-tokens-schema.json",
+  "$version": "1.0.0",
+  "$description": "Design tokens for Ibimina client apps (PWA + Mobile) - Revolut-inspired minimalist system",
+
+  "color": {
+    "$type": "color",
+    "brand": {
+      "primary": {
+        "$value": "#0066FF",
+        "$description": "Atlas blue - primary brand color for CTAs and interactive elements"
+      },
+      "primary-light": {
+        "$value": "#3385FF",
+        "$description": "Lighter atlas blue for hover states"
+      },
+      "primary-dark": {
+        "$value": "#0052CC",
+        "$description": "Darker atlas blue for active/pressed states"
+      },
+      "primary-glow": {
+        "$value": "rgba(0, 102, 255, 0.15)",
+        "$description": "Translucent blue for subtle backgrounds"
+      }
+    },
+
+    "rwanda": {
+      "$description": "National colors of Rwanda (preserved for cultural connection)",
+      "blue": {
+        "$value": "#00A1DE"
+      },
+      "yellow": {
+        "$value": "#FAD201"
+      },
+      "green": {
+        "$value": "#20603D"
+      }
+    },
+
+    "neutral": {
+      "0": { "$value": "#FFFFFF" },
+      "50": { "$value": "#F9FAFB" },
+      "100": { "$value": "#F3F4F6" },
+      "200": { "$value": "#E5E7EB" },
+      "300": { "$value": "#D1D5DB" },
+      "400": { "$value": "#9CA3AF" },
+      "500": { "$value": "#6B7280" },
+      "600": { "$value": "#4B5563" },
+      "700": { "$value": "#374151" },
+      "800": { "$value": "#1F2937" },
+      "900": { "$value": "#111827" },
+      "950": { "$value": "#030712" }
+    },
+
+    "semantic": {
+      "success": {
+        "$value": "#10B981",
+        "$description": "Green for confirmed payments, success states"
+      },
+      "success-light": {
+        "$value": "#D1FAE5",
+        "$description": "Light green for success backgrounds"
+      },
+      "warning": {
+        "$value": "#F59E0B",
+        "$description": "Orange/amber for pending, caution states"
+      },
+      "warning-light": {
+        "$value": "#FEF3C7",
+        "$description": "Light amber for warning backgrounds"
+      },
+      "error": {
+        "$value": "#EF4444",
+        "$description": "Red for errors, failed transactions"
+      },
+      "error-light": {
+        "$value": "#FEE2E2",
+        "$description": "Light red for error backgrounds"
+      },
+      "info": {
+        "$value": "#3B82F6",
+        "$description": "Blue for informational messages"
+      },
+      "info-light": {
+        "$value": "#DBEAFE",
+        "$description": "Light blue for info backgrounds"
+      }
+    },
+
+    "text": {
+      "primary": {
+        "$value": "#111827",
+        "$description": "Main text color (neutral-900) - 15.0:1 contrast on white"
+      },
+      "secondary": {
+        "$value": "#374151",
+        "$description": "Secondary text (neutral-700) - 10.2:1 contrast on white"
+      },
+      "tertiary": {
+        "$value": "#6B7280",
+        "$description": "Tertiary text (neutral-500) - 4.6:1 contrast on white (WCAG AA pass)"
+      },
+      "disabled": {
+        "$value": "#9CA3AF",
+        "$description": "Disabled text (neutral-400)"
+      },
+      "inverse": {
+        "$value": "#FFFFFF",
+        "$description": "Text on dark backgrounds"
+      }
+    },
+
+    "surface": {
+      "base": {
+        "$value": "#FFFFFF",
+        "$description": "Primary background (light mode)"
+      },
+      "elevated": {
+        "$value": "#FFFFFF",
+        "$description": "Cards, modals, elevated surfaces"
+      },
+      "background": {
+        "$value": "#F9FAFB",
+        "$description": "Page background (neutral-50)"
+      },
+      "overlay": {
+        "$value": "rgba(0, 0, 0, 0.5)",
+        "$description": "Modal backdrop overlay"
+      }
+    },
+
+    "border": {
+      "default": {
+        "$value": "#E5E7EB",
+        "$description": "Standard borders (neutral-200)"
+      },
+      "strong": {
+        "$value": "#D1D5DB",
+        "$description": "Emphasized borders (neutral-300)"
+      },
+      "subtle": {
+        "$value": "#F3F4F6",
+        "$description": "Very subtle dividers (neutral-100)"
+      },
+      "focus": {
+        "$value": "#0066FF",
+        "$description": "Focus ring color (brand primary)"
+      }
+    }
+  },
+
+  "spacing": {
+    "$type": "dimension",
+    "$description": "8pt grid system - all spacing uses multiples of 4px",
+    "0": { "$value": "0px" },
+    "1": { "$value": "4px" },
+    "2": { "$value": "8px" },
+    "3": { "$value": "12px" },
+    "4": { "$value": "16px" },
+    "5": { "$value": "20px" },
+    "6": { "$value": "24px" },
+    "7": { "$value": "28px" },
+    "8": { "$value": "32px" },
+    "10": { "$value": "40px" },
+    "12": { "$value": "48px" },
+    "16": { "$value": "64px" },
+    "20": { "$value": "80px" },
+    "24": { "$value": "96px" }
+  },
+
+  "typography": {
+    "fontFamily": {
+      "$type": "fontFamily",
+      "base": {
+        "$value": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "$description": "System font stack for native performance"
+      },
+      "mono": {
+        "$value": "'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace",
+        "$description": "Monospace for codes, references"
+      }
+    },
+
+    "fontSize": {
+      "$type": "dimension",
+      "xs": { "$value": "12px", "$description": "Captions, labels" },
+      "sm": { "$value": "14px", "$description": "Body small, secondary text" },
+      "base": { "$value": "16px", "$description": "Body text (default)" },
+      "lg": { "$value": "18px", "$description": "Emphasized body" },
+      "xl": { "$value": "20px", "$description": "Small headings" },
+      "2xl": { "$value": "24px", "$description": "Section headings" },
+      "3xl": { "$value": "30px", "$description": "Page headings" },
+      "4xl": { "$value": "36px", "$description": "Display text" },
+      "5xl": { "$value": "48px", "$description": "Hero text (rare)" }
+    },
+
+    "fontWeight": {
+      "$type": "number",
+      "regular": { "$value": 400, "$description": "Body text" },
+      "medium": { "$value": 500, "$description": "Slightly emphasized" },
+      "semibold": { "$value": 600, "$description": "Headings, buttons" },
+      "bold": { "$value": 700, "$description": "Strong emphasis" }
+    },
+
+    "lineHeight": {
+      "$type": "number",
+      "tight": { "$value": 1.25, "$description": "Headings" },
+      "normal": { "$value": 1.5, "$description": "Body text" },
+      "relaxed": { "$value": 1.75, "$description": "Long-form content" }
+    },
+
+    "letterSpacing": {
+      "$type": "dimension",
+      "tight": { "$value": "-0.02em" },
+      "normal": { "$value": "0em" },
+      "wide": { "$value": "0.02em" },
+      "wider": { "$value": "0.05em" }
+    }
+  },
+
+  "borderRadius": {
+    "$type": "dimension",
+    "$description": "Consistent corner rounding",
+    "none": { "$value": "0px" },
+    "sm": { "$value": "4px", "$description": "Small elements" },
+    "base": { "$value": "8px", "$description": "Buttons, inputs (default)" },
+    "md": { "$value": "12px", "$description": "Cards, panels" },
+    "lg": { "$value": "16px", "$description": "Large cards" },
+    "xl": { "$value": "20px", "$description": "Prominent cards" },
+    "2xl": { "$value": "24px", "$description": "Feature cards" },
+    "full": { "$value": "9999px", "$description": "Pills, badges" }
+  },
+
+  "shadow": {
+    "$type": "shadow",
+    "$description": "3-tier elevation system",
+    "none": {
+      "$value": {
+        "color": "rgba(0, 0, 0, 0)",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "0px"
+      }
+    },
+    "sm": {
+      "$value": {
+        "color": "rgba(0, 0, 0, 0.05)",
+        "offsetX": "0px",
+        "offsetY": "1px",
+        "blur": "2px",
+        "spread": "0px"
+      },
+      "$description": "Subtle lift - buttons on hover"
+    },
+    "base": {
+      "$value": {
+        "color": "rgba(0, 0, 0, 0.1)",
+        "offsetX": "0px",
+        "offsetY": "2px",
+        "blur": "8px",
+        "spread": "0px"
+      },
+      "$description": "Standard elevation - cards, dropdowns"
+    },
+    "md": {
+      "$value": {
+        "color": "rgba(0, 0, 0, 0.15)",
+        "offsetX": "0px",
+        "offsetY": "4px",
+        "blur": "16px",
+        "spread": "0px"
+      },
+      "$description": "Elevated elements - modals, sheets"
+    },
+    "lg": {
+      "$value": {
+        "color": "rgba(0, 0, 0, 0.2)",
+        "offsetX": "0px",
+        "offsetY": "8px",
+        "blur": "24px",
+        "spread": "0px"
+      },
+      "$description": "Floating - FABs, prominent modals"
+    },
+    "focus": {
+      "$value": {
+        "color": "rgba(0, 102, 255, 0.3)",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "3px"
+      },
+      "$description": "Focus ring for accessibility"
+    }
+  },
+
+  "motion": {
+    "duration": {
+      "$type": "duration",
+      "instant": { "$value": "0ms", "$description": "No animation" },
+      "fast": { "$value": "100ms", "$description": "Quick feedback (hover, tap)" },
+      "base": { "$value": "150ms", "$description": "Standard transitions" },
+      "slow": { "$value": "200ms", "$description": "Deliberate movements" },
+      "slower": { "$value": "300ms", "$description": "Page transitions, sheets" }
+    },
+
+    "easing": {
+      "$type": "cubicBezier",
+      "linear": { "$value": [0, 0, 1, 1] },
+      "easeIn": { "$value": [0.4, 0, 1, 1], "$description": "Accelerating" },
+      "easeOut": { "$value": [0, 0, 0.2, 1], "$description": "Decelerating (default)" },
+      "easeInOut": { "$value": [0.4, 0, 0.2, 1], "$description": "Smooth both ends" },
+      "bounce": { "$value": [0.68, -0.55, 0.265, 1.55], "$description": "Playful overshoot" }
+    }
+  },
+
+  "size": {
+    "touchTarget": {
+      "$type": "dimension",
+      "$description": "Minimum interactive element sizes for accessibility (WCAG 2.2 AA requires 44x44pt)",
+      "minimum": { "$value": "44px" },
+      "comfortable": { "$value": "48px", "$description": "Recommended for primary actions" },
+      "large": { "$value": "56px", "$description": "Prominent buttons" }
+    },
+
+    "icon": {
+      "$type": "dimension",
+      "xs": { "$value": "12px" },
+      "sm": { "$value": "16px", "$description": "Inline with text" },
+      "base": { "$value": "20px", "$description": "Standard icon size" },
+      "md": { "$value": "24px", "$description": "Emphasized icons" },
+      "lg": { "$value": "28px", "$description": "Large icons" },
+      "xl": { "$value": "32px", "$description": "Feature icons" }
+    },
+
+    "avatar": {
+      "$type": "dimension",
+      "sm": { "$value": "32px" },
+      "base": { "$value": "40px" },
+      "lg": { "$value": "48px" },
+      "xl": { "$value": "64px" }
+    }
+  },
+
+  "opacity": {
+    "$type": "number",
+    "0": { "$value": 0 },
+    "5": { "$value": 0.05 },
+    "10": { "$value": 0.1 },
+    "20": { "$value": 0.2 },
+    "30": { "$value": 0.3 },
+    "40": { "$value": 0.4 },
+    "50": { "$value": 0.5 },
+    "60": { "$value": 0.6 },
+    "70": { "$value": 0.7 },
+    "80": { "$value": 0.8 },
+    "90": { "$value": 0.9 },
+    "100": { "$value": 1 },
+
+    "disabled": { "$value": 0.4, "$description": "Disabled elements" },
+    "loading": { "$value": 0.6, "$description": "Loading states" }
+  },
+
+  "breakpoint": {
+    "$type": "dimension",
+    "$description": "Responsive breakpoints",
+    "xs": { "$value": "0px", "$description": "Mobile portrait" },
+    "sm": { "$value": "640px", "$description": "Mobile landscape" },
+    "md": { "$value": "768px", "$description": "Tablet portrait" },
+    "lg": { "$value": "1024px", "$description": "Tablet landscape / small desktop" },
+    "xl": { "$value": "1280px", "$description": "Desktop" },
+    "2xl": { "$value": "1536px", "$description": "Large desktop" }
+  },
+
+  "zIndex": {
+    "$type": "number",
+    "$description": "Layering hierarchy",
+    "base": { "$value": 0 },
+    "dropdown": { "$value": 10 },
+    "sticky": { "$value": 20 },
+    "fixed": { "$value": 30 },
+    "modalBackdrop": { "$value": 40 },
+    "modal": { "$value": 50 },
+    "popover": { "$value": 60 },
+    "tooltip": { "$value": 70 },
+    "toast": { "$value": 80 },
+    "debug": { "$value": 9999 }
+  },
+
+  "component": {
+    "$description": "Component-specific tokens (semantic combinations)",
+
+    "button": {
+      "primary": {
+        "background": { "$value": "{color.brand.primary}" },
+        "backgroundHover": { "$value": "{color.brand.primary-light}" },
+        "backgroundActive": { "$value": "{color.brand.primary-dark}" },
+        "text": { "$value": "{color.text.inverse}" },
+        "height": { "$value": "{size.touchTarget.comfortable}" },
+        "paddingX": { "$value": "{spacing.6}" },
+        "paddingY": { "$value": "{spacing.3}" },
+        "borderRadius": { "$value": "{borderRadius.base}" },
+        "fontWeight": { "$value": "{typography.fontWeight.semibold}" }
+      },
+      "secondary": {
+        "background": { "$value": "{color.neutral.100}" },
+        "backgroundHover": { "$value": "{color.neutral.200}" },
+        "backgroundActive": { "$value": "{color.neutral.300}" },
+        "text": { "$value": "{color.text.primary}" },
+        "height": { "$value": "{size.touchTarget.comfortable}" },
+        "paddingX": { "$value": "{spacing.6}" },
+        "paddingY": { "$value": "{spacing.3}" },
+        "borderRadius": { "$value": "{borderRadius.base}" },
+        "fontWeight": { "$value": "{typography.fontWeight.semibold}" }
+      },
+      "ghost": {
+        "background": { "$value": "transparent" },
+        "backgroundHover": { "$value": "{color.neutral.100}" },
+        "text": { "$value": "{color.text.primary}" },
+        "height": { "$value": "{size.touchTarget.minimum}" },
+        "paddingX": { "$value": "{spacing.4}" },
+        "paddingY": { "$value": "{spacing.2}" }
+      }
+    },
+
+    "card": {
+      "background": { "$value": "{color.surface.elevated}" },
+      "border": { "$value": "{color.border.default}" },
+      "borderRadius": { "$value": "{borderRadius.lg}" },
+      "padding": { "$value": "{spacing.6}" },
+      "shadow": { "$value": "{shadow.base}" },
+      "shadowHover": { "$value": "{shadow.md}" }
+    },
+
+    "input": {
+      "background": { "$value": "{color.surface.base}" },
+      "border": { "$value": "{color.border.default}" },
+      "borderFocus": { "$value": "{color.border.focus}" },
+      "borderRadius": { "$value": "{borderRadius.base}" },
+      "height": { "$value": "{size.touchTarget.comfortable}" },
+      "paddingX": { "$value": "{spacing.4}" },
+      "paddingY": { "$value": "{spacing.3}" },
+      "text": { "$value": "{color.text.primary}" },
+      "placeholder": { "$value": "{color.text.tertiary}" }
+    },
+
+    "badge": {
+      "success": {
+        "background": { "$value": "{color.semantic.success-light}" },
+        "text": { "$value": "{color.semantic.success}" }
+      },
+      "warning": {
+        "background": { "$value": "{color.semantic.warning-light}" },
+        "text": { "$value": "{color.semantic.warning}" }
+      },
+      "error": {
+        "background": { "$value": "{color.semantic.error-light}" },
+        "text": { "$value": "{color.semantic.error}" }
+      },
+      "info": {
+        "background": { "$value": "{color.semantic.info-light}" },
+        "text": { "$value": "{color.semantic.info}" }
+      },
+      "neutral": {
+        "background": { "$value": "{color.neutral.100}" },
+        "text": { "$value": "{color.text.secondary}" }
+      },
+      "paddingX": { "$value": "{spacing.2}" },
+      "paddingY": { "$value": "{spacing.1}" },
+      "borderRadius": { "$value": "{borderRadius.full}" },
+      "fontSize": { "$value": "{typography.fontSize.xs}" },
+      "fontWeight": { "$value": "{typography.fontWeight.semibold}" }
+    },
+
+    "modal": {
+      "backdrop": { "$value": "{color.surface.overlay}" },
+      "background": { "$value": "{color.surface.elevated}" },
+      "borderRadius": { "$value": "{borderRadius.2xl}" },
+      "shadow": { "$value": "{shadow.lg}" },
+      "paddingX": { "$value": "{spacing.6}" },
+      "paddingY": { "$value": "{spacing.8}" },
+      "maxWidth": { "$value": "448px", "$description": "28rem" }
+    },
+
+    "bottomNav": {
+      "background": { "$value": "{color.surface.base}" },
+      "border": { "$value": "{color.border.default}" },
+      "height": { "$value": "64px" },
+      "itemActive": {
+        "background": { "$value": "{color.brand.primary-glow}" },
+        "text": { "$value": "{color.brand.primary}" }
+      },
+      "itemInactive": {
+        "text": { "$value": "{color.text.secondary}" }
+      }
+    }
+  },
+
+  "mobile": {
+    "$description": "Mobile-specific tokens (React Native)",
+    "statusBar": {
+      "height": { "$value": "44px", "$description": "iOS notch area" }
+    },
+    "tabBar": {
+      "height": { "$value": "60px" },
+      "paddingBottom": { "$value": "8px", "$description": "Safe area inset" }
+    },
+    "headerHeight": {
+      "$value": "56px"
+    }
+  }
+}
