@@ -170,6 +170,13 @@ export default async function DashboardPage() {
           }
         >
           <EmptyState
+            tone="offline"
+            offlineHint={
+              <Trans
+                i18nKey="dashboard.cached.offlineHint"
+                fallback="Offline changes will sync once you're back online."
+              />
+            }
             title={<Trans i18nKey="dashboard.cached.action" fallback="Reconnect to refresh data" />}
             description={
               <Trans
@@ -212,6 +219,7 @@ export default async function DashboardPage() {
           <MissedContributorsList contributors={summary.missedContributors} />
         ) : (
           <EmptyState
+            tone="quiet"
             title="All caught up"
             description="Every active member has a recent contribution."
           />

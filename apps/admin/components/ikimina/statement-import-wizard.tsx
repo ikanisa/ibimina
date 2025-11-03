@@ -15,6 +15,7 @@ import { parseTabularFile } from "@/lib/imports/file-parser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
 import { useTranslation } from "@/providers/i18n-provider";
 
 const REQUIRED_FIELDS = [
@@ -481,9 +482,15 @@ export function StatementImportWizard({
         {t("statement.trigger", "Import statements")}
       </Button>
 
-      {open && canImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="glass relative w-full max-w-2xl rounded-3xl p-6 text-neutral-0">
+      <Modal
+        open={open && canImport}
+        onClose={reset}
+        size="xl"
+        labelledBy="statement-import-heading"
+        className="glass relative w-full max-w-2xl rounded-3xl p-6 text-neutral-0"
+      >
+        {() => (
+          <div className="relative space-y-6">
             {(parsing || smsParsing) && (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-3xl bg-black/40">
                 <Skeleton className="h-6 w-48" />
@@ -495,7 +502,7 @@ export function StatementImportWizard({
                 <p className="text-xs uppercase tracking-[0.3em] text-neutral-2">
                   Statement import
                 </p>
-                <h2 className="text-lg font-semibold">
+                <h2 id="statement-import-heading" className="text-lg font-semibold">
                   Step {step} · {fileName ?? "Upload"}
                 </h2>
               </div>
@@ -558,371 +565,185 @@ export function StatementImportWizard({
                         {error}
                       </p>
                     )}
-                    <p className="text-xs text-neutral-2">
-                      {t(
-                        "statement.upload.requiredCols",
-                        "Required columns: date, transaction id, amount, msisdn. Optional: reference."
-                      )}
-                    </p>
                   </>
                 ) : (
                   <>
-                    <p>
-                      {t(
-                        "statement.sms.intro",
-                        "Paste one or more MoMo SMS messages. Each line should be a full SMS."
-                      )}
-                    </p>
+                    <label className="block text-xs uppercase tracking-[0.3em] text-neutral-2">
+                      {t("statement.sms.heading", "Paste SMS log")}
+                    </label>
                     <textarea
                       value={smsInput}
                       onChange={(event) => setSmsInput(event.target.value)}
-                      rows={6}
-                      className="w-full rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                      placeholder="You have received RWF 15,000 from 078xxxxxxx (John Doe). Ref: ..."
+                      className="h-40 w-full rounded-2xl border border-white/10 bg-white/10 p-3 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
+                      placeholder={t(
+                        "statement.sms.placeholder",
+                        "Paste MoMo alert text messages separated by new lines"
+                      )}
                     />
-                    {smsError && (
-                      <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">
-                        {smsError}
-                      </p>
-                    )}
-                    <div className="flex justify-end">
-                      <Button type="button" onClick={handleSmsParse} size="sm">
-                        {t("statement.sms.parse", "Parse SMS")}
-                      </Button>
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-2">
+                      <span>{t("statement.sms.hint", "We’ll parse MTN alerts automatically")}</span>
+                      <button
+                        type="button"
+                        className="rounded-full border border-white/15 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-2 hover:border-white/30 hover:text-neutral-0"
+                        onClick={() => setSmsInput("")}
+                      >
+                        {t("common.clear", "Clear")}
+                      </button>
                     </div>
                   </>
                 )}
               </div>
             )}
 
-            {step === 2 && (
-              <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>
-                  {t(
-                    "statement.map.intro",
-                    "Assign each required field to a column using the selectors below."
-                  )}
-                </p>
-                <div className="flex flex-wrap gap-2 text-[11px] text-neutral-2">
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    {t("statement.map.columnsAvailable", "Columns detected:")} {headers.length}
-                  </span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    {t("statement.map.assigned", "Assigned:")} {Object.keys(mapping).length}
-                  </span>
+            {step === 2 && importMode === "file" && (
+              <div className="mt-6 space-y-5">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-neutral-2">
+                  <p className="text-sm text-neutral-0">
+                    {t("statement.preview.intro", "Preview and map your columns before importing.")}
+                  </p>
+                  <p className="mt-2">
+                    {t(
+                      "statement.preview.instructions",
+                      "Match all required fields. Optional fields improve reconciliation accuracy."
+                    )}
+                  </p>
                 </div>
-                <p className="text-[11px] text-neutral-2">
-                  {t(
-                    "statement.map.keyboard",
-                    "Use arrow keys and enter to choose columns. Each column may only be assigned once."
-                  )}
-                </p>
-                {[...REQUIRED_FIELDS, ...OPTIONAL_FIELDS].map((field) => {
-                  const assigned = mapping[field.key] ?? "";
-                  const maskOptions = getMaskOptions(field.key);
-                  const selectedMask = masks[field.key];
-                  const activeMask = maskOptions.find((mask) => mask.id === selectedMask);
-                  return (
+
+                <div className="space-y-4">
+                  {processedRows.slice(0, 5).map((row, idx) => (
                     <div
-                      key={field.key}
-                      className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4"
+                      key={row.rowNumber}
+                      className="rounded-2xl border border-white/10 bg-white/5 p-4"
                     >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                        <label className="flex flex-1 flex-col gap-2 text-sm text-neutral-0">
-                          <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                            {field.label}
+                      <header className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.3em] text-neutral-2">
+                        <span>
+                          {t("statement.preview.row", "Row {row}", { row: row.rowNumber })}
+                        </span>
+                        {row.errors.length > 0 && (
+                          <span className="rounded-full bg-red-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-red-300">
+                            {t("statement.preview.hasErrors", "Needs attention")}
                           </span>
-                          <select
-                            value={assigned}
-                            onChange={(event) => handleMappingChange(field.key, event.target.value)}
-                            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                          >
-                            <option value="">{t("statement.map.choose", "Choose column")}</option>
-                            {headers.map((header) => (
-                              <option key={header} value={header}>
-                                {header}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        {assigned && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleMappingChange(field.key, "")}
-                          >
-                            {t("common.clear", "Clear")}
-                          </Button>
                         )}
+                      </header>
+
+                      <div className="grid gap-3 text-sm text-neutral-0 sm:grid-cols-2">
+                        {REQUIRED_FIELDS.map((field) => (
+                          <div key={field.key}>
+                            <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                              {field.label}
+                            </label>
+                            <p className="mt-1 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm">
+                              {row.cells[field.key]?.display ?? "—"}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                      {maskOptions.length > 0 && (
-                        <div className="flex items-center justify-between gap-3 text-[11px] text-neutral-2">
-                          <span>{t("statement.map.validationMask", "Validation mask")}</span>
-                          <select
-                            value={selectedMask}
-                            onChange={(event) =>
-                              setMasks((current) => ({
-                                ...current,
-                                [field.key]: event.target.value,
-                              }))
-                            }
-                            className="rounded-xl border border-white/10 bg-white/10 px-3 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                          >
-                            {maskOptions.map((mask) => (
-                              <option key={mask.id} value={mask.id}>
-                                {mask.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                      <p className="text-[11px] text-neutral-2">{field.hint}</p>
-                      {activeMask?.description && (
-                        <p className="text-[10px] text-neutral-2">{activeMask.description}</p>
+
+                      <div className="mt-4 grid gap-3 text-sm text-neutral-0 sm:grid-cols-2">
+                        {OPTIONAL_FIELDS.map((field) => (
+                          <div key={field.key}>
+                            <label className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                              {field.label}
+                            </label>
+                            <p className="mt-1 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm">
+                              {row.cells[field.key]?.display ?? "—"}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {row.errors.length > 0 && (
+                        <ul className="mt-4 space-y-2">
+                          {row.errors.map((error, errorIdx) => (
+                            <li
+                              key={`${row.rowNumber}-error-${errorIdx}`}
+                              className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-200"
+                            >
+                              {error.message}
+                            </li>
+                          ))}
+                        </ul>
                       )}
                     </div>
-                  );
-                })}
-                <div className="flex justify-end gap-2">
-                  <button
-                    className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
-                    onClick={() => setStep(1)}
+                  ))}
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={reset}
+                    className="border border-white/15 bg-transparent text-neutral-0 hover:border-white/30"
                   >
                     {t("common.back", "Back")}
-                  </button>
-                  <button
-                    className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
-                    disabled={!mappingComplete}
-                    onClick={() => {
-                      if (!mappingComplete) {
-                        const msg = "Map all required fields before continuing.";
-                        setError(
-                          toBilingual(
-                            msg,
-                            "Shyira ahakwiye imirongo yose ibisabwa mbere yo gukomeza."
-                          )
-                        );
-                        notifyError(
-                          msg,
-                          "Shyira ahakwiye imirongo yose ibisabwa mbere yo gukomeza."
-                        );
-                        return;
-                      }
-                      setError(null);
-                      setStep(3);
-                    }}
-                  >
-                    {t("common.review", "Review")}
-                  </button>
+                  </Button>
+                  <Button type="button" onClick={startImport} disabled={parsing}>
+                    {parsing ? t("common.working", "Working…") : t("common.import", "Import")}
+                  </Button>
                 </div>
               </div>
             )}
 
-            {step === 3 && (
+            {step === 2 && importMode === "sms" && (
               <div className="mt-6 space-y-4 text-sm text-neutral-0">
-                <p>
+                <p className="text-sm text-neutral-0">
                   {t(
-                    "statement.preview.intro",
-                    "Preview the first rows. Invalid entries are highlighted."
+                    "statement.sms.instructions",
+                    "We'll extract amounts, dates, and member references. Review the preview before confirming."
                   )}
                 </p>
-                <div className="flex flex-wrap gap-2 text-xs text-neutral-2">
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    {t("statement.preview.autoMatch", "Likely auto-match:")}{" "}
-                    {parserFeedback.autoMatch}
-                  </span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    {t("statement.preview.duplicateRows", "Duplicate rows:")}{" "}
-                    {parserFeedback.duplicateRows}
-                  </span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    {t("statement.preview.missingRef", "Missing references:")}{" "}
-                    {parserFeedback.missingReference}
-                  </span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    {t("statement.preview.invalidMsisdn", "Invalid MSISDN:")}{" "}
-                    {parserFeedback.invalidMsisdn}
-                  </span>
-                  <span className="rounded-full bg-white/5 px-3 py-1">
-                    {t("statement.preview.invalidDates", "Invalid dates:")}{" "}
-                    {parserFeedback.invalidDate}
-                  </span>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap text-xs text-neutral-2">
+                    {smsInput}
+                  </pre>
                 </div>
-                <div className="max-h-64 overflow-auto rounded-2xl border border-white/10">
-                  <table className="w-full border-collapse text-xs">
-                    <thead className="bg-white/5 text-left uppercase tracking-[0.2em] text-neutral-2">
-                      <tr>
-                        <th className="px-4 py-2">Occurred</th>
-                        <th className="px-4 py-2">Txn ID</th>
-                        <th className="px-4 py-2">MSISDN</th>
-                        <th className="px-4 py-2">Amount</th>
-                        <th className="px-4 py-2">Reference</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {processedRows.slice(0, 20).map((row) => {
-                        const occurredCell = row.cells.occurredAt as ProcessedCell;
-                        const txnCell = row.cells.txnId as ProcessedCell;
-                        const msisdnCell = row.cells.msisdn as ProcessedCell;
-                        const amountCell = row.cells.amount as ProcessedCell;
-                        const referenceCell = row.cells.reference as ProcessedCell | undefined;
-                        const invalid = row.errors.length > 0;
-                        const duplicate = parserFeedback.duplicateTxnIds.has(row.record.txnId);
-                        const missingReference = !row.record.reference;
-                        const className = invalid
-                          ? "bg-red-500/10"
-                          : duplicate
-                            ? "bg-amber-500/10"
-                            : undefined;
-                        const occurredDisplay =
-                          typeof occurredCell?.value === "string" && occurredCell.value
-                            ? new Date(occurredCell.value).toLocaleString()
-                            : (occurredCell?.value ?? "");
-                        const amountDisplay =
-                          typeof amountCell?.value === "number"
-                            ? amountCell.value
-                            : Number(amountCell?.value ?? 0);
-                        return (
-                          <tr key={row.index} className={className}>
-                            <td className="px-4 py-2 text-neutral-0">
-                              {occurredDisplay || "—"}
-                              {!occurredCell?.valid && occurredCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">
-                                  {occurredCell.reason}
-                                </p>
-                              )}
-                            </td>
-                            <td className="px-4 py-2 text-neutral-2">
-                              {txnCell?.value ?? "—"}
-                              {!txnCell?.valid && txnCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">{txnCell.reason}</p>
-                              )}
-                              {duplicate && (
-                                <p className="mt-1 text-[10px] text-amber-200">
-                                  Duplicate txn ID in this file
-                                </p>
-                              )}
-                            </td>
-                            <td className="px-4 py-2 text-neutral-2">
-                              {msisdnCell?.value ?? "—"}
-                              {!msisdnCell?.valid && msisdnCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">
-                                  {msisdnCell.reason}
-                                </p>
-                              )}
-                            </td>
-                            <td className="px-4 py-2 text-neutral-2">
-                              {Number.isFinite(amountDisplay) && amountDisplay > 0
-                                ? amountFormatter.format(amountDisplay)
-                                : (amountCell?.value ?? "—")}
-                              {!amountCell?.valid && amountCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">
-                                  {amountCell.reason}
-                                </p>
-                              )}
-                            </td>
-                            <td className="px-4 py-2 text-neutral-2">
-                              {referenceCell?.value ?? "—"}
-                              {missingReference && (
-                                <p className="mt-1 text-[10px] text-amber-200">
-                                  {t(
-                                    "statement.preview.noRefHint",
-                                    "No reference · will require manual allocation"
-                                  )}
-                                </p>
-                              )}
-                              {!referenceCell?.valid && referenceCell?.reason && (
-                                <p className="mt-1 text-[10px] text-amber-200">
-                                  {referenceCell.reason}
-                                </p>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="flex items-start justify-between gap-4">
-                  <button
-                    className="interactive-scale rounded-xl border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
-                    onClick={() => setStep(2)}
+                <div className="flex justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={reset}
+                    className="border border-white/15 bg-transparent text-neutral-0 hover:border-white/30"
                   >
                     {t("common.back", "Back")}
-                  </button>
-                  <div className="flex flex-1 flex-col gap-2 text-right">
-                    <div className="text-xs text-neutral-2">
-                      Valid rows: {validRows.length} / {processedRows.length}
+                  </Button>
+                  <Button type="button" onClick={startSmsImport} disabled={smsParsing}>
+                    {smsParsing ? t("common.working", "Working…") : t("common.import", "Import")}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && result && (
+              <div className="mt-6 space-y-5">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-col">
+                      <span className="text-xs uppercase tracking-[0.3em] text-neutral-2">
+                        {t("statement.results.summary", "Import summary")}
+                      </span>
+                      <span className="text-lg font-semibold text-neutral-0">{message}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleConfirm}
-                      disabled={
-                        pending ||
-                        !mappingComplete ||
-                        validRows.length === 0 ||
-                        invalidRows.length > 0
-                      }
-                      className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink shadow-glass disabled:opacity-60"
-                    >
-                      {pending
-                        ? t("statement.import.importing", "Importing…")
-                        : t("statement.import.confirm", "Confirm import")}
-                    </button>
-                    {error && (
-                      <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-300">
-                        {error}
-                      </p>
-                    )}
-                    {message && (
-                      <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
-                        {message}
-                      </p>
-                    )}
-                    {invalidRows.length > 0 && (
-                      <div className="rounded-xl bg-amber-500/10 px-3 py-2 text-left text-[11px] text-amber-200">
-                        <p>{invalidRows.length} row(s) need fixes before importing.</p>
-                        <ul className="mt-1 space-y-1">
-                          {invalidRows.slice(0, 3).map((row) => (
-                            <li key={row.index}>
-                              Row {row.index + 1}: {row.errors[0]}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {parserFeedback.duplicateRows > 0 && (
-                      <div className="rounded-xl bg-white/5 px-3 py-2 text-left text-[11px] text-neutral-2">
-                        <p>
-                          {t(
-                            "statement.preview.duplicatesHint",
-                            "Duplicate txn IDs detected. They will be skipped by the importer."
-                          )}
-                        </p>
-                      </div>
-                    )}
-                    {result && (
-                      <div className="space-y-2 rounded-2xl bg-white/10 px-3 py-2 text-[11px] text-neutral-0">
-                        <p>Inserted: {result.inserted}</p>
-                        <p>Posted: {result.posted}</p>
-                        <p>Unallocated: {result.unallocated}</p>
-                        <p>Duplicates skipped: {result.duplicates}</p>
-                        <Link
-                          href="/recon"
-                          className="inline-block text-xs font-semibold uppercase tracking-[0.3em] text-rw-yellow hover:underline"
-                        >
-                          {t("statement.preview.viewRecon", "View in Recon →")}
-                        </Link>
-                      </div>
-                    )}
+                    <div className="ml-auto flex gap-2 text-xs">
+                      <Link
+                        href={result.reportUrl ?? "#"}
+                        className="inline-flex items-center gap-1 rounded-full border border-white/15 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-neutral-2 transition hover:border-white/30 hover:text-neutral-0"
+                      >
+                        {t("statement.results.download", "Download report")}
+                      </Link>
+                    </div>
                   </div>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button type="button" variant="secondary" onClick={reset}>
+                    {t("common.done", "Done")}
+                  </Button>
                 </div>
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

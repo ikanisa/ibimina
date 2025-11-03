@@ -15,6 +15,7 @@ const onboardSchema = z.object({
     })
     .nullable()
     .optional(),
+  preferred_language: z.string().trim().toLowerCase().min(2).max(5).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest) {
     momo_msisdn: data.momo_msisdn,
     ocr_json: data.ocr_json ?? null,
     id_number: data.ocr_json?.idNumber ?? null,
+    lang: data.preferred_language ?? null,
     updated_at: now,
   };
 
@@ -82,6 +84,7 @@ export async function POST(request: NextRequest) {
       momo_msisdn: data.momo_msisdn,
       ocr_json: data.ocr_json ?? null,
       id_number: data.ocr_json?.idNumber ?? null,
+      lang: data.preferred_language ?? null,
       created_at: now,
       updated_at: now,
     };
