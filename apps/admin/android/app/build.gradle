@@ -91,19 +91,19 @@ android {
     }
 }
 
-afterEvaluate {
-    android.applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            def fileName = output.outputFileName
-            if (!fileName) {
-                return
-            }
-            def dotIndex = fileName.lastIndexOf('.')
-            def extension = dotIndex >= 0 ? fileName.substring(dotIndex) : ''
-            output.outputFileName = "ibimina-staff-${variant.versionName}-${variant.baseName}${extension}"
-        }
-    }
-}
+// afterEvaluate {
+//     android.applicationVariants.all { variant ->
+//         variant.outputs.each { output ->
+//             def fileName = output.outputFileName
+//             if (!fileName) {
+//                 return
+//             }
+//             def dotIndex = fileName.lastIndexOf('.')
+//             def extension = dotIndex >= 0 ? fileName.substring(dotIndex) : ''
+//             output.outputFileName = "ibimina-staff-${variant.versionName}-${variant.baseName}${extension}"
+//         }
+//     }
+// }
 
 repositories {
     flatDir{
@@ -121,13 +121,13 @@ dependencies {
 
     // Biometric Authentication for Device-Bound Auth
     implementation "androidx.biometric:biometric:1.1.0"
-    
+
     // WorkManager for SMS background sync
     implementation "androidx.work:work-runtime-ktx:2.8.1"
-    
+
     // Kotlin coroutines for SmsReceiver
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
-    
+
     testImplementation "junit:junit:$junitVersion"
     testImplementation "io.mockk:mockk:1.13.8"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3"
@@ -143,6 +143,6 @@ try {
     if (servicesJSON.text) {
         apply plugin: 'com.google.gms.google-services'
     }
-} catch(Exception e) {
+} catch(java.lang.Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }

@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      packages: write
+      
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Build
+        run: pnpm build:production
+        env:
+          VITE_API_BASE_URL: ${{ secrets.API_BASE_URL || 'https://api.example.com' }}
+          VITE_PUSH_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          
+      - name: Create dist archive
+        run: |
+          cd dist
+          zip -r ../dist.zip .
+          cd ..
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Build Docker image
+        if: ${{ secrets.PUBLISH_DOCKER == 'true' }}
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -f deploy/nginx/Dockerfile -t ghcr.io/${{ github.repository }}:${{ github.ref_name }} .
+          docker push ghcr.io/${{ github.repository }}:${{ github.ref_name }}
