@@ -253,6 +253,7 @@ export function MemberImportWizard({ ikiminaId, saccoId }: MemberImportWizardPro
       <button
         type="button"
         onClick={() => setOpen(true)}
+        data-member-import-trigger={ikiminaId}
         className="interactive-scale rounded-xl bg-kigali px-4 py-2 text-sm font-semibold text-ink shadow-glass"
       >
         {t("ikimina.import.button", "Spreadsheet import")}

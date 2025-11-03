@@ -28,7 +28,11 @@ import { AdminPanelTopBar } from "@/components/admin/panel/top-bar";
 import type { PanelBadgeTone, PanelIconKey, TenantOption } from "@/components/admin/panel/types";
 import { ADMIN_NAV_LINKS } from "@/components/admin/panel/nav-items";
 import { AdminPanelShortcuts } from "@/components/admin/panel/shortcuts";
-import { Drawer } from "@/components/ui/drawer";
+import {
+  CommandPaletteProvider,
+  type CommandActionGroup as PaletteActionGroup,
+  type CommandNavTarget as PaletteNavTarget,
+} from "@/src/components/common/CommandPalette";
 
 interface AdminPanelShellProps {
   children: React.ReactNode;
@@ -117,6 +121,59 @@ export function AdminPanelShell({
     });
   }, [alertsBreakdown]);
 
+  const paletteNavTargets = useMemo<PaletteNavTarget[]>(
+    () =>
+      navItems.map((item) => ({
+        id: item.href,
+        href: item.href,
+        label: item.label,
+        description: item.label,
+        badge: item.badge
+          ? {
+              label: item.badge.label,
+              tone: item.badge.tone as "critical" | "info" | "success" | "warning",
+            }
+          : null,
+        keywords: [item.href, item.label],
+      })),
+    [navItems]
+  );
+
+  const paletteActionGroups = useMemo<PaletteActionGroup[]>(() => {
+    const actions: PaletteActionGroup["actions"] = [];
+    if (alertsBreakdown.approvals > 0) {
+      actions.push({
+        id: "admin:approvals",
+        label: "Review approvals & invites",
+        description: "Resolve pending join requests and invitations.",
+        href: "/admin/approvals",
+        badge: { label: String(alertsBreakdown.approvals), tone: "warning" },
+        keywords: ["approvals", "invites", "requests"],
+      });
+    }
+    if (alertsBreakdown.reconciliation > 0) {
+      actions.push({
+        id: "admin:reconciliation",
+        label: "Review unallocated payments",
+        description: "Assign or investigate pending deposits.",
+        href: "/admin/reconciliation",
+        badge: { label: String(alertsBreakdown.reconciliation), tone: "critical" },
+        keywords: ["reconciliation", "payments", "deposits"],
+      });
+    }
+    if (actions.length === 0) {
+      return [];
+    }
+    return [
+      {
+        id: "admin-alerts",
+        title: "Alerts",
+        subtitle: "Pending reviews",
+        actions,
+      },
+    ];
+  }, [alertsBreakdown.approvals, alertsBreakdown.reconciliation]);
+
   const nav = (
     <nav className="flex h-full flex-col gap-1.5 overflow-y-auto p-3">
       {navItems.map((item) => {
@@ -160,44 +217,57 @@ export function AdminPanelShell({
   );
 
   return (
-    <AdminPanelShortcuts>
-      <div className="flex min-h-screen flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
-        <AdminPanelTopBar
-          profile={profile}
-          tenantOptions={tenantOptions}
-          alertsCount={alertsCount}
-          onToggleNav={() => setMobileOpen((value) => !value)}
-          alertsBreakdown={alertsBreakdown}
-        />
-        <div className="flex flex-1">
-          <aside className="hidden w-64 flex-shrink-0 border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:block">
-            {nav}
-          </aside>
-          <div className="flex-1">
-            <div className="px-4 pb-12 pt-20 sm:px-6 lg:px-10">{children}</div>
+    <CommandPaletteProvider
+      profile={profile}
+      navTargets={paletteNavTargets}
+      actionGroups={paletteActionGroups}
+    >
+      <AdminPanelShortcuts>
+        <div className="flex min-h-screen flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
+          <AdminPanelTopBar
+            profile={profile}
+            tenantOptions={tenantOptions}
+            alertsCount={alertsCount}
+            onToggleNav={() => setMobileOpen((value) => !value)}
+            alertsBreakdown={alertsBreakdown}
+          />
+          <div className="flex flex-1">
+            <aside className="hidden w-64 flex-shrink-0 border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:block">
+              {nav}
+            </aside>
+            <div className="flex-1">
+              <div className="px-4 pb-12 pt-20 sm:px-6 lg:px-10">{children}</div>
+            </div>
+          </div>
+          <div className="lg:hidden">
+            <button
+              type="button"
+              className="fixed bottom-4 right-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-atlas-blue text-white shadow-atlas shadow-atlas-blue/40 transition-all duration-interactive hover:bg-atlas-blue-dark hover:shadow-lg"
+              onClick={() => setMobileOpen((value) => !value)}
+              aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+            {mobileOpen && (
+              <div
+                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+                onClick={() => setMobileOpen(false)}
+                role="presentation"
+              >
+                <div
+                  className="absolute inset-x-4 bottom-20 rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
+                  onClick={(e) => e.stopPropagation()}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Mobile navigation menu"
+                >
+                  {nav}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-        <div className="lg:hidden">
-          <button
-            type="button"
-            className="fixed bottom-4 right-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-atlas-blue text-white shadow-atlas shadow-atlas-blue/40 transition-all duration-interactive hover:bg-atlas-blue-dark hover:shadow-lg"
-            onClick={() => setMobileOpen((value) => !value)}
-            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-          <Drawer
-            open={mobileOpen}
-            onClose={() => setMobileOpen(false)}
-            side="left"
-            size="md"
-            title="Navigation"
-            className="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-0"
-          >
-            {nav}
-          </Drawer>
-        </div>
-      </div>
-    </AdminPanelShortcuts>
+      </AdminPanelShortcuts>
+    </CommandPaletteProvider>
   );
 }

@@ -15,12 +15,17 @@ import {
   Search,
   LineChart,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/providers/i18n-provider";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
-import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
-import { Modal } from "@/components/ui/modal";
+import {
+  CommandPaletteProvider,
+  useCommandPalette,
+  type CommandActionGroup as PaletteActionGroup,
+  type CommandNavTarget as PaletteNavTarget,
+} from "@/src/components/common/CommandPalette";
 import { OfflineQueueIndicator } from "@/components/system/offline-queue-indicator.ssr-wrapper";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 
@@ -49,6 +54,7 @@ const BADGE_DOT_STYLES = {
   critical: "bg-red-400",
   info: "bg-sky-400",
   success: "bg-emerald-400",
+  warning: "bg-amber-400",
 } as const;
 
 type QuickActionBadge = { label: string; tone: keyof typeof BADGE_TONE_STYLES };
@@ -69,6 +75,14 @@ type QuickActionGroupDefinition = {
   actions: QuickActionDefinition[];
 };
 
+type UiNavTarget = {
+  href: string;
+  primary: string;
+  secondary: string;
+  icon: LucideIcon;
+  badge?: { label: string; tone: keyof typeof BADGE_TONE_STYLES } | null;
+};
+
 export function AppShell({ children, profile }: AppShellProps) {
   const pathname = usePathname();
   const isAdminPanel = pathname?.startsWith("/admin");
@@ -79,13 +93,6 @@ export function AppShell({ children, profile }: AppShellProps) {
 }
 
 function DefaultAppShell({ children, profile }: AppShellProps) {
-  const pathname = usePathname();
-  const [showActions, setShowActions] = useState(false);
-  const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const firstQuickActionRef = useRef<HTMLAnchorElement | null>(null);
-  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
-  const globalSearchTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const wasGlobalSearchOpenRef = useRef(false);
   const { t } = useTranslation();
 
   const saccoName = useMemo(
@@ -207,56 +214,158 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
     ];
   }, [profile.failed_mfa_count, profile.mfa_enabled, t]);
 
-  useEffect(() => {
-    if (showGlobalSearch) {
-      wasGlobalSearchOpenRef.current = true;
-      return;
-    }
-    if (wasGlobalSearchOpenRef.current) {
-      wasGlobalSearchOpenRef.current = false;
-      globalSearchTriggerRef.current?.focus();
-    }
-  }, [showGlobalSearch]);
-
-  useEffect(() => {
-    const handleKeydown = (event: KeyboardEvent) => {
-      if ((event.key === "k" || event.key === "K") && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        setShowGlobalSearch(true);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeydown);
-    return () => window.removeEventListener("keydown", handleKeydown);
-  }, []);
-
-  useEffect(() => {
-    if (!showActions) {
-      firstQuickActionRef.current = null;
-    }
-  }, [showActions]);
-
-  const navTargets = useMemo(
+  const uiNavTargets = useMemo<UiNavTarget[]>(
     () =>
       NAV_ITEMS.map((item) => ({
         href: item.href,
         primary: t(item.key),
         secondary: t(item.key),
-        badge: navBadges[item.href],
+        icon: item.icon,
+        badge: navBadges[item.href] ?? null,
       })),
     [navBadges, t]
   );
 
-  const quickActionTargets = useMemo(
+  const paletteNavTargets = useMemo<PaletteNavTarget[]>(
+    () =>
+      uiNavTargets.map((item) => ({
+        id: item.href,
+        href: item.href,
+        label: item.primary,
+        description: item.secondary,
+        badge: item.badge ?? null,
+        keywords: [item.href, item.primary].filter(Boolean),
+      })),
+    [uiNavTargets]
+  );
+
+  const paletteActionGroups = useMemo<PaletteActionGroup[]>(
     () =>
       quickActionGroups.map((group) => ({
         id: group.id,
         title: group.title,
         subtitle: group.subtitle,
-        actions: group.actions,
+        actions: group.actions.map((action) => {
+          const secondaryParts = [action.secondary, action.secondaryDescription].filter(Boolean);
+          return {
+            id: `${group.id}:${action.href}`,
+            label: action.primary,
+            description: action.description,
+            secondaryLabel: secondaryParts.length ? secondaryParts.join(" · ") : undefined,
+            href: action.href,
+            badge: action.badge ?? null,
+            keywords: [
+              action.primary,
+              action.description,
+              action.secondary,
+              action.secondaryDescription,
+            ].filter(Boolean) as string[],
+          };
+        }),
       })),
     [quickActionGroups]
   );
+
+  return (
+    <CommandPaletteProvider
+      profile={profile}
+      navTargets={paletteNavTargets}
+      actionGroups={paletteActionGroups}
+    >
+      <DefaultAppShellView
+        saccoName={saccoName}
+        navTargets={uiNavTargets}
+        quickActionGroups={quickActionGroups}
+      >
+        {children}
+      </DefaultAppShellView>
+    </CommandPaletteProvider>
+  );
+}
+
+interface DefaultAppShellViewProps {
+  children: React.ReactNode;
+  saccoName: string;
+  navTargets: UiNavTarget[];
+  quickActionGroups: QuickActionGroupDefinition[];
+}
+
+function DefaultAppShellView({
+  children,
+  saccoName,
+  navTargets,
+  quickActionGroups,
+}: DefaultAppShellViewProps) {
+  const pathname = usePathname();
+  const [showActions, setShowActions] = useState(false);
+  const quickActionsRef = useRef<HTMLDivElement | null>(null);
+  const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
+  const wasQuickActionsOpenRef = useRef(false);
+  const { open: paletteOpen, openPalette } = useCommandPalette();
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!showActions) {
+      if (wasQuickActionsOpenRef.current) {
+        wasQuickActionsOpenRef.current = false;
+        (quickActionsTriggerRef.current ?? quickActionsLastFocusRef.current)?.focus();
+      }
+      return;
+    }
+
+    wasQuickActionsOpenRef.current = true;
+    quickActionsLastFocusRef.current = document.activeElement as HTMLElement | null;
+    const container = quickActionsRef.current;
+    const firstFocusable = getFocusableElements(container).at(0);
+    if (firstFocusable) {
+      queueMicrotask(() => firstFocusable.focus());
+    } else {
+      container?.focus();
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!container) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setShowActions(false);
+        return;
+      }
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const focusable = getFocusableElements(container);
+      if (focusable.length === 0) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey) {
+        if (activeElement === first || activeElement === container) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    container?.addEventListener("keydown", handleKeyDown);
+    return () => container?.removeEventListener("keydown", handleKeyDown);
+  }, [showActions]);
+
+  useEffect(() => {
+    const container = quickActionsRef.current;
+
+    if (!showActions) {
+      firstQuickActionRef.current = null;
+    }
+  }, [showActions]);
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
@@ -308,8 +417,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                 aria-label={t("nav.sections", "Section navigation")}
               >
                 <ul className="flex items-center gap-1.5">
-                  {navTargets.map(({ href, primary, badge }, idx) => {
-                    const Icon = NAV_ITEMS[idx].icon;
+                  {navTargets.map(({ href, primary, badge, icon: Icon }) => {
                     return (
                       <li key={href}>
                         <Link
@@ -371,12 +479,11 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                 {/* Search button */}
                 <button
                   type="button"
-                  onClick={() => setShowGlobalSearch(true)}
-                  className="group inline-flex items-center gap-2 rounded-xl border border-border/40 bg-[color:var(--surface-glass,rgba(255,255,255,0.16))] px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-foreground-inverse,#0d1324)] shadow-sm backdrop-blur-sm transition-colors duration-200 hover:border-border/30 hover:bg-[color:var(--surface-glass-strong,rgba(255,255,255,0.24))] focus:outline-none focus:ring-2 focus:ring-[color:var(--state-focus-ring,#4a70ff)] focus:ring-offset-2 focus:ring-offset-[color:var(--color-canvas,#0b1020)] border-white/20 bg-gradient-to-br from-white/15 to-white/5 text-neutral-0 hover:border-white/30 hover:from-white/20 hover:to-white/10 hover:shadow-lg focus:ring-rw-blue/50 focus:ring-offset-ink"
+                  onClick={openPalette}
+                  className="group inline-flex items-center gap-2 rounded-xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-0 shadow-md backdrop-blur-sm transition-all hover:border-white/30 hover:from-white/20 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-ink"
                   aria-haspopup="dialog"
-                  aria-expanded={showGlobalSearch}
+                  aria-expanded={paletteOpen}
                   aria-label={t("common.search", "Search")}
-                  ref={globalSearchTriggerRef}
                 >
                   <Search
                     className="h-4 w-4 transition-transform group-hover:scale-110"
@@ -399,25 +506,25 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
         className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-2xl border border-white/25 bg-gradient-to-br from-ink/95 to-ink/90 px-3 py-3.5 shadow-2xl backdrop-blur-xl md:hidden"
         aria-label={t("nav.mobile", "Mobile navigation")}
       >
-        {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
-          const badge = navBadges[href];
+        {navTargets.map(({ href, primary, badge, icon: Icon }) => {
+          const isCurrent = isActive(href);
           return (
             <Link
               key={href}
               href={href}
               className={cn(
                 "group relative flex flex-col items-center gap-1 rounded-lg px-2.5 py-2 text-[0.7rem] font-semibold transition-all",
-                isActive(href)
+                isCurrent
                   ? "text-neutral-0"
                   : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
               )}
-              aria-current={isActive(href) ? "page" : undefined}
-              aria-label={t(key)}
+              aria-current={isCurrent ? "page" : undefined}
+              aria-label={primary}
             >
               <Icon
                 className={cn(
                   "h-5 w-5 transition-all",
-                  isActive(href) && "drop-shadow-[0_0_8px_rgba(0,161,222,0.5)]"
+                  isCurrent && "drop-shadow-[0_0_8px_rgba(0,161,222,0.5)]"
                 )}
                 aria-hidden="true"
               />
@@ -430,7 +537,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
                   aria-label={`${badge.label} notification`}
                 />
               )}
-              <span className="leading-none">{t(key)}</span>
+              <span className="leading-none">{primary}</span>
             </Link>
           );
         })}
@@ -539,16 +646,8 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
               {t("common.close", "Close")}
             </button>
           </div>
-        )}
-      </Modal>
-
-      <GlobalSearchDialog
-        open={showGlobalSearch}
-        onClose={() => setShowGlobalSearch(false)}
-        profile={profile}
-        navItems={navTargets}
-        quickActions={quickActionTargets}
-      />
+        </div>
+      )}
     </div>
   );
 }
