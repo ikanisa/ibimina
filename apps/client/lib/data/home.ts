@@ -106,7 +106,7 @@ export async function loadHomeDashboard(): Promise<HomeDashboardData> {
     )
   );
 
-  let saccoRows: Pick<Database["public"]["Tables"]["saccos"]["Row"], "id" | "name" | "merchant_code">>[] = [];
+  let saccoRows: Array<Pick<Database["public"]["Tables"]["saccos"]["Row"], "id" | "name" | "merchant_code">> = [];
   if (saccoIds.length) {
     const { data, error } = await supabase
       .from("saccos")
