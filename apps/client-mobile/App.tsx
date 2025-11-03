@@ -12,12 +12,16 @@ import 'react-native-url-polyfill/auto';
 import {AppNavigator} from './src/navigation/AppNavigator';
 import {useAuthStore} from './src/store';
 import {authService} from './src/services/supabase';
+import {FirebaseService} from './src/services/firebase';
 import {colors} from './src/theme';
 
 export default function App() {
   const {setSession, setLoading} = useAuthStore();
 
   useEffect(() => {
+    // Initialize Firebase
+    FirebaseService.initialize().catch(console.error);
+
     // Initialize auth state
     authService.getSession()
       .then(session => setSession(session))

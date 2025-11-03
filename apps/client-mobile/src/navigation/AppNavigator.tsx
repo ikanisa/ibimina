@@ -1,5 +1,5 @@
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, LinkingOptions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
@@ -10,6 +10,10 @@ import { LoadingScreen } from "../screens/LoadingScreen";
 import { LoginScreen } from "../screens/auth/LoginScreen";
 import { RegisterScreen } from "../screens/auth/RegisterScreen";
 import { ForgotPasswordScreen } from "../screens/auth/ForgotPasswordScreen";
+import { OnboardingScreen } from "../screens/auth/OnboardingScreen";
+import { WhatsAppAuthScreen } from "../screens/auth/WhatsAppAuthScreen";
+import { OTPVerificationScreen } from "../screens/auth/OTPVerificationScreen";
+import { BrowseModeScreen } from "../screens/auth/BrowseModeScreen";
 
 // Main tabs
 import { HomeScreen } from "../screens/home/HomeScreen";
@@ -110,6 +114,10 @@ function AuthStack() {
         animation: "slide_from_right",
       }}
     >
+      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+      <Stack.Screen name="WhatsAppAuth" component={WhatsAppAuthScreen} />
+      <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
+      <Stack.Screen name="BrowseMode" component={BrowseModeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
@@ -124,8 +132,9 @@ function MainStack() {
         headerShown: false,
         animation: "slide_from_right",
       }}
+      initialRouteName="MainTabs"
     >
-      <Stack.Screen name="MainTabs" component={TabNavigator} />
+      <Stack.Screen name="MainTabs" component={TabNavigator} options={{ title: "Home" }} />
       <Stack.Screen name="TransactionHistory" component={TransactionHistoryScreen} />
       <Stack.Screen name="Deposit" component={DepositScreen} />
       <Stack.Screen name="Withdraw" component={WithdrawScreen} />
@@ -141,6 +150,50 @@ function MainStack() {
   );
 }
 
+// Deep linking configuration for notifications
+const linking: LinkingOptions<any> = {
+  prefixes: ['ibimina://', 'https://app.ibimina.rw'],
+  config: {
+    screens: {
+      MainStack: {
+        screens: {
+          MainTabs: {
+            screens: {
+              Home: 'home',
+              Accounts: 'accounts',
+              Groups: 'groups',
+              Loans: 'loans',
+              Profile: 'profile',
+            },
+          },
+          TransactionHistory: 'transactions',
+          Deposit: 'deposit',
+          Withdraw: 'withdraw',
+          Transfer: 'transfer',
+          GroupDetail: 'groups/:groupId',
+          LoanApplication: 'loans/apply',
+          LoanDetail: 'loans/:loanId',
+          Notifications: 'notifications',
+          Settings: 'settings',
+          EditProfile: 'profile/edit',
+          Help: 'help',
+        },
+      },
+      AuthStack: {
+        screens: {
+          Onboarding: 'onboarding',
+          WhatsAppAuth: 'auth/whatsapp',
+          OTPVerification: 'auth/otp',
+          BrowseMode: 'browse',
+          Login: 'login',
+          Register: 'register',
+          ForgotPassword: 'forgot-password',
+        },
+      },
+    },
+  },
+};
+
 export function AppNavigator() {
   const { isAuthenticated, isLoading } = useAppStore();
 
@@ -149,6 +202,16 @@ export function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>{isAuthenticated ? <MainStack /> : <AuthStack />}</NavigationContainer>
+    <NavigationContainer linking={linking}>
+      {isAuthenticated ? <MainStack /> : <AuthStack />}
+    </NavigationContainer>
   );
 }
+
+// Import new screens
+import CompleteLoanApplicationScreen from '../screens/loans/CompleteLoanApplicationScreen';
+import GroupContributionScreen from '../screens/groups/GroupContributionScreen';
+
+// Add to Stack.Screen components:
+// <Stack.Screen name="CompleteLoanApplication" component={CompleteLoanApplicationScreen} />
+// <Stack.Screen name="GroupContribution" component={GroupContributionScreen} />
