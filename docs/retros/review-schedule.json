@@ -1,0 +1,19 @@
+[
+  {
+    "reviewDate": "2025-11-05",
+    "owner": "Quality Lead",
+    "focusAreas": ["Verify automation guardrails", "Confirm CSAT rebound"],
+    "channel": "ops-calendar",
+    "storagePath": "docs/retros/review-schedule.json"
+  },
+  {
+    "reviewDate": "2025-11-12",
+    "owner": "Platform API & Support Enablement",
+    "focusAreas": [
+      "Validate escalation digest automation",
+      "Confirm MFA recovery content alignment"
+    ],
+    "channel": "ops-calendar",
+    "storagePath": "docs/retros/review-schedule.json"
+  }
+]

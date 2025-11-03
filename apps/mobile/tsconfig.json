@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@ibimina/config": ["../../packages/config/src/index.ts"],
+      "@ibimina/locales": ["../../packages/locales/src/index.ts"],
+      "@ibimina/data-access": ["../../packages/data-access/src/index.ts"],
+      "@ibimina/data-access/*": ["../../packages/data-access/src/*"],
+      "@ibimina/lib": ["../../packages/lib/src/index.ts"],
+      "@ibimina/lib/*": ["../../packages/lib/src/*"]
+    }
+  },
+  "include": ["src", "app", "app.config.ts", "App.tsx", "global.css"],
+  "exclude": ["dist", "node_modules"]
+}

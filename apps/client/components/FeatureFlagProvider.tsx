@@ -1,16 +1,15 @@
 "use client";
 
 import React, { createContext, ReactNode, useMemo } from "react";
+import {
+  type FeatureFlags,
+  parseFeatureFlagsFromEnv,
+  mergeFeatureFlagSources,
+  normalizeFlagKey,
+} from "@/lib/feature-flags/utils";
 
-/**
- * Feature Flag Configuration
- *
- * This type defines the structure of feature flags in the application.
- * Add new feature flags here as needed.
- */
-type FeatureFlags = {
-  [key: string]: boolean;
-};
+export type { FeatureFlags };
+export { parseFeatureFlagsFromEnv, mergeFeatureFlagSources, normalizeFlagKey };
 
 /**
  * Feature Flag Context
@@ -24,6 +23,11 @@ type FeatureFlagContextType = {
 
 export const FeatureFlagContext = createContext<FeatureFlagContextType | undefined>(undefined);
 
+type FeatureFlagProviderProps = {
+  children: ReactNode;
+  initialFlags?: FeatureFlags;
+};
+
 /**
  * Feature Flag Provider Component
  *
@@ -31,9 +35,9 @@ export const FeatureFlagContext = createContext<FeatureFlagContextType | undefin
  * to all child components via the useFeatureFlags hook.
  *
  * Feature flags are loaded from environment variables with the prefix
- * NEXT_PUBLIC_FEATURE_FLAG_. For example:
- * - NEXT_PUBLIC_FEATURE_FLAG_NEW_UI=true enables the 'new-ui' flag
- * - NEXT_PUBLIC_FEATURE_FLAG_BETA_FEATURES=false disables 'beta-features'
+ * NEXT_PUBLIC_FEATURE_FLAG_. Remote configuration providers (ConfigCat,
+ * Flagsmith, Supabase) can supply an initialFlags object which overrides
+ * the environment defaults.
  *
  * Default behavior: All flags default to false unless explicitly enabled.
  *
@@ -43,50 +47,28 @@ export const FeatureFlagContext = createContext<FeatureFlagContextType | undefin
  * @example
  * ```tsx
  * // In your app layout or root component:
- * <FeatureFlagProvider>
+ * <FeatureFlagProvider initialFlags={remoteFlags}>
  *   <YourApp />
  * </FeatureFlagProvider>
  * ```
  */
-export function FeatureFlagProvider({ children }: { children: ReactNode }) {
-  const flags = useMemo(() => {
-    return parseFeatureFlagsFromEnv();
-  }, []);
+export function FeatureFlagProvider({ children, initialFlags }: FeatureFlagProviderProps) {
+  const envFlags = useMemo(() => parseFeatureFlagsFromEnv(), []);
+  const mergedFlags = useMemo(
+    () => mergeFeatureFlagSources(envFlags, initialFlags),
+    [envFlags, initialFlags]
+  );
 
   const value = useMemo(
     () => ({
-      flags,
+      flags: mergedFlags,
       isEnabled: (flagName: string): boolean => {
-        return flags[flagName] ?? false;
+        const normalized = normalizeFlagKey(flagName);
+        return mergedFlags[normalized] ?? false;
       },
     }),
-    [flags]
+    [mergedFlags]
   );
 
   return <FeatureFlagContext.Provider value={value}>{children}</FeatureFlagContext.Provider>;
-}
-
-/**
- * Parse feature flags from environment variables
- *
- * Extracts all NEXT_PUBLIC_FEATURE_FLAG_* environment variables,
- * converts them to kebab-case, and parses their boolean values.
- *
- * @returns Object mapping flag names to boolean values
- */
-function parseFeatureFlagsFromEnv(): FeatureFlags {
-  const envFlags: FeatureFlags = {};
-
-  Object.keys(process.env).forEach((key) => {
-    if (key.startsWith("NEXT_PUBLIC_FEATURE_FLAG_")) {
-      const flagName = key
-        .replace("NEXT_PUBLIC_FEATURE_FLAG_", "")
-        .toLowerCase()
-        .replace(/_/g, "-");
-      const value = process.env[key];
-      envFlags[flagName] = value === "true" || value === "1";
-    }
-  });
-
-  return envFlags;
 }

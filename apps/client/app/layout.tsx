@@ -16,8 +16,11 @@
  */
 
 import type { Metadata, Viewport } from "next";
-import { BottomNav } from "@/components/ui/bottom-nav";
+import type { ReactNode } from "react";
 import "./globals.css";
+import { FeatureFlagProvider } from "@/components/FeatureFlagProvider";
+import { loadFeatureFlags } from "@/lib/feature-flags/service";
+import { ClientBottomNav } from "@/components/ui/client-bottom-nav";
 
 export const metadata: Metadata = {
   title: {
@@ -26,6 +29,15 @@ export const metadata: Metadata = {
   },
   description: "Mobile banking for Umurenge SACCO members - Manage your ibimina savings",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    shortcut: ["/icons/icon.svg"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -43,27 +55,31 @@ export const viewport: Viewport = {
   themeColor: "#0b1020",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
+  const featureFlags = await loadFeatureFlags();
+
   return (
     <html lang="en">
       <body className="bg-gray-50">
-        {/* Skip to main content link for keyboard navigation */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
-        >
-          Skip to main content
-        </a>
+        <FeatureFlagProvider initialFlags={featureFlags}>
+          {/* Skip to main content link for keyboard navigation */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+          >
+            Skip to main content
+          </a>
 
-        {/* Main content */}
-        <div id="main-content">{children}</div>
+          {/* Main content */}
+          <div id="main-content">{children}</div>
 
-        {/* Bottom Navigation - conditionally rendered */}
-        <BottomNav />
+          {/* Bottom Navigation - conditionally rendered */}
+          <ClientBottomNav />
+        </FeatureFlagProvider>
       </body>
     </html>
   );

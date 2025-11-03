@@ -3,16 +3,30 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "lint": "echo 'TODO: add linting'",
+    "lint": "eslint --max-warnings=0 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo 'TODO: add tests'"
+    "test": "vitest run --config vitest.config.ts"
   },
+  "dependencies": {},
   "devDependencies": {
+    "@types/node": "20.19.21",
     "typescript": "^5.9.3",
-    "@types/node": "20.19.21"
+    "vitest": "^2.1.9"
   }
 }

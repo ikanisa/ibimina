@@ -14,16 +14,7 @@
 
 "use client";
 
-import {
-  Home,
-  Users,
-  CreditCard,
-  FileText,
-  User,
-  Wallet,
-  HandCoins,
-  MessageCircle,
-} from "lucide-react";
+import { Home, Users, CreditCard, FileText, User, Wallet, HandCoins, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
@@ -77,6 +68,13 @@ const ALL_NAV_ITEMS: NavItem[] = [
     ariaLabel: "Navigate to statements page",
   },
   {
+    href: "/offers",
+    icon: Sparkles,
+    label: "Offers",
+    ariaLabel: "Navigate to offers page",
+    featureFlag: "offers-enabled",
+  },
+  {
     href: "/profile",
     icon: User,
     label: "Profile",
@@ -84,19 +82,26 @@ const ALL_NAV_ITEMS: NavItem[] = [
   },
 ];
 
+const ADVANCED_MODULE_FLAGS = new Set(["loans-enabled", "wallet-enabled"]);
+
 export function BottomNav() {
   const pathname = usePathname();
   const { isEnabled } = useFeatureFlags();
+  const advancedModulesEnabled = isEnabled("advanced-modules");
 
   // Filter nav items based on feature flags
   const navItems = useMemo(() => {
     return ALL_NAV_ITEMS.filter((item) => {
       // If no feature flag is required, always show
       if (!item.featureFlag) return true;
+      // Hide advanced modules behind the aggregate toggle
+      if (ADVANCED_MODULE_FLAGS.has(item.featureFlag) && !advancedModulesEnabled) {
+        return false;
+      }
       // Otherwise, check if feature is enabled
       return isEnabled(item.featureFlag);
     });
-  }, [isEnabled]);
+  }, [advancedModulesEnabled, isEnabled]);
 
   // Limit to 5 items for optimal mobile UX
   const displayItems = navItems.slice(0, 5);

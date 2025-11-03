@@ -7,8 +7,11 @@ services:
     restart: unless-stopped
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./rules:/etc/prometheus/rules:ro
     ports:
       - "9090:9090"
+    depends_on:
+      - alertmanager
 
   grafana:
     image: grafana/grafana-oss:11.2.2
@@ -23,6 +26,21 @@ services:
       - ./datasources:/etc/grafana/provisioning/datasources
     ports:
       - "3001:3000"
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: ibimina-alertmanager
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--config.expand-env"
+    environment:
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - PAGERDUTY_ROUTING_KEY=${PAGERDUTY_ROUTING_KEY}
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"
 
 volumes:
   grafana-storage:

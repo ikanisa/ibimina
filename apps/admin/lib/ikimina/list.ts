@@ -34,6 +34,7 @@ async function fetchIkiminaDirectory(
   const _supabase = clients.user;
   const appSupabase = clients.app;
   const baseQuery = appSupabase
+    .schema("app")
     .from("ikimina")
     .select(
       "id, name, code, status, type, sacco_id, created_at, updated_at, saccos(name, district, province)"
@@ -72,11 +73,13 @@ async function fetchIkiminaDirectory(
 
   if (groupIds.length > 0) {
     const memberPromise = appSupabase
+      .schema("app")
       .from("members")
       .select("ikimina_id")
       .in("ikimina_id", groupIds);
 
     const paymentsPromise = appSupabase
+      .schema("app")
       .from("payments")
       .select("ikimina_id, amount, status, occurred_at")
       .in("ikimina_id", groupIds)

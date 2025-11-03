@@ -43,9 +43,11 @@
     <string name="tapmomo_pay_scanning">Scanning for NFC…</string>
     <string name="tapmomo_pay_confirm_title">Confirm Payment</string>
     <string name="tapmomo_pay_confirm_message">Pay %d %s to %s via %s?</string>
+    <string name="tapmomo_pay_confirm_message_no_amount">Pay merchant %1$s via %2$s? Amount will be entered manually.</string>
     <string name="tapmomo_pay_confirm_button">Confirm Payment</string>
     <string name="tapmomo_pay_cancel_button">Cancel</string>
     <string name="tapmomo_pay_sim_picker_title">Select SIM Card</string>
+    <string name="tapmomo_pay_sim_permission_hint">Grant phone permissions to choose a SIM for this payment.</string>
     <string name="tapmomo_pay_ussd_launched">USSD code launched</string>
     <string name="tapmomo_pay_ussd_complete_message">Complete the payment in your phone\'s dialer</string>
     <string name="tapmomo_pay_mark_paid">Mark as Paid</string>
@@ -56,6 +58,13 @@
     <string name="tapmomo_result_success_message">USSD payment code has been launched</string>
     <string name="tapmomo_result_error_title">Payment Failed</string>
     <string name="tapmomo_result_error_message">Could not initiate payment: %s</string>
+    <string name="tapmomo_result_pending_title">Payment In Progress</string>
+    <string name="tapmomo_result_pending_message">USSD code launched. Complete the payment in your dialer, then mark the outcome.</string>
+    <string name="tapmomo_result_settled_message">Payment marked as settled and reconciliation started.</string>
+    <string name="tapmomo_result_failed_message">Payment flagged for follow-up. We'll reconcile with the server.</string>
+    <string name="tapmomo_result_status_label">Status: %s</string>
+    <string name="tapmomo_result_mark_settled">Mark as Settled</string>
+    <string name="tapmomo_result_report_issue">Report Issue</string>
     <string name="tapmomo_result_close_button">Close</string>
     <string name="tapmomo_result_retry_button">Retry</string>
     

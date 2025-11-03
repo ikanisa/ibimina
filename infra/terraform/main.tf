@@ -9,6 +9,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.6"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4"
+    }
   }
 }
 
@@ -40,6 +44,96 @@ resource "aws_secretsmanager_secret_version" "ibimina" {
     OPENAI_API_KEY            = var.openai_api_key
     OPENAI_RESPONSES_MODEL    = var.openai_responses_model
   })
+}
+
+data "archive_file" "secrets_rotation" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda/secrets-rotation"
+  output_path = "${path.module}/build/secrets-rotation.zip"
+}
+
+resource "aws_iam_role" "secrets_rotation" {
+  name = "${var.project_name}-${var.environment}-secrets-rotation"
+
+  assume_role_policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "secrets_rotation" {
+  name = "${var.project_name}-${var.environment}-secrets-rotation"
+  role = aws_iam_role.secrets_rotation.id
+
+  policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:PutSecretValue",
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:UpdateSecretVersionStage"
+        ]
+        Resource = aws_secretsmanager_secret.ibimina.arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:log-group:/aws/lambda/${var.project_name}-${var.environment}-secrets-rotation:*"
+      }
+    ]
+  })
+}
+
+resource "aws_cloudwatch_log_group" "secrets_rotation" {
+  name              = "/aws/lambda/${var.project_name}-${var.environment}-secrets-rotation"
+  retention_in_days = 30
+}
+
+resource "aws_lambda_function" "secrets_rotation" {
+  function_name = "${var.project_name}-${var.environment}-secrets-rotation"
+  role          = aws_iam_role.secrets_rotation.arn
+  runtime       = "python3.11"
+  handler       = "lambda_function.handler"
+  filename      = data.archive_file.secrets_rotation.output_path
+  source_code_hash = data.archive_file.secrets_rotation.output_base64sha256
+  timeout       = 30
+
+  environment {
+    variables = {
+      LOG_LEVEL = "INFO"
+    }
+  }
+
+  depends_on = [aws_cloudwatch_log_group.secrets_rotation]
+}
+
+resource "aws_lambda_permission" "secrets_manager_invoke" {
+  statement_id  = "AllowSecretsManagerInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.secrets_rotation.function_name
+  principal     = "secretsmanager.amazonaws.com"
+}
+
+resource "aws_secretsmanager_secret_rotation" "ibimina" {
+  secret_id           = aws_secretsmanager_secret.ibimina.id
+  rotation_lambda_arn = aws_lambda_function.secrets_rotation.arn
+
+  rotation_rules {
+    automatically_after_days = var.secret_rotation_days
+  }
+
+  depends_on = [aws_lambda_permission.secrets_manager_invoke]
 }
 
 resource "aws_cloudwatch_log_group" "edge_functions" {
@@ -130,4 +224,10 @@ variable "log_drain_alert_token" {
   type        = string
   description = "Bearer token included with log drain alert webhook calls"
   sensitive   = true
+}
+
+variable "secret_rotation_days" {
+  type        = number
+  description = "Number of days between automatic AWS Secrets Manager rotations"
+  default     = 90
 }

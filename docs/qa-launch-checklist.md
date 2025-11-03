@@ -5,6 +5,11 @@ release candidate for the Ibimina Staff PWA. Keep it in the repo so every
 teammate can tick items off or attach evidence (screenshots, JSON, CSV). Update
 as workflows expand.
 
+> 🧭 **New to the project?** Complete
+> [`docs/dev/getting-started.md`](dev/getting-started.md) first so your local
+> environment, Supabase instance, and generated types match the expectations for
+> these checks.
+
 ## 1. Performance Baseline
 
 - [x] `npm run build` completes without warnings. _(2025-10-09: succeeded; see

@@ -83,7 +83,7 @@ export class DeviceAuthManager {
     userId: string,
     deviceLabel: string,
     authToken: string
-  ): Promise<{ success: boolean; error?: string }> {
+  ): Promise<{ success: boolean; enrollmentId?: string; error?: string }> {
     if (!this.isAvailable()) {
       return {
         success: false,
@@ -153,9 +153,17 @@ export class DeviceAuthManager {
         };
       }
 
-      const result = await response.json();
+      const result = (await response.json()) as Partial<RegisteredDevice> & {
+        enrollment_id?: string;
+      };
       return {
         success: true,
+        enrollmentId:
+          typeof result.id === "string"
+            ? result.id
+            : typeof result.enrollment_id === "string"
+              ? result.enrollment_id
+              : undefined,
       };
     } catch (error) {
       console.error("Enrollment error:", error);

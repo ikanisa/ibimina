@@ -1,24 +1,34 @@
 /**
- * TypeScript bridge for the native SMS Ingestion plugin.
+ * TypeScript bridge for REAL-TIME SMS Ingestion plugin.
  *
- * This module provides a JavaScript interface to the native Android SMS reader.
- * It handles permission requests, SMS querying, and background sync configuration.
+ * This module provides instant SMS processing for mobile money notifications.
+ * SMS messages are processed in REAL-TIME as they arrive, giving members
+ * instant payment approval experiences.
+ *
+ * Real-time Flow:
+ * 1. SMS arrives from MTN/Airtel → BroadcastReceiver triggered instantly
+ * 2. Sent to backend → OpenAI parses transaction details
+ * 3. Member matched → Balance updated immediately
+ * 4. Member sees payment approved in seconds (not 15 minutes!)
  *
  * Usage:
  * ```typescript
  * import { SmsIngest } from '@/lib/native/sms-ingest';
  *
- * // Check if running on native platform
- * const isNative = SmsIngest.isAvailable();
+ * // Configure backend endpoint (do this once on app start)
+ * await SmsIngest.configure({
+ *   edgeFunctionUrl: 'https://your-project.supabase.co/functions/v1/ingest-sms',
+ *   hmacSecret: 'your-hmac-secret'
+ * });
  *
  * // Request permissions
  * const result = await SmsIngest.requestPermissions();
  *
- * // Enable SMS ingestion
+ * // Enable REAL-TIME SMS ingestion
  * await SmsIngest.enable();
  *
- * // Query SMS messages
- * const messages = await SmsIngest.querySmsInbox({ limit: 50 });
+ * // Now SMS messages are processed instantly!
+ * // BroadcastReceiver intercepts all MTN/Airtel SMS in real-time
  * ```
  */
 
@@ -41,14 +51,24 @@ export interface SmsIngestPlugin {
   isEnabled(): Promise<{ enabled: boolean }>;
 
   /**
-   * Enable SMS ingestion and start background sync
+   * Enable REAL-TIME SMS ingestion
+   * - BroadcastReceiver processes messages instantly on arrival
+   * - Hourly fallback sync for missed messages
    */
-  enable(): Promise<{ enabled: boolean }>;
+  enable(): Promise<{ enabled: boolean; realtime: boolean }>;
 
   /**
    * Disable SMS ingestion and stop background sync
    */
   disable(): Promise<{ enabled: boolean }>;
+
+  /**
+   * Configure backend endpoint for SMS processing
+   */
+  configure(options: {
+    edgeFunctionUrl: string;
+    hmacSecret: string;
+  }): Promise<{ configured: boolean }>;
 
   /**
    * Query SMS inbox for messages from mobile money providers
@@ -63,7 +83,7 @@ export interface SmsIngestPlugin {
   }): Promise<{ success: boolean; timestamp: number }>;
 
   /**
-   * Schedule background sync with custom interval
+   * Schedule background sync with custom interval (fallback only)
    */
   scheduleBackgroundSync(options?: { intervalMinutes?: number }): Promise<{ scheduled: boolean }>;
 }
@@ -109,9 +129,12 @@ const SmsIngestNative = registerPlugin<SmsIngestPlugin>("SmsIngest", {
     requestPermissions: async () => ({ state: "denied" as const }),
     isEnabled: async () => ({ enabled: false }),
     enable: async () => {
-      throw new Error("SMS ingestion not available on web");
+      throw new Error("Real-time SMS ingestion only available on Android");
     },
     disable: async () => ({ enabled: false }),
+    configure: async () => {
+      throw new Error("Real-time SMS ingestion only available on Android");
+    },
     querySmsInbox: async () => ({ messages: [], count: 0 }),
     updateLastSyncTime: async () => ({ success: false, timestamp: 0 }),
     scheduleBackgroundSync: async () => ({ scheduled: false }),
@@ -160,8 +183,21 @@ export const SmsIngest = {
   },
 
   /**
-   * Enable SMS ingestion
-   * Requires permissions to be granted first
+   * Configure backend endpoint for real-time SMS processing
+   */
+  async configure(edgeFunctionUrl: string, hmacSecret: string): Promise<void> {
+    if (!this.isAvailable()) {
+      throw new Error("SMS ingestion is only available on native Android");
+    }
+
+    await SmsIngestNative.configure({ edgeFunctionUrl, hmacSecret });
+  },
+
+  /**
+   * Enable REAL-TIME SMS ingestion
+   * - BroadcastReceiver processes SMS instantly on arrival
+   * - Hourly fallback sync for missed messages
+   * - Requires permissions to be granted first
    */
   async enable(): Promise<void> {
     if (!this.isAvailable()) {
@@ -208,9 +244,10 @@ export const SmsIngest = {
   },
 
   /**
-   * Schedule periodic background sync
+   * Schedule periodic background sync (fallback for missed messages)
+   * Real-time processing happens via BroadcastReceiver, this is just a safety net
    */
-  async scheduleBackgroundSync(intervalMinutes: number = 15): Promise<void> {
+  async scheduleBackgroundSync(intervalMinutes: number = 60): Promise<void> {
     if (!this.isAvailable()) return;
     await SmsIngestNative.scheduleBackgroundSync({ intervalMinutes });
   },
@@ -224,6 +261,7 @@ export function useSmsIngest() {
 
   return {
     isAvailable,
+    configure: SmsIngest.configure.bind(SmsIngest),
     checkPermissions: SmsIngest.checkPermissions.bind(SmsIngest),
     requestPermissions: SmsIngest.requestPermissions.bind(SmsIngest),
     isEnabled: SmsIngest.isEnabled.bind(SmsIngest),

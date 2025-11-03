@@ -1,0 +1,87 @@
+name: Pre-merge quality gates
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  supabase-functions:
+    name: Supabase functions lint & test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v1.x"
+
+      - name: Format check
+        run: deno fmt --check supabase/functions
+
+      - name: Lint functions
+        run: deno lint supabase/functions
+
+      - name: Run unit tests
+        run: deno test supabase/functions/_tests
+
+  mobile-apps:
+    name: Mobile app lint & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint mobile workspace
+        run: pnpm --filter @ibimina/mobile lint
+
+      - name: Mobile typecheck
+        run: pnpm --filter @ibimina/mobile typecheck
+
+  platform-api:
+    name: Platform API integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Platform API lint
+        run: pnpm --filter @ibimina/platform-api lint
+
+      - name: Platform API unit tests
+        run: pnpm --filter @ibimina/platform-api test:unit
+
+      - name: Platform API integration tests
+        run: pnpm --filter @ibimina/platform-api test:integration

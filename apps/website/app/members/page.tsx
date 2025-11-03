@@ -1,5 +1,6 @@
-import { Phone, Copy, CheckCircle, HelpCircle, Smartphone, FileText } from "lucide-react";
+import { Phone, Copy, CheckCircle, HelpCircle, Smartphone } from "lucide-react";
 import { PrintButton } from "@/components/PrintButton";
+import { getWebsiteContentPack } from "@/lib/content";
 
 export const metadata = {
   title: "For Members",
@@ -7,6 +8,19 @@ export const metadata = {
 };
 
 export default function MembersPage() {
+  const contentPack = getWebsiteContentPack();
+  const primaryProvider = contentPack.ussd.providers[0];
+  const contributeSteps = primaryProvider.instructions.slice(0, 3);
+  const printableInstructions = primaryProvider.instructions;
+  const generalReminders = contentPack.ussd.generalInstructions;
+  const troubleshooting = contentPack.help.troubleshooting;
+  const paymentGuide = contentPack.help.paymentGuide;
+  const tipList = [
+    ...(contentPack.tips?.dualSim ?? []),
+    ...(contentPack.tips?.networkIssues ?? []),
+    ...(contentPack.tips?.marketDays ?? []),
+  ];
+
   return (
     <div className="max-w-4xl mx-auto px-4 space-y-16 pb-16">
       {/* Header */}
@@ -21,36 +35,15 @@ export default function MembersPage() {
       <section id="ussd-guide" className="space-y-8">
         <h2 className="text-3xl font-bold text-center">How to Contribute (3 Steps)</h2>
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="glass p-6 space-y-4">
-            <div className="w-16 h-16 bg-rwyellow rounded-full flex items-center justify-center text-ink text-3xl font-bold">
-              1
+          {contributeSteps.map((step, index) => (
+            <div key={step} className="glass p-6 space-y-4">
+              <div className="w-16 h-16 bg-rwyellow rounded-full flex items-center justify-center text-ink text-3xl font-bold">
+                {index + 1}
+              </div>
+              <h3 className="text-2xl font-bold">{primaryProvider.name}</h3>
+              <p className="opacity-90">{step}</p>
             </div>
-            <h3 className="text-2xl font-bold">Get Your Reference</h3>
-            <p className="opacity-90">
-              Contact your SACCO staff to onboard and receive your reference token (e.g.,
-              NYA.GAS.TWIZ.001). You&apos;ll need this for all payments.
-            </p>
-          </div>
-          <div className="glass p-6 space-y-4">
-            <div className="w-16 h-16 bg-rwblue rounded-full flex items-center justify-center text-ink text-3xl font-bold">
-              2
-            </div>
-            <h3 className="text-2xl font-bold">Dial USSD</h3>
-            <p className="opacity-90">
-              Dial *182# on your phone. Enter your SACCO&apos;s merchant code and your reference
-              token when prompted. Confirm the amount.
-            </p>
-          </div>
-          <div className="glass p-6 space-y-4">
-            <div className="w-16 h-16 bg-rwgreen rounded-full flex items-center justify-center text-white text-3xl font-bold">
-              3
-            </div>
-            <h3 className="text-2xl font-bold">Confirm Payment</h3>
-            <p className="opacity-90">
-              You&apos;ll receive an SMS confirmation. Your payment goes directly to your
-              SACCO&apos;s MoMo merchant account. Check your statement in the app.
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -94,57 +87,37 @@ export default function MembersPage() {
         <details className="glass p-6">
           <summary className="text-xl font-bold cursor-pointer flex items-center gap-3">
             <Smartphone size={24} />
-            <span>Do I need a smartphone?</span>
+            <span>Payment guide</span>
           </summary>
-          <p className="mt-4 opacity-90 pl-9">
-            No! USSD works on any mobile phone. You don&apos;t need data or internet connection.
-            Just dial *182# from your mobile money registered number.
-          </p>
+          <ul className="mt-4 space-y-2 opacity-90 pl-9 list-disc">
+            {paymentGuide.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </details>
 
         <details className="glass p-6">
           <summary className="text-xl font-bold cursor-pointer flex items-center gap-3">
             <HelpCircle size={24} />
-            <span>What if I have dual SIM cards?</span>
+            <span>Troubleshooting</span>
           </summary>
-          <p className="mt-4 opacity-90 pl-9">
-            Make sure to use the SIM card that is registered with your Mobile Money account. When
-            you dial the USSD code, your phone may ask you to select which SIM to use.
-          </p>
+          <ul className="mt-4 space-y-2 opacity-90 pl-9 list-disc">
+            {troubleshooting.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </details>
 
         <details className="glass p-6">
           <summary className="text-xl font-bold cursor-pointer flex items-center gap-3">
             <CheckCircle size={24} />
-            <span>How long until I see my payment confirmed?</span>
+            <span>Tips for reliable payments</span>
           </summary>
-          <p className="mt-4 opacity-90 pl-9">
-            You&apos;ll receive an SMS confirmation from MoMo within seconds. Your statement in the
-            SACCO+ app will update within a few minutes once staff map the payment to your
-            reference.
-          </p>
-        </details>
-
-        <details className="glass p-6">
-          <summary className="text-xl font-bold cursor-pointer flex items-center gap-3">
-            <FileText size={24} />
-            <span>Can I see my payment history?</span>
-          </summary>
-          <p className="mt-4 opacity-90 pl-9">
-            Yes! Once you&apos;re onboarded, you can view your allocation-based statements in the
-            SACCO+ Client App. All your confirmed contributions will appear there.
-          </p>
-        </details>
-
-        <details className="glass p-6">
-          <summary className="text-xl font-bold cursor-pointer flex items-center gap-3">
-            <Phone size={24} />
-            <span>What if my device is shared with others?</span>
-          </summary>
-          <p className="mt-4 opacity-90 pl-9">
-            No problem! Your reference token is personal to you. As long as you use your own Mobile
-            Money account and reference token, your payments are tracked correctly.
-          </p>
+          <ul className="mt-4 space-y-2 opacity-90 pl-9 list-disc">
+            {tipList.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </details>
       </section>
 
@@ -155,39 +128,33 @@ export default function MembersPage() {
         <div className="bg-white text-ink p-8 rounded-glass max-w-md mx-auto space-y-4">
           <h3 className="text-2xl font-bold text-center">SACCO+ USSD Payment</h3>
           <ol className="space-y-3">
-            <li className="flex gap-3">
-              <span className="font-bold">1.</span>
-              <span>Dial *182# from your Mobile Money registered phone number</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-bold">2.</span>
-              <span>Enter your SACCO&apos;s merchant code when prompted</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-bold">3.</span>
-              <span>Enter your reference token (e.g., NYA.GAS.TWIZ.001)</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-bold">4.</span>
-              <span>Enter the amount you want to contribute</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-bold">5.</span>
-              <span>Confirm with your Mobile Money PIN</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="font-bold">6.</span>
-              <span>Wait for SMS confirmation</span>
-            </li>
+            {printableInstructions.map((instruction, index) => (
+              <li key={instruction} className="flex gap-3">
+                <span className="font-bold">{index + 1}.</span>
+                <span>{instruction}</span>
+              </li>
+            ))}
           </ol>
           <div className="pt-4 border-t-2 border-ink/20 text-sm">
             <p className="font-bold">Need help?</p>
-            <p>Contact your SACCO staff or visit saccoplus.rw/contact</p>
+            <p>
+              Contact your SACCO staff or call{" "}
+              {contentPack.help.contactInfo.helpline ?? "your SACCO"}
+            </p>
           </div>
         </div>
         <div className="text-center no-print">
           <PrintButton />
         </div>
+      </section>
+
+      <section className="glass p-6 space-y-3">
+        <h2 className="text-2xl font-bold text-center">General Reminders</h2>
+        <ul className="list-disc pl-6 space-y-2">
+          {generalReminders.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
       </section>
     </div>
   );

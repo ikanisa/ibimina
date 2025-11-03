@@ -1,0 +1,143 @@
+{
+  "info": {
+    "name": "Ibimina Edge Functions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Sample requests for SMS/statement ingestion, reference decoding, and allocation exports"
+  },
+  "item": [
+    {
+      "name": "Ingest SMS",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-signature", "value": "{{sms_signature}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ingest-sms",
+          "host": ["{{baseUrl}}"],
+          "path": ["ingest-sms"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"org_id\": \"org-edge\",\n  \"country_iso2\": \"RW\",\n  \"telco\": \"MTN\",\n  \"sms\": \"You have received RWF 1,500 from +250781234567. Ref: ABC.DEF.GHI.123 Txn: 987654 2025-01-31 08:12\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('returns 200', function () {", "  pm.response.to.have.status(200);", "});",
+              "pm.test('payload normalized', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.ok).to.eql(true);",
+              "  pm.expect(json.normalized.amount).to.eql(1500);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ingest Statement",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-signature", "value": "{{statement_signature}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ingest-statement",
+          "host": ["{{baseUrl}}"],
+          "path": ["ingest-statement"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"org_id\": \"org-edge\",\n  \"country_iso2\": \"RW\",\n  \"telco\": \"MTN\",\n  \"rows\": [\n    {\n      \"Transaction ID\": \"STMT1\",\n      \"Amount\": \"1,250\",\n      \"Date\": \"2025-01-20 09:45\",\n      \"Reference\": \"ABC.DEF.GHI.124\",\n      \"MSISDN\": \"+250782345678\"\n    },\n    {\n      \"Transaction ID\": \"STMT2\",\n      \"Amount\": \"2,000\",\n      \"Date\": \"2025-01-20 10:15\",\n      \"Reference\": \"XYZ.DEF.GHI.555\",\n      \"MSISDN\": \"+250789000111\"\n    }\n  ]\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('statement ingestion ok', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().inserted).to.eql(2);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reference Decode",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-signature", "value": "{{reference_signature}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/reference-decode",
+          "host": ["{{baseUrl}}"],
+          "path": ["reference-decode"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"raw_ref\": \"ABC.DEF.GHI.123\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('decoder ok', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().decoded).to.be.an('object');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Export Allocation",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-signature", "value": "{{export_signature}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/export-allocation",
+          "host": ["{{baseUrl}}"],
+          "path": ["export-allocation"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bucket\": \"exports\",\n  \"path\": \"allocations/latest.csv\",\n  \"audit_actor\": \"edge-test\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('export url signed', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().signed_url).to.include('allocations');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

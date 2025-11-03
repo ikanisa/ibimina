@@ -14,7 +14,7 @@ export default function SupportPage() {
   const [orgId] = useState("placeholder-org-id");
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex h-screen flex-col bg-gradient-to-b from-neutral-50 to-neutral-100 pb-20">
       <AIChat orgId={orgId} />
     </div>
   );

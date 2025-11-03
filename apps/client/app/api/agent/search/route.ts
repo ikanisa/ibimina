@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { query, org_id, limit = 5 } = body;
+    const { query } = body;
+    const orgId = typeof body.org_id === "string" ? body.org_id : null;
+    const limit = typeof body.limit === "number" ? body.limit : 5;
 
     if (!query || typeof query !== "string") {
       return NextResponse.json({ error: "Query is required" }, { status: 400 });
@@ -33,6 +35,10 @@ export async function POST(request: NextRequest) {
     const response = {
       results: [],
       message: "Knowledge base search endpoint ready (embedding generation to be implemented)",
+      context: {
+        orgId,
+        limit,
+      },
     };
 
     return NextResponse.json(response);

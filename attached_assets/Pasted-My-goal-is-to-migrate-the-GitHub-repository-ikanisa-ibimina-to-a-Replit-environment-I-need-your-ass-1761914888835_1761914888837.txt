@@ -1,0 +1,56 @@
+My goal is to migrate the GitHub repository ikanisa/ibimina to a Replit environment. I need your assistance to create a fully functional and production-ready application. The repository contains a backend, a database, and several front-end applications (Staff/Admin PWA and mobile apps, Client PWA and mobile apps, and a website).
+
+Please follow these steps to ensure a successful migration:
+
+1. Repository Analysis:
+
+Clone the repository: https://github.com/ikanisa/ibimina.git.
+Analyze the repository structure to identify the different components:
+Backend application (likely Node.js with TypeScript).
+Frontend applications (web apps, PWAs).
+Native mobile applications (Android - Kotlin/Java).
+Database schema and migration scripts (PostgreSQL - PLpgSQL).
+Infrastructure as Code files (Terraform - HCL).
+Containerization files (Dockerfile).
+2. Environment Setup:
+
+Based on the analysis, configure the Replit workspace with the necessary languages, tools, and services. The repository uses TypeScript, JavaScript, Kotlin, Java, PostgreSQL, and likely a Node.js environment.
+Install all dependencies for each part of the application. Look for package.json files in the respective project folders and run npm install or yarn install.
+3. Database Configuration:
+
+Set up a PostgreSQL database.
+Locate the database schema files and any migration scripts within the repository.
+Execute the scripts to create the database schema and populate it with any initial data required.
+4. Backend Implementation:
+
+Configure and run the backend server.
+Identify the entry point for the backend application (e.g., src/index.ts, server.js).
+Ensure the backend can connect to the PostgreSQL database you set up.
+Set up environment variables for database connections, API keys, and other secrets. Please create a secrets tab for me to fill in the values.
+5. Frontend Applications (Web, PWA):
+
+Identify the different frontend applications (Staff/Admin app, Client app, Website).
+For each application:
+Install its dependencies.
+Configure the build process.
+Ensure that the frontend applications can communicate with the backend API. You might need to configure proxy settings or update API endpoint URLs.
+Set up a run command to start the development server for each frontend.
+6. Mobile Applications (Android - Kotlin/Java):
+
+The repository contains code for native Android applications. While Replit is not a full-fledged Android development IDE, I need you to:
+Set up the development environment as much as possible for the Android projects.
+Provide guidance on how I can build the Android apps (APKs or App Bundles). This might involve instructions for setting up Gradle and the Android SDK within the Replit environment if possible, or instructions on how to build it locally using the code from the Replit workspace.
+Ensure the mobile app code is configured to connect to the deployed backend on Replit.
+7. UI/UX and Feature Implementation:
+
+Review the entire application and ensure all features are fully implemented as intended.
+Verify that the UI/UX of all web-based frontends (website, PWAs) is polished, responsive, and free of visual bugs.
+Confirm that all user flows are complete and functional.
+8. Production Readiness and Deployment:
+
+Configure the application for a production environment. This includes:
+Using the Dockerfile if it's the best way to run the application in production.
+Setting up a production build for all frontend applications.
+Ensuring the application is ready for "go-live" with robust error handling, logging, and security measures in place.
+Provide a deployment configuration that I can use to deploy the application on Replit.
+By the end of this process, I expect to have a clean, fully functional, and production-ready replica of the ikanisa/ibimina repository running on Replit. Thank you

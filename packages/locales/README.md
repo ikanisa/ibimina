@@ -40,6 +40,16 @@ console.log(contentPack.help.contactInfo.helpline);
 console.log(contentPack.legal.termsUrl);
 ```
 
+Need resilient fallbacks? Swap to `resolveContentPack` which deep merges with an
+English baseline when a locale is partially defined:
+
+```typescript
+import { resolveContentPack } from "@ibimina/locales";
+
+const senegal = resolveContentPack("fr-SN");
+const ivoryCoast = resolveContentPack("fr-CI", { fallbackLocale: "en-RW" });
+```
+
 ### Get translations
 
 ```typescript
@@ -52,6 +62,20 @@ console.log(messages.common.welcome); // 'Murakaza neza'
 console.log(messages.payment.title); // 'Kwishyura'
 console.log(messages.member.name); // 'Amazina'
 ```
+
+For runtime fallbacks, use the helper variants:
+
+```typescript
+import { resolveMessages, getMessageDictionary } from "@ibimina/locales";
+
+const merged = resolveMessages("fr-SN");
+const dictionary = getMessageDictionary("fr-SN");
+
+console.log(dictionary["common.save"]); // 'Enregistrer'
+```
+
+`getMessageDictionary` flattens the translation tree into dot-notation keys that
+plug directly into custom lookup hooks.
 
 ### Get by country
 
@@ -279,6 +303,13 @@ export const enGHMessages: TranslationMessages = {
   },
 };
 ```
+
+## Translation workflow
+
+Refer to the
+[Translation Pipeline guide](../../docs/localization/translation-pipeline.md)
+for string harvesting, Phrase synchronization, and QA validation steps that keep
+locale packs production ready.
 
 ### 2. Export from index
 

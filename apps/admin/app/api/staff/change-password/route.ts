@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserAndProfile } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createServerClient();
+    const supabase = await createSupabaseServerClient();
 
     // Verify current password by attempting to sign in
     const { error: verifyError } = await supabase.auth.signInWithPassword({
@@ -73,20 +73,22 @@ export async function POST(request: Request) {
     }
 
     // Log the password change
-    await supabase
+    const { error: auditError } = await supabase
       .schema("app")
       .from("audit_logs")
       .insert({
-        actor: context.user.id,
-        event: "staff_password_changed",
+        action: "staff_password_changed",
         entity: "user",
         entity_id: context.user.id,
         metadata: {
           email: context.user.email,
           changed_at: new Date().toISOString(),
         },
-      })
-      .catch(console.error);
+      });
+
+    if (auditError) {
+      console.error("Audit log error:", auditError);
+    }
 
     return NextResponse.json({
       success: true,

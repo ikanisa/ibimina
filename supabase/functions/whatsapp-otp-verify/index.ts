@@ -11,10 +11,12 @@
  * - Automatic user creation if not exists
  */
 
-import { createServiceClient } from "../_shared/mod.ts";
-import { enforceRateLimit } from "../_shared/rate-limit.ts";
+import { createServiceClient, getForwardedIp, requireEnv } from "../_shared/mod.ts";
+import { enforceIpRateLimit, enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { signAuthJwt, type AuthJwtClaims } from "../../../apps/platform-api/src/lib/jwt.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -24,20 +26,23 @@ const corsHeaders = {
 interface VerifyOTPRequest {
   phone_number: string;
   code: string;
+  device_id?: string;
+  device_fingerprint?: string;
+  device_fingerprint_hash?: string;
+  user_agent?: string;
+  user_agent_hash?: string;
 }
 
 interface VerifyOTPResponse {
-  success: boolean;
-  message: string;
-  session?: {
-    access_token: string;
-    refresh_token: string;
-    user: {
-      id: string;
-      phone: string;
-    };
-  };
+  ok: boolean;
+  error?: string;
   attempts_remaining?: number;
+  token?: string;
+  user?: {
+    id: string;
+    phone: string;
+    is_new: boolean;
+  };
 }
 
 /**
@@ -51,7 +56,45 @@ function normalizePhoneNumber(phone: string): string {
   return cleaned;
 }
 
-Deno.serve(async (req) => {
+const SESSION_TTL_SEC = parseInt(Deno.env.get("OTP_SESSION_TTL_SEC") ?? "3600", 10);
+
+const encoder = new TextEncoder();
+
+export const base64UrlEncode = (input: Uint8Array): string => {
+  let binary = "";
+  input.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  const base64 = btoa(binary);
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+};
+
+export const signJwt = async (
+  payload: Record<string, unknown>,
+  secret: string,
+  expiresInSeconds: number
+): Promise<string> => {
+  const header = { alg: "HS256", typ: "JWT" };
+  const now = Math.floor(Date.now() / 1000);
+  const body = { ...payload, iat: now, exp: now + expiresInSeconds };
+
+  const headerBytes = encoder.encode(JSON.stringify(header));
+  const payloadBytes = encoder.encode(JSON.stringify(body));
+
+  const base = `${base64UrlEncode(headerBytes)}.${base64UrlEncode(payloadBytes)}`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(base));
+  const signatureSegment = base64UrlEncode(new Uint8Array(signature));
+  return `${base}.${signatureSegment}`;
+};
+
+export const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -61,13 +104,28 @@ Deno.serve(async (req) => {
     // Parse request body
     const body: VerifyOTPRequest = await req.json();
     const { phone_number, code } = body;
+    const deviceId = typeof body.device_id === "string" ? body.device_id : null;
+    const deviceFingerprint =
+      typeof body.device_fingerprint === "string"
+        ? body.device_fingerprint
+        : typeof body.device_fingerprint_hash === "string"
+          ? body.device_fingerprint_hash
+          : null;
+    const explicitUserAgent = typeof body.user_agent === "string" ? body.user_agent : null;
+    const userAgent = explicitUserAgent ?? req.headers.get("user-agent") ?? null;
+    const userAgentHash = typeof body.user_agent_hash === "string" ? body.user_agent_hash : null;
+
+    const baseMetadata: Record<string, unknown> = {};
+    if (userAgentHash) {
+      baseMetadata.user_agent_hash = userAgentHash;
+    }
 
     if (!phone_number || !code) {
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "Phone number and code are required",
-        }),
+          ok: false,
+          error: "Phone number and code are required",
+        } satisfies VerifyOTPResponse),
         {
           status: 400,
           headers: { ...corsHeaders, "content-type": "application/json" },
@@ -80,6 +138,76 @@ Deno.serve(async (req) => {
 
     // Create Supabase client
     const supabase = createServiceClient();
+    const clientIp = getForwardedIp(req.headers);
+
+    const recordEvent = async (
+      eventType:
+        | "verify_success"
+        | "verify_invalid"
+        | "verify_throttled"
+        | "verify_expired"
+        | "verify_max_attempts",
+      attemptsRemaining?: number | null,
+      metadata?: Record<string, unknown>
+    ) => {
+      const metadataPayload = { ...baseMetadata };
+      if (metadata) {
+        Object.assign(metadataPayload, metadata);
+      }
+      const finalMetadata = Object.keys(metadataPayload).length > 0 ? metadataPayload : null;
+
+      const { error: eventError } = await supabase.rpc("record_whatsapp_otp_event", {
+        phone_number: normalizedPhone,
+        event_type: eventType,
+        attempts_remaining: attemptsRemaining ?? null,
+        ip_address: clientIp,
+        device_fingerprint: deviceFingerprint,
+        device_id: deviceId,
+        user_agent: userAgent,
+        metadata: finalMetadata,
+      });
+
+      if (eventError) {
+        console.error("whatsapp_otp.event_log_failed", {
+          error: eventError,
+          eventType,
+          phone: normalizedPhone,
+        });
+      }
+    };
+
+    // Rate limiting: max 30 verification attempts per IP per hour
+    const ipRateLimitOk = await enforceIpRateLimit(supabase, clientIp, "whatsapp_otp_verify", {
+      maxHits: 30,
+      windowSeconds: 3600,
+    });
+
+    if (!ipRateLimitOk) {
+      await recordEvent("verify_throttled", null, { reason: "ip_rate_limit" });
+      await writeAuditLog(supabase, {
+        actorId: null,
+        action: "whatsapp_otp.verify.ip_rate_limited",
+        entity: "whatsapp_otp",
+        entityId: normalizedPhone,
+        diff: {
+          phone: normalizedPhone,
+          ip: clientIp,
+          device_id: deviceId,
+          device_fingerprint: deviceFingerprint,
+        },
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Too many verification attempts. Please try again later.",
+        } satisfies VerifyOTPResponse),
+        {
+          status: 429,
+          headers: { ...corsHeaders, "content-type": "application/json" },
+        }
+      );
+    }
 
     // Rate limiting: max 10 verification attempts per phone per hour
     const rateLimitOk = await enforceRateLimit(supabase, `whatsapp_verify:${normalizedPhone}`, {
@@ -88,18 +216,24 @@ Deno.serve(async (req) => {
     });
 
     if (!rateLimitOk) {
+      await recordEvent("verify_throttled", null, { reason: "phone_rate_limit" });
       await writeAuditLog(supabase, {
-        event: "whatsapp_otp.verify_rate_limited",
-        actor: null,
+        actorId: null,
+        action: "whatsapp_otp.verify.phone_rate_limited",
         entity: "whatsapp_otp",
-        entity_id: normalizedPhone,
-        metadata: { phone: normalizedPhone },
+        entityId: normalizedPhone,
+        diff: {
+          phone: normalizedPhone,
+          ip: clientIp,
+          device_id: deviceId,
+          device_fingerprint: deviceFingerprint,
+        },
       });
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "Too many verification attempts. Please try again later.",
+          ok: false,
+          error: "Too many verification attempts. Please try again later.",
         } satisfies VerifyOTPResponse),
         {
           status: 429,
@@ -120,18 +254,37 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (otpError || !otpRecord) {
+      const eventMetadata: Record<string, unknown> = {
+        reason: otpError ? "lookup_error" : "no_active_code",
+      };
+
+      if (otpError) {
+        eventMetadata.error = {
+          message: otpError.message,
+          code: otpError.code,
+          details: otpError.details,
+        };
+      }
+
+      await recordEvent("verify_invalid", null, eventMetadata);
       await writeAuditLog(supabase, {
-        event: "whatsapp_otp.verify_no_code",
-        actor: null,
+        actorId: null,
+        action: "whatsapp_otp.verify.no_active_code",
         entity: "whatsapp_otp",
-        entity_id: normalizedPhone,
-        metadata: { phone: normalizedPhone },
+        entityId: normalizedPhone,
+        diff: {
+          phone: normalizedPhone,
+          ip: clientIp,
+          device_id: deviceId,
+          device_fingerprint: deviceFingerprint,
+          error: otpError ? otpError.message : null,
+        },
       });
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "No active OTP found. Please request a new code.",
+          ok: false,
+          error: "No active OTP found. Please request a new code.",
         } satisfies VerifyOTPResponse),
         {
           status: 404,
@@ -142,18 +295,24 @@ Deno.serve(async (req) => {
 
     // Check if OTP is expired
     if (new Date(otpRecord.expires_at) < new Date()) {
+      await recordEvent("verify_expired");
       await writeAuditLog(supabase, {
-        event: "whatsapp_otp.verify_expired",
-        actor: null,
+        actorId: null,
+        action: "whatsapp_otp.verify.expired",
         entity: "whatsapp_otp",
-        entity_id: normalizedPhone,
-        metadata: { phone: normalizedPhone },
+        entityId: normalizedPhone,
+        diff: {
+          phone: normalizedPhone,
+          ip: clientIp,
+          device_id: deviceId,
+          device_fingerprint: deviceFingerprint,
+        },
       });
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "OTP has expired. Please request a new code.",
+          ok: false,
+          error: "OTP has expired. Please request a new code.",
         } satisfies VerifyOTPResponse),
         {
           status: 401,
@@ -164,12 +323,19 @@ Deno.serve(async (req) => {
 
     // Check max attempts (3)
     if (otpRecord.attempts >= 3) {
+      await recordEvent("verify_max_attempts", 0, { attempts: otpRecord.attempts });
       await writeAuditLog(supabase, {
-        event: "whatsapp_otp.verify_max_attempts",
-        actor: null,
+        actorId: null,
+        action: "whatsapp_otp.verify.max_attempts",
         entity: "whatsapp_otp",
-        entity_id: normalizedPhone,
-        metadata: { phone: normalizedPhone },
+        entityId: normalizedPhone,
+        diff: {
+          phone: normalizedPhone,
+          ip: clientIp,
+          device_id: deviceId,
+          device_fingerprint: deviceFingerprint,
+          attempts: otpRecord.attempts,
+        },
       });
 
       // Mark OTP as consumed (invalid)
@@ -181,8 +347,8 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: "Maximum verification attempts exceeded. Please request a new code.",
+          ok: false,
+          error: "Maximum verification attempts exceeded. Please request a new code.",
           attempts_remaining: 0,
         } satisfies VerifyOTPResponse),
         {
@@ -205,18 +371,28 @@ Deno.serve(async (req) => {
     if (!isValid) {
       const attemptsRemaining = 3 - (otpRecord.attempts + 1);
 
+      await recordEvent("verify_invalid", attemptsRemaining, {
+        attempts_remaining: attemptsRemaining,
+        attempts: otpRecord.attempts + 1,
+      });
       await writeAuditLog(supabase, {
-        event: "whatsapp_otp.verify_invalid",
-        actor: null,
+        actorId: null,
+        action: "whatsapp_otp.verify.invalid_code",
         entity: "whatsapp_otp",
-        entity_id: normalizedPhone,
-        metadata: { phone: normalizedPhone, attempts_remaining: attemptsRemaining },
+        entityId: normalizedPhone,
+        diff: {
+          phone: normalizedPhone,
+          ip: clientIp,
+          device_id: deviceId,
+          device_fingerprint: deviceFingerprint,
+          attempts_remaining: attemptsRemaining,
+        },
       });
 
       return new Response(
         JSON.stringify({
-          success: false,
-          message: `Invalid OTP code. ${attemptsRemaining} attempt(s) remaining.`,
+          ok: false,
+          error: `Invalid OTP code. ${attemptsRemaining} attempt(s) remaining.`,
           attempts_remaining: attemptsRemaining,
         } satisfies VerifyOTPResponse),
         {
@@ -267,9 +443,9 @@ Deno.serve(async (req) => {
         console.error("whatsapp_otp.user_creation_failed", { error: userError });
         return new Response(
           JSON.stringify({
-            success: false,
-            message: "Failed to create user account",
-          }),
+            ok: false,
+            error: "Failed to create user account",
+          } satisfies VerifyOTPResponse),
           {
             status: 500,
             headers: { ...corsHeaders, "content-type": "application/json" },
@@ -291,49 +467,58 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Generate session token
-    const { data: session, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: "magiclink",
-      email: `${normalizedPhone.replace("+", "")}@phone.sacco.rw`, // Fake email for phone users
-      options: {
-        redirectTo: "/",
+    const jwtSecret = requireEnv("JWT_SECRET");
+    const token = await signJwt(
+      {
+        sub: userId,
+        phone: normalizedPhone,
+        role: "member",
       },
-    });
+      jwtSecret,
+      SESSION_TTL_SEC
+    );
 
-    if (sessionError || !session) {
-      console.error("whatsapp_otp.session_creation_failed", { error: sessionError });
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: "Failed to create session",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "content-type": "application/json" },
-        }
-      );
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const authTokenExpiresAt = issuedAt + 60 * 60;
+    const tokenClaims: AuthJwtClaims = {
+      sub: userId,
+      auth: "member",
+      exp: authTokenExpiresAt,
+      phone: normalizedPhone,
+      factor: "whatsapp",
+    };
+
+    if (deviceId) {
+      tokenClaims.device_id = deviceId;
     }
 
-    // Log successful verification
+    if (deviceFingerprint) {
+      tokenClaims.device_fingerprint = deviceFingerprint;
+    }
+
+    const authToken = await signAuthJwt(tokenClaims);
+
+    await recordEvent("verify_success", null, {
+      user_id: userId,
+      is_new_user: isNewUser,
+    });
+
     await writeAuditLog(supabase, {
-      event: isNewUser ? "whatsapp_otp.new_user_created" : "whatsapp_otp.verify_success",
-      actor: userId,
+      actorId: userId,
+      action: isNewUser ? "whatsapp_otp.verify.new_user" : "whatsapp_otp.verify.success",
       entity: "whatsapp_otp",
       entity_id: normalizedPhone,
-      metadata: { phone: normalizedPhone, user_id: userId },
+      metadata: { phone: normalizedPhone, user_id: userId, is_new_user: isNewUser },
     });
 
     return new Response(
       JSON.stringify({
-        success: true,
-        message: "OTP verified successfully",
-        session: {
-          access_token: session.properties.action_link,
-          refresh_token: session.properties.hashed_token,
-          user: {
-            id: userId,
-            phone: normalizedPhone,
-          },
+        ok: true,
+        token,
+        user: {
+          id: userId,
+          phone: normalizedPhone,
+          is_new: isNewUser,
         },
       } satisfies VerifyOTPResponse),
       {
@@ -345,13 +530,17 @@ Deno.serve(async (req) => {
     console.error("whatsapp_otp.verify_unexpected_error", { error });
     return new Response(
       JSON.stringify({
-        success: false,
-        message: "An unexpected error occurred",
-      }),
+        ok: false,
+        error: "An unexpected error occurred",
+      } satisfies VerifyOTPResponse),
       {
         status: 500,
         headers: { ...corsHeaders, "content-type": "application/json" },
       }
     );
   }
-});
+};
+
+if (import.meta.main) {
+  serveWithObservability("whatsapp-otp-verify", handler);
+}

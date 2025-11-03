@@ -1,1 +1,2 @@
-export const corePlaceholder = true;
+export * from "./services";
+export * from "./telemetry";

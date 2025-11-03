@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { z } from "zod";
-import requiredEnvConfig from "../required-env.json" with { type: "json" };
+import { requiredEnvConfig } from "./data/requiredEnvConfig";
 
 type ProcessEnvSource = Partial<Record<string, string | undefined>>;
 
@@ -17,6 +17,12 @@ function buildRawEnv(source: ProcessEnvSource) {
     NEXT_PUBLIC_SITE_URL: source.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_BUILD_ID: source.NEXT_PUBLIC_BUILD_ID,
     NEXT_PUBLIC_E2E: source.NEXT_PUBLIC_E2E,
+    NEXT_PUBLIC_SENTRY_DSN: source.NEXT_PUBLIC_SENTRY_DSN,
+    SENTRY_DSN: source.SENTRY_DSN,
+    SENTRY_TRACES_SAMPLE_RATE: source.SENTRY_TRACES_SAMPLE_RATE,
+    SENTRY_PROFILES_SAMPLE_RATE: source.SENTRY_PROFILES_SAMPLE_RATE,
+    POSTHOG_API_KEY: source.POSTHOG_API_KEY,
+    POSTHOG_HOST: source.POSTHOG_HOST,
     SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY,
     BACKUP_PEPPER: source.BACKUP_PEPPER,
     RATE_LIMIT_SECRET: source.RATE_LIMIT_SECRET,
@@ -69,6 +75,19 @@ function buildRawEnv(source: ProcessEnvSource) {
     PLAYWRIGHT_SUPABASE_URL: source.PLAYWRIGHT_SUPABASE_URL,
     PLAYWRIGHT_SUPABASE_ANON_KEY: source.PLAYWRIGHT_SUPABASE_ANON_KEY,
     CI: source.CI,
+    CONFIGCAT_OFFERS_SDK_KEY: source.CONFIGCAT_OFFERS_SDK_KEY,
+    CONFIGCAT_ENVIRONMENT: source.CONFIGCAT_ENVIRONMENT,
+    CONFIGCAT_OFFERS_FALLBACK: source.CONFIGCAT_OFFERS_FALLBACK,
+    CONFIGCAT_OFFERS_OVERRIDES: source.CONFIGCAT_OFFERS_OVERRIDES,
+    CONFIGCAT_SETTINGS_URL: source.CONFIGCAT_SETTINGS_URL,
+    AI_AGENT_SESSION_STORE: source.AI_AGENT_SESSION_STORE ?? "supabase",
+    AI_AGENT_SESSION_TTL_SECONDS: source.AI_AGENT_SESSION_TTL_SECONDS ?? "3600",
+    AI_AGENT_RATE_LIMIT_MAX_REQUESTS: source.AI_AGENT_RATE_LIMIT_MAX_REQUESTS ?? "60",
+    AI_AGENT_RATE_LIMIT_WINDOW_SECONDS: source.AI_AGENT_RATE_LIMIT_WINDOW_SECONDS ?? "60",
+    AI_AGENT_USAGE_LOG_ENABLED: source.AI_AGENT_USAGE_LOG_ENABLED ?? "true",
+    AI_AGENT_USAGE_LOG_TABLE: source.AI_AGENT_USAGE_LOG_TABLE ?? "agent_usage_events",
+    AI_AGENT_OPTOUT_TABLE: source.AI_AGENT_OPTOUT_TABLE ?? "agent_opt_outs",
+    AI_AGENT_REDIS_URL: source.AI_AGENT_REDIS_URL,
   } as Record<string, string | undefined>;
 }
 
@@ -98,6 +117,12 @@ const schema = z
     NEXT_PUBLIC_SITE_URL: optionalString,
     NEXT_PUBLIC_BUILD_ID: optionalString,
     NEXT_PUBLIC_E2E: optionalString,
+    NEXT_PUBLIC_SENTRY_DSN: optionalString,
+    SENTRY_DSN: optionalString,
+    SENTRY_TRACES_SAMPLE_RATE: optionalString,
+    SENTRY_PROFILES_SAMPLE_RATE: optionalString,
+    POSTHOG_API_KEY: optionalString,
+    POSTHOG_HOST: optionalString,
     SUPABASE_SERVICE_ROLE_KEY: z
       .string({ required_error: "SUPABASE_SERVICE_ROLE_KEY is required" })
       .trim()
@@ -167,6 +192,19 @@ const schema = z
     PLAYWRIGHT_SUPABASE_URL: optionalString,
     PLAYWRIGHT_SUPABASE_ANON_KEY: optionalString,
     CI: optionalString,
+    CONFIGCAT_OFFERS_SDK_KEY: optionalString,
+    CONFIGCAT_ENVIRONMENT: optionalString,
+    CONFIGCAT_OFFERS_FALLBACK: optionalString,
+    CONFIGCAT_OFFERS_OVERRIDES: optionalString,
+    CONFIGCAT_SETTINGS_URL: optionalString,
+    AI_AGENT_SESSION_STORE: z.enum(["supabase", "redis"]).default("supabase"),
+    AI_AGENT_SESSION_TTL_SECONDS: positiveNumberString,
+    AI_AGENT_RATE_LIMIT_MAX_REQUESTS: positiveNumberString,
+    AI_AGENT_RATE_LIMIT_WINDOW_SECONDS: positiveNumberString,
+    AI_AGENT_USAGE_LOG_ENABLED: z.string().default("true"),
+    AI_AGENT_USAGE_LOG_TABLE: z.string().default("agent_usage_events"),
+    AI_AGENT_OPTOUT_TABLE: z.string().default("agent_opt_outs"),
+    AI_AGENT_REDIS_URL: optionalString,
   })
   .superRefine((values, ctx) => {
     const kmsCandidates = [values.KMS_DATA_KEY, values.KMS_DATA_KEY_BASE64].filter(
@@ -210,7 +248,7 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
     TRUSTED_COOKIE_SECRET: "stub-trusted-cookie-secret",
     HMAC_SHARED_SECRET: "stub-hmac-shared-secret",
     OPENAI_API_KEY: "stub-openai-api-key",
-    KMS_DATA_KEY_BASE64: "ZGV2LWttcy1kYXRhLWtleS0zMi1ieXRlcyEhISEhISE=",
+    KMS_DATA_KEY_BASE64: "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==",
   } as const);
 
   const withFallback = (value: string | undefined, fallback: string) => {
@@ -265,6 +303,21 @@ function parsePositiveInteger(value: string, fallback: number): number {
   return parsed;
 }
 
+function parseSampleRateValue(value: string | undefined, fallback: number): number {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return fallback;
+  }
+
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  if (parsed < 0) return 0;
+  if (parsed > 1) return 1;
+  return parsed;
+}
+
 export type ServerEnv = ReturnType<typeof prepareServerEnv>;
 
 function prepareServerEnv(parsedEnv: RawEnv) {
@@ -285,6 +338,14 @@ function prepareServerEnv(parsedEnv: RawEnv) {
       5 * 60 * 1000
     ),
     SMTP_PORT: parsePositiveInteger(parsedEnv.SMTP_PORT, 587),
+    SENTRY_TRACES_SAMPLE_RATE: parseSampleRateValue(
+      parsedEnv.SENTRY_TRACES_SAMPLE_RATE,
+      parsedEnv.APP_ENV === "production" ? 0.2 : 1
+    ),
+    SENTRY_PROFILES_SAMPLE_RATE: parseSampleRateValue(
+      parsedEnv.SENTRY_PROFILES_SAMPLE_RATE,
+      parsedEnv.APP_ENV === "production" ? 0.1 : 1
+    ),
     rateLimitSecret,
     emailOtpPepper,
     kmsDataKey,
@@ -327,6 +388,7 @@ export const clientEnv = Object.freeze({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SITE_URL: env.NEXT_PUBLIC_SITE_URL ?? null,
   NEXT_PUBLIC_BUILD_ID: env.NEXT_PUBLIC_BUILD_ID ?? null,
+  NEXT_PUBLIC_SENTRY_DSN: env.NEXT_PUBLIC_SENTRY_DSN ?? null,
 });
 
 export const requiredServerEnv: ReadonlyArray<string> = Object.freeze(requiredEnvConfig.required);

@@ -42,7 +42,7 @@ interface GroupsGridProps {
  * - Grid items are keyboard navigable via card buttons
  */
 export function GroupsGrid({ groups }: GroupsGridProps) {
-  // Handle empty state
+  // Handle empty state - Atlas redesigned
   if (groups.length === 0) {
     return (
       <div
@@ -50,8 +50,8 @@ export function GroupsGrid({ groups }: GroupsGridProps) {
         role="status"
         aria-live="polite"
       >
-        <p className="text-lg text-gray-600 mb-2">No groups available</p>
-        <p className="text-sm text-gray-500">
+        <p className="text-lg font-semibold text-neutral-700 mb-2">No groups available</p>
+        <p className="text-sm text-neutral-600">
           Check back later for new savings groups in your area
         </p>
       </div>

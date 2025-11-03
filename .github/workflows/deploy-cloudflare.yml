@@ -28,9 +28,29 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ""
+      BACKUP_PEPPER: placeholder-backup-pepper-32-bytes-min
+      MFA_SESSION_SECRET: placeholder-mfa-session-secret-32b
+      TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
+      HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
+      KMS_DATA_KEY_BASE64: c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==
+      OPENAI_API_KEY: placeholder-openai-api-key
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Load runtime secrets
+        run: ./scripts/load-aws-secrets.sh "${{ secrets.AWS_SECRETSMANAGER_SECRET_ID }}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -46,6 +66,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify Sentry configuration
+        run: node scripts/verify-sentry-config.mjs
+        env:
+          NODE_ENV: production
+          APP_ENV: production
+          SENTRY_SERVICE: admin
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_ADMIN }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN_ADMIN }}
+
       - name: Build for Cloudflare Pages
         run: pnpm --filter @ibimina/admin build:cloudflare
         env:
@@ -60,6 +89,8 @@ jobs:
           HMAC_SHARED_SECRET: ${{ secrets.HMAC_SHARED_SECRET }}
           KMS_DATA_KEY_BASE64: ${{ secrets.KMS_DATA_KEY_BASE64 }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_ADMIN }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN_ADMIN }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -77,9 +108,29 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ""
+      BACKUP_PEPPER: placeholder-backup-pepper-32-bytes-min
+      MFA_SESSION_SECRET: placeholder-mfa-session-secret-32b
+      TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
+      HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
+      KMS_DATA_KEY_BASE64: c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==
+      OPENAI_API_KEY: placeholder-openai-api-key
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Load runtime secrets
+        run: ./scripts/load-aws-secrets.sh "${{ secrets.AWS_SECRETSMANAGER_SECRET_ID }}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -95,6 +146,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify Sentry configuration
+        run: node scripts/verify-sentry-config.mjs
+        env:
+          NODE_ENV: production
+          APP_ENV: production
+          SENTRY_SERVICE: admin-staff
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_ADMIN }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN_ADMIN }}
+
       - name: Build for Cloudflare Pages
         run: pnpm --filter @ibimina/admin build:cloudflare
         env:
@@ -109,6 +169,8 @@ jobs:
           HMAC_SHARED_SECRET: ${{ secrets.HMAC_SHARED_SECRET }}
           KMS_DATA_KEY_BASE64: ${{ secrets.KMS_DATA_KEY_BASE64 }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_ADMIN }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN_ADMIN }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -126,9 +188,31 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ""
+      BACKUP_PEPPER: placeholder-backup-pepper-32-bytes-min
+      MFA_SESSION_SECRET: placeholder-mfa-session-secret-32b
+      TRUSTED_COOKIE_SECRET: placeholder-trusted-cookie-secret
+      HMAC_SHARED_SECRET: placeholder-hmac-shared-secret-32
+      KMS_DATA_KEY_BASE64: c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: placeholder-vapid-public-key
+      VAPID_PRIVATE_KEY: placeholder-vapid-private-key
+      OPENAI_API_KEY: placeholder-openai-api-key
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Load runtime secrets
+        run: ./scripts/load-aws-secrets.sh "${{ secrets.AWS_SECRETSMANAGER_SECRET_ID }}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -143,6 +227,15 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify Sentry configuration
+        run: node scripts/verify-sentry-config.mjs
+        env:
+          NODE_ENV: production
+          APP_ENV: production
+          SENTRY_SERVICE: client
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_CLIENT }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN_CLIENT }}
 
       - name: Build for Cloudflare Pages
         run: pnpm --filter @ibimina/client build:cloudflare
@@ -160,6 +253,8 @@ jobs:
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN_CLIENT }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN_CLIENT }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1

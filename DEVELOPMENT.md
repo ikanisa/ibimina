@@ -246,7 +246,14 @@ supabase migration new <name>
 
 # Apply migrations
 supabase db push
+
+# Refresh generated TypeScript definitions after schema changes
+pnpm gen:types
 ```
+
+> **Tip:** Lint and typecheck commands now fail if
+> `apps/admin/lib/supabase/types.ts` is stale, so run `pnpm gen:types` whenever
+> you modify the database schema.
 
 ### Git Workflow
 

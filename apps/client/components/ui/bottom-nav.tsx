@@ -74,22 +74,30 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`
-                flex flex-col items-center justify-center
-                min-w-[64px] min-h-[48px] px-3 py-2
-                rounded-lg transition-colors
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                ${
-                  isActive
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                }
-              `}
+              className={
+                "flex flex-col items-center justify-center min-w-[64px] min-h-[48px] px-3 py-2 rounded-xl transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2 " +
+                (isActive
+                  ? "text-atlas-blue bg-atlas-glow font-bold"
+                  : "text-neutral-700 hover:text-atlas-blue hover:bg-neutral-50")
+              }
               aria-label={ariaLabel}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className="w-6 h-6 mb-1" aria-hidden="true" />
-              <span className="text-xs font-medium">{label}</span>
+              <Icon
+                className={
+                  "w-6 h-6 mb-1 transition-transform duration-interactive " +
+                  (isActive ? "stroke-[2.5]" : "stroke-[2]")
+                }
+                aria-hidden="true"
+              />
+              <span
+                className={
+                  "text-xs font-medium transition-all duration-interactive " +
+                  (isActive ? "font-bold" : "")
+                }
+              >
+                {label}
+              </span>
             </Link>
           );
         })}

@@ -22,7 +22,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Deep Links: HTTPS App Links (verified) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="client.ibimina.rw" />
+                <data
+                    android:scheme="https"
+                    android:host="app.ibimina.rw" />
+            </intent-filter>
+
+            <!-- Deep Links: Custom Scheme (fallback) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ibimina" />
+            </intent-filter>
+
         </activity>
+
+        <activity
+            android:name=".ui.payer.PayActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBarLaunch" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -51,6 +77,18 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name="rw.gov.ikanisa.ibimina.client.nfc.PayeeCardService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apduservice" />
+        </service>
+
         <!-- Broadcast Receiver for Boot Complete -->
         <receiver
             android:name=".BootReceiver"
@@ -72,10 +110,7 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
-    <!-- SMS Permissions - For OTP reading and transaction confirmations -->
-    <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
+    <!-- SMS User Consent API removes the need for SEND/RECEIVE/READ_SMS -->
 
     <!-- Camera & Storage Permissions - For ID upload, receipts, profile pictures -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -99,6 +134,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <uses-permission android:name="android.permission.NFC" />
 
     <!-- Contacts - For finding other members -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -124,5 +161,6 @@
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
     <uses-feature android:name="android.hardware.biometric" android:required="false" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
 
 </manifest>

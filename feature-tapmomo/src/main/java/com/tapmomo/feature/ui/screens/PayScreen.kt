@@ -1,9 +1,35 @@
 package com.tapmomo.feature.ui.screens
 
 import android.app.Activity
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -17,6 +43,7 @@ import com.tapmomo.feature.data.models.PaymentPayload
 import com.tapmomo.feature.nfc.PayloadValidator
 import com.tapmomo.feature.nfc.ReaderController
 import com.tapmomo.feature.nfc.ValidationResult
+import com.tapmomo.feature.ussd.UssdLaunchResult
 import com.tapmomo.feature.ussd.UssdLauncher
 import kotlinx.coroutines.launch
 
@@ -38,6 +65,24 @@ fun PayScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var paymentLaunched by remember { mutableStateOf(false) }
     
+    var pendingUssdAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        val denied = results.filterValues { granted -> !granted }.keys
+        if (denied.isEmpty()) {
+            pendingUssdAction?.invoke()
+            pendingUssdAction = null
+        } else {
+            errorMessage = stringResource(
+                R.string.tapmomo_error_permission_denied,
+                denied.joinToString(", ")
+            )
+            pendingUssdAction = null
+        }
+    }
+
     // NFC reader
     val readerController = remember(activity) {
         activity?.let { ReaderController(it) }
@@ -185,22 +230,41 @@ fun PayScreen(
             PaymentConfirmDialog(
                 payload = scannedPayload!!,
                 onConfirm = { selectedSimId ->
-                    val success = UssdLauncher.launchUssd(
-                        context = context,
-                        network = try { com.tapmomo.feature.Network.valueOf(scannedPayload!!.network) } 
-                                  catch (e: Exception) { com.tapmomo.feature.Network.MTN },
-                        merchantId = scannedPayload!!.merchantId,
-                        amount = scannedPayload!!.amount,
-                        subscriptionId = selectedSimId
-                    )
-                    
-                    if (success) {
-                        paymentLaunched = true
-                        showConfirmDialog = false
-                    } else {
-                        errorMessage = stringResource(R.string.tapmomo_error_ussd_failed)
-                        showConfirmDialog = false
+                    val payload = scannedPayload!!
+                    val network = try {
+                        com.tapmomo.feature.Network.valueOf(payload.network)
+                    } catch (e: Exception) {
+                        com.tapmomo.feature.Network.MTN
                     }
+
+                    fun launch(simId: Int?) {
+                        when (val result = UssdLauncher.launchUssd(
+                            context = context,
+                            network = network,
+                            merchantId = payload.merchantId,
+                            amount = payload.amount,
+                            subscriptionId = simId
+                        )) {
+                            is UssdLaunchResult.Success -> {
+                                paymentLaunched = true
+                                showConfirmDialog = false
+                                errorMessage = null
+                            }
+
+                            is UssdLaunchResult.PermissionRequired -> {
+                                pendingUssdAction = { launch(simId) }
+                                permissionLauncher.launch(result.permissions)
+                            }
+
+                            is UssdLaunchResult.Failure -> {
+                                errorMessage = result.reason
+                                    ?: stringResource(R.string.tapmomo_error_ussd_failed)
+                                showConfirmDialog = false
+                            }
+                        }
+                    }
+
+                    launch(selectedSimId)
                 },
                 onDismiss = {
                     showConfirmDialog = false
@@ -218,7 +282,14 @@ private fun PaymentConfirmDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    val simCards = remember { SimUtils.getActiveSimCards(context) }
+    val hasPhonePermission = remember { SimUtils.hasPhonePermission(context) }
+    val simCards = remember(hasPhonePermission) {
+        if (hasPhonePermission) {
+            SimUtils.getActiveSimCards(context)
+        } else {
+            emptyList()
+        }
+    }
     var selectedSimId by remember { mutableStateOf<Int?>(simCards.firstOrNull()?.subscriptionId) }
     
     AlertDialog(
@@ -226,18 +297,35 @@ private fun PaymentConfirmDialog(
         title = { Text(stringResource(R.string.tapmomo_pay_confirm_title)) },
         text = {
             Column {
-                Text(
-                    stringResource(
-                        R.string.tapmomo_pay_confirm_message,
-                        payload.amount ?: 0,
-                        payload.currency,
-                        payload.merchantId,
-                        payload.network
+                val amount = payload.amount
+                if (amount != null) {
+                    Text(
+                        stringResource(
+                            R.string.tapmomo_pay_confirm_message,
+                            amount,
+                            payload.currency,
+                            payload.merchantId,
+                            payload.network
+                        )
                     )
-                )
-                
+                } else {
+                    Text(
+                        stringResource(
+                            R.string.tapmomo_pay_confirm_message_no_amount,
+                            payload.merchantId,
+                            payload.network
+                        )
+                    )
+                }
+
                 // SIM picker for dual-SIM
-                if (simCards.size > 1) {
+                if (!hasPhonePermission) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(R.string.tapmomo_pay_sim_permission_hint),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                } else if (simCards.size > 1) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(stringResource(R.string.tapmomo_pay_sim_picker_title))
                     simCards.forEach { sim ->

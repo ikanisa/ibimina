@@ -10,8 +10,9 @@ import {
   type SupportedLocale,
   isSupportedLocale,
 } from "@/lib/i18n/locales";
+import { BASE_DICTIONARIES, ENGLISH_DICTIONARY } from "@/lib/i18n/base-dictionary";
 
-const DICTIONARIES: Record<SupportedLocale, Record<string, string>> = {
+const APP_DICTIONARIES: Record<SupportedLocale, Record<string, string>> = {
   en: enCommon as Record<string, string>,
   rw: rwCommon as Record<string, string>,
   fr: frCommon as Record<string, string>,
@@ -87,13 +88,19 @@ export function I18nProvider({ children, defaultLocale = DEFAULT_LOCALE }: I18nP
     }
   }, []);
 
-  const dictionary = useMemo(() => DICTIONARIES[locale], [locale]);
+  const dictionary = useMemo(
+    () => ({
+      ...BASE_DICTIONARIES[locale],
+      ...APP_DICTIONARIES[locale],
+    }),
+    [locale]
+  );
 
   const translate = useCallback(
     (key: string, fallback?: string, replacements?: Record<string, string | number>) => {
       let value = dictionary[key];
       if (!value && locale !== "en") {
-        value = DICTIONARIES.en[key];
+        value = APP_DICTIONARIES.en[key] ?? ENGLISH_DICTIONARY[key];
       }
       if (!value) {
         value = fallback ?? key;

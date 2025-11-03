@@ -383,7 +383,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-nyungwe text-neutral-0">
+    <div className="relative flex min-h-screen flex-col">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-kigali focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"

@@ -1,4 +1,5 @@
 import { validateHmacRequest } from "../_shared/auth.ts";
+import { serveWithObservability } from "../_shared/observability.ts";
 
 // Deno edge function for parsing MoMo SMS messages using deterministic regex with OpenAI Structured Outputs fallback
 
@@ -292,7 +293,7 @@ async function parseWithOpenAI(rawText: string, receivedAt?: string) {
   return { transaction, model: payload.model ?? model };
 }
 
-Deno.serve(async (req) => {
+serveWithObservability("parse-sms", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }

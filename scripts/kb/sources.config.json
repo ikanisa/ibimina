@@ -1,0 +1,37 @@
+{
+  "sources": [
+    {
+      "id": "internal-drafts",
+      "name": "Internal Draft Articles",
+      "owner": "Customer Experience Lead",
+      "updateCadence": "Weekly (Friday)",
+      "type": "drive",
+      "path": "docs/kb/internal",
+      "includeExtensions": [".md", ".mdx"],
+      "outputSubdir": "internal"
+    },
+    {
+      "id": "sacco-alliance",
+      "name": "SACCO Alliance CMS",
+      "owner": "SACCO Alliance Ops Liaison",
+      "updateCadence": "Bi-weekly (Tuesdays)",
+      "type": "cms",
+      "endpoint": "https://cms.sacco-alliance.example/api/kb",
+      "tokenEnv": "SACCO_ALLIANCE_API_TOKEN",
+      "locale": "en",
+      "outputSubdir": "partners",
+      "enabled": false
+    },
+    {
+      "id": "momo-cooperative",
+      "name": "Momo Cooperative Shared Drive",
+      "owner": "Cooperative Training Coordinator",
+      "updateCadence": "Monthly (second Wednesday)",
+      "type": "drive",
+      "path": "drive://momo-cooperative/KB",
+      "includeExtensions": [".md", ".mdx", ".html"],
+      "outputSubdir": "partners",
+      "enabled": false
+    }
+  ]
+}

@@ -1,49 +1,27 @@
-/**
- * AI Agent Package
- *
- * This package houses the logic for the AI-powered customer support agent.
- * It provides utilities for interacting with OpenAI's API and managing
- * conversational AI workflows for the Ibimina SACCO platform.
- */
+export { bootstrapAgentSession, runAgentTurn } from "./orchestrator.js";
+export { createDefaultTools } from "./tools.js";
+export { evaluateGuardrails, type GuardrailDecision } from "./guardrails.js";
 
-export interface Message {
-  role: "system" | "user" | "assistant";
-  content: string;
-}
+// Export embedding and vector store functionality (from PR #305)
+export { EmbeddingProvider } from "./embeddingProvider.js";
+export { DocumentIngestion } from "./ingestion.js";
+export { VectorStore } from "./vectorStore.js";
+export { MemoryStore } from "./memoryStore.js";
+export { resolveQuery } from "./resolver.js";
+export { monitorEmbeddings } from "./monitoring.js";
 
-export interface ChatRequest {
-  messages: Message[];
-  model?: string;
-  temperature?: number;
-}
+// Export session management and rate limiting (from PR #307)
+export { AIAgent } from "./agent.js";
+export { OptOutRegistry } from "./opt-out-registry.js";
+export { RateLimiter } from "./rate-limiter.js";
+export { UsageLogger } from "./usage-logger.js";
+export * from "./errors.js";
 
-export interface ChatResponse {
-  message: string;
-  error?: string;
-}
-
-/**
- * Placeholder AI agent functionality.
- * This will be expanded to include OpenAI integration and
- * SACCO-specific context in future iterations.
- */
-export class AIAgent {
-  private apiKey: string;
-
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-  }
-
-  /**
-   * Process a chat message and generate a response.
-   * Currently returns a placeholder response.
-   */
-  async chat(request: ChatRequest): Promise<ChatResponse> {
-    // TODO: Implement actual OpenAI integration
-    return {
-      message: "This is a placeholder response from the AI agent. OpenAI integration coming soon.",
-    };
-  }
-}
-
-export default AIAgent;
+export type {
+  AgentName,
+  ChatRequest,
+  ChatResponse,
+  Message,
+  SessionState,
+  ToolInvocation,
+} from "./types.js";

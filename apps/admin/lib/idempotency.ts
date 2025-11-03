@@ -25,8 +25,64 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/observability/logger";
 import crypto from "crypto";
 
-type IdempotencyRecord = {
-  response: Record<string, unknown>;
+const IDEMPOTENCY_SENTINEL_KEY = "__ibimina_idempotency__" as const;
+
+type IdempotencySentinelType = "pending" | "null" | "undefined";
+
+const createSentinel = (type: IdempotencySentinelType) => ({
+  [IDEMPOTENCY_SENTINEL_KEY]: type,
+});
+
+const PENDING_SENTINEL = createSentinel("pending");
+const NULL_SENTINEL = createSentinel("null");
+const UNDEFINED_SENTINEL = createSentinel("undefined");
+
+function isSentinel(
+  value: unknown,
+  type: IdempotencySentinelType
+): value is Record<typeof IDEMPOTENCY_SENTINEL_KEY, IdempotencySentinelType> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    IDEMPOTENCY_SENTINEL_KEY in value &&
+    (value as Record<string, unknown>)[IDEMPOTENCY_SENTINEL_KEY] === type
+  );
+}
+
+function serializeResponse<T>(value: T): unknown {
+  if (value === null) {
+    return NULL_SENTINEL;
+  }
+
+  if (typeof value === "undefined") {
+    return UNDEFINED_SENTINEL;
+  }
+
+  return value;
+}
+
+function deserializeResponse<T>(value: unknown): T {
+  if (isSentinel(value, "null")) {
+    return null as T;
+  }
+
+  if (isSentinel(value, "undefined")) {
+    return undefined as T;
+  }
+
+  return value as T;
+}
+
+function hasStoredResponse(value: unknown): boolean {
+  if (value === null) {
+    return false;
+  }
+
+  return !isSentinel(value, "pending");
+}
+
+type _IdempotencyRecord = {
+  response: unknown | null;
   expires_at: string;
   request_hash: string;
 };
@@ -92,7 +148,7 @@ export async function withIdempotency<T>({
             key,
             user_id: userId,
             request_hash: requestHash,
-            response: null,
+            response: PENDING_SENTINEL,
             expires_at: expiresAt,
           },
           { returning: "representation" }
@@ -135,12 +191,12 @@ export async function withIdempotency<T>({
 
       const isExpired = new Date(existing.expires_at) < new Date();
       const hashMatches = existing.request_hash === requestHash;
-      const hasResponse = existing.response !== null;
+      const hasResponse = hasStoredResponse(existing.response);
 
       if (hashMatches && hasResponse && !isExpired) {
         return {
           status: "cached" as const,
-          data: existing.response as T,
+          data: deserializeResponse<T>(existing.response),
         };
       }
 
@@ -163,7 +219,7 @@ export async function withIdempotency<T>({
           .update({
             request_hash: requestHash,
             expires_at: expiresAt,
-            response: null,
+            response: PENDING_SENTINEL,
           })
           .eq("key", key)
           .eq("user_id", userId)
@@ -231,7 +287,7 @@ export async function withIdempotency<T>({
     const { error: storeError } = await supabase
       .from("idempotency")
       .update({
-        response: result as unknown,
+        response: serializeResponse(result),
         expires_at: expiresAt,
       })
       .eq("key", key)

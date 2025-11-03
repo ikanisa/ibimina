@@ -21,5 +21,4 @@ export const ADMIN_NAV_LINKS: ReadonlyArray<AdminNavLink> = [
   { href: "/admin/settings", label: "Settings & Policies", icon: "settings" },
   { href: "/admin/audit", label: "Audit & Logs", icon: "audit" },
   { href: "/admin/feature-flags", label: "Feature Flags & Experiments", icon: "feature-flags" },
-  { href: "/agent", label: "AI Support Assistant", icon: "support" },
 ];

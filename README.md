@@ -9,6 +9,8 @@ semantic SACCO search.
 
 - [**CONTRIBUTING.md**](CONTRIBUTING.md) - Guidelines for contributing to the
   project
+- [**docs/dev/getting-started.md**](docs/dev/getting-started.md) - Consolidated
+  developer onboarding checklist
 - [**DEVELOPMENT.md**](DEVELOPMENT.md) - Detailed development setup and workflow
   guide
 - [**docs/**](docs/) - Additional documentation on architecture, deployment, and
@@ -24,6 +26,8 @@ semantic SACCO search.
   and dependency graph
 - [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) - Common issues and
   solutions
+- [**PRE_EXISTING_BUILD_ISSUES.md**](PRE_EXISTING_BUILD_ISSUES.md) - Known build
+  issues requiring separate PRs
 - [**docs/CI_WORKFLOWS.md**](docs/CI_WORKFLOWS.md) - CI/CD workflows and
   troubleshooting
 - [**docs/DB_GUIDE.md**](docs/DB_GUIDE.md) - Database procedures and migration
@@ -35,6 +39,17 @@ semantic SACCO search.
 - [**packages/README.md**](packages/README.md) - Shared packages documentation
 
 ### Deployment Documentation
+
+### Go-Live & Release
+
+- [**Go-Live documentation hub**](docs/go-live/README.md) - Central index for
+  audit collateral
+- [**Release checklist**](docs/go-live/release-checklist.md) - Step-by-step
+  launch procedure
+- [**Release artifacts inventory**](docs/go-live/artifacts-inventory.md) -
+  Evidence catalog for audits
+- [**CI workflows overview**](docs/CI_WORKFLOWS.md) - Required status checks and
+  troubleshooting
 
 - [**docs/CLOUDFLARE_DEPLOYMENT.md**](docs/CLOUDFLARE_DEPLOYMENT.md) -
   Comprehensive guide for deploying to Cloudflare Pages
@@ -115,13 +130,13 @@ Before setting up the project, ensure you have:
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPMENT.md) for
 detailed guidelines.
 
-## Local setup
+## Getting Started
 
 ### 1. Install dependencies
 
 ```bash
 # Use the correct Node version
-nvm use
+nvm use 20
 
 # Install pnpm if not already installed
 npm install -g pnpm@10.19.0
@@ -130,17 +145,20 @@ npm install -g pnpm@10.19.0
 pnpm install
 ```
 
-### 2. Configure environment variables
+### 2. Copy and configure environment variables
 
 ```bash
 # Copy the example environment file
 cp .env.example .env
 ```
 
-Edit `.env` and populate the following **required** variables:
+`.env.example` groups the mandatory secrets at the top so you can see what must
+be filled in before running the app. Update `.env` with the following
+**required** values (matching the placeholders shipped in `.env.example`):
 
 | Variable                        | Purpose                        | How to obtain                            |
 | ------------------------------- | ------------------------------ | ---------------------------------------- |
+| `APP_ENV`                       | Runtime environment label      | Use `development` locally                |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL           | From your Supabase project settings      |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key                | From your Supabase project API settings  |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Service role key (server-only) | From your Supabase project API settings  |
@@ -149,11 +167,38 @@ Edit `.env` and populate the following **required** variables:
 | `MFA_SESSION_SECRET`            | MFA session signing key        | Generate with: `openssl rand -hex 32`    |
 | `TRUSTED_COOKIE_SECRET`         | Trusted device cookie key      | Generate with: `openssl rand -hex 32`    |
 | `HMAC_SHARED_SECRET`            | HMAC for edge function auth    | Generate with: `openssl rand -hex 32`    |
+| `MFA_EMAIL_FROM`                | From address for MFA email     | Use a verified sender (Resend/SMTP)      |
+| `MFA_EMAIL_LOCALE`              | Default MFA locale             | Typically `en`, `rw`, or `fr`            |
 
-See `.env.example` for additional optional configuration (logging, email,
-analytics, etc.).
+Use the quick commands below to mint secrets that match the placeholder formats
+in `.env.example`:
 
-### 3. Start local Supabase (optional)
+```bash
+openssl rand -base64 32 # KMS_DATA_KEY_BASE64
+openssl rand -hex 32    # BACKUP_PEPPER, MFA_SESSION_SECRET, TRUSTED_COOKIE_SECRET, HMAC_SHARED_SECRET
+```
+
+See `.env.example` for optional configuration covering logging, email,
+analytics, Web Push, and test scaffolding.
+
+### 3. Provision Supabase secrets (optional but recommended)
+
+When you link a Supabase project, push the same secrets to the project so Edge
+Functions and migrations run locally and in CI with matching credentials:
+
+```bash
+supabase secrets set \
+  SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY \
+  HMAC_SHARED_SECRET=$HMAC_SHARED_SECRET \
+  KMS_DATA_KEY_BASE64=$KMS_DATA_KEY_BASE64 \
+  BACKUP_PEPPER=$BACKUP_PEPPER \
+  TRUSTED_COOKIE_SECRET=$TRUSTED_COOKIE_SECRET \
+  MFA_SESSION_SECRET=$MFA_SESSION_SECRET \
+  MFA_EMAIL_FROM=$MFA_EMAIL_FROM \
+  MFA_EMAIL_LOCALE=$MFA_EMAIL_LOCALE
+```
+
+### 4. Start local Supabase (optional)
 
 For local development with a full database:
 
@@ -168,7 +213,7 @@ supabase db reset
 # Update your .env with these local URLs
 ```
 
-### 4. Run the development server
+### 5. Run the development server
 
 ```bash
 # Start Next.js dev server (default port 3000)
@@ -183,6 +228,33 @@ The admin console will be available at `http://localhost:3000`.
 `.env` stays out of version control and is loaded automatically by the admin
 app. See [`docs/local-hosting.md`](docs/local-hosting.md) for a detailed
 Mac-hosting walkthrough plus health-check steps.
+
+### Configure CI secret stores
+
+Ensure your CI/CD targets read the same secrets defined in `.env.example`.
+
+#### Vercel
+
+- Set **Production**, **Preview**, and **Development** environment variables to
+  include all required keys: `APP_ENV`, `NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+  `KMS_DATA_KEY_BASE64`, `BACKUP_PEPPER`, `MFA_SESSION_SECRET`,
+  `TRUSTED_COOKIE_SECRET`, `HMAC_SHARED_SECRET`, `MFA_EMAIL_FROM`, and
+  `MFA_EMAIL_LOCALE`.
+- Mirror any optional integrations you rely on (Resend, OpenAI, Web Push) using
+  the same names and values found in `.env`.
+- Use `vercel env pull` to refresh local `.env` files after updating the secret
+  store so developers stay aligned.
+
+#### GitHub Actions
+
+- Store the same required variables listed above as repository or environment
+  secrets so workflows can build and run Playwright tests against preview
+  deployments.
+- Add Supabase deployment credentials alongside them: `SUPABASE_PROJECT_REF` and
+  `SUPABASE_ACCESS_TOKEN` for the Supabase CLI workflow.
+- When rotating secrets, update the GitHub Action store and immediately refresh
+  Vercel to keep build and deploy pipelines in sync.
 
 - `pnpm start` (and the `apps/admin/scripts/start.sh` wrapper) boots the
   `.next/standalone` output by default. Set `ADMIN_USE_STANDALONE_START=0` (or
@@ -243,16 +315,18 @@ docs/                   # Architecture, hosting, onboarding guides
   group.
 - Dashboard, Ikimina, Recon, Reports, and Admin pages now query Supabase
   directly in server components.
-- See `docs/go-live-checklist.md` for the full Supabase bootstrap sequence
-  (migrations, secrets, edge functions, GSM ingestion).
+- See `docs/go-live/supabase-go-live-checklist.md` for the full Supabase
+  bootstrap sequence (migrations, secrets, edge functions, GSM ingestion).
 - Refer to `docs/local-hosting.md` when wiring Supabase credentials into
   `.env.local` for local development.
 
 ### GitHub Actions deployment secrets
 
-The Supabase deploy workflow (`.github/workflows/supabase-deploy.yml`) requires
-the following repository secrets so migrations and edge functions can be
-promoted automatically:
+In addition to the application secrets listed under
+[_Configure CI secret stores_](#configure-ci-secret-stores), the Supabase deploy
+workflow (`.github/workflows/supabase-deploy.yml`) requires the following
+repository secrets so migrations and edge functions can be promoted
+automatically:
 
 - `SUPABASE_PROJECT_REF` – the Supabase project reference used by
   `supabase link` and `supabase migration up`.
@@ -260,7 +334,10 @@ promoted automatically:
   project (Settings → Access Tokens in the Supabase dashboard).
 
 Ensure these secrets stay in sync with your production project before re-running
-the workflow.
+the workflow. Runtime environment variables for the Next.js apps are pulled from
+AWS Secrets Manager at deploy time via `scripts/load-aws-secrets.sh`; see
+`docs/operations/secrets-rotation.md` for the rotation cadence and response
+playbook.
 
 ## SACCO+ Supabase backend
 
@@ -406,7 +483,8 @@ you’re ready to release to your local or on-prem infrastructure.
   lint/type/test/build/Playwright/Lighthouse/log-drain gates that CI enforces.
 - Run `pnpm run validate:production` to verify production readiness
   prerequisites.
-- Walk through the [Production Go-Live Checklist](PRODUCTION_CHECKLIST.md) for
+- Walk through the
+  [Production Go-Live Checklist](docs/go-live/production-checklist.md) for
   comprehensive pre-deployment validation.
 - Review the [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) for standard
   release procedures.
@@ -414,3 +492,58 @@ you’re ready to release to your local or on-prem infrastructure.
   each deployment.
 - Keep [Disaster Recovery Procedures](docs/DISASTER_RECOVERY.md) accessible for
   emergency response.
+
+## WhatsApp OTP & webhook smoke tests
+
+### cURL validation flow
+
+1. **Issue an OTP via Supabase Edge Function**
+
+   ```bash
+   curl -X POST "${SUPABASE_URL}/functions/v1/whatsapp-otp-send" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+     -d '{"phone_number":"+250788123456"}'
+   ```
+
+2. **Verify the OTP** (replace `123456` with the code returned by the first call
+   or retrieved from the database in non-production environments):
+
+   ```bash
+   curl -X POST "${SUPABASE_URL}/functions/v1/whatsapp-otp-verify" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+     -d '{"phone_number":"+250788123456","code":"123456"}'
+   ```
+
+3. **Simulate a Meta webhook callback**. Create the JSON payload you want to
+   test (for example `payload.json`), then sign it with your app secret:
+
+   ```bash
+   SIGNATURE="sha256=$(openssl dgst -sha256 -hmac "$META_WHATSAPP_APP_SECRET" payload.json | cut -d' ' -f2)"
+
+   curl -X POST "https://<your-vercel-domain>/webhook/whatsapp" \
+     -H "Content-Type: application/json" \
+     -H "X-Hub-Signature-256: ${SIGNATURE}" \
+     --data-binary @payload.json
+   ```
+
+   Use the `hub.mode=subscribe` query parameters to complete Meta's webhook
+   handshake:
+
+   ```bash
+   curl "https://<your-vercel-domain>/webhook/whatsapp?hub.mode=subscribe&hub.challenge=test&hub.verify_token=${META_WHATSAPP_VERIFY_TOKEN}"
+   ```
+
+### Troubleshooting checklist
+
+- Confirm rows are added to `ops.whatsapp_delivery_events` with
+  `select status, failure_reason from ops.whatsapp_delivery_events order by created_at desc limit 5;`
+- Review function logs in Supabase (`supabase functions logs whatsapp-otp-send`)
+  if OTP requests fail.
+- Inspect the alert webhook receiver whenever `whatsapp.delivery_failed`
+  notifications are emitted (search for the body hash reported in the 200 OK
+  response).
+- Ensure `META_WHATSAPP_APP_SECRET`, `META_WHATSAPP_VERIFY_TOKEN`,
+  `WHATSAPP_ALERT_WEBHOOK`, and Supabase credentials are present in your Vercel
+  project if webhook validation fails.

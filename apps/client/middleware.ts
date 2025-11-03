@@ -1,55 +1,118 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import createIntlMiddleware from "next-intl/middleware";
-import {
-  HSTS_HEADER,
-  SECURITY_HEADERS,
-  createContentSecurityPolicy,
-  createNonce,
-  createRequestId,
-} from "@ibimina/lib";
-import { locales, defaultLocale } from "./i18n";
+import * as Sentry from "@sentry/nextjs";
+import { withSentryMiddleware } from "@sentry/nextjs/middleware";
+
+import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@ibimina/lib";
+import { defaultLocale } from "./i18n";
 
 const isDev = process.env.NODE_ENV !== "production";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-// Create next-intl middleware
-const intlMiddleware = createIntlMiddleware({
-  locales,
-  defaultLocale,
-  localePrefix: "as-needed", // Don't prefix default locale
-});
+const PUBLIC_ROUTES = new Set([
+  "/login",
+  "/welcome",
+  "/onboard",
+  "/offline",
+  "/help",
+  "/privacy",
+  "/terms",
+]);
 
-export function middleware(request: NextRequest) {
-  // Run i18n middleware first
-  const intlResponse = intlMiddleware(request);
+const PUBLIC_PREFIXES = [
+  "/api",
+  "/_next",
+  "/icons",
+  "/manifest",
+  "/service-worker.js",
+  "/assets",
+  "/store-assets",
+  "/favicon.ico",
+  "/.well-known",
+  "/share",
+  "/share-target",
+];
 
+function hasSupabaseSessionCookie(request: NextRequest) {
+  const cookies = request.cookies.getAll();
+  return cookies.some(({ name, value }) => {
+    if (!value) {
+      return false;
+    }
+    if (name === "stub-auth" && value === "1") {
+      return true;
+    }
+    if (name === "supabase-auth-token" || name === "sb-access-token") {
+      return true;
+    }
+    return /^sb-.*-auth-token$/i.test(name) || /^supabase-session/.test(name);
+  });
+}
+
+function isPublicPath(pathname: string) {
+  if (PUBLIC_ROUTES.has(pathname)) {
+    return true;
+  }
+
+  return PUBLIC_PREFIXES.some((prefix) =>
+    pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
+const middlewareImpl = (request: NextRequest) => {
+  const startedAt = Date.now();
+  const environment = resolveEnvironment();
   const nonce = createNonce();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-csp-nonce", nonce);
 
-  const response =
-    intlResponse ||
-    NextResponse.next({
-      request: { headers: requestHeaders },
+  // Set default locale in request headers for next-intl
+  requestHeaders.set("x-next-intl-locale", defaultLocale);
+
+  const pathname = request.nextUrl.pathname;
+  if (!hasSupabaseSessionCookie(request) && !isPublicPath(pathname)) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.searchParams.set("redirectedFrom", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  let response: NextResponse;
+  const { requestId } = securityContext;
+
+  try {
+    response = NextResponse.next({
+      request: { headers: securityContext.requestHeaders },
     });
 
-  const csp = createContentSecurityPolicy({ nonce, isDev, supabaseUrl });
-  response.headers.set("Content-Security-Policy", csp);
+    securityContext.applyResponseHeaders(response.headers);
 
-  for (const header of SECURITY_HEADERS) {
-    response.headers.set(header.key, header.value);
+    return response;
+  } catch (error) {
+    Sentry.captureException(error, {
+      data: { requestId, path: request.nextUrl.pathname, method: request.method },
+    });
+    throw error;
+  } finally {
+    const logPayload = {
+      event: "client.middleware.complete",
+      environment,
+      requestId,
+      method: request.method,
+      url: request.nextUrl.pathname,
+      durationMs: Date.now() - startedAt,
+    } as const;
+
+    console.log(JSON.stringify(scrubPII(logPayload)));
   }
+};
 
-  if (!isDev) {
-    response.headers.set(HSTS_HEADER.key, HSTS_HEADER.value);
-  }
+export const middleware = withSentryMiddleware(middlewareImpl, {
+  captureResponse: true,
+  waitForTransaction: true,
+});
 
-  const requestId = requestHeaders.get("x-request-id") ?? createRequestId();
-  response.headers.set("X-Request-ID", requestId);
-
-  return response;
-}
+Sentry.setTag("middleware", "client");
 
 // Middleware runs on all routes except static assets and API routes
 // This pattern is standard for Next.js middleware matchers

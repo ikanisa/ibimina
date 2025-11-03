@@ -8,6 +8,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { buildUssdPayload, type BuildUssdPayloadInput, type UssdPayload } from "@ibimina/lib";
 
 /**
  * USSD Pay Sheet Entry interface
@@ -219,10 +220,47 @@ export async function getUssdPaySheetClient(
  * // Returns: "*182*7*REF001*5000#"
  * ```
  */
+export interface GenerateUssdCodeOptions {
+  operatorId?: string;
+  locale?: string;
+  versionOverride?: string;
+  ttlSecondsOverride?: number;
+}
+
 export function generateUssdCode(
   merchantCode: string,
   referenceCode: string,
-  amount: number
+  amount: number,
+  options: GenerateUssdCodeOptions = {}
 ): string {
-  return `*182*${merchantCode}*${referenceCode}*${amount}#`;
+  const payload = buildUssdPayload({
+    merchantCode,
+    amount,
+    reference: referenceCode,
+    operatorId: options.operatorId,
+    locale: options.locale,
+    versionOverride: options.versionOverride,
+    ttlSecondsOverride: options.ttlSecondsOverride,
+  });
+
+  return payload.code;
+}
+
+export type BuildPlatformPayloadOptions = Omit<BuildUssdPayloadInput, "platform">;
+
+export function buildPlatformPayloads(options: BuildPlatformPayloadOptions): {
+  android: UssdPayload;
+  ios: UssdPayload;
+} {
+  const android = buildUssdPayload({
+    ...options,
+    platform: "android",
+  });
+
+  const ios = buildUssdPayload({
+    ...options,
+    platform: "ios",
+  });
+
+  return { android, ios };
 }
