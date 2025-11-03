@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Check } from "lucide-react";
 
 import { cn } from "../utils/cn";
+import { designTokens } from "../theme/design-tokens";
 
 export interface StepperStep {
   title: ReactNode;
@@ -20,8 +21,16 @@ export interface StepperProps {
 export function Stepper({ steps, currentStep, onStepChange, className }: StepperProps) {
   return (
     <ol
+      style={{
+        padding: designTokens.spacing[4],
+        gap: designTokens.spacing[4],
+        borderRadius: designTokens.borderRadius.lg,
+        border: `${designTokens.borderWidth.default} solid ${designTokens.colors.border.default}`,
+        backgroundColor: "white",
+        boxShadow: designTokens.shadow.base,
+      }}
       className={cn(
-        "relative flex flex-col gap-4 rounded-[calc(var(--radius-xl)_*_1.1)] border border-white/10 bg-white/5 p-4 text-neutral-0 shadow-glass sm:flex-row sm:items-stretch",
+        "relative flex flex-col gap-4 rounded-xl border bg-white p-4 text-neutral-900 shadow-sm sm:flex-row sm:items-stretch",
         className
       )}
       role="list"
@@ -36,11 +45,16 @@ export function Stepper({ steps, currentStep, onStepChange, className }: Stepper
         return (
           <li
             key={index}
+            style={{
+              padding: designTokens.spacing[3],
+              gap: designTokens.spacing[3],
+              borderRadius: designTokens.borderRadius.xl,
+            }}
             className={cn(
               "flex flex-1 items-center gap-3 rounded-2xl border border-transparent p-3 transition",
-              state === "current" && "border-white/20 bg-white/10 shadow-glass",
-              state === "complete" && "border-emerald-500/30 bg-emerald-500/10 text-emerald-100",
-              state === "upcoming" && "border-dashed border-white/10 text-neutral-3"
+              state === "current" && "border-neutral-300 bg-atlas-blue/10 shadow-sm",
+              state === "complete" && "border-success/30 bg-success/10 text-success-dark",
+              state === "upcoming" && "border-dashed border-neutral-300 text-neutral-500"
             )}
           >
             <button

@@ -4,6 +4,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { useId } from "react";
 
 import { cn } from "../utils/cn";
+import { designTokens } from "../theme/design-tokens";
 
 type SegmentedValue = string | number;
 
@@ -46,6 +47,9 @@ export function SegmentedControl({
         columns === 3 && "sm:grid-cols-3",
         className
       )}
+      style={{
+        gap: designTokens.spacing[2],
+      }}
       {...aria}
     >
       {options.map((option) => {
@@ -55,11 +59,17 @@ export function SegmentedControl({
           <label
             key={id}
             htmlFor={id}
+            style={{
+              padding: `${designTokens.spacing[3]} ${designTokens.spacing[4]}`,
+              borderRadius: designTokens.borderRadius.xl,
+              borderWidth: designTokens.borderWidth.default,
+              minHeight: designTokens.size.touchTarget.comfortable,
+            }}
             className={cn(
-              "interactive-scale flex cursor-pointer flex-col gap-1 rounded-2xl border px-4 py-3 text-left transition",
+              "flex cursor-pointer flex-col gap-1 rounded-2xl border px-4 py-3 text-left transition",
               selected
-                ? "border-white/50 bg-white/15 text-neutral-0"
-                : "border-white/15 bg-white/5 text-neutral-2 hover:border-white/25 hover:bg-white/10",
+                ? "border-atlas-blue bg-atlas-blue/10 text-neutral-900"
+                : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-400 hover:bg-neutral-50",
               option.disabled && "cursor-not-allowed opacity-50"
             )}
           >
@@ -73,12 +83,27 @@ export function SegmentedControl({
               onChange={() => onValueChange(option.value)}
               disabled={option.disabled}
             />
-            <span className="flex items-center gap-2 text-xs uppercase tracking-[0.3em]">
+            <span
+              className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide"
+              style={{
+                fontSize: designTokens.typography.fontSize.xs,
+                fontWeight: designTokens.typography.fontWeight.medium,
+                color: selected ? designTokens.colors.brand.primary : designTokens.colors.text.primary,
+              }}
+            >
               {option.icon && <span aria-hidden>{option.icon}</span>}
-              <span className="text-neutral-1">{option.label}</span>
+              <span>{option.label}</span>
             </span>
             {option.description ? (
-              <span className="text-[11px] text-neutral-2">{option.description}</span>
+              <span
+                className="text-xs"
+                style={{
+                  fontSize: designTokens.typography.fontSize.xs,
+                  color: designTokens.colors.text.secondary,
+                }}
+              >
+                {option.description}
+              </span>
             ) : null}
           </label>
         );
