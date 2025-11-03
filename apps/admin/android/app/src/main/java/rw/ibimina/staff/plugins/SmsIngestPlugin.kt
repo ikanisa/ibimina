@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.work.*
 import com.getcapacitor.*
 import com.getcapacitor.annotation.CapacitorPlugin
+import com.getcapacitor.annotation.PermissionCallback
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
@@ -64,7 +65,7 @@ class SmsIngestPlugin : Plugin() {
      * Check if SMS permissions are granted
      */
     @PluginMethod
-    fun checkPermissions(call: PluginCall) {
+    override fun checkPermissions(call: PluginCall) {
         val hasReadSms = hasPermission(Manifest.permission.READ_SMS)
         val hasReceiveSms = hasPermission(Manifest.permission.RECEIVE_SMS)
         
@@ -80,7 +81,7 @@ class SmsIngestPlugin : Plugin() {
      * Request SMS permissions from user
      */
     @PluginMethod
-    fun requestPermissions(call: PluginCall) {
+    override fun requestPermissions(call: PluginCall) {
         if (hasPermission(Manifest.permission.READ_SMS) && 
             hasPermission(Manifest.permission.RECEIVE_SMS)) {
             val result = JSObject()
@@ -166,8 +167,8 @@ class SmsIngestPlugin : Plugin() {
             return
         }
 
-        val limit = call.getInt("limit", 50)
-        val sinceTimestamp = call.getLong("since", getLastSyncTime())
+        val limit = call.getInt("limit") ?: 50
+        val sinceTimestamp = call.getLong("since") ?: getLastSyncTime()
         
         val messages = readSmsMessages(limit, sinceTimestamp)
         
@@ -334,7 +335,7 @@ class SmsIngestPlugin : Plugin() {
     /**
      * Check if a permission is granted
      */
-    private fun hasPermission(permission: String): Boolean {
+    override fun hasPermission(permission: String): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
             permission

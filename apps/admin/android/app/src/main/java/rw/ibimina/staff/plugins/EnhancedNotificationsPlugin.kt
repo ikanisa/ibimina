@@ -9,6 +9,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.getcapacitor.*
 import com.getcapacitor.annotation.CapacitorPlugin
+import com.getcapacitor.annotation.PermissionCallback
+import org.json.JSONArray
 import org.json.JSONObject
 import rw.ibimina.staff.MainActivity
 import rw.ibimina.staff.R
@@ -34,6 +36,8 @@ class EnhancedNotificationsPlugin : Plugin() {
         
         const val GROUP_KEY_TRANSACTIONS = "group_transactions"
         const val GROUP_KEY_ALERTS = "group_alerts"
+        
+        const val REQUEST_CODE_NOTIFICATIONS = 10001
     }
     
     private lateinit var notificationManager: NotificationManager
@@ -234,7 +238,7 @@ class EnhancedNotificationsPlugin : Plugin() {
                 }
                 
                 val result = JSObject()
-                result.put("notifications", notifications)
+                result.put("notifications", JSArray.from(notifications))
                 call.resolve(result)
             } else {
                 call.reject("API level too low")
@@ -245,7 +249,7 @@ class EnhancedNotificationsPlugin : Plugin() {
     }
     
     @PluginMethod
-    fun checkPermissions(call: PluginCall) {
+    override fun checkPermissions(call: PluginCall) {
         val result = JSObject()
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -260,7 +264,7 @@ class EnhancedNotificationsPlugin : Plugin() {
     }
     
     @PluginMethod
-    fun requestPermissions(call: PluginCall) {
+    override fun requestPermissions(call: PluginCall) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pluginRequestPermissions(
                 arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
@@ -293,9 +297,5 @@ class EnhancedNotificationsPlugin : Plugin() {
                 savedCall.resolve(result)
             }
         }
-    }
-    
-    private companion object {
-        const val REQUEST_CODE_NOTIFICATIONS = 10001
     }
 }
