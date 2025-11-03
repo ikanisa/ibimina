@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { PageHeader, EmptyState, ErrorState } from "@ibimina/ui";
+import { Building2 } from "lucide-react";
 
 export default async function PartnersPage() {
   const supa = createSupabaseAdminClient();
@@ -9,46 +11,55 @@ export default async function PartnersPage() {
     .neq("type", "DISTRICT");
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Partners (SACCO/MFI/BANK)</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Configure partner organizations and their settings
-        </p>
-      </div>
+    <div className="p-6 space-y-6">
+      <PageHeader
+        title="Partners (SACCO/MFI/BANK)"
+        description="Configure partner organizations and their settings"
+      />
 
       {error ? (
-        <div className="text-red-500">Failed to load partners: {error.message}</div>
+        <ErrorState
+          title="Failed to load partners"
+          description="An error occurred while loading the partner organizations. Please try again."
+          error={error.message}
+          onRetry={() => window.location.reload()}
+        />
+      ) : !orgs || orgs.length === 0 ? (
+        <EmptyState
+          title="No partner organizations found"
+          description="Create a new partner organization to get started"
+          icon={<Building2 className="h-6 w-6" />}
+        />
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="rounded-2xl border border-white/10 bg-white/5 shadow-glass overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="border-b border-gray-200 dark:border-gray-700">
+            <thead className="border-b border-white/10">
               <tr className="text-left">
-                <th className="px-4 py-3 font-semibold">Name</th>
-                <th className="px-4 py-3 font-semibold">Type</th>
-                <th className="px-4 py-3 font-semibold">Country</th>
-                <th className="px-4 py-3 font-semibold"></th>
+                <th className="px-4 py-3 font-semibold text-neutral-200">Name</th>
+                <th className="px-4 py-3 font-semibold text-neutral-200">Type</th>
+                <th className="px-4 py-3 font-semibold text-neutral-200">Country</th>
+                <th className="px-4 py-3 font-semibold text-neutral-200"></th>
               </tr>
             </thead>
             <tbody>
-              {orgs?.map((o: any) => (
+              {orgs.map((o: any) => (
                 <tr
                   key={o.id}
-                  className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="border-b border-white/10 hover:bg-white/5 transition-colors"
                 >
-                  <td className="px-4 py-3">{o.name}</td>
+                  <td className="px-4 py-3 text-neutral-0">{o.name}</td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-atlas-blue/20 text-atlas-blue">
                       {o.type}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-neutral-200">
                     {o.countries?.name} ({o.countries?.iso2})
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/partners/${o.id}`}
-                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+                      className="text-atlas-blue hover:text-atlas-blue-light transition-colors hover:underline"
                     >
                       Configure
                     </Link>
@@ -57,11 +68,6 @@ export default async function PartnersPage() {
               ))}
             </tbody>
           </table>
-
-          {!orgs ||
-            (orgs.length === 0 && (
-              <div className="p-8 text-center text-gray-500">No partner organizations found.</div>
-            ))}
         </div>
       )}
     </div>
