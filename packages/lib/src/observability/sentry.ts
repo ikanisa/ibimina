@@ -1,7 +1,7 @@
 import type { Event, EventHint } from "@sentry/types";
 
-import { parseSampleRate } from "./env.js";
-import { scrubPII } from "./pii.js";
+import { parseSampleRate } from "./env";
+import { scrubPII } from "./pii";
 
 /**
  * Scrubs PII from Sentry events before sending them.

@@ -88,8 +88,6 @@ function buildRawEnv(source: ProcessEnvSource) {
     AI_AGENT_USAGE_LOG_TABLE: source.AI_AGENT_USAGE_LOG_TABLE ?? "agent_usage_events",
     AI_AGENT_OPTOUT_TABLE: source.AI_AGENT_OPTOUT_TABLE ?? "agent_opt_outs",
     AI_AGENT_REDIS_URL: source.AI_AGENT_REDIS_URL,
-    CONFIGCAT_OFFERS_OVERRIDES: source.CONFIGCAT_OFFERS_OVERRIDES,
-    CONFIGCAT_SETTINGS_URL: source.CONFIGCAT_SETTINGS_URL,
   } as Record<string, string | undefined>;
 }
 
