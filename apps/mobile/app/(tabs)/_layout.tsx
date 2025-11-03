@@ -1,29 +1,29 @@
 /**
  * Bottom tabs layout with 5 navigation routes
+ * Uses Ionicons for accessible, scalable tab bar icons
  */
 
 import { Redirect, Tabs } from "expo-router";
 import { useIntl } from "react-intl";
+import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../src/theme";
 import { useAppStore } from "../../src/providers/store";
 
-// Simple icon placeholders using emoji
+// Tab bar icons using Ionicons for accessibility and proper scaling
 function TabBarIcon({ name, focused }: { name: string; focused: boolean }) {
-  const icons: Record<string, string> = {
-    home: "🏠",
-    pay: "💳",
-    statements: "📊",
-    offers: "🎁",
-    profile: "👤",
+  const iconMap: Record<string, keyof typeof Ionicons.glyphMap> = {
+    home: focused ? "home" : "home-outline",
+    pay: focused ? "card" : "card-outline",
+    statements: focused ? "document-text" : "document-text-outline",
+    offers: focused ? "gift" : "gift-outline",
+    profile: focused ? "person" : "person-outline",
   };
 
-  return {
-    children: icons[name] || "○",
-    style: {
-      fontSize: 24,
-      opacity: focused ? 1 : 0.6,
-    },
-  };
+  const iconName = iconMap[name] || "ellipse-outline";
+
+  return (
+    <Ionicons name={iconName} size={24} color={focused ? colors.rw.blue : colors.neutral[400]} />
+  );
 }
 
 export default function TabsLayout() {
