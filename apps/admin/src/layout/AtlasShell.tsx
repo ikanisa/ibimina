@@ -80,6 +80,13 @@ const BADGE_CLASSES: Record<BadgeTone, string> = {
   critical: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
 };
 
+const BADGE_DOT_CLASSES: Record<BadgeTone, string> = {
+  info: "bg-blue-500",
+  success: "bg-emerald-500",
+  warning: "bg-amber-500",
+  critical: "bg-red-500",
+};
+
 const QUICK_ACTION_TONE_CLASSES: Record<QuickAction["tone"], string> = {
   default: "border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50",
   highlight:
@@ -476,20 +483,17 @@ export function AtlasShell({ children, profile, navigation }: AtlasShellProps) {
         id: group.id,
         title: group.title,
         subtitle: group.title,
-        actions: group.actions.map((action) => ({
-          href: action.href,
-          primary: action.label,
-          secondary: action.description,
-          description: action.description,
-          secondaryDescription: action.description,
-          badge:
-            action.badge && (action.badge.tone === "warning" ? "critical" : action.badge.tone)
-              ? {
-                  label: action.badge.label,
-                  tone: action.badge.tone === "warning" ? "critical" : action.badge.tone,
-                }
-              : undefined,
-        })),
+        actions: group.actions.map((action) => {
+          const tone = action.badge?.tone === "warning" ? "critical" : action.badge?.tone;
+          return {
+            href: action.href,
+            primary: action.label,
+            secondary: action.description,
+            description: action.description,
+            secondaryDescription: action.description,
+            badge: action.badge && tone ? { label: action.badge.label, tone } : undefined,
+          };
+        }),
       })),
     [quickActionGroups]
   );
@@ -589,7 +593,10 @@ export function AtlasShell({ children, profile, navigation }: AtlasShellProps) {
                           ) : null}
                           {badge && navCollapsed ? (
                             <span
-                              className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-emerald-500"
+                              className={cn(
+                                "absolute right-2 top-2 h-1.5 w-1.5 rounded-full",
+                                BADGE_DOT_CLASSES[badge.tone]
+                              )}
                               aria-hidden="true"
                             />
                           ) : null}
