@@ -1,8 +1,8 @@
 import { PostHog } from "posthog-node";
 
-import { parseSampleRate, resolveEnvironment } from "./env.js";
-import { scrubPII } from "./pii.js";
-import { shouldSampleEvent } from "./sampling.js";
+import { parseSampleRate, resolveEnvironment } from "./env";
+import { scrubPII } from "./pii";
+import { shouldSampleEvent } from "./sampling";
 
 let client: PostHog | null = null;
 
@@ -69,12 +69,14 @@ export async function captureServerEvent(
       });
     } else {
       await new Promise<void>((resolve) => {
-        instance.flush((err) => {
-          if (err) {
-            console.warn("[posthog] flush failed", err);
+        (instance as unknown as { flush: (callback: (err?: Error) => void) => void }).flush(
+          (err) => {
+            if (err) {
+              console.warn("[posthog] flush failed", err);
+            }
+            resolve();
           }
-          resolve();
-        });
+        );
       });
     }
   } catch (error) {

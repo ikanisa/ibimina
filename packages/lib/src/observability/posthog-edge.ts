@@ -1,6 +1,6 @@
-import { parseSampleRate, resolveEnvironment } from "./env.js";
-import { scrubPII } from "./pii.js";
-import { shouldSampleEvent } from "./sampling.js";
+import { parseSampleRate, resolveEnvironment } from "./env";
+import { scrubPII } from "./pii";
+import { shouldSampleEvent } from "./sampling";
 
 const environment = resolveEnvironment();
 const defaultEdgeSampleRate = parseSampleRate(

@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --out-extension cjs=.cjs --out-extension esm=.mjs",
+    "build": "pnpm run clean && tsup src/index.ts --format cjs,esm && tsc -p tsconfig.json",
     "clean": "rimraf dist",
     "lint": "node ../../config/tooling/scripts/run-eslint.mjs ./src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -15,9 +15,9 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
     },
     "./package.json": "./package.json"
   },
