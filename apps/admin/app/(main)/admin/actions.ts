@@ -607,11 +607,11 @@ async function upsertSaccoInternal({
 
   const saccoId = result?.id ?? null;
   await revalidatePath("/admin");
-  await revalidateTag(CACHE_TAGS.ikiminaDirectory, {});
+  await revalidateTag(CACHE_TAGS.ikiminaDirectory);
   if (saccoId) {
-    await revalidateTag(CACHE_TAGS.sacco(saccoId), {});
+    await revalidateTag(CACHE_TAGS.sacco(saccoId));
   }
-  await revalidateTag(CACHE_TAGS.dashboardSummary, {});
+  await revalidateTag(CACHE_TAGS.dashboardSummary);
 
   logInfo("admin_sacco_upsert_success", { mode, saccoId });
   return { status: "success", sacco: result ?? undefined };
@@ -638,9 +638,9 @@ async function removeSaccoInternal({ id }: { id: string }): Promise<AdminActionR
     return { status: "error", message: error.message ?? "Failed to delete SACCO" };
   }
   await revalidatePath("/admin");
-  await revalidateTag(CACHE_TAGS.ikiminaDirectory, {});
-  await revalidateTag(CACHE_TAGS.sacco(id), {});
-  await revalidateTag(CACHE_TAGS.dashboardSummary, {});
+  await revalidateTag(CACHE_TAGS.ikiminaDirectory);
+  await revalidateTag(CACHE_TAGS.sacco(id));
+  await revalidateTag(CACHE_TAGS.dashboardSummary);
   logInfo("admin_sacco_delete_success", { saccoId: id });
   return { status: "success", message: "SACCO deleted" };
 }
@@ -821,7 +821,7 @@ async function updateTenantSettingsInternal({
   });
 
   await revalidatePath("/admin/settings");
-  await revalidateTag(CACHE_TAGS.sacco(saccoId), {});
+  await revalidateTag(CACHE_TAGS.sacco(saccoId));
 
   logInfo("admin_settings_update_success", { saccoId });
   return {

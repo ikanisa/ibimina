@@ -1,3 +1,3 @@
-export * from "./types.js";
-export * from "./client.js";
-export { createFeatureFlagAdmin } from "./admin.js";
+export * from "./types";
+export * from "./client";
+export { createFeatureFlagAdmin } from "./admin";
