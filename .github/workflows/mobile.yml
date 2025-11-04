@@ -15,6 +15,9 @@ on:
 jobs:
   detox:
     runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      HUSKY: "0"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,6 +48,9 @@ jobs:
 
   telemetry:
     runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      HUSKY: "0"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,6 +73,9 @@ jobs:
         run: pnpm --filter @ibimina/core run typecheck
   mobile-app:
     runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      HUSKY: "0"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
