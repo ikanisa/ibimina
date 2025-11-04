@@ -22,10 +22,16 @@ semantic SACCO search.
   best practices
 - [**docs/QUICK_REFERENCE.md**](docs/QUICK_REFERENCE.md) - Quick command
   reference with timings
+- [**docs/ADMIN_APPS_GUIDE.md**](docs/ADMIN_APPS_GUIDE.md) - Guide to choosing
+  the correct admin/staff app
+- [**docs/MIGRATION_APPLICATION_GUIDE.md**](docs/MIGRATION_APPLICATION_GUIDE.md) -
+  How to apply database migrations
 - [**docs/PROJECT_STRUCTURE.md**](docs/PROJECT_STRUCTURE.md) - Project structure
   and dependency graph
 - [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) - Common issues and
   solutions
+- [**KNOWN_ISSUES.md**](KNOWN_ISSUES.md) - Current known issues and their
+  resolutions
 - [**PRE_EXISTING_BUILD_ISSUES.md**](PRE_EXISTING_BUILD_ISSUES.md) - Known build
   issues requiring separate PRs
 - [**docs/CI_WORKFLOWS.md**](docs/CI_WORKFLOWS.md) - CI/CD workflows and
