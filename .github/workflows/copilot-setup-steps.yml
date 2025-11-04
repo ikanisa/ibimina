@@ -51,3 +51,6 @@ jobs:
         if: ${{ env.ENABLE_PLAYWRIGHT == '1' }}
         run: |
           pnpm dlx playwright install --with-deps
+
+      - name: Install PNPM
+        run: npm install -g pnpm
