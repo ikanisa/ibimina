@@ -8,6 +8,7 @@ import {
   TextStyle,
 } from "react-native";
 import { colors, typography, borderRadius, spacing } from "../../theme";
+import { haptics } from "../../utils/haptics";
 
 interface ButtonProps {
   title: string;
@@ -46,10 +47,15 @@ export function Button({
     disabled && styles.textDisabled,
   ];
 
+  const handlePress = () => {
+    haptics.impact("light");
+    onPress();
+  };
+
   return (
     <TouchableOpacity
       style={buttonStyle}
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       activeOpacity={0.7}
     >
