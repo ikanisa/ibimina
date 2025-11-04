@@ -1,16 +1,22 @@
--- Helper function for role checking
-create or replace function public.has_role(p_user_id uuid, p_role_name text)
-returns boolean
-language plpgsql
-security definer
-as $$
-begin
-  return exists (
-    select 1 from public.staff_members
-    where user_id = p_user_id and role = p_role_name and status = 'active'
-  );
-end;
-$$;
+-- Helper function for role checking (create if not exists)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'has_role' AND pg_get_function_identity_arguments(oid) = 'p_user_id uuid, p_role_name text') THEN
+    EXECUTE '
+      CREATE FUNCTION public.has_role(p_user_id uuid, p_role_name text)
+      RETURNS boolean
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      AS $func$
+      BEGIN
+        RETURN EXISTS (
+          SELECT 1 FROM public.staff_members
+          WHERE user_id = p_user_id AND role = p_role_name AND status = ''active''
+        );
+      END;
+      $func$';
+  END IF;
+END $$;
 
 create table if not exists public.system_metric_samples (
   id bigserial primary key,

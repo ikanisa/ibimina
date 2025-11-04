@@ -29,25 +29,40 @@ CREATE INDEX IF NOT EXISTS idx_loan_products_org_id ON public.loan_products(org_
 CREATE INDEX IF NOT EXISTS idx_loan_products_enabled ON public.loan_products(enabled) WHERE enabled = true;
 
 -- Loan applications table
-CREATE TABLE IF NOT EXISTS public.loan_applications (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-  group_member_id UUID REFERENCES public.group_members(id) ON DELETE SET NULL,
-  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  product_id UUID NOT NULL REFERENCES public.loan_products(id) ON DELETE RESTRICT,
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'group_members') THEN
+    EXECUTE '
+      CREATE TABLE IF NOT EXISTS public.loan_applications (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+        group_member_id UUID REFERENCES public.group_members(id) ON DELETE SET NULL,
+        user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+        product_id UUID NOT NULL REFERENCES public.loan_products(id) ON DELETE RESTRICT';
+  ELSE
+    -- Create without group_members FK
+    EXECUTE '
+      CREATE TABLE IF NOT EXISTS public.loan_applications (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+        group_member_id UUID,
+        user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+        product_id UUID NOT NULL REFERENCES public.loan_products(id) ON DELETE RESTRICT';
+  END IF;
   
-  -- Application details
-  requested_amount NUMERIC(15,2) NOT NULL,
-  tenor_months INTEGER NOT NULL,
-  purpose TEXT,
-  
-  -- Contact information (pre-filled from profile)
-  applicant_name TEXT NOT NULL,
-  applicant_phone TEXT NOT NULL,
-  applicant_email TEXT,
-  applicant_nid TEXT,
-  
-  -- Document uploads
+  -- Continue with rest of columns (same for both branches)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'loan_applications' AND column_name = 'requested_amount') THEN
+    EXECUTE '
+      ALTER TABLE public.loan_applications ADD COLUMN
+        requested_amount NUMERIC(15,2) NOT NULL DEFAULT 0,
+      ADD COLUMN tenor_months INTEGER NOT NULL DEFAULT 12,
+      ADD COLUMN purpose TEXT,
+      ADD COLUMN applicant_name TEXT NOT NULL DEFAULT '''',
+      ADD COLUMN applicant_phone TEXT NOT NULL DEFAULT '''',
+      ADD COLUMN applicant_email TEXT,
+      ADD COLUMN applicant_nid TEXT';
+  END IF;
+END $$;
   documents JSONB DEFAULT '[]'::jsonb, -- Array of {type, url, uploaded_at}
   
   -- Application status

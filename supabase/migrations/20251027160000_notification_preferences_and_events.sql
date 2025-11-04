@@ -46,9 +46,23 @@ CREATE TRIGGER notification_preferences_set_updated_at
   EXECUTE FUNCTION public.set_updated_at();
 
 -- Add sacco_id and template_id to notification_queue if not exists
-ALTER TABLE public.notification_queue
-  ADD COLUMN IF NOT EXISTS sacco_id UUID REFERENCES public.saccos(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS template_id UUID REFERENCES public.sms_templates(id) ON DELETE SET NULL;
+-- Note: saccos is in app schema, not public
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'app' AND table_name = 'saccos') THEN
+    EXECUTE 'ALTER TABLE public.notification_queue ADD COLUMN IF NOT EXISTS sacco_id UUID REFERENCES app.saccos(id) ON DELETE SET NULL';
+  ELSIF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'saccos') THEN
+    EXECUTE 'ALTER TABLE public.notification_queue ADD COLUMN IF NOT EXISTS sacco_id UUID REFERENCES public.saccos(id) ON DELETE SET NULL';
+  ELSE
+    -- Add column without FK constraint if table doesn't exist yet
+    EXECUTE 'ALTER TABLE public.notification_queue ADD COLUMN IF NOT EXISTS sacco_id UUID';
+  END IF;
+  
+  -- Always add template_id (sms_templates is in public schema)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'notification_queue' AND column_name = 'template_id') THEN
+    EXECUTE 'ALTER TABLE public.notification_queue ADD COLUMN template_id UUID REFERENCES public.sms_templates(id) ON DELETE SET NULL';
+  END IF;
+END $$;
 
 -- Create index for notification queue lookups
 CREATE INDEX IF NOT EXISTS idx_notification_queue_event 

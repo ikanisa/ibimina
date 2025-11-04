@@ -6,18 +6,40 @@
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Organization-specific knowledge base (SACCO-specific help articles)
-CREATE TABLE IF NOT EXISTS public.org_kb (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  tags TEXT[] DEFAULT '{}',
-  embedding vector(1536), -- OpenAI text-embedding-3-large dimension
-  policy_tag TEXT, -- For categorization: 'ussd', 'reference', 'kyc', 'training', etc.
-  created_by UUID REFERENCES auth.users(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+-- Note: org_id references are conditional - table will be created properly after organizations table exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'organizations') THEN
+    EXECUTE '
+      CREATE TABLE IF NOT EXISTS public.org_kb (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        tags TEXT[] DEFAULT ''{}''::text[],
+        embedding vector(1536),
+        policy_tag TEXT,
+        created_by UUID REFERENCES auth.users(id),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )';
+  ELSE
+    -- Create without FK constraint; will be added by later migration
+    EXECUTE '
+      CREATE TABLE IF NOT EXISTS public.org_kb (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        org_id UUID NOT NULL,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        tags TEXT[] DEFAULT ''{}''::text[],
+        embedding vector(1536),
+        policy_tag TEXT,
+        created_by UUID REFERENCES auth.users(id),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      )';
+  END IF;
+END $$;
 
 -- Create vector index for similarity search
 CREATE INDEX IF NOT EXISTS idx_org_kb_embedding ON public.org_kb USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
