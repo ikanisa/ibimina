@@ -55,6 +55,8 @@
   "dependencies": {
     "@capacitor/android": "^7.4.4",
     "@capacitor/core": "^7.4.4",
+    "@ibimina/lib": "workspace:^",
+    "@ibimina/ui": "workspace:^",
     "openai": "^6.7.0"
   },
   "devDependencies": {
