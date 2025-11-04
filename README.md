@@ -38,6 +38,8 @@ semantic SACCO search.
   troubleshooting
 - [**docs/DB_GUIDE.md**](docs/DB_GUIDE.md) - Database procedures and migration
   guide
+- [**docs/SUPABASE_LOCAL_DEVELOPMENT.md**](docs/SUPABASE_LOCAL_DEVELOPMENT.md) -
+  Supabase CLI setup and local development guide
 - [**docs/SCHEMA_VERIFICATION.md**](docs/SCHEMA_VERIFICATION.md) - Schema drift
   detection and verification system
 - [**docs/ENV_VARIABLES.md**](docs/ENV_VARIABLES.md) - Complete environment
