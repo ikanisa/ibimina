@@ -41,8 +41,21 @@ BEGIN
   END IF;
 END $$;
 
+-- Ensure embedding column exists (in case table was created without it)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'org_kb' AND column_name = 'embedding') THEN
+    ALTER TABLE public.org_kb ADD COLUMN embedding vector(1536);
+  END IF;
+END $$;
+
 -- Create vector index for similarity search
-CREATE INDEX IF NOT EXISTS idx_org_kb_embedding ON public.org_kb USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'org_kb' AND column_name = 'embedding') THEN
+    CREATE INDEX IF NOT EXISTS idx_org_kb_embedding ON public.org_kb USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_org_kb_org_id ON public.org_kb(org_id);
 CREATE INDEX IF NOT EXISTS idx_org_kb_tags ON public.org_kb USING GIN(tags);
 
