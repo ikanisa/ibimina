@@ -44,7 +44,8 @@ export async function GET(request: Request) {
   try {
     const { user } = await requireUserAndProfile();
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
+    // Cast to any since user_preferences table not in generated types
+    const { data, error } = await (supabase as any)
       .from("user_preferences")
       .select("preferences")
       .eq("user_id", user.id)
@@ -76,7 +77,8 @@ export async function PATCH(request: Request) {
     const { user } = await requireUserAndProfile();
     const supabase = await createSupabaseServerClient();
 
-    const { data: existing, error: fetchError } = await supabase
+    // Cast to any since user_preferences table not in generated types
+    const { data: existing, error: fetchError } = await (supabase as any)
       .from("user_preferences")
       .select("id, preferences")
       .eq("user_id", user.id)
@@ -89,7 +91,8 @@ export async function PATCH(request: Request) {
 
     const preferences = mergeVisibility(existing?.preferences ?? null, path, visible);
 
-    const { error: upsertError } = await supabase.from("user_preferences").upsert(
+    // Cast to any since user_preferences table not in generated types
+    const { error: upsertError } = await (supabase as any).from("user_preferences").upsert(
       {
         id: existing?.id,
         user_id: user.id,
