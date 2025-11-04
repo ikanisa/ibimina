@@ -1,7 +1,7 @@
 {
   "name": "ibimina-monorepo",
   "private": true,
-  "packageManager": "pnpm@9.12.3",
+  "packageManager": "pnpm@10.19.0",
   "scripts": {
     "dev": "cd apps/admin && pnpm dev",
     "dev:admin": "pnpm --filter @ibimina/admin dev",
@@ -11,7 +11,7 @@
     "dev:mobile": "pnpm --filter @ibimina/mobile dev",
     "dev:website": "pnpm --filter @ibimina/website dev",
     "build": "pnpm -r run build",
-    "build:packages": "pnpm --filter '@ibimina/types' build && pnpm --filter '@ibimina/config' build && pnpm --filter '@ibimina/flags' build && pnpm --filter '@ibimina/lib' build && pnpm --filter '@ibimina/ui' build && pnpm --filter '@ibimina/api-client' build && pnpm --filter '@ibimina/sms-parser' build && pnpm --filter '@ibimina/mobile-shared' build",
+    "build:packages": "pnpm --filter '@ibimina/types' build && pnpm --filter '@ibimina/config' build && pnpm --filter '@ibimina/flags' build && pnpm --filter '@ibimina/lib' build && pnpm --filter '@ibimina/ui' build && pnpm --filter '@ibimina/api-client' build && pnpm --filter '@ibimina/sms-parser' build",
     "build:admin-deps": "pnpm --filter '@ibimina/config' build && pnpm --filter '@ibimina/flags' build && pnpm --filter '@ibimina/lib' build && pnpm --filter '@ibimina/ui' build",
     "vercel-build": "pnpm run build:admin-deps && pnpm --filter @ibimina/admin run build",
     "build:apps": "pnpm --filter './apps/*' build",
