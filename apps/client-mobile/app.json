@@ -49,6 +49,15 @@
           }
         }
       ]
-    ]
+    ],
+    "scheme": "ibimina",
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "rw.sacco.ibimina.client"
+      }
+    }
   }
 }

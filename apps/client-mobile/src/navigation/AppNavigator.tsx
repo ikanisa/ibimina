@@ -1,10 +1,11 @@
 import React from "react";
-import { NavigationContainer, LinkingOptions } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { useAppStore } from "../store";
 import { LoadingScreen } from "../screens/LoadingScreen";
+import { linking } from "./DeepLinking";
 
 // Auth screens
 import { LoginScreen } from "../screens/auth/LoginScreen";
@@ -30,6 +31,8 @@ import { TransferScreen } from "../screens/accounts/TransferScreen";
 import { GroupDetailScreen } from "../screens/groups/GroupDetailScreen";
 import { LoanApplicationScreen } from "../screens/loans/LoanApplicationScreen";
 import { LoanDetailScreen } from "../screens/loans/LoanDetailScreen";
+import CompleteLoanApplicationScreen from "../screens/loans/CompleteLoanApplicationScreen";
+import GroupContributionScreen from "../screens/groups/GroupContributionScreen";
 import { NotificationsScreen } from "../screens/profile/NotificationsScreen";
 import { SettingsScreen } from "../screens/profile/SettingsScreen";
 import { EditProfileScreen } from "../screens/profile/EditProfileScreen";
@@ -140,7 +143,9 @@ function MainStack() {
       <Stack.Screen name="Withdraw" component={WithdrawScreen} />
       <Stack.Screen name="Transfer" component={TransferScreen} />
       <Stack.Screen name="GroupDetail" component={GroupDetailScreen} />
+      <Stack.Screen name="GroupContribution" component={GroupContributionScreen} />
       <Stack.Screen name="LoanApplication" component={LoanApplicationScreen} />
+      <Stack.Screen name="CompleteLoanApplication" component={CompleteLoanApplicationScreen} />
       <Stack.Screen name="LoanDetail" component={LoanDetailScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
@@ -152,42 +157,42 @@ function MainStack() {
 
 // Deep linking configuration for notifications
 const linking: LinkingOptions<any> = {
-  prefixes: ['ibimina://', 'https://app.ibimina.rw'],
+  prefixes: ["ibimina://", "https://app.ibimina.rw"],
   config: {
     screens: {
       MainStack: {
         screens: {
           MainTabs: {
             screens: {
-              Home: 'home',
-              Accounts: 'accounts',
-              Groups: 'groups',
-              Loans: 'loans',
-              Profile: 'profile',
+              Home: "home",
+              Accounts: "accounts",
+              Groups: "groups",
+              Loans: "loans",
+              Profile: "profile",
             },
           },
-          TransactionHistory: 'transactions',
-          Deposit: 'deposit',
-          Withdraw: 'withdraw',
-          Transfer: 'transfer',
-          GroupDetail: 'groups/:groupId',
-          LoanApplication: 'loans/apply',
-          LoanDetail: 'loans/:loanId',
-          Notifications: 'notifications',
-          Settings: 'settings',
-          EditProfile: 'profile/edit',
-          Help: 'help',
+          TransactionHistory: "transactions",
+          Deposit: "deposit",
+          Withdraw: "withdraw",
+          Transfer: "transfer",
+          GroupDetail: "groups/:groupId",
+          LoanApplication: "loans/apply",
+          LoanDetail: "loans/:loanId",
+          Notifications: "notifications",
+          Settings: "settings",
+          EditProfile: "profile/edit",
+          Help: "help",
         },
       },
       AuthStack: {
         screens: {
-          Onboarding: 'onboarding',
-          WhatsAppAuth: 'auth/whatsapp',
-          OTPVerification: 'auth/otp',
-          BrowseMode: 'browse',
-          Login: 'login',
-          Register: 'register',
-          ForgotPassword: 'forgot-password',
+          Onboarding: "onboarding",
+          WhatsAppAuth: "auth/whatsapp",
+          OTPVerification: "auth/otp",
+          BrowseMode: "browse",
+          Login: "login",
+          Register: "register",
+          ForgotPassword: "forgot-password",
         },
       },
     },
@@ -203,15 +208,13 @@ export function AppNavigator() {
 
   return (
     <NavigationContainer linking={linking}>
-      {isAuthenticated ? <MainStack /> : <AuthStack />}
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {isAuthenticated ? (
+          <Stack.Screen name="Main" component={MainStack} />
+        ) : (
+          <Stack.Screen name="Auth" component={AuthStack} />
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-// Import new screens
-import CompleteLoanApplicationScreen from '../screens/loans/CompleteLoanApplicationScreen';
-import GroupContributionScreen from '../screens/groups/GroupContributionScreen';
-
-// Add to Stack.Screen components:
-// <Stack.Screen name="CompleteLoanApplication" component={CompleteLoanApplicationScreen} />
-// <Stack.Screen name="GroupContribution" component={GroupContributionScreen} />

@@ -3,15 +3,21 @@
  * Uses Supabase Realtime + Notifee for local notifications
  */
 
-import notifee, { AndroidImportance, AuthorizationStatus, Event, EventType } from '@notifee/react-native';
-import { Platform, PermissionsAndroid } from 'react-native';
-import { supabase } from './supabase';
+import notifee, {
+  AndroidImportance,
+  AuthorizationStatus,
+  Event,
+  EventType,
+} from "@notifee/react-native";
+import { Platform, PermissionsAndroid } from "react-native";
+import { supabase } from "./supabase";
+import { getScreenFromNotification } from "../navigation/DeepLinking";
 
 interface NotificationPayload {
   id: string;
   title: string;
   body: string;
-  type?: 'transaction' | 'loan' | 'group' | 'system';
+  type?: "transaction" | "loan" | "group" | "system";
   data?: Record<string, any>;
 }
 
@@ -29,7 +35,7 @@ class NotificationService {
   }
 
   private async requestPermission(): Promise<boolean> {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === "android") {
       if (Platform.Version >= 33) {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
@@ -45,49 +51,51 @@ class NotificationService {
   }
 
   private async createNotificationChannel() {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === "android") {
       this.channel = await notifee.createChannel({
-        id: 'default',
-        name: 'Default Notifications',
+        id: "default",
+        name: "Default Notifications",
         importance: AndroidImportance.HIGH,
-        sound: 'default',
+        sound: "default",
         vibration: true,
       });
 
       await notifee.createChannel({
-        id: 'transactions',
-        name: 'Transactions',
+        id: "transactions",
+        name: "Transactions",
         importance: AndroidImportance.HIGH,
-        sound: 'default',
+        sound: "default",
       });
 
       await notifee.createChannel({
-        id: 'loans',
-        name: 'Loans',
+        id: "loans",
+        name: "Loans",
         importance: AndroidImportance.DEFAULT,
       });
 
       await notifee.createChannel({
-        id: 'groups',
-        name: 'Groups',
+        id: "groups",
+        name: "Groups",
         importance: AndroidImportance.DEFAULT,
       });
     }
   }
 
   private async subscribeToNotifications() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     // Subscribe to user-specific notifications via Supabase Realtime
     this.realtimeChannel = supabase
       .channel(`notifications:${user.id}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
@@ -100,7 +108,7 @@ class NotificationService {
   private setupForegroundHandler() {
     notifee.onForegroundEvent(({ type, detail }: Event) => {
       if (type === EventType.PRESS) {
-        console.log('Notification pressed:', detail.notification);
+        console.log("Notification pressed:", detail.notification);
         this.handleNotificationPress(detail.notification);
       }
     });
@@ -109,7 +117,7 @@ class NotificationService {
   private setupBackgroundHandler() {
     notifee.onBackgroundEvent(async ({ type, detail }: Event) => {
       if (type === EventType.PRESS) {
-        console.log('Background notification pressed:', detail.notification);
+        console.log("Background notification pressed:", detail.notification);
         // Mark as read
         if (detail.notification?.id) {
           await this.markAsRead(detail.notification.id);
@@ -129,14 +137,14 @@ class NotificationService {
         channelId,
         importance: AndroidImportance.HIGH,
         pressAction: {
-          id: 'default',
+          id: "default",
         },
-        sound: 'default',
-        smallIcon: 'ic_notification',
-        color: '#4CAF50',
+        sound: "default",
+        smallIcon: "ic_notification",
+        color: "#4CAF50",
       },
       ios: {
-        sound: 'default',
+        sound: "default",
         foregroundPresentationOptions: {
           alert: true,
           badge: true,
@@ -149,21 +157,22 @@ class NotificationService {
 
   private getChannelId(type?: string): string {
     switch (type) {
-      case 'transaction':
-        return 'transactions';
-      case 'loan':
-        return 'loans';
-      case 'group':
-        return 'groups';
+      case "transaction":
+        return "transactions";
+      case "loan":
+        return "loans";
+      case "group":
+        return "groups";
       default:
-        return this.channel || 'default';
+        return this.channel || "default";
     }
   }
 
   private handleNotificationPress(notification: any) {
     if (!this.navigationRef || !notification?.data) return;
 
-    const { screen, params } = notification.data;
+    // Use deep linking helper to determine screen
+    const { screen, params } = getScreenFromNotification(notification.data);
     if (screen) {
       this.navigationRef.navigate(screen, params);
     }
@@ -175,24 +184,24 @@ class NotificationService {
 
   async markAsRead(notificationId: string) {
     const { error } = await supabase
-      .from('notifications')
+      .from("notifications")
       .update({ read: true })
-      .eq('id', notificationId);
+      .eq("id", notificationId);
 
     if (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
     }
   }
 
   async getNotifications(): Promise<NotificationPayload[]> {
     const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
+      .from("notifications")
+      .select("*")
+      .order("created_at", { ascending: false })
       .limit(50);
 
     if (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
       return [];
     }
 
@@ -211,15 +220,15 @@ class NotificationService {
 
   async getBadgeCount(): Promise<number> {
     const { count } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('read', false);
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("read", false);
 
     return count || 0;
   }
 
   async setBadgeCount(count: number) {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       await notifee.setBadgeCount(count);
     }
   }
