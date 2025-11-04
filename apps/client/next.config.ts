@@ -164,10 +164,22 @@ const nextConfig: NextConfig = {
   },
 };
 
-const sentryPluginOptions = { silent: true } as const;
-const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
-
 // Disable PWA wrapper for Cloudflare builds (service worker is built separately)
 const enhancedConfig = process.env.CLOUDFLARE_BUILD === "1" ? nextConfig : withPWA(nextConfig);
 
-export default withSentryConfig(enhancedConfig, sentryPluginOptions, sentryBuildOptions);
+// Only apply Sentry build-time configuration when DSN is available
+// This prevents DNS/network errors when Sentry is not configured or blocked
+const hasSentryDsn = Boolean(process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN);
+
+let finalConfig: NextConfig;
+
+if (hasSentryDsn) {
+  const sentryPluginOptions = { silent: true } as const;
+  const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
+  finalConfig = withSentryConfig(enhancedConfig, sentryPluginOptions, sentryBuildOptions);
+} else {
+  console.log("[next.config] Sentry DSN not configured - skipping Sentry build integration");
+  finalConfig = enhancedConfig;
+}
+
+export default finalConfig;
