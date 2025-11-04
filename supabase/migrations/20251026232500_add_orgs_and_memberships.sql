@@ -29,7 +29,7 @@ comment on table app.organizations is 'Generic organizations: SACCO, MFI, DISTRI
 
 -- Org memberships table
 create table if not exists app.org_memberships (
-  user_id uuid not null references public.users(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
   org_id uuid not null references app.organizations(id) on delete cascade,
   role public.app_role not null,
   created_at timestamptz not null default now(),

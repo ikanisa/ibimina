@@ -1,3 +1,17 @@
+-- Helper function for role checking
+create or replace function public.has_role(user_id uuid, role_name text)
+returns boolean
+language plpgsql
+security definer
+as $$
+begin
+  return exists (
+    select 1 from public.staff_members
+    where user_id = $1 and role = $2 and status = 'active'
+  );
+end;
+$$;
+
 create table if not exists public.system_metric_samples (
   id bigserial primary key,
   event text not null,
