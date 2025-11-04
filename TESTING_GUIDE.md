@@ -1,1119 +1,447 @@
-# 🧪 Ibimina System Testing Guide
+# 🧪 IBIMINA COMPREHENSIVE TESTING GUIDE
 
-**Complete testing workflow for all applications**
-
-## 📋 Testing Order
-
-Test in this sequence to identify issues early:
-
-1. **Backend/Supabase** (Foundation) - 30 minutes
-2. **Staff Admin PWA** (Web) - 45 minutes
-3. **Staff Mobile Android** (with TapMoMo & SMS) - 60 minutes
-4. **Client Mobile App** (iOS/Android) - 60 minutes
-5. **Integration Tests** (E2E workflows) - 45 minutes
-
-**Total Time:** ~4 hours for complete system test
+**Last Updated:** 2025-11-04  
+**Status:** ✅ Ready for Testing - Migration Issues Fixed
 
 ---
 
-## 🎯 Phase 1: Backend/Supabase Testing (30 min)
+## 🎯 TESTING OVERVIEW
 
-### Prerequisites
+The Ibimina SACCO management system consists of 4 integrated applications:
 
-```bash
-export SUPABASE_URL="https://vacltfdslodqybxojytc.supabase.co"
-export SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-export SUPABASE_SERVICE_ROLE_KEY="<service-role-key>"
-```
+1. **Admin PWA** - Staff console (Next.js, runs on web)
+2. **Client Mobile** - Member app (React Native, iOS + Android)
+3. **Staff Android** - Staff mobile tools (Capacitor + Android)
+4. **Backend** - Supabase (PostgreSQL + Edge Functions)
 
-### 1.1 Database Schema (10 min)
+**Testing Goal:** Validate all features work end-to-end before production launch.
 
+---
+
+## ✅ PHASE 1: BACKEND TESTING (30 minutes)
+
+### 1.1 Database Connection
 ```bash
 cd /Users/jeanbosco/workspace/ibimina
 
-# List all deployed functions
+# Set environment variables
+export SUPABASE_URL="https://vacltfdslodqybxojytc.supabase.co"
+export SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY2x0ZmRzbG9kcXlieG9qeXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5NzI3MzUsImV4cCI6MjA3NTU0ODczNX0.XBJckvtgeWHYbKSnd1ojRd7mBKjdk5OSe0VDqS1PapM"
+
+# Test connection
+curl -X GET "$SUPABASE_URL/rest/v1/" \
+  -H "apikey: $SUPABASE_ANON_KEY" \
+  | jq
+```
+
+✅ **Expected:** JSON response with API version info
+
+### 1.2 Test Edge Functions
+```bash
+# List deployed functions
 supabase functions list
 
-# Check key tables exist (run this command)
-node -e "
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-
-async function test() {
-  const tables = [
-    'users', 'accounts', 'transactions', 'groups',
-    'momo_transactions', 'tapmomo_merchants', 'tapmomo_transactions',
-    'whatsapp_otp_verifications', 'device_auth_challenges',
-    'push_tokens', 'notification_queue', 'loan_applications'
-  ];
-
-  for (const table of tables) {
-    const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
-    console.log(\`✓ \${table}: \${error ? 'ERROR' : count + ' rows'}\`);
-  }
-}
-
-test();
-"
+# Should see:
+# - whatsapp-send-otp
+# - whatsapp-verify-otp
+# - tapmomo-reconcile
+# - send-push-notification
+# + 26 more functions
 ```
 
-### 1.2 Edge Functions (10 min)
+✅ **Expected:** 30 functions listed, all status = ACTIVE
 
+### 1.3 Test Key Tables
 ```bash
-# Test WhatsApp OTP
-curl -X POST "$SUPABASE_URL/functions/v1/whatsapp-send-otp" \
-  -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"phone":"+250788123456"}'
+# Test organizations table
+curl "$SUPABASE_URL/rest/v1/organizations?select=id,name&limit=3" \
+  -H "apikey: $SUPABASE_ANON_KEY" | jq
 
-# Expected: {"success":true,"verificationId":"..."}
-
-# Test SMS parsing
-curl -X POST "$SUPABASE_URL/functions/v1/parse-sms" \
-  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "rawText": "You have received 5000 RWF from JOHN DOE. Your new balance is 15000 RWF. Ref: MP123456",
-    "sender": "MTN"
-  }'
-
-# Expected: {"success":true,"parsed":{...}}
+# Test user_profiles table
+curl "$SUPABASE_URL/rest/v1/user_profiles?select=id&limit=1" \
+  -H "apikey: $SUPABASE_ANON_KEY" | jq
 ```
 
-### 1.3 Quick Health Check
-
-```bash
-# Run automated health check
-cd /Users/jeanbosco/workspace/ibimina
-node scripts/health-check.js
-```
+✅ **Expected:** JSON arrays (may be empty if no data seeded yet)
 
 ---
 
-## 🖥️ Phase 2: Staff Admin PWA Testing (45 min)
+## ✅ PHASE 2: ADMIN PWA TESTING (45 minutes)
 
-### 2.1 Start the Application
-
+### 2.1 Build and Start
 ```bash
 cd /Users/jeanbosco/workspace/ibimina
 
-# Start development server
+# Ensure environment variables are set
+cat > apps/admin/.env.local << 'EOF'
+NEXT_PUBLIC_SUPABASE_URL=https://vacltfdslodqybxojytc.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY2x0ZmRzbG9kcXlieG9qeXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5NzI3MzUsImV4cCI6MjA3NTU0ODczNX0.XBJckvtgeWHYbKSnd1ojRd7mBKjdk5OSe0VDqS1PapM
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+EOF
+
+# Build and run
+pnpm install
 pnpm --filter @ibimina/admin dev
-
-# Open in browser
-open http://localhost:3000
 ```
 
-### 2.2 Manual Test Checklist
+✅ **Expected:** App runs on http://localhost:3000
 
-#### Login & Authentication (5 min)
+### 2.2 Manual Feature Testing
 
-- [ ] Load login page (http://localhost:3000)
-- [ ] Enter email: `admin@example.com`, password: `password123`
-- [ ] Click "Sign In"
-- [ ] Should redirect to `/dashboard`
-- [ ] If MFA enabled, complete MFA challenge
+| Feature | Steps | Pass/Fail |
+|---------|-------|-----------|
+| **🔐 Login** | 1. Go to http://localhost:3000<br>2. Enter test credentials<br>3. Should redirect to dashboard | ⬜ |
+| **📊 Dashboard** | 1. View KPI cards<br>2. Check charts load<br>3. Verify quick actions | ⬜ |
+| **👥 Users** | 1. Click "Users"<br>2. Search/filter<br>3. View user detail<br>4. Edit user | ⬜ |
+| **💰 Payments** | 1. View payment list<br>2. Filter by status<br>3. View payment detail | ⬜ |
+| **📨 SMS Inbox** | 1. View SMS list<br>2. Check parsed fields<br>3. Test manual reconciliation | ⬜ |
+| **⚙️ Settings** | 1. Update profile<br>2. Change theme (light/dark)<br>3. Verify changes persist | ⬜ |
+| **🌐 Offline Mode** | 1. Open DevTools > Network<br>2. Set to "Offline"<br>3. Try an action<br>4. Should show offline indicator | ⬜ |
 
-#### Dashboard (5 min)
-
-- [ ] Dashboard loads within 2 seconds
-- [ ] KPI cards show data:
-  - Active Users
-  - Open Tickets
-  - Pending Orders
-  - Total Revenue
-- [ ] Charts render (no errors in console)
-- [ ] Quick actions clickable
-
-#### Users Management (10 min)
-
-- [ ] Navigate to "Users" menu
-- [ ] List displays with pagination
-- [ ] Search by name: type "john" → filters results
-- [ ] Filter by status: select "Active" → shows only active
-- [ ] Click "Create User" button
-- [ ] Fill form: name, email, role, status
-- [ ] Submit → new user appears in list
-- [ ] Click user row → detail view opens
-- [ ] Edit user details
-- [ ] Save → changes persist
-- [ ] Deactivate user → status changes to "Suspended"
-
-#### Orders (5 min)
-
-- [ ] Navigate to "Orders"
-- [ ] List displays orders
-- [ ] Filter by status: "Pending", "Approved", etc.
-- [ ] Click order → detail view
-- [ ] Change status: "Pending" → "Approved"
-- [ ] Optimistic UI updates immediately
-- [ ] Refresh page → status persisted
-
-#### Tickets (5 min)
-
-- [ ] Navigate to "Tickets"
-- [ ] List by status works
-- [ ] Click "New Ticket"
-- [ ] Create ticket with subject + description
-- [ ] Submit → appears in list
-- [ ] Open ticket → add comment
-- [ ] Change status: "Open" → "Closed"
-- [ ] Assign to user
-
-#### Settings (5 min)
-
-- [ ] Navigate to "Settings"
-- [ ] Toggle theme: Light ↔ Dark (persists after refresh)
-- [ ] Edit profile: change name
-- [ ] Save → updates in top bar
-- [ ] Toggle notifications
-- [ ] View app version
-
-### 2.3 PWA Features (10 min)
-
+### 2.3 PWA Testing
 ```bash
-# Build production version
-pnpm --filter @ibimina/admin build
-
-# Preview
-pnpm --filter @ibimina/admin preview
-# Opens on http://localhost:4173
+# Open in Chrome
+open -a "Google Chrome" http://localhost:3000
 ```
 
-#### Installation
-
-- [ ] Open http://localhost:4173 in Chrome
-- [ ] Install prompt appears (or check address bar)
-- [ ] Click "Install"
-- [ ] App installs as standalone
-- [ ] Icon appears on desktop/home screen
-- [ ] Launch from icon → opens in standalone window
-
-#### Offline Mode
-
-- [ ] With app open, open DevTools → Network tab
-- [ ] Select "Offline" from throttling dropdown
-- [ ] Reload page → app shell loads from cache
-- [ ] Offline indicator shows (top bar or toast)
-- [ ] Navigate between cached routes → works
-- [ ] Try to create user → queued for sync
-- [ ] Go back online
-- [ ] Queued action replays automatically
-
-#### Service Worker
-
-- [ ] Open DevTools → Application → Service Workers
-- [ ] Should show "activated and running"
-- [ ] Update app code slightly (change text)
-- [ ] Rebuild: `pnpm --filter @ibimina/admin build`
-- [ ] Reload page → update notification appears
-- [ ] Click "Reload to Update"
-- [ ] New version loads
+**DevTools Checklist:**
+1. Application → Service Workers → Should see "activated" ⬜
+2. Application → Manifest → Should load without errors ⬜
+3. Application → Icons → Should show 192px, 512px icons ⬜
+4. Lighthouse → PWA score > 90 ⬜
+5. Chrome menu → Install app → Should work ⬜
 
 ---
 
-## 📱 Phase 3: Staff Mobile Android Testing (60 min)
+## ✅ PHASE 3: CLIENT MOBILE APP TESTING (60 minutes)
 
-### 3.1 Build & Install (15 min)
-
+### 3.1 Setup Environment
 ```bash
-cd /Users/jeanbosco/workspace/ibimina/apps/admin
+cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile
 
-# Sync Capacitor
+# Create .env file
+cat > .env << 'EOF'
+EXPO_PUBLIC_SUPABASE_URL=https://vacltfdslodqybxojytc.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+WHATSAPP_API_TOKEN=your_whatsapp_token
+WHATSAPP_PHONE_NUMBER_ID=your_phone_id
+OPENAI_API_KEY=your_openai_key
+EOF
+
+# Install dependencies
+npm install
+```
+
+### 3.2 iOS Testing
+```bash
+# Sync iOS
+npx cap sync ios
+
+# Open in Xcode
+npx cap open ios
+
+# In Xcode:
+# 1. Select target device or simulator
+# 2. Press Run (⌘R)
+```
+
+### 3.3 Android Testing
+```bash
+# Sync Android
 npx cap sync android
 
 # Open in Android Studio
 npx cap open android
 
-# Build debug APK
-cd android
-./gradlew assembleDebug
-
-# Install on connected device
-adb devices  # Verify device connected
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+# In Android Studio:
+# 1. Select device or emulator
+# 2. Click Run (green triangle)
 ```
 
-### 3.2 QR Code Authentication (10 min)
+### 3.4 Mobile Feature Testing
 
-**Setup:** You need both web PWA and mobile app
-
-1. **On Desktop:**
-   - Open http://localhost:3000
-   - Should see QR code on login screen
-   - Or after login, Settings → "Link Mobile Device" → QR code
-
-2. **On Android Device:**
-   - Open Ibimina Staff app
-   - Tap "Scan QR to Login"
-   - Grant camera permission
-   - Point at QR code on desktop
-   - Should scan within 2 seconds
-   - Mobile app logs in
-   - Desktop shows "Device authenticated"
-
-**Verify:**
-
-- [ ] QR code displays on web
-- [ ] Mobile scans successfully
-- [ ] Both devices authenticated
-- [ ] Can perform actions on both
-
-### 3.3 SMS Reader (15 min)
-
-**Prerequisites:** Real Android device with SIM card
-
-1. **Grant Permission:**
-   - Open app → SMS Reader feature
-   - Tap "Enable SMS Reconciliation"
-   - Grant SMS permission when prompted
-
-2. **Test with Real SMS:**
-   - Send yourself a MoMo test transaction (or have someone send)
-   - SMS example: "You have received 5000 RWF from JOHN DOE. Ref: MP123456"
-   - App should detect new SMS within 5 seconds
-   - Notification: "New MoMo transaction detected"
-
-3. **Check Parsing:**
-   - Tap notification → opens SMS details
-   - Shows parsed data:
-     - Amount: 5000
-     - Sender: JOHN DOE
-     - Reference: MP123456
-     - Network: MTN (auto-detected from sender)
-   - Tap "Confirm & Send to Backend"
-
-4. **Verify Backend:**
-   - Open Staff PWA → Reconciliation dashboard
-   - New transaction appears in "Pending" list
-   - Shows all parsed details
-   - Can match to user account
-
-**Test Checklist:**
-
-- [ ] SMS permission granted
-- [ ] App detects incoming MoMo SMS
-- [ ] Parses amount correctly
-- [ ] Parses sender name
-- [ ] Parses reference number
-- [ ] Sends to backend API
-- [ ] Shows success confirmation
-
-### 3.4 TapMoMo NFC (20 min)
-
-**Prerequisites:** 2 Android devices with NFC (API 26+), both unlocked
-
-#### Merchant Mode (Payee - Get Paid)
-
-1. **On Device A (Merchant):**
-   - Open app → TapMoMo → "Get Paid"
-   - Enter amount: `2500` RWF
-   - Select network: `MTN`
-   - Merchant code: (should auto-fill from profile)
-   - Tap "Activate NFC"
-   - Screen says: "Ready to receive payment. Keep device unlocked and close to
-     payer."
-   - Countdown timer: 60 seconds
-
-2. **On Device B (Customer/Payer):**
-   - Open app → TapMoMo → "Pay"
-   - OR use iOS device with client app
-   - Tap "Scan to Pay"
-   - Hold devices back-to-back (NFC coils aligned)
-   - Usually coils are center-top of device
-
-3. **What Should Happen:**
-   - Within 2 seconds: "Payment details received"
-   - Device B shows confirmation:
-     ```
-     Amount: 2500 RWF
-     Merchant: [Name]
-     Network: MTN
-     ```
-   - Tap "Confirm & Pay"
-   - **Android:** USSD auto-launches: `*182*8*1*<merchant_code>*2500#`
-   - **iOS:** USSD copied, Phone app opens, user pastes code
-
-4. **Complete Payment:**
-   - Dial USSD (or already dialing)
-   - Enter MoMo PIN
-   - Confirm payment
-   - MoMo processes → SMS sent to merchant device
-
-5. **Reconciliation:**
-   - Merchant device receives SMS
-   - SMS auto-detected and parsed
-   - Transaction status updated to "Paid"
-   - Both devices show success notification
-
-**Test Checklist:**
-
-- [ ] Merchant activates NFC successfully
-- [ ] Payer reads payload within 2 seconds
-- [ ] Amount, merchant, network display correctly
-- [ ] USSD launches (Android) or copies (iOS)
-- [ ] Payment completes via USSD
-- [ ] SMS received and parsed
-- [ ] Transaction marked as paid
-
-#### Security Tests (5 min)
-
-1. **Expired Payload:**
-   - Activate NFC on merchant device
-   - Wait 3 minutes (TTL = 2 min)
-   - Try to read with payer device
-   - Should show: "Payment request expired"
-
-2. **Replay Attack:**
-   - Activate NFC, read once successfully
-   - Try to read again with same payload
-   - Should show: "This payment was already processed"
-
-3. **Invalid Signature:**
-   - (Requires code modification to test)
-   - Modify HMAC key
-   - Try to read payload
-   - Should show: "Payment verification failed" (with warning)
+| Feature | iOS | Android | Notes |
+|---------|-----|---------|-------|
+| **📱 Onboarding** | ⬜ | ⬜ | 3 slides, skip button works |
+| **📞 WhatsApp OTP** | ⬜ | ⬜ | OTP sent, received, verified |
+| **👀 Browse Mode** | ⬜ | ⬜ | Can view features before login |
+| **🔒 Auth Guard** | ⬜ | ⬜ | Login prompt on protected action |
+| **🏠 Dashboard** | ⬜ | ⬜ | Balance displays, KPIs load |
+| **💸 Deposit** | ⬜ | ⬜ | Can initiate deposit |
+| **💵 Withdraw** | ⬜ | ⬜ | Can initiate withdrawal |
+| **↔️ Transfer** | ⬜ | ⬜ | Can transfer between accounts |
+| **📜 Transactions** | ⬜ | ⬜ | History displays, can filter |
+| **💳 Accounts** | ⬜ | ⬜ | Multiple accounts shown |
+| **👤 Profile** | ⬜ | ⬜ | Can edit profile fields |
+| **🌙 Dark Mode** | ⬜ | ⬜ | Toggle works |
+| **📴 Offline** | ⬜ | ⬜ | Offline banner shows |
+| **🔔 Push Notifications** | ⬜ | ⬜ | Receives test notification |
 
 ---
 
-## 📲 Phase 4: Client Mobile App Testing (60 min)
+## ✅ PHASE 4: STAFF ANDROID APP TESTING (45 minutes)
 
-### 4.1 Build & Run (10 min)
-
+### 4.1 Build APK
 ```bash
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile
+cd /Users/jeanbosco/workspace/ibimina/apps/admin/android
 
-# Install dependencies
-npm install
+# Clean build
+./gradlew clean
 
-# iOS
-cd ios && pod install && cd ..
-npx react-native run-ios
-# Or: Open ios/ClientMobile.xcworkspace in Xcode → Run
+# Build debug APK
+./gradlew assembleDebug
 
-# Android
+# APK location
+# apps/admin/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### 4.2 Install on Device
+```bash
+# Via USB
+adb devices
+adb install app/build/outputs/apk/debug/app-debug.apk
+
+# Or transfer APK file and install manually
+```
+
+### 4.3 Staff App Feature Testing
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| **📱 Launch** | ⬜ | App opens without crash |
+| **🔐 QR Login** | ⬜ | Scan PWA QR code |
+| **✅ Auth Success** | ⬜ | PWA session activates |
+| **📊 Dashboard** | ⬜ | Staff metrics display |
+| **👥 User List** | ⬜ | Can view SACCO members |
+| **🔍 Search** | ⬜ | Search by name/phone works |
+| **💰 Payment Entry** | ⬜ | Can record payment manually |
+| **📲 NFC TapMoMo** | ⬜ | Can read NFC payment (if supported) |
+| **📨 SMS Reader** | ⬜ | Reads MoMo SMS notifications |
+| **🤖 SMS Parsing** | ⬜ | OpenAI parses SMS correctly |
+| **✅ Auto-Match** | ⬜ | Payment matched to user |
+| **📴 Offline Queue** | ⬜ | Actions queue when offline |
+| **🔄 Sync** | ⬜ | Queue replays when back online |
+
+---
+
+## ✅ PHASE 5: INTEGRATION TESTING (30 minutes)
+
+### 5.1 End-to-End Payment Flow
+
+**Scenario:** Client deposits money, staff processes, balance updates
+
+```
+Step 1: Client opens mobile app                        ⬜
+Step 2: Client signs up with WhatsApp OTP              ⬜
+Step 3: Client sees welcome dashboard                  ⬜
+Step 4: Client initiates deposit via USSD              ⬜
+Step 5: Client completes MoMo payment                  ⬜
+Step 6: MoMo sends SMS confirmation                    ⬜
+Step 7: Staff Android app reads SMS                    ⬜
+Step 8: OpenAI parses SMS (amount, phone, ref)         ⬜
+Step 9: System matches payment to client               ⬜
+Step 10: Client sees balance updated in mobile app     ⬜
+Step 11: Staff sees transaction in Admin PWA           ⬜
+```
+
+### 5.2 Web-to-Mobile 2FA Flow
+
+**Scenario:** Staff authenticates Admin PWA using Android app
+
+```
+Step 1: Staff opens Admin PWA in browser               ⬜
+Step 2: Login page displays QR code                    ⬜
+Step 3: Staff opens Staff Android app                  ⬜
+Step 4: Staff taps "Scan QR" in app                    ⬜
+Step 5: Camera activates, staff scans QR               ⬜
+Step 6: App prompts for biometric/PIN                  ⬜
+Step 7: Staff authenticates in app                     ⬜
+Step 8: App sends auth token to PWA                    ⬜
+Step 9: PWA session activates, shows dashboard         ⬜
+```
+
+### 5.3 TapMoMo NFC Payment Flow
+
+**Scenario:** Merchant receives payment via NFC tap (Android only)
+
+```
+Step 1: Merchant activates "Get Paid" on Staff Android ⬜
+Step 2: Merchant enters amount, shows NFC prompt       ⬜
+Step 3: Client taps their Android phone to merchant    ⬜
+Step 4: Payment details transferred via NFC            ⬜
+Step 5: Client sees payment confirmation on screen     ⬜
+Step 6: Client confirms payment                        ⬜
+Step 7: USSD initiated automatically on client phone   ⬜
+Step 8: Client enters PIN to complete payment          ⬜
+Step 9: Transaction recorded in Supabase               ⬜
+Step 10: Both client and merchant see confirmation     ⬜
+```
+
+---
+
+## 🐛 BUG REPORTING TEMPLATE
+
+Found an issue? Report it like this:
+
+```markdown
+### 🐛 Bug: [Short descriptive title]
+
+**App:** Admin PWA / Client Mobile iOS / Client Mobile Android / Staff Android  
+**Severity:** 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low  
+**Reproducible:** Always / Sometimes / Rarely
+
+**Steps to Reproduce:**
+1. Open [app name]
+2. Navigate to [screen]
+3. Tap/click [button]
+4. Observe [issue]
+
+**Expected Behavior:**
+[What should happen]
+
+**Actual Behavior:**
+[What actually happens]
+
+**Screenshots/Videos:**
+[Attach if available]
+
+**Console Errors:**
+```
+[Paste any error messages]
+```
+
+**Device Info:**
+- Device: iPhone 14 Pro / Samsung Galaxy S23 / etc.
+- OS: iOS 17.1 / Android 14 / macOS Sonoma
+- App Version: 0.1.0
+```
+
+---
+
+## 📊 TESTING PROGRESS TRACKER
+
+| Phase | Total Tests | Passed | Failed | Completion |
+|-------|-------------|--------|--------|------------|
+| **Backend** | 3 | 0 | 0 | 0% |
+| **Admin PWA** | 7 | 0 | 0 | 0% |
+| **Client Mobile** | 14 | 0 | 0 | 0% |
+| **Staff Android** | 13 | 0 | 0 | 0% |
+| **Integration** | 3 | 0 | 0 | 0% |
+| **OVERALL** | **40** | **0** | **0** | **0%** |
+
+**Target:** 95%+ pass rate before production launch
+
+---
+
+## 🆘 TROUBLESHOOTING
+
+### Issue: "Cannot connect to Supabase"
+```bash
+# Check environment variables
+echo $SUPABASE_URL
+echo ${SUPABASE_ANON_KEY:0:20}...
+
+# Test connection
+curl -I $SUPABASE_URL
+
+# Verify in Supabase Dashboard:
+# https://supabase.com/dashboard/project/vacltfdslodqybxojytc
+```
+
+### Issue: "Admin PWA won't start"
+```bash
+cd apps/admin
+
+# Clear cache
+rm -rf .next node_modules/.cache
+
+# Reinstall
+pnpm install
+
+# Check TypeScript
+pnpm typecheck
+
+# Try build
+pnpm build
+```
+
+### Issue: "Mobile app crashes on launch"
+```bash
+# iOS: Clean build
+cd ios
+pod deintegrate && pod install
+cd ..
+npx react-native run-ios --clean
+
+# Android: Clean build
+cd android
+./gradlew clean
+cd ..
 npx react-native run-android
 ```
 
-### 4.2 Onboarding & Authentication (15 min)
-
-#### First Launch (Browse Mode)
-
-1. **Onboarding Screens:**
-   - Launch app
-   - See 3 intro slides:
-     1. "Welcome to Ibimina" - Save & grow together
-     2. "Mobile Money Integration" - Easy deposits
-     3. "Track Your Progress" - Real-time updates
-   - Swipe through all 3
-   - Bottom: "Skip" and "Get Started" buttons
-
-2. **Browse Without Login:**
-   - Tap "Skip" on onboarding
-   - See home screen with sample data
-   - Shows features: Deposit, Withdraw, Transfer, Loans, Groups
-   - Can navigate through screens
-   - Data is placeholder/demo mode
-
-3. **Auth Guard:**
-   - Try to tap "Deposit"
-   - Should show: "Sign in to continue"
-   - "Sign in with WhatsApp" button
-
-#### WhatsApp OTP Authentication
-
-1. **Enter Phone:**
-   - Tap "Sign in with WhatsApp"
-   - Enter phone: `+250788123456` (use your real number)
-   - Tap "Send Code"
-   - Loading indicator
-
-2. **Check WhatsApp:**
-   - Open WhatsApp on same device (or another)
-   - Should receive message from business:
-     ```
-     123456 is your verification code. For your security, do not share this code.
-     ```
-   - **Note:** Code is 6 digits, changes each time
-
-3. **Enter Code:**
-   - Switch back to app
-   - OTP input field auto-focused
-   - Type the 6-digit code (or paste if copied)
-   - Tap "Verify"
-   - Shows: "Verifying..."
-
-4. **Success:**
-   - Screen changes to "Loading your profile..."
-   - Dashboard loads with real user data
-   - Top bar shows user name + photo
-   - No more demo mode indicator
-
-**Test Checklist:**
-
-- [ ] Onboarding slides display
-- [ ] Can skip onboarding
-- [ ] Browse mode works (sample data)
-- [ ] Auth guard blocks real actions
-- [ ] WhatsApp OTP sent successfully
-- [ ] OTP code received in WhatsApp
-- [ ] Code verification works
-- [ ] User profile loads
-- [ ] Session persists (close and reopen app)
-
-### 4.3 Core Features Testing (35 min)
-
-#### Dashboard (5 min)
-
-- [ ] Account balance displays (real number)
-- [ ] Recent 5 transactions listed
-- [ ] Quick actions: Deposit, Withdraw, Transfer, Loans
-- [ ] Pull to refresh updates data
-
-#### Accounts Screen (3 min)
-
-- [ ] Navigate to "Accounts" tab
-- [ ] Shows list of accounts (Savings, Shares, etc.)
-- [ ] Each card shows balance
-- [ ] Tap account → detail view
-- [ ] Shows transaction history for that account
-
-#### Deposit Flow (8 min)
-
-1. **Initiate:**
-   - Tap "Deposit" from home
-   - See form: Amount, Network, Account
-
-2. **Fill Form:**
-   - Account: Select "Savings Account"
-   - Amount: Enter `5000`
-   - Network: Select "MTN MoMo"
-   - Review summary
-
-3. **Confirm:**
-   - Tap "Confirm Deposit"
-   - Shows: "Redirecting to Mobile Money..."
-   - USSD dialer opens: `*182*1#` (or network-specific)
-   - **OR** if TapMoMo enabled: "Tap staff device to complete"
-
-4. **Complete USSD:**
-   - Follow MoMo prompts
-   - Enter PIN
-   - Confirm payment
-   - Return to app
-
-5. **Track Status:**
-   - App shows: "Waiting for confirmation..."
-   - When staff SMS received and parsed:
-   - Status changes to: "Deposit confirmed"
-   - Balance updates
-   - Notification sent
-
-**Test Checklist:**
-
-- [ ] Form validation (min amount, required fields)
-- [ ] USSD launches correctly
-- [ ] Can complete MoMo flow
-- [ ] Status updates automatically
-- [ ] Balance increases after confirmation
-
-#### Withdraw Flow (5 min)
-
-- [ ] Similar to deposit
-- [ ] Validates sufficient balance
-- [ ] Can't withdraw more than available
-- [ ] USSD launches for withdrawal
-- [ ] Balance decreases after confirmation
-
-#### Transfer Flow (7 min)
-
-1. **Search Recipient:**
-   - Tap "Transfer"
-   - Search bar: type recipient name or phone
-   - Results show matching users
-   - Select recipient
-
-2. **Enter Amount:**
-   - Amount field
-   - Validates against balance
-   - Shows fee if applicable
-
-3. **Confirm:**
-   - Review details
-   - Tap "Confirm Transfer"
-   - Biometric prompt (if enabled)
-   - Enter PIN/fingerprint/face
-   - "Processing..."
-
-4. **Success:**
-   - "Transfer successful"
-   - Balance updated
-   - Transaction appears in history
-   - Recipient receives notification
-
-**Test Checklist:**
-
-- [ ] Recipient search works
-- [ ] Amount validation
-- [ ] Biometric auth works
-- [ ] Transfer completes
-- [ ] Both parties see transaction
-
-#### Loans (4 min)
-
-- [ ] Navigate to "Loans" tab
-- [ ] See available loan products
-- [ ] Tap "Apply for Loan"
-- [ ] Fill application:
-  - Loan type
-  - Amount requested
-  - Purpose
-  - Upload documents (ID, payslip)
-- [ ] Submit application
-- [ ] Appears in "My Applications"
-- [ ] Status: "Pending Review"
-
-#### Groups/Ikimina (3 min)
-
-- [ ] Navigate to "Groups" tab
-- [ ] List of groups user belongs to
-- [ ] Tap group → detail view
-- [ ] Shows: members, total contributions, next meeting
-- [ ] Tap "Make Contribution"
-- [ ] Enter amount
-- [ ] Confirm → USSD or transfer flow
-- [ ] Contribution appears in group history
-
----
-
-## 🔄 Phase 5: Integration Testing (45 min)
-
-### 5.1 End-to-End: SMS Reconciliation (20 min)
-
-**Participants:**
-
-- Client app (on device A)
-- Staff Android app (on device B with SIM)
-- Staff PWA (on desktop)
-
-**Scenario:** Client deposits money, staff receives SMS, system auto-reconciles
-
-#### Steps:
-
-1. **Client Initiates Deposit (Device A):**
-
-   ```
-   - Open client app
-   - Tap "Deposit"
-   - Amount: 5000 RWF
-   - Network: MTN
-   - Account: Savings
-   - Tap "Confirm"
-   - USSD launches: *182*1*...*5000#
-   ```
-
-2. **Client Completes MoMo:**
-
-   ```
-   - Dial USSD on phone
-   - Select: Send Money → [SACCO Account]
-   - Enter amount: 5000
-   - Enter PIN
-   - Confirm
-   - MoMo shows: "Transaction successful. Ref: MP789012"
-   ```
-
-3. **MoMo Sends SMS (to merchant/SACCO phone):**
-
-   ```
-   SMS arrives on Device B (staff phone):
-   "You have received 5000 RWF from 250788123456 (John Doe).
-   New balance: 150,000 RWF. Ref: MP789012. 2024-11-04 14:23"
-   ```
-
-4. **Staff App Reads SMS (Device B):**
-
-   ```
-   - App detects new SMS within 5 seconds
-   - Shows notification: "New transaction detected"
-   - Auto-parses SMS:
-     {
-       "amount": 5000,
-       "sender_phone": "250788123456",
-       "sender_name": "John Doe",
-       "reference": "MP789012",
-       "timestamp": "2024-11-04T14:23:00Z",
-       "network": "MTN"
-     }
-   - Sends to backend: POST /functions/v1/parse-sms
-   ```
-
-5. **Backend Reconciles:**
-
-   ```
-   - Edge function receives parsed SMS
-   - Queries `momo_transactions` table:
-     - Match by amount: 5000
-     - Match by phone: +250788123456
-     - Match by timeframe: last 10 minutes
-   - Finds matching pending deposit
-   - Updates transaction:
-     - status: 'pending' → 'completed'
-     - reference: 'MP789012'
-     - confirmed_at: now()
-   - Updates account balance: +5000
-   - Sends push notification to client
-   ```
-
-6. **Client Sees Confirmation (Device A):**
-
-   ```
-   - Push notification: "Your deposit of 5,000 RWF has been confirmed"
-   - Balance updates from 10,000 → 15,000 RWF
-   - Transaction status: "Completed" ✓
-   ```
-
-7. **Staff Reviews (Desktop PWA):**
-   ```
-   - Open Reconciliation dashboard
-   - New row appears: 5000 RWF from John Doe
-   - Status: Matched ✓
-   - Click row → see details:
-     - Client: John Doe (+250788123456)
-     - Amount: 5,000 RWF
-     - Reference: MP789012
-     - Matched: Yes
-     - Account: Savings
-   ```
-
-#### Expected Timing:
-
-- MoMo completion → SMS: 5-30 seconds
-- SMS → Backend parse: < 5 seconds
-- Backend → Client notification: < 2 seconds
-- **Total: < 1 minute**
-
-**Test Checklist:**
-
-- [ ] Client deposit initiates correctly
-- [ ] USSD completes successfully
-- [ ] SMS received on staff device
-- [ ] SMS auto-detected by app
-- [ ] Parsing extracts all fields correctly
-- [ ] Backend matches transaction
-- [ ] Client balance updates
-- [ ] Staff dashboard shows matched transaction
-- [ ] End-to-end time < 2 minutes
-
----
-
-### 5.2 End-to-End: TapMoMo NFC Payment (25 min)
-
-**Participants:**
-
-- Merchant (staff app on device A)
-- Customer (client app on device B, or iOS device)
-
-**Scenario:** Customer pays merchant via NFC tap
-
-#### Steps:
-
-1. **Merchant Prepares (Device A - Android):**
-
-   ```
-   - Open staff app
-   - Navigate to: TapMoMo → Get Paid
-   - Enter amount: 2500 RWF
-   - Select network: MTN
-   - Merchant code: Auto-filled (e.g., "123456")
-   - Tap "Activate NFC"
-   - Screen shows:
-     "Ready to receive payment"
-     "Keep device unlocked"
-     Timer: 60 seconds
-   ```
-
-2. **Customer Initiates (Device B):**
-
-   ```
-   Android:
-   - Open client app → TapMoMo → Pay
-   - Tap "Scan to Pay"
-   - Hold devices back-to-back (NFC coils touching)
-
-   iOS:
-   - Open client app → TapMoMo → Pay
-   - Tap "Scan to Pay" → CoreNFC session starts
-   - Hold devices back-to-back
-   ```
-
-3. **NFC Exchange (<2 seconds):**
-
-   ```
-   - Device B reads AID: F01234567890
-   - Receives JSON payload:
-     {
-       "ver": 1,
-       "network": "MTN",
-       "merchantId": "123456",
-       "currency": "RWF",
-       "amount": 2500,
-       "ts": 1730742523000,
-       "nonce": "550e8400-e29b-41d4-a716-446655440000",
-       "sig": "base64_hmac_signature"
-     }
-   ```
-
-4. **Customer Reviews & Confirms:**
-
-   ```
-   - Device B shows:
-     "Payment Request"
-     Merchant: [Name from merchantId lookup]
-     Amount: 2,500 RWF
-     Network: MTN MoMo
-   - Tap "Confirm & Pay"
-   ```
-
-5. **USSD Launch:**
-
-   ```
-   Android (Device B):
-   - Auto-dials USSD: *182*8*1*123456*2500#
-   - User enters PIN
-   - Confirms payment
-
-   iOS (Device B):
-   - USSD copied: *182*8*1*123456*2500#
-   - Phone app opens (blank)
-   - User pastes code
-   - Dials USSD
-   - Enters PIN, confirms
-   ```
-
-6. **MoMo Processes Payment:**
-
-   ```
-   - MoMo deducts from customer account
-   - Sends SMS to merchant (Device A):
-     "You have received 2500 RWF from [Customer]. Ref: MP456789"
-   ```
-
-7. **SMS Reconciliation (Device A):**
-
-   ```
-   - Staff app detects SMS
-   - Parses: amount=2500, ref=MP456789
-   - Sends to backend
-   - Backend finds matching TapMoMo transaction by:
-     - merchantId: 123456
-     - amount: 2500
-     - nonce: 550e8400...
-     - timestamp: within 10 min
-   - Updates tapmomo_transactions:
-     - status: 'initiated' → 'settled'
-     - momo_ref: 'MP456789'
-     - settled_at: now()
-   ```
-
-8. **Both Devices Notified:**
-
-   ```
-   Device A (Merchant):
-   - Push notification: "Payment received: 2,500 RWF"
-   - Transaction list updates
-
-   Device B (Customer):
-   - Push notification: "Payment completed: 2,500 RWF to [Merchant]"
-   - Balance updated
-   ```
-
-#### Expected Timing:
-
-- NFC tap → Payload read: < 2 seconds
-- Confirmation → USSD dial: < 5 seconds
-- USSD → MoMo completion: 10-30 seconds
-- SMS → Reconciliation: < 5 seconds
-- **Total: < 1 minute**
-
-**Test Checklist:**
-
-- [ ] Merchant activates NFC successfully
-- [ ] Customer device reads payload quickly
-- [ ] Payload validates (HMAC, TTL, nonce)
-- [ ] Customer sees correct amount & merchant
-- [ ] USSD launches (Android) or copies (iOS)
-- [ ] MoMo payment completes
-- [ ] SMS received and parsed
-- [ ] Transaction marked as settled
-- [ ] Both parties notified
-- [ ] Balances updated correctly
-
-**Security Tests:**
-
-- [ ] Expired payload rejected (wait 3 min, try again)
-- [ ] Replay rejected (read same payload twice)
-- [ ] Invalid HMAC shows warning
-- [ ] Device must be unlocked (test with locked device)
-
----
-
-## 📊 Testing Results Template
-
-Use this to track your testing session:
-
-```markdown
-# Ibimina Testing Results
-
-**Date:** 2025-11-04  
-**Tester:** [Your Name]  
-**Environment:** Staging / Production
-
----
-
-## ✅ Backend/Supabase
-
-**Time:** 30 min
-
-- [x] All tables accessible
-- [x] Edge functions responding
-- [x] WhatsApp OTP working
-- [x] SMS parsing working
-- [ ] RLS policies tested
-
-**Issues Found:**
-
-1. None
-
-**Status:** PASS ✅
-
----
-
-## ✅ Staff Admin PWA
-
-**Time:** 45 min
-
-- [x] Login successful
-- [x] Dashboard loads
-- [x] Users CRUD works
-- [x] Orders management works
-- [x] Tickets system works
-- [x] Settings persist
-- [x] PWA installs
-- [x] Offline mode works
-- [ ] Service worker updates
-
-**Issues Found:**
-
-1. None
-
-**Status:** PASS ✅
-
----
-
-## ✅ Staff Mobile Android
-
-**Time:** 60 min
-
-- [x] QR auth works
-- [x] SMS reader detects messages
-- [x] SMS parsing accurate
-- [x] TapMoMo merchant mode works
-- [x] TapMoMo payer mode works
-- [x] USSD launches correctly
-- [ ] NFC security tests
-
-**Issues Found:**
-
-1. None
-
-**Status:** PASS ✅
-
----
-
-## ✅ Client Mobile App
-
-**Time:** 60 min
-
-- [x] Onboarding displays
-- [x] Browse mode works
-- [x] WhatsApp OTP working
-- [x] Dashboard loads
-- [x] Deposit flow works
-- [x] Withdraw flow works
-- [x] Transfer flow works
-- [x] Loans application works
-- [x] Groups feature works
-- [ ] Biometric auth tested
-
-**Issues Found:**
-
-1. None
-
-**Status:** PASS ✅
-
----
-
-## ✅ Integration Tests
-
-**Time:** 45 min
-
-- [x] SMS reconciliation E2E (< 2 min)
-- [x] TapMoMo payment E2E (< 1 min)
-- [x] Security tests pass
-- [ ] Load testing
-
-**Issues Found:**
-
-1. None
-
-**Status:** PASS ✅
-
----
-
-## 🎯 Summary
-
-**Total Time:** 4 hours  
-**Tests Passed:** 45/50  
-**Tests Failed:** 0  
-**Critical Issues:** 0  
-**Minor Issues:** 0
-
-**Go/No-Go Decision:** ✅ GO FOR PRODUCTION
-
----
-
-## 🚀 Next Steps
-
-1. Fix remaining minor issues
-2. Performance optimization
-3. User acceptance testing
-4. Production deployment
-
-**Signed Off By:**
-
-- Technical Lead: ****\_\_\_****
-- Product Owner: ****\_\_\_****
-- QA Lead: ****\_\_\_****
-```
-
----
-
-## 🚨 Common Issues & Solutions
-
-### 1. WhatsApp OTP Not Received
-
-**Symptoms:**
-
-- Code request succeeds but no message received
-- Edge function returns success
-
-**Solutions:**
-
+### Issue: "WhatsApp OTP not sending"
 ```bash
-# Check Meta Business Manager
-open https://business.facebook.com/
-
-# Verify:
-- Phone number verified
-- WhatsApp Business API active
-- Template approved
-- Account balance > $0
-
-# Check logs
-supabase functions logs whatsapp-send-otp --tail
-
-# Test with curl
-curl -X POST "$SUPABASE_URL/functions/v1/whatsapp-send-otp" \
-  -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-  -d '{"phone":"+250788123456"}'
+# Check WhatsApp API credentials in Meta dashboard
+# Verify phone number is verified
+# Check Edge Function logs:
+supabase functions logs whatsapp-send-otp
 ```
 
-### 2. NFC Not Working
-
-**Symptoms:**
-
-- "No NFC detected"
-- Devices don't communicate
-
-**Solutions:**
-
-```bash
-# Check device support
-adb shell "dumpsys nfc | grep 'mIsNfcEnabled'"
-
-# Enable NFC
-Settings → Connected devices → Connection preferences → NFC → ON
-
-# Check API level
-adb shell getprop ro.build.version.sdk
-# Must be >= 26
-
-# Device must be UNLOCKED
-# Hold devices back-to-back (not side-to-side)
-# Find NFC coil location (usually center-top)
+### Issue: "NFC not working"
 ```
+Android:
+1. Settings → NFC → Enable NFC
+2. Check app has NFC permissions in AndroidManifest.xml
+3. Test with another NFC-enabled Android device
 
-### 3. SMS Not Auto-Detected
-
-**Symptoms:**
-
-- SMS received but app doesn't detect
-- Permission granted
-
-**Solutions:**
-
-```bash
-# Check permission
-adb shell dumpsys package [your.package] | grep READ_SMS
-
-# Check SMS filter
-# Edit: apps/admin/android/.../SmsReader.kt
-# Verify sender numbers: "MTN", "AIRTEL", etc.
-
-# Test with adb
-adb shell service call isms 5 s16 "+250788999999" s16 "null" s16 "Test MoMo message: 5000 RWF"
-```
-
-### 4. Build Failures
-
-**Android:**
-
-```bash
-cd apps/admin/android
-./gradlew clean
-./gradlew assembleDebug --stacktrace
-```
-
-**iOS:**
-
-```bash
-cd apps/client-mobile/ios
-pod deintegrate
-pod install
-```
-
-**React Native:**
-
-```bash
-cd apps/client-mobile
-rm -rf node_modules
-npm install
-npx react-native start --reset-cache
+iOS:
+- NFC payment (HCE) is NOT available for third-party apps
+- Only NFC reading (payer side) is possible
 ```
 
 ---
 
-## 📞 Support & Resources
+## ✅ TESTING COMPLETION CHECKLIST
 
-- **Documentation:** `/docs` folder
-- **API Reference:** `/docs/API.md`
-- **Architecture:** `/docs/ARCHITECTURE.md`
-- **Issues:** [GitHub Issues](https://github.com/your-org/ibimina/issues)
+Before marking testing as complete:
+
+- [ ] All backend endpoints tested and documented
+- [ ] All Admin PWA features manually tested
+- [ ] Client Mobile tested on both iOS and Android
+- [ ] Staff Android tested on physical device
+- [ ] All 3 integration flows tested end-to-end
+- [ ] All critical bugs fixed
+- [ ] All high-priority bugs fixed or documented
+- [ ] Performance tested (Lighthouse, app profiling)
+- [ ] Security reviewed (auth flows, API permissions)
+- [ ] User acceptance testing completed with real SACCO staff
+- [ ] Documentation updated with any new findings
+- [ ] Production deployment plan reviewed
 
 ---
 
-**Last Updated:** 2025-11-04  
-**Version:** 1.0.0  
-**Maintained By:** Ibimina Platform Team
+## 🚀 NEXT STEPS AFTER TESTING
+
+1. **Create GitHub Issues** for all bugs found
+2. **Prioritize Bugs** (Critical → High → Medium → Low)
+3. **Fix Critical/High Bugs** immediately
+4. **Performance Optimization** based on testing results
+5. **Security Audit** of authentication and API access
+6. **User Acceptance Testing** with real SACCO staff
+7. **Production Deployment** only after 95%+ tests pass
+
+---
+
+## 📞 SUPPORT
+
+If you need help during testing:
+- Check `PRODUCTION_READY_SUMMARY.md` for system overview
+- Check `NEXT_STEPS.md` for development roadmap
+- Check `QUICK_REFERENCE.md` for common commands
+- Open a GitHub issue for bugs
+- Contact the development team
+
+---
+
+**Happy Testing! 🧪✨**
