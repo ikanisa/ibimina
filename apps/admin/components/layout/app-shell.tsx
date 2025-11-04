@@ -445,43 +445,7 @@ function DefaultAppShellView({
                               className="relative h-4 w-4 transition-transform group-hover:scale-110"
                               aria-hidden="true"
                             />
-                          )}
-
-                          <Icon
-                            className="relative h-4 w-4 transition-transform group-hover:scale-110"
-                            aria-hidden="true"
-                          />
-                          <span className="relative leading-none">{primary}</span>
-
-                          {badge && (
-                            <span
-                              className={cn(
-                                "relative ml-1.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                                BADGE_TONE_STYLES[badge.tone]
-                              )}
-                              aria-label={`${badge.label} notification`}
-                            >
-                              {badge.label}
-                            </span>
-                          )}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
-
-              {/* Action buttons */}
-              <div
-                className="flex flex-wrap items-center gap-2.5"
-                role="group"
-                aria-label={t("nav.actions", "Navigation actions")}
-              >
-                <NetworkStatusIndicator />
-                {/* Language switcher */}
-                <div className="hidden md:block">
-                  <LanguageSwitcher className="text-xs font-semibold" />
-                </div>
+                            <span className="relative leading-none">{primary}</span>
 
                             {badge && (
                               <span
@@ -507,6 +471,7 @@ function DefaultAppShellView({
                   role="group"
                   aria-label={t("nav.actions", "Navigation actions")}
                 >
+                  <NetworkStatusIndicator />
                   {/* Language switcher */}
                   <div className="hidden md:block">
                     <LanguageSwitcher className="text-xs font-semibold" />
@@ -540,17 +505,17 @@ function DefaultAppShellView({
           </nav>
         </header>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pb-28 md:px-8">
-        <OfflineBanner />
-        <div className="flex flex-col gap-6 md:flex-row md:items-start">
-          <div className="flex-1">{children}</div>
-          <div className="md:w-64">
-            <QueuedSyncSummary />
+        <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 pb-28 md:px-8">
+          <OfflineBanner />
+          <div className="flex flex-col gap-6 md:flex-row md:items-start">
+            <div className="flex-1">{children}</div>
+            <div className="md:w-64">
+              <QueuedSyncSummary />
+            </div>
           </div>
         </div>
-      </div>
-      <OfflineQueueIndicator />
-      <OfflineConflictDialog />
+        <OfflineQueueIndicator />
+        <OfflineConflictDialog />
 
         <nav
           className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-2xl border border-white/25 bg-gradient-to-br from-ink/95 to-ink/90 px-3 py-3.5 shadow-2xl backdrop-blur-xl md:hidden"
