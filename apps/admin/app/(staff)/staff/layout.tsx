@@ -25,7 +25,7 @@ export default async function StaffLayout({ children }: { children: ReactNode })
             </h1>
             <p className="text-sm text-[color:var(--color-foreground-inverse,#f8fafc)]/70">
               Logged in as{" "}
-              {auth.profile.user.email ?? auth.profile.user.phone ?? auth.profile.user.id}
+              {auth.user.email ?? auth.user.phone ?? auth.user.id}
             </p>
           </div>
           <StaffNav />
