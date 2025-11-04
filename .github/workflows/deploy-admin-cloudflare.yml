@@ -57,10 +57,10 @@ jobs:
       - name: Fix config package imports
         run: |
           cd packages/config/dist
-          for file in *.js; do 
+          for file in *.js; do
             sed -i 's|from "\./\([^"]*\)"|from "./\1.js"|g' "$file"
           done
-          for file in data/*.js; do 
+          for file in data/*.js; do
             sed -i 's|from "\.\./\([^"]*\)"|from "../\1.js"|g' "$file"
           done
 
