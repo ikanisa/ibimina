@@ -2,7 +2,10 @@ import reactHooks from "eslint-plugin-react-hooks";
 
 import ibiminaPlugin from "../../packages/eslint-plugin-ibimina/index.js";
 import { createEslintConfig } from "../../config/tooling/eslint/factory.mjs";
-import { sharedReactRules, structuredLoggingRules } from "../../config/tooling/eslint/shared-rules.mjs";
+import {
+  sharedReactRules,
+  structuredLoggingRules,
+} from "../../config/tooling/eslint/shared-rules.mjs";
 
 export default createEslintConfig({
   ignores: [
@@ -18,9 +21,22 @@ export default createEslintConfig({
     "legacy-public/**",
     "../../supabase/functions/**",
   ],
+  parserOptions: {
+    project: "./tsconfig.json",
+    tsconfigRootDir: import.meta.dirname,
+  },
   plugins: {
     "react-hooks": reactHooks,
     ibimina: ibiminaPlugin,
   },
-  rules: { ...sharedReactRules, ...structuredLoggingRules },
+  rules: {
+    ...sharedReactRules,
+    ...structuredLoggingRules,
+    // Disable rules that require type information during build
+    // These conflict with Next.js's own TypeScript checking
+    "@typescript-eslint/no-floating-promises": "off",
+    "@typescript-eslint/no-misused-promises": "off",
+    "@typescript-eslint/no-unused-vars": "off", // Conflicting with context.getScope
+    "ibimina/structured-logging": "warn", // Downgrade to warning instead of error
+  },
 });

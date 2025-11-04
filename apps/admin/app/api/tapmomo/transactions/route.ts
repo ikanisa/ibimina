@@ -86,7 +86,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Get merchant
-    const { data: merchant, error: merchantError } = await supabase
+    // Cast to any since tapmomo_merchants is in app schema not included in generated types
+    const { data: merchant, error: merchantError } = await (supabase as any)
       .schema("app")
       .from("tapmomo_merchants")
       .select("id, sacco_id")

@@ -26,7 +26,8 @@ export default async function TapMoMoPage({ searchParams }: TapMoMoPageProps) {
   const supabase = createSupabaseServiceRoleClient("admin/panel/tapmomo");
 
   // Get merchants for the SACCO
-  let merchantsQuery = supabase
+  // Cast to any since tapmomo_merchants is in app schema not included in generated types
+  let merchantsQuery = (supabase as any)
     .schema("app")
     .from("tapmomo_merchants")
     .select("id, merchant_code, display_name, network, is_active")
@@ -43,7 +44,8 @@ export default async function TapMoMoPage({ searchParams }: TapMoMoPageProps) {
   }
 
   // Get transaction stats
-  let statsQuery = supabase
+  // Cast to any since tapmomo_transactions is in app schema not included in generated types
+  let statsQuery = (supabase as any)
     .schema("app")
     .from("tapmomo_transactions")
     .select("status", { head: false, count: "exact" });
@@ -53,10 +55,10 @@ export default async function TapMoMoPage({ searchParams }: TapMoMoPageProps) {
   }
 
   const [initiatedCount, settledCount, failedCount, expiredCount] = await Promise.all([
-    statsQuery.eq("status", "initiated").then((r) => r.count || 0),
-    statsQuery.eq("status", "settled").then((r) => r.count || 0),
-    statsQuery.eq("status", "failed").then((r) => r.count || 0),
-    statsQuery.eq("status", "expired").then((r) => r.count || 0),
+    statsQuery.eq("status", "initiated").then((r: any) => r.count || 0),
+    statsQuery.eq("status", "settled").then((r: any) => r.count || 0),
+    statsQuery.eq("status", "failed").then((r: any) => r.count || 0),
+    statsQuery.eq("status", "expired").then((r: any) => r.count || 0),
   ]);
 
   return (
@@ -82,7 +84,7 @@ export default async function TapMoMoPage({ searchParams }: TapMoMoPageProps) {
       </div>
 
       {/* Main Dashboard */}
-      <TapMoMoDashboard saccoId={scope.saccoId} merchants={merchants || []} />
+      <TapMoMoDashboard saccoId={scope.saccoId || undefined} merchants={merchants || []} />
 
       {/* Info Card */}
       <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 p-6">

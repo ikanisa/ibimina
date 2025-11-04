@@ -72,14 +72,17 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
   ] = await Promise.all([
     legacyClient.from("members_app_profiles").select("*").eq("user_id", user.id).maybeSingle(),
     legacyClient.from("user_saccos").select("sacco_id, created_at").eq("user_id", user.id),
-    appSupabase
-      .from("loan_applications")
-      .select(
-        "id, status, requested_amount, tenor_months, created_at, status_updated_at, product:loan_products(name, partner_name)"
-      )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(25),
+    // Feature disabled: loan_applications table does not exist
+    // Return empty result until feature is enabled
+    Promise.resolve({ data: [] as any[], error: null }),
+    // appSupabase
+    //   .from("loan_applications")
+    //   .select(
+    //     "id, status, requested_amount, tenor_months, created_at, status_updated_at, product:loan_products(name, partner_name)"
+    //   )
+    //   .eq("user_id", user.id)
+    //   .order("created_at", { ascending: false })
+    //   .limit(25),
   ]);
 
   if (profileError) {

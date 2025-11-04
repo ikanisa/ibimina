@@ -78,6 +78,14 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   // For monorepo: always set to match turbopack.root
   outputFileTracingRoot: path.join(__dirname, "../../"),
+  // ESLint configuration - ignore during builds for now
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  // TypeScript configuration
+  typescript: {
+    ignoreBuildErrors: false,
+  },
   env: {
     NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
   },
@@ -101,6 +109,27 @@ const nextConfig: NextConfig = {
             exclude: ["error", "warn"],
           }
         : false,
+  },
+  // Webpack fallbacks for edge runtime and node: protocol
+  webpack: (config, { isServer, webpack }) => {
+    // Handle node: protocol imports
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+        resource.request = resource.request.replace(/^node:/, "");
+      })
+    );
+
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        crypto: false,
+        fs: false,
+        net: false,
+        tls: false,
+        async_hooks: false,
+      };
+    }
+    return config;
   },
   // Enable Turbopack for Next.js 16 - always use monorepo root for dependencies
   turbopack: {

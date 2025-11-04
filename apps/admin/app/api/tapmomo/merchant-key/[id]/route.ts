@@ -10,7 +10,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const supabase = createSupabaseServiceRoleClient("tapmomo/merchant-key");
 
     // Get merchant and verify access
-    const { data: merchant, error: merchantError } = await supabase
+    // Cast to any since tapmomo_merchants is in app schema not included in generated types
+    const { data: merchant, error: merchantError } = await (supabase as any)
       .schema("app")
       .from("tapmomo_merchants")
       .select("id, sacco_id, secret_key")
