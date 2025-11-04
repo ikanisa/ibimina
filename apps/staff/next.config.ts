@@ -27,10 +27,7 @@ const nextConfig: NextConfig = {
         : false,
   },
   async headers() {
-    const baseHeaders = [
-      ...createSecureHeaders(),
-      { key: "X-DNS-Prefetch-Control", value: "on" },
-    ];
+    const baseHeaders = [...createSecureHeaders(), { key: "X-DNS-Prefetch-Control", value: "on" }];
 
     if (process.env.NODE_ENV === "production") {
       baseHeaders.push(HSTS_HEADER);
@@ -84,7 +81,21 @@ const nextConfig: NextConfig = {
   },
 };
 
-const sentryPluginOptions = { silent: true } as const;
-const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
+// Only apply Sentry build-time configuration when DSN is available
+// This prevents DNS/network errors when Sentry is not configured or blocked
+const hasSentryDsn = Boolean(process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN);
 
-export default withSentryConfig(withPWA(nextConfig), sentryPluginOptions, sentryBuildOptions);
+const enhancedConfig = withPWA(nextConfig);
+
+let finalConfig: NextConfig;
+
+if (hasSentryDsn) {
+  const sentryPluginOptions = { silent: true } as const;
+  const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
+  finalConfig = withSentryConfig(enhancedConfig, sentryPluginOptions, sentryBuildOptions);
+} else {
+  console.log("[next.config] Sentry DSN not configured - skipping Sentry build integration");
+  finalConfig = enhancedConfig;
+}
+
+export default finalConfig;
