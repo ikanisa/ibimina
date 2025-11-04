@@ -5,7 +5,7 @@ This guide explains how to apply pending database migrations to your Supabase in
 ## Overview
 
 **Current State:**
-- 116 SQL migration files in `supabase/migrations/`
+- Over 100 SQL migration files in `supabase/migrations/`
 - Some migrations may not be applied to your database yet
 - One known problematic migration: `20251027200000_staff_management.sql`
 
@@ -76,8 +76,13 @@ psql "your-connection-string" \
 
 # Or apply all migrations in order
 for migration in supabase/migrations/*.sql; do
-  echo "Applying $migration..."
-  psql "your-connection-string" -f "$migration"
+  if [[ -f "$migration" ]]; then
+    echo "Applying $migration..."
+    psql "your-connection-string" -f "$migration" || {
+      echo "Failed to apply $migration"
+      exit 1
+    }
+  fi
 done
 ```
 
@@ -123,11 +128,13 @@ The migration tries to alter `public.users` which is a VIEW over `auth.users`, n
 
 ## TapMoMo Migrations
 
-The TapMoMo feature requires specific migrations to be applied. See [TAPMOMO_DB_MIGRATION_QUICK_FIX.md](../TAPMOMO_DB_MIGRATION_QUICK_FIX.md) for detailed instructions.
+The TapMoMo feature requires specific migrations to be applied. See [../TAPMOMO_DB_MIGRATION_QUICK_FIX.md](../TAPMOMO_DB_MIGRATION_QUICK_FIX.md) for detailed instructions.
 
 **Key TapMoMo Migrations:**
 - `20260301000000_tapmomo_system.sql` - Core TapMoMo tables and functions
 - `20260303000000_apply_tapmomo_conditional.sql` - Conditional application logic
+
+For detailed TapMoMo migration instructions, see [../TAPMOMO_DB_MIGRATION_QUICK_FIX.md](../TAPMOMO_DB_MIGRATION_QUICK_FIX.md)
 
 **Verify TapMoMo Schema:**
 ```sql
@@ -277,7 +284,7 @@ For CI/CD pipelines, migrations should be applied automatically:
 
 ## Reference Documents
 
-- [TAPMOMO_DB_MIGRATION_QUICK_FIX.md](../TAPMOMO_DB_MIGRATION_QUICK_FIX.md) - TapMoMo-specific migration guide
+- [../TAPMOMO_DB_MIGRATION_QUICK_FIX.md](../TAPMOMO_DB_MIGRATION_QUICK_FIX.md) - TapMoMo-specific migration guide
 - [Supabase Migrations Docs](https://supabase.com/docs/guides/cli/local-development#database-migrations)
 - [Database Guide](./DB_GUIDE.md) - General database procedures
 

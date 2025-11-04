@@ -63,6 +63,16 @@ cd apps/admin && pnpm dev
 
 ⚠️ **Port Conflict Warning:** Both `apps/admin/` and `apps/staff-admin-pwa/` run on port 3000. Only one can run at a time. The root `pnpm dev` command defaults to `apps/admin/`.
 
+**Resolution:** To run both simultaneously, you can:
+- Change the port for `apps/staff-admin-pwa/` in `vite.config.ts`:
+  ```typescript
+  server: {
+    port: 3001,  // Changed from 3000
+    host: true,
+  }
+  ```
+- Or use `PORT=3001 pnpm dev:staff-admin-pwa` to override the port temporarily
+
 ## Port Configuration Summary
 
 | Command | App | Port |
