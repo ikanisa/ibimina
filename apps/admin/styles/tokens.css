@@ -1,5 +1,3 @@
-@import "../../src/design/tokens.css";
-
 :root {
   /* Bridge existing admin tokens onto the shared design system */
   --ink: var(--color-ink);

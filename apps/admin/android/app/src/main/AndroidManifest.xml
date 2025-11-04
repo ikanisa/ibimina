@@ -44,6 +44,19 @@
             </intent-filter>
         </receiver>
 
+        <!-- NFC HCE Service for TapMoMo payee mode -->
+        <service
+            android:name=".tapmomo.nfc.PayeeCardService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/apduservice" />
+        </service>
+
     </application>
 
     <!-- Permissions -->
@@ -56,8 +69,16 @@
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
+    <!-- NFC Permissions - For TapMoMo contactless payment -->
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-feature android:name="android.hardware.nfc.hce" android:required="false" />
+
     <!-- Biometric Authentication - For device-bound authentication -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+    <!-- Phone Permissions - For USSD launch -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <!-- Camera Permission - For ID verification and receipt capture -->
     <uses-permission android:name="android.permission.CAMERA" />

@@ -1,0 +1,11 @@
+
+Add these scripts to package.json:
+
+  "scripts": {
+    "android:release": "cd android && ./gradlew assembleRelease",
+    "android:bundle": "cd android && ./gradlew bundleRelease",
+    "ios:archive": "cd ios && xcodebuild archive -workspace IbiminaClient.xcworkspace -scheme IbiminaClient -archivePath ./build/IbiminaClient.xcarchive",
+    "version:bump:patch": "npm version patch",
+    "version:bump:minor": "npm version minor",
+    "version:bump:major": "npm version major"
+  }

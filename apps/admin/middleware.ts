@@ -3,7 +3,22 @@ import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
-import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@ibimina/lib";
+// Conditionally import lib functions
+let createSecurityMiddlewareContext: any;
+let resolveEnvironment: any;
+let scrubPII: any;
+
+if (process.env.NODE_ENV !== "development") {
+  const lib = require("@ibimina/lib");
+  createSecurityMiddlewareContext = lib.createSecurityMiddlewareContext;
+  resolveEnvironment = lib.resolveEnvironment;
+  scrubPII = lib.scrubPII;
+} else {
+  // Stubs for development
+  createSecurityMiddlewareContext = () => ({});
+  resolveEnvironment = () => process.env.APP_ENV || process.env.NODE_ENV || "development";
+  scrubPII = (obj: any) => obj;
+}
 
 const isDev = process.env.NODE_ENV !== "production";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
@@ -191,10 +206,13 @@ const middlewareImpl = async (request: NextRequest) => {
   }
 };
 
-export const middleware = withSentryMiddleware(middlewareImpl, {
-  captureResponse: true,
-  waitForTransaction: true,
-});
+// Export middleware - wrap with Sentry in production only
+export const middleware = process.env.NODE_ENV === "development"
+  ? middlewareImpl
+  : withSentryMiddleware(middlewareImpl, {
+      captureResponse: true,
+      waitForTransaction: true,
+    });
 
 Sentry.setTag("middleware", "admin");
 
