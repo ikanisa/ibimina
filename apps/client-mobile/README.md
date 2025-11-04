@@ -1,82 +1,122 @@
 # Ibimina Client Mobile App
 
-Minimalist React Native app for SACCO members, inspired by Revolut's clean design.
+> Minimalist, Revolut-inspired SACCO mobile banking app for Rwandan clients
 
-## Features
-- 🔐 Secure authentication with Supabase
-- 💰 Account management and balance tracking
-- 👥 Group savings (Ikimina) management
-- 💳 Loan applications and tracking
-- 📱 Offline-first with local caching
-- 🌍 Multi-language support (EN/RW)
+## ✨ Features
 
-## Tech Stack
-- React Native 0.76
-- TypeScript 5.6
-- Supabase (Auth + Database)
-- Zustand (State management)
-- React Navigation 6
+### 🔐 Authentication
 
-## Setup
+- WhatsApp OTP authentication
+- Biometric authentication (Face ID / Touch ID)
+- Browse mode (explore without signing in)
+- Secure session management
 
-\`\`\`bash
-# Install dependencies
-npm install
-# or
+### 💰 Core Features
+
+- **Accounts**: View balances, transaction history
+- **Transactions**: Deposit, withdraw, transfer money
+- **Loans**: Apply for loans, view loan details, repayment schedules
+- **Groups (Ikimina)**: Join groups, contribute, view group activities
+- **Profile**: Manage profile, settings, documents
+
+### 🚀 Advanced Features
+
+- **Offline Support**: Works without internet, syncs when online
+- **Push Notifications**: Transaction alerts, loan updates
+- **Deep Linking**: Open specific screens from notifications/links
+- **NFC Payments**: TapMoMo for contactless payments (future)
+- **Mobile Money**: MTN, Airtel integration
+
+## 🛠 Tech Stack
+
+- **Framework**: React Native (Expo)
+- **Language**: TypeScript
+- **Navigation**: React Navigation 6
+- **State**: Zustand
+- **Backend**: Supabase
+- **Auth**: WhatsApp Business API + Supabase Auth
+- **Notifications**: Expo Notifications
+
+## 📱 Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm (recommended) or npm
+- Expo CLI
+- iOS Simulator or Android Emulator
+
+### Installation
+
+```bash
+cd apps/client-mobile
 pnpm install
+```
 
-# iOS setup
-cd ios && pod install && cd ..
+### Environment Variables
 
-# Run on Android
-npm run android
+Create `.env`:
 
-# Run on iOS
-npm run ios
-\`\`\`
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+EXPO_PUBLIC_WHATSAPP_PHONE_ID=your-phone-id
+EXPO_PUBLIC_WHATSAPP_ACCESS_TOKEN=your-access-token
+```
 
-## Environment Variables
+### Development
 
-Copy `.env.example` to `.env` and configure:
+```bash
+pnpm start      # Start Metro bundler
+pnpm ios        # Run on iOS
+pnpm android    # Run on Android
+```
 
-\`\`\`
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_anon_key
-\`\`\`
+## 📦 Building
 
-## Project Structure
+See [PRODUCTION_BUILD.md](./PRODUCTION_BUILD.md) for details.
 
-\`\`\`
-src/
-├── components/     # Reusable UI components
-├── screens/        # App screens
-├── navigation/     # Navigation configuration
-├── services/       # API services (Supabase)
-├── store/          # State management (Zustand)
-├── theme/          # Design system
-├── types/          # TypeScript types
-└── utils/          # Utility functions
-\`\`\`
+```bash
+pnpm build:android:production
+pnpm build:ios:production
+```
 
-## Development
+## 🔗 Deep Linking
 
-- \`npm start\` - Start Metro bundler
-- \`npm run android\` - Run on Android
-- \`npm run ios\` - Run on iOS
-- \`npm test\` - Run tests
-- \`npm run lint\` - Lint code
-- \`npm run type-check\` - Type check
+Supported URLs:
 
-## Deployment
+- `ibimina://home`
+- `ibimina://loans/:id`
+- `ibimina://groups/:id/contribute`
+- `https://app.ibimina.rw/...`
 
-### Android
-\`\`\`bash
-cd android
-./gradlew assembleRelease
-\`\`\`
+## 🔔 Push Notifications
 
-### iOS
-Open \`ios/Ibimina.xcworkspace\` in Xcode and archive for distribution.
+Automatic setup after user signs in. Handles:
 
-## License
-Proprietary - Ibimina SACCO Platform
+- Transaction alerts
+- Loan reminders
+- Group activity updates
+
+## 🧪 Testing
+
+```bash
+pnpm test              # Run tests
+pnpm lint              # Lint code
+pnpm typecheck         # Type check
+```
+
+## 📚 Documentation
+
+- [Production Build Guide](./PRODUCTION_BUILD.md)
+- [Deep Linking](./README.md#-deep-linking)
+- [Push Notifications](./README.md#-push-notifications)
+
+## 🤝 Support
+
+- Email: support@ibimina.rw
+- Docs: https://docs.ibimina.rw
+
+---
+
+Built with ❤️ for Rwandan SACCOs
