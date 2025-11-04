@@ -1,5 +1,11 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { resolveSupabaseEnvironment } from "@ibimina/lib";
+
+// Stub for resolveSupabaseEnvironment - using env vars directly
+const resolveSupabaseEnvironment = ({ url, anonKey, accessToken }: any) => ({
+  url: url || process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  anonKey: anonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+  accessToken,
+});
 
 export type CreateClientOptions = {
   url?: string;
