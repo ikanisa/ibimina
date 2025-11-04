@@ -5,7 +5,7 @@ import type {
   FeatureFlagEntry,
   FeatureFlagKey,
   FeatureFlagMap,
-} from "./types.js";
+} from "./types";
 
 const DEFAULT_KEYS: FeatureFlagKey[] = [
   "ai_agent",
