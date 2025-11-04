@@ -457,3 +457,280 @@ repository including:
 
 Otherwise, trust these instructions to minimize exploration time and command
 failures.
+
+---
+
+## SACCO+ System Overview
+
+### Executive Summary
+
+**SACCO+** is a **digital intermediation platform** that channels **informal
+ibimina (group savings)** into **formal deposits** at **Umurenge SACCOs** and
+MFIs—**without** holding funds or integrating into core banking systems. Members
+pay via **USSD** to each SACCO's **MoMo merchant account**. SACCO+ issues
+**structured reference tokens** and ingests **evidence
+(SMS/notifications/statements)** to **allocate** deposits to the correct **SACCO
+→ group (ikimina) → member**.
+
+**Why now?** Most rural savings circulate inside informal groups (ROSCA-style),
+limiting deposit mobilization and credit access. SACCO+ formalizes those flows,
+preserves group discipline, and gives staff/regulators **real-time
+visibility**—with **low friction** for members (USSD + optional mobile app).
+
+**What SACCO+ is not:** It **does not** move or keep money. It **does not**
+connect to SACCO cores. It **only** standardizes references, collects evidence,
+and **allocates** deposits to groups/members—then **reports** to SACCOs.
+
+### Stakeholders & Scope
+
+#### Primary Stakeholders
+
+- **SACCO staff (sector level)** – onboard and manage ibimina/members; monitor
+  deposits; resolve exceptions; export reports.
+- **District SACCO managers** – cross-SACCO dashboards and district reports;
+  oversight.
+- **MFIs (independent)** – operate as isolated organizations with their own
+  staff and dashboards.
+- **Members & group leaders (optional client app)** – view groups, pay by USSD,
+  see statements; submit join requests (staff approve).
+- **Regulators (RCA/BNR), MINECOFIN** – policy alignment and oversight via
+  aggregated views (phase-gated).
+
+#### Product Boundaries (Hard Guardrails)
+
+- **Funds** go **directly** from member to **SACCO merchant account** (MoMo
+  USSD).
+- **No** core banking integration; **no** custody or account ledger maintained
+  by SACCO+.
+- SACCO+ provides **reference standards, ingestion, allocation, and reporting**.
+
+### System Architecture & Data Model
+
+#### High-Level Data Model
+
+- `countries (id, name, iso2, …)`
+- `country_config (country_id, reference_format, language_defaults, telco_settings, …)`
+- `organizations (id, country_id, name, type: SACCO|MFI, merchant_code, district_id, …)`
+- `groups (id, org_id, country_id, name, settings: amount, frequency, cycle, …)`
+- `group_members (id, group_id, user_id, member_code)`
+- `allocations (id, org_id, country_id, group_id, member_id, txn_id, amount, ts, raw_ref, status, source, audit)`
+- `uploads (id, org_id, file_meta, ocr_result, status)`
+- `tickets, ticket_messages`
+- `org_kb, global_kb (embedding optional)`
+
+**RLS:** per `country_id`, `org_id`; member scoping by
+`group_members`/`member_code`; staff/district roles mapped to org/district.
+
+### Metrics & KPIs
+
+- **Adoption:** active ibimina; members onboarded; USSD users.
+- **Deposit conversion:** % of ibimina funds formalized; deposits per period.
+- **Data quality:** allocation success rate; exception aging; reconciliation
+  time.
+- **Operational:** staff actions/day; exports generated; dashboard views.
+- **Support:** AI chat deflection rate; ticket SLA.
+- **Reliability:** uptime; error rates; crash-free sessions.
+
+### Roadmap (Indicative)
+
+- **Phase 0 (Pilot – Nyamagabe):** staff onboarding, USSD references, evidence
+  ingestion, allocation & reports.
+- **Phase 1 (Provincial):** full admin/staff polish; client app public launch;
+  deep links; district dashboards.
+- **Phase 2 (National):** multi-country scaffolding live; iOS/Android store
+  rollout; AI assistant; WhatsApp mini-app (optional).
+- **Phase 3 (Credit option):** ASCA-style loans secured by group savings;
+  insurance; strict controls.
+
+### UX Design Principles (Revolut-grade)
+
+- **Liquid-Glass** cards, **Rwanda gradients**, shadow depth, subtle parallax.
+- **Icon-first** with short labels; **big numbers**; **mono** font for
+  references.
+- **Motion:** 120–220ms transitions; haptics for copy/pay; skeletons.
+- **One-thumb flows:** bottom nav; sticky primary actions (Pay, Ask to Join,
+  Export).
+- **Clarity:** bilingual headers; step-by-step USSD guides; consistent
+  empty/error states.
+
+### Acceptance Criteria (Go-Live)
+
+- **Security:** RLS tests prove isolation; CSP & headers enabled; secrets never
+  in client bundles.
+- **Functionality:** USSD references issued; evidence ingested; allocations
+  visible; exceptions workable; exports correct.
+- **Performance:** PWAs Lighthouse **≥ 90** (PWA/Perf/A11y).
+- **Mobile:** Android AAB/APK & iOS IPA built; deep links verified; Android
+  Notification Listener + SMS Consent working; iOS copy-first USSD UX.
+- **Operations:** Sentry + PostHog dashboards live; runbooks complete.
+- **Docs:** single up-to-date repository of architecture, security, RLS,
+  runbooks, and release steps.
+
+### Glossary
+
+- **Ibimina / Ikimina** – community group savings.
+- **USSD** – unstructured supplementary service data (telco menu).
+- **Reference token** – structured code placed in USSD "reference" field to
+  route a deposit to the correct group/member.
+- **Allocation** – mapping an incoming payment to SACCO/group/member based on
+  evidence.
+- **RLS** – Row-Level Security (Postgres policy isolation).
+- **Intermediation** – SACCO+ standardizes & routes information; never holds
+  funds.
+
+---
+
+## TapMoMo NFC→USSD Feature Specification
+
+### Feature Overview
+
+TapMoMo enables local NFC handoff of payment details, followed by USSD
+confirmation and payment. This feature focuses on user experience rather than
+technical implementation details.
+
+**What the feature does:**
+
+- Tap to hand off payment details locally (NFC)
+- Confirm, then pay via USSD
+- Android can be payee (HCE "card") and payer (reader) with auto-USSD (fallback
+  to dialer)
+- iOS is payer (reader) only and cannot auto-dial USSD. It copies the USSD and
+  opens the Phone app so users paste and complete
+
+### Core Screens & States
+
+#### Android — Payee ("Get Paid")
+
+**Get Paid Screen:**
+
+- Inputs: Amount, Network (MTN/Airtel), Merchant ID (pre-filled), optional
+  Reference
+- Activate NFC button → starts HCE session with a 45–60s countdown
+- Inline tip: "Keep screen on and unlocked; hold back-to-back with the payer's
+  phone."
+- Status chips: "Ready to scan · 56s", "One-time payload sent", "Expired — tap
+  to reactivate."
+- Security hints: shows time-limited and one-time badges
+
+#### Android — Payer ("Pay")
+
+**Scan to Pay Screen:**
+
+- Big CTA: "Scan via NFC"; shows "Bring your phone near the merchant's device."
+- On read: shows merchant/network/amount/reference with HMAC/TTL check status
+- Confirm & Pay → If dual-SIM, SIM picker sheet; then:
+  - USSD progress: "Sending USSD…", with possible network response snippet
+  - If blocked/fails: Dialer fallback opens with the encoded USSD (auto-filled)
+  - Completion helper: sticky banner "Complete the flow in your dialer; return
+    to mark paid."
+- Result screen: success/failure with Add note and View history
+
+#### iOS — Payer ("Tap to Pay")
+
+**Scan to Pay Screen:**
+
+- CTA: "Scan with NFC"; shows the 60s CoreNFC session timer hint
+- On read: details + validation status
+- Confirm & Continue → USSD is copied to clipboard; app opens Phone (blank)
+- On return, a lightweight sheet: "Paste the code in the dialer" with 2-step
+  instruction and "Mark Paid" checkbox for manual reconciliation (or optional
+  push-payment shortcut if you enable it later)
+
+#### History & Receipts (Both Platforms)
+
+- Recent payments list: status pill (Initiated / Pending / Settled / Failed),
+  amount, network, ref, time
+- Detail view: merchant, nonce, validation results, and reconciliation notes
+
+### Interaction Patterns
+
+**Countdowns & "one-shot" feel:**
+
+- Payee mode clearly shows how long the NFC payload is live and that it's
+  consumed once
+
+**Reader feedback:**
+
+- Payer screens show real-time step changes: "Scanning → Payload received →
+  Validating → Ready to Pay."
+
+**USSD handoff clarity:**
+
+- Android shows "Sending via your carrier" then either a success or a dialer
+  fallback
+- iOS shows "USSD copied" + "Open Phone" (auto) + a crisp Paste instruction
+  overlay
+
+**Signature/TTL UX:**
+
+- If the payload is expired, replayed, or signature can't be verified, show a
+  warning sheet with:
+  - Red icon + plain language reason
+  - Primary button "Cancel"; secondary "Proceed anyway" (guarded) with a note:
+    "May be unsafe."
+
+**Dual-SIM awareness (Android):**
+
+- Short bottom sheet with SIM labels (carrier names & data icons). Remembers
+  last choice.
+
+**Sub-60s scan design (iOS):**
+
+- Keep the path short: one tap to start, one confirmation, then the USSD
+  copy/open behavior
+
+### Microcopy (Tone & Examples)
+
+- Scan prompts: "Hold your phone near the merchant's device. Keep both phones
+  steady."
+- Validating: "Checking freshness and signature…"
+- USSD on iOS: "USSD code copied. We're opening Phone—paste to continue."
+- Fallback on Android: "Your carrier blocked auto-USSD. We've filled the code in
+  the dialer."
+- Security warnings: "This request looks stale (over 2 minutes old). For safety,
+  try again."
+- Keep it human and action-oriented; avoid jargon like "APDU" in user-facing
+  text
+
+### Error & Edge Cases
+
+- **Expired payload:** show expiry reason; one-tap "Ask merchant to reactivate."
+- **Replay detected:** "This code was already used. Ask for a fresh tap."
+- **No NFC / disabled:** actionable empty state with "Turn on NFC" deep-link
+  (Android) and instructions (iOS)
+- **USSD send blocked (Android):** automatic dialer fallback with encoded # →
+  %23
+- **CoreNFC timeout (iOS):** friendly timeout card with "Try again" action
+- **Offline key fetch:** let users proceed with a verification warning; log it
+  for reconciliation
+
+### Permissions & Guardrails
+
+- **Android:** NFC, READ_PHONE_STATE (for SIM picker), CALL_PHONE (for
+  ACTION_DIAL)
+- **iOS:** NFC Reader usage description; no phone permissions needed for opening
+  Phone
+- UI should explain why a permission is asked and how it improves the flow
+  (e.g., "Pick the SIM you want to use for USSD")
+
+### Accessibility & Polish
+
+- Readable contrast, large tap targets, focused voiceover labels ("Copy USSD",
+  "Open Phone")
+- Haptics: light bump on successful read; warning haptic on expired/replay
+- Clipboard feedback (iOS): brief toast "USSD copied."
+
+### Analytics (Lightweight but Useful)
+
+- `nfc_session_started`, `nfc_payload_received`, `validation_result`
+  (ok/expired/replay/bad_sig)
+- `ussd_attempted` (auto|dialer|copy_open), `payment_marked` (settled|failed)
+- `sim_selected` (Android), `ios_paste_helper_shown`
+- Keep payload content out of analytics; only metadata and outcomes
+
+### Visual Cheatsheet (Mental Map)
+
+- **Android Payee:** Get Paid → Activate (countdown) → "Sent/Expired"
+- **Android Payer:** Scan → Confirm → SIM → USSD (auto) → Dialer fallback if
+  needed → Result
+- **iOS Payer:** Scan → Confirm → Copy USSD + Open Phone → Paste → Mark Paid
