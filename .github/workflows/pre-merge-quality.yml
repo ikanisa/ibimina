@@ -30,6 +30,9 @@ jobs:
   mobile-apps:
     name: Mobile app lint & typecheck
     runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      HUSKY: "0"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -58,6 +61,9 @@ jobs:
   platform-api:
     name: Platform API integration tests
     runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      HUSKY: "0"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -89,6 +95,9 @@ jobs:
   web-performance:
     name: Web performance budgets
     runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      HUSKY: "0"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
