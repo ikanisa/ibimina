@@ -269,36 +269,20 @@ export function IkiminaTable({
             setType("");
             setSacco("");
           }}
-          className="self-end rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.3em] text-neutral-2"
-        >
-          {t("reports.filters.reset", "Reset filters")}
-        </button>
-      </div>
-      <VirtualTable
-        data={filteredRows}
-        columns={columns}
-        emptyState={
-          <EmptyState
-            title={t("ikimina.list.emptyTitle", "No ikimina")}
-            description={t(
-              "ikimina.list.emptyDescription",
-              "Try adjusting filters or create a new group."
-            )}
-          />
-        }
-        ux={{
-          tableId: "ikimina.list",
-          requestToken: tableRequestToken,
-          context: {
-            totalRows: rows.length,
-            filteredRows: filteredRows.length,
-            statusFilter: status || "all",
-            typeFilter: type || "all",
-            saccoFilter: sacco || "all",
-            queryLength: deferredSearch.length,
-          },
-        }}
-      />
-    </div>
+        />
+      }
+      ux={{
+        tableId: "ikimina.list",
+        requestToken: tableRequestToken,
+        context: {
+          totalRows: rows.length,
+          filteredRows: filteredRows.length,
+          statusFilter: status || "all",
+          typeFilter: type || "all",
+          saccoFilter: sacco || "all",
+          queryLength: deferredSearch.length,
+        },
+      }}
+    />
   );
 }

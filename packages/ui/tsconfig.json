@@ -5,7 +5,9 @@
     "outDir": "dist",
     "moduleResolution": "bundler",
     "types": ["node", "react"],
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "noEmit": false,
+    "declaration": true
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "tests"]
