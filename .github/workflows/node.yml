@@ -11,6 +11,7 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       CI: "true"
+      HUSKY: "0"
       # Required environment variables for Next.js build
       NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key"
