@@ -1,5 +1,5 @@
 -- Helper function for role checking
-create or replace function public.has_role(user_id uuid, role_name text)
+create or replace function public.has_role(p_user_id uuid, p_role_name text)
 returns boolean
 language plpgsql
 security definer
@@ -7,7 +7,7 @@ as $$
 begin
   return exists (
     select 1 from public.staff_members
-    where user_id = $1 and role = $2 and status = 'active'
+    where user_id = p_user_id and role = p_role_name and status = 'active'
   );
 end;
 $$;

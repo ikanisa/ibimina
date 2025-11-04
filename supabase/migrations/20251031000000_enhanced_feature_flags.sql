@@ -86,7 +86,7 @@ SET value = EXCLUDED.value,
 -- Add org-specific feature overrides table
 CREATE TABLE IF NOT EXISTS public.org_feature_overrides (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  org_id UUID NOT NULL,  -- Note: organizations table may not exist yet
   feature_domain TEXT NOT NULL CHECK (feature_domain IN ('savings', 'loans', 'wallet', 'tokens', 'nfc', 'kyc', 'ai_agent')),
   tier TEXT NOT NULL CHECK (tier IN ('P0', 'P1', 'P2')),
   enabled BOOLEAN NOT NULL DEFAULT false,
