@@ -1664,7 +1664,6 @@ packages:
   '@babel/plugin-proposal-class-properties@7.18.6':
     resolution: {integrity: sha512-cumfXOF0+nzZrrN8Rf0t7M+tF6sZc7vhQwYQck9q1/5w2OExlD+b4v4RpMJFaV1Z7WcDRgO6FqvxqxGlwo+RHQ==}
     engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -1683,14 +1682,12 @@ packages:
   '@babel/plugin-proposal-nullish-coalescing-operator@7.18.6':
     resolution: {integrity: sha512-wQxQzxYeJqHcfppzBDnm1yAY0jSRkUXR2z8RePZYrKwMKgMlE8+Z6LUno+bd6LvbGh8Gltvy74+9pIYkr+XkKA==}
     engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
   '@babel/plugin-proposal-optional-chaining@7.21.0':
     resolution: {integrity: sha512-p4zeefM72gpmEe2fkUr/OnOXpWEf8nAgk7ZYVqqfFiyIG7oFfVZcCrU64hWn5xp4tQ9LkV4bTIa5rD0KANpKNA==}
     engines: {node: '>=6.9.0'}
-    deprecated: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
@@ -2438,7 +2435,6 @@ packages:
 
   '@cloudflare/next-on-pages@1.13.16':
     resolution: {integrity: sha512-52h51WNcfmx3szTdTd+n/xgz4qNxFtjOGG0zwnUAhTg8cjPwSUYmZp0OPRNw2jYG9xHwRS2ttSPAS8tcGkQGsw==}
-    deprecated: 'Please use the OpenNext adapter instead: https://opennext.js.org/cloudflare'
     hasBin: true
     peerDependencies:
       '@cloudflare/workers-types': ^4.20240208.0
@@ -3769,7 +3765,6 @@ packages:
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
     engines: {node: '>=10.10.0'}
-    deprecated: Use @eslint/config-array instead
 
   '@humanwhocodes/module-importer@1.0.1':
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
@@ -3777,7 +3772,6 @@ packages:
 
   '@humanwhocodes/object-schema@2.0.3':
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
-    deprecated: Use @eslint/object-schema instead
 
   '@humanwhocodes/retry@0.4.3':
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
@@ -4564,7 +4558,6 @@ packages:
   '@oclif/screen@3.0.8':
     resolution: {integrity: sha512-yx6KAqlt3TAHBduS2fMQtJDL2ufIHnDRArrJEOoTTuizxqmjLT+psGYOHpmMl3gvQpFJ11Hs76guUUktzAF9Bg==}
     engines: {node: '>=12.0.0'}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   '@one-ini/wasm@0.1.1':
     resolution: {integrity: sha512-XuySG1E38YScSJoMlqovLru4KTUNSjgVTIjyh7qMX6aNN5HY5Ct5LhRJdxO79JtTzKfzV/bnWpz+zquYrISsvw==}
@@ -6041,7 +6034,6 @@ packages:
 
   '@simplewebauthn/types@12.0.0':
     resolution: {integrity: sha512-q6y8MkoV8V8jB4zzp18Uyj2I7oFp2/ONL8c3j8uT06AOWu3cIChc1au71QYHrP2b+xDapkGTiv+9lX7xkTlAsA==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   '@sinclair/typebox@0.25.24':
     resolution: {integrity: sha512-XJfwUVUKDHF5ugKwIcxEgc9k8b7HbznCp6eUfWgu710hMPNIO4aw4/zB5RogDQz8nd6gyCDpU9O/m6qYEWY6yQ==}
@@ -6225,11 +6217,6 @@ packages:
 
   '@testing-library/jest-native@5.4.3':
     resolution: {integrity: sha512-/sSDGaOuE+PJ1Z9Kp4u7PQScSVVXGud59I/qsBFFJvIbcn4P6yYw6cBnBmbPF+X9aRIsTJRDl6gzw5ZkJNm66w==}
-    deprecated: |-
-      DEPRECATED: This package is no longer maintained.
-      Please use the built-in Jest matchers available in @testing-library/react-native v12.4+.
-
-      See migration guide: https://callstack.github.io/react-native-testing-library/docs/migration/jest-matchers
     peerDependencies:
       react: '>=16.0.0'
       react-native: '>=0.59'
@@ -6378,7 +6365,6 @@ packages:
 
   '@types/minimatch@6.0.0':
     resolution: {integrity: sha512-zmPitbQ8+6zNutpwgcQuLcsEpn/Cj54Kbn7L5pX0Os5kdWplB7xPgEh/g+SWOB/qmows2gpuCaPyduq8ZZRnxA==}
-    deprecated: This is a stub types definition. minimatch provides its own type definitions, so you do not need this installed.
 
   '@types/minimist@1.2.5':
     resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
@@ -6443,7 +6429,6 @@ packages:
 
   '@types/react-native@0.73.0':
     resolution: {integrity: sha512-6ZRPQrYM72qYKGWidEttRe6M5DZBEV5F+MHMHqd4TTYx0tfkcdrUFGdef6CCxY0jXU7wldvd/zA/b0A/kTeJmA==}
-    deprecated: This is a stub types definition. react-native provides its own type definitions, so you do not need this installed.
 
   '@types/react-test-renderer@18.3.1':
     resolution: {integrity: sha512-vAhnk0tG2eGa37lkU9+s5SoroCsRI08xnsWFiAXOuPH2jqzMbcXvKExXViPi1P5fIklDeCvXqyrdmipFaSkZrA==}
@@ -7044,7 +7029,6 @@ packages:
   '@xmldom/xmldom@0.7.13':
     resolution: {integrity: sha512-lm2GW5PkosIzccsaZIz7tp8cPADSIlIHWDFTR1N0SzfinhhYgeIQjFMz4rYzanCScr3DqQLeomUDArp6MWKm+g==}
     engines: {node: '>=10.0.0'}
-    deprecated: this version is no longer supported, please update to at least 0.8.*
 
   '@xmldom/xmldom@0.8.11':
     resolution: {integrity: sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==}
@@ -7074,7 +7058,6 @@ packages:
 
   abab@2.0.6:
     resolution: {integrity: sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==}
-    deprecated: Use your platform's native atob() and btoa() methods instead
 
   abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
@@ -7253,7 +7236,6 @@ packages:
   are-we-there-yet@2.0.0:
     resolution: {integrity: sha512-Ci/qENmwHnsYo9xKIcUJN5LeDKdJ6R1Z1j9V/J5wyq8nh/mYPEpIKJbBZXtZjG04HiK7zV/p6Vs9952MrMeUIw==}
     engines: {node: '>=10'}
-    deprecated: This package is no longer supported.
 
   arg@4.1.0:
     resolution: {integrity: sha512-ZWc51jO3qegGkVh8Hwpv636EkbesNV5ZNQPCtRa+0qytRYPEs9IYT9qITY9buezqUH5uqyzlWLcufrzU2rffdg==}
@@ -8458,7 +8440,6 @@ packages:
   domexception@4.0.0:
     resolution: {integrity: sha512-A2is4PLG+eeSfoTMA95/s4pvAoSo2mKtiM5jlHkAVewmiO8ISFTFKZjH7UAM1Atli/OT/7JHOrJRJiMKUZKYBw==}
     engines: {node: '>=12'}
-    deprecated: Use your platform's native DOMException instead
 
   domhandler@5.0.3:
     resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
@@ -9159,7 +9140,6 @@ packages:
   eslint@8.57.1:
     resolution: {integrity: sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   eslint@9.39.0:
@@ -9795,7 +9775,6 @@ packages:
   gauge@3.0.2:
     resolution: {integrity: sha512-+5J6MS/5XksCuXq++uFRsnUd7Ovu1XenbeuIuNRJxYWjgQbPuFhT14lAvsWfqfAmnwluf1OwMjz39HjfLPci0Q==}
     engines: {node: '>=10'}
-    deprecated: This package is no longer supported.
 
   generator-function@2.0.1:
     resolution: {integrity: sha512-SFdFmIJi+ybC0vjlHN0ZGVGHc3lgE0DxPAT0djjVg+kjOnSqclqmj0KQ7ykTOLP6YxoqOvuAODGdcHJn+43q3g==}
@@ -11144,14 +11123,12 @@ packages:
 
   lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
-    deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
 
   lodash.isarguments@3.1.0:
     resolution: {integrity: sha512-chi4NHZlZqZD18a0imDHnZPrDeBbTtVN7GXMwuGdRH9qotxAjYs3aVLKc7zNOG9eddR5Ksd8rvFEBc9SsggPpg==}
 
   lodash.isequal@4.5.0:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
-    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.isplainobject@4.0.6:
     resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==}
@@ -11894,7 +11871,6 @@ packages:
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
-    deprecated: Use your platform's native DOMException instead
 
   node-fetch@2.6.7:
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
@@ -11988,7 +11964,6 @@ packages:
 
   npmlog@5.0.1:
     resolution: {integrity: sha512-AqZtDUWOMKs1G/8lwylVjrdYgqA4d9nu8hc+0gzRxlDb1I10+FHBGMXs6aiQHFdCUUlqH99MUMuLfzWDNDtfxw==}
-    deprecated: This package is no longer supported.
 
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
@@ -12313,7 +12288,6 @@ packages:
 
   path-match@1.2.4:
     resolution: {integrity: sha512-UWlehEdqu36jmh4h5CWJ7tARp1OEVKGHKm6+dg9qMq5RKUTV5WJrGgaZ3dN2m7WFAXDbjlHzvJvL/IUpy84Ktw==}
-    deprecated: This package is archived and no longer maintained. For support, visit https://github.com/expressjs/express/discussions
 
   path-parse@1.0.7:
     resolution: {integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==}
@@ -12937,7 +12911,6 @@ packages:
 
   react-native-vector-icons@10.3.0:
     resolution: {integrity: sha512-IFQ0RE57819hOUdFvgK4FowM5aMXg7C7XKsuGLevqXkkIJatc3QopN0wYrb2IrzUgmdpfP+QVIbI3S6h7M0btw==}
-    deprecated: react-native-vector-icons package has moved to a new model of per-icon-family packages. See the https://github.com/oblador/react-native-vector-icons/blob/master/MIGRATION.md on how to migrate
     hasBin: true
 
   react-native-worklets@0.5.2:
@@ -13261,22 +13234,18 @@ packages:
 
   rimraf@2.4.5:
     resolution: {integrity: sha512-J5xnxTyqaiw06JjMftq7L9ouA448dw/E7dKghkP9WpKNuwmARNNg+Gk8/u5ryb9N/Yo2+z3MCwuqFK/+qPOPfQ==}
-    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@2.6.3:
     resolution: {integrity: sha512-mwqeW5XsA2qAejG46gYdENaxXjx9onRNCfn7L0duuP4hCuTIi/QO7PDK07KJfp1d+izWPrzEJDcSqBa0OZQriA==}
-    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@2.7.1:
     resolution: {integrity: sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==}
-    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
-    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@4.4.1:
@@ -13299,7 +13268,6 @@ packages:
 
   rollup-plugin-terser@7.0.2:
     resolution: {integrity: sha512-w3iIaU4OxcF52UUXiZNsNeuXIMDvFrr+ZXK6bFZ0Q60qyVfq4uLptoS4bbq3paG3x216eQllFZX7zt6TIImguQ==}
-    deprecated: This package has been deprecated and is no longer maintained. Please use @rollup/plugin-terser
     peerDependencies:
       rollup: ^2.0.0
 
@@ -13625,11 +13593,9 @@ packages:
   source-map@0.8.0-beta.0:
     resolution: {integrity: sha512-2ymg6oRBpebeZi9UUNsgQ89bhx01TcTkmNTGnNO88imTmbSgy4nfujrgVEFKWpMTEGA11EDkTt7mqObTPdigIA==}
     engines: {node: '>= 8'}
-    deprecated: The work that was done in this beta branch won't be included in future versions
 
   sourcemap-codec@1.4.8:
     resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
-    deprecated: Please use @jridgewell/sourcemap-codec instead
 
   spdx-correct@3.2.0:
     resolution: {integrity: sha512-kN9dJbvnySHULIluDHy32WHRUu3Og7B9sbY7tsFLctQkIqnMh3hErYgdMjTYuqmcXX+lK5T1lnUt3G7zNswmZA==}
@@ -13882,7 +13848,6 @@ packages:
 
   sudo-prompt@9.1.1:
     resolution: {integrity: sha512-es33J1g2HjMpyAhz8lOR+ICmXXAqTuKbuXuUWLhOLew20oN9oUCgCJx615U/v7aioZg7IX5lIh9x34vwneu4pA==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   superagent@10.2.3:
     resolution: {integrity: sha512-y/hkYGeXAj7wUMjxRbB21g/l6aAEituGXM9Rwl4o20+SX3e8YOSV6BxFXl+dL3Uk0mjSL3kCbNkwURm8/gEDig==}
@@ -14847,18 +14812,15 @@ packages:
 
   workbox-cacheable-response@6.6.0:
     resolution: {integrity: sha512-JfhJUSQDwsF1Xv3EV1vWzSsCOZn4mQ38bWEBR3LdvOxSPgB65gAM6cS2CX8rkkKHRgiLrN7Wxoyu+TuH67kHrw==}
-    deprecated: workbox-background-sync@6.6.0
 
   workbox-cacheable-response@6.6.1:
     resolution: {integrity: sha512-85LY4veT2CnTCDxaVG7ft3NKaFbH6i4urZXgLiU4AiwvKqS2ChL6/eILiGRYXfZ6gAwDnh5RkuDbr/GMS4KSag==}
-    deprecated: workbox-background-sync@6.6.1
 
   workbox-core@6.6.0:
     resolution: {integrity: sha512-GDtFRF7Yg3DD859PMbPAYPeJyg5gJYXuBQAC+wyrWuuXgpfoOrIQIvFRZnQ7+czTIQjIr1DhLEGFzZanAT/3bQ==}
 
   workbox-core@6.6.1:
     resolution: {integrity: sha512-ZrGBXjjaJLqzVothoE12qTbVnOAjFrHDXpZe7coCb6q65qI/59rDLwuFMO4PcZ7jcbxY+0+NhUVztzR/CbjEFw==}
-    deprecated: this package has been deprecated
 
   workbox-core@7.3.0:
     resolution: {integrity: sha512-Z+mYrErfh4t3zi7NVTvOuACB0A/jA3bgxUN3PwtAVHvfEsZxV9Iju580VEETug3zYJRc0Dmii/aixI/Uxj8fmw==}
@@ -14868,25 +14830,21 @@ packages:
 
   workbox-expiration@6.6.1:
     resolution: {integrity: sha512-qFiNeeINndiOxaCrd2DeL1Xh1RFug3JonzjxUHc5WkvkD2u5abY3gZL1xSUNt3vZKsFFGGORItSjVTVnWAZO4A==}
-    deprecated: this package has been deprecated
 
   workbox-google-analytics@6.6.0:
     resolution: {integrity: sha512-p4DJa6OldXWd6M9zRl0H6vB9lkrmqYFkRQ2xEiNdBFp9U0LhsGO7hsBscVEyH9H2/3eZZt8c97NB2FD9U2NJ+Q==}
-    deprecated: It is not compatible with newer versions of GA starting with v4, as long as you are using GAv3 it should be ok, but the package is not longer being maintained
 
   workbox-navigation-preload@6.6.0:
     resolution: {integrity: sha512-utNEWG+uOfXdaZmvhshrh7KzhDu/1iMHyQOV6Aqup8Mm78D286ugu5k9MFD9SzBT5TcwgwSORVvInaXWbvKz9Q==}
 
   workbox-navigation-preload@6.6.1:
     resolution: {integrity: sha512-DQCZowCecO+wRoIxJI2V6bXWK6/53ff+hEXLGlQL4Rp9ZaPDLrgV/32nxwWIP7QpWDkVEtllTAK5h6cnhxNxDA==}
-    deprecated: this package has been deprecated
 
   workbox-precaching@6.6.0:
     resolution: {integrity: sha512-eYu/7MqtRZN1IDttl/UQcSZFkHP7dnvr/X3Vn6Iw6OsPMruQHiVjjomDFCNtd8k2RdjLs0xiz9nq+t3YVBcWPw==}
 
   workbox-precaching@6.6.1:
     resolution: {integrity: sha512-K4znSJ7IKxCnCYEdhNkMr7X1kNh8cz+mFgx9v5jFdz1MfI84pq8C2zG+oAoeE5kFrUf7YkT5x4uLWBNg0DVZ5A==}
-    deprecated: this package has been deprecated
 
   workbox-range-requests@6.6.0:
     resolution: {integrity: sha512-V3aICz5fLGq5DpSYEU8LxeXvsT//mRWzKrfBOIxzIdQnV/Wj7R+LyJVTczi4CQ4NwKhAaBVaSujI1cEjXW+hTw==}
@@ -14899,14 +14857,12 @@ packages:
 
   workbox-routing@6.6.1:
     resolution: {integrity: sha512-j4ohlQvfpVdoR8vDYxTY9rA9VvxTHogkIDwGdJ+rb2VRZQ5vt1CWwUUZBeD/WGFAni12jD1HlMXvJ8JS7aBWTg==}
-    deprecated: this package has been deprecated
 
   workbox-strategies@6.6.0:
     resolution: {integrity: sha512-eC07XGuINAKUWDnZeIPdRdVja4JQtTuc35TZ8SwMb1ztjp7Ddq2CJ4yqLvWzFWGlYI7CG/YGqaETntTxBGdKgQ==}
 
   workbox-strategies@6.6.1:
     resolution: {integrity: sha512-WQLXkRnsk4L81fVPkkgon1rZNxnpdO5LsO+ws7tYBC6QQQFJVI6v98klrJEjFtZwzw/mB/HT5yVp7CcX0O+mrw==}
-    deprecated: this package has been deprecated
 
   workbox-streams@6.6.0:
     resolution: {integrity: sha512-rfMJLVvwuED09CnH1RnIep7L9+mj4ufkTyDPVaXPKlhi9+0czCu+SJggWCIFbPpJaAZmp2iyVGLqS3RUmY3fxg==}
