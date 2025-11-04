@@ -58,8 +58,8 @@ test-results/
 /apps/client/fastlane/report.xml
 /apps/client/fastlane/Preview.html
 
-# Vercel local artifacts
+# Vercel local artifacts (Cloudflare adapter output)
 apps/admin/.vercel/
-
-# Vercel local artifacts
-apps/admin/.vercel/
+apps/client/.vercel/
+apps/staff-admin-pwa/.vercel/
+apps/website/.vercel/

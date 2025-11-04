@@ -43,6 +43,8 @@ if (supabaseHost) {
 }
 
 const nextConfig: NextConfig = {
+  // Use standalone for Docker/Node deployments, but not for Cloudflare
+  output: process.env.CLOUDFLARE_BUILD === "1" ? undefined : "standalone",
   reactStrictMode: true,
   poweredByHeader: false,
   outputFileTracingRoot: path.join(__dirname, "../../"),
@@ -69,6 +71,31 @@ const nextConfig: NextConfig = {
     "lucide-react": {
       transform: "lucide-react/dist/esm/icons/{{kebabCase member}}",
     },
+  },
+
+  // Enable Turbopack for Next.js 15+ - always use monorepo root for dependencies
+  turbopack: {
+    root: path.join(__dirname, "../../"),
+  },
+
+  // Compiler optimizations
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"],
+          }
+        : false,
+  },
+
+  // Performance: Experimental features
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+    webpackBuildWorker: true,
+    // Force webpack for Cloudflare builds (Turbopack can have issues with adapters)
+    ...(process.env.CLOUDFLARE_BUILD === "1" && {
+      turbo: false,
+    }),
   },
 
   async headers() {
@@ -140,4 +167,7 @@ const nextConfig: NextConfig = {
 const sentryPluginOptions = { silent: true } as const;
 const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
 
-export default withSentryConfig(withPWA(nextConfig), sentryPluginOptions, sentryBuildOptions);
+// Disable PWA wrapper for Cloudflare builds (service worker is built separately)
+const enhancedConfig = process.env.CLOUDFLARE_BUILD === "1" ? nextConfig : withPWA(nextConfig);
+
+export default withSentryConfig(enhancedConfig, sentryPluginOptions, sentryBuildOptions);
