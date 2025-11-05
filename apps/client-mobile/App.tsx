@@ -14,7 +14,6 @@ import "react-native-url-polyfill/auto";
 import { AppNavigator } from "./src/navigation/AppNavigator";
 import { useAuthStore } from "./src/store";
 import { authService } from "./src/services/supabase";
-import { FirebaseService } from "./src/services/firebase";
 import { deepLinkService } from "./src/services/deeplink";
 import { notificationService } from "./src/services/notifications";
 import { colors } from "./src/theme";
@@ -28,9 +27,6 @@ export default function App() {
     if (navigationRef.current) {
       deepLinkService.setNavigationRef(navigationRef.current);
     }
-
-    // Initialize Firebase
-    FirebaseService.initialize().catch(console.error);
 
     // Initialize auth state
     authService
