@@ -25,12 +25,22 @@ export default function WelcomePage() {
       {/* Main heading - WCAG Level AAA: Clear, descriptive page title */}
       <header className="space-y-4 text-center">
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-atlas-blue to-atlas-blue-dark shadow-atlas">
-          <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="h-10 w-10 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
         <h1 className="text-4xl font-bold text-neutral-900">Welcome to SACCO+</h1>
-        <p className="text-lg text-neutral-600">Your mobile banking companion for Umurenge SACCO</p>
+        <p className="text-lg text-neutral-700">Your mobile banking companion for Umurenge SACCO</p>
       </header>
 
       {/* Feature list - using semantic list element for screen readers */}
@@ -74,7 +84,7 @@ export default function WelcomePage() {
         </Link>
 
         {/* Additional help text with appropriate semantic markup */}
-        <p className="text-center text-sm text-neutral-600">
+        <p className="text-center text-sm text-neutral-700">
           Already have an account?{" "}
           <a
             href="/login"

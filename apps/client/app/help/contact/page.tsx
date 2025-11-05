@@ -25,7 +25,7 @@ export default function ContactPage() {
       <main className="mx-auto max-w-screen-xl space-y-6 px-4 py-6">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6">
           <h2 className="mb-4 text-xl font-bold text-neutral-900">Get in Touch</h2>
-          <p className="mb-6 text-neutral-600">
+          <p className="mb-6 text-neutral-700">
             Our support team is here to help you with any questions or issues you may have.
           </p>
 
@@ -34,7 +34,7 @@ export default function ContactPage() {
               <Phone className="mt-1 h-5 w-5 flex-shrink-0 text-atlas-blue" />
               <div>
                 <p className="font-semibold text-neutral-900">Phone Support</p>
-                <p className="text-neutral-600">+250 788 000 000</p>
+                <p className="text-neutral-700">+250 788 000 000</p>
                 <p className="text-sm text-neutral-500">Mon-Fri: 8:00 AM - 5:00 PM EAT</p>
               </div>
             </div>
@@ -43,7 +43,7 @@ export default function ContactPage() {
               <MessageCircle className="mt-1 h-5 w-5 flex-shrink-0 text-emerald-600" />
               <div>
                 <p className="font-semibold text-neutral-900">WhatsApp</p>
-                <p className="text-neutral-600">+250 788 000 000</p>
+                <p className="text-neutral-700">+250 788 000 000</p>
                 <p className="text-sm text-neutral-500">Available 24/7</p>
               </div>
             </div>
@@ -52,16 +52,18 @@ export default function ContactPage() {
               <Mail className="mt-1 h-5 w-5 flex-shrink-0 text-atlas-blue" />
               <div>
                 <p className="font-semibold text-neutral-900">Email</p>
-                <p className="text-neutral-600">support@ibimina.rw</p>
+                <p className="text-neutral-700">support@ibimina.rw</p>
                 <p className="text-sm text-neutral-500">Response within 24 hours</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
-              <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-neutral-600" />
+              <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-neutral-700" />
               <div>
                 <p className="font-semibold text-neutral-900">Visit Your SACCO Office</p>
-                <p className="text-neutral-600">Contact your local SACCO branch for in-person support</p>
+                <p className="text-neutral-700">
+                  Contact your local SACCO branch for in-person support
+                </p>
               </div>
             </div>
           </div>
@@ -72,7 +74,7 @@ export default function ContactPage() {
           className="block rounded-2xl border border-atlas-blue/30 bg-atlas-glow p-6 text-center transition-all hover:border-atlas-blue hover:shadow-atlas"
         >
           <h3 className="mb-2 text-lg font-bold text-atlas-blue">Try Our AI Assistant</h3>
-          <p className="text-neutral-600">Get instant answers to common questions</p>
+          <p className="text-neutral-700">Get instant answers to common questions</p>
         </Link>
       </main>
     </div>

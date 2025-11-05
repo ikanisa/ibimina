@@ -9,7 +9,10 @@ export function OfflinePageClient() {
       <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 text-center shadow-atlas dark:border-neutral-700 dark:bg-neutral-800">
         <div className="mb-6">
           <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-700 dark:to-neutral-800">
-            <WifiOff className="h-12 w-12 text-neutral-500 dark:text-neutral-400" aria-hidden="true" />
+            <WifiOff
+              className="h-12 w-12 text-neutral-500 dark:text-neutral-400"
+              aria-hidden="true"
+            />
           </div>
         </div>
 
@@ -17,7 +20,7 @@ export function OfflinePageClient() {
           You&apos;re Offline
         </h1>
 
-        <p className="mb-8 text-neutral-600 dark:text-neutral-400">
+        <p className="mb-8 text-neutral-700 dark:text-neutral-400">
           It looks like you&apos;ve lost your internet connection. Some features may be unavailable
           until you reconnect.
         </p>

@@ -201,7 +201,7 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-neutral-900">
           {step === "phone" ? "Sign In" : "Verify Code"}
         </h1>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-neutral-700">
           {step === "phone"
             ? "Enter your WhatsApp number to receive a verification code"
             : `We sent a code to ${phoneNumber}`}

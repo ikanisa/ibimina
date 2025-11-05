@@ -51,26 +51,35 @@ export default async function PayPage() {
       <header className="bg-white border-b border-neutral-200 sticky top-0 z-10 backdrop-blur-sm bg-white/95">
         <div className="max-w-screen-xl mx-auto px-4 py-6">
           <h1 className="text-2xl font-bold text-neutral-900">Make a Payment</h1>
-          <p className="text-sm text-neutral-600 mt-1">Dial the USSD code to contribute to your groups</p>
+          <p className="text-sm text-neutral-700 mt-1">
+            Dial the USSD code to contribute to your groups
+          </p>
         </div>
       </header>
 
       <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-8">
         <div className="bg-atlas-glow border border-atlas-blue/20 rounded-2xl p-5 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-atlas-blue flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <AlertCircle
+            className="w-5 h-5 text-atlas-blue flex-shrink-0 mt-0.5"
+            aria-hidden="true"
+          />
           <div>
             <h2 className="text-sm font-semibold text-atlas-blue-dark">How to pay</h2>
             <p className="text-sm text-neutral-700 mt-1.5 leading-relaxed">
-              Tap the green "Dial to pay" button on any card below. Your phone will dial the USSD code.
-              Follow the prompts and use your reference code to complete the payment.
+              Tap the green "Dial to pay" button on any card below. Your phone will dial the USSD
+              code. Follow the prompts and use your reference code to complete the payment.
             </p>
           </div>
         </div>
 
         {instructions.length === 0 ? (
           <div className="bg-white border border-neutral-200 rounded-2xl p-12 text-center">
-            <p className="text-lg font-semibold text-neutral-700 mb-2">No payment instructions available</p>
-            <p className="text-sm text-neutral-600">Join a group to see payment instructions here.</p>
+            <p className="text-lg font-semibold text-neutral-700 mb-2">
+              No payment instructions available
+            </p>
+            <p className="text-sm text-neutral-700">
+              Join a group to see payment instructions here.
+            </p>
           </div>
         ) : (
           <div className="space-y-6">

@@ -25,9 +25,9 @@ export default function ErrorBoundary({ error, reset }: ErrorProps) {
           <AlertTriangle className="h-8 w-8 text-red-500" aria-hidden />
         </div>
         <h2 className="mb-3 text-xl font-semibold text-neutral-900">Something went wrong</h2>
-        <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-neutral-600">
-          We ran into an unexpected error while loading this screen. You can retry the action or head
-          back to your SACCO+ dashboard.
+        <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-neutral-700">
+          We ran into an unexpected error while loading this screen. You can retry the action or
+          head back to your SACCO+ dashboard.
         </p>
         {error.digest && (
           <p className="mb-6 rounded-lg bg-neutral-100 px-3 py-2 font-mono text-xs text-neutral-500">

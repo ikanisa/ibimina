@@ -22,9 +22,9 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             <AlertTriangle className="h-8 w-8 text-red-500" aria-hidden />
           </div>
           <h1 className="mb-3 text-xl font-semibold">Application error</h1>
-          <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-neutral-600">
-            An unexpected error occurred while loading SACCO+. Refresh the page to try again. If this
-            continues, contact support with the error ID below.
+          <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-neutral-700">
+            An unexpected error occurred while loading SACCO+. Refresh the page to try again. If
+            this continues, contact support with the error ID below.
           </p>
           {error.digest && (
             <p className="mb-6 rounded-lg bg-neutral-100 px-3 py-2 font-mono text-xs text-neutral-500">

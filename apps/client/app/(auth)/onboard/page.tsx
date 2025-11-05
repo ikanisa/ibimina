@@ -23,13 +23,16 @@ export default function OnboardPage() {
       <header className="space-y-3 text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-atlas-blue to-atlas-blue-dark shadow-atlas">
           <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
           </svg>
         </div>
         <h1 className="text-3xl font-bold text-neutral-900">Create Your Profile</h1>
-        <p className="text-neutral-600">
-          Please provide your contact information to get started
-        </p>
+        <p className="text-neutral-700">Please provide your contact information to get started</p>
       </header>
 
       {/* Onboarding form component */}
@@ -37,7 +40,7 @@ export default function OnboardPage() {
 
       {/* Help text */}
       <footer className="pt-4 text-center">
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-neutral-700">
           Need help?{" "}
           <a
             href="/help"

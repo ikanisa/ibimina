@@ -36,7 +36,7 @@ export default async function GroupsPage() {
       <header className="bg-white border-b border-neutral-200">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">Savings Groups</h1>
-          <p className="mt-2 text-base text-neutral-600">
+          <p className="mt-2 text-base text-neutral-700">
             Browse and join savings groups (Ibimina) in your community
           </p>
         </div>

@@ -51,7 +51,7 @@ export function GroupsGrid({ groups }: GroupsGridProps) {
         aria-live="polite"
       >
         <p className="text-lg font-semibold text-neutral-700 mb-2">No groups available</p>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-neutral-700">
           Check back later for new savings groups in your area
         </p>
       </div>

@@ -348,7 +348,8 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
             }
 
             if (event === "error") {
-              const messageText = (data as { message?: string })?.message ?? translations[locale].fallback;
+              const messageText =
+                (data as { message?: string })?.message ?? translations[locale].fallback;
               setError(messageText);
               return;
             }
@@ -362,9 +363,7 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
                     ? {
                         ...message,
                         contents: message.contents.map((content) =>
-                          content.type === "text"
-                            ? { ...content, streaming: false }
-                            : content
+                          content.type === "text" ? { ...content, streaming: false } : content
                         ),
                       }
                     : message
@@ -467,7 +466,7 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
               className={`px-3 py-1 text-xs font-semibold transition-colors duration-interactive ${
                 code === locale
                   ? "bg-atlas-blue text-white"
-                  : "bg-white text-neutral-600 hover:bg-neutral-100"
+                  : "bg-white text-neutral-700 hover:bg-neutral-100"
               }`}
               onClick={() => setLocale(code)}
               aria-pressed={code === locale}
@@ -514,7 +513,7 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
 
         {sessionMeta ? (
           <div className="border-b border-neutral-100 bg-neutral-100/70 px-4 py-2">
-            <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 text-xs text-neutral-600">
+            <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 text-xs text-neutral-700">
               <span>
                 {sessionMeta.orgName ?? "SACCO+"} · {sessionMeta.lang.toUpperCase()}
               </span>

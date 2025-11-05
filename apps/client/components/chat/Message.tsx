@@ -45,7 +45,7 @@ function renderAllocation(locale: SupportedLocale, payload: AllocationPayload) {
       </header>
       <p className="mb-4 text-sm text-neutral-700">{bilingual(locale, payload.subheading)}</p>
       <div className="overflow-hidden rounded-xl border border-neutral-200">
-        <div className="hidden bg-neutral-50 text-xs font-semibold text-neutral-600 sm:grid sm:grid-cols-[1.5fr_1fr_1fr_1fr]">
+        <div className="hidden bg-neutral-50 text-xs font-semibold text-neutral-700 sm:grid sm:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div className="px-4 py-3">{bilingual(locale, columnLabels.group)}</div>
           <div className="px-4 py-3">{bilingual(locale, columnLabels.amount)}</div>
           <div className="px-4 py-3">{bilingual(locale, columnLabels.reference)}</div>
@@ -104,17 +104,17 @@ function renderTicket(locale: SupportedLocale, payload: TicketPayload) {
       </header>
       <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
         <div>
-          <dt className="font-medium text-neutral-600">{bilingual(locale, columnLabels.ticket)}</dt>
+          <dt className="font-medium text-neutral-700">{bilingual(locale, columnLabels.ticket)}</dt>
           <dd className="mt-1 font-semibold text-neutral-900">{payload.reference}</dd>
         </div>
         <div>
-          <dt className="font-medium text-neutral-600">{bilingual(locale, columnLabels.status)}</dt>
+          <dt className="font-medium text-neutral-700">{bilingual(locale, columnLabels.status)}</dt>
           <dd className="mt-1 font-semibold text-emerald-700">
             {bilingual(locale, payload.status)}
           </dd>
         </div>
         <div>
-          <dt className="font-medium text-neutral-600">
+          <dt className="font-medium text-neutral-700">
             {bilingual(locale, columnLabels.submitted)}
           </dt>
           <dd className="mt-1 text-neutral-900">
@@ -122,7 +122,7 @@ function renderTicket(locale: SupportedLocale, payload: TicketPayload) {
           </dd>
         </div>
         <div>
-          <dt className="font-medium text-neutral-600">
+          <dt className="font-medium text-neutral-700">
             {bilingual(locale, columnLabels.summary)}
           </dt>
           <dd className="mt-1 text-neutral-700">{bilingual(locale, payload.summary)}</dd>
@@ -133,16 +133,17 @@ function renderTicket(locale: SupportedLocale, payload: TicketPayload) {
 }
 
 function renderToolResult(locale: SupportedLocale, payload: ToolResultPayload) {
-  const statusCopy = payload.status === "success"
-    ? { rw: "Byagenze neza", en: "Success", fr: "Réussi" }
-    : { rw: "Byanze", en: "Error", fr: "Erreur" };
+  const statusCopy =
+    payload.status === "success"
+      ? { rw: "Byagenze neza", en: "Success", fr: "Réussi" }
+      : { rw: "Byanze", en: "Error", fr: "Erreur" };
 
   return (
     <div className="mt-4 w-full rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-semibold text-neutral-800">
           <span>{bilingual(locale, columnLabels.tool)}</span>
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">
             {payload.name}
           </span>
         </div>
@@ -161,9 +162,7 @@ function renderToolResult(locale: SupportedLocale, payload: ToolResultPayload) {
           {bilingual(locale, columnLabels.output)}
         </span>
         <pre className="whitespace-pre-wrap break-words font-mono text-[12px] text-neutral-100">
-          {typeof payload.data === "string"
-            ? payload.data
-            : JSON.stringify(payload.data, null, 2)}
+          {typeof payload.data === "string" ? payload.data : JSON.stringify(payload.data, null, 2)}
         </pre>
       </div>
     </div>

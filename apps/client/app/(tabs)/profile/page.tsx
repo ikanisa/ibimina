@@ -64,7 +64,10 @@ export default async function ProfilePage() {
 
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <MessageCircle className="mt-1 h-5 w-5 flex-shrink-0 text-emerald-600" aria-hidden="true" />
+              <MessageCircle
+                className="mt-1 h-5 w-5 flex-shrink-0 text-emerald-600"
+                aria-hidden="true"
+              />
               <div className="flex-1">
                 <p className="text-sm font-medium text-neutral-700">WhatsApp</p>
                 <p className="mt-1 text-base font-semibold text-neutral-900">
@@ -91,7 +94,7 @@ export default async function ProfilePage() {
           </div>
 
           <div className="border-t border-neutral-200 pt-4">
-            <p className="text-xs text-neutral-600">
+            <p className="text-xs text-neutral-700">
               To update your contact information, please contact your SACCO staff.
             </p>
           </div>
@@ -111,7 +114,10 @@ export default async function ProfilePage() {
           aria-labelledby="language-heading"
           className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6"
         >
-          <h2 id="language-heading" className="flex items-center gap-2 text-lg font-bold text-neutral-900">
+          <h2
+            id="language-heading"
+            className="flex items-center gap-2 text-lg font-bold text-neutral-900"
+          >
             <Globe className="h-5 w-5 text-atlas-blue" aria-hidden="true" />
             <span>Language / Ururimi / Langue</span>
           </h2>
@@ -146,7 +152,7 @@ export default async function ProfilePage() {
               <HelpCircle className="h-5 w-5 text-atlas-blue" aria-hidden="true" />
               <h3 className="text-sm font-semibold text-neutral-900">Help centre</h3>
             </div>
-            <p className="mt-2 text-sm text-neutral-600">
+            <p className="mt-2 text-sm text-neutral-700">
               Chat with the SACCO+ assistant or call your local SACCO officer for support.
             </p>
           </article>
@@ -155,7 +161,7 @@ export default async function ProfilePage() {
               <FileText className="h-5 w-5 text-atlas-blue" aria-hidden="true" />
               <h3 className="text-sm font-semibold text-neutral-900">Statements</h3>
             </div>
-            <p className="mt-2 text-sm text-neutral-600">
+            <p className="mt-2 text-sm text-neutral-700">
               Export your contribution history and share PDFs for personal records.
             </p>
           </article>
@@ -164,8 +170,9 @@ export default async function ProfilePage() {
               <Shield className="h-5 w-5 text-atlas-blue" aria-hidden="true" />
               <h3 className="text-sm font-semibold text-neutral-900">Privacy</h3>
             </div>
-            <p className="mt-2 text-sm text-neutral-600">
-              Your reference token keeps your payments secure. We never share your data without permission.
+            <p className="mt-2 text-sm text-neutral-700">
+              Your reference token keeps your payments secure. We never share your data without
+              permission.
             </p>
           </article>
         </section>

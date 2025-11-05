@@ -90,7 +90,10 @@ export default async function HomePage() {
               className="group relative flex flex-col items-center justify-center min-h-[110px] p-5 bg-white border border-neutral-200 rounded-2xl hover:border-atlas-blue/30 hover:shadow-atlas hover:shadow-atlas-blue/10 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2 hover:-translate-y-0.5"
             >
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-atlas-glow to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-interactive" />
-              <CreditCard className="relative w-7 h-7 text-atlas-blue mb-2.5 group-hover:scale-110 transition-transform duration-interactive" aria-hidden="true" />
+              <CreditCard
+                className="relative w-7 h-7 text-atlas-blue mb-2.5 group-hover:scale-110 transition-transform duration-interactive"
+                aria-hidden="true"
+              />
               <span className="relative text-sm font-semibold text-neutral-900">Pay</span>
             </Link>
             <Link
@@ -98,7 +101,10 @@ export default async function HomePage() {
               className="group relative flex flex-col items-center justify-center min-h-[110px] p-5 bg-white border border-neutral-200 rounded-2xl hover:border-emerald-500/30 hover:shadow-atlas hover:shadow-emerald-500/10 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:ring-offset-2 hover:-translate-y-0.5"
             >
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-interactive" />
-              <Users className="relative w-7 h-7 text-emerald-600 mb-2.5 group-hover:scale-110 transition-transform duration-interactive" aria-hidden="true" />
+              <Users
+                className="relative w-7 h-7 text-emerald-600 mb-2.5 group-hover:scale-110 transition-transform duration-interactive"
+                aria-hidden="true"
+              />
               <span className="relative text-sm font-semibold text-neutral-900">Groups</span>
             </Link>
             <Link
@@ -106,7 +112,10 @@ export default async function HomePage() {
               className="group relative flex flex-col items-center justify-center min-h-[110px] p-5 bg-white border border-neutral-200 rounded-2xl hover:border-atlas-blue/30 hover:shadow-atlas hover:shadow-atlas-blue/10 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2 hover:-translate-y-0.5"
             >
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-atlas-glow to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-interactive" />
-              <FileText className="relative w-7 h-7 text-atlas-blue mb-2.5 group-hover:scale-110 transition-transform duration-interactive" aria-hidden="true" />
+              <FileText
+                className="relative w-7 h-7 text-atlas-blue mb-2.5 group-hover:scale-110 transition-transform duration-interactive"
+                aria-hidden="true"
+              />
               <span className="relative text-sm font-semibold text-neutral-900">Statements</span>
             </Link>
             <Link
@@ -114,7 +123,10 @@ export default async function HomePage() {
               className="group relative flex flex-col items-center justify-center min-h-[110px] p-5 bg-white border border-neutral-200 rounded-2xl hover:border-amber-500/30 hover:shadow-atlas hover:shadow-amber-500/10 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:ring-offset-2 hover:-translate-y-0.5"
             >
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-interactive" />
-              <Plus className="relative w-7 h-7 text-amber-600 mb-2.5 group-hover:scale-110 transition-transform duration-interactive" aria-hidden="true" />
+              <Plus
+                className="relative w-7 h-7 text-amber-600 mb-2.5 group-hover:scale-110 transition-transform duration-interactive"
+                aria-hidden="true"
+              />
               <span className="relative text-sm font-semibold text-neutral-900">Join Group</span>
             </Link>
           </div>
@@ -126,7 +138,7 @@ export default async function HomePage() {
           </h2>
           {dashboard.groups.length === 0 ? (
             <div className="bg-white border border-neutral-200 rounded-2xl p-8 text-center">
-              <p className="text-neutral-600 mb-4">You haven't joined any groups yet.</p>
+              <p className="text-neutral-700 mb-4">You haven't joined any groups yet.</p>
               <Link
                 href="/groups"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-atlas-blue hover:bg-atlas-blue-dark text-white font-semibold rounded-xl transition-all duration-interactive hover:shadow-atlas hover:shadow-atlas-blue/20"
@@ -148,23 +160,23 @@ export default async function HomePage() {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-neutral-600 font-medium">Total savings</span>
+                      <span className="text-sm text-neutral-700 font-medium">Total savings</span>
                       <span className="text-xl font-bold text-atlas-blue">
                         {fmtCurrency(group.totalConfirmed)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm pt-3 border-t border-neutral-100">
-                      <span className="text-neutral-600">Pending</span>
+                      <span className="text-neutral-700">Pending</span>
                       <span className="font-semibold text-neutral-900">{group.pendingCount}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-neutral-600">Last contribution</span>
+                      <span className="text-neutral-700">Last contribution</span>
                       <span className="font-semibold text-neutral-900">
                         {formatRelativeTime(group.lastContributionAt)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-neutral-600">Default amount</span>
+                      <span className="text-neutral-700">Default amount</span>
                       <span className="font-semibold text-neutral-900">
                         {group.contribution.amount
                           ? fmtCurrency(group.contribution.amount)
@@ -183,21 +195,29 @@ export default async function HomePage() {
             <h2 id="recent-heading" className="text-xl font-bold text-neutral-900">
               Recent confirmations
             </h2>
-            <Link href="/statements" className="text-sm font-semibold text-atlas-blue hover:text-atlas-blue-dark">
+            <Link
+              href="/statements"
+              className="text-sm font-semibold text-atlas-blue hover:text-atlas-blue-dark"
+            >
               View all
             </Link>
           </div>
 
           {recentConfirmations.length === 0 ? (
-            <div className="bg-white border border-neutral-200 rounded-2xl p-8 text-center text-neutral-600">
+            <div className="bg-white border border-neutral-200 rounded-2xl p-8 text-center text-neutral-700">
               No confirmed payments yet. Dial *182# to make your first contribution.
             </div>
           ) : (
             <div className="bg-white border border-neutral-200 rounded-2xl divide-y divide-neutral-100">
               {recentConfirmations.map((confirmation) => (
-                <div key={confirmation.id} className="flex items-center justify-between gap-4 px-5 py-4">
+                <div
+                  key={confirmation.id}
+                  className="flex items-center justify-between gap-4 px-5 py-4"
+                >
                   <div>
-                    <p className="text-sm font-semibold text-neutral-900">{confirmation.groupName}</p>
+                    <p className="text-sm font-semibold text-neutral-900">
+                      {confirmation.groupName}
+                    </p>
                     <p className="text-xs text-neutral-500">
                       {DATE_FORMATTER.format(new Date(confirmation.date))}
                     </p>
@@ -218,17 +238,25 @@ export default async function HomePage() {
 
         <section aria-labelledby="insights-heading" className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">Total confirmed</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+              Total confirmed
+            </p>
             <p className="mt-2 text-2xl font-bold text-neutral-900">
               {fmtCurrency(dashboard.totals.confirmedAmount)}
             </p>
           </div>
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">Pending payments</p>
-            <p className="mt-2 text-2xl font-bold text-neutral-900">{dashboard.totals.pendingCount}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+              Pending payments
+            </p>
+            <p className="mt-2 text-2xl font-bold text-neutral-900">
+              {dashboard.totals.pendingCount}
+            </p>
           </div>
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">Active groups</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+              Active groups
+            </p>
             <p className="mt-2 text-2xl font-bold text-neutral-900">{dashboard.groups.length}</p>
           </div>
         </section>

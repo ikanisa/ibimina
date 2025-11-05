@@ -62,7 +62,7 @@ export default async function FAQPage() {
             <summary className="cursor-pointer list-none text-lg font-semibold text-neutral-900 group-hover:text-atlas-blue">
               {faq.question}
             </summary>
-            <ul className="mt-4 space-y-2 text-neutral-600 leading-relaxed list-disc pl-6">
+            <ul className="mt-4 space-y-2 text-neutral-700 leading-relaxed list-disc pl-6">
               {faq.answerItems.map((item, itemIndex) => (
                 <li key={itemIndex}>{item}</li>
               ))}

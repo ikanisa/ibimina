@@ -32,7 +32,7 @@ export default function SharePage({ searchParams }: SharePageProps) {
         <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">
           Shared to Ibimina
         </h1>
-        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+        <p className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
           Content shared into the Ibimina PWA is kept on your device until you choose an action.
         </p>
 

@@ -76,7 +76,7 @@ export default function WalletPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <Loader2 className="h-12 w-12 animate-spin text-atlas-blue mb-4" />
-        <p className="text-neutral-600">Loading wallet...</p>
+        <p className="text-neutral-700">Loading wallet...</p>
       </div>
     );
   }
@@ -86,7 +86,7 @@ export default function WalletPage() {
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
         <p className="mb-2 font-semibold text-neutral-900">Error</p>
-        <p className="text-center text-neutral-600">{error}</p>
+        <p className="text-center text-neutral-700">{error}</p>
       </div>
     );
   }
@@ -121,7 +121,7 @@ export default function WalletPage() {
                 className={`flex-1 rounded-xl px-4 py-2.5 font-medium transition-all duration-interactive ${
                   filter === value
                     ? "bg-atlas-blue text-white shadow-atlas"
-                    : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                    : "text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
                 }`}
               >
                 {label}
@@ -136,7 +136,7 @@ export default function WalletPage() {
             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100">
               <WalletIcon className="h-10 w-10 text-neutral-400" />
             </div>
-            <p className="font-medium text-neutral-600">No tokens found</p>
+            <p className="font-medium text-neutral-700">No tokens found</p>
             <p className="mt-2 text-sm text-neutral-500">
               {filter === "active" ? "You don't have any active tokens." : "Your wallet is empty."}
             </p>

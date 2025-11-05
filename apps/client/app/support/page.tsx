@@ -44,7 +44,7 @@ export default function SupportPage() {
           </span>
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold text-neutral-900">Need help with SACCO+?</h1>
-            <p className="max-w-2xl text-sm text-neutral-600">
+            <p className="max-w-2xl text-sm text-neutral-700">
               Chat with the SACCO+ AI assistant for troubleshooting, USSD walkthroughs, and
               contribution lookups. Staff can collapse the assistant at any time to return to the
               knowledge base or call support.

@@ -127,7 +127,7 @@ export function UssdSheet({
               {copiedMerchant ? (
                 <Check className="w-5 h-5 text-emerald-600" aria-hidden="true" />
               ) : (
-                <Copy className="w-5 h-5 text-neutral-600" aria-hidden="true" />
+                <Copy className="w-5 h-5 text-neutral-700" aria-hidden="true" />
               )}
             </button>
           </div>
@@ -154,7 +154,7 @@ export function UssdSheet({
               )}
             </button>
           </div>
-          <p className="text-xs text-neutral-600">Use this reference when making your payment</p>
+          <p className="text-xs text-neutral-700">Use this reference when making your payment</p>
         </div>
 
         {/* Tap-to-Dial USSD Button - Atlas redesigned */}
@@ -174,7 +174,7 @@ export function UssdSheet({
             <Phone className="w-6 h-6" aria-hidden="true" />
             <span>Dial to Pay: {ussdCode}</span>
           </a>
-          <p className="text-xs text-neutral-600 text-center font-medium">
+          <p className="text-xs text-neutral-700 text-center font-medium">
             Tap the button above to dial the USSD code automatically
           </p>
         </div>
@@ -190,7 +190,7 @@ export function UssdSheet({
               </div>
               <div className="flex-1 pt-1">
                 <p className="text-sm font-semibold text-neutral-900">Dial the USSD code</p>
-                <p className="text-xs text-neutral-600 mt-1.5 leading-relaxed">
+                <p className="text-xs text-neutral-700 mt-1.5 leading-relaxed">
                   Tap the green button above or dial manually
                 </p>
               </div>
@@ -202,7 +202,7 @@ export function UssdSheet({
               </div>
               <div className="flex-1 pt-1">
                 <p className="text-sm font-semibold text-neutral-900">Enter the reference code</p>
-                <p className="text-xs text-neutral-600 mt-1.5 leading-relaxed">
+                <p className="text-xs text-neutral-700 mt-1.5 leading-relaxed">
                   Copy the reference code above and paste it when prompted
                 </p>
               </div>
@@ -214,7 +214,7 @@ export function UssdSheet({
               </div>
               <div className="flex-1 pt-1">
                 <p className="text-sm font-semibold text-neutral-900">Confirm the payment</p>
-                <p className="text-xs text-neutral-600 mt-1.5 leading-relaxed">
+                <p className="text-xs text-neutral-700 mt-1.5 leading-relaxed">
                   You&apos;ll receive a confirmation SMS
                 </p>
               </div>

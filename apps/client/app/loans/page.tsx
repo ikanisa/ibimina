@@ -47,7 +47,7 @@ export default function LoansPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <Loader2 className="h-12 w-12 animate-spin text-atlas-blue mb-4" />
-        <p className="text-neutral-600">Loading loan products...</p>
+        <p className="text-neutral-700">Loading loan products...</p>
       </div>
     );
   }
@@ -57,7 +57,7 @@ export default function LoansPage() {
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
         <p className="mb-2 font-semibold text-neutral-900">Error</p>
-        <p className="text-center text-neutral-600">{error}</p>
+        <p className="text-center text-neutral-700">{error}</p>
       </div>
     );
   }
@@ -72,7 +72,7 @@ export default function LoansPage() {
 
         {products.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-neutral-600">No loan products available at the moment.</p>
+            <p className="text-neutral-700">No loan products available at the moment.</p>
             <p className="mt-2 text-sm text-neutral-500">
               Check back later or contact your SACCO for more information.
             </p>
