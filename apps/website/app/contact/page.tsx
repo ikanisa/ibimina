@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Mail, Phone, MapPin, Send, Clock, CheckCircle } from "lucide-react";
+import { Input, Textarea } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -153,122 +155,68 @@ export default function ContactPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Name */}
-                  <div>
-                    <label
-                      htmlFor="name"
-                      className="block text-sm font-semibold text-neutral-900 mb-2"
-                    >
-                      Full Name <span className="text-error-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      required
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="w-full"
-                      placeholder="Mukamana Aline"
-                    />
-                  </div>
+                  <Input
+                    type="text"
+                    label="Full Name"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Mukamana Aline"
+                  />
 
-                  {/* Email */}
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-semibold text-neutral-900 mb-2"
-                    >
-                      Email <span className="text-error-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full"
-                      placeholder="aline@example.com"
-                    />
-                  </div>
+                  <Input
+                    type="email"
+                    label="Email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="aline@example.com"
+                    leftIcon={<Mail size={18} aria-hidden="true" />}
+                  />
 
-                  {/* Phone */}
-                  <div>
-                    <label
-                      htmlFor="phone"
-                      className="block text-sm font-semibold text-neutral-900 mb-2"
-                    >
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="w-full"
-                      placeholder="+250 788 123 456"
-                    />
-                  </div>
+                  <Input
+                    type="tel"
+                    label="Phone Number"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="+250 788 123 456"
+                    leftIcon={<Phone size={18} aria-hidden="true" />}
+                    helperText="Optional - We may call you for clarification"
+                  />
 
-                  {/* SACCO */}
-                  <div>
-                    <label
-                      htmlFor="sacco"
-                      className="block text-sm font-semibold text-neutral-900 mb-2"
-                    >
-                      SACCO Name (if applicable)
-                    </label>
-                    <input
-                      type="text"
-                      id="sacco"
-                      name="sacco"
-                      value={formData.sacco}
-                      onChange={handleChange}
-                      className="w-full"
-                      placeholder="Gasabo Umurenge SACCO"
-                    />
-                  </div>
+                  <Input
+                    type="text"
+                    label="SACCO Name"
+                    name="sacco"
+                    value={formData.sacco}
+                    onChange={handleChange}
+                    placeholder="Gasabo Umurenge SACCO"
+                    helperText="Optional - If you're inquiring on behalf of a SACCO"
+                  />
 
-                  {/* Message */}
-                  <div>
-                    <label
-                      htmlFor="message"
-                      className="block text-sm font-semibold text-neutral-900 mb-2"
-                    >
-                      Message <span className="text-error-500">*</span>
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      required
-                      value={formData.message}
-                      onChange={handleChange}
-                      rows={6}
-                      className="w-full resize-none"
-                      placeholder="Tell us how we can help..."
-                    />
-                  </div>
+                  <Textarea
+                    label="Message"
+                    name="message"
+                    required
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows={6}
+                    placeholder="Tell us how we can help..."
+                  />
 
-                  {/* Submit Button */}
-                  <button
+                  <Button
                     type="submit"
-                    disabled={loading}
-                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-neutral-900 text-white font-semibold rounded-lg hover:bg-neutral-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    loading={loading}
+                    leftIcon={<Send size={20} aria-hidden="true" />}
                   >
-                    {loading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={20} />
-                        Send Message
-                      </>
-                    )}
-                  </button>
+                    Send Message
+                  </Button>
                 </form>
               )}
             </div>
