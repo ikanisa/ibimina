@@ -12,8 +12,9 @@
   },
   "dependencies": {
     "@ibimina/config": "workspace:*",
-    "lucide-react": "^0.545.0",
     "@ibimina/locales": "workspace:*",
+    "framer-motion": "^11.15.0",
+    "lucide-react": "^0.545.0",
     "next": "15.5.4",
     "next-intl": "^4.4.0",
     "next-seo": "^6.6.0",
