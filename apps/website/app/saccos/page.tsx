@@ -11,32 +11,32 @@ export default function SACCOsPage() {
       {/* Header */}
       <section className="text-center space-y-4">
         <h1 className="text-5xl font-bold">For SACCOs</h1>
-        <p className="text-xl opacity-90">
+        <p className="text-xl text-neutral-600">
           Digitize ibimina with zero liability. Staff-controlled onboarding and allocation reports.
         </p>
       </section>
 
       {/* Key Benefits */}
       <section className="grid md:grid-cols-3 gap-6">
-        <div className="glass p-6 space-y-4">
-          <Shield size={32} className="text-rwyellow" />
+        <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
+          <Shield size={32} className="text-brand-yellow" />
           <h3 className="text-xl font-bold">Zero Liability</h3>
-          <p className="opacity-90">
+          <p className="text-neutral-600">
             SACCO+ never handles funds. Deposits go directly to your MoMo merchant account. We only
             provide allocation evidence.
           </p>
         </div>
-        <div className="glass p-6 space-y-4">
-          <Users size={32} className="text-rwblue" />
+        <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
+          <Users size={32} className="text-brand-blue" />
           <h3 className="text-xl font-bold">Staff Controlled</h3>
-          <p className="opacity-90">
+          <p className="text-neutral-600">
             You approve all member onboarding and group creation. Members can only request to join.
           </p>
         </div>
-        <div className="glass p-6 space-y-4">
-          <Database size={32} className="text-rwgreen" />
+        <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
+          <Database size={32} className="text-brand-green" />
           <h3 className="text-xl font-bold">No Core Integration</h3>
-          <p className="opacity-90">
+          <p className="text-neutral-600">
             Your legacy core banking system stays untouched. SACCO+ runs alongside as a lightweight
             layer.
           </p>
@@ -47,39 +47,39 @@ export default function SACCOsPage() {
       <section id="staff-flow" className="space-y-8">
         <h2 className="text-3xl font-bold text-center">Staff Workflow</h2>
         <div className="space-y-6">
-          <div className="glass p-6 flex gap-6">
-            <div className="w-12 h-12 bg-rwyellow rounded-full flex items-center justify-center text-ink flex-shrink-0">
+          <div className="bg-white border border-neutral-200 rounded-xl p-6 flex gap-6">
+            <div className="w-12 h-12 bg-brand-yellow rounded-full flex items-center justify-center text-neutral-900 flex-shrink-0">
               <Upload size={24} />
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">1. Upload Member List</h3>
-              <p className="opacity-90">
+              <p className="text-neutral-600">
                 Upload a CSV or photo of your handwritten ibimina member list. Our OCR extracts
                 names, phone numbers, and contribution amounts.
               </p>
             </div>
           </div>
 
-          <div className="glass p-6 flex gap-6">
-            <div className="w-12 h-12 bg-rwblue rounded-full flex items-center justify-center text-ink flex-shrink-0">
+          <div className="bg-white border border-neutral-200 rounded-xl p-6 flex gap-6">
+            <div className="w-12 h-12 bg-brand-blue rounded-full flex items-center justify-center text-neutral-900 flex-shrink-0">
               <FileCheck size={24} />
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">2. Review & Approve</h3>
-              <p className="opacity-90">
+              <p className="text-neutral-600">
                 Staff review extracted data, correct any errors, and approve members. Each member
                 gets a structured reference token (e.g., NYA.GAS.TWIZ.001).
               </p>
             </div>
           </div>
 
-          <div className="glass p-6 flex gap-6">
-            <div className="w-12 h-12 bg-rwgreen rounded-full flex items-center justify-center text-white flex-shrink-0">
+          <div className="bg-white border border-neutral-200 rounded-xl p-6 flex gap-6">
+            <div className="w-12 h-12 bg-brand-green rounded-full flex items-center justify-center text-white flex-shrink-0">
               <BarChart3 size={24} />
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">3. Export Allocation Reports</h3>
-              <p className="opacity-90">
+              <p className="text-neutral-600">
                 As payments come in via USSD, SACCO+ maps them to members by reference token. Export
                 allocation CSV reports for your records and bookkeeping.
               </p>
@@ -89,9 +89,9 @@ export default function SACCOsPage() {
       </section>
 
       {/* Sample CSV */}
-      <section className="glass p-8 space-y-4">
+      <section className="bg-white border border-neutral-200 rounded-xl p-8 space-y-4">
         <h2 className="text-2xl font-bold">Sample Member List CSV</h2>
-        <p className="opacity-90">
+        <p className="text-neutral-600">
           Upload a CSV file with this structure, or take a photo of your handwritten list:
         </p>
         <div className="bg-white/10 p-4 rounded overflow-x-auto">
@@ -107,40 +107,40 @@ Twizigame,Niyonshuti Jean,+250788345678,25000`}
       {/* Data Privacy */}
       <section id="data-privacy" className="space-y-6">
         <h2 className="text-3xl font-bold text-center">Data Privacy & Security</h2>
-        <div className="glass p-8 space-y-4">
+        <div className="bg-white border border-neutral-200 rounded-xl p-8 space-y-4">
           <h3 className="text-xl font-bold">What we store</h3>
-          <ul className="space-y-2 opacity-90">
+          <ul className="space-y-2 text-neutral-600">
             <li className="flex gap-3">
-              <span className="text-rwgreen">✓</span>
+              <span className="text-brand-green">✓</span>
               <span>Member names, phone numbers (hashed), reference tokens</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-rwgreen">✓</span>
+              <span className="text-brand-green">✓</span>
               <span>Group metadata (name, creation date, member count)</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-rwgreen">✓</span>
+              <span className="text-brand-green">✓</span>
               <span>Allocation evidence (transaction IDs, amounts, timestamps)</span>
             </li>
           </ul>
 
           <h3 className="text-xl font-bold mt-6">What we never store</h3>
-          <ul className="space-y-2 opacity-90">
+          <ul className="space-y-2 text-neutral-600">
             <li className="flex gap-3">
-              <span className="text-rwyellow">✗</span>
+              <span className="text-brand-yellow">✗</span>
               <span>Actual funds (payments go directly to your MoMo merchant)</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-rwyellow">✗</span>
+              <span className="text-brand-yellow">✗</span>
               <span>National IDs or sensitive identity documents</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-rwyellow">✗</span>
+              <span className="text-brand-yellow">✗</span>
               <span>Mobile Money PINs or passwords</span>
             </li>
           </ul>
 
-          <div className="pt-4 border-t border-white/20 text-sm opacity-90">
+          <div className="pt-4 border-t border-white/20 text-sm text-neutral-600">
             <p>
               <strong>Compliance:</strong> SACCO+ adheres to Rwanda&apos;s data protection
               guidelines. All data is encrypted at rest and in transit. Row-level security (RLS)
@@ -151,9 +151,9 @@ Twizigame,Niyonshuti Jean,+250788345678,25000`}
       </section>
 
       {/* CTA */}
-      <section className="glass p-8 text-center space-y-4">
+      <section className="bg-white border border-neutral-200 rounded-xl p-8 text-center space-y-4">
         <h2 className="text-2xl font-bold">Ready to Join the Pilot?</h2>
-        <p className="opacity-90 max-w-xl mx-auto">
+        <p className="text-neutral-600 max-w-xl mx-auto">
           We&apos;re piloting with Nyamagabe Umurenge SACCOs. Contact us to digitize ibimina for
           your community.
         </p>

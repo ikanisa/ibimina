@@ -26,7 +26,7 @@ export default function MembersPage() {
       {/* Header */}
       <section className="text-center space-y-4">
         <h1 className="text-5xl font-bold">For Members</h1>
-        <p className="text-xl opacity-90">
+        <p className="text-xl text-neutral-600">
           Learn how to contribute to your ibimina savings group using USSD payments
         </p>
       </section>
@@ -36,19 +36,19 @@ export default function MembersPage() {
         <h2 className="text-3xl font-bold text-center">How to Contribute (3 Steps)</h2>
         <div className="grid md:grid-cols-3 gap-6">
           {contributeSteps.map((step, index) => (
-            <div key={step} className="glass p-6 space-y-4">
-              <div className="w-16 h-16 bg-rwyellow rounded-full flex items-center justify-center text-ink text-3xl font-bold">
+            <div key={step} className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
+              <div className="w-16 h-16 bg-brand-yellow rounded-full flex items-center justify-center text-neutral-900 text-3xl font-bold">
                 {index + 1}
               </div>
               <h3 className="text-2xl font-bold">{primaryProvider.name}</h3>
-              <p className="opacity-90">{step}</p>
+              <p className="text-neutral-600">{step}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Reference Card Example */}
-      <section className="glass p-8 space-y-6">
+      <section className="bg-white border border-neutral-200 rounded-xl p-8 space-y-6">
         <h2 className="text-2xl font-bold text-center">Your Reference Card</h2>
         <div className="bg-white/10 border-2 border-white/30 rounded-glass p-8 max-w-md mx-auto">
           <div className="space-y-4">
@@ -56,7 +56,10 @@ export default function MembersPage() {
               <div className="text-sm opacity-80">SACCO Merchant Code</div>
               <div className="text-3xl font-bold tracking-wider flex items-center gap-3">
                 123456
-                <button className="glass p-2" aria-label="Copy merchant code">
+                <button
+                  className="bg-white border border-neutral-200 rounded-xl p-2"
+                  aria-label="Copy merchant code"
+                >
                   <Copy size={20} />
                 </button>
               </div>
@@ -65,12 +68,15 @@ export default function MembersPage() {
               <div className="text-sm opacity-80">Your Reference Token</div>
               <div className="text-3xl font-bold tracking-wider flex items-center gap-3">
                 NYA.GAS.TWIZ.001
-                <button className="glass p-2" aria-label="Copy reference token">
+                <button
+                  className="bg-white border border-neutral-200 rounded-xl p-2"
+                  aria-label="Copy reference token"
+                >
                   <Copy size={20} />
                 </button>
               </div>
             </div>
-            <div className="pt-4 border-t border-white/20 text-sm opacity-90">
+            <div className="pt-4 border-t border-white/20 text-sm text-neutral-600">
               <div className="flex items-start gap-2">
                 <Phone size={16} className="mt-1 flex-shrink-0" />
                 <span>Use this reference for all USSD payments to your ibimina group.</span>
@@ -84,36 +90,36 @@ export default function MembersPage() {
       <section id="faq" className="space-y-6">
         <h2 className="text-3xl font-bold text-center">Common Questions</h2>
 
-        <details className="glass p-6">
+        <details className="bg-white border border-neutral-200 rounded-xl p-6">
           <summary className="text-xl font-bold cursor-pointer flex items-center gap-3">
             <Smartphone size={24} />
             <span>Payment guide</span>
           </summary>
-          <ul className="mt-4 space-y-2 opacity-90 pl-9 list-disc">
+          <ul className="mt-4 space-y-2 text-neutral-600 pl-9 list-disc">
             {paymentGuide.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </details>
 
-        <details className="glass p-6">
+        <details className="bg-white border border-neutral-200 rounded-xl p-6">
           <summary className="text-xl font-bold cursor-pointer flex items-center gap-3">
             <HelpCircle size={24} />
             <span>Troubleshooting</span>
           </summary>
-          <ul className="mt-4 space-y-2 opacity-90 pl-9 list-disc">
+          <ul className="mt-4 space-y-2 text-neutral-600 pl-9 list-disc">
             {troubleshooting.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </details>
 
-        <details className="glass p-6">
+        <details className="bg-white border border-neutral-200 rounded-xl p-6">
           <summary className="text-xl font-bold cursor-pointer flex items-center gap-3">
             <CheckCircle size={24} />
             <span>Tips for reliable payments</span>
           </summary>
-          <ul className="mt-4 space-y-2 opacity-90 pl-9 list-disc">
+          <ul className="mt-4 space-y-2 text-neutral-600 pl-9 list-disc">
             {tipList.map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -122,10 +128,10 @@ export default function MembersPage() {
       </section>
 
       {/* Printable USSD Guide */}
-      <section className="glass p-8 space-y-4 print:break-after-page">
+      <section className="bg-white border border-neutral-200 rounded-xl p-8 space-y-4 print:break-after-page">
         <h2 className="text-2xl font-bold text-center">Printable USSD Instructions</h2>
-        <p className="text-center opacity-90">Print this A4 card for easy reference</p>
-        <div className="bg-white text-ink p-8 rounded-glass max-w-md mx-auto space-y-4">
+        <p className="text-center text-neutral-600">Print this A4 card for easy reference</p>
+        <div className="bg-white text-neutral-900 p-8 rounded-glass max-w-md mx-auto space-y-4">
           <h3 className="text-2xl font-bold text-center">SACCO+ USSD Payment</h3>
           <ol className="space-y-3">
             {printableInstructions.map((instruction, index) => (
@@ -148,7 +154,7 @@ export default function MembersPage() {
         </div>
       </section>
 
-      <section className="glass p-6 space-y-3">
+      <section className="bg-white border border-neutral-200 rounded-xl p-6 space-y-3">
         <h2 className="text-2xl font-bold text-center">General Reminders</h2>
         <ul className="list-disc pl-6 space-y-2">
           {generalReminders.map((item) => (

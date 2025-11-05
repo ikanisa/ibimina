@@ -36,7 +36,7 @@ export default function ContactPage() {
       {/* Header */}
       <section className="text-center space-y-4">
         <h1 className="text-5xl font-bold">Contact Us</h1>
-        <p className="text-xl opacity-90">
+        <p className="text-xl text-neutral-600">
           Get in touch with the SACCO+ team. We&apos;re here to help.
         </p>
       </section>
@@ -44,16 +44,16 @@ export default function ContactPage() {
       <div className="grid md:grid-cols-2 gap-8">
         {/* Contact Info */}
         <div className="space-y-6">
-          <div className="glass p-6 space-y-4">
+          <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-rwyellow rounded-full flex items-center justify-center flex-shrink-0">
-                <Mail size={24} className="text-ink" />
+              <div className="w-12 h-12 bg-brand-yellow rounded-full flex items-center justify-center flex-shrink-0">
+                <Mail size={24} className="text-neutral-900" />
               </div>
               <div>
                 <h3 className="font-bold text-lg">Email</h3>
                 <a
                   href="mailto:info@saccoplus.rw"
-                  className="opacity-90 hover:text-rwyellow transition-colors"
+                  className="text-neutral-600 hover:text-brand-yellow transition-colors"
                 >
                   info@saccoplus.rw
                 </a>
@@ -61,16 +61,16 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="glass p-6 space-y-4">
+          <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-rwblue rounded-full flex items-center justify-center flex-shrink-0">
-                <Phone size={24} className="text-ink" />
+              <div className="w-12 h-12 bg-brand-blue rounded-full flex items-center justify-center flex-shrink-0">
+                <Phone size={24} className="text-neutral-900" />
               </div>
               <div>
                 <h3 className="font-bold text-lg">Phone / WhatsApp</h3>
                 <a
                   href="tel:+250788000000"
-                  className="opacity-90 hover:text-rwyellow transition-colors"
+                  className="text-neutral-600 hover:text-brand-yellow transition-colors"
                 >
                   +250 788 000 000
                 </a>
@@ -79,14 +79,14 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="glass p-6 space-y-4">
+          <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-rwgreen rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 bg-brand-green rounded-full flex items-center justify-center flex-shrink-0">
                 <MapPin size={24} className="text-white" />
               </div>
               <div>
                 <h3 className="font-bold text-lg">Office</h3>
-                <p className="opacity-90">
+                <p className="text-neutral-600">
                   KG 7 Ave, Kigali
                   <br />
                   Rwanda
@@ -95,9 +95,9 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="glass p-6">
+          <div className="bg-white border border-neutral-200 rounded-xl p-6">
             <h3 className="font-bold text-lg mb-3">Help Hours</h3>
-            <div className="space-y-2 text-sm opacity-90">
+            <div className="space-y-2 text-sm text-neutral-600">
               <div className="flex justify-between">
                 <span>Monday - Friday</span>
                 <span>8:00 AM - 5:00 PM</span>
@@ -115,22 +115,22 @@ export default function ContactPage() {
         </div>
 
         {/* Contact Form */}
-        <div className="glass p-8">
+        <div className="bg-white border border-neutral-200 rounded-xl p-8">
           <h2 className="text-2xl font-bold mb-6">Send Us a Message</h2>
 
           {submitted ? (
-            <div className="bg-rwgreen/20 border-2 border-rwgreen rounded-lg p-6 text-center space-y-3">
-              <div className="w-16 h-16 bg-rwgreen rounded-full flex items-center justify-center mx-auto">
+            <div className="bg-brand-green/20 border-2 border-rwgreen rounded-lg p-6 text-center space-y-3">
+              <div className="w-16 h-16 bg-brand-green rounded-full flex items-center justify-center mx-auto">
                 <Send size={32} />
               </div>
               <h3 className="text-xl font-bold">Message Sent!</h3>
-              <p className="opacity-90">We&apos;ll get back to you within 24 hours.</p>
+              <p className="text-neutral-600">We&apos;ll get back to you within 24 hours.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-semibold mb-2">
-                  Full Name <span className="text-rwyellow">*</span>
+                  Full Name <span className="text-brand-yellow">*</span>
                 </label>
                 <input
                   type="text"
@@ -146,7 +146,7 @@ export default function ContactPage() {
 
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold mb-2">
-                  Email <span className="text-rwyellow">*</span>
+                  Email <span className="text-brand-yellow">*</span>
                 </label>
                 <input
                   type="email"
@@ -192,7 +192,7 @@ export default function ContactPage() {
 
               <div>
                 <label htmlFor="message" className="block text-sm font-semibold mb-2">
-                  Message <span className="text-rwyellow">*</span>
+                  Message <span className="text-brand-yellow">*</span>
                 </label>
                 <textarea
                   id="message"
