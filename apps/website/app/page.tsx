@@ -17,7 +17,7 @@ export default function Home() {
               Digital Ibimina for <span className="gradient-text">Rwanda's SACCOs</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-neutral-600 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-neutral-700 leading-relaxed max-w-2xl mx-auto">
               USSD-first intermediation platform that digitizes savings groups without handling
               funds or requiring core integration.
             </p>
@@ -47,7 +47,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">What We Solve</h2>
-            <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+            <p className="text-lg text-neutral-700 max-w-2xl mx-auto">
               Three core principles that make SACCO+ different
             </p>
           </div>
@@ -59,7 +59,7 @@ export default function Home() {
                 <Phone size={28} className="text-neutral-900" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">USSD-First</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 Members contribute via USSD on any phone. No smartphone required. Deposits go
                 directly to SACCO MoMo merchant accounts.
               </p>
@@ -71,7 +71,7 @@ export default function Home() {
                 <Shield size={28} className="text-white" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">Intermediation Only</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 SACCO+ never handles funds. We issue standardized references and produce
                 allocation-based statements. Zero liability.
               </p>
@@ -83,7 +83,7 @@ export default function Home() {
                 <Users size={28} className="text-white" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">Staff Approved</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 All member onboarding and group creation is staff-controlled. Members request to
                 join; staff approve.
               </p>

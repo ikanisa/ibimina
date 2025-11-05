@@ -56,7 +56,7 @@ export default function RootLayout({
               {/* Brand */}
               <div className="col-span-2 md:col-span-1">
                 <h3 className="font-bold text-lg text-neutral-900 mb-3">SACCO+</h3>
-                <p className="text-sm text-neutral-600 leading-relaxed">
+                <p className="text-sm text-neutral-700 leading-relaxed">
                   Digitizing ibimina for Umurenge SACCOs across Rwanda
                 </p>
               </div>
@@ -68,7 +68,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/members#ussd-guide"
-                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       USSD Guide
                     </Link>
@@ -76,7 +76,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/members#faq"
-                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       Member FAQ
                     </Link>
@@ -84,7 +84,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/contact"
-                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       Get Help
                     </Link>
@@ -99,7 +99,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/saccos#staff-flow"
-                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       Staff Flow
                     </Link>
@@ -107,7 +107,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/saccos#data-privacy"
-                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       Data Privacy
                     </Link>
@@ -115,7 +115,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/pilot-nyamagabe"
-                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       Join Pilot
                     </Link>
@@ -130,7 +130,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/legal/terms"
-                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       Terms of Service
                     </Link>
@@ -138,7 +138,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/legal/privacy"
-                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       Privacy Policy
                     </Link>
@@ -146,7 +146,7 @@ export default function RootLayout({
                   <li>
                     <Link
                       href="/contact"
-                      className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                     >
                       Contact Us
                     </Link>
@@ -157,23 +157,23 @@ export default function RootLayout({
 
             {/* Bottom bar */}
             <div className="pt-8 border-t border-neutral-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <p className="text-sm text-neutral-600">&copy; 2025 SACCO+. All rights reserved.</p>
+              <p className="text-sm text-neutral-700">&copy; 2025 SACCO+. All rights reserved.</p>
               <div className="flex items-center gap-6">
                 <Link
                   href="/legal/privacy"
-                  className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                  className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                 >
                   Privacy
                 </Link>
                 <Link
                   href="/legal/terms"
-                  className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                  className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                 >
                   Terms
                 </Link>
                 <Link
                   href="/contact"
-                  className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+                  className="text-sm text-neutral-700 hover:text-neutral-900 transition-colors"
                 >
                   Contact
                 </Link>
