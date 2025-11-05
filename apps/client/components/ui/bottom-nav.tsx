@@ -74,6 +74,7 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
+              aria-label={ariaLabel}
               className={
                 "flex flex-col items-center justify-center min-w-[64px] min-h-[48px] px-3 py-2 rounded-xl transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-atlas-blue/30 focus:ring-offset-2 " +
                 (isActive
