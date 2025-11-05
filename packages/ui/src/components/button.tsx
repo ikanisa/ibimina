@@ -1,56 +1,121 @@
 "use client";
 
 import { forwardRef } from "react";
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 import { cn } from "../utils/cn";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "destructive";
-type ButtonSize = "sm" | "md" | "lg" | "icon";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
+type ButtonSize = "sm" | "md" | "lg";
 
+/**
+ * WCAG AA Compliant Button Component
+ *
+ * All variants meet 4.5:1 contrast minimum.
+ * Includes proper focus indicators, loading states, and accessibility.
+ */
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-kigali text-ink shadow-glass hover:bg-kigali/90 focus-visible:ring-kigali/80 disabled:bg-kigali/40 disabled:text-ink/60",
+    "bg-neutral-900 text-white hover:bg-neutral-800 active:bg-neutral-950 focus-visible:ring-neutral-900 disabled:opacity-50",
   secondary:
-    "bg-white/10 text-neutral-0 shadow-glass hover:bg-white/20 focus-visible:ring-white/40 disabled:bg-white/10 disabled:text-neutral-3",
+    "bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300 focus-visible:ring-neutral-500 disabled:opacity-50",
+  outline:
+    "border-2 border-neutral-300 text-neutral-900 hover:bg-neutral-50 active:bg-neutral-100 focus-visible:ring-neutral-500 disabled:opacity-50",
   ghost:
-    "bg-transparent text-neutral-0 hover:bg-white/10 focus-visible:ring-white/30 disabled:text-neutral-3",
-  destructive:
-    "bg-[#ff6b6b] text-ink shadow-glass hover:bg-[#ff7d7d] focus-visible:ring-[#ff6b6b]/60 disabled:bg-[#ff6b6b]/40 disabled:text-ink/60",
+    "text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-neutral-500 disabled:opacity-50",
+  danger:
+    "bg-error-600 text-white hover:bg-error-700 active:bg-error-800 focus-visible:ring-error-600 disabled:opacity-50",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: "px-3 py-2 text-xs",
-  md: "px-5 py-3 text-sm",
-  lg: "px-6 py-4 text-base",
-  icon: "h-10 w-10 p-0",
+  sm: "px-3 py-1.5 text-sm rounded-lg gap-1.5 min-h-[40px]", // 40px minimum tap target
+  md: "px-4 py-2.5 text-base rounded-lg gap-2 min-h-[44px]", // 44px standard tap target
+  lg: "px-6 py-3.5 text-lg rounded-xl gap-2.5 min-h-[48px]", // 48px large tap target
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
+  loading?: boolean;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant = "primary", size = "md", fullWidth = false, type = "button", ...props },
+  {
+    className,
+    variant = "primary",
+    size = "md",
+    fullWidth = false,
+    loading = false,
+    leftIcon,
+    rightIcon,
+    disabled,
+    children,
+    type = "button",
+    ...props
+  },
   ref
 ) {
-  const resolvedVariant = variant as ButtonVariant;
-  const resolvedSize = size as ButtonSize;
+  const isDisabled = disabled || loading;
 
   return (
     <button
       ref={ref}
       type={type}
+      disabled={isDisabled}
+      aria-disabled={isDisabled}
+      aria-busy={loading}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-full font-semibold uppercase tracking-[0.3em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-ink",
-        VARIANT_CLASSES[resolvedVariant],
-        SIZE_CLASSES[resolvedSize],
+        // Base styles
+        "inline-flex items-center justify-center font-medium transition-all duration-200",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "disabled:cursor-not-allowed",
+        // Variant styles
+        VARIANT_CLASSES[variant],
+        // Size styles
+        SIZE_CLASSES[size],
+        // Full width
         fullWidth ? "w-full" : undefined,
+        // Custom className
         className
       )}
       {...props}
-    />
+    >
+      {loading ? (
+        <>
+          <svg
+            className="animate-spin"
+            width={size === "sm" ? 14 : size === "lg" ? 20 : 16}
+            height={size === "sm" ? 14 : size === "lg" ? 20 : 16}
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-label="Loading"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          <span>Loading...</span>
+        </>
+      ) : (
+        <>
+          {leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
+          {children}
+          {rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}
+        </>
+      )}
+    </button>
   );
 });

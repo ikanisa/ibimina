@@ -1,5 +1,7 @@
+// Core components
 export * from "./components/badge";
 export * from "./components/button";
+export * from "./components/card";
 export * from "./components/empty-state";
 export * from "./components/error-state";
 export * from "./components/form";
@@ -19,9 +21,15 @@ export * from "./components/stepper";
 export * from "./components/drawer";
 export * from "./components/sparkline";
 export * from "./components/sticky-action-bar";
+
+// Theme and tokens
 export * from "./theme";
+
+// Utilities
 export * from "./utils/cn";
 export * from "./utils/blur-placeholder";
+export * from "./utils/accessibility";
+
+// Accessibility
 export * from "./components/accessibility/AccessibleActionButton";
 export * from "./components/accessibility/MotionPreferenceToggle";
-export * from "./utils/accessibility";
