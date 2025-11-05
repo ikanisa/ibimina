@@ -1,4 +1,5 @@
-import { Upload, FileCheck, BarChart3, Shield, Database, Users } from "lucide-react";
+import Link from "next/link";
+import { Upload, FileCheck, BarChart3, Shield, Database, Users, ArrowRight } from "lucide-react";
 
 export const metadata = {
   title: "For SACCOs",
@@ -7,163 +8,217 @@ export const metadata = {
 
 export default function SACCOsPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 space-y-16 pb-16">
-      {/* Header */}
-      <section className="text-center space-y-4">
-        <h1 className="text-5xl font-bold">For SACCOs</h1>
-        <p className="text-xl text-neutral-600">
-          Digitize ibimina with zero liability. Staff-controlled onboarding and allocation reports.
-        </p>
-      </section>
-
-      {/* Key Benefits */}
-      <section className="grid md:grid-cols-3 gap-6">
-        <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
-          <Shield size={32} className="text-brand-yellow" />
-          <h3 className="text-xl font-bold">Zero Liability</h3>
-          <p className="text-neutral-600">
-            SACCO+ never handles funds. Deposits go directly to your MoMo merchant account. We only
-            provide allocation evidence.
-          </p>
-        </div>
-        <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
-          <Users size={32} className="text-brand-blue" />
-          <h3 className="text-xl font-bold">Staff Controlled</h3>
-          <p className="text-neutral-600">
-            You approve all member onboarding and group creation. Members can only request to join.
-          </p>
-        </div>
-        <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-4">
-          <Database size={32} className="text-brand-green" />
-          <h3 className="text-xl font-bold">No Core Integration</h3>
-          <p className="text-neutral-600">
-            Your legacy core banking system stays untouched. SACCO+ runs alongside as a lightweight
-            layer.
+    <div className="bg-white">
+      {/* Hero */}
+      <section className="bg-gradient-to-b from-neutral-50 to-white py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
+          <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 leading-tight">
+            For SACCOs
+          </h1>
+          <p className="text-xl text-neutral-600 leading-relaxed max-w-2xl mx-auto">
+            Digitize ibimina with zero liability. Staff-controlled onboarding and allocation
+            reports.
           </p>
         </div>
       </section>
 
-      {/* Staff Flow */}
-      <section id="staff-flow" className="space-y-8">
-        <h2 className="text-3xl font-bold text-center">Staff Workflow</h2>
-        <div className="space-y-6">
-          <div className="bg-white border border-neutral-200 rounded-xl p-6 flex gap-6">
-            <div className="w-12 h-12 bg-brand-yellow rounded-full flex items-center justify-center text-neutral-900 flex-shrink-0">
-              <Upload size={24} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20 space-y-20">
+        {/* Key Benefits */}
+        <section>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-neutral-900 mb-4">Key Benefits</h2>
+            <p className="text-lg text-neutral-600">Three reasons SACCOs choose SACCO+</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="group bg-white border border-neutral-200 rounded-xl p-8 hover:shadow-xl hover:border-neutral-300 hover:-translate-y-1 transition-all duration-200">
+              <div className="w-14 h-14 bg-brand-yellow rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Shield size={28} className="text-neutral-900" />
+              </div>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-3">Zero Liability</h3>
+              <p className="text-neutral-600 leading-relaxed">
+                SACCO+ never handles funds. Deposits go directly to your MoMo merchant account. We
+                only provide allocation evidence.
+              </p>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold">1. Upload Member List</h3>
-              <p className="text-neutral-600">
-                Upload a CSV or photo of your handwritten ibimina member list. Our OCR extracts
-                names, phone numbers, and contribution amounts.
+            <div className="group bg-white border border-neutral-200 rounded-xl p-8 hover:shadow-xl hover:border-neutral-300 hover:-translate-y-1 transition-all duration-200">
+              <div className="w-14 h-14 bg-brand-blue rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Users size={28} className="text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-3">Staff Controlled</h3>
+              <p className="text-neutral-600 leading-relaxed">
+                You approve all member onboarding and group creation. Members can only request to
+                join.
+              </p>
+            </div>
+            <div className="group bg-white border border-neutral-200 rounded-xl p-8 hover:shadow-xl hover:border-neutral-300 hover:-translate-y-1 transition-all duration-200">
+              <div className="w-14 h-14 bg-brand-green rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Database size={28} className="text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-3">No Core Integration</h3>
+              <p className="text-neutral-600 leading-relaxed">
+                Your legacy core banking system stays untouched. SACCO+ runs alongside as a
+                lightweight layer.
               </p>
             </div>
           </div>
+        </section>
 
-          <div className="bg-white border border-neutral-200 rounded-xl p-6 flex gap-6">
-            <div className="w-12 h-12 bg-brand-blue rounded-full flex items-center justify-center text-neutral-900 flex-shrink-0">
-              <FileCheck size={24} />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold">2. Review & Approve</h3>
-              <p className="text-neutral-600">
-                Staff review extracted data, correct any errors, and approve members. Each member
-                gets a structured reference token (e.g., NYA.GAS.TWIZ.001).
-              </p>
-            </div>
+        {/* Staff Flow */}
+        <section id="staff-flow">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-neutral-900 mb-4">Staff Workflow</h2>
+            <p className="text-lg text-neutral-600">
+              Three simple steps to digitize your ibimina groups
+            </p>
           </div>
 
-          <div className="bg-white border border-neutral-200 rounded-xl p-6 flex gap-6">
-            <div className="w-12 h-12 bg-brand-green rounded-full flex items-center justify-center text-white flex-shrink-0">
-              <BarChart3 size={24} />
+          <div className="space-y-6 max-w-4xl mx-auto">
+            <div className="bg-white border border-neutral-200 rounded-xl p-8 flex gap-6">
+              <div className="w-14 h-14 bg-brand-yellow rounded-full flex items-center justify-center flex-shrink-0">
+                <Upload size={24} className="text-neutral-900" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-neutral-900">1. Upload Member List</h3>
+                <p className="text-neutral-600 leading-relaxed">
+                  Upload a CSV or photo of your handwritten ibimina member list. Our OCR extracts
+                  names, phone numbers, and contribution amounts.
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold">3. Export Allocation Reports</h3>
-              <p className="text-neutral-600">
-                As payments come in via USSD, SACCO+ maps them to members by reference token. Export
-                allocation CSV reports for your records and bookkeeping.
-              </p>
+
+            <div className="bg-white border border-neutral-200 rounded-xl p-8 flex gap-6">
+              <div className="w-14 h-14 bg-brand-blue rounded-full flex items-center justify-center flex-shrink-0">
+                <FileCheck size={24} className="text-white" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-neutral-900">2. Review & Approve</h3>
+                <p className="text-neutral-600 leading-relaxed">
+                  Staff review extracted data, correct any errors, and approve members. Each member
+                  gets a structured reference token (e.g., NYA.GAS.TWIZ.001).
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-neutral-200 rounded-xl p-8 flex gap-6">
+              <div className="w-14 h-14 bg-brand-green rounded-full flex items-center justify-center flex-shrink-0">
+                <BarChart3 size={24} className="text-white" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-neutral-900">
+                  3. Export Allocation Reports
+                </h3>
+                <p className="text-neutral-600 leading-relaxed">
+                  As payments come in via USSD, SACCO+ maps them to members by reference token.
+                  Export allocation CSV reports for your records and bookkeeping.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Sample CSV */}
-      <section className="bg-white border border-neutral-200 rounded-xl p-8 space-y-4">
-        <h2 className="text-2xl font-bold">Sample Member List CSV</h2>
-        <p className="text-neutral-600">
-          Upload a CSV file with this structure, or take a photo of your handwritten list:
-        </p>
-        <div className="bg-white/10 p-4 rounded overflow-x-auto">
-          <pre className="text-sm">
-            {`group_name,member_name,phone,initial_contribution
+        {/* Sample CSV */}
+        <section className="max-w-4xl mx-auto">
+          <div className="bg-white border border-neutral-200 rounded-xl p-8 space-y-6">
+            <h2 className="text-3xl font-bold text-neutral-900">Sample Member List CSV</h2>
+            <p className="text-neutral-600 leading-relaxed">
+              Upload a CSV file with this structure, or take a photo of your handwritten list:
+            </p>
+            <div className="bg-neutral-50 p-6 rounded-lg border border-neutral-200 overflow-x-auto">
+              <pre className="text-sm text-neutral-900 font-mono">
+                {`group_name,member_name,phone,initial_contribution
 Twizigame,Mukamana Aline,+250788123456,20000
 Twizigame,Uwera Grace,+250788234567,15000
 Twizigame,Niyonshuti Jean,+250788345678,25000`}
-          </pre>
-        </div>
-      </section>
+              </pre>
+            </div>
+          </div>
+        </section>
 
-      {/* Data Privacy */}
-      <section id="data-privacy" className="space-y-6">
-        <h2 className="text-3xl font-bold text-center">Data Privacy & Security</h2>
-        <div className="bg-white border border-neutral-200 rounded-xl p-8 space-y-4">
-          <h3 className="text-xl font-bold">What we store</h3>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-3">
-              <span className="text-brand-green">✓</span>
-              <span>Member names, phone numbers (hashed), reference tokens</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-brand-green">✓</span>
-              <span>Group metadata (name, creation date, member count)</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-brand-green">✓</span>
-              <span>Allocation evidence (transaction IDs, amounts, timestamps)</span>
-            </li>
-          </ul>
-
-          <h3 className="text-xl font-bold mt-6">What we never store</h3>
-          <ul className="space-y-2 text-neutral-600">
-            <li className="flex gap-3">
-              <span className="text-brand-yellow">✗</span>
-              <span>Actual funds (payments go directly to your MoMo merchant)</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-brand-yellow">✗</span>
-              <span>National IDs or sensitive identity documents</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-brand-yellow">✗</span>
-              <span>Mobile Money PINs or passwords</span>
-            </li>
-          </ul>
-
-          <div className="pt-4 border-t border-white/20 text-sm text-neutral-600">
-            <p>
-              <strong>Compliance:</strong> SACCO+ adheres to Rwanda&apos;s data protection
-              guidelines. All data is encrypted at rest and in transit. Row-level security (RLS)
-              ensures members can only see their own data.
+        {/* Data Privacy */}
+        <section id="data-privacy" className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-neutral-900 mb-4">Data Privacy & Security</h2>
+            <p className="text-lg text-neutral-600">
+              Your members' data is protected with enterprise-grade security
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section className="bg-white border border-neutral-200 rounded-xl p-8 text-center space-y-4">
-        <h2 className="text-2xl font-bold">Ready to Join the Pilot?</h2>
-        <p className="text-neutral-600 max-w-xl mx-auto">
-          We&apos;re piloting with Nyamagabe Umurenge SACCOs. Contact us to digitize ibimina for
-          your community.
-        </p>
-        <a
-          href="/contact"
-          className="inline-block glass px-8 py-4 font-semibold hover:bg-white/20 transition-all"
-        >
-          Contact Us
-        </a>
-      </section>
+          <div className="bg-white border border-neutral-200 rounded-xl p-8 space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold text-neutral-900 mb-4">What we store</h3>
+              <ul className="space-y-3">
+                <li className="flex gap-3">
+                  <span className="text-success-600 text-xl flex-shrink-0">✓</span>
+                  <span className="text-neutral-600">
+                    Member names, phone numbers (hashed), reference tokens
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="text-success-600 text-xl flex-shrink-0">✓</span>
+                  <span className="text-neutral-600">
+                    Group metadata (name, creation date, member count)
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="text-success-600 text-xl flex-shrink-0">✓</span>
+                  <span className="text-neutral-600">
+                    Allocation evidence (transaction IDs, amounts, timestamps)
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-8 border-t border-neutral-200">
+              <h3 className="text-2xl font-bold text-neutral-900 mb-4">What we never store</h3>
+              <ul className="space-y-3">
+                <li className="flex gap-3">
+                  <span className="text-error-600 text-xl flex-shrink-0">✗</span>
+                  <span className="text-neutral-600">
+                    Actual funds (payments go directly to your MoMo merchant)
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="text-error-600 text-xl flex-shrink-0">✗</span>
+                  <span className="text-neutral-600">
+                    National IDs or sensitive identity documents
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="text-error-600 text-xl flex-shrink-0">✗</span>
+                  <span className="text-neutral-600">Mobile Money PINs or passwords</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-8 border-t border-neutral-200">
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                <strong className="text-neutral-900">Compliance:</strong> SACCO+ adheres to
+                Rwanda&apos;s data protection guidelines. All data is encrypted at rest and in
+                transit. Row-level security (RLS) ensures members can only see their own data.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-br from-brand-blue to-brand-blue-dark rounded-2xl p-12 text-center text-white shadow-2xl">
+            <h2 className="text-4xl font-bold mb-4">Ready to Join the Pilot?</h2>
+            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
+              We&apos;re piloting with Nyamagabe Umurenge SACCOs. Contact us to digitize ibimina for
+              your community.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-brand-blue font-semibold rounded-lg hover:bg-neutral-100 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              Contact Us
+              <ArrowRight size={20} />
+            </Link>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
