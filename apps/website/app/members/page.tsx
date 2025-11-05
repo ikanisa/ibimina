@@ -24,7 +24,7 @@ export default function MembersPage() {
           <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 leading-tight">
             For Members
           </h1>
-          <p className="text-xl text-neutral-600 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-700 leading-relaxed max-w-2xl mx-auto">
             Learn how to contribute to your ibimina savings group using USSD payments—no smartphone
             required
           </p>
@@ -36,7 +36,7 @@ export default function MembersPage() {
         <section id="ussd-guide">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-neutral-900 mb-4">How to Contribute</h2>
-            <p className="text-lg text-neutral-600">Three simple steps using any mobile phone</p>
+            <p className="text-lg text-neutral-700">Three simple steps using any mobile phone</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -49,7 +49,7 @@ export default function MembersPage() {
                   {index + 1}
                 </div>
                 <h3 className="text-xl font-bold text-neutral-900 mb-3">{primaryProvider.name}</h3>
-                <p className="text-neutral-600 leading-relaxed">{step}</p>
+                <p className="text-neutral-700 leading-relaxed">{step}</p>
               </div>
             ))}
           </div>
@@ -59,7 +59,7 @@ export default function MembersPage() {
         <section>
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-neutral-900 mb-4">Your Reference Card</h2>
-            <p className="text-lg text-neutral-600">
+            <p className="text-lg text-neutral-700">
               Keep this information handy when making payments
             </p>
           </div>
@@ -67,20 +67,20 @@ export default function MembersPage() {
           <div className="bg-gradient-to-br from-brand-blue to-brand-blue-dark rounded-2xl p-1 max-w-md mx-auto">
             <div className="bg-white rounded-xl p-8 space-y-6">
               <div>
-                <div className="text-sm font-medium text-neutral-600 mb-2">SACCO Merchant Code</div>
+                <div className="text-sm font-medium text-neutral-700 mb-2">SACCO Merchant Code</div>
                 <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-lg border border-neutral-200">
                   <div className="text-3xl font-bold text-neutral-900 tracking-wider">123456</div>
                   <button
                     className="p-2 hover:bg-neutral-200 rounded-lg transition-colors"
                     aria-label="Copy merchant code"
                   >
-                    <Copy size={20} className="text-neutral-600" />
+                    <Copy size={20} className="text-neutral-700" />
                   </button>
                 </div>
               </div>
 
               <div>
-                <div className="text-sm font-medium text-neutral-600 mb-2">
+                <div className="text-sm font-medium text-neutral-700 mb-2">
                   Your Reference Token
                 </div>
                 <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-lg border border-neutral-200">
@@ -91,12 +91,12 @@ export default function MembersPage() {
                     className="p-2 hover:bg-neutral-200 rounded-lg transition-colors"
                     aria-label="Copy reference token"
                   >
-                    <Copy size={20} className="text-neutral-600" />
+                    <Copy size={20} className="text-neutral-700" />
                   </button>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-neutral-200 flex items-start gap-3 text-sm text-neutral-600">
+              <div className="pt-4 border-t border-neutral-200 flex items-start gap-3 text-sm text-neutral-700">
                 <Phone size={16} className="mt-0.5 flex-shrink-0" />
                 <span>Use this reference for all USSD payments to your ibimina group.</span>
               </div>
@@ -108,7 +108,7 @@ export default function MembersPage() {
         <section id="faq">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-neutral-900 mb-4">Common Questions</h2>
-            <p className="text-lg text-neutral-600">
+            <p className="text-lg text-neutral-700">
               Everything you need to know about making payments
             </p>
           </div>
@@ -122,7 +122,7 @@ export default function MembersPage() {
                   ▼
                 </span>
               </summary>
-              <ul className="mt-6 space-y-3 pl-9 text-neutral-600">
+              <ul className="mt-6 space-y-3 pl-9 text-neutral-700">
                 {paymentGuide.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3">
                     <CheckCircle size={20} className="text-brand-green flex-shrink-0 mt-0.5" />
@@ -140,7 +140,7 @@ export default function MembersPage() {
                   ▼
                 </span>
               </summary>
-              <ul className="mt-6 space-y-3 pl-9 text-neutral-600">
+              <ul className="mt-6 space-y-3 pl-9 text-neutral-700">
                 {troubleshooting.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3">
                     <CheckCircle size={20} className="text-warning-500 flex-shrink-0 mt-0.5" />
@@ -156,14 +156,14 @@ export default function MembersPage() {
         <section className="print:break-after-page">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-neutral-900 mb-4">Printable Instructions</h2>
-            <p className="text-lg text-neutral-600">Download or print for easy reference</p>
+            <p className="text-lg text-neutral-700">Download or print for easy reference</p>
           </div>
 
           <div className="bg-white border-2 border-neutral-300 rounded-xl p-8 max-w-md mx-auto print:border-neutral-900">
             <div className="space-y-6 print:text-neutral-900">
               <div className="text-center border-b-2 border-neutral-200 pb-6 print:border-neutral-900">
                 <h3 className="text-2xl font-bold text-neutral-900 mb-2">SACCO+ USSD Payment</h3>
-                <p className="text-sm text-neutral-600 print:text-neutral-900">
+                <p className="text-sm text-neutral-700 print:text-neutral-900">
                   Quick Reference Guide
                 </p>
               </div>
@@ -179,7 +179,7 @@ export default function MembersPage() {
 
               <div className="pt-6 border-t-2 border-neutral-200 text-sm print:border-neutral-900">
                 <p className="font-semibold text-neutral-900 mb-2">Need help?</p>
-                <p className="text-neutral-600 print:text-neutral-900">
+                <p className="text-neutral-700 print:text-neutral-900">
                   Contact your SACCO staff or call{" "}
                   {contentPack.help.contactInfo.helpline ?? "your SACCO"}
                 </p>

@@ -11,7 +11,7 @@ export default function PilotPage() {
       {/* Header */}
       <section className="text-center space-y-4">
         <h1 className="text-5xl font-bold">Pilot: Nyamagabe District</h1>
-        <p className="text-xl text-neutral-600">
+        <p className="text-xl text-neutral-700">
           12-week sprint to digitize ibimina across Nyamagabe Umurenge SACCOs
         </p>
       </section>
@@ -23,7 +23,7 @@ export default function PilotPage() {
           <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-3">
             <Target size={32} className="text-brand-yellow" />
             <h3 className="text-xl font-bold">Validate Scope</h3>
-            <p className="text-neutral-600">
+            <p className="text-neutral-700">
               Prove that intermediation-only (no funds, no core integration) works for rural
               Umurenge SACCOs with USSD-first members.
             </p>
@@ -31,7 +31,7 @@ export default function PilotPage() {
           <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-3">
             <Users size={32} className="text-brand-blue" />
             <h3 className="text-xl font-bold">Onboard 500+ Members</h3>
-            <p className="text-neutral-600">
+            <p className="text-neutral-700">
               Target 10-15 ibimina groups, ~50 members each. Test staff workflows: upload → OCR →
               approve → allocate.
             </p>
@@ -39,7 +39,7 @@ export default function PilotPage() {
           <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-3">
             <TrendingUp size={32} className="text-brand-green" />
             <h3 className="text-xl font-bold">100% USSD Coverage</h3>
-            <p className="text-neutral-600">
+            <p className="text-neutral-700">
               Ensure every member can dial *182# and contribute. Test dual-SIM, shared devices, and
               low-literacy scenarios.
             </p>
@@ -47,7 +47,7 @@ export default function PilotPage() {
           <div className="bg-white border border-neutral-200 rounded-xl p-6 space-y-3">
             <CheckCircle2 size={32} className="text-white" />
             <h3 className="text-xl font-bold">Zero Data Breaches</h3>
-            <p className="text-neutral-600">
+            <p className="text-neutral-700">
               Validate RLS policies, token-scoped queries, and audit logs. No member should see
               another&apos;s data.
             </p>
@@ -65,7 +65,7 @@ export default function PilotPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Onboarding & Training</h3>
-              <p className="text-neutral-600">
+              <p className="text-neutral-700">
                 Train SACCO staff on upload workflows, OCR review, and member approval. Set up
                 merchant codes and reference token structure.
               </p>
@@ -81,7 +81,7 @@ export default function PilotPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Member Rollout</h3>
-              <p className="text-neutral-600">
+              <p className="text-neutral-700">
                 Upload first batch of member lists, approve 200+ members, distribute reference
                 cards. Test USSD payment flows with pilot groups.
               </p>
@@ -97,7 +97,7 @@ export default function PilotPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Scale & Refine</h3>
-              <p className="text-neutral-600">
+              <p className="text-neutral-700">
                 Expand to remaining groups. Refine SMS ingestion, allocation mapping, and statement
                 exports. Address edge cases (dual-SIM, shared devices).
               </p>
@@ -113,7 +113,7 @@ export default function PilotPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">Evaluation & Handoff</h3>
-              <p className="text-neutral-600">
+              <p className="text-neutral-700">
                 Collect feedback from staff and members. Run final security audits. Export
                 allocation reports. Document lessons learned for national rollout.
               </p>
@@ -131,7 +131,7 @@ export default function PilotPage() {
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <h3 className="font-bold text-lg">Success Metrics</h3>
-            <ul className="space-y-2 text-neutral-600">
+            <ul className="space-y-2 text-neutral-700">
               <li className="flex gap-3">
                 <span className="text-brand-green">✓</span>
                 <span>&ge;500 members onboarded and active</span>
@@ -156,7 +156,7 @@ export default function PilotPage() {
           </div>
           <div className="space-y-3">
             <h3 className="font-bold text-lg">Risk Mitigations</h3>
-            <ul className="space-y-2 text-neutral-600">
+            <ul className="space-y-2 text-neutral-700">
               <li className="flex gap-3">
                 <span className="text-brand-yellow">⚠</span>
                 <span>Low USSD literacy → printed instruction cards</span>
@@ -182,7 +182,7 @@ export default function PilotPage() {
       <section className="bg-white border border-neutral-200 rounded-xl p-12 text-center space-y-6">
         <Calendar size={48} className="mx-auto text-brand-yellow" />
         <h2 className="text-3xl font-bold">Join the Pilot</h2>
-        <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+        <p className="text-lg text-neutral-700 max-w-2xl mx-auto">
           Are you a SACCO staff member or district stakeholder in Nyamagabe? Contact us to be part
           of this 12-week sprint.
         </p>

@@ -54,7 +54,7 @@ export function CardHeader({ title, description, action, className = "" }: CardH
     <div className={`flex items-start justify-between mb-6 ${className}`}>
       <div className="flex-1">
         <h3 className="text-xl font-bold text-neutral-900 mb-2">{title}</h3>
-        {description && <p className="text-sm text-neutral-600">{description}</p>}
+        {description && <p className="text-sm text-neutral-700">{description}</p>}
       </div>
       {action && <div className="ml-4">{action}</div>}
     </div>

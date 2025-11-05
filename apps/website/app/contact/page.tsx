@@ -46,7 +46,7 @@ export default function ContactPage() {
           <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 leading-tight">
             Contact Us
           </h1>
-          <p className="text-xl text-neutral-600 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-700 leading-relaxed max-w-2xl mx-auto">
             Get in touch with the SACCO+ team. We're here to help with your questions.
           </p>
         </div>
@@ -70,7 +70,7 @@ export default function ContactPage() {
                   >
                     info@saccoplus.rw
                   </a>
-                  <p className="text-sm text-neutral-600 mt-2">
+                  <p className="text-sm text-neutral-700 mt-2">
                     We typically respond within 24 hours
                   </p>
                 </div>
@@ -91,7 +91,7 @@ export default function ContactPage() {
                   >
                     +250 788 000 000
                   </a>
-                  <p className="text-sm text-neutral-600 mt-2">Mon-Fri: 8AM - 5PM (CAT)</p>
+                  <p className="text-sm text-neutral-700 mt-2">Mon-Fri: 8AM - 5PM (CAT)</p>
                 </div>
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function ContactPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-lg text-neutral-900 mb-2">Office</h3>
-                  <p className="text-neutral-600">
+                  <p className="text-neutral-700">
                     KG 7 Ave, Kigali
                     <br />
                     Rwanda
@@ -147,7 +147,7 @@ export default function ContactPage() {
                     <CheckCircle size={32} className="text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-neutral-900">Message Sent!</h3>
-                  <p className="text-neutral-600">
+                  <p className="text-neutral-700">
                     We've received your message and will get back to you within 24 hours.
                   </p>
                 </div>

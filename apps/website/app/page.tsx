@@ -17,7 +17,7 @@ export default function Home() {
               Digital Ibimina for <span className="gradient-text">Rwanda's SACCOs</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-neutral-600 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-neutral-700 leading-relaxed max-w-2xl mx-auto">
               USSD-first intermediation platform that digitizes savings groups without handling
               funds or requiring core integration.
             </p>
@@ -47,7 +47,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">What We Solve</h2>
-            <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+            <p className="text-lg text-neutral-700 max-w-2xl mx-auto">
               Three core principles that make SACCO+ different
             </p>
           </div>
@@ -59,7 +59,7 @@ export default function Home() {
                 <Phone size={28} className="text-neutral-900" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">USSD-First</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 Members contribute via USSD on any phone. No smartphone required. Deposits go
                 directly to SACCO MoMo merchant accounts.
               </p>
@@ -71,7 +71,7 @@ export default function Home() {
                 <Shield size={28} className="text-white" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">Intermediation Only</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 SACCO+ never handles funds. We issue standardized references and produce
                 allocation-based statements. Zero liability.
               </p>
@@ -83,7 +83,7 @@ export default function Home() {
                 <Users size={28} className="text-white" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">Staff Approved</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 All member onboarding and group creation is staff-controlled. Members request to
                 join; staff approve.
               </p>
@@ -97,7 +97,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">How It Works</h2>
-            <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+            <p className="text-lg text-neutral-700 max-w-2xl mx-auto">
               Three simple steps from onboarding to statements
             </p>
           </div>
@@ -110,7 +110,7 @@ export default function Home() {
                   1
                 </div>
                 <h3 className="text-xl font-bold text-neutral-900 mb-3">Member Gets Reference</h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed">
                   Staff onboard members and assign a structured reference token (e.g.,
                   NYA.GAS.TWIZ.001).
                 </p>
@@ -126,7 +126,7 @@ export default function Home() {
                   2
                 </div>
                 <h3 className="text-xl font-bold text-neutral-900 mb-3">Dial USSD to Pay</h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed">
                   Member dials *182# with merchant code + reference. Funds go directly to SACCO's
                   MoMo merchant.
                 </p>
@@ -141,7 +141,7 @@ export default function Home() {
                 3
               </div>
               <h3 className="text-xl font-bold text-neutral-900 mb-3">View Statement</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 SACCO+ maps SMS confirmations to references. Members see allocation-based statements
                 (read-only).
               </p>
@@ -179,19 +179,19 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="bg-white border border-neutral-200 rounded-xl p-6 text-center">
               <div className="text-5xl font-bold text-neutral-900 mb-2">416</div>
-              <div className="text-sm text-neutral-600">Umurenge SACCOs</div>
+              <div className="text-sm text-neutral-700">Umurenge SACCOs</div>
             </div>
             <div className="bg-white border border-neutral-200 rounded-xl p-6 text-center">
               <div className="text-5xl font-bold text-neutral-900 mb-2">2M+</div>
-              <div className="text-sm text-neutral-600">Potential Members</div>
+              <div className="text-sm text-neutral-700">Potential Members</div>
             </div>
             <div className="bg-white border border-neutral-200 rounded-xl p-6 text-center">
               <div className="text-5xl font-bold text-neutral-900 mb-2">100%</div>
-              <div className="text-sm text-neutral-600">USSD Coverage</div>
+              <div className="text-sm text-neutral-700">USSD Coverage</div>
             </div>
             <div className="bg-white border border-neutral-200 rounded-xl p-6 text-center">
               <div className="text-5xl font-bold text-neutral-900 mb-2">0</div>
-              <div className="text-sm text-neutral-600">Funds Handled</div>
+              <div className="text-sm text-neutral-700">Funds Handled</div>
             </div>
           </div>
         </div>

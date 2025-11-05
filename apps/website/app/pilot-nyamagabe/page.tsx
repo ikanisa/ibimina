@@ -15,7 +15,7 @@ export default function PilotPage() {
           <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 leading-tight">
             Pilot: Nyamagabe District
           </h1>
-          <p className="text-xl text-neutral-600 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-700 leading-relaxed max-w-2xl mx-auto">
             12-week sprint to digitize ibimina across Nyamagabe Umurenge SACCOs
           </p>
         </div>
@@ -26,7 +26,7 @@ export default function PilotPage() {
         <section>
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-neutral-900 mb-4">Pilot Objectives</h2>
-            <p className="text-lg text-neutral-600">
+            <p className="text-lg text-neutral-700">
               Four key goals to validate SACCO+ in real-world conditions
             </p>
           </div>
@@ -37,7 +37,7 @@ export default function PilotPage() {
                 <Target size={28} className="text-neutral-900" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">Validate Scope</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 Prove that intermediation-only (no funds, no core integration) works for rural
                 Umurenge SACCOs with USSD-first members.
               </p>
@@ -48,7 +48,7 @@ export default function PilotPage() {
                 <Users size={28} className="text-white" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">Onboard 500+ Members</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 Target 10-15 ibimina groups, ~50 members each. Test staff workflows: upload → OCR →
                 approve → allocate.
               </p>
@@ -59,7 +59,7 @@ export default function PilotPage() {
                 <TrendingUp size={28} className="text-white" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">100% USSD Coverage</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 Ensure every member can dial *182# and contribute. Test dual-SIM, shared devices,
                 and low-literacy scenarios.
               </p>
@@ -70,7 +70,7 @@ export default function PilotPage() {
                 <CheckCircle2 size={28} className="text-white" />
               </div>
               <h3 className="text-2xl font-bold text-neutral-900 mb-3">Zero Data Breaches</h3>
-              <p className="text-neutral-600 leading-relaxed">
+              <p className="text-neutral-700 leading-relaxed">
                 Validate RLS policies, token-scoped queries, and audit logs. No member should see
                 another&apos;s data.
               </p>
@@ -82,7 +82,7 @@ export default function PilotPage() {
         <section>
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-neutral-900 mb-4">12-Week Timeline</h2>
-            <p className="text-lg text-neutral-600">
+            <p className="text-lg text-neutral-700">
               Phased approach from onboarding to evaluation
             </p>
           </div>
@@ -94,7 +94,7 @@ export default function PilotPage() {
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold text-neutral-900">Onboarding & Training</h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed">
                   Train SACCO staff on upload workflows, OCR review, and member approval. Set up
                   merchant codes and reference token structure.
                 </p>
@@ -110,7 +110,7 @@ export default function PilotPage() {
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold text-neutral-900">Member Rollout</h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed">
                   Upload first batch of member lists, approve 200+ members, distribute reference
                   cards. Test USSD payment flows with pilot groups.
                 </p>
@@ -126,7 +126,7 @@ export default function PilotPage() {
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold text-neutral-900">Scale & Refine</h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed">
                   Expand to remaining groups. Refine SMS ingestion, allocation mapping, and
                   statement exports. Address edge cases (dual-SIM, shared devices).
                 </p>
@@ -142,7 +142,7 @@ export default function PilotPage() {
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold text-neutral-900">Evaluation & Handoff</h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-700 leading-relaxed">
                   Collect feedback from staff and members. Run final security audits. Export
                   allocation reports. Document lessons learned for national rollout.
                 </p>
@@ -158,7 +158,7 @@ export default function PilotPage() {
         <section>
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-neutral-900 mb-4">Key Performance Indicators</h2>
-            <p className="text-lg text-neutral-600">Success metrics and risk mitigations</p>
+            <p className="text-lg text-neutral-700">Success metrics and risk mitigations</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -167,25 +167,25 @@ export default function PilotPage() {
               <ul className="space-y-3">
                 <li className="flex gap-3">
                   <span className="text-success-600 text-xl flex-shrink-0">✓</span>
-                  <span className="text-neutral-600">&ge;500 members onboarded and active</span>
+                  <span className="text-neutral-700">&ge;500 members onboarded and active</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-success-600 text-xl flex-shrink-0">✓</span>
-                  <span className="text-neutral-600">&ge;80% USSD payment success rate</span>
+                  <span className="text-neutral-700">&ge;80% USSD payment success rate</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-success-600 text-xl flex-shrink-0">✓</span>
-                  <span className="text-neutral-600">Zero data breaches or PII leaks</span>
+                  <span className="text-neutral-700">Zero data breaches or PII leaks</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-success-600 text-xl flex-shrink-0">✓</span>
-                  <span className="text-neutral-600">
+                  <span className="text-neutral-700">
                     &ge;90% staff satisfaction (training + tools)
                   </span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-success-600 text-xl flex-shrink-0">✓</span>
-                  <span className="text-neutral-600">
+                  <span className="text-neutral-700">
                     &ge;85% member satisfaction (ease of use)
                   </span>
                 </li>
@@ -197,23 +197,23 @@ export default function PilotPage() {
               <ul className="space-y-3">
                 <li className="flex gap-3">
                   <span className="text-warning-600 text-xl flex-shrink-0">⚠</span>
-                  <span className="text-neutral-600">
+                  <span className="text-neutral-700">
                     Low USSD literacy → printed instruction cards
                   </span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-warning-600 text-xl flex-shrink-0">⚠</span>
-                  <span className="text-neutral-600">Shared devices → token-scoped RLS</span>
+                  <span className="text-neutral-700">Shared devices → token-scoped RLS</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-warning-600 text-xl flex-shrink-0">⚠</span>
-                  <span className="text-neutral-600">
+                  <span className="text-neutral-700">
                     Staff resistance → hands-on training + support
                   </span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-warning-600 text-xl flex-shrink-0">⚠</span>
-                  <span className="text-neutral-600">
+                  <span className="text-neutral-700">
                     Network outages → offline-first PWA fallback
                   </span>
                 </li>

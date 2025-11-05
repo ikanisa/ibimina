@@ -14,7 +14,7 @@ export default function FAQPage() {
           <h1 className="text-5xl md:text-6xl font-bold text-neutral-900 leading-tight">
             Frequently Asked Questions
           </h1>
-          <p className="text-xl text-neutral-600 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-700 leading-relaxed max-w-2xl mx-auto">
             Everything you need to know about SACCO+
           </p>
         </div>
@@ -38,7 +38,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 SACCO+ is a digital intermediation platform for Umurenge SACCOs in Rwanda. We
                 digitize ibimina (savings groups) using USSD-first contributions. SACCO+ never
                 handles funds—we only issue standardized references and produce allocation-based
@@ -53,7 +53,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 Unlike traditional SACCO cores that manage accounts and process transactions, SACCO+
                 is intermediation-only. We don&apos;t integrate with your core banking system.
                 Deposits go directly to your MoMo merchant account via USSD. We simply map SMS
@@ -68,7 +68,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 SACCO+ is designed for Umurenge SACCOs across Rwanda. We&apos;re piloting with
                 Nyamagabe District. SACCO staff onboard members and approve all groups. Members
                 contribute via USSD and view statements in the mobile app.
@@ -94,7 +94,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 No. SACCO+ never handles funds. When you make a USSD payment, your money goes
                 directly to your SACCO&apos;s Mobile Money merchant account. SACCO+ only receives
                 SMS confirmation notifications to map payments to your reference token.
@@ -108,7 +108,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 Yes. All data is encrypted at rest and in transit. We use Row-Level Security (RLS)
                 to ensure you can only see your own data. Phone numbers are hashed. We never store
                 National IDs or Mobile Money PINs. Audit logs track all data access.
@@ -122,7 +122,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 No. Token-scoped RLS policies ensure members can only view their own groups and
                 allocations. Even if devices are shared, your reference token is personal and your
                 data remains private.
@@ -148,7 +148,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 No! USSD works on any mobile phone. To contribute, just dial *182# from your Mobile
                 Money registered number. No data or internet required. The mobile app (for viewing
                 statements) is optional and can be accessed as a PWA.
@@ -162,7 +162,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 Use the SIM card registered with your Mobile Money account when dialing USSD. Your
                 phone may ask you to select which SIM to use. Choose the one linked to your MoMo
                 account.
@@ -176,7 +176,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 Contact your SACCO staff to be onboarded. You&apos;ll receive a reference token
                 (e.g., NYA.GAS.TWIZ.001). You can also request to join via the mobile app, but staff
                 must approve your request before you can contribute.
@@ -190,7 +190,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 You&apos;ll receive an SMS confirmation from Mobile Money within seconds. Your
                 statement in the SACCO+ app will update within a few minutes once staff map the
                 payment to your reference token.
@@ -204,7 +204,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 No problem! Your reference token is personal. As long as you use your own Mobile
                 Money account and reference when making USSD payments, your contributions are
                 tracked correctly. In the app, token-scoped security ensures you only see your own
@@ -219,7 +219,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 USSD works without internet, so yes! As long as you have mobile network coverage,
                 you can dial *182# and contribute. The app works offline too (PWA), showing your
                 cached statements and reference card.
@@ -245,7 +245,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 No. SACCO+ runs alongside your existing core without integration. Deposits go to
                 your MoMo merchant account. We export allocation CSV reports that you can import
                 into your core or use for bookkeeping.
@@ -259,7 +259,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 Upload a CSV or photo of your handwritten member list. Our OCR extracts names and
                 phone numbers. Staff review and approve. Each member gets a structured reference
                 token. The process takes minutes, not hours.
@@ -273,7 +273,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 You can export allocation CSV reports showing: date, member reference, amount,
                 transaction ID, status (CONFIRMED/PENDING). Filter by group, date range, or member.
                 Use these reports for reconciliation and audits.
@@ -287,7 +287,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 Staff can reissue the reference card from the admin app. The token itself
                 doesn&apos;t change—it&apos;s tied to the member&apos;s account. Just print a new
                 card with the same reference.
@@ -313,7 +313,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 USSD payments still work—they go directly to your MoMo merchant account. The app has
                 offline fallback pages showing cached statements and reference cards. SMS ingestion
                 resumes when the service recovers, so no payments are lost.
@@ -327,7 +327,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 Yes. Daily automated backups with encryption. You can export allocation reports at
                 any time as CSV. We also provide weekly backup summaries to SACCO admins.
               </p>
@@ -340,7 +340,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 Kinyarwanda (default), English, and French. Members can toggle language in the app.
                 USSD instructions are available in all three languages.
               </p>
@@ -353,7 +353,7 @@ export default function FAQPage() {
                   ▼
                 </span>
               </summary>
-              <p className="mt-4 text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-neutral-700 leading-relaxed">
                 Yes. The staff admin app works on desktop browsers. Members can also access their
                 statements via web browser on any device (responsive design).
               </p>
