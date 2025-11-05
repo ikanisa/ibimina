@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { LoanProduct } from "@/lib/types/supa-app";
 import { LoanProductCard } from "@/components/loans/loan-product-card";
 import { GradientHeader } from "@ibimina/ui";
-import { Loader2, AlertCircle } from "lucide-react";
+import { ErrorState, EmptyState } from "@/components/ui/error-state";
+import { Briefcase } from "lucide-react";
 
 /**
  * Loans Page
@@ -28,7 +29,7 @@ export default function LoansPage() {
         setProducts(data.products || []);
       } catch (err) {
         console.error("Error fetching loan products:", err);
-        setError("Unable to load loan products. Please try again later.");
+        setError(String(err));
       } finally {
         setLoading(false);
       }
@@ -54,11 +55,7 @@ export default function LoansPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
-        <p className="mb-2 font-semibold text-neutral-900">Error</p>
-        <p className="text-center text-neutral-700">{error}</p>
-      </div>
+      <ErrorState error={error} reset={() => window.location.reload()} className="min-h-screen" />
     );
   }
 
@@ -71,12 +68,11 @@ export default function LoansPage() {
         />
 
         {products.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-neutral-700">No loan products available at the moment.</p>
-            <p className="mt-2 text-sm text-neutral-700">
-              Check back later or contact your SACCO for more information.
-            </p>
-          </div>
+          <EmptyState
+            title="No Loans Available"
+            message="No loan products are available at the moment. Check back later or contact your SACCO for more information."
+            icon={<Briefcase className="w-8 h-8 text-neutral-400" />}
+          />
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
