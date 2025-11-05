@@ -90,9 +90,10 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
   },
   // Performance: Optimize images
+  // Cloudflare Pages requires unoptimized images
   images: {
     remotePatterns,
-    unoptimized: false, // Enable Next.js image optimization
+    unoptimized: process.env.CLOUDFLARE_BUILD === "1" ? true : false,
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 3600,
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
