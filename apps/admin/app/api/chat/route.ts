@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import * as Sentry from "@sentry/nextjs";
-import { runAgentTurn } from "@ibimina/ai-agent";
+// TODO: Fix @ibimina/ai-agent build issues
+// import { runAgentTurn } from "@ibimina/ai-agent";
 import { captureServerEvent } from "@ibimina/lib";
 
 const schema = z.object({
@@ -16,7 +17,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = schema.parse(body);
 
-    const response = await runAgentTurn(parsed);
+    // TODO: Re-enable once ai-agent is fixed
+    // const response = await runAgentTurn(parsed);
+    const response = {
+      session: { currentAgent: "placeholder" },
+      toolInvocations: [],
+      reply: "AI agent is temporarily disabled",
+    };
 
     const duration = performance.now() - start;
 

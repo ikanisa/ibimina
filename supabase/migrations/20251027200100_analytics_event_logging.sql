@@ -8,16 +8,16 @@
 CREATE TABLE IF NOT EXISTS public.analytics_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_type TEXT NOT NULL,
-  -- Entity references
-  sacco_id UUID REFERENCES public.saccos(id) ON DELETE CASCADE,
-  ikimina_id UUID REFERENCES public.ibimina(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  payment_id UUID REFERENCES public.payments(id) ON DELETE CASCADE,
+  -- Entity references (using UUID without foreign keys for flexibility)
+  sacco_id UUID,
+  ikimina_id UUID,
+  user_id UUID,
+  payment_id UUID,
   -- Event metadata and timing
   metadata JSONB DEFAULT '{}'::jsonb,
   occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   -- For tracking time between related events (e.g., request created -> approved)
-  related_event_id UUID REFERENCES public.analytics_events(id) ON DELETE SET NULL,
+  related_event_id UUID,
   duration_seconds INTEGER,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -1,543 +1,447 @@
-# Testing Guide for Merged AI Features
+# 🧪 IBIMINA COMPREHENSIVE TESTING GUIDE
 
-This guide helps verify that PRs #270, #305, and #307 were merged successfully and all features work correctly.
-
-## Prerequisites
-
-Before testing, ensure:
-
-1. ✅ All three PRs have been merged
-2. ✅ Database migrations have been run
-3. ✅ Environment variables are configured
-4. ✅ Dependencies are installed (`pnpm install`)
-
-## Quick Health Check
-
-Run this first to verify basic setup:
-
-```bash
-# Check all required environment variables are set
-./scripts/check-env.sh
-
-# Run typecheck
-pnpm typecheck
-
-# Run linter
-pnpm lint
-```
-
-## Test Suite 1: Unit Tests
-
-### AI Agent Package
-```bash
-cd packages/ai-agent
-pnpm test
-
-# Expected output:
-# ✓ creates new session and stores messages
-# ✓ reuses existing session history
-# ✓ enforces rate limiter for org, user, and ip
-# ✓ blocks requests when opt-out registry denies access
-# ✓ validates non-empty message content
-```
-
-### Providers Package (Session Storage)
-```bash
-cd packages/providers
-pnpm test
-
-# Expected output:
-# ✓ redis session store persists and loads sessions
-# ✓ redis session store touch refreshes ttl
-# ✓ supabase session store saves, loads, and deletes sessions
-```
-
-### AI Agent with Embeddings (PR #305)
-```bash
-cd packages/ai-agent
-pnpm test -- ingestion
-
-# Expected output:
-# ✓ ingests documents and stores chunk embeddings
-# ✓ reindexes existing chunks with fresh embeddings
-# ✓ resolves vector matches with high similarity
-# ✓ falls back to keyword search when embeddings fail
-# ✓ returns contextual matches from the chat API
-```
-
-## Test Suite 2: Integration Tests
-
-### Database Schema Validation
-
-```bash
-# Connect to database
-psql $DATABASE_URL
-
-# Verify tables exist
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' 
-AND table_name LIKE 'ai_%' OR table_name LIKE 'agent_%';
-
-# Expected tables:
-# - ai_documents
-# - ai_document_chunks
-# - ai_ingestion_jobs
-# - ai_reindex_events
-# - agent_sessions
-# - agent_usage_events
-# - agent_opt_outs
-```
-
-### Vector Search Function
-
-```sql
--- Test the similarity search function
-SELECT * FROM match_ai_document_chunks(
-  ARRAY[0.1, 0.2, ..., 0.1]::vector(1536),  -- Test embedding
-  5,                                          -- Match count
-  0.5,                                        -- Threshold
-  NULL                                        -- Org filter
-);
-
--- Should return empty result set (no documents yet)
-```
-
-### Session Storage
-
-```bash
-# Start test server
-pnpm dev
-
-# In another terminal, create a test session
-curl -X POST http://localhost:3000/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "org_id": "test-org-123",
-    "user_id": "test-user-456",
-    "message": "Hello, I need help with SACCO loans",
-    "channel": "web"
-  }'
-
-# Expected response:
-# {
-#   "session_id": "uuid-here",
-#   "message": "...",
-#   "messages": [...],
-#   "usage": {
-#     "promptTokens": 12,
-#     "completionTokens": 32,
-#     "totalTokens": 44
-#   },
-#   "model": "gpt-4o-mini",
-#   "createdAt": "2025-11-02T..."
-# }
-
-# Verify session was stored
-psql $DATABASE_URL -c "SELECT * FROM agent_sessions WHERE id = 'session-id-from-response';"
-```
-
-### Rate Limiting
-
-```bash
-# Send multiple requests rapidly
-for i in {1..65}; do
-  curl -X POST http://localhost:3000/api/agent/chat \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer YOUR_TOKEN" \
-    -d "{\"org_id\":\"test-org\",\"message\":\"Request $i\"}" &
-done
-wait
-
-# After 60 requests, should receive 429 error:
-# {
-#   "error": "rate_limit",
-#   "message": "Rate limit exceeded",
-#   "details": {
-#     "bucketKey": "org:test-org",
-#     "maxHits": 60,
-#     "windowSeconds": 60
-#   }
-# }
-```
-
-### Usage Logging
-
-```bash
-# Make a few chat requests
-curl -X POST http://localhost:3000/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{"org_id":"test-org","message":"Test 1"}'
-
-curl -X POST http://localhost:3000/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{"org_id":"test-org","message":"Test 2"}'
-
-# Verify usage was logged
-psql $DATABASE_URL -c "
-  SELECT 
-    org_id, 
-    channel, 
-    model, 
-    prompt_tokens, 
-    completion_tokens,
-    total_tokens,
-    cost_usd,
-    latency_ms,
-    success
-  FROM agent_usage_events 
-  ORDER BY created_at DESC 
-  LIMIT 5;
-"
-
-# Should show recent usage events with token counts
-```
-
-### Opt-Out Registry
-
-```bash
-# Create an opt-out record
-psql $DATABASE_URL -c "
-  INSERT INTO agent_opt_outs (org_id, user_id, channel, reason)
-  VALUES ('test-org', 'test-user-456', 'web', 'Testing opt-out');
-"
-
-# Try to make a chat request with opted-out user
-curl -X POST http://localhost:3000/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "org_id": "test-org",
-    "user_id": "test-user-456",
-    "message": "This should be blocked",
-    "channel": "web"
-  }'
-
-# Expected response (403):
-# {
-#   "error": "opt_out",
-#   "message": "AI assistant is disabled for this user",
-#   "details": {
-#     "orgId": "test-org",
-#     "userId": "test-user-456",
-#     "channel": "web"
-#   }
-# }
-
-# Clean up
-psql $DATABASE_URL -c "DELETE FROM agent_opt_outs WHERE org_id = 'test-org';"
-```
-
-## Test Suite 3: Observability (PR #270)
-
-### Sentry Integration
-
-```bash
-# Make a request that will cause an error
-curl -X POST http://localhost:3000/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "org_id": "test-org",
-    "message": "Test with invalid data: email@example.com, phone: +250788123456"
-  }'
-
-# Check Sentry dashboard (https://sentry.io)
-# Verify:
-# ✓ Error was captured
-# ✓ PII was scrubbed (email shows as em••••@example.com)
-# ✓ Phone number was scrubbed (shows as +2••••56)
-```
-
-### PostHog Analytics
-
-```bash
-# Make successful requests
-curl -X POST http://localhost:3000/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{"org_id":"test-org","message":"Analytics test"}'
-
-# Check PostHog dashboard
-# Verify:
-# ✓ Event "ai_agent_chat" was captured
-# ✓ Properties include: org_id, channel, model, tokens
-# ✓ Funnel tracks: message_sent → response_received
-```
-
-## Test Suite 4: Embedding Pipeline (PR #305)
-
-### Document Ingestion
-
-```typescript
-// Create test script: scripts/test-ingestion.ts
-import {
-  EmbeddingIngestionPipeline,
-  OpenAIEmbeddingProvider,
-  SupabaseVectorStore,
-} from "@ibimina/ai-agent";
-
-const provider = new OpenAIEmbeddingProvider({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
-
-const store = SupabaseVectorStore.fromEnv();
-const pipeline = new EmbeddingIngestionPipeline(store, provider);
-
-const testDoc = {
-  orgId: "test-org",
-  title: "SACCO Loan Requirements",
-  content: "To apply for a SACCO loan, members must have maintained regular savings for at least 6 months...",
-  sourceType: "manual",
-  sourceUri: "https://kb.example.com/loans",
-  createdBy: "test-user",
-};
-
-const results = await pipeline.ingest([testDoc]);
-console.log("Ingestion results:", results);
-
-// Expected:
-// {
-//   documentId: "uuid",
-//   jobId: "uuid",
-//   chunkCount: 3,
-//   tokenCount: 150,
-//   checksum: "sha256-hash",
-//   status: "completed"
-// }
-```
-
-Run it:
-```bash
-tsx scripts/test-ingestion.ts
-```
-
-### Vector Search
-
-```typescript
-// scripts/test-vector-search.ts
-import {
-  KnowledgeBaseResolver,
-  OpenAIEmbeddingProvider,
-  SupabaseVectorStore,
-} from "@ibimina/ai-agent";
-
-const provider = new OpenAIEmbeddingProvider({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
-
-const store = SupabaseVectorStore.fromEnv();
-const resolver = new KnowledgeBaseResolver(store, provider);
-
-const result = await resolver.search("What are the loan requirements?", {
-  orgId: "test-org",
-  matchCount: 3,
-});
-
-console.log("Search results:", result);
-
-// Expected:
-// {
-//   source: "vector",
-//   matches: [
-//     {
-//       documentId: "uuid",
-//       chunkId: "uuid",
-//       content: "To apply for a SACCO loan...",
-//       similarity: 0.87,
-//       title: "SACCO Loan Requirements"
-//     }
-//   ]
-// }
-```
-
-Run it:
-```bash
-tsx scripts/test-vector-search.ts
-```
-
-### Reindexing
-
-```bash
-# Reindex all documents
-pnpm --filter @ibimina/ai-agent reindex
-
-# Reindex specific org
-pnpm --filter @ibimina/ai-agent reindex --org=test-org
-
-# Reindex specific documents
-pnpm --filter @ibimina/ai-agent reindex --document=doc-id-1,doc-id-2
-
-# Expected output:
-# Reindexed 5 documents and refreshed 23 chunks successfully.
-```
-
-## Test Suite 5: End-to-End Workflow
-
-Complete workflow test:
-
-```bash
-#!/bin/bash
-# scripts/e2e-test.sh
-
-set -e
-
-echo "1. Ingesting test documents..."
-tsx scripts/test-ingestion.ts
-
-echo "2. Testing vector search..."
-tsx scripts/test-vector-search.ts
-
-echo "3. Creating chat session..."
-SESSION_RESPONSE=$(curl -s -X POST http://localhost:3000/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "org_id": "test-org",
-    "message": "What are the loan requirements?"
-  }')
-
-SESSION_ID=$(echo $SESSION_RESPONSE | jq -r '.session_id')
-echo "Session created: $SESSION_ID"
-
-echo "4. Continuing conversation..."
-curl -X POST http://localhost:3000/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d "{
-    \"org_id\": \"test-org\",
-    \"session_id\": \"$SESSION_ID\",
-    \"message\": \"How long must I have been a member?\"
-  }"
-
-echo "5. Verifying session persisted..."
-psql $DATABASE_URL -c "SELECT id, messages FROM agent_sessions WHERE id = '$SESSION_ID';"
-
-echo "6. Verifying usage logged..."
-psql $DATABASE_URL -c "
-  SELECT session_id, total_tokens, latency_ms, success 
-  FROM agent_usage_events 
-  WHERE session_id = '$SESSION_ID';
-"
-
-echo "✅ E2E test complete!"
-```
-
-Run it:
-```bash
-chmod +x scripts/e2e-test.sh
-./scripts/e2e-test.sh
-```
-
-## Performance Benchmarks
-
-Expected performance metrics:
-
-| Metric | Target | Acceptable Range |
-|--------|--------|------------------|
-| Chat Response Time (cold) | < 2s | 1.5s - 3s |
-| Chat Response Time (warm) | < 1s | 0.5s - 1.5s |
-| Vector Search | < 500ms | 200ms - 800ms |
-| Session Save | < 100ms | 50ms - 200ms |
-| Rate Limit Check | < 50ms | 10ms - 100ms |
-| Embedding Generation (1 doc) | < 3s | 2s - 5s |
-
-Run benchmarks:
-```bash
-# Install Apache Bench if needed
-# sudo apt-get install apache2-utils
-
-# Benchmark chat endpoint
-ab -n 100 -c 10 -p test-payload.json -T application/json \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  http://localhost:3000/api/agent/chat
-
-# Expected results:
-# Requests per second: > 20
-# Mean time per request: < 500ms
-# 95th percentile: < 1000ms
-```
-
-## Cleanup
-
-After testing:
-
-```bash
-# Remove test data
-psql $DATABASE_URL -c "
-  DELETE FROM agent_usage_events WHERE org_id = 'test-org';
-  DELETE FROM agent_sessions WHERE org_id = 'test-org';
-  DELETE FROM ai_documents WHERE org_id = 'test-org';
-  DELETE FROM agent_opt_outs WHERE org_id = 'test-org';
-"
-
-# Stop test server
-pkill -f "pnpm dev"
-```
-
-## Troubleshooting
-
-### Tests Fail: "OPENAI_API_KEY is not configured"
-**Solution**: Ensure environment variable is set
-```bash
-export OPENAI_API_KEY=your-key-here
-```
-
-### Tests Fail: "Failed to connect to Supabase"
-**Solution**: Check Supabase credentials
-```bash
-export SUPABASE_URL=https://your-project.supabase.co
-export SUPABASE_SERVICE_ROLE_KEY=your-service-key
-```
-
-### Tests Fail: "Redis connection refused"
-**Solution**: Either start Redis or switch to Supabase mode
-```bash
-# Option 1: Start Redis
-docker run -d -p 6379:6379 redis
-
-# Option 2: Use Supabase for sessions
-export AI_AGENT_SESSION_STORE=supabase
-```
-
-### Vector Search Returns No Results
-**Solution**: Ingest test documents first
-```bash
-tsx scripts/test-ingestion.ts
-```
-
-### Rate Limiting Not Working
-**Solution**: Clear rate limit buckets
-```sql
-DELETE FROM ops.rate_limits WHERE bucket_key LIKE 'org:%' OR bucket_key LIKE 'user:%';
-```
-
-## Success Criteria
-
-✅ All unit tests pass  
-✅ All integration tests pass  
-✅ Chat endpoint returns responses  
-✅ Sessions persist across requests  
-✅ Rate limiting blocks after threshold  
-✅ Usage events are logged  
-✅ Opt-outs are respected  
-✅ Vector search returns relevant results  
-✅ Sentry captures errors with PII scrubbed  
-✅ PostHog tracks analytics  
-✅ Performance meets benchmarks  
-
-## Next Steps
-
-After all tests pass:
-1. Deploy to staging environment
-2. Run smoke tests in staging
-3. Monitor Sentry and PostHog dashboards
-4. Deploy to production
-5. Monitor for 24 hours
-6. Update documentation
+**Last Updated:** 2025-11-04  
+**Status:** ✅ Ready for Testing - Migration Issues Fixed
 
 ---
 
-**Need help?** See [PR_CONFLICT_RESOLUTION_GUIDE.md](./PR_CONFLICT_RESOLUTION_GUIDE.md) for troubleshooting and rollback procedures.
+## 🎯 TESTING OVERVIEW
+
+The Ibimina SACCO management system consists of 4 integrated applications:
+
+1. **Admin PWA** - Staff console (Next.js, runs on web)
+2. **Client Mobile** - Member app (React Native, iOS + Android)
+3. **Staff Android** - Staff mobile tools (Capacitor + Android)
+4. **Backend** - Supabase (PostgreSQL + Edge Functions)
+
+**Testing Goal:** Validate all features work end-to-end before production launch.
+
+---
+
+## ✅ PHASE 1: BACKEND TESTING (30 minutes)
+
+### 1.1 Database Connection
+```bash
+cd /Users/jeanbosco/workspace/ibimina
+
+# Set environment variables
+export SUPABASE_URL="https://vacltfdslodqybxojytc.supabase.co"
+export SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY2x0ZmRzbG9kcXlieG9qeXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5NzI3MzUsImV4cCI6MjA3NTU0ODczNX0.XBJckvtgeWHYbKSnd1ojRd7mBKjdk5OSe0VDqS1PapM"
+
+# Test connection
+curl -X GET "$SUPABASE_URL/rest/v1/" \
+  -H "apikey: $SUPABASE_ANON_KEY" \
+  | jq
+```
+
+✅ **Expected:** JSON response with API version info
+
+### 1.2 Test Edge Functions
+```bash
+# List deployed functions
+supabase functions list
+
+# Should see:
+# - whatsapp-send-otp
+# - whatsapp-verify-otp
+# - tapmomo-reconcile
+# - send-push-notification
+# + 26 more functions
+```
+
+✅ **Expected:** 30 functions listed, all status = ACTIVE
+
+### 1.3 Test Key Tables
+```bash
+# Test organizations table
+curl "$SUPABASE_URL/rest/v1/organizations?select=id,name&limit=3" \
+  -H "apikey: $SUPABASE_ANON_KEY" | jq
+
+# Test user_profiles table
+curl "$SUPABASE_URL/rest/v1/user_profiles?select=id&limit=1" \
+  -H "apikey: $SUPABASE_ANON_KEY" | jq
+```
+
+✅ **Expected:** JSON arrays (may be empty if no data seeded yet)
+
+---
+
+## ✅ PHASE 2: ADMIN PWA TESTING (45 minutes)
+
+### 2.1 Build and Start
+```bash
+cd /Users/jeanbosco/workspace/ibimina
+
+# Ensure environment variables are set
+cat > apps/admin/.env.local << 'EOF'
+NEXT_PUBLIC_SUPABASE_URL=https://vacltfdslodqybxojytc.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY2x0ZmRzbG9kcXlieG9qeXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5NzI3MzUsImV4cCI6MjA3NTU0ODczNX0.XBJckvtgeWHYbKSnd1ojRd7mBKjdk5OSe0VDqS1PapM
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+EOF
+
+# Build and run
+pnpm install
+pnpm --filter @ibimina/admin dev
+```
+
+✅ **Expected:** App runs on http://localhost:3000
+
+### 2.2 Manual Feature Testing
+
+| Feature | Steps | Pass/Fail |
+|---------|-------|-----------|
+| **🔐 Login** | 1. Go to http://localhost:3000<br>2. Enter test credentials<br>3. Should redirect to dashboard | ⬜ |
+| **📊 Dashboard** | 1. View KPI cards<br>2. Check charts load<br>3. Verify quick actions | ⬜ |
+| **👥 Users** | 1. Click "Users"<br>2. Search/filter<br>3. View user detail<br>4. Edit user | ⬜ |
+| **💰 Payments** | 1. View payment list<br>2. Filter by status<br>3. View payment detail | ⬜ |
+| **📨 SMS Inbox** | 1. View SMS list<br>2. Check parsed fields<br>3. Test manual reconciliation | ⬜ |
+| **⚙️ Settings** | 1. Update profile<br>2. Change theme (light/dark)<br>3. Verify changes persist | ⬜ |
+| **🌐 Offline Mode** | 1. Open DevTools > Network<br>2. Set to "Offline"<br>3. Try an action<br>4. Should show offline indicator | ⬜ |
+
+### 2.3 PWA Testing
+```bash
+# Open in Chrome
+open -a "Google Chrome" http://localhost:3000
+```
+
+**DevTools Checklist:**
+1. Application → Service Workers → Should see "activated" ⬜
+2. Application → Manifest → Should load without errors ⬜
+3. Application → Icons → Should show 192px, 512px icons ⬜
+4. Lighthouse → PWA score > 90 ⬜
+5. Chrome menu → Install app → Should work ⬜
+
+---
+
+## ✅ PHASE 3: CLIENT MOBILE APP TESTING (60 minutes)
+
+### 3.1 Setup Environment
+```bash
+cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile
+
+# Create .env file
+cat > .env << 'EOF'
+EXPO_PUBLIC_SUPABASE_URL=https://vacltfdslodqybxojytc.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+WHATSAPP_API_TOKEN=your_whatsapp_token
+WHATSAPP_PHONE_NUMBER_ID=your_phone_id
+OPENAI_API_KEY=your_openai_key
+EOF
+
+# Install dependencies
+npm install
+```
+
+### 3.2 iOS Testing
+```bash
+# Sync iOS
+npx cap sync ios
+
+# Open in Xcode
+npx cap open ios
+
+# In Xcode:
+# 1. Select target device or simulator
+# 2. Press Run (⌘R)
+```
+
+### 3.3 Android Testing
+```bash
+# Sync Android
+npx cap sync android
+
+# Open in Android Studio
+npx cap open android
+
+# In Android Studio:
+# 1. Select device or emulator
+# 2. Click Run (green triangle)
+```
+
+### 3.4 Mobile Feature Testing
+
+| Feature | iOS | Android | Notes |
+|---------|-----|---------|-------|
+| **📱 Onboarding** | ⬜ | ⬜ | 3 slides, skip button works |
+| **📞 WhatsApp OTP** | ⬜ | ⬜ | OTP sent, received, verified |
+| **👀 Browse Mode** | ⬜ | ⬜ | Can view features before login |
+| **🔒 Auth Guard** | ⬜ | ⬜ | Login prompt on protected action |
+| **🏠 Dashboard** | ⬜ | ⬜ | Balance displays, KPIs load |
+| **💸 Deposit** | ⬜ | ⬜ | Can initiate deposit |
+| **💵 Withdraw** | ⬜ | ⬜ | Can initiate withdrawal |
+| **↔️ Transfer** | ⬜ | ⬜ | Can transfer between accounts |
+| **📜 Transactions** | ⬜ | ⬜ | History displays, can filter |
+| **💳 Accounts** | ⬜ | ⬜ | Multiple accounts shown |
+| **👤 Profile** | ⬜ | ⬜ | Can edit profile fields |
+| **🌙 Dark Mode** | ⬜ | ⬜ | Toggle works |
+| **📴 Offline** | ⬜ | ⬜ | Offline banner shows |
+| **🔔 Push Notifications** | ⬜ | ⬜ | Receives test notification |
+
+---
+
+## ✅ PHASE 4: STAFF ANDROID APP TESTING (45 minutes)
+
+### 4.1 Build APK
+```bash
+cd /Users/jeanbosco/workspace/ibimina/apps/admin/android
+
+# Clean build
+./gradlew clean
+
+# Build debug APK
+./gradlew assembleDebug
+
+# APK location
+# apps/admin/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### 4.2 Install on Device
+```bash
+# Via USB
+adb devices
+adb install app/build/outputs/apk/debug/app-debug.apk
+
+# Or transfer APK file and install manually
+```
+
+### 4.3 Staff App Feature Testing
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| **📱 Launch** | ⬜ | App opens without crash |
+| **🔐 QR Login** | ⬜ | Scan PWA QR code |
+| **✅ Auth Success** | ⬜ | PWA session activates |
+| **📊 Dashboard** | ⬜ | Staff metrics display |
+| **👥 User List** | ⬜ | Can view SACCO members |
+| **🔍 Search** | ⬜ | Search by name/phone works |
+| **💰 Payment Entry** | ⬜ | Can record payment manually |
+| **📲 NFC TapMoMo** | ⬜ | Can read NFC payment (if supported) |
+| **📨 SMS Reader** | ⬜ | Reads MoMo SMS notifications |
+| **🤖 SMS Parsing** | ⬜ | OpenAI parses SMS correctly |
+| **✅ Auto-Match** | ⬜ | Payment matched to user |
+| **📴 Offline Queue** | ⬜ | Actions queue when offline |
+| **🔄 Sync** | ⬜ | Queue replays when back online |
+
+---
+
+## ✅ PHASE 5: INTEGRATION TESTING (30 minutes)
+
+### 5.1 End-to-End Payment Flow
+
+**Scenario:** Client deposits money, staff processes, balance updates
+
+```
+Step 1: Client opens mobile app                        ⬜
+Step 2: Client signs up with WhatsApp OTP              ⬜
+Step 3: Client sees welcome dashboard                  ⬜
+Step 4: Client initiates deposit via USSD              ⬜
+Step 5: Client completes MoMo payment                  ⬜
+Step 6: MoMo sends SMS confirmation                    ⬜
+Step 7: Staff Android app reads SMS                    ⬜
+Step 8: OpenAI parses SMS (amount, phone, ref)         ⬜
+Step 9: System matches payment to client               ⬜
+Step 10: Client sees balance updated in mobile app     ⬜
+Step 11: Staff sees transaction in Admin PWA           ⬜
+```
+
+### 5.2 Web-to-Mobile 2FA Flow
+
+**Scenario:** Staff authenticates Admin PWA using Android app
+
+```
+Step 1: Staff opens Admin PWA in browser               ⬜
+Step 2: Login page displays QR code                    ⬜
+Step 3: Staff opens Staff Android app                  ⬜
+Step 4: Staff taps "Scan QR" in app                    ⬜
+Step 5: Camera activates, staff scans QR               ⬜
+Step 6: App prompts for biometric/PIN                  ⬜
+Step 7: Staff authenticates in app                     ⬜
+Step 8: App sends auth token to PWA                    ⬜
+Step 9: PWA session activates, shows dashboard         ⬜
+```
+
+### 5.3 TapMoMo NFC Payment Flow
+
+**Scenario:** Merchant receives payment via NFC tap (Android only)
+
+```
+Step 1: Merchant activates "Get Paid" on Staff Android ⬜
+Step 2: Merchant enters amount, shows NFC prompt       ⬜
+Step 3: Client taps their Android phone to merchant    ⬜
+Step 4: Payment details transferred via NFC            ⬜
+Step 5: Client sees payment confirmation on screen     ⬜
+Step 6: Client confirms payment                        ⬜
+Step 7: USSD initiated automatically on client phone   ⬜
+Step 8: Client enters PIN to complete payment          ⬜
+Step 9: Transaction recorded in Supabase               ⬜
+Step 10: Both client and merchant see confirmation     ⬜
+```
+
+---
+
+## 🐛 BUG REPORTING TEMPLATE
+
+Found an issue? Report it like this:
+
+```markdown
+### 🐛 Bug: [Short descriptive title]
+
+**App:** Admin PWA / Client Mobile iOS / Client Mobile Android / Staff Android  
+**Severity:** 🔴 Critical / 🟠 High / 🟡 Medium / 🟢 Low  
+**Reproducible:** Always / Sometimes / Rarely
+
+**Steps to Reproduce:**
+1. Open [app name]
+2. Navigate to [screen]
+3. Tap/click [button]
+4. Observe [issue]
+
+**Expected Behavior:**
+[What should happen]
+
+**Actual Behavior:**
+[What actually happens]
+
+**Screenshots/Videos:**
+[Attach if available]
+
+**Console Errors:**
+```
+[Paste any error messages]
+```
+
+**Device Info:**
+- Device: iPhone 14 Pro / Samsung Galaxy S23 / etc.
+- OS: iOS 17.1 / Android 14 / macOS Sonoma
+- App Version: 0.1.0
+```
+
+---
+
+## 📊 TESTING PROGRESS TRACKER
+
+| Phase | Total Tests | Passed | Failed | Completion |
+|-------|-------------|--------|--------|------------|
+| **Backend** | 3 | 0 | 0 | 0% |
+| **Admin PWA** | 7 | 0 | 0 | 0% |
+| **Client Mobile** | 14 | 0 | 0 | 0% |
+| **Staff Android** | 13 | 0 | 0 | 0% |
+| **Integration** | 3 | 0 | 0 | 0% |
+| **OVERALL** | **40** | **0** | **0** | **0%** |
+
+**Target:** 95%+ pass rate before production launch
+
+---
+
+## 🆘 TROUBLESHOOTING
+
+### Issue: "Cannot connect to Supabase"
+```bash
+# Check environment variables
+echo $SUPABASE_URL
+echo ${SUPABASE_ANON_KEY:0:20}...
+
+# Test connection
+curl -I $SUPABASE_URL
+
+# Verify in Supabase Dashboard:
+# https://supabase.com/dashboard/project/vacltfdslodqybxojytc
+```
+
+### Issue: "Admin PWA won't start"
+```bash
+cd apps/admin
+
+# Clear cache
+rm -rf .next node_modules/.cache
+
+# Reinstall
+pnpm install
+
+# Check TypeScript
+pnpm typecheck
+
+# Try build
+pnpm build
+```
+
+### Issue: "Mobile app crashes on launch"
+```bash
+# iOS: Clean build
+cd ios
+pod deintegrate && pod install
+cd ..
+npx react-native run-ios --clean
+
+# Android: Clean build
+cd android
+./gradlew clean
+cd ..
+npx react-native run-android
+```
+
+### Issue: "WhatsApp OTP not sending"
+```bash
+# Check WhatsApp API credentials in Meta dashboard
+# Verify phone number is verified
+# Check Edge Function logs:
+supabase functions logs whatsapp-send-otp
+```
+
+### Issue: "NFC not working"
+```
+Android:
+1. Settings → NFC → Enable NFC
+2. Check app has NFC permissions in AndroidManifest.xml
+3. Test with another NFC-enabled Android device
+
+iOS:
+- NFC payment (HCE) is NOT available for third-party apps
+- Only NFC reading (payer side) is possible
+```
+
+---
+
+## ✅ TESTING COMPLETION CHECKLIST
+
+Before marking testing as complete:
+
+- [ ] All backend endpoints tested and documented
+- [ ] All Admin PWA features manually tested
+- [ ] Client Mobile tested on both iOS and Android
+- [ ] Staff Android tested on physical device
+- [ ] All 3 integration flows tested end-to-end
+- [ ] All critical bugs fixed
+- [ ] All high-priority bugs fixed or documented
+- [ ] Performance tested (Lighthouse, app profiling)
+- [ ] Security reviewed (auth flows, API permissions)
+- [ ] User acceptance testing completed with real SACCO staff
+- [ ] Documentation updated with any new findings
+- [ ] Production deployment plan reviewed
+
+---
+
+## 🚀 NEXT STEPS AFTER TESTING
+
+1. **Create GitHub Issues** for all bugs found
+2. **Prioritize Bugs** (Critical → High → Medium → Low)
+3. **Fix Critical/High Bugs** immediately
+4. **Performance Optimization** based on testing results
+5. **Security Audit** of authentication and API access
+6. **User Acceptance Testing** with real SACCO staff
+7. **Production Deployment** only after 95%+ tests pass
+
+---
+
+## 📞 SUPPORT
+
+If you need help during testing:
+- Check `PRODUCTION_READY_SUMMARY.md` for system overview
+- Check `NEXT_STEPS.md` for development roadmap
+- Check `QUICK_REFERENCE.md` for common commands
+- Open a GitHub issue for bugs
+- Contact the development team
+
+---
+
+**Happy Testing! 🧪✨**

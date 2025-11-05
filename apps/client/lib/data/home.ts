@@ -99,11 +99,7 @@ export async function loadHomeDashboard(): Promise<HomeDashboardData> {
   }
 
   const saccoIds = Array.from(
-    new Set(
-      groupRows
-        .map((group) => group.sacco_id)
-        .filter((id): id is string => Boolean(id))
-    )
+    new Set(groupRows.map((group) => group.sacco_id).filter((id): id is string => Boolean(id)))
   );
 
   let saccoRows: Array<Pick<Database["public"]["Tables"]["saccos"]["Row"], "id" | "name" | "merchant_code">> = [];
@@ -142,10 +138,11 @@ export async function loadHomeDashboard(): Promise<HomeDashboardData> {
       (allocation) => !CONFIRMED_STATUSES.includes(allocation.status)
     );
 
-    const lastContributionAt = groupAllocations
-      .map((allocation) => allocation.createdAt)
-      .filter((value): value is string => Boolean(value))
-      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
+    const lastContributionAt =
+      groupAllocations
+        .map((allocation) => allocation.createdAt)
+        .filter((value): value is string => Boolean(value))
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
 
     const contribution = extractContribution(group?.settings_json ?? null);
 

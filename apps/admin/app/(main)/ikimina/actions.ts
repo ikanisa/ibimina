@@ -202,10 +202,10 @@ async function updateIkiminaSettingsInternal(
 
   await revalidatePath(`/ikimina/${data.ikiminaId}`);
   await revalidatePath(`/ikimina/${data.ikiminaId}/settings`);
-  await revalidateTag(CACHE_TAGS.ikiminaDirectory, {});
-  await revalidateTag(CACHE_TAGS.ikimina(data.ikiminaId), {});
-  await revalidateTag(CACHE_TAGS.sacco(typedExisting.sacco_id ?? null), {});
-  await revalidateTag(CACHE_TAGS.dashboardSummary, {});
+  await revalidateTag(CACHE_TAGS.ikiminaDirectory);
+  await revalidateTag(CACHE_TAGS.ikimina(data.ikiminaId));
+  await revalidateTag(CACHE_TAGS.sacco(typedExisting.sacco_id ?? null));
+  await revalidateTag(CACHE_TAGS.dashboardSummary);
 
   logInfo("ikimina_settings_updated", {
     ikiminaId: data.ikiminaId,

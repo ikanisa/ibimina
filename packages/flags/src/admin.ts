@@ -8,7 +8,7 @@ import type {
   FlagMatrixEntry,
   FlagRecord,
   FlagScope,
-} from "./types.js";
+} from "./types";
 
 interface RawFlagRow {
   id: string;

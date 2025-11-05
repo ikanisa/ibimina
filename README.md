@@ -22,16 +22,24 @@ semantic SACCO search.
   best practices
 - [**docs/QUICK_REFERENCE.md**](docs/QUICK_REFERENCE.md) - Quick command
   reference with timings
+- [**docs/ADMIN_APPS_GUIDE.md**](docs/ADMIN_APPS_GUIDE.md) - Guide to choosing
+  the correct admin/staff app
+- [**docs/MIGRATION_APPLICATION_GUIDE.md**](docs/MIGRATION_APPLICATION_GUIDE.md) -
+  How to apply database migrations
 - [**docs/PROJECT_STRUCTURE.md**](docs/PROJECT_STRUCTURE.md) - Project structure
   and dependency graph
 - [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) - Common issues and
   solutions
+- [**KNOWN_ISSUES.md**](KNOWN_ISSUES.md) - Current known issues and their
+  resolutions
 - [**PRE_EXISTING_BUILD_ISSUES.md**](PRE_EXISTING_BUILD_ISSUES.md) - Known build
   issues requiring separate PRs
 - [**docs/CI_WORKFLOWS.md**](docs/CI_WORKFLOWS.md) - CI/CD workflows and
   troubleshooting
 - [**docs/DB_GUIDE.md**](docs/DB_GUIDE.md) - Database procedures and migration
   guide
+- [**docs/SUPABASE_LOCAL_DEVELOPMENT.md**](docs/SUPABASE_LOCAL_DEVELOPMENT.md) -
+  Supabase CLI setup and local development guide
 - [**docs/SCHEMA_VERIFICATION.md**](docs/SCHEMA_VERIFICATION.md) - Schema drift
   detection and verification system
 - [**docs/ENV_VARIABLES.md**](docs/ENV_VARIABLES.md) - Complete environment

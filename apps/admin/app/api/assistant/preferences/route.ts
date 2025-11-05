@@ -44,11 +44,13 @@ export async function GET(request: Request) {
   try {
     const { user } = await requireUserAndProfile();
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
+    // Cast to any since user_preferences table not in generated types  
+    const result = await (supabase as any)
       .from("user_preferences")
       .select("preferences")
       .eq("user_id", user.id)
-      .maybeSingle<{ preferences: unknown }>();
+      .maybeSingle();
+    const { data, error } = result as { data: { preferences: unknown } | null; error: any };
 
     if (error) {
       console.error("[assistant] Failed to load preferences", error);
@@ -76,11 +78,16 @@ export async function PATCH(request: Request) {
     const { user } = await requireUserAndProfile();
     const supabase = await createSupabaseServerClient();
 
-    const { data: existing, error: fetchError } = await supabase
+    // Cast to any since user_preferences table not in generated types
+    const result1 = await (supabase as any)
       .from("user_preferences")
       .select("id, preferences")
       .eq("user_id", user.id)
-      .maybeSingle<{ id: string; preferences: unknown }>();
+      .maybeSingle();
+    const { data: existing, error: fetchError } = result1 as {
+      data: { id: string; preferences: unknown } | null;
+      error: any;
+    };
 
     if (fetchError && fetchError.code !== "PGRST116") {
       console.error("[assistant] Failed to load existing preferences", fetchError);
@@ -89,7 +96,8 @@ export async function PATCH(request: Request) {
 
     const preferences = mergeVisibility(existing?.preferences ?? null, path, visible);
 
-    const { error: upsertError } = await supabase.from("user_preferences").upsert(
+    // Cast to any since user_preferences table not in generated types
+    const result2 = await (supabase as any).from("user_preferences").upsert(
       {
         id: existing?.id,
         user_id: user.id,
@@ -98,6 +106,7 @@ export async function PATCH(request: Request) {
       },
       { onConflict: "user_id" }
     );
+    const { error: upsertError } = result2 as { error: any };
 
     if (upsertError) {
       console.error("[assistant] Failed to persist preferences", upsertError);

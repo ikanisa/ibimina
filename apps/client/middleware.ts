@@ -1,7 +1,8 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
-import { withSentryMiddleware } from "@sentry/nextjs/middleware";
+// Sentry middleware wrapper not available in this version
+// import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
 import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@ibimina/lib";
 import { defaultLocale } from "./i18n";
@@ -107,10 +108,25 @@ const middlewareImpl = (request: NextRequest) => {
   }
 };
 
-export const middleware = withSentryMiddleware(middlewareImpl, {
-  captureResponse: true,
-  waitForTransaction: true,
-});
+// Export middleware directly with Sentry error capture
+export const middleware = (request: NextRequest) => {
+  try {
+    return middlewareImpl(request);
+  } catch (error) {
+    // Manually capture errors in Sentry
+    Sentry.captureException(error, {
+      tags: {
+        middleware: "client",
+        url: request.nextUrl.pathname,
+      },
+    });
+    // Return error response
+    return NextResponse.json(
+      { error: "Middleware error" },
+      { status: 500 }
+    );
+  }
+};
 
 Sentry.setTag("middleware", "client");
 

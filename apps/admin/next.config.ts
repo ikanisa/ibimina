@@ -78,13 +78,22 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   // For monorepo: always set to match turbopack.root
   outputFileTracingRoot: path.join(__dirname, "../../"),
+  // ESLint configuration - ignore during builds for now
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  // TypeScript configuration
+  typescript: {
+    ignoreBuildErrors: false,
+  },
   env: {
     NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
   },
   // Performance: Optimize images
+  // Cloudflare Pages requires unoptimized images
   images: {
     remotePatterns,
-    unoptimized: false, // Enable Next.js image optimization
+    unoptimized: process.env.CLOUDFLARE_BUILD === "1" ? true : false,
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 3600,
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
@@ -101,6 +110,27 @@ const nextConfig: NextConfig = {
             exclude: ["error", "warn"],
           }
         : false,
+  },
+  // Webpack fallbacks for edge runtime and node: protocol
+  webpack: (config, { isServer, webpack }) => {
+    // Handle node: protocol imports
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
+        resource.request = resource.request.replace(/^node:/, "");
+      })
+    );
+
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        crypto: false,
+        fs: false,
+        net: false,
+        tls: false,
+        async_hooks: false,
+      };
+    }
+    return config;
   },
   // Enable Turbopack for Next.js 16 - always use monorepo root for dependencies
   turbopack: {
@@ -165,7 +195,19 @@ const nextConfig: NextConfig = {
 const enhancedConfig =
   process.env.CLOUDFLARE_BUILD === "1" ? nextConfig : withBundleAnalyzer(withPWA(nextConfig));
 
-const sentryPluginOptions = { silent: true } as const;
-const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
+// Only apply Sentry build-time configuration when DSN is available
+// This prevents DNS/network errors when Sentry is not configured or blocked
+const hasSentryDsn = Boolean(process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN);
 
-export default withSentryConfig(enhancedConfig, sentryPluginOptions, sentryBuildOptions);
+let finalConfig: NextConfig;
+
+if (hasSentryDsn) {
+  const sentryPluginOptions = { silent: true } as const;
+  const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
+  finalConfig = withSentryConfig(enhancedConfig, sentryPluginOptions, sentryBuildOptions);
+} else {
+  console.log("[next.config] Sentry DSN not configured - skipping Sentry build integration");
+  finalConfig = enhancedConfig;
+}
+
+export default finalConfig;

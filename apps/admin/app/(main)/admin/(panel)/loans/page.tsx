@@ -47,19 +47,25 @@ export default async function LoansPipelinePage({ searchParams }: LoansPipelineP
   const scope = resolveTenantScope(profile, resolved);
   const supabase = createSupabaseServiceRoleClient("admin/panel/loans");
 
-  let query = supabase
-    .from("loan_applications")
-    .select(
-      "id, status, requested_amount, tenor_months, applicant_name, applicant_phone, created_at, status_updated_at, partner_reference, product:loan_products(name, partner_name), org_id"
-    )
-    .order("created_at", { ascending: false })
-    .limit(500);
+  // Feature disabled: loan_applications table does not exist
+  // Return empty state until feature is enabled
+  const data: PipelineLoanRow[] = [];
+  const error = null;
 
-  if (!scope.includeAll && scope.saccoId) {
-    query = query.eq("org_id", scope.saccoId);
-  }
+  // Commented out - loan feature is disabled
+  // let query = supabase
+  //   .from("loan_applications")
+  //   .select(
+  //     "id, status, requested_amount, tenor_months, applicant_name, applicant_phone, created_at, status_updated_at, partner_reference, product:loan_products(name, partner_name), org_id"
+  //   )
+  //   .order("created_at", { ascending: false })
+  //   .limit(500);
 
-  const { data, error } = await query;
+  // if (!scope.includeAll && scope.saccoId) {
+  //   query = query.eq("org_id", scope.saccoId);
+  // }
+
+  // const { data, error } = await query;
 
   if (error) {
     if (isMissingRelationError(error)) {

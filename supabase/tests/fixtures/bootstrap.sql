@@ -89,6 +89,33 @@ as $$
   );
 $$;
 
+-- Helper function to check if user has a specific role
+-- Safe version that handles missing tables
+create or replace function public.has_role(user_id uuid, role_name text)
+returns boolean
+language plpgsql
+security definer
+stable
+as $$
+begin
+  -- Check if users table exists first
+  if not exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'users'
+  ) then
+    return false;
+  end if;
+  
+  return exists (
+    select 1 from public.users
+    where id = user_id and role = role_name
+  );
+exception
+  when others then
+    return false;
+end;
+$$;
+
 do $$
 begin
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then

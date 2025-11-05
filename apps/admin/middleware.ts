@@ -1,7 +1,5 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import * as Sentry from "@sentry/nextjs";
-import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
 // Conditionally import lib functions
 let createSecurityMiddlewareContext: any;
@@ -217,8 +215,5 @@ export const middleware = process.env.NODE_ENV === "development"
 Sentry.setTag("middleware", "admin");
 
 export const config = {
-  matcher: [
-    // Run middleware on everything EXCEPT these paths
-    "/((?!_next/static|_next/image|favicon.ico|icons/|robots.txt|manifest.json|manifest.webmanifest|service-worker.js|assets|offline|api).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
