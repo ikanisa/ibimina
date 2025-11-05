@@ -1,6 +1,10 @@
-import type { NextConfig } from "next";
+// ESM configuration for Next.js
 import path from "path";
-import { createWithPwa } from "../../config/next/withPwa";
+import { fileURLToPath } from "url";
+import { featureFlagDefinitions } from "@ibimina/config";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Next.js configuration for SACCO+ Client App
@@ -10,7 +14,6 @@ import { createWithPwa } from "../../config/next/withPwa";
  * - Optimized production builds with tree-shaking
  * - PWA capabilities with service worker and aggressive caching
  * - Performance optimizations for images and bundles
- * - Cloudflare Pages deployment support
  */
 
 // Security headers
@@ -26,41 +29,36 @@ const HSTS_HEADER = {
   value: "max-age=63072000; includeSubDomains; preload",
 };
 
-// Remote image patterns for client app
-const remotePatterns: Array<{ protocol: "https"; hostname: string; pathname?: string }> = [
-  {
-    protocol: "https",
-    hostname: "images.unsplash.com",
-  },
-  {
-    protocol: "https",
-    hostname: "api.qrserver.com",
-    pathname: "/v1/create-qr-code/**",
-  },
-];
+const fallbackFeatureDefault = featureFlagDefinitions.pwaFallback.defaultValue;
+const shouldEnablePwaFallback =
+  process.env.ENABLE_PWA_FALLBACK === "1" ||
+  (process.env.DISABLE_PWA_FALLBACK !== "1" && fallbackFeatureDefault);
 
-// Add Supabase storage pattern if configured
+let withPWA = (config) => config;
 try {
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    const { hostname } = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
-    remotePatterns.push({
-      protocol: "https",
-      hostname,
-      pathname: "/storage/v1/object/public/**",
-    });
-  }
-} catch (error) {
-  console.warn("Invalid NEXT_PUBLIC_SUPABASE_URL", error);
+  const withPWAInit = (await import("next-pwa")).default;
+  withPWA = withPWAInit({
+    dest: "public",
+    disable:
+      process.env.NODE_ENV === "development" ||
+      process.env.DISABLE_PWA === "1" ||
+      !shouldEnablePwaFallback,
+    register: true,
+    skipWaiting: true,
+    sw: "service-worker.js",
+    swSrc: "workers/service-worker.ts",
+    buildExcludes: [/middleware-manifest\.json$/],
+  });
+} catch {
+  console.warn(
+    "next-pwa not available during local build; proceeding without service worker bundling."
+  );
 }
 
-const withPWA = createWithPwa();
-
-const nextConfig: NextConfig = {
-  // Use standalone for Docker/Node deployments, but not for Cloudflare
-  output: process.env.CLOUDFLARE_BUILD === "1" ? undefined : "standalone",
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  // For monorepo: always set to match turbopack.root
   outputFileTracingRoot: path.join(__dirname, "../../"),
 
   // Ignore ESLint errors during build (known issues in client app)
@@ -68,17 +66,10 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 
-  // TypeScript configuration
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-
-  // Performance: Image optimization
-  // Cloudflare Pages requires unoptimized images
+  // Performance: Enable Next.js image optimization with responsive loading
   images: {
-    remotePatterns,
-    unoptimized: process.env.CLOUDFLARE_BUILD === "1" ? true : false,
     formats: ["image/avif", "image/webp"],
+    unoptimized: false, // Enable Next.js image optimization
     minimumCacheTTL: 3600,
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -102,42 +93,6 @@ const nextConfig: NextConfig = {
             exclude: ["error", "warn"],
           }
         : false,
-  },
-
-  // Webpack configuration for Node.js modules in browser
-  webpack: (config, { isServer, webpack }) => {
-    // Handle node: protocol imports
-    config.plugins.push(
-      new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
-        resource.request = resource.request.replace(/^node:/, "");
-      })
-    );
-
-    if (!isServer) {
-      // Provide fallbacks for node modules in browser
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        crypto: false,
-        readline: false,
-        stream: false,
-        zlib: false,
-        http: false,
-        https: false,
-        util: false,
-        os: false,
-        path: false,
-        async_hooks: false,
-      };
-    }
-    return config;
-  },
-
-  // Enable Turbopack for Next.js 16 - always use monorepo root for dependencies
-  turbopack: {
-    root: path.join(__dirname, "../../"),
   },
 
   // Performance: HTTP caching headers for static assets
@@ -209,16 +164,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
     webpackBuildWorker: true,
-    serverExternalPackages: ["posthog-node"],
-    // Force webpack for Cloudflare builds (Turbopack has issues with monorepos)
-    ...(process.env.CLOUDFLARE_BUILD === "1" && {
-      turbo: false,
-    }),
   },
 };
 
-// Apply PWA wrapper (skipped for Cloudflare builds)
-const finalConfig =
-  process.env.CLOUDFLARE_BUILD === "1" ? nextConfig : withPWA(nextConfig);
-
-export default finalConfig;
+export default withPWA(nextConfig);
