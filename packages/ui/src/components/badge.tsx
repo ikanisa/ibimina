@@ -3,34 +3,64 @@ import { cn } from "../utils/cn";
 
 export interface BadgeProps {
   children: ReactNode;
-  variant?: "neutral" | "info" | "success" | "warning" | "critical";
-  size?: "sm" | "md";
+  variant?: "neutral" | "info" | "success" | "warning" | "critical" | "pending";
+  size?: "sm" | "md" | "lg";
   className?: string;
+  dot?: boolean;
 }
 
+/**
+ * Badge Component - Atlas UI Design System
+ *
+ * WCAG AA compliant with proper contrast ratios.
+ * Used for status indicators, tags, and labels.
+ */
 const variantClasses: Record<NonNullable<BadgeProps["variant"]>, string> = {
-  neutral: "bg-white/10 text-neutral-1 border-white/15",
-  info: "bg-sky-500/15 text-sky-100 border-sky-500/25",
-  success: "bg-emerald-500/10 text-emerald-200 border-emerald-500/20",
-  warning: "bg-amber-500/15 text-amber-200 border-amber-500/25",
-  critical: "bg-red-500/15 text-red-200 border-red-500/25",
+  neutral: "bg-neutral-100 text-neutral-700 border-neutral-200",
+  info: "bg-info-50 text-info-700 border-info-200",
+  success: "bg-success-50 text-success-700 border-success-200",
+  warning: "bg-warning-50 text-warning-700 border-warning-200",
+  critical: "bg-error-50 text-error-700 border-error-200",
+  pending: "bg-warning-50 text-warning-700 border-warning-200",
 };
 
 const sizeClasses: Record<NonNullable<BadgeProps["size"]>, string> = {
-  sm: "px-2.5 py-0.5 text-[10px]",
-  md: "px-3 py-1 text-xs",
+  sm: "px-2 py-0.5 text-xs gap-1",
+  md: "px-2.5 py-1 text-sm gap-1.5",
+  lg: "px-3 py-1.5 text-base gap-2",
 };
 
-export function Badge({ children, variant = "neutral", size = "md", className }: BadgeProps) {
+export function Badge({
+  children,
+  variant = "neutral",
+  size = "md",
+  className,
+  dot = false,
+}: BadgeProps) {
   return (
     <span
+      role="status"
       className={cn(
-        "inline-flex items-center rounded-full border uppercase tracking-wide font-medium",
+        "inline-flex items-center rounded-full border font-medium",
         variantClasses[variant],
         sizeClasses[size],
         className
       )}
     >
+      {dot && (
+        <span
+          className={cn(
+            "w-1.5 h-1.5 rounded-full",
+            variant === "success" && "bg-success-600",
+            variant === "warning" && "bg-warning-600",
+            variant === "critical" && "bg-error-600",
+            variant === "info" && "bg-info-600",
+            variant === "pending" && "bg-warning-600 animate-pulse",
+            variant === "neutral" && "bg-neutral-600"
+          )}
+          aria-hidden="true"
+        />
+      )}
       {children}
     </span>
   );
