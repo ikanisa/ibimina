@@ -1,0 +1,80 @@
+Issue ID,Title,Severity,Category,Component,App,Description,Proposed Fix,Estimated Effort,Priority,Status
+H1.1,No loading states on data fetch,Major,Usability,Home Dashboard,PWA,Dashboard renders synchronously with no skeleton,Add Suspense boundaries with skeleton loaders,2d,P1,Open
+H1.2,Payment intent feedback unclear,Minor,Usability,Pay Screen,PWA,I've Paid button provides no immediate visual feedback,Show toast notification with confirmation message,1d,P2,Open
+H1.3,Group join request status hidden,Major,Usability,Groups,PWA,After submitting join request no confirmation appears,Add success toast and badge on group card showing pending status,2d,P1,Open
+H1.4,Navigation context loss,Minor,Usability,Bottom Nav,PWA,Bottom nav doesn't highlight nested routes,Update bottom-nav.tsx to match parent paths,1d,P2,Open
+H1.5,No loading indicators,Blocker,Usability,Home Screen,Mobile,useGroups renders nothing while loading,Add LiquidCardSkeleton from skeletons,1d,P0,Open
+H1.6,USSD dial action silent,Major,Usability,Pay Screen,Mobile,Dialing USSD provides no haptic or visual feedback,Add haptic feedback and temporary toast,1d,P1,Open
+H1.7,Reference copy feedback missing,Minor,Usability,Pay Screen,Mobile,Pay screen shows Copied text but no visual emphasis,Add checkmark icon and brief green highlight animation,1d,P2,Open
+H2.1,Technical jargon in UI,Major,Content,Global,Both,Terms like reference tokens allocations merchant code unfamiliar,Replace with plain language payment code contributions SACCO code,3d,P1,Open
+H2.2,Empty state language too formal,Minor,Content,Groups,PWA,No groups available is too formal,Use friendly You haven't joined any groups yet Ready to start saving together,1d,P2,Open
+H2.3,Date formats inconsistent,Minor,Content,Global,PWA,Uses en-GB format but app targets Rwanda,Switch to user's locale preference or default to dd MMM yyyy,1d,P2,Open
+H2.4,Emoji icons unclear,Major,Design,Bottom Tabs,Mobile,Tab icons use emoji which don't scale or localize well,Replace with vector icons from @expo/vector-icons Ionicons,2d,P1,Open
+H2.5,Currency assumes RWF,Minor,Content,Global,Both,Hardcoded RWF without explanation,Add Rwandan Francs on first mention,1d,P2,Open
+H3.1,No way to cancel group join request,Major,Usability,Groups,PWA,After submitting user can't undo,Add Cancel Request button on group cards with pending requests,2d,P1,Open
+H3.2,Payment sheet no dismiss action,Minor,Usability,Pay Screen,PWA,Expanded sheet requires scrolling away,Add collapse/dismiss button at top of sheet,1d,P2,Open
+H3.3,Statement filters persist across sessions,Minor,Usability,Statements,PWA,Custom date filter remains on next visit,Add Clear Filters or Reset button,1d,P2,Open
+H3.4,Back navigation unclear,Major,Usability,Navigation,Mobile,Screens don't show back button consistently,Add header back button on all sub-screens,2d,P1,Open
+H3.5,Amount input no clear button,Minor,Usability,Pay Screen,Mobile,TextInput for amount has no X to clear,Add clear button icon when input has value,1d,P2,Open
+H4.1,Inconsistent button styles,Blocker,Design,Buttons,PWA,Primary actions use different colors across screens,Establish single primary button component with consistent atlas-blue,3d,P0,Open
+H4.2,Card designs vary wildly,Major,Design,Cards,PWA,Different padding borders shadows across group-card loan-product-card token-card,Consolidate to single Card component with variant props,5d,P1,Open
+H4.3,Spacing inconsistencies,Major,Design,Global,PWA,Gaps range from space-y-4 to space-y-8 arbitrarily,Enforce 8pt grid 16px sections 24px page sections 32px major divisions,3d,P1,Open
+H4.4,Icon sizes not standardized,Minor,Design,Icons,PWA,Icons range from w-5 h-5 to w-7 h-7 without clear hierarchy,Define scale sm=16px md=20px lg=24px xl=28px,2d,P2,Open
+H4.5,Dark theme inconsistently applied,Blocker,Design,Theme,Mobile,Dark tab bar but cards use light backgrounds,Choose either light or dark as primary apply consistently,3d,P0,Open
+H4.6,Typography scale unclear,Major,Design,Typography,Mobile,Font sizes vary without clear hierarchy,Apply theme scale from src/theme/typography.ts consistently,3d,P1,Open
+H4.7,Button heights not uniform,Minor,Design,Buttons,Mobile,Some buttons 44px some 48px some 56px,Standardize primary=48px secondary=44px small=40px,2d,P2,Open
+H5.1,No validation on onboarding form,Major,Usability,Onboarding,PWA,Accepts invalid phone numbers,Add Zod schema validation with Rwanda-specific pattern,3d,P1,Open
+H5.2,Duplicate payment submissions possible,Minor,Usability,Pay Screen,PWA,I've Paid button can be clicked multiple times,Disable button after first click show Processing,1d,P2,Open
+H5.3,Group join with empty note allowed,Minor,Usability,Groups,PWA,Join request dialog accepts empty message field,Either make optional remove field or require minimum 10 characters,1d,P2,Open
+H5.4,Amount input accepts invalid values,Major,Usability,Pay Screen,Mobile,No validation for negative numbers decimals excessive values,Add numeric validation min=100 max=1000000 integers only,2d,P1,Open
+H5.5,No confirmation before dialing USSD,Minor,Usability,Pay Screen,Mobile,User might accidentally dial when reviewing code,Add confirmation modal Ready to make a payment with Cancel/Confirm,2d,P2,Open
+H6.1,Payment instructions hidden,Major,Usability,Pay Screen,PWA,User must remember USSD steps after viewing once,Make steps always visible or add Show instructions again button,1d,P1,Open
+H6.2,Group member count not shown,Minor,Usability,Groups,PWA,Users can't see group size when browsing,Add X members badge to group cards,1d,P2,Open
+H6.3,Last contribution date missing,Minor,Usability,Home,PWA,Users don't know when they last contributed,Add Last contributed X days ago to home dashboard widgets,2d,P2,Open
+H6.4,Reference tokens not labeled,Major,Usability,Pay Screen,Mobile,Shows tokens but doesn't explain what they're for,Add explanation text Your unique payment code for this group,1d,P1,Open
+H6.5,USSD code not visible until action,Minor,Usability,Pay Screen,Mobile,Code only shown when dialing,Display USSD code *182*8*1# prominently above dial button,1d,P2,Open
+H7.1,No quick actions,Minor,Usability,Home,PWA,Expert users must navigate through tabs every time,Add shortcuts Pay Now View Statements Join Group quick action cards,2d,P2,Open
+H7.2,Statement export not implemented,Minor,Feature,Statements,PWA,Export PDF button present but non-functional,Implement CSV export as faster alternative to PDF,3d,P2,Open
+H7.3,No search in groups,Minor,Usability,Groups,PWA,Users must scroll through all groups to find one,Add search/filter bar above groups grid,2d,P2,Open
+H7.4,No gesture shortcuts,Minor,Usability,Statements,Mobile,All actions require taps on specific buttons,Add swipe actions on statement rows swipe left to see details,3d,P2,Open
+H7.5,No recently used tokens,Minor,Usability,Pay Screen,Mobile,User must find their token every time,Pin most recently used token to top of list,2d,P2,Open
+H8.1,Home dashboard cluttered,Major,Design,Home,PWA,Quick actions group widgets recent confirmations compete for attention,Prioritize Pay at top then 2-3 groups max then recent activity collapsible,3d,P1,Open
+H8.2,Payment sheet information dense,Major,Design,Pay Screen,PWA,Shows too much info merchant code reference USSD amount group SACCO instructions warnings actions,Use progressive disclosure fold details into More info expandable section,3d,P1,Open
+H8.3,Profile shows unnecessary fields,Minor,Design,Profile,PWA,Profile displays full technical user ID,Remove technical IDs show only user-relevant info name phone language,1d,P2,Open
+H8.4,Pay screen too many tokens,Major,Design,Pay Screen,Mobile,Shows all reference tokens at once overwhelming if many groups,Show only most recent/active token by default add See all tokens expand,2d,P1,Open
+H8.5,Statement details verbose,Minor,Design,Statements,Mobile,Each row shows all transaction metadata,Simplify to date amount status tap to see full details,2d,P2,Open
+H9.1,Generic error messages,Blocker,Usability,Global,PWA,API failures show technical Unable to verify reference token,Use friendly We couldn't find that payment code Check your groups and try again,3d,P0,Open
+H9.2,No recovery path from offline,Major,Usability,Offline,PWA,Offline page says You're offline with no actions,Add View saved statements Retry connection Learn what you can do offline,2d,P1,Open
+H9.3,Form validation errors not associated with fields,Minor,Accessibility,Forms,PWA,Errors appear at top without indicating which field is problematic,Use inline validation with red border and message below field,2d,P2,Open
+H9.4,USSD dial failure generic,Blocker,Usability,Pay Screen,Mobile,Unable to open dialer Please dial manually has no recovery,Add recovery copy USSD code to clipboard automatically show how to paste,2d,P0,Open
+H9.5,Loading errors not explained,Major,Usability,Global,Mobile,If tokens/allocations fail screen shows empty state without context,Distinguish Loading vs No groups yet vs Connection error - Tap to retry,2d,P1,Open
+H10.1,No contextual help,Major,Usability,Global,PWA,Users must navigate to separate /help page,Add ? icon on complex screens Pay Statements opening inline help tooltips,3d,P1,Open
+H10.2,FAQ not searchable,Minor,Usability,Help,PWA,Help page has static list without search,Add search bar filtering FAQ by keywords,2d,P2,Open
+H10.3,No onboarding tutorial,Minor,Usability,Onboarding,PWA,First-time users dropped into home without guidance,Add optional 3-step tutorial Here's how to pay Track your savings Join more groups,3d,P2,Open
+H10.4,No in-app help,Major,Usability,Navigation,Mobile,No help or support option visible in UI,Add help icon to header or profile tab,1d,P1,Open
+H10.5,USSD steps not documented,Minor,Content,Pay Screen,Mobile,Users expected to know how to use USSD codes,Add first-time overlay explaining USSD process with screenshots,2d,P2,Open
+A11Y-1,PWA secondary text fails contrast,Blocker,Accessibility,Typography,PWA,text-neutral-600 on bg-neutral-50 = 3.8:1 needs 4.5:1,Change to text-neutral-700 7.0:1 ratio,1d,P0,Open
+A11Y-2,Mobile tab bar labels low contrast,Blocker,Accessibility,Bottom Tabs,Mobile,Active colors.rw.blue on colors.ink[900] = 3.2:1,Increase to colors.rw.blue lightened to #33B8F0 or add text stroke,1d,P0,Open
+A11Y-3,PWA success messages low contrast,Minor,Accessibility,Alerts,PWA,Green text on white occasionally below 4.5:1,Use text-emerald-700 minimum,1d,P2,Open
+A11Y-4,PWA group cards no keyboard access,Blocker,Accessibility,Groups,PWA,Uses div onClick without keyboard handling,Convert to button or add tabIndex={0} onKeyDown handlers,2d,P0,Open
+A11Y-5,Focus indicators inconsistent,Major,Accessibility,Global,PWA,Some buttons show focus ring others don't,Apply global focus-visible:ring-2 focus-visible:ring-atlas-blue/30 to all interactive elements,2d,P1,Open
+A11Y-6,Tab order illogical,Major,Accessibility,Home,PWA,Quick actions then recent confirmations then group widgets should be quick actions then group widgets then recent,Reorder DOM to match visual hierarchy or use tabindex,2d,P1,Open
+A11Y-7,Skip to main content missing,Minor,Accessibility,Layout,PWA,Has header and nav but no skip link,Add <a href=#main-content className=sr-only focus:not-sr-only>Skip to main content</a>,1d,P2,Open
+A11Y-8,PWA bottom nav icons not hidden,Blocker,Accessibility,Bottom Nav,PWA,Icons lack aria-hidden=true,Already implemented correctly but verify all instances,1d,P0,Open
+A11Y-9,Mobile tab icons meaningless to screen readers,Blocker,Accessibility,Bottom Tabs,Mobile,Emoji icons announced as house not Home,Replace with proper Ionicons components that have accessible labels,2d,P0,Open
+A11Y-10,PWA loading states not announced,Major,Accessibility,Global,PWA,Async content loads without notifying screen reader users,Add aria-live=polite regions or use Suspense with accessible fallbacks,2d,P1,Open
+A11Y-11,Form errors not associated with inputs,Major,Accessibility,Forms,PWA,Validation errors appear as text but not linked via aria-describedby,Add aria-describedby=field-error to inputs and id=field-error to error messages,2d,P1,Open
+A11Y-12,Status badges lack semantic meaning,Minor,Accessibility,Badges,PWA,CONFIRMED PENDING shown as styled text without role,Wrap in <span role=status aria-label=Status: Confirmed>,1d,P2,Open
+A11Y-13,PWA group card actions too small,Major,Accessibility,Groups,PWA,Join button is ~40×36px below 44×44pt minimum,Increase padding px-4 py-3 to px-5 py-3.5,1d,P1,Open
+A11Y-14,Mobile token rows tight spacing,Minor,Accessibility,Pay Screen,Mobile,Tap targets ~40×60px meets minimum but could be more comfortable,Increase height to 48px minimum,1d,P2,Open
+A11Y-15,PWA bottom nav targets,Pass,Accessibility,Bottom Nav,PWA,All nav items are 64×48px exceeds 44×44pt,No action needed,0d,P3,Closed
+A11Y-16,Mobile tab bar height,Pass,Accessibility,Bottom Tabs,Mobile,60px height with adequate spacing,No action needed,0d,P3,Closed
+A11Y-17,PWA breaks at 200% zoom,Major,Accessibility,Layout,PWA,Fixed pixel widths cause horizontal scroll at high zoom,Use rem/em units avoid max-w-[Npx] test at 200% zoom,3d,P1,Open
+A11Y-18,Mobile doesn't support user font size,Minor,Accessibility,Typography,Mobile,React Native doesn't inherit device font scaling by default,Add allowFontScaling={true} to all Text components or set in theme,2d,P2,Open
+A11Y-19,PWA animations not respecting prefers-reduced-motion,Minor,Accessibility,Motion,PWA,No media query override,Add @media (prefers-reduced-motion: reduce) animation-duration: 0.01ms !important,1d,P2,Open
+A11Y-20,Mobile animations always on,Minor,Accessibility,Motion,Mobile,No detection of AccessibilityInfo.isReduceMotionEnabled(),Add motion check in theme disable Reanimated animations conditionally,2d,P2,Open
+A11Y-21,PWA group images missing alt text,Blocker,Accessibility,Images,PWA,Group cards may render images without alt attributes,Ensure all img have alt=[Group name] icon or alt= if decorative,1d,P0,Open
+A11Y-22,Mobile loading skeletons not labeled,Minor,Accessibility,Skeletons,Mobile,Screen reader announces LiquidCardSkeleton instead of Loading,Add accessibilityLabel=Loading group information,1d,P2,Open
+A11Y-23,VoiceOver/TalkBack order broken,Blocker,Accessibility,Navigation,Mobile,Cards render in query order not visual order,Ensure accessibilityViewIsModal or correct DOM order,2d,P0,Open
+A11Y-24,TouchableOpacity lacks roles,Major,Accessibility,Buttons,Mobile,Payment token rows don't specify accessibleRole=button,Add accessibilityRole=button to all touchable elements,2d,P1,Open
+A11Y-25,Hint text missing on interactive elements,Minor,Accessibility,Buttons,Mobile,Buttons like Dial to pay don't have accessibilityHint explaining outcome,Add accessibilityHint=Opens phone dialer to make payment,2d,P2,Open
