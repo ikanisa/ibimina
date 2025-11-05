@@ -42,7 +42,9 @@ export function UssdSheet({
 }: UssdSheetProps) {
   const [copiedMerchant, setCopiedMerchant] = useState(false);
   const [copiedReference, setCopiedReference] = useState(false);
+  const [copiedUssd, setCopiedUssd] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [showDialError, setShowDialError] = useState(false);
 
   const handleCopy = async (text: string, type: "merchant" | "reference") => {
     try {
@@ -88,6 +90,44 @@ export function UssdSheet({
       sacco: saccoName,
       amount,
     });
+  };
+
+  const handleDialClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Try to dial, but handle failure gracefully
+    trackEvent("mobile_ussd_dial_attempt", {
+      group: groupName,
+      sacco: saccoName,
+      hasAmount: Boolean(amount),
+    });
+
+    // Set a timeout to check if dial worked
+    setTimeout(async () => {
+      // If user is still on page after 2s, dial likely failed
+      // Auto-copy USSD code as fallback
+      try {
+        await navigator.clipboard.writeText(ussdCode);
+        setCopiedUssd(true);
+        setShowDialError(true);
+
+        // Haptic feedback
+        if ("vibrate" in navigator) {
+          navigator.vibrate([50, 100, 50]);
+        }
+
+        trackEvent("mobile_ussd_dial_fallback_copy", {
+          group: groupName,
+          sacco: saccoName,
+        });
+
+        // Hide the success message after 5 seconds
+        setTimeout(() => {
+          setCopiedUssd(false);
+        }, 5000);
+      } catch (error) {
+        console.error("Failed to copy USSD code:", error);
+        setShowDialError(true);
+      }
+    }, 2000);
   };
 
   // Format amount with RWF currency
@@ -161,13 +201,7 @@ export function UssdSheet({
         <div className="space-y-3">
           <a
             href={`tel:${encodeURIComponent(ussdCode)}`}
-            onClick={() =>
-              trackEvent("mobile_ussd_dial_attempt", {
-                group: groupName,
-                sacco: saccoName,
-                hasAmount: Boolean(amount),
-              })
-            }
+            onClick={handleDialClick}
             className="flex items-center justify-center gap-3 w-full min-h-[60px] px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg rounded-xl shadow-atlas hover:shadow-atlas-lg hover:shadow-emerald-600/20 transition-all duration-interactive focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:ring-offset-2"
             aria-label={`Dial USSD code ${ussdCode} to make payment`}
           >
@@ -178,6 +212,57 @@ export function UssdSheet({
             Tap the button above to dial the USSD code automatically
           </p>
         </div>
+
+        {/* USSD Dial Recovery - P0 Fix H9.4 */}
+        {(showDialError || copiedUssd) && (
+          <div
+            className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3 animate-slide-down"
+            role="alert"
+          >
+            {copiedUssd ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2
+                    className="w-5 h-5 text-emerald-600 flex-shrink-0"
+                    aria-hidden="true"
+                  />
+                  <p className="text-sm font-semibold text-emerald-800">USSD Code Copied!</p>
+                </div>
+                <p className="text-sm text-emerald-700 leading-relaxed">
+                  The code <code className="font-mono font-bold">{ussdCode}</code> has been copied
+                  to your clipboard. Open your phone dialer, paste the code, and press call to
+                  complete your payment.
+                </p>
+                <div className="pt-2 border-t border-emerald-200">
+                  <p className="text-xs text-emerald-700">
+                    <strong>How to paste:</strong> In your phone dialer, long-press the number field
+                    and select "Paste"
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <AlertCircle
+                    className="w-5 h-5 text-amber-600 flex-shrink-0"
+                    aria-hidden="true"
+                  />
+                  <p className="text-sm font-semibold text-amber-800">Manual Dialing Needed</p>
+                </div>
+                <p className="text-sm text-amber-700 leading-relaxed">
+                  Automatic dialing isn't available. Please open your phone dialer and enter:{" "}
+                  <code className="font-mono font-bold">{ussdCode}</code>
+                </p>
+                <button
+                  onClick={() => handleCopy(ussdCode, "merchant")}
+                  className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                >
+                  Copy USSD Code
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         {/* 3-Step Checklist - Atlas redesigned */}
         <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5 space-y-4">
