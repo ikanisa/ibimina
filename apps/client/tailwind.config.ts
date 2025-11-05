@@ -3,113 +3,144 @@ import type { Config } from "tailwindcss";
 /**
  * Tailwind CSS configuration for SACCO+ Client App
  *
- * Atlas-inspired design system:
- * - Clean, modern color palette
- * - Smooth animations and transitions
- * - Accessibility-focused design tokens
- * - ChatGPT Atlas aesthetic
+ * Atlas UI Design System (WCAG 2.2 AA Compliant):
+ * - Neutral-first color palette with strategic brand accents
+ * - 8pt spacing grid for consistency
+ * - Systematic typography scale
+ * - Accessibility-focused (proper contrast, focus states)
+ * - Reduced motion support
  */
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        ink: "#0B1020",
-        foreground: "var(--fg)",
-        background: "var(--bg)",
-        atlas: {
-          blue: "#0066FF",
-          "blue-light": "#3385FF",
-          "blue-dark": "#0052CC",
-          glow: "rgba(0, 102, 255, 0.15)",
-        },
+        // Neutral scale (primary) - WCAG AA compliant
         neutral: {
-          0: "#FFFFFF",
-          50: "#F9FAFB",
-          100: "#F3F4F6",
-          200: "#E5E7EB",
-          300: "#D1D5DB",
-          400: "#9CA3AF",
-          500: "#6B7280",
-          600: "#4B5563",
-          700: "#374151",
-          800: "#1F2937",
-          900: "#111827",
-          950: "#030712",
+          50: "#FAFAFA",
+          100: "#F5F5F5",
+          200: "#E5E5E5",
+          300: "#D4D4D4",
+          400: "#A3A3A3",
+          500: "#737373",
+          600: "#525252",
+          700: "#404040", // Use for secondary text (7:1 contrast)
+          800: "#262626",
+          900: "#171717",
+          950: "#0A0A0A",
         },
-        rw: {
-          blue: "#00A1DE",
+        // Brand colors (strategic use only)
+        brand: {
+          blue: "#0EA5E9",
+          "blue-dark": "#0284C7",
+          "blue-darker": "#0369A1",
           yellow: "#FAD201",
           green: "#20603D",
         },
-      },
-      backgroundImage: {
-        kigali: "linear-gradient(135deg, var(--rw-blue), var(--rw-yellow) 50%, var(--rw-green))",
-        "atlas-glow": "radial-gradient(circle at 50% 0%, rgba(0, 102, 255, 0.08), transparent 50%)",
-        "atlas-gradient": "linear-gradient(135deg, #0066FF 0%, #3385FF 100%)",
-      },
-      borderRadius: {
-        xl: "12px",
-        "2xl": "16px",
-        "3xl": "24px",
-      },
-      boxShadow: {
-        glass: "0 8px 24px rgba(0, 0, 0, 0.12)",
-        subtle: "0 2px 8px rgba(0, 0, 0, 0.08)",
-        atlas: "0 4px 16px rgba(0, 102, 255, 0.12)",
-        "atlas-lg": "0 8px 32px rgba(0, 102, 255, 0.16)",
+        // Semantic colors (WCAG compliant)
+        success: {
+          50: "#F0FDF4",
+          100: "#DCFCE7",
+          500: "#10B981",
+          600: "#059669",
+          700: "#047857",
+        },
+        warning: {
+          50: "#FFFBEB",
+          100: "#FEF3C7",
+          500: "#F59E0B",
+          600: "#D97706",
+          700: "#B45309",
+        },
+        error: {
+          50: "#FEF2F2",
+          100: "#FEE2E2",
+          500: "#EF4444",
+          600: "#DC2626",
+          700: "#B91C1C",
+        },
+        info: {
+          50: "#EFF6FF",
+          100: "#DBEAFE",
+          500: "#3B82F6",
+          600: "#2563EB",
+          700: "#1D4ED8",
+        },
       },
       fontFamily: {
         sans: [
+          "Inter",
           "system-ui",
           "-apple-system",
           "BlinkMacSystemFont",
-          '"Segoe UI"',
+          "Segoe UI",
           "Roboto",
           "sans-serif",
         ],
+        display: ["Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "Menlo", "Monaco", "Courier New", "monospace"],
       },
       fontSize: {
-        xs: ["0.75rem", { lineHeight: "1.125rem", letterSpacing: "0.01em" }],
-        sm: ["0.875rem", { lineHeight: "1.375rem", letterSpacing: "0.01em" }],
-        base: ["1rem", { lineHeight: "1.5rem", letterSpacing: "0" }],
-        lg: ["1.125rem", { lineHeight: "1.75rem", letterSpacing: "-0.01em" }],
-        xl: ["1.25rem", { lineHeight: "1.875rem", letterSpacing: "-0.01em" }],
-        "2xl": ["1.5rem", { lineHeight: "2rem", letterSpacing: "-0.02em" }],
-        "3xl": ["1.875rem", { lineHeight: "2.375rem", letterSpacing: "-0.02em" }],
-        "4xl": ["2.25rem", { lineHeight: "2.75rem", letterSpacing: "-0.03em" }],
+        xs: ["0.75rem", { lineHeight: "1rem" }],
+        sm: ["0.875rem", { lineHeight: "1.25rem" }],
+        base: ["1rem", { lineHeight: "1.5rem" }],
+        lg: ["1.125rem", { lineHeight: "1.75rem" }],
+        xl: ["1.25rem", { lineHeight: "1.75rem" }],
+        "2xl": ["1.5rem", { lineHeight: "2rem" }],
+        "3xl": ["1.875rem", { lineHeight: "2.25rem" }],
+        "4xl": ["2.25rem", { lineHeight: "2.5rem" }],
+        "5xl": ["3rem", { lineHeight: "1.16" }],
+        "6xl": ["3.75rem", { lineHeight: "1.16" }],
+        "7xl": ["4.5rem", { lineHeight: "1.16" }],
       },
       spacing: {
-        18: "4.5rem",
-        88: "22rem",
-        128: "32rem",
+        "18": "4.5rem",
+        "88": "22rem",
+        "128": "32rem",
       },
-      transitionDuration: {
-        interactive: "150ms",
-        smooth: "300ms",
+      boxShadow: {
+        sm: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        DEFAULT: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        xl: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+        "2xl": "0 25px 50px -12px rgb(0 0 0 / 0.25)",
+        inner: "inset 0 2px 4px 0 rgb(0 0 0 / 0.05)",
       },
-      transitionTimingFunction: {
-        interactive: "cubic-bezier(0.4, 0, 0.2, 1)",
-        smooth: "cubic-bezier(0.22, 1, 0.36, 1)",
-      },
-      keyframes: {
-        "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(8px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        "slide-in": {
-          "0%": { transform: "translateX(-100%)" },
-          "100%": { transform: "translateX(0)" },
-        },
-        glow: {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(0, 102, 255, 0.3)" },
-          "50%": { boxShadow: "0 0 30px rgba(0, 102, 255, 0.5)" },
-        },
+      borderRadius: {
+        sm: "0.375rem",
+        DEFAULT: "0.5rem",
+        md: "0.75rem",
+        lg: "1rem",
+        xl: "1.5rem",
+        "2xl": "2rem",
       },
       animation: {
-        "fade-in": "fade-in 0.3s ease-out",
-        "slide-in": "slide-in 0.3s ease-out",
-        glow: "glow 2s ease-in-out infinite",
+        "fade-in": "fadeIn 0.5s ease-in-out",
+        "slide-up": "slideUp 0.5s ease-out",
+        "slide-down": "slideDown 0.3s ease-out",
+        "scale-in": "scaleIn 0.3s ease-out",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        slideUp: {
+          "0%": { transform: "translateY(20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        slideDown: {
+          "0%": { transform: "translateY(-10px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        scaleIn: {
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+      },
+      transitionDuration: {
+        "400": "400ms",
       },
     },
   },
