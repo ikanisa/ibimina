@@ -137,7 +137,7 @@ export default function WalletPage() {
               <WalletIcon className="h-10 w-10 text-neutral-400" />
             </div>
             <p className="font-medium text-neutral-700">No tokens found</p>
-            <p className="mt-2 text-sm text-neutral-500">
+            <p className="mt-2 text-sm text-neutral-700">
               {filter === "active" ? "You don't have any active tokens." : "Your wallet is empty."}
             </p>
           </div>

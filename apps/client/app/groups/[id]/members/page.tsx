@@ -205,7 +205,7 @@ export default function GroupMembersPage() {
               <div className="py-16 text-center" role="status">
                 <Users className="mx-auto mb-4 h-12 w-12 text-neutral-400" aria-hidden="true" />
                 <p className="text-lg text-neutral-700">No members found</p>
-                <p className="mt-2 text-sm text-neutral-500">
+                <p className="mt-2 text-sm text-neutral-700">
                   This group doesn&apos;t have any active members yet.
                 </p>
               </div>
@@ -216,31 +216,31 @@ export default function GroupMembersPage() {
                     <tr>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-700"
                       >
                         Member Code
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-700"
                       >
                         Full Name
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-700"
                       >
                         Status
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-700"
                       >
                         Joined Date
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-500"
+                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-neutral-700"
                       >
                         Contact
                       </th>

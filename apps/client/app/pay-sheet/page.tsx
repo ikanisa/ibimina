@@ -83,7 +83,7 @@ export default async function PaySheetPage() {
             <p className="mb-2 text-lg font-medium text-neutral-700">
               No payment instructions available
             </p>
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-neutral-700">
               Payment instructions will appear here when you join a group
             </p>
           </div>
@@ -227,26 +227,26 @@ function PaymentCard({ entry }: PaymentCardProps) {
       <dl className="space-y-3">
         {/* Group name */}
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">Group</dt>
+          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-700">Group</dt>
           <dd className="mt-1 text-sm font-semibold text-neutral-900">{entry.ikimina_name}</dd>
         </div>
 
         {/* SACCO name */}
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">SACCO</dt>
+          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-700">SACCO</dt>
           <dd className="mt-1 text-sm text-neutral-900">{entry.sacco_name}</dd>
         </div>
 
         {/* Payment amount */}
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">Amount</dt>
+          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-700">Amount</dt>
           <dd className="mt-1 text-lg font-bold text-neutral-900">{formattedAmount}</dd>
         </div>
 
         {/* Due date */}
         {formattedDueDate && (
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-700">
               Due Date
             </dt>
             <dd className="mt-1 text-sm text-neutral-900">{formattedDueDate}</dd>
@@ -255,7 +255,7 @@ function PaymentCard({ entry }: PaymentCardProps) {
 
         {/* Reference code */}
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+          <dt className="text-xs font-medium uppercase tracking-wide text-neutral-700">
             Reference
           </dt>
           <dd className="mt-1 font-mono text-sm text-neutral-900">{entry.reference_code}</dd>
@@ -264,7 +264,7 @@ function PaymentCard({ entry }: PaymentCardProps) {
         {/* USSD code - only show for pending payments */}
         {entry.payment_status === "PENDING" && (
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+            <dt className="text-xs font-medium uppercase tracking-wide text-neutral-700">
               USSD Code
             </dt>
             <dd className="mt-2">
@@ -275,7 +275,7 @@ function PaymentCard({ entry }: PaymentCardProps) {
               >
                 {entry.ussd_code}
               </a>
-              <p className="mt-1 text-center text-xs text-neutral-500">Tap to dial</p>
+              <p className="mt-1 text-center text-xs text-neutral-700">Tap to dial</p>
             </dd>
           </div>
         )}

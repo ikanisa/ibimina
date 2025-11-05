@@ -132,12 +132,12 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
         </div>
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-neutral-900">SACCO+ Support</h2>
-          <p className="text-xs text-neutral-500">AI Assistant</p>
+          <p className="text-xs text-neutral-700">AI Assistant</p>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 transition-colors"
+            className="rounded-lg p-2 text-neutral-700 hover:bg-neutral-100 transition-colors"
             aria-label="Close chat"
           >
             ✕
@@ -180,7 +180,7 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
                     )}
                   </p>
                 </div>
-                <span className="mt-1 text-xs text-neutral-500">
+                <span className="mt-1 text-xs text-neutral-700">
                   {message.timestamp.toLocaleTimeString("en-US", {
                     hour: "numeric",
                     minute: "2-digit",
@@ -227,7 +227,7 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder="Message SACCO+ Support..."
-              className="flex-1 resize-none rounded-2xl border border-neutral-300 bg-white px-4 py-3 pr-12 text-[15px] text-neutral-900 placeholder:text-neutral-500 focus:border-atlas-blue focus:outline-none focus:ring-1 focus:ring-atlas-blue transition-colors min-h-[52px] max-h-[200px]"
+              className="flex-1 resize-none rounded-2xl border border-neutral-300 bg-white px-4 py-3 pr-12 text-[15px] text-neutral-900 placeholder:text-neutral-700 focus:border-atlas-blue focus:outline-none focus:ring-1 focus:ring-atlas-blue transition-colors min-h-[52px] max-h-[200px]"
               disabled={isLoading}
               rows={1}
             />
@@ -240,7 +240,7 @@ export function AIChat({ orgId, onClose }: AIChatProps) {
               <Send className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-3 text-center text-xs text-neutral-500">
+          <p className="mt-3 text-center text-xs text-neutral-700">
             AI assistant may make mistakes. Verify important information with SACCO staff.
             {error && <span className="block text-red-500 mt-2">{error}</span>}
           </p>

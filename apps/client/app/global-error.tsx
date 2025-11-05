@@ -27,7 +27,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             this continues, contact support with the error ID below.
           </p>
           {error.digest && (
-            <p className="mb-6 rounded-lg bg-neutral-100 px-3 py-2 font-mono text-xs text-neutral-500">
+            <p className="mb-6 rounded-lg bg-neutral-100 px-3 py-2 font-mono text-xs text-neutral-700">
               Error ID: {error.digest}
             </p>
           )}

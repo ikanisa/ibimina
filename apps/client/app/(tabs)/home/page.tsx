@@ -218,7 +218,7 @@ export default async function HomePage() {
                     <p className="text-sm font-semibold text-neutral-900">
                       {confirmation.groupName}
                     </p>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-neutral-700">
                       {DATE_FORMATTER.format(new Date(confirmation.date))}
                     </p>
                   </div>
@@ -238,7 +238,7 @@ export default async function HomePage() {
 
         <section aria-labelledby="insights-heading" className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+            <p className="text-xs font-medium uppercase tracking-wide text-neutral-700">
               Total confirmed
             </p>
             <p className="mt-2 text-2xl font-bold text-neutral-900">
@@ -246,7 +246,7 @@ export default async function HomePage() {
             </p>
           </div>
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+            <p className="text-xs font-medium uppercase tracking-wide text-neutral-700">
               Pending payments
             </p>
             <p className="mt-2 text-2xl font-bold text-neutral-900">
@@ -254,7 +254,7 @@ export default async function HomePage() {
             </p>
           </div>
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+            <p className="text-xs font-medium uppercase tracking-wide text-neutral-700">
               Active groups
             </p>
             <p className="mt-2 text-2xl font-bold text-neutral-900">{dashboard.groups.length}</p>

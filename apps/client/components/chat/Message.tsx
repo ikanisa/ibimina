@@ -40,7 +40,7 @@ function renderAllocation(locale: SupportedLocale, payload: AllocationPayload) {
         </div>
         <div>
           <p className="text-sm font-semibold text-neutral-900">{payload.heading[locale]}</p>
-          <p className="text-xs font-medium text-neutral-500">{secondaryLabel}</p>
+          <p className="text-xs font-medium text-neutral-700">{secondaryLabel}</p>
         </div>
       </header>
       <p className="mb-4 text-sm text-neutral-700">{bilingual(locale, payload.subheading)}</p>
@@ -59,7 +59,7 @@ function renderAllocation(locale: SupportedLocale, payload: AllocationPayload) {
             >
               <div>
                 <p className="font-semibold text-neutral-900">{allocation.groupName}</p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-neutral-700">
                   {format(new Date(allocation.allocatedAt), "dd MMM yyyy")}
                 </p>
               </div>
@@ -99,7 +99,7 @@ function renderTicket(locale: SupportedLocale, payload: TicketPayload) {
         </div>
         <div>
           <p className="text-sm font-semibold text-neutral-900">{payload.heading[locale]}</p>
-          <p className="text-xs font-medium text-neutral-500">{secondaryLabel}</p>
+          <p className="text-xs font-medium text-neutral-700">{secondaryLabel}</p>
         </div>
       </header>
       <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
@@ -242,7 +242,7 @@ export function Message({ message, locale }: MessageProps) {
 
           return null;
         })}
-        <time className="mt-1 text-xs font-medium text-neutral-500">
+        <time className="mt-1 text-xs font-medium text-neutral-700">
           {format(message.createdAt, "HH:mm")}
         </time>
       </div>

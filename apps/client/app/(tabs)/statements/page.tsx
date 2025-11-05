@@ -68,7 +68,7 @@ export default async function StatementsPage() {
               />
             </svg>
             <p className="mb-2 text-lg text-neutral-700">No statements available</p>
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-neutral-700">
               Make your first contribution to see statements here
             </p>
           </div>

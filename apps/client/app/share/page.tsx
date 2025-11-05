@@ -85,7 +85,7 @@ export default function SharePage({ searchParams }: SharePageProps) {
           </Link>
         </div>
 
-        <p className="mt-6 text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="mt-6 text-xs text-neutral-700 dark:text-neutral-400">
           Shared data stays on this device and is cleared after you navigate away from this page.
         </p>
       </div>

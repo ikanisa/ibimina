@@ -73,7 +73,7 @@ export default function LoansPage() {
         {products.length === 0 ? (
           <div className="py-12 text-center">
             <p className="text-neutral-700">No loan products available at the moment.</p>
-            <p className="mt-2 text-sm text-neutral-500">
+            <p className="mt-2 text-sm text-neutral-700">
               Check back later or contact your SACCO for more information.
             </p>
           </div>

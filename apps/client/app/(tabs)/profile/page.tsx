@@ -73,7 +73,7 @@ export default async function ProfilePage() {
                 <p className="mt-1 text-base font-semibold text-neutral-900">
                   {profile?.whatsappMsisdn ?? "Not set"}
                 </p>
-                <p className="mt-1 text-xs text-neutral-500">
+                <p className="mt-1 text-xs text-neutral-700">
                   This number is used for notifications and communication.
                 </p>
               </div>
@@ -86,7 +86,7 @@ export default async function ProfilePage() {
                 <p className="mt-1 text-base font-semibold text-neutral-900">
                   {profile?.momoMsisdn ?? "Not set"}
                 </p>
-                <p className="mt-1 text-xs text-neutral-500">
+                <p className="mt-1 text-xs text-neutral-700">
                   This number is linked to your payment account.
                 </p>
               </div>

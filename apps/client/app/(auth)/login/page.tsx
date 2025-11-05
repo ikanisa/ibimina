@@ -257,7 +257,7 @@ export default function LoginPage() {
                 ${error ? "border-red-500 focus:ring-red-500" : "border-neutral-300"}
               `}
             />
-            <p className="mt-2 text-xs text-neutral-500">
+            <p className="mt-2 text-xs text-neutral-700">
               You&apos;ll receive a 6-digit verification code via WhatsApp
             </p>
           </div>
@@ -271,7 +271,7 @@ export default function LoginPage() {
               focus-visible:ring-4 focus-visible:ring-atlas-blue/30
               ${
                 isLoading
-                  ? "cursor-not-allowed bg-neutral-300 text-neutral-500"
+                  ? "cursor-not-allowed bg-neutral-300 text-neutral-700"
                   : "bg-atlas-blue text-white hover:bg-atlas-blue-dark"
               }
             `}
@@ -372,7 +372,7 @@ export default function LoginPage() {
                 focus-visible:ring-4 focus-visible:ring-atlas-blue/30
                 ${
                   isLoading || otpCode.length !== 6
-                    ? "cursor-not-allowed bg-neutral-300 text-neutral-500"
+                    ? "cursor-not-allowed bg-neutral-300 text-neutral-700"
                     : "bg-atlas-blue text-white hover:bg-atlas-blue-dark"
                 }
               `}
@@ -433,7 +433,7 @@ export default function LoginPage() {
 
       {/* Help text */}
       <footer className="pt-4 text-center">
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-neutral-700">
           Need help?{" "}
           <a
             href="/help"

@@ -75,7 +75,7 @@ export function SmsConsentCard({ senderHint = null }: SmsConsentCardProps) {
       </button>
 
       {!available && (
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-neutral-700">
           SMS consent is only available in the Android app. You can still type the code manually.
         </p>
       )}

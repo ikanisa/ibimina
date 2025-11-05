@@ -61,7 +61,7 @@ export default function SupportPage() {
               {showAssistant ? "Hide assistant" : "Open assistant"}
             </button>
             {!assistantGateEnabled && (
-              <span className="text-xs text-neutral-500">
+              <span className="text-xs text-neutral-700">
                 Atlas assistant is staged for beta tenants. Enable the{" "}
                 <code className="rounded bg-neutral-200 px-1 py-0.5 text-[11px]">
                   atlasAssistant
@@ -91,7 +91,7 @@ export default function SupportPage() {
             >
               <Sparkles className="mb-4 h-8 w-8 text-atlas-blue" aria-hidden="true" />
               <p className="text-sm font-semibold text-neutral-800">Assistant hidden</p>
-              <p className="mt-1 max-w-md text-xs text-neutral-500">
+              <p className="mt-1 max-w-md text-xs text-neutral-700">
                 Use the toggle above or press{" "}
                 <kbd className="rounded bg-neutral-200 px-1">Shift</kbd> +{" "}
                 <kbd className="rounded bg-neutral-200 px-1">A</kbd> to reopen the chat.
@@ -106,7 +106,7 @@ export default function SupportPage() {
             className="flex min-h-[200px] flex-col items-center justify-center rounded-3xl border border-dashed border-neutral-200 bg-white text-center"
           >
             <p className="text-sm font-semibold text-neutral-700">Assistant rollout pending</p>
-            <p className="mt-1 max-w-md text-xs text-neutral-500">
+            <p className="mt-1 max-w-md text-xs text-neutral-700">
               Ops can enable the Atlas assistant for a SACCO cohort from the feature flag dashboard.
               Legacy support channels remain available in the meantime.
             </p>

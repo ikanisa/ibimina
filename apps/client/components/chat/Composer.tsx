@@ -62,7 +62,7 @@ export function Composer({
               }
             }}
             placeholder={placeholder}
-            className="flex-1 resize-none rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-[15px] text-neutral-900 placeholder:text-neutral-500 focus:border-atlas-blue focus:outline-none focus:ring-2 focus:ring-atlas-blue/40 disabled:cursor-not-allowed disabled:bg-neutral-100"
+            className="flex-1 resize-none rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-[15px] text-neutral-900 placeholder:text-neutral-700 focus:border-atlas-blue focus:outline-none focus:ring-2 focus:ring-atlas-blue/40 disabled:cursor-not-allowed disabled:bg-neutral-100"
             disabled={disabled && !isStreaming}
             rows={1}
             aria-label={placeholder}
@@ -104,7 +104,7 @@ export function Composer({
             )}
           </div>
         </div>
-        <p className="text-center text-xs text-neutral-500">{footerNote}</p>
+        <p className="text-center text-xs text-neutral-700">{footerNote}</p>
       </div>
     </div>
   );

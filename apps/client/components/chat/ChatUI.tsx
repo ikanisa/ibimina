@@ -455,7 +455,7 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
   const languageControls = useMemo(
     () => (
       <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
           {translations[locale].language}
         </span>
         <div className="flex overflow-hidden rounded-full border border-neutral-200">
@@ -489,7 +489,7 @@ export function ChatUI({ orgId, initialLocale = "rw" }: ChatUIProps) {
           </div>
           <div>
             <p className="text-sm font-semibold text-neutral-900">{translations[locale].title}</p>
-            <p className="text-xs text-neutral-500">{translations[locale].subtitle}</p>
+            <p className="text-xs text-neutral-700">{translations[locale].subtitle}</p>
           </div>
         </div>
         {languageControls}

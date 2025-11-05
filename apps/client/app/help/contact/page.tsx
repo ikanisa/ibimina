@@ -35,7 +35,7 @@ export default function ContactPage() {
               <div>
                 <p className="font-semibold text-neutral-900">Phone Support</p>
                 <p className="text-neutral-700">+250 788 000 000</p>
-                <p className="text-sm text-neutral-500">Mon-Fri: 8:00 AM - 5:00 PM EAT</p>
+                <p className="text-sm text-neutral-700">Mon-Fri: 8:00 AM - 5:00 PM EAT</p>
               </div>
             </div>
 
@@ -44,7 +44,7 @@ export default function ContactPage() {
               <div>
                 <p className="font-semibold text-neutral-900">WhatsApp</p>
                 <p className="text-neutral-700">+250 788 000 000</p>
-                <p className="text-sm text-neutral-500">Available 24/7</p>
+                <p className="text-sm text-neutral-700">Available 24/7</p>
               </div>
             </div>
 
@@ -53,7 +53,7 @@ export default function ContactPage() {
               <div>
                 <p className="font-semibold text-neutral-900">Email</p>
                 <p className="text-neutral-700">support@ibimina.rw</p>
-                <p className="text-sm text-neutral-500">Response within 24 hours</p>
+                <p className="text-sm text-neutral-700">Response within 24 hours</p>
               </div>
             </div>
 

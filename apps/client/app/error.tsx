@@ -30,7 +30,7 @@ export default function ErrorBoundary({ error, reset }: ErrorProps) {
           head back to your SACCO+ dashboard.
         </p>
         {error.digest && (
-          <p className="mb-6 rounded-lg bg-neutral-100 px-3 py-2 font-mono text-xs text-neutral-500">
+          <p className="mb-6 rounded-lg bg-neutral-100 px-3 py-2 font-mono text-xs text-neutral-700">
             Error ID: {error.digest}
           </p>
         )}

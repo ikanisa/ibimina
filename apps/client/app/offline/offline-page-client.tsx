@@ -10,7 +10,7 @@ export function OfflinePageClient() {
         <div className="mb-6">
           <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-700 dark:to-neutral-800">
             <WifiOff
-              className="h-12 w-12 text-neutral-500 dark:text-neutral-400"
+              className="h-12 w-12 text-neutral-700 dark:text-neutral-400"
               aria-hidden="true"
             />
           </div>
@@ -49,7 +49,7 @@ export function OfflinePageClient() {
         </div>
 
         <div className="mt-8 border-t border-neutral-200 pt-6 dark:border-neutral-700">
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="text-sm text-neutral-700 dark:text-neutral-400">
             Cached pages may still be available while offline
           </p>
         </div>
