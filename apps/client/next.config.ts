@@ -104,7 +104,7 @@ const nextConfig: NextConfig = {
         : false,
   },
 
-  // Webpack fallbacks for edge runtime and node: protocol
+  // Webpack configuration for Node.js modules in browser
   webpack: (config, { isServer, webpack }) => {
     // Handle node: protocol imports
     config.plugins.push(
@@ -114,12 +114,21 @@ const nextConfig: NextConfig = {
     );
 
     if (!isServer) {
+      // Provide fallbacks for node modules in browser
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        crypto: false,
         fs: false,
         net: false,
         tls: false,
+        crypto: false,
+        readline: false,
+        stream: false,
+        zlib: false,
+        http: false,
+        https: false,
+        util: false,
+        os: false,
+        path: false,
         async_hooks: false,
       };
     }
@@ -200,6 +209,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
     webpackBuildWorker: true,
+    serverExternalPackages: ["posthog-node"],
     // Force webpack for Cloudflare builds (Turbopack has issues with monorepos)
     ...(process.env.CLOUDFLARE_BUILD === "1" && {
       turbo: false,
