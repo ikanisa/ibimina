@@ -138,7 +138,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
         {/* Helper text */}
         {helperText && !error && (
-          <p id={helperId} className="mt-2 text-sm text-neutral-600">
+          <p id={helperId} className="mt-2 text-sm text-neutral-700">
             {helperText}
           </p>
         )}
@@ -168,7 +168,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-neutral-600 hover:text-neutral-900 transition-colors"
+              className="text-neutral-700 hover:text-neutral-900 transition-colors"
               aria-label={showPassword ? "Hide password" : "Show password"}
               tabIndex={-1}
             >
@@ -261,7 +261,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
 
         {helperText && !error && (
-          <p id={helperId} className="mt-2 text-sm text-neutral-600">
+          <p id={helperId} className="mt-2 text-sm text-neutral-700">
             {helperText}
           </p>
         )}
