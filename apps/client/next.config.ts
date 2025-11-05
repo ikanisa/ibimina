@@ -1,33 +1,32 @@
 import type { NextConfig } from "next";
 import path from "path";
-import { withSentryConfig } from "@sentry/nextjs";
-import { HSTS_HEADER, SECURITY_HEADERS } from "./lib/security/headers";
 import { createWithPwa } from "../../config/next/withPwa";
 
-if (process.env.AUTH_E2E_STUB === "1") {
-  const ensure = (key: string, fallback: string) => {
-    const current = process.env[key];
-    if (typeof current !== "string" || current.trim().length === 0) {
-      process.env[key] = fallback;
-    }
-  };
+/**
+ * Next.js configuration for SACCO+ Client App
+ *
+ * This configuration enables:
+ * - React strict mode for better development experience
+ * - Optimized production builds with tree-shaking
+ * - PWA capabilities with service worker and aggressive caching
+ * - Performance optimizations for images and bundles
+ * - Cloudflare Pages deployment support
+ */
 
-  ensure("NEXT_PUBLIC_SUPABASE_URL", "https://stub.supabase.local");
-  ensure("NEXT_PUBLIC_SUPABASE_ANON_KEY", "stub-anon-key");
-  ensure("SUPABASE_SERVICE_ROLE_KEY", "stub-service-role-key");
-  ensure("BACKUP_PEPPER", "stub-backup-pepper");
-  ensure("MFA_SESSION_SECRET", "stub-mfa-session-secret");
-  ensure("TRUSTED_COOKIE_SECRET", "stub-trusted-cookie-secret");
-  ensure("HMAC_SHARED_SECRET", "stub-hmac-shared-secret");
-  ensure("OPENAI_API_KEY", "stub-openai-api-key");
-  ensure("KMS_DATA_KEY_BASE64", "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==");
-}
+// Security headers
+const SECURITY_HEADERS = [
+  { key: "X-DNS-Prefetch-Control", value: "on" },
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+];
 
-const resolvedBuildId =
-  process.env.NEXT_PUBLIC_BUILD_ID ??
-  process.env.GIT_COMMIT_SHA ??
-  `local-${Date.now().toString(36)}`;
+const HSTS_HEADER = {
+  key: "Strict-Transport-Security",
+  value: "max-age=63072000; includeSubDomains; preload",
+};
 
+// Remote image patterns for client app
 const remotePatterns: Array<{ protocol: "https"; hostname: string; pathname?: string }> = [
   {
     protocol: "https",
@@ -40,6 +39,7 @@ const remotePatterns: Array<{ protocol: "https"; hostname: string; pathname?: st
   },
 ];
 
+// Add Supabase storage pattern if configured
 try {
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
     const { hostname } = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
@@ -53,43 +53,27 @@ try {
   console.warn("Invalid NEXT_PUBLIC_SUPABASE_URL", error);
 }
 
-let withBundleAnalyzer = (config: NextConfig) => config;
-
 const withPWA = createWithPwa();
-
-try {
-  const withBundleAnalyzerInit = require("@next/bundle-analyzer");
-  withBundleAnalyzer = withBundleAnalyzerInit({
-    enabled: process.env.ANALYZE_BUNDLE === "1" && process.env.CLOUDFLARE_BUILD !== "1",
-    openAnalyzer: false,
-    analyzerMode: "static",
-    reportFilename: "admin.html",
-    generateStatsFile: true,
-    statsFilename: "bundle-stats.json",
-    defaultSizes: "gzip",
-  });
-} catch {
-  console.warn("@next/bundle-analyzer not available; skip bundle report generation.");
-}
 
 const nextConfig: NextConfig = {
   // Use standalone for Docker/Node deployments, but not for Cloudflare
   output: process.env.CLOUDFLARE_BUILD === "1" ? undefined : "standalone",
   reactStrictMode: true,
+  poweredByHeader: false,
   // For monorepo: always set to match turbopack.root
   outputFileTracingRoot: path.join(__dirname, "../../"),
-  // ESLint configuration - ignore during builds for now
+
+  // Ignore ESLint errors during build (known issues in client app)
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   // TypeScript configuration
   typescript: {
     ignoreBuildErrors: false,
   },
-  env: {
-    NEXT_PUBLIC_BUILD_ID: resolvedBuildId,
-  },
-  // Performance: Optimize images
+
+  // Performance: Image optimization
   // Cloudflare Pages requires unoptimized images
   images: {
     remotePatterns,
@@ -99,9 +83,17 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 414, 640, 768, 828, 1080, 1280, 1440, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  poweredByHeader: false,
+
   // Performance: Transpile workspace packages
   transpilePackages: ["@ibimina/config", "@ibimina/lib", "@ibimina/locales", "@ibimina/ui"],
+
+  // Performance: Tree-shaking for lucide-react
+  modularizeImports: {
+    "lucide-react": {
+      transform: "lucide-react/dist/esm/icons/{{member}}",
+    },
+  },
+
   // Performance: Optimize builds
   compiler: {
     removeConsole:
@@ -111,6 +103,7 @@ const nextConfig: NextConfig = {
           }
         : false,
   },
+
   // Webpack fallbacks for edge runtime and node: protocol
   webpack: (config, { isServer, webpack }) => {
     // Handle node: protocol imports
@@ -132,28 +125,45 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+
   // Enable Turbopack for Next.js 16 - always use monorepo root for dependencies
   turbopack: {
     root: path.join(__dirname, "../../"),
   },
+
+  // Performance: HTTP caching headers for static assets
   async headers() {
     const baseHeaders = [...SECURITY_HEADERS];
     if (process.env.NODE_ENV === "production") {
       baseHeaders.push(HSTS_HEADER);
     }
-    const staticAssetHeaders = [
+
+    const immutableAssetHeaders = [
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
     ];
-    const immutableAssetHeaders = [...staticAssetHeaders];
+
     const manifestHeaders = [
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=300, must-revalidate" },
     ];
+
     const serviceWorkerHeaders = [
       ...baseHeaders,
       { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
     ];
+
+    const staticAssetHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+    ];
+
+    const assetLinksHeaders = [
+      ...baseHeaders,
+      { key: "Cache-Control", value: "public, max-age=86400, must-revalidate" },
+      { key: "Content-Type", value: "application/json" },
+    ];
+
     return [
       {
         source: "/_next/static/:path*",
@@ -176,14 +186,19 @@ const nextConfig: NextConfig = {
         headers: serviceWorkerHeaders,
       },
       {
+        source: "/.well-known/assetlinks.json",
+        headers: assetLinksHeaders,
+      },
+      {
         source: "/:path*",
         headers: baseHeaders,
       },
     ];
   },
+
   // Performance: Experimental features
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion"],
+    optimizePackageImports: ["lucide-react"],
     webpackBuildWorker: true,
     // Force webpack for Cloudflare builds (Turbopack has issues with monorepos)
     ...(process.env.CLOUDFLARE_BUILD === "1" && {
@@ -192,22 +207,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-const enhancedConfig =
-  process.env.CLOUDFLARE_BUILD === "1" ? nextConfig : withBundleAnalyzer(withPWA(nextConfig));
-
-// Only apply Sentry build-time configuration when DSN is available
-// This prevents DNS/network errors when Sentry is not configured or blocked
-const hasSentryDsn = Boolean(process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN);
-
-let finalConfig: NextConfig;
-
-if (hasSentryDsn) {
-  const sentryPluginOptions = { silent: true } as const;
-  const sentryBuildOptions = { hideSourceMaps: true, disableLogger: true } as const;
-  finalConfig = withSentryConfig(enhancedConfig, sentryPluginOptions, sentryBuildOptions);
-} else {
-  console.log("[next.config] Sentry DSN not configured - skipping Sentry build integration");
-  finalConfig = enhancedConfig;
-}
+// Apply PWA wrapper (skipped for Cloudflare builds)
+const finalConfig =
+  process.env.CLOUDFLARE_BUILD === "1" ? nextConfig : withPWA(nextConfig);
 
 export default finalConfig;
