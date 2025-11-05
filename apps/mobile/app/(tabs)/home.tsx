@@ -9,6 +9,7 @@ import { useIntl } from "react-intl";
 import { useRouter } from "expo-router";
 import { HeaderGradient } from "../../src/components/shared/HeaderGradient";
 import { FloatingAskToJoinFab } from "../../src/components/shared/FloatingAskToJoinFab";
+import { LiquidCardSkeleton } from "../../src/components/skeletons/LiquidCardSkeleton";
 import { colors, elevation } from "../../src/theme";
 import { useGroups } from "../../src/features/groups/hooks/useGroups";
 import {
@@ -23,10 +24,7 @@ export default function HomeScreen() {
   const featureFlags = useAppStore((state) => state.featureFlags);
 
   const groupsQuery = useGroups({ limit: 10 });
-  const groups = useMemo(
-    () => groupsQuery.data?.pages.flat() ?? [],
-    [groupsQuery.data]
-  );
+  const groups = useMemo(() => groupsQuery.data?.pages.flat() ?? [], [groupsQuery.data]);
 
   const { data: referenceTokens } = useReferenceTokens();
   const referenceTokenValues = useMemo(
@@ -57,10 +55,12 @@ export default function HomeScreen() {
 
       const existing = aggregates.get(key) ?? {
         monthLabel,
-        groupName: allocation.groupName ?? intl.formatMessage({
-          id: "home.group.unnamed",
-          defaultMessage: "Unassigned",
-        }),
+        groupName:
+          allocation.groupName ??
+          intl.formatMessage({
+            id: "home.group.unnamed",
+            defaultMessage: "Unassigned",
+          }),
         closingBalance: 0,
         currency: allocation.currency,
       };
@@ -108,7 +108,11 @@ export default function HomeScreen() {
           </Text>
 
           {groupsQuery.isLoading ? (
-            <Text style={styles.loadingText}>Loading...</Text>
+            <>
+              <LiquidCardSkeleton />
+              <LiquidCardSkeleton />
+              <LiquidCardSkeleton />
+            </>
           ) : groups.length ? (
             groups.map((group) => (
               <View key={group.id} style={styles.card}>
@@ -141,7 +145,10 @@ export default function HomeScreen() {
                       {
                         date: group.nextCollectionDate
                           ? new Date(group.nextCollectionDate).toLocaleDateString()
-                          : intl.formatMessage({ id: "home.group.notScheduled", defaultMessage: "Not scheduled" }),
+                          : intl.formatMessage({
+                              id: "home.group.notScheduled",
+                              defaultMessage: "Not scheduled",
+                            }),
                       }
                     )}
                   </Text>
@@ -150,7 +157,10 @@ export default function HomeScreen() {
             ))
           ) : (
             <Text style={styles.loadingText}>
-              {intl.formatMessage({ id: "home.groups.empty", defaultMessage: "No groups available yet" })}
+              {intl.formatMessage({
+                id: "home.groups.empty",
+                defaultMessage: "No groups available yet",
+              })}
             </Text>
           )}
 
@@ -160,7 +170,10 @@ export default function HomeScreen() {
           </Text>
 
           {allocationsQuery.isLoading ? (
-            <Text style={styles.loadingText}>Loading...</Text>
+            <>
+              <LiquidCardSkeleton />
+              <LiquidCardSkeleton />
+            </>
           ) : statementSummaries.length ? (
             statementSummaries.map((statement) => (
               <View key={statement.id} style={styles.statementCard}>

@@ -17,6 +17,9 @@ const LiquidCardSkeletonComponent = () => {
     <LinearGradient
       colors={["rgba(16,24,56,0.75)", "rgba(18,30,70,0.55)"]}
       style={styles.container}
+      accessible={true}
+      accessibilityLabel="Loading group information"
+      accessibilityRole="progressbar"
     >
       <Animated.View style={[styles.shimmer, { opacity }]}>
         <View style={styles.lineShort} />
