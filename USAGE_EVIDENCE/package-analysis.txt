@@ -1,0 +1,51 @@
+# Package Duplication Analysis
+
+Checking for duplicate or unused packages:
+
+## @ibimina/agent vs @ibimina/ai-agent
+Both exist. Checking differences:
+  agent:        4 TS files
+  ai-agent:       20 TS files
+
+## @ibimina/api vs @ibimina/api-client
+Both exist. Checking differences:
+  api:        4 TS files
+  api-client:        4 TS files
+
+## Package Usage in Active Apps
+### @ibimina/README.md
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/agent
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/ai-agent
+  Imports: admin=2, client=, website= (total=2)
+### @ibimina/api
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/api-client
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/config
+  Imports: admin=6, client=3, website=4 (total=13)
+### @ibimina/core
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/data-access
+  Imports: admin=, client=5, website= (total=5)
+### @ibimina/eslint-plugin-ibimina
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/flags
+  Imports: admin=4, client=, website= (total=4)
+### @ibimina/lib
+  Imports: admin=10, client=10, website=2 (total=22)
+### @ibimina/locales
+  Imports: admin=3, client=4, website=4 (total=11)
+### @ibimina/providers
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/sms-parser
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/tapmomo-proto
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/testing
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/types
+  Imports: admin=, client=, website= (total=0)
+### @ibimina/ui
+  Imports: admin=36, client=29, website=2 (total=67)

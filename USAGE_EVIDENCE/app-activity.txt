@@ -1,0 +1,30 @@
+# App Activity Analysis
+# Checking which apps have recent activity and build outputs
+
+## Recent File Modifications (last 30 days)
+- apps/admin:     1507 modified files
+- apps/android-auth:       17 modified files
+- apps/client:      359 modified files
+- apps/client-mobile:      119 modified files
+- apps/ios:       28 modified files
+- apps/mobile:      110 modified files
+- apps/platform-api:       33 modified files
+- apps/sacco-plus-client:       15 modified files
+- apps/staff:       21 modified files
+- apps/staff-admin-pwa:      110 modified files
+- apps/staff-mobile-android:       11 modified files
+- apps/website:      114 modified files
+
+## Build Output Presence
+- apps/admin: Next.js Android 
+- apps/android-auth: none
+- apps/client: Next.js Android iOS 
+- apps/client-mobile: Android iOS 
+- apps/ios: none
+- apps/mobile: Android 
+- apps/platform-api: none
+- apps/sacco-plus-client: none
+- apps/staff: none
+- apps/staff-admin-pwa: none
+- apps/staff-mobile-android: none
+- apps/website: Next.js 

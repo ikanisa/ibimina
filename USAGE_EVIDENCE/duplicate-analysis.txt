@@ -1,0 +1,52 @@
+Client apps:
+  apps/client:
+{
+  "name": "@ibimina/client",
+  "version": "0.1.0",
+  "dependencies": 44,
+  "devDependencies": 17
+}
+  apps/client-mobile:
+{
+  "name": "@ibimina/client-mobile",
+  "version": "1.0.0",
+  "dependencies": 26,
+  "devDependencies": 15
+}
+  apps/mobile:
+{
+  "name": "@ibimina/mobile",
+  "version": "0.1.0",
+  "dependencies": 31,
+  "devDependencies": 14
+}
+  apps/sacco-plus-client:
+{
+  "name": "@ibimina/sacco-plus-client",
+  "version": "1.0.0",
+  "dependencies": 15,
+  "devDependencies": 1
+}
+
+Staff apps:
+  apps/admin:
+{
+  "name": "@ibimina/admin",
+  "version": "0.1.2",
+  "dependencies": 44,
+  "devDependencies": 14
+}
+  apps/staff:
+{
+  "name": "@ibimina/staff",
+  "version": "0.1.0",
+  "dependencies": 16,
+  "devDependencies": 9
+}
+  apps/staff-admin-pwa:
+{
+  "name": "@ibimina/staff-admin-pwa",
+  "version": "0.1.0",
+  "dependencies": 25,
+  "devDependencies": 31
+}
