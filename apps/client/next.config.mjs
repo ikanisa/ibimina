@@ -160,10 +160,34 @@ const nextConfig = {
     ];
   },
 
+  // Webpack configuration for Node.js modules in browser
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Provide fallbacks for node modules in browser
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        readline: false,
+        stream: false,
+        zlib: false,
+        http: false,
+        https: false,
+        util: false,
+        os: false,
+        path: false,
+      };
+    }
+    return config;
+  },
+
   // Performance: Experimental features
   experimental: {
     optimizePackageImports: ["lucide-react"],
     webpackBuildWorker: true,
+    serverExternalPackages: ["posthog-node"],
   },
 };
 
