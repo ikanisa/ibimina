@@ -114,7 +114,7 @@ export function GroupCard({ group }: GroupCardProps) {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           handleCardClick();
         }
@@ -122,8 +122,10 @@ export function GroupCard({ group }: GroupCardProps) {
     >
       {/* Group header - Atlas redesigned */}
       <div className="mb-5">
-        <h3 className="text-lg font-bold text-neutral-900 mb-1.5 group-hover:text-atlas-blue transition-colors">{group.name}</h3>
-        <p className="text-sm text-neutral-500 font-medium">Code: {group.code}</p>
+        <h3 className="text-lg font-bold text-neutral-900 mb-1.5 group-hover:text-atlas-blue transition-colors">
+          {group.name}
+        </h3>
+        <p className="text-sm text-neutral-700 font-medium">Code: {group.code}</p>
       </div>
 
       {/* Group metadata - Atlas redesigned */}
