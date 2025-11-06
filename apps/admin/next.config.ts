@@ -101,7 +101,13 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   // Performance: Transpile workspace packages
-  transpilePackages: ["@ibimina/config", "@ibimina/lib", "@ibimina/locales", "@ibimina/ui"],
+  transpilePackages: [
+    "@ibimina/config",
+    "@ibimina/lib",
+    "@ibimina/flags",
+    "@ibimina/locales",
+    "@ibimina/ui",
+  ],
   // Performance: Optimize builds
   compiler: {
     removeConsole:

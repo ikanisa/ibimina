@@ -32,6 +32,7 @@ import { NetworkStatusIndicator } from "@/components/system/network-status-indic
 import { OfflineBanner } from "@/components/system/offline-banner";
 import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
 import { OfflineConflictDialog } from "@/components/system/offline-conflict-dialog";
+import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 
 function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
   if (!container) return [];
@@ -501,7 +502,6 @@ function DefaultAppShellView({
                     aria-haspopup="dialog"
                     aria-expanded={showGlobalSearch}
                     aria-label={t("common.search", "Search")}
-                    ref={globalSearchTriggerRef}
                   >
                     <Search
                       className="h-4 w-4 transition-transform group-hover:scale-110"
@@ -531,8 +531,7 @@ function DefaultAppShellView({
           className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-2xl border border-white/25 bg-gradient-to-br from-ink/95 to-ink/90 px-3 py-3.5 shadow-2xl backdrop-blur-xl md:hidden"
           aria-label={t("nav.mobile", "Mobile navigation")}
         >
-          {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
-            const badge = navBadges[href];
+          {navTargets.map(({ href, primary, icon: Icon, badge }) => {
             return (
               <Link
                 key={href}
@@ -544,7 +543,7 @@ function DefaultAppShellView({
                     : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
                 )}
                 aria-current={isActive(href) ? "page" : undefined}
-                aria-label={t(key)}
+                aria-label={primary}
               >
                 <Icon
                   className={cn(
@@ -562,7 +561,7 @@ function DefaultAppShellView({
                     aria-label={`${badge.label} notification`}
                   />
                 )}
-                <span className="leading-none">{t(key)}</span>
+                <span className="leading-none">{primary}</span>
               </Link>
             );
           })}
