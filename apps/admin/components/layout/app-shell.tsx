@@ -12,7 +12,6 @@ import {
   Plus,
   ListPlus,
   Inbox,
-  Search,
   LineChart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -32,7 +31,6 @@ import { NetworkStatusIndicator } from "@/components/system/network-status-indic
 import { OfflineBanner } from "@/components/system/offline-banner";
 import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
 import { OfflineConflictDialog } from "@/components/system/offline-conflict-dialog";
-import { GlobalSearchDialog } from "@/components/layout/global-search-dialog";
 
 function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
   if (!container) return [];
@@ -316,7 +314,6 @@ function DefaultAppShellView({
 }: DefaultAppShellViewProps) {
   const pathname = usePathname();
   const [showActions, setShowActions] = useState(false);
-  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
@@ -493,22 +490,6 @@ function DefaultAppShellView({
 
                   {/* Sign out button */}
                   <SignOutButton className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-md backdrop-blur-sm transition-all hover:bg-white/20 hover:shadow-lg" />
-
-                  {/* Search button */}
-                  <button
-                    type="button"
-                    onClick={() => setShowGlobalSearch(true)}
-                    className="group inline-flex items-center gap-2 rounded-xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-0 shadow-md backdrop-blur-sm transition-all hover:border-white/30 hover:from-white/20 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-ink"
-                    aria-haspopup="dialog"
-                    aria-expanded={showGlobalSearch}
-                    aria-label={t("common.search", "Search")}
-                  >
-                    <Search
-                      className="h-4 w-4 transition-transform group-hover:scale-110"
-                      aria-hidden="true"
-                    />
-                    <span>{t("common.search", "Search")}</span>
-                  </button>
                 </div>
               </div>
             </div>
@@ -678,15 +659,6 @@ function DefaultAppShellView({
             </div>
           </div>
         )}
-
-
-        <GlobalSearchDialog
-          open={showGlobalSearch}
-          onClose={() => setShowGlobalSearch(false)}
-          profile={profile}
-          navItems={navTargets}
-          quickActions={quickActionTargets}
-        />
       </div>
     </>
   );
