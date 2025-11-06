@@ -909,7 +909,8 @@ export function GlobalSearchDialog({
               "search.console.placeholder",
               "Search ikimina, quick actions, or SACCO registry"
             )}
-          </div>
+          />
+        </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
           <aside className="space-y-5">
@@ -1175,11 +1176,13 @@ export function GlobalSearchDialog({
                                 ) : (
                                   <span>{t("search.members.noCode", "No member code")}</span>
                                 )}
-                              >
-                                {item.badge.label}
-                              </span>
-                            )}
-                          </div>
+                              </p>
+                              {item.badge && (
+                                <span className="text-xs text-neutral-2">
+                                  {item.badge.label}
+                                </span>
+                              )}
+                            </div>
                         </Link>
                       </li>
                     );
