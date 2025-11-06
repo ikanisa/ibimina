@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     }
 
     const adminClient = createSupabaseAdminClient();
-    const { data, error } = await adminClient.functions.invoke<ImportSummary>("import-statement", {
+    const { data, error } = await (adminClient.functions.invoke as any)("import-statement", {
       body: {
         saccoId: saccoScope,
         ikiminaId: ikiminaRecord?.id ?? null,

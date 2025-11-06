@@ -14,20 +14,20 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "50");
 
     // Verify access
-    const { data: staffProfile } = await supabase
-      .schema("app")
+    const { data: staffProfile } = await ((supabase
+      .schema("app") as any)
       .from("staff_profiles")
       .select("sacco_id, role")
       .eq("user_id", profile.id)
-      .single();
+      .single());
 
     if (!staffProfile) {
       return NextResponse.json({ error: "Staff profile not found" }, { status: 403 });
     }
 
     // Build query
-    let query = supabase
-      .schema("app")
+    let query = (supabase
+      .schema("app") as any)
       .from("tapmomo_transaction_summary")
       .select("*")
       .order("initiated_at", { ascending: false })
@@ -87,25 +87,25 @@ export async function POST(request: NextRequest) {
 
     // Get merchant
     // Cast to any since tapmomo_merchants is in app schema not included in generated types
-    const { data: merchant, error: merchantError } = await (supabase as any)
-      .schema("app")
+    const { data: merchant, error: merchantError } = await ((supabase
+      .schema("app") as any)
       .from("tapmomo_merchants")
       .select("id, sacco_id")
       .eq("merchant_code", merchant_code)
       .eq("is_active", true)
-      .single();
+      .single());
 
     if (merchantError || !merchant) {
       return NextResponse.json({ error: "Merchant not found or inactive" }, { status: 404 });
     }
 
     // Verify access
-    const { data: staffProfile } = await supabase
-      .schema("app")
+    const { data: staffProfile } = await ((supabase
+      .schema("app") as any)
       .from("staff_profiles")
       .select("sacco_id, role")
       .eq("user_id", profile.id)
-      .single();
+      .single());
 
     if (
       !staffProfile ||
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create transaction
-    const { data: transaction, error: txError } = await supabase.rpc("create_tapmomo_transaction", {
+    const { data: transaction, error: txError } = await (supabase as any).rpc("create_tapmomo_transaction", {
       p_merchant_id: merchant.id,
       p_nonce: nonce,
       p_amount: amount || null,

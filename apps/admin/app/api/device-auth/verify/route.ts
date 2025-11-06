@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Fetch the challenge
-    const { data: challenge, error: challengeError } = await supabase
+    const { data: challenge, error: challengeError } = await (supabase as any)
       .from("device_auth_challenges")
       .select("*")
       .eq("session_id", session_id)
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Fetch device public key
-    const { data: deviceKey, error: deviceError } = await supabase
+    const { data: deviceKey, error: deviceError } = await (supabase as any)
       .from("device_auth_keys")
       .select("*")
       .eq("device_id", device_id)
@@ -235,7 +235,7 @@ export async function POST(req: NextRequest) {
       integrityStatus = await verifyPlayIntegrity(integrity_token);
 
       // Update device integrity status
-      await supabase
+      await (supabase as any)
         .from("device_auth_keys")
         .update({
           integrity_verdict: integrityStatus,
@@ -276,7 +276,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 10. Mark challenge as used
-    await supabase
+    await (supabase as any)
       .from("device_auth_challenges")
       .update({
         used_at: new Date().toISOString(),
@@ -285,7 +285,7 @@ export async function POST(req: NextRequest) {
       .eq("id", challenge.id);
 
     // 11. Update device last_used_at
-    await supabase
+    await (supabase as any)
       .from("device_auth_keys")
       .update({
         last_used_at: new Date().toISOString(),
@@ -397,7 +397,7 @@ async function logAuditEvent(
   challengeId: string | null,
   metadata: any
 ): Promise<void> {
-  await supabase.from("device_auth_audit").insert({
+  await (supabase as any).from("device_auth_audit").insert({
     event_type: eventType,
     user_id: userId,
     device_key_id: deviceKeyId,

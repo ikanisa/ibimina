@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
 
     for (const entry of entries) {
       try {
-        const { data, error } = await adminClient.functions.invoke<SmsParseResponse>("parse-sms", {
+        const { data, error } = await (adminClient.functions.invoke as any)("parse-sms", {
           body: {
             rawText: entry.rawText,
             receivedAt: entry.receivedAt,

@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     const userAgent = req.headers.get("user-agent") || "unknown";
 
     // Store challenge in database
-    const { data: challenge, error } = await supabase
+    const { data: challenge, error } = await (supabase as any)
       .from("device_auth_challenges")
       .insert({
         session_id: sessionId,
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Log audit event
-    await supabase.from("device_auth_audit").insert({
+    await (supabase as any).from("device_auth_audit").insert({
       event_type: "CHALLENGE_CREATED",
       challenge_id: challenge.id,
       success: true,

@@ -23,8 +23,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Check if user has access to this merchant's SACCO
-    const { data: staffProfile } = await supabase
-      .schema("app")
+    const { data: staffProfile } = await (supabase
+      .schema("app") as any)
       .from("staff_profiles")
       .select("sacco_id, role")
       .eq("user_id", profile.id)

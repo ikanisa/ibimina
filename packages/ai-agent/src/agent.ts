@@ -1,14 +1,14 @@
 import { randomUUID } from "node:crypto";
 
-import type { AgentMessage, AgentSessionRecord } from "@ibimina/providers";
-
 import { AgentOpenAIError, AgentSessionError, AgentValidationError } from "./errors.js";
 import {
   type AgentChatRequest,
   type AgentChatResponse,
+  type AgentMessage,
   type AgentOptOutRegistry,
   type AgentOptions,
   type AgentRateLimiter,
+  type AgentSessionRecord,
   type AgentUsageLogger,
   type AgentUsageSummary,
 } from "./types.js";
