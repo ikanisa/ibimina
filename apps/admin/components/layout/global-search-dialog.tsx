@@ -1188,7 +1188,9 @@ export function GlobalSearchDialog({
                     );
                   })}
                 </ul>
-              </section>
+                )}
+              </div>
+            </div>
 
               <section role="region" aria-labelledby="actions-heading">
                 <header className="mb-2 text-[11px] uppercase tracking-[0.35em] text-neutral-2">
