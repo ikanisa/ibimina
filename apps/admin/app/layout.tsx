@@ -50,6 +50,11 @@ export default async function RootLayout({
   const storedTheme = readThemeCookie(cookieStore);
   const colorScheme = resolveColorScheme(storedTheme);
 
+  // Map "dark" to "nyungwe" for AppProviders since "dark" is not a valid theme option
+  // Only "light" and "nyungwe" are valid forcedTheme values
+  const forcedTheme: "light" | "nyungwe" | undefined = 
+    storedTheme === "dark" ? "nyungwe" : storedTheme === "light" ? "light" : "nyungwe";
+
   const htmlClass = `${storedTheme} theme-${colorScheme}`;
   const baseBodyClass =
     colorScheme === "dark"
@@ -68,7 +73,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className={rootClass}>
-        <AppProviders nonce={nonce} locale={locale} forcedTheme={storedTheme as "light" | "nyungwe" | undefined}>
+        <AppProviders nonce={nonce} locale={locale} forcedTheme={forcedTheme}>
           {children}
         </AppProviders>
       </body>
