@@ -73,6 +73,7 @@ type ImportResult = {
   unallocated: number;
   clientDuplicates?: number;
   rowCount?: number;
+  reportUrl?: string;
 };
 
 export function StatementImportWizard({
@@ -612,12 +613,12 @@ export function StatementImportWizard({
                 <div className="space-y-4">
                   {processedRows.slice(0, 5).map((row, idx) => (
                     <div
-                      key={row.rowNumber}
+                      key={row.index}
                       className="rounded-2xl border border-white/10 bg-white/5 p-4"
                     >
                       <header className="mb-3 flex items-center justify-between text-xs uppercase tracking-[0.3em] text-neutral-2">
                         <span>
-                          {t("statement.preview.row", "Row {row}", { row: row.rowNumber })}
+                          {t("statement.preview.row", "Row {row}", { row: row.index + 1 })}
                         </span>
                         {row.errors.length > 0 && (
                           <span className="rounded-full bg-red-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-red-300">
@@ -633,7 +634,7 @@ export function StatementImportWizard({
                               {field.label}
                             </label>
                             <p className="mt-1 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm">
-                              {row.cells[field.key]?.display ?? "—"}
+                              {row.cells[field.key]?.value ?? "—"}
                             </p>
                           </div>
                         ))}
@@ -646,7 +647,7 @@ export function StatementImportWizard({
                               {field.label}
                             </label>
                             <p className="mt-1 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm">
-                              {row.cells[field.key]?.display ?? "—"}
+                              {row.cells[field.key]?.value ?? "—"}
                             </p>
                           </div>
                         ))}
@@ -656,10 +657,10 @@ export function StatementImportWizard({
                         <ul className="mt-4 space-y-2">
                           {row.errors.map((error, errorIdx) => (
                             <li
-                              key={`${row.rowNumber}-error-${errorIdx}`}
+                              key={`${row.index}-error-${errorIdx}`}
                               className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-200"
                             >
-                              {error.message}
+                              {error}
                             </li>
                           ))}
                         </ul>
@@ -677,8 +678,8 @@ export function StatementImportWizard({
                   >
                     {t("common.back", "Back")}
                   </Button>
-                  <Button type="button" onClick={startImport} disabled={parsing}>
-                    {parsing ? t("common.working", "Working…") : t("common.import", "Import")}
+                  <Button type="button" onClick={handleConfirm} disabled={parsing || pending}>
+                    {parsing || pending ? t("common.working", "Working…") : t("common.import", "Import")}
                   </Button>
                 </div>
               </div>
@@ -706,7 +707,7 @@ export function StatementImportWizard({
                   >
                     {t("common.back", "Back")}
                   </Button>
-                  <Button type="button" onClick={startSmsImport} disabled={smsParsing}>
+                  <Button type="button" onClick={handleSmsParse} disabled={smsParsing}>
                     {smsParsing ? t("common.working", "Working…") : t("common.import", "Import")}
                   </Button>
                 </div>

@@ -315,7 +315,6 @@ function DefaultAppShellView({
 }: DefaultAppShellViewProps) {
   const pathname = usePathname();
   const [showActions, setShowActions] = useState(false);
-  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
@@ -680,6 +679,7 @@ function DefaultAppShellView({
           </div>
         )}
 
+        <AtlasAssistantSidebar />
 
         <GlobalSearchDialog
           open={showGlobalSearch}

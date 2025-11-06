@@ -79,8 +79,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
               ? "border-error-500 focus:ring-error-500 focus:border-error-500"
               : "border-neutral-300",
             // Icon padding
-            leftIcon && "pl-10",
-            rightIcon && "pr-10",
+            leftIcon ? "pl-10" : "",
+            rightIcon ? "pr-10" : "",
             className
           )}
           {...props}

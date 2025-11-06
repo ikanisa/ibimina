@@ -107,6 +107,83 @@ export function IkiminaTable({
     [deferredSearch, rowsSignature, sacco, status, type]
   );
 
+  const filterChips = useMemo<FilterChipDefinition[]>(() => {
+    const chips: FilterChipDefinition[] = [];
+    
+    if (status) {
+      chips.push({
+        id: "status",
+        label: t("filter.status", "Status"),
+        valueLabel: status,
+        active: true,
+        onClear: () => setStatus(""),
+        renderEditor: ({ close }) => (
+          <div className="p-2">
+            <select
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                close();
+              }}
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-0"
+            >
+              <option value="">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        ),
+      });
+    }
+    
+    if (type) {
+      chips.push({
+        id: "type",
+        label: t("filter.type", "Type"),
+        valueLabel: type,
+        active: true,
+        onClear: () => setType(""),
+        renderEditor: ({ close }) => (
+          <div className="p-2">
+            <select
+              value={type}
+              onChange={(e) => {
+                setType(e.target.value);
+                close();
+              }}
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-0"
+            >
+              <option value="">All</option>
+              <option value="savings">Savings</option>
+              <option value="credit">Credit</option>
+            </select>
+          </div>
+        ),
+      });
+    }
+    
+    if (sacco) {
+      chips.push({
+        id: "sacco",
+        label: t("filter.sacco", "SACCO"),
+        valueLabel: sacco,
+        active: true,
+        onClear: () => setSacco(""),
+        renderEditor: ({ close }) => (
+          <div className="p-2">
+            <Input
+              value={sacco}
+              onChange={(e) => setSacco(e.target.value)}
+              placeholder={t("filter.saccoPlaceholder", "Enter SACCO name")}
+            />
+          </div>
+        ),
+      });
+    }
+    
+    return chips;
+  }, [status, type, sacco, t]);
+
   const columns = useMemo<ColumnDef<IkiminaTableRow, unknown>[]>(() => {
     const baseColumns: ColumnDef<IkiminaTableRow, unknown>[] = [
       showSaccoColumn
@@ -271,18 +348,6 @@ export function IkiminaTable({
           }}
         />
       }
-      ux={{
-        tableId: "ikimina.list",
-        requestToken: tableRequestToken,
-        context: {
-          totalRows: rows.length,
-          filteredRows: filteredRows.length,
-          statusFilter: status || "all",
-          typeFilter: type || "all",
-          saccoFilter: sacco || "all",
-          queryLength: deferredSearch.length,
-        },
-      }}
     />
   );
 }

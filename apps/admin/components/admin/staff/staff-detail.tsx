@@ -174,6 +174,37 @@ export function StaffDetail({
     });
   };
 
+  const addMembership = () => {
+    startTransition(async () => {
+      try {
+        const orgId = membershipType === "SACCO" ? sacco?.id : org?.id;
+        if (!orgId) {
+          error("Please select an organization");
+          return;
+        }
+        const res = await fetch("/api/admin/staff/assign-role", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: user.id,
+            role: membershipRole,
+            sacco_id: membershipType === "SACCO" ? orgId : null,
+            org_id: membershipType !== "SACCO" ? orgId : null,
+          }),
+        });
+        if (!res.ok) {
+          const { error: msg } = await res.json().catch(() => ({ error: "Failed to add membership" }));
+          error(String(msg ?? "Failed to add membership"));
+          return;
+        }
+        success("Membership added");
+        onUpdated?.();
+      } catch {
+        error("Failed to add membership");
+      }
+    });
+  };
+
   const isSaccoRoleSel =
     role === "SACCO_MANAGER" || role === "SACCO_STAFF" || role === "SACCO_VIEWER";
   const isDistrictRoleSel = role === "DISTRICT_MANAGER";

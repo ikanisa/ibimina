@@ -68,7 +68,7 @@ export function MemberDirectoryCard({
         onSelect: () => setStatus("active"),
         badge:
           status === "active"
-            ? { label: t("common.active", "Active"), tone: "success" }
+            ? { label: t("common.active", "Active"), tone: "success" as const }
             : undefined,
         keywords: ["members", "active", groupName],
       },
@@ -82,7 +82,7 @@ export function MemberDirectoryCard({
         onSelect: () => setStatus("inactive"),
         badge:
           status === "inactive"
-            ? { label: t("ikimina.members.inactive", "Inactive"), tone: "info" }
+            ? { label: t("ikimina.members.inactive", "Inactive"), tone: "info" as const }
             : undefined,
         keywords: ["members", "inactive", groupName],
       },
@@ -96,7 +96,7 @@ export function MemberDirectoryCard({
         onSelect: () => setStatus("all"),
         badge:
           status === "all"
-            ? { label: t("ikimina.members.all", "All"), tone: "success" }
+            ? { label: t("ikimina.members.all", "All"), tone: "success" as const }
             : undefined,
         keywords: ["members", "filters", groupName],
       },
@@ -124,20 +124,20 @@ export function MemberDirectoryCard({
 
   useCommandPaletteFilters(
     () => [
-      {
+      () => ({
         id: `ikimina:${ikiminaId}:filter-active`,
         label: t("ikimina.members.filter.active", "Status: Active"),
         active: status === "active",
         onActivate: () => setStatus("active"),
         onClear: status === "active" ? () => setStatus("all") : undefined,
-      },
-      {
+      }),
+      () => ({
         id: `ikimina:${ikiminaId}:filter-inactive`,
         label: t("ikimina.members.filter.inactive", "Status: Inactive"),
         active: status === "inactive",
         onActivate: () => setStatus("inactive"),
         onClear: status === "inactive" ? () => setStatus("all") : undefined,
-      },
+      }),
     ],
     [ikiminaId, status, t]
   );

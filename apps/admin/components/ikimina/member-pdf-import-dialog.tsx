@@ -282,7 +282,7 @@ export function MemberPdfImportDialog({
         title="AI member import"
         description="Process scanned member rosters with OCR, validate results, and confirm import before syncing."
         size="lg"
-        initialFocusRef={fileInputRef}
+        initialFocusRef={fileInputRef as React.RefObject<HTMLElement>}
       >
         <div className="relative flex h-full flex-col gap-5">
           {loading ? (
@@ -456,11 +456,11 @@ export function MemberPdfImportDialog({
                                   handleUpdateRecord(row.index, "full_name", event.target.value)
                                 }
                                 className="w-full rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                                aria-invalid={fullNameCell.errors.length > 0}
+                                aria-invalid={!fullNameCell.valid}
                               />
-                              {fullNameCell.errors.length > 0 && (
+                              {!fullNameCell.valid && fullNameCell.reason && (
                                 <p className="mt-1 text-[11px] text-red-300">
-                                  {fullNameCell.errors[0]}
+                                  {fullNameCell.reason}
                                 </p>
                               )}
                             </td>
@@ -471,11 +471,11 @@ export function MemberPdfImportDialog({
                                   handleUpdateRecord(row.index, "msisdn", event.target.value)
                                 }
                                 className="w-full rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                                aria-invalid={msisdnCell.errors.length > 0}
+                                aria-invalid={!msisdnCell.valid}
                               />
-                              {msisdnCell.errors.length > 0 && (
+                              {!msisdnCell.valid && msisdnCell.reason && (
                                 <p className="mt-1 text-[11px] text-red-300">
-                                  {msisdnCell.errors[0]}
+                                  {msisdnCell.reason}
                                 </p>
                               )}
                             </td>
@@ -486,11 +486,11 @@ export function MemberPdfImportDialog({
                                   handleUpdateRecord(row.index, "member_code", event.target.value)
                                 }
                                 className="w-full rounded-xl border border-white/10 bg-white/10 px-2 py-1 text-xs text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue"
-                                aria-invalid={memberCodeCell.errors.length > 0}
+                                aria-invalid={!memberCodeCell.valid}
                               />
-                              {memberCodeCell.errors.length > 0 && (
+                              {!memberCodeCell.valid && memberCodeCell.reason && (
                                 <p className="mt-1 text-[11px] text-red-300">
-                                  {memberCodeCell.errors[0]}
+                                  {memberCodeCell.reason}
                                 </p>
                               )}
                             </td>
