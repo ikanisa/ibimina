@@ -6,6 +6,25 @@ export interface Message {
   timestamp: number;
 }
 
+export interface AgentMessage {
+  role: Role;
+  content: string;
+  createdAt: string;
+}
+
+export interface AgentSessionRecord {
+  id: string;
+  orgId: string;
+  userId: string | null;
+  channel: string;
+  metadata: Record<string, unknown>;
+  messages: AgentMessage[];
+  createdAt: Date;
+  updatedAt: Date;
+  lastInteractionAt: Date;
+  expiresAt: Date;
+}
+
 export interface ToolInvocation {
   name: string;
   args: Record<string, unknown>;

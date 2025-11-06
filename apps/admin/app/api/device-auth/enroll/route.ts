@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if device already exists for this user
-    const { data: existingDevice } = await supabase
+    const { data: existingDevice } = await (supabase as any)
       .from("device_auth_keys")
       .select("id, device_label, revoked_at")
       .eq("user_id", user.id)
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     // (Old entry remains for audit trail)
 
     // Create new device key entry
-    const { data: deviceKey, error: insertError } = await supabase
+    const { data: deviceKey, error: insertError } = await (supabase as any)
       .from("device_auth_keys")
       .insert({
         user_id: user.id,
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Log audit event
-    await supabase.from("device_auth_audit").insert({
+    await (supabase as any).from("device_auth_audit").insert({
       event_type: "DEVICE_ENROLLED",
       user_id: user.id,
       device_key_id: deviceKey.id,
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (integrityStatus) {
-      await supabase.from("device_auth_audit").insert({
+      await (supabase as any).from("device_auth_audit").insert({
         event_type: integrityStatus?.meets_device_integrity
           ? "INTEGRITY_CHECK_PASSED"
           : "INTEGRITY_CHECK_FAILED",

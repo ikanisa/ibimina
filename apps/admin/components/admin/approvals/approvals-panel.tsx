@@ -315,7 +315,7 @@ export function AdminApprovalsPanel({
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
-                          size="icon"
+                          size="sm"
                           variant="secondary"
                           disabled={pending}
                           onClick={() => handleInviteAction("resend")}
@@ -323,7 +323,7 @@ export function AdminApprovalsPanel({
                           <RefreshCcw className="h-4 w-4" />
                         </Button>
                         <Button
-                          size="icon"
+                          size="sm"
                           variant="ghost"
                           disabled={pending}
                           onClick={() => handleInviteAction("revoke")}

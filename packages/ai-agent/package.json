@@ -24,7 +24,6 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@ibimina/providers": "workspace:*",
     "@supabase/supabase-js": "^2.74.0",
     "openai": "^6.3.0"
   },

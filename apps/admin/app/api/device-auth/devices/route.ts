@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest) {
     }
 
     // Fetch user's devices
-    const { data: devices, error } = await supabase
+    const { data: devices, error } = await (supabase as any)
       .from("device_auth_keys")
       .select(
         "id, device_id, device_label, key_algorithm, device_info, integrity_status, created_at, last_used_at, revoked_at"
@@ -70,7 +70,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Fetch the device to verify ownership
-    const { data: device, error: fetchError } = await supabase
+    const { data: device, error: fetchError } = await (supabase as any)
       .from("device_auth_keys")
       .select("*")
       .eq("id", deviceId)
@@ -91,7 +91,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Revoke the device
-    const { error: revokeError } = await supabase
+    const { error: revokeError } = await (supabase as any)
       .from("device_auth_keys")
       .update({
         revoked_at: new Date().toISOString(),
@@ -106,7 +106,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Log audit event
-    await supabase.from("device_auth_audit").insert({
+    await (supabase as any).from("device_auth_audit").insert({
       event_type: "DEVICE_REVOKED",
       user_id: user.id,
       device_key_id: device.id,

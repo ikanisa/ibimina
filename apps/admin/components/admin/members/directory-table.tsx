@@ -399,7 +399,7 @@ interface FilterBarProps {
   visibleCount: number;
   onReset: () => void;
   onSaveView: () => void;
-  searchInputRef: RefObject<HTMLInputElement>;
+  searchInputRef: RefObject<HTMLInputElement | null>;
   savedViews: SavedView[];
   onApplySavedView: (view: SavedView) => void;
   onRemoveSavedView: (id: string) => void;

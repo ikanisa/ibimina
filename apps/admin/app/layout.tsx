@@ -68,7 +68,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className={rootClass}>
-        <AppProviders nonce={nonce} locale={locale} forcedTheme={storedTheme}>
+        <AppProviders nonce={nonce} locale={locale} forcedTheme={storedTheme as "light" | "nyungwe" | undefined}>
           {children}
         </AppProviders>
       </body>
