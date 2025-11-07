@@ -73,9 +73,10 @@ const requireRetryOptions = {
 
     return {
       CallExpression(node) {
-        const calleeName = node.callee.name;
+        // Handle both simple function calls and member expressions
+        const calleeName = node.callee.type === "Identifier" ? node.callee.name : null;
         
-        if (targetFunctions.includes(calleeName)) {
+        if (calleeName && targetFunctions.includes(calleeName)) {
           // Check if retry options are provided
           const hasRetryOptions = node.arguments.some(arg => {
             return (

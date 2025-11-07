@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Custom ESLint plugin for Ibimina project",
-  "main": "index.js"
+  "description": "Custom ESLint plugin for Ibimina project-specific rules",
+  "main": "index.js",
+  "author": "Ibimina Team",
+  "license": "UNLICENSED"
 }
