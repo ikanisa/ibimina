@@ -15,7 +15,8 @@ async function prepare() {
   try {
     const { stdout } = await execAsync("node --version");
     const version = stdout.trim();
-    const majorVersion = parseInt(version.replace("v", "").split(".")[0]);
+    // Handle both 'v20.0.0' and '20.0.0' formats
+    const majorVersion = parseInt(version.replace(/^v/, "").split(".")[0]);
 
     if (majorVersion < 20) {
       console.log(`   ❌ Node.js ${version} detected. Requires Node.js 20+`);

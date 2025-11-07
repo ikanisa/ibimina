@@ -25,12 +25,14 @@ async function generateAPK(appName) {
   try {
     // Sync Capacitor
     console.log(`   📦 Syncing Capacitor...`);
-    await execAsync(`cd ${appPath} && pnpm cap:sync:android`);
+    await execAsync(`cd "${appPath}" && pnpm cap:sync:android`);
 
     // Build APK
     console.log(`   🔨 Building APK...`);
-    const buildCommand = `cd ${androidPath} && ./gradlew assembleRelease`;
-    const { stdout, stderr } = await execAsync(buildCommand, { maxBuffer: 10 * 1024 * 1024 });
+    const buildCommand = `cd "${androidPath}" && ./gradlew assembleRelease`;
+    const { stdout, stderr } = await execAsync(buildCommand, {
+      maxBuffer: 10 * 1024 * 1024,
+    });
 
     if (stderr && !stderr.includes("warning")) {
       console.log(`   ⚠️  Build warnings:\n${stderr}`);

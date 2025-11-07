@@ -46,10 +46,19 @@ async function deployApp(appName, production = false) {
 
   try {
     const prodFlag = production ? "--prod" : "";
-    const command = `cd ${appPath} && netlify deploy --dir=.next ${prodFlag} --site=${siteId}`;
+    // Use array of arguments to prevent command injection
+    const args = ["deploy", "--dir=.next"];
+    if (production) {
+      args.push("--prod");
+    }
+    args.push(`--site=${siteId}`);
 
     console.log(`   📦 Deploying...`);
-    const { stdout, stderr } = await execAsync(command, { maxBuffer: 10 * 1024 * 1024 });
+    // Change directory and execute netlify with proper arguments
+    const command = `cd "${appPath}" && netlify ${args.join(" ")}`;
+    const { stdout, stderr } = await execAsync(command, {
+      maxBuffer: 10 * 1024 * 1024,
+    });
 
     console.log(stdout);
 
