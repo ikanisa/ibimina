@@ -17,7 +17,14 @@ const baseConfig = createEslintConfig({
     "react-hooks": reactHooks,
     ibimina: ibiminaPlugin,
   },
-  rules: { ...sharedReactRules, ...structuredLoggingRules },
+  rules: {
+    ...sharedReactRules,
+    ...structuredLoggingRules,
+    // Disable type-aware rules at root level since we don't have parserOptions.project
+    // Each app can re-enable these in their own config if needed
+    "@typescript-eslint/no-floating-promises": "off",
+    "@typescript-eslint/no-misused-promises": "off",
+  },
   linterOptions: {
     reportUnusedDisableDirectives: "off",
   },
