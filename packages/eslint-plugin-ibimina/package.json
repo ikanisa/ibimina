@@ -1,0 +1,8 @@
+{
+  "name": "eslint-plugin-ibimina",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Custom ESLint plugin for Ibimina project",
+  "main": "index.js"
+}
