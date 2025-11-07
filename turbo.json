@@ -1,0 +1,72 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local", ".env", ".env.local"],
+  "globalEnv": [
+    "NODE_ENV",
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_URL",
+    "BACKUP_PEPPER",
+    "MFA_SESSION_SECRET",
+    "TRUSTED_COOKIE_SECRET",
+    "HMAC_SHARED_SECRET",
+    "KMS_DATA_KEY_BASE64",
+    "OPENAI_API_KEY",
+    "SENTRY_DSN",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "POSTHOG_API_KEY",
+    "NEXT_PUBLIC_POSTHOG_KEY",
+    "NEXT_PUBLIC_POSTHOG_HOST",
+    "LOG_DRAIN_URL",
+    "LOG_DRAIN_TOKEN",
+    "CLOUDFLARE_BUILD",
+    "ANALYZE_BUNDLE",
+    "CI",
+    "HUSKY"
+  ],
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "BACKUP_PEPPER",
+        "MFA_SESSION_SECRET",
+        "TRUSTED_COOKIE_SECRET",
+        "HMAC_SHARED_SECRET",
+        "KMS_DATA_KEY_BASE64",
+        "OPENAI_API_KEY"
+      ]
+    },
+    "lint": {
+      "outputs": []
+    },
+    "typecheck": {
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "cache": false
+    },
+    "test:unit": {
+      "outputs": ["coverage/**"]
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "outputs": ["test-results/**", "playwright-report/**"],
+      "cache": false
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

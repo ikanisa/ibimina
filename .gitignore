@@ -65,3 +65,6 @@ apps/admin/.vercel/
 apps/client/.vercel/
 apps/staff-admin-pwa/.vercel/
 apps/website/.vercel/
+
+# APK distribution directory
+/dist/
