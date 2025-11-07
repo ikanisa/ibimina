@@ -5,9 +5,6 @@
   "scripts": {
     "dev": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
-    "build:cloudflare": "CLOUDFLARE_BUILD=1 npx @cloudflare/next-on-pages",
-    "preview:cloudflare": "wrangler pages dev .vercel/output/static",
-    "deploy:cloudflare": "wrangler pages deploy .vercel/output/static",
     "start": "next start -p 3000 -H 0.0.0.0",
     "lint": "node ../../config/tooling/scripts/run-eslint.mjs .",
     "typecheck": "tsc -p tsconfig.json --noEmit",

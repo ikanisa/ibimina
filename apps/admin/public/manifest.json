@@ -1,61 +1,57 @@
 {
-  "name": "Ibimina Staff Console",
-  "short_name": "Ibimina",
-  "description": "Staff-only platform for Umurenge SACCO Ibimina operations. Manage ikimina groups, reconcile statements, and approve member contributions.",
+  "name": "Ibimina Staff Admin",
+  "short_name": "Staff Admin",
+  "description": "SACCO staff administration console",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0b1020",
-  "theme_color": "#0b1020",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "View operations dashboard",
-      "url": "/",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Ikimina Groups",
-      "short_name": "Ikimina",
-      "description": "Manage ikimina groups",
-      "url": "/ikimina",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Reconciliation",
-      "short_name": "Recon",
-      "description": "Reconcile statements",
-      "url": "/recon",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
+  "categories": [
+    "finance",
+    "business",
+    "productivity"
   ]
 }

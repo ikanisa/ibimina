@@ -1,5 +1,3 @@
-export const runtime = 'edge'
-
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-gray-50 p-8">
@@ -8,5 +6,5 @@ export default function HomePage() {
         <p className="mt-4 text-lg text-gray-600">SACCO Management System</p>
       </div>
     </main>
-  )
+  );
 }
