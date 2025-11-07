@@ -59,6 +59,40 @@ POSTHOG_API_KEY=phc_...
 LOG_DRAIN_URL=https://...
 ```
 
+### Seed Required Secrets via Netlify CLI
+
+Remote Netlify builds do **not** read your local `.env`, so configure secrets on
+the platform itself. The CLI keeps everything scoped correctly:
+
+```bash
+# Generate secure secrets (macOS/Linux)
+openssl rand -base64 32 | pbcopy   # copies 32-byte secret to clipboard
+
+# Production values (visible to Builds + Functions)
+netlify env:set BACKUP_PEPPER "<32+ byte random>"        --context production --scope builds functions --secret
+netlify env:set MFA_SESSION_SECRET "<32+ byte random>"    --context production --scope builds functions --secret
+netlify env:set TRUSTED_COOKIE_SECRET "<32+ byte random>" --context production --scope builds functions --secret
+netlify env:set HMAC_SHARED_SECRET "<32+ byte random>"    --context production --scope builds functions --secret
+netlify env:set OPENAI_API_KEY "sk-..."                   --context production --scope builds functions --secret
+
+# Optional: limited secrets for previews / branch deploys
+netlify env:set BACKUP_PEPPER "<preview random>"          --context deploy-preview branch-deploy --scope builds functions --secret
+netlify env:set MFA_SESSION_SECRET "<preview random>"     --context deploy-preview branch-deploy --scope builds functions --secret
+netlify env:set TRUSTED_COOKIE_SECRET "<preview random>"  --context deploy-preview branch-deploy --scope builds functions --secret
+netlify env:set HMAC_SHARED_SECRET "<preview random>"     --context deploy-preview branch-deploy --scope builds functions --secret
+# Skip OPENAI_API_KEY or use a low-privileged key for previews
+```
+
+Verify what Netlify is storing before rerunning the build:
+
+```bash
+netlify env:list --context production --scope builds
+netlify env:get OPENAI_API_KEY --context production --scope builds
+```
+
+> Windows tip: replace the `openssl` command with
+> `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
+
 ### Validate Environment
 
 Use the built-in checker to validate your environment:

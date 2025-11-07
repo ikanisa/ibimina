@@ -10,6 +10,7 @@ function buildRawEnv(source: ProcessEnvSource) {
   return {
     NODE_ENV: source.NODE_ENV ?? "development",
     APP_ENV: source.APP_ENV ?? source.NODE_ENV ?? "development",
+    NETLIFY_CONTEXT: source.NETLIFY_CONTEXT ?? source.CONTEXT,
     APP_REGION: source.APP_REGION,
     GIT_COMMIT_SHA: source.GIT_COMMIT_SHA,
     NEXT_PUBLIC_SUPABASE_URL: source.NEXT_PUBLIC_SUPABASE_URL,
@@ -98,12 +99,29 @@ const positiveNumberString = z
   .trim()
   .regex(/^\d+$/, { message: "Expected a positive integer" });
 
+function isProductionLikeContext({
+  appEnv,
+  nodeEnv,
+  netlifyContext,
+}: {
+  appEnv: string;
+  nodeEnv: string;
+  netlifyContext?: string;
+}) {
+  const normalizedContext = netlifyContext?.trim().toLowerCase();
+  if (normalizedContext && ["production", "prod"].includes(normalizedContext)) {
+    return true;
+  }
+  return appEnv === "production" || nodeEnv === "production";
+}
+
 const schema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]),
     APP_ENV: z
       .enum(["development", "test", "preview", "staging", "production"])
       .default("development"),
+    NETLIFY_CONTEXT: optionalString,
     APP_REGION: optionalString,
     GIT_COMMIT_SHA: optionalString,
     NEXT_PUBLIC_SUPABASE_URL: z
@@ -150,10 +168,7 @@ const schema = z
     MFA_EMAIL_FROM: z.string().trim().min(3),
     ANALYTICS_CACHE_TOKEN: optionalString,
     REPORT_SIGNING_KEY: optionalString,
-    OPENAI_API_KEY: z
-      .string({ required_error: "OPENAI_API_KEY is required" })
-      .trim()
-      .min(1, "OPENAI_API_KEY is required"),
+    OPENAI_API_KEY: optionalString,
     OPENAI_OCR_MODEL: z.string().trim().min(1),
     OPENAI_RESPONSES_MODEL: z.string().trim().min(1),
     MAIL_FROM: z.string().trim().min(3),
@@ -229,6 +244,20 @@ const schema = z
           break;
         }
       }
+    }
+
+    const requiresOpenAiKey = isProductionLikeContext({
+      appEnv: values.APP_ENV,
+      nodeEnv: values.NODE_ENV,
+      netlifyContext: values.NETLIFY_CONTEXT,
+    });
+
+    if (requiresOpenAiKey && (!values.OPENAI_API_KEY || values.OPENAI_API_KEY.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "OPENAI_API_KEY is required in production deployments.",
+        path: ["OPENAI_API_KEY"],
+      });
     }
   });
 
