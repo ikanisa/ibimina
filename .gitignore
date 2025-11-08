@@ -28,8 +28,10 @@ yarn-error.log*
 !.env.example
 !.env.production.example
 !.env.cloudflare.template
+!.env.netlify.example
 !apps/*/.env.example
 !apps/*/.env.cloudflare.template
+!apps/*/.env.netlify.example
 
 # TypeScript
 *.tsbuildinfo

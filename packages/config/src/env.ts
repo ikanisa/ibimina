@@ -127,20 +127,11 @@ const schema = z
       .string({ required_error: "SUPABASE_SERVICE_ROLE_KEY is required" })
       .trim()
       .min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
-    BACKUP_PEPPER: z
-      .string({ required_error: "BACKUP_PEPPER is required" })
-      .trim()
-      .min(1, "BACKUP_PEPPER is required"),
+    BACKUP_PEPPER: optionalString,
     RATE_LIMIT_SECRET: optionalString,
     EMAIL_OTP_PEPPER: optionalString,
-    MFA_SESSION_SECRET: z
-      .string({ required_error: "MFA_SESSION_SECRET is required" })
-      .trim()
-      .min(1, "MFA_SESSION_SECRET is required"),
-    TRUSTED_COOKIE_SECRET: z
-      .string({ required_error: "TRUSTED_COOKIE_SECRET is required" })
-      .trim()
-      .min(1, "TRUSTED_COOKIE_SECRET is required"),
+    MFA_SESSION_SECRET: optionalString,
+    TRUSTED_COOKIE_SECRET: optionalString,
     MFA_SESSION_TTL_SECONDS: positiveNumberString,
     TRUSTED_DEVICE_TTL_SECONDS: positiveNumberString,
     MFA_RP_ID: optionalString,
@@ -150,10 +141,7 @@ const schema = z
     MFA_EMAIL_FROM: z.string().trim().min(3),
     ANALYTICS_CACHE_TOKEN: optionalString,
     REPORT_SIGNING_KEY: optionalString,
-    OPENAI_API_KEY: z
-      .string({ required_error: "OPENAI_API_KEY is required" })
-      .trim()
-      .min(1, "OPENAI_API_KEY is required"),
+    OPENAI_API_KEY: optionalString,
     OPENAI_OCR_MODEL: z.string().trim().min(1),
     OPENAI_RESPONSES_MODEL: z.string().trim().min(1),
     MAIL_FROM: z.string().trim().min(3),
@@ -169,10 +157,7 @@ const schema = z
     LOG_DRAIN_ALERT_TOKEN: optionalString,
     LOG_DRAIN_ALERT_COOLDOWN_MS: positiveNumberString,
     LOG_DRAIN_SILENT: optionalString,
-    HMAC_SHARED_SECRET: z
-      .string({ required_error: "HMAC_SHARED_SECRET is required" })
-      .trim()
-      .min(1, "HMAC_SHARED_SECRET is required"),
+    HMAC_SHARED_SECRET: optionalString,
     KMS_DATA_KEY: optionalString,
     KMS_DATA_KEY_BASE64: optionalString,
     META_WHATSAPP_ACCESS_TOKEN: optionalString,
@@ -207,16 +192,64 @@ const schema = z
     AI_AGENT_REDIS_URL: optionalString,
   })
   .superRefine((values, ctx) => {
+    const isProduction = values.APP_ENV === "production";
+
+    // Production-only validation: hard-require secrets
+    if (isProduction) {
+      if (!values.BACKUP_PEPPER || values.BACKUP_PEPPER.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "BACKUP_PEPPER is required in production",
+          path: ["BACKUP_PEPPER"],
+        });
+      }
+
+      if (!values.MFA_SESSION_SECRET || values.MFA_SESSION_SECRET.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "MFA_SESSION_SECRET is required in production",
+          path: ["MFA_SESSION_SECRET"],
+        });
+      }
+
+      if (!values.TRUSTED_COOKIE_SECRET || values.TRUSTED_COOKIE_SECRET.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "TRUSTED_COOKIE_SECRET is required in production",
+          path: ["TRUSTED_COOKIE_SECRET"],
+        });
+      }
+
+      if (!values.HMAC_SHARED_SECRET || values.HMAC_SHARED_SECRET.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "HMAC_SHARED_SECRET is required in production",
+          path: ["HMAC_SHARED_SECRET"],
+        });
+      }
+
+      if (!values.OPENAI_API_KEY || values.OPENAI_API_KEY.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "OPENAI_API_KEY is required in production",
+          path: ["OPENAI_API_KEY"],
+        });
+      }
+    }
+
     const kmsCandidates = [values.KMS_DATA_KEY, values.KMS_DATA_KEY_BASE64].filter(
       (candidate): candidate is string => Boolean(candidate && candidate.trim().length > 0)
     );
 
     if (kmsCandidates.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Provide KMS_DATA_KEY or KMS_DATA_KEY_BASE64 (32-byte base64 string)",
-        path: ["KMS_DATA_KEY"],
-      });
+      if (isProduction) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Provide KMS_DATA_KEY or KMS_DATA_KEY_BASE64 (32-byte base64 string) in production",
+          path: ["KMS_DATA_KEY"],
+        });
+      }
     } else {
       for (const candidate of kmsCandidates) {
         const decoded = Buffer.from(candidate, "base64");
@@ -321,9 +354,16 @@ function parseSampleRateValue(value: string | undefined, fallback: number): numb
 export type ServerEnv = ReturnType<typeof prepareServerEnv>;
 
 function prepareServerEnv(parsedEnv: RawEnv) {
-  const rateLimitSecret = parsedEnv.RATE_LIMIT_SECRET ?? parsedEnv.BACKUP_PEPPER;
-  const emailOtpPepper = parsedEnv.EMAIL_OTP_PEPPER ?? parsedEnv.BACKUP_PEPPER;
-  const kmsDataKey = parsedEnv.KMS_DATA_KEY ?? parsedEnv.KMS_DATA_KEY_BASE64!;
+  // For non-production environments, provide safe fallback values for optional secrets
+  const isProduction = parsedEnv.APP_ENV === "production";
+  const fallbackSecret = isProduction ? undefined : "dev-fallback-secret-not-for-production";
+
+  const rateLimitSecret = parsedEnv.RATE_LIMIT_SECRET ?? parsedEnv.BACKUP_PEPPER ?? fallbackSecret;
+  const emailOtpPepper = parsedEnv.EMAIL_OTP_PEPPER ?? parsedEnv.BACKUP_PEPPER ?? fallbackSecret;
+  const kmsDataKey =
+    parsedEnv.KMS_DATA_KEY ??
+    parsedEnv.KMS_DATA_KEY_BASE64 ??
+    (isProduction ? undefined : "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==");
 
   return Object.freeze({
     ...parsedEnv,
