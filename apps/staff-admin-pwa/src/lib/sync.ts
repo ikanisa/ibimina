@@ -20,22 +20,40 @@ export const processOfflineQueue = async (): Promise<void> => {
       if (item.id) {
         await removeFromOfflineQueue(item.id);
       }
-
-      console.log('Successfully synced offline request:', item.url);
     } catch (error) {
       console.error('Failed to sync offline request:', item.url, error);
     }
   }
 };
 
+type SyncCapableRegistration = ServiceWorkerRegistration & {
+  sync?: {
+    register: (tag: string) => Promise<void>;
+  };
+};
+
+const serviceWorkerPrototype = ServiceWorkerRegistration.prototype as SyncCapableRegistration;
+
 export const setupBackgroundSync = (): void => {
-  if ('serviceWorker' in navigator && 'sync' in (ServiceWorkerRegistration.prototype as any)) {
+  if ('serviceWorker' in navigator && 'sync' in serviceWorkerPrototype) {
     window.addEventListener('online', () => {
       navigator.serviceWorker.ready.then((registration) => {
-        (registration as any).sync.register('sync-offline-queue').catch((err: Error) => {
-          console.warn('Background sync registration failed:', err);
+        const syncCapableRegistration = registration as SyncCapableRegistration;
+        const sync = syncCapableRegistration.sync;
+
+        if (sync?.register) {
+          sync
+            .register('sync-offline-queue')
+            .then(() => {
+              processOfflineQueue();
+            })
+            .catch((err: Error) => {
+              console.warn('Background sync registration failed:', err);
+              processOfflineQueue();
+            });
+        } else {
           processOfflineQueue();
-        });
+        }
       });
     });
   } else {
