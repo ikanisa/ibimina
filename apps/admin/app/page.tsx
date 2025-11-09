@@ -1,12 +1,17 @@
-export const runtime = 'edge'
+import { redirect } from "next/navigation";
+import { requireUserAndProfile } from "@/lib/auth";
+import type { ProfileRow } from "@/lib/auth";
 
-export default function HomePage() {
-  return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900">Ibimina Admin</h1>
-        <p className="mt-4 text-lg text-gray-600">SACCO Management System</p>
-      </div>
-    </main>
-  )
+const DASHBOARD_ROLES = new Set<ProfileRow["role"]>(["SYSTEM_ADMIN", "SACCO_MANAGER"]);
+
+export const runtime = "nodejs";
+
+export default async function HomePage() {
+  const { profile } = await requireUserAndProfile();
+
+  if (DASHBOARD_ROLES.has(profile.role)) {
+    redirect("/dashboard");
+  }
+
+  redirect("/staff/onboarding");
 }
