@@ -37,6 +37,7 @@ class EnhancedNotificationsPlugin : Plugin() {
     }
     
     private lateinit var notificationManager: NotificationManager
+    private var pendingPermissionCallId: String? = null
     
     override fun load() {
         super.load()
@@ -262,11 +263,13 @@ class EnhancedNotificationsPlugin : Plugin() {
     @PluginMethod
     fun requestPermissions(call: PluginCall) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pendingPermissionCallId = call.callbackId
+            call.save()
+
             pluginRequestPermissions(
                 arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
                 REQUEST_CODE_NOTIFICATIONS
             )
-            bridge.saveCall(call)
         } else {
             // Before Android 13, notifications are always allowed
             val result = JSObject()
@@ -283,14 +286,20 @@ class EnhancedNotificationsPlugin : Plugin() {
         super.handleRequestPermissionsResult(requestCode, permissions, grantResults)
         
         if (requestCode == REQUEST_CODE_NOTIFICATIONS) {
-            val savedCall = bridge.getSavedCall(REQUEST_CODE_NOTIFICATIONS.toString())
+            val savedCallId = pendingPermissionCallId
+            val savedCall = savedCallId?.let { bridge.getSavedCall(it) }
+            pendingPermissionCallId = null
+
             if (savedCall != null) {
-                val granted = grantResults.isNotEmpty() && 
+                val granted = grantResults.isNotEmpty() &&
                              grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED
-                
+
                 val result = JSObject()
                 result.put("granted", granted)
                 savedCall.resolve(result)
+            } else {
+                // No saved call found, nothing to resolve
+                return
             }
         }
     }
