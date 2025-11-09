@@ -25,19 +25,20 @@ class NetworkMonitorPluginTest {
     private lateinit var mockBridge: Bridge
     private lateinit var mockConnectivityManager: ConnectivityManager
     private lateinit var mockCall: PluginCall
-    
+
     @Before
     fun setup() {
         mockContext = mockk(relaxed = true)
         mockBridge = mockk(relaxed = true)
         mockConnectivityManager = mockk(relaxed = true)
         mockCall = mockk(relaxed = true)
-        
+
         every { mockContext.getSystemService(Context.CONNECTIVITY_SERVICE) } returns mockConnectivityManager
-        
+
         plugin = NetworkMonitorPlugin()
         every { plugin.context } returns mockContext
         every { plugin.bridge } returns mockBridge
+        setPrivateField(plugin, "connectivityManager", mockConnectivityManager)
     }
     
     @After
@@ -120,5 +121,11 @@ class NetworkMonitorPluginTest {
         
         // Assert
         verify { stopCall.resolve(match { it.getBoolean("success") == true }) }
+    }
+
+    private fun setPrivateField(target: Any, fieldName: String, value: Any) {
+        val field = target::class.java.getDeclaredField(fieldName)
+        field.isAccessible = true
+        field.set(target, value)
     }
 }
