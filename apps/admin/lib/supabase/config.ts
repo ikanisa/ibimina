@@ -1,4 +1,56 @@
-import { logError, logWarn } from "@/lib/observability/logger";
+import type { logError as LogErrorFn, logWarn as LogWarnFn } from "@/lib/observability/logger";
+
+type LoggerModule = {
+  logWarn: LogWarnFn;
+  logError: LogErrorFn;
+};
+
+type Logger = LoggerModule | null;
+
+let cachedLogger: Logger | undefined;
+
+function loadServerLogger(): Logger {
+  if (typeof window !== "undefined") {
+    return null;
+  }
+
+  if (cachedLogger !== undefined) {
+    return cachedLogger;
+  }
+
+  try {
+    const dynamicRequire = eval("require") as NodeRequire;
+    cachedLogger = dynamicRequire("@/lib/observability/logger") as LoggerModule;
+  } catch {
+    cachedLogger = null;
+  }
+
+  return cachedLogger;
+}
+
+function logWarn(message: string, metadata?: Record<string, unknown>) {
+  const logger = loadServerLogger();
+
+  if (logger) {
+    logger.logWarn(message, metadata);
+    return;
+  }
+
+  // eslint-disable-next-line no-console
+  console.warn(message, metadata);
+}
+
+function logError(message: string, metadata?: Record<string, unknown>) {
+  const logger = loadServerLogger();
+
+  if (logger) {
+    logger.logError(message, metadata);
+    return;
+  }
+
+  // eslint-disable-next-line no-console
+  console.error(message, metadata);
+}
 
 const DEFAULT_STUB_URL = process.env.SUPABASE_STUB_URL?.trim() || "http://127.0.0.1:54321";
 const DEFAULT_STUB_ANON_KEY = process.env.SUPABASE_STUB_ANON_KEY?.trim() || "stub-anon-key";
