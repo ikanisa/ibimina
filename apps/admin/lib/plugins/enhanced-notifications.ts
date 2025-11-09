@@ -83,8 +83,9 @@ const CHANNEL_ID_MAP: Record<NonNullable<ShowNotificationOptions["channelId"]>, 
 
 const nativePlugin = registerPlugin<InternalEnhancedNotificationsPlugin>("EnhancedNotifications");
 
-const EnhancedNotifications: EnhancedNotificationsPlugin = {
-  ...nativePlugin,
+const originalShowNotification = nativePlugin.showNotification.bind(nativePlugin);
+
+const EnhancedNotifications: EnhancedNotificationsPlugin = Object.assign(nativePlugin, {
   async showNotification(options: ShowNotificationOptions) {
     const { channelId, ...rest } = options;
     const resolvedChannelId = channelId ? (CHANNEL_ID_MAP[channelId] ?? channelId) : undefined;
@@ -92,8 +93,8 @@ const EnhancedNotifications: EnhancedNotificationsPlugin = {
       ? { ...rest, channelId: resolvedChannelId }
       : { ...rest };
 
-    return nativePlugin.showNotification(payload);
+    return originalShowNotification(payload);
   },
-};
+});
 
 export default EnhancedNotifications;
