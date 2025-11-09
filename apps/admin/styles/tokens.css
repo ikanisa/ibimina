@@ -1,4 +1,4 @@
-@import "../../src/design/tokens.css";
+@import "../../../src/design/tokens.css";
 
 :root {
   /* Bridge existing admin tokens onto the shared design system */
