@@ -68,6 +68,7 @@ type MemberResult = {
   msisdn: string | null;
   ikiminaId: string | null;
   ikiminaName: string | null;
+  badge?: Badge;
 };
 
 type PaymentResult = {
@@ -1177,9 +1178,9 @@ export function GlobalSearchDialog({
                                   <span>{t("search.members.noCode", "No member code")}</span>
                                 )}
                               </p>
-                              {item.badge && (
+                              {member.badge && (
                                 <span className="text-xs text-neutral-2">
-                                  {item.badge.label}
+                                  {member.badge.label}
                                 </span>
                               )}
                             </div>
