@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 
@@ -14,20 +15,18 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "50");
 
     // Verify access
-    const { data: staffProfile } = await ((supabase
-      .schema("app") as any)
+    const { data: staffProfile } = await (supabase.schema("app") as any)
       .from("staff_profiles")
       .select("sacco_id, role")
       .eq("user_id", profile.id)
-      .single());
+      .single();
 
     if (!staffProfile) {
       return NextResponse.json({ error: "Staff profile not found" }, { status: 403 });
     }
 
     // Build query
-    let query = (supabase
-      .schema("app") as any)
+    let query = (supabase.schema("app") as any)
       .from("tapmomo_transaction_summary")
       .select("*")
       .order("initiated_at", { ascending: false })
@@ -54,7 +53,7 @@ export async function GET(request: NextRequest) {
       transactions: transactions || [],
     });
   } catch (error: any) {
-    console.error("Error fetching transactions:", error);
+    logError("Error fetching transactions:", error);
     return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }
@@ -87,25 +86,23 @@ export async function POST(request: NextRequest) {
 
     // Get merchant
     // Cast to any since tapmomo_merchants is in app schema not included in generated types
-    const { data: merchant, error: merchantError } = await ((supabase
-      .schema("app") as any)
+    const { data: merchant, error: merchantError } = await (supabase.schema("app") as any)
       .from("tapmomo_merchants")
       .select("id, sacco_id")
       .eq("merchant_code", merchant_code)
       .eq("is_active", true)
-      .single());
+      .single();
 
     if (merchantError || !merchant) {
       return NextResponse.json({ error: "Merchant not found or inactive" }, { status: 404 });
     }
 
     // Verify access
-    const { data: staffProfile } = await ((supabase
-      .schema("app") as any)
+    const { data: staffProfile } = await (supabase.schema("app") as any)
       .from("staff_profiles")
       .select("sacco_id, role")
       .eq("user_id", profile.id)
-      .single());
+      .single();
 
     if (
       !staffProfile ||
@@ -115,16 +112,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Create transaction
-    const { data: transaction, error: txError } = await (supabase as any).rpc("create_tapmomo_transaction", {
-      p_merchant_id: merchant.id,
-      p_nonce: nonce,
-      p_amount: amount || null,
-      p_currency: currency,
-      p_ref: ref || null,
-      p_network: network,
-      p_payload_ts: payload_ts || new Date().toISOString(),
-      p_ttl_seconds: 120,
-    });
+    const { data: transaction, error: txError } = await (supabase as any).rpc(
+      "create_tapmomo_transaction",
+      {
+        p_merchant_id: merchant.id,
+        p_nonce: nonce,
+        p_amount: amount || null,
+        p_currency: currency,
+        p_ref: ref || null,
+        p_network: network,
+        p_payload_ts: payload_ts || new Date().toISOString(),
+        p_ttl_seconds: 120,
+      }
+    );
 
     if (txError) {
       throw txError;
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
       transaction_id: transaction,
     });
   } catch (error: any) {
-    console.error("Error creating transaction:", error);
+    logError("Error creating transaction:", error);
     return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }

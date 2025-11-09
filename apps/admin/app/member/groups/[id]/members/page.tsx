@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchGroupMembers, type GroupMember } from "@/lib/api/groups";
 import { Users, ArrowLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { logError } from "@/lib/observability/logger";
 
 /**
  * Members List Page Component
@@ -56,7 +57,7 @@ export default function MembersPage({ params }: MembersPageProps) {
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to load members";
         setError(errorMessage);
-        console.error("Error loading members:", err);
+        logError("member.groups.fetch_failed", { error: err, groupId });
       } finally {
         setIsLoading(false);
       }

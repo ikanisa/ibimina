@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { QRLogin } from "./qr-login";
 import { ArrowLeft } from "lucide-react";
+import { logInfo, logError } from "@/lib/observability/logger";
 
 export function DeviceLoginPage() {
   return (
     <div className="space-y-6">
       <QRLogin
         onSuccess={(data) => {
-          console.log("Login successful:", data);
+          logInfo("device_login_success", { data });
         }}
         onError={(error) => {
-          console.error("Login error:", error);
+          logError("device_login_error", { error });
         }}
       />
 

@@ -59,7 +59,7 @@ pnpm build
 pnpm start
 ```
 
-Then open: http://localhost:3000
+Then open: http://localhost:3100
 
 **Test Checklist:**
 
@@ -202,7 +202,7 @@ After testing, generate reports:
 # Lighthouse (Admin PWA)
 cd apps/admin
 pnpm build
-npx lighthouse http://localhost:3000 --output html --output-path ./reports/lighthouse.html
+npx lighthouse http://localhost:3100 --output html --output-path ./reports/lighthouse.html
 
 # Bundle analysis
 ANALYZE_BUNDLE=1 pnpm build

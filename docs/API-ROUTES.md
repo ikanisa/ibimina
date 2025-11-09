@@ -429,13 +429,13 @@ Use the included curl examples or tools like Postman for manual testing:
 
 ```bash
 # Health check
-curl http://localhost:3000/api/health
+curl http://localhost:3100/api/health
 
 # MFA profile (requires authentication)
-curl -H "Cookie: sb-session=..." http://localhost:3000/api/mfa/profile
+curl -H "Cookie: sb-session=..." http://localhost:3100/api/mfa/profile
 
 # Admin MFA reset (requires SYSTEM_ADMIN)
-curl -X POST http://localhost:3000/api/admin/mfa/reset \
+curl -X POST http://localhost:3100/api/admin/mfa/reset \
   -H "Cookie: sb-session=..." \
   -H "Content-Type: application/json" \
   -d '{"userId":"uuid","reason":"Lost device"}'

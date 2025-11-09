@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { buildUssdPayload } from "@ibimina/lib";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadUssdTemplate } from "@/lib/ussd/templates";
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     .maybeSingle();
 
   if (groupError) {
-    console.error("Failed to load group", groupError);
+    logError("Failed to load group", groupError);
     return NextResponse.json({ error: "Unable to load group" }, { status: 500 });
   }
 
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
     .maybeSingle();
 
   if (saccoError) {
-    console.error("Failed to load sacco", saccoError);
+    logError("Failed to load sacco", saccoError);
     return NextResponse.json({ error: "Unable to load SACCO" }, { status: 500 });
   }
 
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     if (momoError && momoError.code !== "PGRST116") {
-      console.error("Failed to load MoMo code", momoError);
+      logError("Failed to load MoMo code", momoError);
     }
 
     if (momoCode?.code) {

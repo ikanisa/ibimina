@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logWarn } from "@/lib/observability/logger";
 import crypto from "node:crypto";
 import { guardAdminAction } from "@/lib/admin/guard";
 import type { Database } from "@/lib/supabase/types";
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
       .from("org_memberships")
       .upsert({ user_id: userId, org_id: saccoId, role }, { onConflict: "user_id,org_id" });
     if (res.error && !isMissingRelationError(res.error)) {
-      console.warn("org_memberships upsert failed", res.error);
+      logWarn("org_memberships upsert failed", res.error);
     }
   } catch {}
 

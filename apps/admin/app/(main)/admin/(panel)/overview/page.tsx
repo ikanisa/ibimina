@@ -18,6 +18,7 @@ import {
 import { getMfaInsights } from "@/lib/mfa/insights";
 import { Trans } from "@/components/common/trans";
 import type { SupabaseClient, PostgrestError } from "@supabase/supabase-js";
+import { logError } from "@/lib/observability/logger";
 import type { Database } from "@/lib/supabase/types";
 
 interface OverviewPageProps {
@@ -202,7 +203,7 @@ async function computePendingInviteCount(
   } catch (error) {
     if (!isMissingRelationError(error)) {
       const errMsg = error instanceof Error ? error.message : String(error);
-      console.error(`[admin/overview] failed to compute pending invites: ${errMsg}`);
+      logError("admin.overview.pending_invites_failed", { error: errMsg });
     }
     return 0;
   }
@@ -278,17 +279,20 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
 
     if (notificationResponse.error && !isMissingRelationError(notificationResponse.error)) {
       const err = notificationResponse.error as PostgrestError;
-      console.error(
-        `[admin/overview] notification query failed: ${err.message} (code: ${err.code}, details: ${err.details}, hint: ${err.hint})`
-      );
+      logError("admin.overview.notification_query_failed", {
+        message: err.message,
+        code: err.code,
+        details: err.details,
+        hint: err.hint,
+      });
     }
     if (telemetryResponse.error && !isMissingRelationError(telemetryResponse.error)) {
       const err = telemetryResponse.error as PostgrestError;
-      console.error(`[admin/overview] telemetry query failed: ${err.message} (code: ${err.code})`);
+      logError("admin.overview.telemetry_query_failed", { message: err.message, code: err.code });
     }
     if (auditResponse.error && !isMissingRelationError(auditResponse.error)) {
       const err = auditResponse.error as PostgrestError;
-      console.error(`[admin/overview] audit query failed: ${err.message} (code: ${err.code})`);
+      logError("admin.overview.audit_query_failed", { message: err.message, code: err.code });
     }
 
     metrics = await metricsPromise;
@@ -320,7 +324,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
         .in("id", actorIds);
       if (actorError && !isMissingRelationError(actorError)) {
         const err = actorError as PostgrestError;
-        console.error(`[admin/overview] actor lookup failed: ${err.message} (code: ${err.code})`);
+        logError("admin.overview.actor_lookup_failed", { message: err.message, code: err.code });
       }
       actorLookup = new Map((actorData ?? []).map((row) => [String(row.id), row.email ?? ""]));
     }
@@ -337,7 +341,7 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
   } catch (error) {
     if (!isMissingRelationError(error)) {
       const errMsg = error instanceof Error ? error.message : String(error);
-      console.error(`[admin/overview] failed to render overview: ${errMsg}`);
+      logError("admin.overview.render_failed", { error: errMsg });
     }
     overviewError = error;
   }

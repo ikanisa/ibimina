@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logError } from "@/lib/observability/logger";
 import type { Database } from "@/lib/supabase/types";
 
 export type MfaRiskReason =
@@ -91,7 +92,7 @@ export async function getMfaInsights(): Promise<MfaInsights> {
   }
 
   if (emailCodesResult.error) {
-    console.error("mfa_insights: failed to load email code metadata", emailCodesResult.error);
+    logError("mfa_insights: failed to load email code metadata", emailCodesResult.error);
   }
 
   const userRows = (userRowsRaw ?? []) as UserRow[];

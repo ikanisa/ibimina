@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logError } from "@/lib/observability/logger";
 
 interface PartnerRow {
   org_id: string;
@@ -14,11 +15,13 @@ export default async function PartnerConfigPage() {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("partner_config")
-    .select("org_id, enabled_features, merchant_code, reference_prefix, contact, organizations(name)")
+    .select(
+      "org_id, enabled_features, merchant_code, reference_prefix, contact, organizations(name)"
+    )
     .order("org_id", { ascending: true });
 
   if (error) {
-    console.error("Failed to load partner configuration", error);
+    logError("admin.partners.fetch_failed", { error });
   }
 
   return (
@@ -52,9 +55,7 @@ export default async function PartnerConfigPage() {
           <tbody className="divide-y divide-ink/10">
             {(data ?? []).map((row: PartnerRow) => (
               <tr key={row.org_id}>
-                <td className="px-4 py-3 text-ink/90">
-                  {row.organizations?.name ?? row.org_id}
-                </td>
+                <td className="px-4 py-3 text-ink/90">{row.organizations?.name ?? row.org_id}</td>
                 <td className="px-4 py-3 text-ink/70">{row.merchant_code ?? "—"}</td>
                 <td className="px-4 py-3 text-ink/70">{row.reference_prefix ?? "—"}</td>
                 <td className="px-4 py-3">
@@ -70,7 +71,10 @@ export default async function PartnerConfigPage() {
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/partners/${row.org_id}`} className="text-sm font-semibold text-emerald-600">
+                  <Link
+                    href={`/admin/partners/${row.org_id}`}
+                    className="text-sm font-semibold text-emerald-600"
+                  >
                     Configure →
                   </Link>
                 </td>

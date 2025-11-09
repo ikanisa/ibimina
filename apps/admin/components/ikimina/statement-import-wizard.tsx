@@ -4,13 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useToast } from "@/providers/toast-provider";
 import { useConfirmDialog } from "@/providers/confirm-provider";
-import {
-  DEFAULT_STATEMENT_MASKS,
-  getMaskOptions,
-  processRow,
-  type ProcessedCell,
-  type ProcessedRow,
-} from "@/lib/imports/validation";
+import { DEFAULT_STATEMENT_MASKS, processRow, type ProcessedRow } from "@/lib/imports/validation";
 import { parseTabularFile } from "@/lib/imports/file-parser";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -88,14 +82,14 @@ export function StatementImportWizard({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [importMode, setImportMode] = useState<ImportMode>("file");
   const [fileName, setFileName] = useState<string | null>(null);
-  const [headers, setHeaders] = useState<string[]>([]);
+  const [_headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<CsvRow[]>([]);
   const [mapping, setMapping] = useState<Mapping>({});
   const [masks, setMasks] = useState(() => createInitialStatementMasks(variant));
   const [parsing, setParsing] = useState(false);
   const [smsInput, setSmsInput] = useState("");
   const [smsParsing, setSmsParsing] = useState(false);
-  const [smsError, setSmsError] = useState<string | null>(null);
+  const [_smsError, setSmsError] = useState<string | null>(null);
   useEffect(() => {
     setMasks(createInitialStatementMasks(variant));
   }, [variant]);
@@ -103,7 +97,7 @@ export function StatementImportWizard({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const handleMappingChange = useCallback((fieldKey: string, column: string) => {
+  const _handleMappingChange = useCallback((fieldKey: string, column: string) => {
     setError(null);
     setMapping((current) => {
       const next = { ...current };
@@ -136,7 +130,7 @@ export function StatementImportWizard({
     () => REQUIRED_FIELDS.every((field) => Boolean(mapping[field.key])),
     [mapping]
   );
-  const amountFormatter = useMemo(
+  const _amountFormatter = useMemo(
     () =>
       new Intl.NumberFormat("en-RW", {
         style: "currency",
@@ -191,12 +185,12 @@ export function StatementImportWizard({
     [processedRows]
   );
 
-  const invalidRows = useMemo(
+  const _invalidRows = useMemo(
     () => processedRows.filter((row) => row.errors.length > 0),
     [processedRows]
   );
 
-  const parserFeedback = useMemo(() => {
+  const _parserFeedback = useMemo(() => {
     const txnCounter = new Map<string, number>();
     let missingReference = 0;
     let autoMatch = 0;
@@ -611,7 +605,7 @@ export function StatementImportWizard({
                 </div>
 
                 <div className="space-y-4">
-                  {processedRows.slice(0, 5).map((row, idx) => (
+                  {processedRows.slice(0, 5).map((row, _idx) => (
                     <div
                       key={row.index}
                       className="rounded-2xl border border-white/10 bg-white/5 p-4"
@@ -679,7 +673,9 @@ export function StatementImportWizard({
                     {t("common.back", "Back")}
                   </Button>
                   <Button type="button" onClick={handleConfirm} disabled={parsing || pending}>
-                    {parsing || pending ? t("common.working", "Working…") : t("common.import", "Import")}
+                    {parsing || pending
+                      ? t("common.working", "Working…")
+                      : t("common.import", "Import")}
                   </Button>
                 </div>
               </div>

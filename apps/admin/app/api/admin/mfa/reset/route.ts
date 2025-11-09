@@ -35,6 +35,7 @@
  * }
  */
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 
 import { logAudit } from "@/lib/audit";
 import { guardAdminAction } from "@/lib/admin/guard";
@@ -113,14 +114,14 @@ export async function POST(request: NextRequest) {
     .eq("id", target.id);
 
   if (updateError) {
-    console.error("admin mfa reset: update failed", updateError);
+    logError("admin mfa reset: update failed", updateError);
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 
   // Clear all trusted devices to force fresh authentication
   const trustedDelete = await supabase.from("trusted_devices").delete().eq("user_id", target.id);
   if (trustedDelete.error) {
-    console.error("admin mfa reset: trusted devices delete failed", trustedDelete.error);
+    logError("admin mfa reset: trusted devices delete failed", trustedDelete.error);
     return NextResponse.json({ error: "trusted_cleanup_failed" }, { status: 500 });
   }
 

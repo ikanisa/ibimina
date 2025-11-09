@@ -101,14 +101,14 @@ cd /Users/jeanbosco/workspace/ibimina
 pnpm --filter @ibimina/admin dev
 
 # Open in browser
-open http://localhost:3000
+open http://localhost:3100
 ```
 
 ### 2.2 Manual Test Checklist
 
 #### Login & Authentication (5 min)
 
-- [ ] Load login page (http://localhost:3000)
+- [ ] Load login page (http://localhost:3100)
 - [ ] Enter email: `admin@example.com`, password: `password123`
 - [ ] Click "Sign In"
 - [ ] Should redirect to `/dashboard`
@@ -239,7 +239,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 **Setup:** You need both web PWA and mobile app
 
 1. **On Desktop:**
-   - Open http://localhost:3000
+   - Open http://localhost:3100
    - Should see QR code on login screen
    - Or after login, Settings → "Link Mobile Device" → QR code
 
@@ -993,9 +993,9 @@ Use this to track your testing session:
 
 **Signed Off By:**
 
-- Technical Lead: ****\_\_\_****
-- Product Owner: ****\_\_\_****
-- QA Lead: ****\_\_\_****
+- Technical Lead: \***\*\_\_\_\*\***
+- Product Owner: \***\*\_\_\_\*\***
+- QA Lead: \***\*\_\_\_\*\***
 ```
 
 ---

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { logWarn, logError } from "@/lib/observability/logger";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getDefaultUssdOperator,
@@ -73,7 +74,7 @@ export async function loadUssdTemplate(
     .maybeSingle();
 
   if (error && error.code !== "PGRST116") {
-    console.error("Failed to load USSD template", error);
+    logError("Failed to load USSD template", error);
     const fallback = getFallback(operatorId);
     templateCache.set(cacheKey, fallback);
     return fallback;
@@ -89,7 +90,7 @@ export async function loadUssdTemplate(
   const operator = coercePayload(parsedRow.payload);
 
   if (operator.id !== parsedRow.operator_id) {
-    console.warn("USSD template payload id mismatch", parsedRow.operator_id, operator.id);
+    logWarn("USSD template payload id mismatch", parsedRow.operator_id, operator.id);
   }
 
   const ttlSeconds = parsedRow.ttl_seconds;

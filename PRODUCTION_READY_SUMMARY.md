@@ -8,7 +8,8 @@
 
 ## 📊 Executive Summary
 
-The Ibimina SACCO Platform is a comprehensive financial management system for Rwanda's Umurenge SACCOs with **4 integrated applications**:
+The Ibimina SACCO Platform is a comprehensive financial management system for
+Rwanda's Umurenge SACCOs with **4 integrated applications**:
 
 ### ✅ COMPLETED & DEPLOYED (90%)
 
@@ -26,11 +27,13 @@ The Ibimina SACCO Platform is a comprehensive financial management system for Rw
 ## 🎯 Application Status
 
 ### 1. Staff/Admin PWA (apps/admin)
+
 **Status**: ✅ **PRODUCTION READY**  
 **Framework**: Next.js 15 + React 19 + TypeScript  
 **Port**: 3000
 
 #### Features Implemented:
+
 - ✅ Authentication (email/password, MFA, passkeys)
 - ✅ Dashboard with KPIs and analytics
 - ✅ User management (CRUD)
@@ -46,6 +49,7 @@ The Ibimina SACCO Platform is a comprehensive financial management system for Rw
 - ✅ Web push notifications
 
 #### Tech Stack:
+
 - Next.js 15 (App Router)
 - Material UI (MUI v5)
 - Supabase client
@@ -54,11 +58,12 @@ The Ibimina SACCO Platform is a comprehensive financial management system for Rw
 - Sentry error tracking
 
 #### Build & Deploy:
+
 ```bash
 cd apps/admin
 pnpm install
 pnpm build
-pnpm start  # Production server on port 3000
+pnpm start  # Production server on port 3100
 ```
 
 **URL**: https://admin.ibimina.rw (when deployed)
@@ -66,17 +71,18 @@ pnpm start  # Production server on port 3000
 ---
 
 ### 2. Staff Android App (apps/staff-mobile-android)
+
 **Status**: ✅ **PRODUCTION READY**  
 **Framework**: React Native + Capacitor  
 **Features**: TapMoMo NFC, SMS Reader, QR Scanner, 2FA
 
 #### Unique Features:
+
 - ✅ **TapMoMo NFC Payment System**
   - Android HCE payee (emulate payment card)
   - NFC reader for accepting payments
   - USSD integration for mobile money
   - Background sync for offline payments
-  
 - ✅ **SMS Reconciliation**
   - Read mobile money SMS notifications
   - AI-powered parsing with OpenAI
@@ -89,6 +95,7 @@ pnpm start  # Production server on port 3000
   - Biometric authentication support
 
 #### TapMoMo Implementation:
+
 ```kotlin
 // NFC Payment Flow:
 1. Staff opens "Get Paid" screen
@@ -106,6 +113,7 @@ pnpm start  # Production server on port 3000
 ```
 
 #### SMS Reconciliation Flow:
+
 ```typescript
 // apps/staff-mobile-android/src/services/sms-reader.ts
 1. READ_SMS permission requested
@@ -117,21 +125,25 @@ pnpm start  # Production server on port 3000
 ```
 
 #### Build:
+
 ```bash
 cd apps/staff-mobile-android
 pnpm install
 pnpm run android:build  # Generates APK
 ```
 
-**APK Location**: `apps/staff-mobile-android/android/app/build/outputs/apk/release/`
+**APK Location**:
+`apps/staff-mobile-android/android/app/build/outputs/apk/release/`
 
 ---
 
 ### 3. Backend Infrastructure (Supabase)
+
 **Status**: ✅ **FULLY DEPLOYED**  
 **URL**: https://hkjvoxscaipocqxtcimz.supabase.co
 
 #### Database Schema (18 migrations applied):
+
 - ✅ `users` - User accounts with RLS
 - ✅ `ikimina_groups` - Savings groups
 - ✅ `group_members` - Membership records
@@ -146,6 +158,7 @@ pnpm run android:build  # Generates APK
 - ✅ `orders`, `tickets` - Admin operations
 
 #### Edge Functions Deployed:
+
 1. ✅ `sms-reconcile` - Parse SMS and allocate payments
 2. ✅ `tapmomo-reconcile` - Update NFC payment status
 3. ✅ `group-contribute` - Process group contributions
@@ -153,6 +166,7 @@ pnpm run android:build  # Generates APK
 5. ✅ `whatsapp-otp` - Send WhatsApp OTP codes
 
 #### Deployment Commands:
+
 ```bash
 # Apply migrations
 supabase db push
@@ -169,6 +183,7 @@ supabase functions list
 ```
 
 #### Environment Variables (All Set):
+
 ```bash
 SUPABASE_URL=https://hkjvoxscaipocqxtcimz.supabase.co
 SUPABASE_ANON_KEY=*** (set in .env)
@@ -181,6 +196,7 @@ WHATSAPP_PHONE_NUMBER_ID=*** (set in Supabase secrets)
 ---
 
 ### 4. Client Mobile App (apps/client-mobile)
+
 **Status**: ⚠️ **90% COMPLETE** (needs UI polish)  
 **Framework**: React Native 0.76 + TypeScript  
 **Target**: iOS + Android
@@ -188,12 +204,14 @@ WHATSAPP_PHONE_NUMBER_ID=*** (set in Supabase secrets)
 #### ✅ Completed Features:
 
 **Authentication:**
+
 - ✅ WhatsApp OTP authentication (Meta API integrated)
 - ✅ 3-slide onboarding screens
 - ✅ Browse mode (explore without login)
 - ✅ Auth guards (require login for actions)
 
 **Core Screens:**
+
 - ✅ Home dashboard with balance and quick actions
 - ✅ Accounts screen with balance display
 - ✅ Transaction history with filters
@@ -202,18 +220,21 @@ WHATSAPP_PHONE_NUMBER_ID=*** (set in Supabase secrets)
 - ✅ Transfer screen (internal transfers)
 
 **Loans:**
+
 - ✅ Loan list with status badges
 - ✅ Loan application form (2-step)
 - ✅ Loan calculator with interest computation
 - ✅ Loan detail screen
 
 **Groups (Ikimina):**
+
 - ✅ Group list and search
 - ✅ Group detail with member list
 - ✅ Contribution screen with payment methods
 - ✅ USSD integration for payments
 
 **Profile:**
+
 - ✅ Profile screen with user info
 - ✅ Edit profile with photo upload
 - ✅ Settings (notifications, language, theme)
@@ -222,6 +243,7 @@ WHATSAPP_PHONE_NUMBER_ID=*** (set in Supabase secrets)
 #### ⚠️ Remaining Work (5-10 hours):
 
 **UI Polish** (3-5 hours):
+
 - [ ] Refine color palette (match Revolut minimalism)
 - [ ] Standardize spacing and typography
 - [ ] Add loading skeletons
@@ -229,16 +251,19 @@ WHATSAPP_PHONE_NUMBER_ID=*** (set in Supabase secrets)
 - [ ] Empty state illustrations
 
 **Push Notifications** (2 hours):
+
 - [ ] Configure deep links
 - [ ] Test notification flows
 - [ ] Add notification preferences
 
 **Testing** (2-3 hours):
+
 - [ ] End-to-end flows
 - [ ] Error handling edge cases
 - [ ] Network offline scenarios
 
 #### Build Commands:
+
 ```bash
 cd apps/client-mobile
 
@@ -257,6 +282,7 @@ pnpm run ios:build      # IPA (requires Xcode)
 ```
 
 #### WhatsApp OTP Configuration:
+
 ```typescript
 // Meta WhatsApp Business API
 Phone Number ID: *** (set in env)
@@ -270,11 +296,13 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 🔧 Technical Architecture
 
 ### Frontend Stack:
+
 - **Admin PWA**: Next.js 15, React 19, MUI v5, TanStack Query
 - **Staff Android**: React Native 0.76, Capacitor 7, NFC APIs
 - **Client Mobile**: React Native 0.76, React Navigation 6
 
 ### Backend Stack:
+
 - **Database**: PostgreSQL (via Supabase)
 - **Auth**: Supabase Auth + Custom MFA
 - **Storage**: Supabase Storage
@@ -282,6 +310,7 @@ Message: "{code} is your verification code. For your security, do not share this
 - **APIs**: RESTful + real-time subscriptions
 
 ### Infrastructure:
+
 - **Hosting**: Vercel (PWA), Google Play (Android), App Store (iOS pending)
 - **Database**: Supabase (managed PostgreSQL)
 - **CDN**: Cloudflare
@@ -293,6 +322,7 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 🚀 Deployment Checklist
 
 ### ✅ Completed:
+
 - [x] Supabase database migrations applied
 - [x] Edge Functions deployed
 - [x] Environment variables configured
@@ -305,6 +335,7 @@ Message: "{code} is your verification code. For your security, do not share this
 - [x] Error tracking (Sentry) configured
 
 ### ⚠️ Pending:
+
 - [ ] Client Mobile UI polish (5-10 hours)
 - [ ] Production domain setup (admin.ibimina.rw)
 - [ ] SSL certificates configured
@@ -320,8 +351,10 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 📱 Mobile App Store Requirements
 
 ### Staff Android App:
+
 **Ready for**: Google Play Internal Testing  
 **Requirements**:
+
 - [x] Signed APK generated
 - [x] Version: 1.0.0 (build 1)
 - [x] Min SDK: 26 (Android 8.0+)
@@ -331,14 +364,17 @@ Message: "{code} is your verification code. For your security, do not share this
 - [ ] App listing assets (screenshots, description)
 
 ### Client Mobile App:
+
 **Ready for**: Internal testing (iOS/Android)  
 **Google Play**:
+
 - [ ] UI polish complete
 - [ ] Signed APK
 - [ ] Privacy policy
 - [ ] Content rating questionnaire
 
 **App Store (iOS)**:
+
 - [ ] UI polish complete
 - [ ] Apple Developer account ($99/year)
 - [ ] App Store screenshots (multiple devices)
@@ -350,6 +386,7 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 🔐 Security Implementation
 
 ### Authentication:
+
 - ✅ Supabase Auth with JWT tokens
 - ✅ Multi-factor authentication (MFA)
 - ✅ Passkey support (WebAuthn)
@@ -358,6 +395,7 @@ Message: "{code} is your verification code. For your security, do not share this
 - ✅ Biometric authentication (Android)
 
 ### Data Protection:
+
 - ✅ Row-level security (RLS) on all tables
 - ✅ HTTPS everywhere
 - ✅ Encrypted connections to Supabase
@@ -366,6 +404,7 @@ Message: "{code} is your verification code. For your security, do not share this
 - ✅ Secure storage (Keychain/Keystore)
 
 ### Compliance:
+
 - ✅ GDPR-ready data handling
 - ✅ Audit logs for sensitive operations
 - ✅ User consent for SMS reading
@@ -378,18 +417,21 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 📊 Performance Metrics
 
 ### Admin PWA:
+
 - **Lighthouse Score**: 95+ (Performance, Accessibility, Best Practices, SEO)
 - **First Contentful Paint**: < 1.5s
 - **Time to Interactive**: < 3s
 - **Bundle Size**: ~500KB (gzipped)
 
 ### Mobile Apps:
+
 - **Android APK Size**: ~30MB (Staff), ~25MB (Client)
 - **Cold Start Time**: < 2s
 - **RAM Usage**: ~150MB average
 - **Battery Impact**: Minimal (optimized background tasks)
 
 ### Backend:
+
 - **API Response Time**: < 200ms (p95)
 - **Database Queries**: < 50ms average
 - **Edge Function Cold Start**: < 100ms
@@ -400,6 +442,7 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 🎓 Training & Documentation
 
 ### Staff Training Required:
+
 1. **Admin PWA Usage** (2 hours)
    - User management
    - Transaction reconciliation
@@ -418,6 +461,7 @@ Message: "{code} is your verification code. For your security, do not share this
    - Monitoring dashboards
 
 ### Documentation Available:
+
 - ✅ Developer setup guide (README.md)
 - ✅ API documentation (inline)
 - ✅ Database schema docs
@@ -434,12 +478,14 @@ Message: "{code} is your verification code. For your security, do not share this
 ### Monthly Operating Costs:
 
 **Infrastructure**:
+
 - Supabase Pro: $25/month
 - Vercel Pro: $20/month
 - Sentry: $26/month (Developer plan)
 - Total: ~$71/month
 
 **External APIs**:
+
 - OpenAI API: ~$50/month (SMS parsing)
 - WhatsApp Business API: ~$10/month (OTP messages)
 - Total: ~$60/month
@@ -449,6 +495,7 @@ Message: "{code} is your verification code. For your security, do not share this
 **Annual**: ~$1,572/year
 
 **Additional Costs**:
+
 - Apple Developer Program: $99/year (if publishing iOS)
 - Google Play Store: $25 one-time fee
 - Domain & SSL: $15/year
@@ -458,17 +505,20 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 🐛 Known Issues & Limitations
 
 ### Current Issues:
+
 1. ⚠️ Admin PWA middleware syntax warning (non-blocking)
 2. ⚠️ Client Mobile UI needs polish for production
 3. ⚠️ iOS TapMoMo not implemented (hardware limitation)
 
 ### Platform Limitations:
+
 1. **iOS NFC**: No HCE support (reader-only)
 2. **WhatsApp OTP**: Requires Meta Business verification
 3. **USSD**: Carrier-dependent (some may block)
 4. **SMS Reading**: Android-only permission
 
 ### Future Enhancements:
+
 - [ ] Real-time chat support
 - [ ] Advanced analytics dashboard
 - [ ] Multi-currency support
@@ -481,24 +531,28 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 📅 Launch Timeline
 
 ### Week 1 (Current):
+
 - [x] Complete core features
 - [x] Deploy backend
 - [x] Build Staff Android
 - [ ] Polish Client Mobile UI
 
 ### Week 2:
+
 - [ ] User acceptance testing
 - [ ] Fix bugs from UAT
 - [ ] Prepare store listings
 - [ ] Staff training
 
 ### Week 3:
+
 - [ ] Soft launch (internal users)
 - [ ] Monitor and fix issues
 - [ ] Collect feedback
 - [ ] Iterate on UI/UX
 
 ### Week 4:
+
 - [ ] Public launch
 - [ ] Marketing campaign
 - [ ] Customer onboarding
@@ -509,6 +563,7 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 🎉 Success Criteria
 
 ### Technical:
+
 - ✅ All core features implemented
 - ✅ Backend deployed and stable
 - ⚠️ <2s load time on 3G (needs testing)
@@ -516,10 +571,11 @@ Message: "{code} is your verification code. For your security, do not share this
 - ⚠️ Zero critical bugs (needs UAT)
 
 ### Business:
+
 - [ ] 100+ SACCOs onboarded (target)
 - [ ] 10,000+ active users (target)
 - [ ] <5% transaction failure rate
-- [ ] >90% user satisfaction
+- [ ] > 90% user satisfaction
 - [ ] <1% customer churn
 
 ---
@@ -527,11 +583,13 @@ Message: "{code} is your verification code. For your security, do not share this
 ## 🤝 Support & Maintenance
 
 ### Contact:
+
 - **Developer**: GitHub @ikanisa/ibimina
 - **Issues**: https://github.com/ikanisa/ibimina/issues
 - **Email**: support@ibimina.rw (to be configured)
 
 ### Maintenance Plan:
+
 - **Daily**: Monitor error logs and uptime
 - **Weekly**: Review performance metrics
 - **Monthly**: Security updates and dependency patches
@@ -541,7 +599,8 @@ Message: "{code} is your verification code. For your security, do not share this
 
 ## 📝 Conclusion
 
-The Ibimina SACCO Platform is **95% complete** and ready for production launch pending:
+The Ibimina SACCO Platform is **95% complete** and ready for production launch
+pending:
 
 1. **Client Mobile UI polish** (5-10 hours)
 2. **User acceptance testing** (1 week)
@@ -550,7 +609,8 @@ The Ibimina SACCO Platform is **95% complete** and ready for production launch p
 
 **Estimated Launch Date**: 2-3 weeks from now
 
-**Recommendation**: Proceed with UAT using current builds while completing final polish. The system is stable, secure, and feature-complete for initial launch.
+**Recommendation**: Proceed with UAT using current builds while completing final
+polish. The system is stable, secure, and feature-complete for initial launch.
 
 ---
 

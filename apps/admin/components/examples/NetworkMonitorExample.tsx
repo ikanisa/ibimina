@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import NetworkMonitor, { type NetworkStatus } from '@/lib/plugins/network-monitor';
-import { Wifi, WifiOff, Signal, Smartphone } from 'lucide-react';
+import { useEffect, useState } from "react";
+import NetworkMonitor, { type NetworkStatus } from "@/lib/plugins/network-monitor";
+import { Wifi, WifiOff, Signal, Smartphone } from "lucide-react";
+import { logError, logInfo } from "@/lib/observability/logger";
 
 /**
  * Example component demonstrating NetworkMonitor plugin usage
- * 
+ *
  * Features:
  * - Display current network status
  * - Monitor network changes in real-time
@@ -26,6 +27,7 @@ export function NetworkMonitorExample() {
         NetworkMonitor.stopMonitoring();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getInitialStatus = async () => {
@@ -33,7 +35,7 @@ export function NetworkMonitorExample() {
       const status = await NetworkMonitor.getStatus();
       setNetworkStatus(status);
     } catch (error) {
-      console.error('Failed to get network status:', error);
+      logError("network_monitor_get_status_failed", { error });
     }
   };
 
@@ -41,19 +43,19 @@ export function NetworkMonitorExample() {
     setLoading(true);
     try {
       await NetworkMonitor.startMonitoring();
-      
+
       // Add listener for network changes
-      await NetworkMonitor.addListener('networkStatusChange', (status) => {
-        console.log('Network status changed:', status);
+      await NetworkMonitor.addListener("networkStatusChange", (status) => {
+        logInfo("network_status_changed", { status });
         setNetworkStatus(status);
-        setStatusHistory(prev => [status, ...prev].slice(0, 5)); // Keep last 5
+        setStatusHistory((prev) => [status, ...prev].slice(0, 5)); // Keep last 5
       });
-      
+
       setIsMonitoring(true);
-      alert('Network monitoring started');
+      alert("Network monitoring started");
     } catch (error) {
-      console.error('Failed to start monitoring:', error);
-      alert('Error starting monitoring');
+      console.error("Failed to start monitoring:", error);
+      alert("Error starting monitoring");
     } finally {
       setLoading(false);
     }
@@ -64,10 +66,10 @@ export function NetworkMonitorExample() {
     try {
       await NetworkMonitor.stopMonitoring();
       setIsMonitoring(false);
-      alert('Network monitoring stopped');
+      alert("Network monitoring stopped");
     } catch (error) {
-      console.error('Failed to stop monitoring:', error);
-      alert('Error stopping monitoring');
+      console.error("Failed to stop monitoring:", error);
+      alert("Error stopping monitoring");
     } finally {
       setLoading(false);
     }
@@ -79,8 +81,8 @@ export function NetworkMonitorExample() {
       const status = await NetworkMonitor.getStatus();
       setNetworkStatus(status);
     } catch (error) {
-      console.error('Failed to refresh status:', error);
-      alert('Error refreshing status');
+      console.error("Failed to refresh status:", error);
+      alert("Error refreshing status");
     } finally {
       setLoading(false);
     }
@@ -90,13 +92,13 @@ export function NetworkMonitorExample() {
     if (!networkStatus?.connected) {
       return <WifiOff className="w-8 h-8 text-red-600" />;
     }
-    
+
     switch (networkStatus.connectionType) {
-      case 'wifi':
+      case "wifi":
         return <Wifi className="w-8 h-8 text-green-600" />;
-      case 'cellular':
+      case "cellular":
         return <Signal className="w-8 h-8 text-blue-600" />;
-      case 'ethernet':
+      case "ethernet":
         return <Smartphone className="w-8 h-8 text-purple-600" />;
       default:
         return <Wifi className="w-8 h-8 text-gray-600" />;
@@ -104,17 +106,21 @@ export function NetworkMonitorExample() {
   };
 
   const getConnectionColor = () => {
-    if (!networkStatus?.connected) return 'text-red-600';
+    if (!networkStatus?.connected) return "text-red-600";
     switch (networkStatus.connectionType) {
-      case 'wifi': return 'text-green-600';
-      case 'cellular': return 'text-blue-600';
-      case 'ethernet': return 'text-purple-600';
-      default: return 'text-gray-600';
+      case "wifi":
+        return "text-green-600";
+      case "cellular":
+        return "text-blue-600";
+      case "ethernet":
+        return "text-purple-600";
+      default:
+        return "text-gray-600";
     }
   };
 
   const formatBandwidth = (kbps: number | undefined) => {
-    if (!kbps) return 'N/A';
+    if (!kbps) return "N/A";
     if (kbps >= 1000) {
       return `${(kbps / 1000).toFixed(1)} Mbps`;
     }
@@ -137,7 +143,7 @@ export function NetworkMonitorExample() {
               <div className="flex justify-between">
                 <span>Connection:</span>
                 <span className={`font-medium ${getConnectionColor()}`}>
-                  {networkStatus.connected ? 'Connected' : 'Disconnected'}
+                  {networkStatus.connected ? "Connected" : "Disconnected"}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -147,21 +153,27 @@ export function NetworkMonitorExample() {
               {networkStatus.isMetered !== undefined && (
                 <div className="flex justify-between">
                   <span>Metered:</span>
-                  <span className={`font-medium ${networkStatus.isMetered ? 'text-orange-600' : 'text-green-600'}`}>
-                    {networkStatus.isMetered ? 'Yes (Limited Data)' : 'No (Unlimited)'}
+                  <span
+                    className={`font-medium ${networkStatus.isMetered ? "text-orange-600" : "text-green-600"}`}
+                  >
+                    {networkStatus.isMetered ? "Yes (Limited Data)" : "No (Unlimited)"}
                   </span>
                 </div>
               )}
               {networkStatus.linkDownstreamBandwidthKbps !== undefined && (
                 <div className="flex justify-between">
                   <span>Download Speed:</span>
-                  <span className="font-medium">{formatBandwidth(networkStatus.linkDownstreamBandwidthKbps)}</span>
+                  <span className="font-medium">
+                    {formatBandwidth(networkStatus.linkDownstreamBandwidthKbps)}
+                  </span>
                 </div>
               )}
               {networkStatus.linkUpstreamBandwidthKbps !== undefined && (
                 <div className="flex justify-between">
                   <span>Upload Speed:</span>
-                  <span className="font-medium">{formatBandwidth(networkStatus.linkUpstreamBandwidthKbps)}</span>
+                  <span className="font-medium">
+                    {formatBandwidth(networkStatus.linkUpstreamBandwidthKbps)}
+                  </span>
                 </div>
               )}
             </div>
@@ -175,7 +187,7 @@ export function NetworkMonitorExample() {
             disabled={loading}
             className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
           >
-            {loading ? 'Refreshing...' : 'Refresh Status'}
+            {loading ? "Refreshing..." : "Refresh Status"}
           </button>
 
           {!isMonitoring ? (
@@ -205,9 +217,9 @@ export function NetworkMonitorExample() {
               {statusHistory.map((status, index) => (
                 <div key={index} className="text-sm p-2 bg-white dark:bg-gray-800 rounded">
                   <span className="font-medium">{status.connectionType}</span>
-                  {' - '}
-                  <span className={status.connected ? 'text-green-600' : 'text-red-600'}>
-                    {status.connected ? 'Connected' : 'Disconnected'}
+                  {" - "}
+                  <span className={status.connected ? "text-green-600" : "text-red-600"}>
+                    {status.connected ? "Connected" : "Disconnected"}
                   </span>
                 </div>
               ))}

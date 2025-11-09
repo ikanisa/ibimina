@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError) {
-    console.error("Failed to validate auth", authError);
+    logError("Failed to validate auth", authError);
     return NextResponse.json({ error: "Auth failed" }, { status: 500 });
   }
 
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (existingError) {
-    console.error("Failed to load existing profile", existingError);
+    logError("Failed to load existing profile", existingError);
     return NextResponse.json({ error: "Unable to complete onboarding" }, { status: 500 });
   }
 
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       .eq("user_id", user.id);
 
     if (error) {
-      console.error("Failed to update profile", error);
+      logError("Failed to update profile", error);
       return NextResponse.json({ error: "Unable to update profile" }, { status: 500 });
     }
   } else {
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
     const { error } = await legacyClient.from("members_app_profiles").insert(insertPayload);
 
     if (error) {
-      console.error("Failed to create profile", error);
+      logError("Failed to create profile", error);
       return NextResponse.json({ error: "Unable to create profile" }, { status: 500 });
     }
   }

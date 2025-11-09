@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import { deletePasskeyCredential } from "@/lib/mfa/passkeys";
 import { logAudit } from "@/lib/audit";
@@ -30,7 +31,7 @@ export async function DELETE(_request: NextRequest, context: { params: Params })
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete passkey", error);
+    logError("Failed to delete passkey", error);
     return NextResponse.json({ error: "delete_failed" }, { status: 500 });
   }
 }

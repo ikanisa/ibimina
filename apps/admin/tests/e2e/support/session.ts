@@ -4,7 +4,7 @@ import type { APIRequestContext, Page } from "@playwright/test";
 
 export type SessionState = "authenticated" | "anonymous";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
 
 /**
  * Mirrors the stubbed session state into both the API harness and the browser context

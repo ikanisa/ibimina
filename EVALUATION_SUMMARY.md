@@ -52,7 +52,7 @@ issues.
 
 ### Three Applications Identified and Analyzed
 
-#### 1. Admin/Staff App (`apps/admin`, port 3000)
+#### 1. Admin/Staff App (`apps/admin`, port 3100)
 
 - **Purpose**: Staff console for SACCO operations
 - **Status**: ✅ Mostly production-ready

@@ -1,5 +1,13 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { getRuntimeConfig } from "../../src/lib/runtime-config";
+
+type MaybePromise<T> = T | Promise<T>;
+
+type AsyncStorageAdapter<T> = {
+  getStore(): T | undefined;
+  run<R>(store: T, callback: () => MaybePromise<R>): MaybePromise<R>;
+  enterWith(store: T): void;
+};
 interface LogContext {
   requestId?: string;
   userId?: string | null;
@@ -24,7 +32,53 @@ interface LogDrainAlertConfig {
   cooldownMs: number;
 }
 
-const storage = new AsyncLocalStorage<LogContext>();
+const storage = createAsyncStorage<LogContext>();
+
+function createAsyncStorage<T>(): AsyncStorageAdapter<T> {
+  if (typeof window === "undefined") {
+    const asyncStorage = new AsyncLocalStorage<T>();
+    return {
+      getStore: () => asyncStorage.getStore(),
+      run: (store, callback) => asyncStorage.run(store, callback),
+      enterWith: (store) => asyncStorage.enterWith(store),
+    };
+  }
+  return createClientStorage<T>();
+}
+
+function createClientStorage<T>(): AsyncStorageAdapter<T> {
+  let current: T | undefined;
+
+  return {
+    getStore: () => current,
+    run<R>(store: T, callback: () => MaybePromise<R>): MaybePromise<R> {
+      const previous = current;
+      current = store;
+      try {
+        const result = callback();
+        if (isPromise(result)) {
+          return result.finally(() => {
+            current = previous;
+          }) as MaybePromise<R>;
+        }
+        current = previous;
+        return result;
+      } catch (error) {
+        current = previous;
+        throw error;
+      }
+    },
+    enterWith(store: T) {
+      current = store;
+    },
+  };
+}
+
+function isPromise<T>(value: MaybePromise<T>): value is Promise<T> {
+  return (
+    typeof value === "object" && value !== null && typeof (value as Promise<T>).then === "function"
+  );
+}
 const DEFAULT_ALERT_COOLDOWN_MS = 5 * 60 * 1000;
 let lastLogDrainAlertAt: number | null = null;
 
@@ -96,12 +150,15 @@ function write(level: LogLevel, event: string, payload: LogPayload) {
 
   switch (level) {
     case "warn":
+      // eslint-disable-next-line ibimina/structured-logging, no-console
       console.warn(serialized);
       break;
     case "error":
+      // eslint-disable-next-line ibimina/structured-logging, no-console
       console.error(serialized);
       break;
     default:
+      // eslint-disable-next-line ibimina/structured-logging, no-console
       console.log(serialized);
   }
   const config = getLogDrainConfig();
@@ -189,6 +246,7 @@ async function sendLogDrainAlert(entry: Record<string, unknown>, reason: unknown
     });
   } catch (error) {
     if (process.env.LOG_DRAIN_SILENT !== "1") {
+      // eslint-disable-next-line no-console
       console.warn("[log-drain] alert forward failed", error);
     }
   }
@@ -222,6 +280,7 @@ async function forwardToDrain(entry: Record<string, unknown>, config: LogDrainCo
 
     if (!response.ok) {
       if (process.env.LOG_DRAIN_SILENT !== "1") {
+        // eslint-disable-next-line no-console
         console.warn(
           "[log-drain] forward failed",
           new Error(`unexpected status ${response.status}`)
@@ -234,6 +293,7 @@ async function forwardToDrain(entry: Record<string, unknown>, config: LogDrainCo
     }
   } catch (error) {
     if (process.env.LOG_DRAIN_SILENT !== "1") {
+      // eslint-disable-next-line no-console
       console.warn("[log-drain] forward failed", error);
     }
     queueMicrotask(() => {

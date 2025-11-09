@@ -400,7 +400,7 @@ See `.env.production.example` for the complete list. Critical variables:
 # Core Application
 APP_ENV=production
 NODE_ENV=production
-PORT=3000
+PORT=3100
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=

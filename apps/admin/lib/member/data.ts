@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { logError } from "@/lib/observability/logger";
 import { createSupabaseServerClient, supabaseSrv } from "@/lib/supabase/server";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import type { Database } from "@/lib/supabase/types";
@@ -86,18 +87,18 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
   ]);
 
   if (profileError) {
-    console.error("Failed to load member profile", profileError);
+    logError("Failed to load member profile", profileError);
     throw new Error("Unable to load member profile");
   }
   if (linkedError) {
-    console.error("Failed to load linked SACCOs", linkedError);
+    logError("Failed to load linked SACCOs", linkedError);
     throw new Error("Unable to load SACCO list");
   }
 
   let loans: MemberLoanApplication[] = [];
   if (loansError) {
     if (!isMissingRelationError(loansError)) {
-      console.error("Failed to load loan applications", loansError);
+      logError("Failed to load loan applications", loansError);
       throw new Error("Unable to load loan applications");
     }
   } else {
@@ -139,7 +140,7 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
       .order("name", { ascending: true });
 
     if (saccoError) {
-      console.error("Failed to load member SACCOs", saccoError);
+      logError("Failed to load member SACCOs", saccoError);
       throw new Error("Unable to load SACCO list");
     }
 
@@ -155,7 +156,7 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
       .order("name", { ascending: true });
 
     if (groupsError) {
-      console.error("Failed to load groups", groupsError);
+      logError("Failed to load groups", groupsError);
       throw new Error("Unable to load groups");
     }
 
@@ -169,7 +170,7 @@ export const getMemberHomeData = cache(async (): Promise<MemberHomeData> => {
     .order("created_at", { ascending: false });
 
   if (joinError) {
-    console.error("Failed to load join requests", joinError);
+    logError("Failed to load join requests", joinError);
     throw new Error("Unable to load join requests");
   }
 
@@ -194,7 +195,7 @@ export async function getMemberGroupSummary(groupId: string): Promise<{
     .maybeSingle();
 
   if (error) {
-    console.error("Failed to load group", error);
+    logError("Failed to load group", error);
     throw new Error("Unable to load group");
   }
 
@@ -211,7 +212,7 @@ export async function getMemberGroupSummary(groupId: string): Promise<{
     .maybeSingle();
 
   if (saccoError) {
-    console.error("Failed to load SACCO", saccoError);
+    logError("Failed to load SACCO", saccoError);
     throw new Error("Unable to load SACCO");
   }
 

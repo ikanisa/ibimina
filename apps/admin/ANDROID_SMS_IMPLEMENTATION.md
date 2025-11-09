@@ -283,7 +283,7 @@ pnpm dev
 
 ```typescript
 server: {
-  url: 'http://10.0.2.2:3000', // Android emulator
+  url: 'http://10.0.2.2:3100', // Android emulator
   cleartext: true,
 }
 ```

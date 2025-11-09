@@ -14,7 +14,7 @@ const parsePasskeyPayload = (token: string | undefined): PasskeyVerificationPayl
       const decoded = Buffer.from(token, "base64").toString("utf8");
       return JSON.parse(decoded) as PasskeyVerificationPayload;
     } catch (base64Error) {
-      console.error("passkey_factor_parse_failed", jsonError, base64Error);
+      logError("passkey_factor_parse_failed", { jsonError, base64Error });
       return null;
     }
   }

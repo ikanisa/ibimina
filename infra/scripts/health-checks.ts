@@ -187,7 +187,7 @@ class HealthChecker {
 // Parse command line arguments
 function parseArgs(): { endpoint: string } {
   const args = process.argv.slice(2);
-  let endpoint = process.env.HEALTH_CHECK_ENDPOINT || "http://localhost:3000";
+  let endpoint = process.env.HEALTH_CHECK_ENDPOINT || "http://localhost:3100";
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--endpoint" && args[i + 1]) {

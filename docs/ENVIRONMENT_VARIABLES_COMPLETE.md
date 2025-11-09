@@ -29,7 +29,7 @@ Edge Functions, and infrastructure.
 
 | Environment    | Supabase Project   | Vercel/Deployment | Purpose                         |
 | -------------- | ------------------ | ----------------- | ------------------------------- |
-| **Local**      | `localhost:54321`  | `localhost:3000`  | Development with Docker Compose |
+| **Local**      | `localhost:54321`  | `localhost:3100`  | Development with Docker Compose |
 | **Preview**    | `preview-*` branch | Vercel Preview    | PR validation                   |
 | **Staging**    | `ibimina-staging`  | Vercel Staging    | Pre-production testing          |
 | **Production** | `ibimina-prod`     | Vercel Production | Live system                     |

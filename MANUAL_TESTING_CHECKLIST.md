@@ -98,7 +98,7 @@ curl -X POST https://YOUR_PROJECT.supabase.co/functions/v1/sms-reconcile \
 - [ ] Bundle size reasonable (<1MB main chunk)
 - [ ] `pnpm start` serves production build
 
-### Test: http://localhost:3000
+### Test: http://localhost:3100
 
 ### Login Page
 
@@ -337,7 +337,7 @@ On first launch:
 
 #### Desktop Side
 
-1. Open Admin PWA: http://localhost:3000
+1. Open Admin PWA: http://localhost:3100
 2. Click "Login"
 3. QR code displays
 
@@ -1482,7 +1482,7 @@ LIMIT 1;
 cd apps/admin
 pnpm build
 pnpm start &
-npx lighthouse http://localhost:3000 --view
+npx lighthouse http://localhost:3100 --view
 ```
 
 **Target Scores:**
@@ -1622,8 +1622,8 @@ k6 run scripts/load-test.js
 
 ## ✅ Sign-Off
 
-**Tested By:** ********\_********  
-**Date:** ********\_********  
+**Tested By:** **\*\*\*\***\_**\*\*\*\***  
+**Date:** **\*\*\*\***\_**\*\*\*\***  
 **Environment:** ☐ Dev ☐ Staging ☐ Production  
 **Overall Status:** ☐ Pass ☐ Pass with Issues ☐ Fail
 
@@ -1637,8 +1637,8 @@ k6 run scripts/load-test.js
 
 **Approved for Production:** ☐ Yes ☐ No
 
-**Approver:** ********\_********  
-**Date:** ********\_********
+**Approver:** **\*\*\*\***\_**\*\*\*\***  
+**Date:** **\*\*\*\***\_**\*\*\*\***
 
 ---
 

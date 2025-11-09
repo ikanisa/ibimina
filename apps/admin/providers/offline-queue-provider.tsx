@@ -126,6 +126,8 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
         throw new OfflineSyncError(body.error ?? "Request failed", response.status, body);
       }
     },
+    // OfflineSyncError is a stable class defined in this component
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 

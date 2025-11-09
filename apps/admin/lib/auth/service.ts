@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { logError } from "@/lib/observability/logger";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient, supabaseSrv } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -55,7 +56,7 @@ export async function fetchUserAndProfile(): Promise<AuthContext | null> {
     .maybeSingle<UserRow>();
 
   if (profileError) {
-    console.error("[auth] failed to load profile", profileError);
+    logError("[auth] failed to load profile", profileError);
     throw new Error("Unable to load staff profile");
   }
 
@@ -87,7 +88,7 @@ export async function fetchUserAndProfile(): Promise<AuthContext | null> {
       .maybeSingle<UserRow>();
 
     if (fallbackError || !fallback) {
-      console.error("[auth] failed to load profile", fallbackError);
+      logError("[auth] failed to load profile", fallbackError);
       throw new Error("Unable to load staff profile");
     }
 

@@ -5,6 +5,7 @@
  */
 
 import type { ChallengeData } from "./types";
+import { logError } from "@/lib/observability/logger";
 
 export class DeviceAuthClient {
   private apiBaseUrl: string;
@@ -53,7 +54,7 @@ export class DeviceAuthClient {
         expiresAt: result.expires_at,
       };
     } catch (error) {
-      console.error("Challenge generation error:", error);
+      logError("Challenge generation error:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Failed to generate challenge",
@@ -103,7 +104,7 @@ export class DeviceAuthClient {
           setTimeout(poll, this.pollInterval);
         }
       } catch (error) {
-        console.error("Polling error:", error);
+        logError("Polling error:", error);
         onError(error instanceof Error ? error.message : "Polling failed");
       }
     };
@@ -136,7 +137,7 @@ export class DeviceAuthClient {
         verified: false,
       };
     } catch (error) {
-      console.error("Session status check error:", error);
+      logError("Session status check error:", error);
       return {
         verified: false,
         error: error instanceof Error ? error.message : "Failed to check status",

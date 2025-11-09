@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { supabaseSrv } from "@/lib/supabase/server";
+import { logError, logInfo, logWarn } from "@/lib/observability/logger";
 
 /**
  * Verify device-signed challenge
@@ -260,7 +261,10 @@ export async function POST(req: NextRequest) {
         );
 
         // For now, we'll log but not reject. In production, you might want to reject.
-        console.warn("Device integrity check failed but allowing authentication");
+        logWarn("deviceAuth.verify.integrity_failed", {
+          deviceId: deviceKey.id,
+          userId: deviceKey.user_id,
+        });
       } else {
         await logAuditEvent(
           supabase,
@@ -319,7 +323,7 @@ export async function POST(req: NextRequest) {
       message: "Authentication successful",
     });
   } catch (error) {
-    console.error("Verification error:", error);
+    logError("deviceAuth.verify.unhandled_error", { error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -360,7 +364,7 @@ async function verifySignature(
 
     throw new Error(`Unsupported algorithm: ${algorithm}`);
   } catch (error) {
-    console.error("Signature verification error:", error);
+    logError("deviceAuth.verify.signature_error", { error });
     return false;
   }
 }
@@ -376,7 +380,7 @@ async function verifyPlayIntegrity(token: string): Promise<any> {
   // See: https://developer.android.com/google/play/integrity/verdict
 
   // Mock implementation for development
-  console.log("Mock Play Integrity verification for token:", token);
+  logInfo("deviceAuth.verify.play_integrity_mock", { token });
 
   return {
     meets_device_integrity: true,

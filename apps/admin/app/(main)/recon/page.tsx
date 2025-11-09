@@ -9,8 +9,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { canImportStatements, canReconcilePayments, isSystemAdmin } from "@/lib/permissions";
 import { Trans } from "@/components/common/trans";
+import { logWarn } from "@/lib/observability/logger";
 
 const EXCEPTION_STATUSES = ["UNALLOCATED", "PENDING", "REJECTED"] as const;
+const AUTH_GUEST_MODE = process.env.AUTH_GUEST_MODE === "1";
 
 const parseSmsJson = (
   value: Database["app"]["Tables"]["sms_inbox"]["Row"]["parsed_json"]
@@ -26,22 +28,74 @@ const parseSmsJson = (
         return parsed as Record<string, unknown>;
       }
     } catch (error) {
-      console.warn("Unable to parse SMS JSON string", error);
+      logWarn("recon.sms_parse_failed", { error });
     }
   }
   return null;
 };
 
+type ExceptionRow = Database["app"]["Tables"]["payments"]["Row"] & {
+  source: Pick<
+    Database["app"]["Tables"]["sms_inbox"]["Row"],
+    "raw_text" | "parsed_json" | "msisdn" | "received_at"
+  > | null;
+};
+
+type SmsRow = Pick<
+  Database["app"]["Tables"]["sms_inbox"]["Row"],
+  "id" | "raw_text" | "parsed_json" | "msisdn" | "received_at" | "status" | "confidence" | "error"
+>;
+
+const GUEST_EXCEPTIONS: ExceptionRow[] = [
+  {
+    id: "exc-1",
+    sacco_id: "stub-sacco",
+    ikimina_id: "ikimina-1",
+    member_id: "member-1",
+    msisdn: "+250788123456",
+    reference: "FT12345",
+    amount: 50000,
+    occurred_at: new Date().toISOString(),
+    status: "UNALLOCATED",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    source: {
+      raw_text: "MoMoPay FT12345 RWF 50,000",
+      parsed_json: { amount: 50000, reference: "FT12345" },
+      msisdn: "+250788123456",
+      received_at: new Date().toISOString(),
+    },
+  } as ExceptionRow,
+];
+
+const GUEST_SMS: SmsRow[] = [
+  {
+    id: "sms-1",
+    raw_text: "Payment of RWF 12,000 from 0788 321 654",
+    parsed_json: { amount: 12000, payer: "0788321654" },
+    msisdn: "+250788321654",
+    received_at: new Date().toISOString(),
+    status: "PARSED",
+    confidence: 0.92,
+    error: null,
+  },
+];
+
 export default async function ReconciliationPage() {
   const { profile } = await requireUserAndProfile();
-  const supabase = await createSupabaseServerClient();
 
-  type ExceptionRow = Database["app"]["Tables"]["payments"]["Row"] & {
-    source: Pick<
-      Database["app"]["Tables"]["sms_inbox"]["Row"],
-      "raw_text" | "parsed_json" | "msisdn" | "received_at"
-    > | null;
-  };
+  if (AUTH_GUEST_MODE) {
+    return renderReconciliation({
+      profile,
+      exceptions: GUEST_EXCEPTIONS,
+      smsEntries: GUEST_SMS,
+      summaryCount: GUEST_EXCEPTIONS.length,
+      canImport: true,
+      canReconcile: true,
+    });
+  }
+
+  const supabase = await createSupabaseServerClient();
 
   let query = supabase
     .schema("app")
@@ -63,11 +117,6 @@ export default async function ReconciliationPage() {
     throw error;
   }
 
-  type SmsRow = Pick<
-    Database["app"]["Tables"]["sms_inbox"]["Row"],
-    "id" | "raw_text" | "parsed_json" | "msisdn" | "received_at" | "status" | "confidence" | "error"
-  >;
-
   let smsQuery = supabase
     .schema("app")
     .from("sms_inbox")
@@ -85,6 +134,38 @@ export default async function ReconciliationPage() {
     throw smsError;
   }
 
+  return renderReconciliation({
+    profile,
+    exceptions: data ?? [],
+    smsEntries: smsEntries ?? [],
+    summaryCount: (data ?? []).length,
+    canImport: profile.sacco_id
+      ? canImportStatements(profile, profile.sacco_id)
+      : isSystemAdmin(profile),
+    canReconcile: profile.sacco_id
+      ? canReconcilePayments(profile, profile.sacco_id)
+      : isSystemAdmin(profile),
+  });
+}
+
+function renderReconciliation({
+  profile,
+  exceptions,
+  smsEntries,
+  summaryCount,
+  canImport,
+  canReconcile,
+}: {
+  profile: Awaited<ReturnType<typeof requireUserAndProfile>>["profile"];
+  exceptions: ExceptionRow[];
+  smsEntries: SmsRow[];
+  summaryCount: number;
+  canImport: boolean;
+  canReconcile: boolean;
+}) {
+  const allowStatementImport = canImport;
+  const allowReconciliationUpdates = canReconcile;
+
   const smsPanelItems = (smsEntries ?? []).map((item) => ({
     id: item.id,
     raw_text: item.raw_text,
@@ -95,13 +176,6 @@ export default async function ReconciliationPage() {
     confidence: item.confidence,
     error: item.error ?? null,
   }));
-
-  const allowStatementImport = profile.sacco_id
-    ? canImportStatements(profile, profile.sacco_id)
-    : isSystemAdmin(profile);
-  const allowReconciliationUpdates = profile.sacco_id
-    ? canReconcilePayments(profile, profile.sacco_id)
-    : isSystemAdmin(profile);
 
   return (
     <div className="space-y-8">
@@ -114,7 +188,7 @@ export default async function ReconciliationPage() {
             className="text-xs text-ink/70"
           />
         }
-        badge={<StatusChip tone="warning">{(data ?? []).length} pending</StatusChip>}
+        badge={<StatusChip tone="warning">{summaryCount} pending</StatusChip>}
       />
 
       <GlassCard
@@ -193,7 +267,7 @@ export default async function ReconciliationPage() {
         }
       >
         <ReconciliationTable
-          rows={data ?? []}
+          rows={exceptions ?? []}
           saccoId={profile.sacco_id}
           canWrite={allowReconciliationUpdates}
         />

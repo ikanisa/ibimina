@@ -108,7 +108,7 @@ supabase migration list       # Migration status
 
 ## 🐛 Known Issues
 
-1. **Admin PWA** (Next.js at :3000) - Internal error → **Use staff-admin-pwa
+1. **Admin PWA** (Next.js at :3100) - Internal error → **Use staff-admin-pwa
    instead**
 2. **Android Dependencies** - Gradle conflicts → **Fix script available**
 3. **47 Migrations Pending** - FK issues → **Use quick fix**

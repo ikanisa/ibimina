@@ -40,10 +40,15 @@ export default async function NewTelcoPage() {
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold text-ink">Add telco provider</h1>
-        <p className="text-sm text-ink/70">Configure a new mobile money integration and USSD parsing rules.</p>
+        <p className="text-sm text-ink/70">
+          Configure a new mobile money integration and USSD parsing rules.
+        </p>
       </header>
 
-      <form action={createTelco} className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6">
+      <form
+        action={createTelco}
+        className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6"
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-2">
             <span className="text-sm font-medium text-ink">Provider name</span>

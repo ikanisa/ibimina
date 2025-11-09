@@ -113,7 +113,7 @@ Multiple components had TypeScript errors due to:
    pnpm start
    ```
 
-   Then visit http://localhost:3000
+   Then visit http://localhost:3100
 
 2. **Verify PWA functionality**:
    - Check service worker registration in DevTools

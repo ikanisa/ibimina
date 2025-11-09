@@ -190,7 +190,7 @@ print_summary() {
     echo "  1. Review the merged code"
     echo "  2. Run database migrations: cd supabase && supabase db push"
     echo "  3. Update environment variables (see .env.example)"
-    echo "  4. Test the chat endpoint: curl -X POST http://localhost:3000/api/agent/chat"
+    echo "  4. Test the chat endpoint: curl -X POST http://localhost:3100/api/agent/chat"
     echo "  5. Push to remote: git push origin main"
     echo ""
     log_warn "Remember to update API consumers - the AI agent API has changed!"

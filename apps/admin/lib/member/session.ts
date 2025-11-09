@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { logError } from "@/lib/observability/logger";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export interface MemberSession {
@@ -14,7 +15,7 @@ export async function getMemberSession(): Promise<MemberSession | null> {
   } = await supabase.auth.getUser();
 
   if (error) {
-    console.error("Failed to resolve member session", error);
+    logError("Failed to resolve member session", error);
     throw new Error("Unable to verify session");
   }
 

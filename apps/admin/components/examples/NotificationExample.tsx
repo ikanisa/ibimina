@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import EnhancedNotifications from '@/lib/plugins/enhanced-notifications';
-import { Bell, CheckCircle, XCircle } from 'lucide-react';
+import { useEffect, useState } from "react";
+import EnhancedNotifications from "@/lib/plugins/enhanced-notifications";
+import { Bell, CheckCircle, XCircle } from "lucide-react";
+import { logError, logInfo } from "@/lib/observability/logger";
 
 /**
  * Example component demonstrating EnhancedNotifications plugin usage
- * 
+ *
  * Features:
  * - Request notification permissions
  * - Show notifications with different channels
@@ -27,7 +28,7 @@ export function NotificationExample() {
       const { granted } = await EnhancedNotifications.checkPermissions();
       setPermissionGranted(granted);
     } catch (error) {
-      console.error('Failed to check notification permissions:', error);
+      logError("notification_permissions_check_failed", { error });
     }
   };
 
@@ -37,13 +38,13 @@ export function NotificationExample() {
       const { granted } = await EnhancedNotifications.requestPermissions();
       setPermissionGranted(granted);
       if (granted) {
-        alert('Notification permissions granted!');
+        alert("Notification permissions granted!");
       } else {
-        alert('Notification permissions denied');
+        alert("Notification permissions denied");
       }
     } catch (error) {
-      console.error('Failed to request permissions:', error);
-      alert('Error requesting permissions');
+      console.error("Failed to request permissions:", error);
+      alert("Error requesting permissions");
     } finally {
       setLoading(false);
     }
@@ -51,28 +52,28 @@ export function NotificationExample() {
 
   const showTransactionNotification = async () => {
     if (!permissionGranted) {
-      alert('Please grant notification permissions first');
+      alert("Please grant notification permissions first");
       return;
     }
 
     setLoading(true);
     try {
       const { id } = await EnhancedNotifications.showNotification({
-        title: 'Transaction Complete',
-        body: 'Jean Doe deposited 50,000 RWF',
-        channelId: 'transactions',
-        groupKey: 'transactions',
+        title: "Transaction Complete",
+        body: "Jean Doe deposited 50,000 RWF",
+        channelId: "transactions",
+        groupKey: "transactions",
         actions: [
-          { id: 'view', title: 'View Details' },
-          { id: 'share', title: 'Share Receipt' }
+          { id: "view", title: "View Details" },
+          { id: "share", title: "Share Receipt" },
         ],
-        data: JSON.stringify({ transactionId: 'tx_123', amount: 50000 })
+        data: JSON.stringify({ transactionId: "tx_123", amount: 50000 }),
       });
       setLastNotificationId(id);
-      console.log('Notification shown with ID:', id);
+      logInfo("notification_shown", { id });
     } catch (error) {
-      console.error('Failed to show notification:', error);
-      alert('Error showing notification');
+      logError("notification_show_failed", { error });
+      alert("Error showing notification");
     } finally {
       setLoading(false);
     }
@@ -80,27 +81,27 @@ export function NotificationExample() {
 
   const showAlertNotification = async () => {
     if (!permissionGranted) {
-      alert('Please grant notification permissions first');
+      alert("Please grant notification permissions first");
       return;
     }
 
     setLoading(true);
     try {
       const { id } = await EnhancedNotifications.showNotification({
-        title: 'Important Alert',
-        body: 'New member application requires approval',
-        channelId: 'alerts',
+        title: "Important Alert",
+        body: "New member application requires approval",
+        channelId: "alerts",
         priority: 1, // High priority
         actions: [
-          { id: 'approve', title: 'Approve' },
-          { id: 'review', title: 'Review' }
-        ]
+          { id: "approve", title: "Approve" },
+          { id: "review", title: "Review" },
+        ],
       });
       setLastNotificationId(id);
-      console.log('Alert notification shown with ID:', id);
+      logInfo("alert_notification_shown", { id });
     } catch (error) {
-      console.error('Failed to show alert:', error);
-      alert('Error showing alert');
+      logError("alert_notification_failed", { error });
+      alert("Error showing alert");
     } finally {
       setLoading(false);
     }
@@ -108,18 +109,18 @@ export function NotificationExample() {
 
   const cancelLastNotification = async () => {
     if (!lastNotificationId) {
-      alert('No notification to cancel');
+      alert("No notification to cancel");
       return;
     }
 
     setLoading(true);
     try {
       await EnhancedNotifications.cancelNotification({ id: lastNotificationId });
-      alert('Notification cancelled');
+      alert("Notification cancelled");
       setLastNotificationId(null);
     } catch (error) {
-      console.error('Failed to cancel notification:', error);
-      alert('Error cancelling notification');
+      console.error("Failed to cancel notification:", error);
+      alert("Error cancelling notification");
     } finally {
       setLoading(false);
     }
@@ -129,11 +130,11 @@ export function NotificationExample() {
     setLoading(true);
     try {
       await EnhancedNotifications.cancelAllNotifications();
-      alert('All notifications cancelled');
+      alert("All notifications cancelled");
       setLastNotificationId(null);
     } catch (error) {
-      console.error('Failed to cancel all notifications:', error);
-      alert('Error cancelling notifications');
+      console.error("Failed to cancel all notifications:", error);
+      alert("Error cancelling notifications");
     } finally {
       setLoading(false);
     }
@@ -175,7 +176,7 @@ export function NotificationExample() {
               disabled={loading}
               className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
             >
-              {loading ? 'Requesting...' : 'Request Permissions'}
+              {loading ? "Requesting..." : "Request Permissions"}
             </button>
           )}
 

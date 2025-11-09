@@ -23,7 +23,7 @@ supabase db push
 ```bash
 cd apps/staff-admin-pwa
 pnpm dev
-# Open http://localhost:3000/login
+# Open http://localhost:3100/login
 # Click "QR Code" tab
 ```
 
@@ -71,7 +71,7 @@ pnpm add @capacitor-community/barcode-scanner @capgo/capacitor-native-biometric
 
 ```sql
 -- Recent QR logins
-SELECT 
+SELECT
   al.created_at,
   u.email,
   sd.device_name,
@@ -102,7 +102,7 @@ WHERE staff_id = 'target-staff-id';
 
 ```sql
 -- Current QR sessions
-SELECT 
+SELECT
   session_id,
   status,
   created_at,
@@ -125,13 +125,13 @@ AND expires_at > NOW();
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| QR not generating | Check Supabase edge function logs |
-| Mobile can't verify | Ensure device is registered and active |
+| Problem               | Solution                                 |
+| --------------------- | ---------------------------------------- |
+| QR not generating     | Check Supabase edge function logs        |
+| Mobile can't verify   | Ensure device is registered and active   |
 | Biometric not working | Check phone settings and app permissions |
-| Session expired | Regenerate QR (sessions last 5 minutes) |
-| Device revoked | Contact admin to reactivate device |
+| Session expired       | Regenerate QR (sessions last 5 minutes)  |
+| Device revoked        | Contact admin to reactivate device       |
 
 ## File Locations
 
@@ -152,6 +152,7 @@ POST /functions/v1/auth-qr-verify
 ## Support
 
 For issues or questions:
+
 1. Check `/docs/2FA_QR_AUTHENTICATION.md` (detailed documentation)
 2. Review implementation status in `/docs/2FA_IMPLEMENTATION_STATUS.md`
 3. Check Supabase logs: `supabase functions logs auth-qr-generate`

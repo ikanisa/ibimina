@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { z } from "zod";
 import { getUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -203,7 +204,7 @@ export async function POST(request: NextRequest) {
           receivedAt: entry.receivedAt,
         });
       } catch (invokeError) {
-        console.error("imports/sms invoke failed", invokeError);
+        logError("imports/sms invoke failed", invokeError);
         parseResults.push({
           rawText: entry.rawText,
           parsed: null,
@@ -268,7 +269,7 @@ export async function POST(request: NextRequest) {
         .in("txn_id", txnIds)
         .returns<PaymentRow[]>();
       if (paymentError) {
-        console.error("imports/sms payments lookup failed", paymentError);
+        logError("imports/sms payments lookup failed", paymentError);
         return NextResponse.json({ error: "Failed to inspect existing payments" }, { status: 500 });
       }
       existingPayments = paymentRows ?? [];
@@ -283,7 +284,7 @@ export async function POST(request: NextRequest) {
         .in("code", groupCodes)
         .returns<IkiminaRow[]>();
       if (groupError) {
-        console.error("imports/sms ikimina lookup failed", groupError);
+        logError("imports/sms ikimina lookup failed", groupError);
         return NextResponse.json(
           { error: "Failed to resolve ikimina references" },
           { status: 500 }
@@ -306,7 +307,7 @@ export async function POST(request: NextRequest) {
         .in("member_code", memberCodeValues)
         .returns<MemberRow[]>();
       if (memberError) {
-        console.error("imports/sms members lookup failed", memberError);
+        logError("imports/sms members lookup failed", memberError);
         return NextResponse.json({ error: "Failed to resolve member references" }, { status: 500 });
       }
       memberRecords = members ?? [];
@@ -417,7 +418,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("imports/sms unexpected", error);
+    logError("imports/sms unexpected", error);
     return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
   }
 }

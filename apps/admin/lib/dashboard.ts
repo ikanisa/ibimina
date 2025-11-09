@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { logWarn } from "@/lib/observability/logger";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import type { Database } from "@/lib/supabase/types";
 
 const DAYS_THRESHOLD = 30;
+const AUTH_GUEST_MODE = process.env.AUTH_GUEST_MODE === "1";
 
 export interface DashboardSummary {
   totals: {
@@ -93,7 +95,7 @@ async function computeDashboardSummary(
   clients: DashboardSummaryClients,
   options: { attemptedRefresh?: boolean } = {}
 ): Promise<DashboardSummary> {
-  if (process.env.AUTH_E2E_STUB === "1") {
+  if (process.env.AUTH_E2E_STUB === "1" || AUTH_GUEST_MODE) {
     return {
       totals: {
         today: 580000,
@@ -283,11 +285,11 @@ async function computeDashboardSummary(
         await clients.app.rpc("analytics_refresh_dashboard_materialized_views" as never);
         return computeDashboardSummary({ saccoId, allowAll }, clients, { attemptedRefresh: true });
       } catch (refreshError) {
-        console.warn("[dashboard] analytics refresh failed", refreshError);
+        logWarn("[dashboard] analytics refresh failed", refreshError);
       }
     }
     if (code === "PGRST205") {
-      console.warn("[dashboard] analytics materialized views unavailable", error);
+      logWarn("[dashboard] analytics materialized views unavailable", error);
       return EMPTY_DASHBOARD_SUMMARY;
     }
     throw error;

@@ -236,7 +236,7 @@ These variables are **never exposed** to the browser.
 - **Description**: Server-side canonical URL
 - **Example**: `https://app.ibimina.rw`
 - **Usage**: Email links, OAuth, API callbacks
-- **Default**: `http://localhost:3000` in dev
+- **Default**: `http://localhost:3100` in dev
 
 #### `EDGE_URL`
 

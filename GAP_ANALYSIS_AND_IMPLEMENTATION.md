@@ -761,7 +761,7 @@ async function checkDatabase() {
 export default async function MonitoringPage() {
   // Fetch health from all apps
   const [adminHealth, clientHealth, workerHealth] = await Promise.all([
-    fetch('http://localhost:3000/api/health').then(r => r.json()),
+    fetch('http://localhost:3100/api/health').then(r => r.json()),
     fetch('http://localhost:3001/api/health').then(r => r.json()),
     fetchWorkerHealth(), // Query worker_health table
   ]);

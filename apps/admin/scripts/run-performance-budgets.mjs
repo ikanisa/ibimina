@@ -55,18 +55,18 @@ async function main() {
   const server = spawn("pnpm", ["run", "start"], {
     cwd: cwd.pathname,
     stdio: "inherit",
-    env: { ...process.env, PORT: "3000" },
+    env: { ...process.env, PORT: "3100" },
   });
 
   try {
-    await waitForServer("http://127.0.0.1:3000/dashboard");
+    await waitForServer("http://127.0.0.1:3100/dashboard");
     await mkdir(new URL("../.lighthouse", import.meta.url), { recursive: true });
     await run(
       "npx",
       [
         "--yes",
         "lighthouse",
-        "http://127.0.0.1:3000/dashboard",
+        "http://127.0.0.1:3100/dashboard",
         "--config-path=./lighthouse.config.cjs",
         "--budgets-path=./lighthouse.budgets.json",
         "--output=json",

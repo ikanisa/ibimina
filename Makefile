@@ -98,7 +98,7 @@ local-down:
 	-$(MAKE) next-down
 
 local-status:
-	@echo "Ports in use:" && (lsof -iTCP:3000 -sTCP:LISTEN -Pn || true) && (lsof -iTCP:443 -sTCP:LISTEN -Pn || true)
+	@echo "Ports in use:" && (lsof -iTCP:3100 -sTCP:LISTEN -Pn || true) && (lsof -iTCP:443 -sTCP:LISTEN -Pn || true)
 
 ready:
 	pnpm run check:deploy

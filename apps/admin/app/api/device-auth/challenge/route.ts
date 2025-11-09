@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import crypto from "node:crypto";
 import { supabaseSrv } from "@/lib/supabase/server";
 
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Failed to create challenge:", error);
+      logError("Failed to create challenge:", error);
       return NextResponse.json(
         { error: "Failed to create authentication challenge" },
         { status: 500 }
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
       expires_at: expiresAt.toISOString(),
     });
   } catch (error) {
-    console.error("Challenge creation error:", error);
+    logError("Challenge creation error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

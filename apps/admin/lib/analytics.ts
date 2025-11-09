@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { logWarn } from "@/lib/observability/logger";
 import { cacheWithTags, CACHE_TAGS, REVALIDATION_SECONDS } from "@/lib/performance/cache";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import type { Database } from "@/lib/supabase/types";
@@ -240,7 +241,7 @@ async function computeExecutiveAnalytics(
           "analytics_refresh_dashboard_materialized_views" as never
         );
         if (refreshError) {
-          console.warn("[analytics] failed to refresh dashboard materialized views", refreshError);
+          logWarn("[analytics] failed to refresh dashboard materialized views", refreshError);
           monthlyTrend = [];
           saccoLeaders = [];
           riskSignals = [];
@@ -252,7 +253,7 @@ async function computeExecutiveAnalytics(
       }
 
       if (code === "PGRST205") {
-        console.warn("[analytics] dashboard materialized views unavailable", error);
+        logWarn("[analytics] dashboard materialized views unavailable", error);
         monthlyTrend = [];
         saccoLeaders = [];
         riskSignals = [];

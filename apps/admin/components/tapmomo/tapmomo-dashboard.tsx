@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { GlassCard } from "@/components/ui/glass-card";
-import { StatusChip } from "@/components/common/status-chip";
+import { _StatusChip } from "@/components/common/status-chip";
 import { Trans } from "@/components/common/trans";
 import { TapMoMoPayeeCard } from "./tapmomo-payee-card";
 import { TapMoMoPayerCard } from "./tapmomo-payer-card";

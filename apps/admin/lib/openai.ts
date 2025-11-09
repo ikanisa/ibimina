@@ -1,4 +1,5 @@
 import { env } from "process";
+import { logWarn, logError } from "@/lib/observability/logger";
 
 interface StructuredJsonOptions {
   systemPrompt: string;
@@ -57,7 +58,7 @@ function extractStructuredJson<T>(payload: unknown): T {
           try {
             return JSON.parse(text) as T;
           } catch (error) {
-            console.warn("Failed to parse output_text as JSON", error);
+            logWarn("Failed to parse output_text as JSON", error);
           }
         }
       }
@@ -68,7 +69,7 @@ function extractStructuredJson<T>(payload: unknown): T {
           try {
             return JSON.parse(text) as T;
           } catch (error) {
-            console.warn("Failed to parse text block as JSON", error);
+            logWarn("Failed to parse text block as JSON", error);
           }
         }
       }
@@ -82,7 +83,7 @@ function extractStructuredJson<T>(payload: unknown): T {
     try {
       return JSON.parse(entry) as T;
     } catch (error) {
-      console.warn("Failed to parse response.output_text entry as JSON", error);
+      logWarn("Failed to parse response.output_text entry as JSON", error);
     }
   }
 
@@ -137,7 +138,7 @@ export async function requestStructuredJson<T>(options: StructuredJsonOptions): 
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error("OpenAI request failed", response.status, errorText);
+    logError("OpenAI request failed", response.status, errorText);
     throw new Error(`OpenAI error ${response.status}`);
   }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SmsIngest, type SmsMessage } from "@/lib/native/sms-ingest";
+import { logError } from "@/lib/observability/logger";
 
 /**
  * SMS Ingestion Settings Page
@@ -61,7 +62,7 @@ export default function SmsIngestionSettingsPage() {
         setIsEnabled(true);
       }
     } catch (error) {
-      console.error("Failed to toggle SMS ingestion:", error);
+      logError("sms_ingestion.toggle_failed", { error });
       alert("Failed to toggle SMS ingestion. Please try again.");
     } finally {
       setIsLoading(false);
@@ -75,7 +76,7 @@ export default function SmsIngestionSettingsPage() {
       const messages = await SmsIngest.querySmsInbox({ limit: 10 });
       setTestMessages(messages);
     } catch (error) {
-      console.error("Failed to read SMS:", error);
+      logError("sms_ingestion.read_failed", { error });
       alert("Failed to read SMS. Make sure permissions are granted.");
     } finally {
       setIsLoading(false);
@@ -88,7 +89,7 @@ export default function SmsIngestionSettingsPage() {
       await SmsIngest.scheduleBackgroundSync(syncInterval);
       alert(`Sync interval updated to ${syncInterval} minutes`);
     } catch (error) {
-      console.error("Failed to update sync interval:", error);
+      logError("sms_ingestion.update_interval_failed", { error });
       alert("Failed to update sync interval. Please try again.");
     } finally {
       setIsLoading(false);

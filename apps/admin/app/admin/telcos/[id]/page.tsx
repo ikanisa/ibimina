@@ -52,7 +52,10 @@ export default async function EditTelcoPage({ params }: { params: { id: string }
         <p className="text-sm text-ink/70">Update USSD mapping details for this telco provider.</p>
       </header>
 
-      <form action={updateTelco} className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6">
+      <form
+        action={updateTelco}
+        className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6"
+      >
         <input type="hidden" name="id" value={telco.id} />
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-2">

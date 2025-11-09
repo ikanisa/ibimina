@@ -41,7 +41,10 @@ export default function NewCountryPage() {
         </p>
       </header>
 
-      <form action={createCountry} className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6">
+      <form
+        action={createCountry}
+        className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6"
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-2">
             <span className="text-sm font-medium text-ink">Country name</span>
@@ -106,7 +109,12 @@ export default function NewCountryPage() {
         </div>
 
         <label className="flex items-center gap-2 text-sm text-ink">
-          <input type="checkbox" name="isActive" defaultChecked className="h-4 w-4 rounded border-ink/30" />
+          <input
+            type="checkbox"
+            name="isActive"
+            defaultChecked
+            className="h-4 w-4 rounded border-ink/30"
+          />
           <span>Country is active</span>
         </label>
 

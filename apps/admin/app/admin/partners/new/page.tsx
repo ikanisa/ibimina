@@ -60,10 +60,15 @@ export default async function NewPartnerPage() {
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold text-ink">Add partner configuration</h1>
-        <p className="text-sm text-ink/70">Assign feature flags and contact metadata for a SACCO partner.</p>
+        <p className="text-sm text-ink/70">
+          Assign feature flags and contact metadata for a SACCO partner.
+        </p>
       </header>
 
-      <form action={createPartnerConfig} className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6">
+      <form
+        action={createPartnerConfig}
+        className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6"
+      >
         <label className="space-y-2">
           <span className="text-sm font-medium text-ink">Partner organisation</span>
           <select

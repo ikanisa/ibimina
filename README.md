@@ -224,14 +224,14 @@ supabase db reset
 ### 5. Run the development server
 
 ```bash
-# Start Next.js dev server (default port 3000)
+# Start Next.js dev server (default port 3100)
 pnpm dev
 
 # Or start a specific app
 pnpm --filter @ibimina/admin dev
 ```
 
-The admin console will be available at `http://localhost:3000`.
+The admin console will be available at `http://localhost:3100`.
 
 `.env` stays out of version control and is loaded automatically by the admin
 app. See [`docs/local-hosting.md`](docs/local-hosting.md) for a detailed
@@ -467,14 +467,14 @@ but no longer checks `SMS_SHARED_SECRET`. Adjust rate limits if needed with
 
 ## Scripts
 
-- `pnpm dev` – start the dev server on port 3000
+- `pnpm dev` – start the dev server on port 3100
 - `pnpm build` – production build with PWA bundling
-- `pnpm start` – serve the built app on port 3000 (respects `PORT`)
+- `pnpm start` – serve the built app on port 3100 (respects `PORT`)
 - `pnpm lint` – lint the project
 - `pnpm typecheck` – run TypeScript without emitting files
 - `pnpm check:lighthouse` – open a Lighthouse report against localhost
 - `pnpm analyze:pwa` – run Lighthouse PWA checks against
-  `https://localhost:3000`
+  `https://localhost:3100`
 - `pnpm verify:pwa` – validate manifest/head/service worker and probe
   `/api/health`
 - `pnpm check:i18n` – ensure en/rw/fr have matching keys

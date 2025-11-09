@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { z } from "zod";
 import { getUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
         .maybeSingle();
 
       if (groupError) {
-        console.error("imports/statement ikimina lookup failed", groupError);
+        logError("imports/statement ikimina lookup failed", groupError);
         return NextResponse.json({ error: "Failed to validate ikimina" }, { status: 500 });
       }
 
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error("imports/statement invoke failed", error);
+      logError("imports/statement invoke failed", error);
       return NextResponse.json(
         { error: error.message ?? "Statement import failed" },
         { status: 502 }
@@ -193,7 +194,7 @@ export async function POST(request: NextRequest) {
       rowCount: normalizedRows.length,
     });
   } catch (error) {
-    console.error("imports/statement unexpected", error);
+    logError("imports/statement unexpected", error);
     return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
   }
 }

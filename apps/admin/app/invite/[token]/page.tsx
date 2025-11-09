@@ -29,8 +29,8 @@ export default async function InviteDeepLinkPage({ params }: { params: { token: 
     <div className="mx-auto max-w-xl space-y-6 px-4 py-12 text-center">
       <h1 className="text-2xl font-semibold text-ink">Accept SACCO invite</h1>
       <p className="text-sm text-ink/70">
-        Invitation for <strong>{invite.ibimina?.name ?? "an ibimina group"}</strong>. Use the button below to
-        open the SACCO+ app and accept the invite.
+        Invitation for <strong>{invite.ibimina?.name ?? "an ibimina group"}</strong>. Use the button
+        below to open the SACCO+ app and accept the invite.
       </p>
       <div className="space-y-3">
         <Link
@@ -45,7 +45,8 @@ export default async function InviteDeepLinkPage({ params }: { params: { token: 
         </div>
       </div>
       <p className="text-xs text-ink/60">
-        If the app does not open automatically, copy the link or enter the token manually inside SACCO+.
+        If the app does not open automatically, copy the link or enter the token manually inside
+        SACCO+.
       </p>
     </div>
   );

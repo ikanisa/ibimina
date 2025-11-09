@@ -36,9 +36,7 @@ export default async function ReconExceptionsPage() {
               <div className="mt-4 text-xs text-neutral-200/80">
                 Created {new Date(item.createdAt).toLocaleString("en-GB")}
               </div>
-              {item.note ? (
-                <p className="mt-3 text-sm text-neutral-100/90">{item.note}</p>
-              ) : null}
+              {item.note ? <p className="mt-3 text-sm text-neutral-100/90">{item.note}</p> : null}
             </article>
           ))}
         </div>

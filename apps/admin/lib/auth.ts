@@ -8,33 +8,18 @@ export type { AuthContext, ProfileRow } from "@/lib/auth/service";
 
 // E2E testing stub authentication cookie name
 const STUB_COOKIE_NAME = "stub-auth";
+const AUTH_GUEST_MODE = process.env.AUTH_GUEST_MODE === "1";
 
-/**
- * Check if E2E stub authentication is enabled
- * Used during automated testing to bypass real Supabase authentication
- * Never allowed in production for security reasons
- */
-function isE2EStubEnabled() {
-  // Never allow E2E stub in production, regardless of env var
-  if (process.env.NODE_ENV === "production") {
-    return false;
-  }
-  return process.env.AUTH_E2E_STUB === "1";
-}
-
-/**
- * Get stub authentication context for E2E testing
- * Returns a mock user and profile when the stub-auth cookie is present
- * This allows automated tests to simulate authenticated sessions without real credentials
- */
-async function getStubContext(): Promise<AuthContext | null> {
-  const cookieStore = await cookies();
-  const marker = cookieStore.get(STUB_COOKIE_NAME);
-  if (!marker || marker.value !== "1") {
-    return null;
-  }
-
+function createMockContext(): AuthContext {
   const now = new Date().toISOString();
+  const saccoDetails: ProfileRow["sacco"] = {
+    id: "stub-sacco",
+    name: "Kigali Downtown",
+    district: "Gasabo",
+    province: "Kigali",
+    sector_code: "001",
+    category: "UMURENGE",
+  };
   const stubUser = {
     id: "00000000-0000-4000-8000-000000000001",
     email: "qa.staff@example.com",
@@ -67,17 +52,40 @@ async function getStubContext(): Promise<AuthContext | null> {
     failed_mfa_count: 0,
     last_mfa_success_at: now,
     last_mfa_step: null,
-    saccos: {
-      id: "stub-sacco",
-      name: "Kigali Downtown",
-      district: "Gasabo",
-      province: "Kigali",
-      sector_code: "001",
-      category: "UMURENGE",
-    },
+    sacco: saccoDetails,
   } as ProfileRow;
 
   return { user: stubUser, profile: stubProfile };
+}
+
+const memoizedGuestContext: AuthContext = createMockContext();
+
+/**
+ * Check if E2E stub authentication is enabled
+ * Used during automated testing to bypass real Supabase authentication
+ * Never allowed in production for security reasons
+ */
+function isE2EStubEnabled() {
+  // Never allow E2E stub in production, regardless of env var
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+  return process.env.AUTH_E2E_STUB === "1";
+}
+
+/**
+ * Get stub authentication context for E2E testing
+ * Returns a mock user and profile when the stub-auth cookie is present
+ * This allows automated tests to simulate authenticated sessions without real credentials
+ */
+async function getStubContext(): Promise<AuthContext | null> {
+  const cookieStore = await cookies();
+  const marker = cookieStore.get(STUB_COOKIE_NAME);
+  if (!marker || marker.value !== "1") {
+    return null;
+  }
+
+  return memoizedGuestContext;
 }
 
 /**
@@ -86,6 +94,9 @@ async function getStubContext(): Promise<AuthContext | null> {
  * Uses stub authentication in E2E test mode, otherwise queries Supabase
  */
 export async function getUserAndProfile(): Promise<AuthContext | null> {
+  if (AUTH_GUEST_MODE) {
+    return memoizedGuestContext;
+  }
   if (isE2EStubEnabled()) {
     return getStubContext();
   }

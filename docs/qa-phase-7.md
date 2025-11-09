@@ -20,7 +20,7 @@ supplements the checklist in `docs/qa-launch-checklist.md`.
   exposes `aria-live` announcements, recon/preview screens keep keyboard focus
   outlines.
 - 🚧 Automated axe run pending — install `@axe-core/cli` (requires network) and
-  execute `npx @axe-core/cli http://localhost:3000/dashboard`.
+  execute `npx @axe-core/cli http://localhost:3100/dashboard`.
 - Follow-up: document any violations, update tokens/translations in `locales/`
   as needed.
 

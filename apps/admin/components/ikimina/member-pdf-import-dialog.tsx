@@ -474,9 +474,7 @@ export function MemberPdfImportDialog({
                                 aria-invalid={!msisdnCell.valid}
                               />
                               {!msisdnCell.valid && msisdnCell.reason && (
-                                <p className="mt-1 text-[11px] text-red-300">
-                                  {msisdnCell.reason}
-                                </p>
+                                <p className="mt-1 text-[11px] text-red-300">{msisdnCell.reason}</p>
                               )}
                             </td>
                             <td className="px-4 py-2">

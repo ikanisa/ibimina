@@ -62,7 +62,7 @@ RECON_AUTO_ESCALATE_HOURS,supabase:function,"supabase/functions/scheduled-reconc
 SMS_AUTOMATION_THRESHOLD_MINUTES,supabase:function,"supabase/functions/gsm-maintenance",no,10,"Delay (minutes) before GSM automation is considered stale."
 SMS_AUTOMATION_BATCH,supabase:function,"supabase/functions/gsm-maintenance",no,25,"Maximum batch size for GSM automation polling."
 RESEND_API_KEY,supabase:function,"supabase/functions/mfa-email",yes,<resend-key>,"Resend API key used by MFA email function."
-PLAYWRIGHT_BASE_URL,ci/test,"playwright.config.ts",no,http://127.0.0.1:3000,"Override base URL for Playwright tests."
+PLAYWRIGHT_BASE_URL,ci/test,"playwright.config.ts",no,http://127.0.0.1:3100,"Override base URL for Playwright tests."
 PLAYWRIGHT_SUPABASE_URL,ci/test,"playwright.config.ts",no,http://127.0.0.1:54321,"Local Supabase URL for e2e tests."
 PLAYWRIGHT_SUPABASE_ANON_KEY,ci/test,"playwright.config.ts",no,stub-anon-key,"Anon key used during Playwright runs."
 PLAYWRIGHT_SUPABASE_SERVICE_ROLE_KEY,ci/test,"playwright.config.ts",no,stub-service-role-key,"Stub service-role key to satisfy env validation in e2e harness."

@@ -2,23 +2,31 @@
 
 ## Summary
 
-This documents the resolution of unmergeable PRs #270, #305, and #307, which implement the "codex" AI feature initiative.
+This documents the resolution of unmergeable PRs #270, #305, and #307, which
+implement the "codex" AI feature initiative.
 
 ## Problem
 
-Three pull requests are marked as unmergeable (`mergeable: false`, `mergeable_state: "dirty"`):
+Three pull requests are marked as unmergeable (`mergeable: false`,
+`mergeable_state: "dirty"`):
 
-- **PR #270**: Add Sentry observability, PostHog funnels, and AI guardrails (22 files, +2351/-145)
-- **PR #305**: Add AI embedding pipeline and Supabase vector schema (15 files, +2024/-82)
-- **PR #307**: Add durable AI agent sessions with rate limits (22 files, +2044/-108)
+- **PR #270**: Add Sentry observability, PostHog funnels, and AI guardrails (22
+  files, +2351/-145)
+- **PR #305**: Add AI embedding pipeline and Supabase vector schema (15 files,
+  +2024/-82)
+- **PR #307**: Add durable AI agent sessions with rate limits (22 files,
+  +2044/-108)
 
 ### Root Causes
 
 1. **Divergent Base SHAs**: PRs branched from different points in history
-2. **Architectural Incompatibility**: Two fundamentally different AI agent implementations
+2. **Architectural Incompatibility**: Two fundamentally different AI agent
+   implementations
    - **Main branch**: Simple orchestrator-based approach
-   - **PR branches**: Comprehensive RAG system with embeddings, vector search, session management
-3. **Overlapping Files**: All three PRs modify `packages/ai-agent/*` with conflicting implementations
+   - **PR branches**: Comprehensive RAG system with embeddings, vector search,
+     session management
+3. **Overlapping Files**: All three PRs modify `packages/ai-agent/*` with
+   conflicting implementations
 
 ## Solution
 
@@ -27,12 +35,15 @@ This repository now contains comprehensive resolution documentation and tooling:
 ### 📋 Documentation
 
 #### [PR_CONFLICT_RESOLUTION_GUIDE.md](./PR_CONFLICT_RESOLUTION_GUIDE.md)
+
 Comprehensive guide with three integration strategies:
+
 - **Option 1**: Incremental Integration (recommended for safety)
 - **Option 2**: Full Replacement (fastest path to full features)
 - **Option 3**: Parallel Implementation (gradual migration)
 
 Includes:
+
 - Detailed analysis of each PR
 - Step-by-step merge instructions
 - Migration guide for API consumers
@@ -44,7 +55,9 @@ Includes:
 ### 🔧 Automation
 
 #### [scripts/merge-ai-prs.sh](./scripts/merge-ai-prs.sh)
+
 Automated merge script implementing Option 2 (Full Replacement):
+
 - Backs up current implementation
 - Removes orchestrator-based code
 - Merges PRs sequentially with conflict resolution
@@ -53,6 +66,7 @@ Automated merge script implementing Option 2 (Full Replacement):
 - Provides post-merge checklist
 
 **Usage:**
+
 ```bash
 ./scripts/merge-ai-prs.sh
 ```
@@ -62,6 +76,7 @@ Automated merge script implementing Option 2 (Full Replacement):
 ### For Repository Maintainers
 
 1. **Review the strategy guide**:
+
    ```bash
    cat PR_CONFLICT_RESOLUTION_GUIDE.md
    ```
@@ -84,17 +99,20 @@ Automated merge script implementing Option 2 (Full Replacement):
 If you're consuming the AI agent package:
 
 **Current API (will be deprecated):**
+
 ```typescript
 import { bootstrapAgentSession, runAgentTurn } from "@ibimina/ai-agent";
 ```
 
 **New API (after merge):**
+
 ```typescript
 import { AIAgent } from "@ibimina/ai-agent";
 import { createAgentSessionStore } from "@ibimina/providers";
 ```
 
-See migration guide in [PR_CONFLICT_RESOLUTION_GUIDE.md](./PR_CONFLICT_RESOLUTION_GUIDE.md#migration-guide-for-consumers).
+See migration guide in
+[PR_CONFLICT_RESOLUTION_GUIDE.md](./PR_CONFLICT_RESOLUTION_GUIDE.md#migration-guide-for-consumers).
 
 ## Key Files
 
@@ -107,7 +125,7 @@ See migration guide in [PR_CONFLICT_RESOLUTION_GUIDE.md](./PR_CONFLICT_RESOLUTIO
 └── packages/ai-agent/
     ├── Current (main branch):
     │   ├── orchestrator.ts            # Will be replaced
-    │   ├── agents.ts                  # Will be replaced  
+    │   ├── agents.ts                  # Will be replaced
     │   └── guardrails.ts              # Will be replaced
     └── Incoming (from PRs):
         ├── agent.ts                   # New implementation
@@ -120,14 +138,16 @@ See migration guide in [PR_CONFLICT_RESOLUTION_GUIDE.md](./PR_CONFLICT_RESOLUTIO
 ## What's Different?
 
 ### Current Implementation (main branch)
+
 - **Architecture**: Orchestrator pattern with separate modules
 - **Features**: Basic chat with tools and guardrails
 - **Dependencies**: Only OpenAI SDK
 - **Testing**: Vitest
 
 ### New Implementation (from PRs)
+
 - **Architecture**: Comprehensive RAG system
-- **Features**: 
+- **Features**:
   - Vector search with pgvector
   - Redis/Supabase session storage
   - Rate limiting (org/user/IP)
@@ -155,6 +175,7 @@ The PRs include two new migrations:
    - Adds RLS policies
 
 **Apply migrations:**
+
 ```bash
 cd supabase
 supabase db push
@@ -194,7 +215,7 @@ pnpm --filter @ibimina/providers test
 pnpm typecheck
 
 # Test chat endpoint
-curl -X POST http://localhost:3000/api/agent/chat \
+curl -X POST http://localhost:3100/api/agent/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
@@ -221,15 +242,19 @@ git push origin main
 
 ### Why can't these PRs be merged normally?
 
-The PRs contain fundamentally different implementations of the AI agent. Standard merge would create broken, non-functional code.
+The PRs contain fundamentally different implementations of the AI agent.
+Standard merge would create broken, non-functional code.
 
 ### Which implementation is better?
 
-The PR implementation is more feature-complete with vector search, session management, rate limiting, and observability. The main branch implementation is simpler but less capable.
+The PR implementation is more feature-complete with vector search, session
+management, rate limiting, and observability. The main branch implementation is
+simpler but less capable.
 
 ### Do I have to merge all three PRs?
 
 Yes, they're interdependent:
+
 - PR #270 provides observability infrastructure
 - PR #305 adds embeddings and vector search
 - PR #307 adds session management and rate limiting
@@ -238,11 +263,13 @@ All three work together as a cohesive system.
 
 ### What if I only want some features?
 
-Follow Option 1 (Incremental Integration) in the guide to cherry-pick specific features while keeping the current architecture.
+Follow Option 1 (Incremental Integration) in the guide to cherry-pick specific
+features while keeping the current architecture.
 
 ### Will this break existing code?
 
-Yes, if you're using the AI agent package. The API changes from orchestrator-based to class-based. See the migration guide.
+Yes, if you're using the AI agent package. The API changes from
+orchestrator-based to class-based. See the migration guide.
 
 ## Next Steps
 
@@ -257,7 +284,9 @@ Yes, if you're using the AI agent package. The API changes from orchestrator-bas
 ## Support
 
 For questions or issues during merge:
-- Review the detailed guide: [PR_CONFLICT_RESOLUTION_GUIDE.md](./PR_CONFLICT_RESOLUTION_GUIDE.md)
+
+- Review the detailed guide:
+  [PR_CONFLICT_RESOLUTION_GUIDE.md](./PR_CONFLICT_RESOLUTION_GUIDE.md)
 - Check the automated script logs: `./scripts/merge-ai-prs.sh`
 - Consult the backup branch if rollback is needed
 

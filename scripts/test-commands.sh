@@ -72,7 +72,7 @@ cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm test:e2e
 
 # Test 7: Start dev server
 cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm dev
-# Then open: http://localhost:3000
+# Then open: http://localhost:3100
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -159,7 +159,7 @@ curl -X POST http://localhost:54321/functions/v1/ingest-sms \
   }'
 
 # Step 5: Check result in Admin PWA
-# Open http://localhost:3000/sms-inbox
+# Open http://localhost:3100/sms-inbox
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -245,7 +245,7 @@ open coverage/lcov-report/index.html
 # Lighthouse performance
 cd /Users/jeanbosco/workspace/ibimina/apps/admin
 pnpm build
-pnpm exec lighthouse http://localhost:3000 --view
+pnpm exec lighthouse http://localhost:3100 --view
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

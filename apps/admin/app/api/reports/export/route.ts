@@ -5,6 +5,7 @@ import { getUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import type { Database } from "@/lib/supabase/types";
 import { hasSaccoReadAccess, isSystemAdmin } from "@/lib/permissions";
+import { logError } from "@/lib/observability/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -111,7 +112,7 @@ export async function GET(request: NextRequest) {
         .eq("id", ikiminaId)
         .maybeSingle();
       if (error) {
-        console.error("reports/export ikimina lookup failed", error);
+        logError("reports.export.ikimina_lookup_failed", { error, ikiminaId });
         return NextResponse.json({ error: "Failed to load ikimina" }, { status: 500 });
       }
       const typedGroup = (group ?? null) as IkiminaRow | null;
@@ -171,7 +172,10 @@ export async function GET(request: NextRequest) {
 
     const { data: paymentRows, error: paymentError } = await paymentsQuery;
     if (paymentError) {
-      console.error("reports/export payments query failed", paymentError);
+      logError("reports.export.payments_query_failed", {
+        error: paymentError,
+        saccoId: resolvedSaccoId,
+      });
       return NextResponse.json({ error: "Failed to load payments" }, { status: 500 });
     }
 
@@ -201,12 +205,12 @@ export async function GET(request: NextRequest) {
     ]);
 
     if (ikiminaRes.error) {
-      console.error("reports/export ibimina lookup failed", ikiminaRes.error);
+      logError("reports.export.ibimina_lookup_failed", { error: ikiminaRes.error });
       return NextResponse.json({ error: "Failed to load ikimina records" }, { status: 500 });
     }
 
     if (membersRes.error) {
-      console.error("reports/export members lookup failed", membersRes.error);
+      logError("reports.export.members_lookup_failed", { error: membersRes.error });
       return NextResponse.json({ error: "Failed to load members" }, { status: 500 });
     }
 
@@ -273,7 +277,7 @@ export async function GET(request: NextRequest) {
       headers,
     });
   } catch (error) {
-    console.error("reports/export unexpected error", error);
+    logError("reports.export.unhandled_error", { error });
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });
   }
 }

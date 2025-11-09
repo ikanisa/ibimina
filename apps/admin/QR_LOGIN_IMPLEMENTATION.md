@@ -1,16 +1,21 @@
 # QR Login Implementation - Staff Web App
 
 ## Overview
-Biometric QR login allows staff to sign in to the web app by scanning a QR code with their Staff Mobile App and authenticating with fingerprint/face. This provides a secure, passwordless login experience with device-bound cryptography.
+
+Biometric QR login allows staff to sign in to the web app by scanning a QR code
+with their Staff Mobile App and authenticating with fingerprint/face. This
+provides a secure, passwordless login experience with device-bound cryptography.
 
 ## Architecture
 
 ### Frontend Components
 
 #### 1. **QR Login Component** (`components/auth/qr-login.tsx`)
+
 The main React component that handles the QR login flow.
 
 **Features:**
+
 - Generates QR code from challenge data
 - Real-time status updates (generating, waiting, success, error, expired)
 - Polling for verification status (2-second intervals)
@@ -19,6 +24,7 @@ The main React component that handles the QR login flow.
 - Security features display
 
 **Props:**
+
 ```typescript
 interface QRLoginProps {
   onSuccess?: (data: {
@@ -31,6 +37,7 @@ interface QRLoginProps {
 ```
 
 **States:**
+
 - `idle` - Initial state
 - `generating` - Creating QR challenge
 - `waiting` - Waiting for mobile app to scan
@@ -40,20 +47,25 @@ interface QRLoginProps {
 - `expired` - QR code expired (60 seconds)
 
 #### 2. **Device Login Page** (`components/auth/device-login-page.tsx`)
+
 Wrapper page for the QR login component with navigation and help text.
 
 #### 3. **Login Page Enhancement** (`app/(auth)/login/page.tsx`)
+
 Added "Sign in with Biometric Authentication" button to main login page.
 
 #### 4. **Device Login Route** (`app/(auth)/device-login/page.tsx`)
+
 Dedicated route for QR login at `/device-login`.
 
 ### Backend API Endpoints
 
 #### 1. **Generate Challenge** (`/api/device-auth/challenge`)
+
 **Method:** POST
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -71,16 +83,18 @@ Dedicated route for QR login at `/device-login`.
 ```
 
 **Actions:**
+
 - Generates unique session_id and nonce
 - Sets 60-second expiry
 - Stores challenge in `device_auth_challenges` table
 - Logs audit event
 
 #### 2. **Verify Status** (`/api/device-auth/verify-status`)
-**Method:** GET
-**Query Params:** `?session_id=<uuid>`
+
+**Method:** GET **Query Params:** `?session_id=<uuid>`
 
 **Response (Not Verified):**
+
 ```json
 {
   "success": false,
@@ -89,6 +103,7 @@ Dedicated route for QR login at `/device-login`.
 ```
 
 **Response (Verified):**
+
 ```json
 {
   "success": true,
@@ -101,15 +116,17 @@ Dedicated route for QR login at `/device-login`.
 ```
 
 **Actions:**
+
 - Checks if challenge has been verified (`used_at` is set)
 - Returns device and user information if verified
 - Used by frontend polling (2-second intervals)
 
 #### 3. **Verify Challenge** (`/api/device-auth/verify`)
-**Method:** POST
-**Called by:** Mobile app (not web)
+
+**Method:** POST **Called by:** Mobile app (not web)
 
 **Body:**
+
 ```json
 {
   "session_id": "uuid",
@@ -131,6 +148,7 @@ Dedicated route for QR login at `/device-login`.
 ```
 
 **Actions:**
+
 - Verifies cryptographic signature
 - Checks origin, nonce, expiry, one-time use
 - Validates Play Integrity token (optional)
@@ -140,6 +158,7 @@ Dedicated route for QR login at `/device-login`.
 ## User Flow
 
 ### 1. **Web App (Staff visits `/login`)**
+
 ```
 1. User clicks "Sign in with Biometric Authentication"
 2. Redirected to `/device-login`
@@ -149,6 +168,7 @@ Dedicated route for QR login at `/device-login`.
 ```
 
 ### 2. **Mobile App (Staff scans QR)**
+
 ```
 1. User opens Staff Mobile App
 2. Taps "QR Login" or scans QR code
@@ -162,6 +182,7 @@ Dedicated route for QR login at `/device-login`.
 ```
 
 ### 3. **Backend Verification**
+
 ```
 1. Receives signed challenge from mobile app
 2. Validates all 9 required fields
@@ -176,6 +197,7 @@ Dedicated route for QR login at `/device-login`.
 ```
 
 ### 4. **Web App (Polling detects success)**
+
 ```
 1. Polling detects challenge is verified
 2. Retrieves user_id and device info
@@ -187,30 +209,35 @@ Dedicated route for QR login at `/device-login`.
 ## Security Features
 
 ### **Phishing Resistance**
+
 - QR contains challenge only (no secrets)
 - Origin binding (exact domain match required)
 - Mobile app displays origin to user for verification
 - Backend validates origin server-side
 
 ### **Replay Prevention**
+
 - One-time nonce (128-bit random)
 - Single-use challenges (`used_at` check)
 - 60-second expiry window
 - Timestamp validation (2-minute tolerance)
 
 ### **Device Binding**
+
 - Private key never leaves Android Keystore
 - Biometric authentication required for every signature
 - Device enrollment required before QR login
 - Device revocation support
 
 ### **Cryptographic Verification**
+
 - ES256 (ECDSA with P-256) signatures
 - Public key stored in database
 - Signature verified server-side
 - Canonical message format (deterministic JSON)
 
 ### **Integrity Checking**
+
 - Play Integrity API integration (optional)
 - Device integrity verdicts stored
 - Rooted/compromised device detection
@@ -219,6 +246,7 @@ Dedicated route for QR login at `/device-login`.
 ## Database Schema
 
 ### **device_auth_challenges**
+
 ```sql
 CREATE TABLE device_auth_challenges (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -239,6 +267,7 @@ CREATE INDEX ON device_auth_challenges(expires_at);
 ```
 
 ### **device_auth_keys**
+
 ```sql
 CREATE TABLE device_auth_keys (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -257,6 +286,7 @@ CREATE TABLE device_auth_keys (
 ```
 
 ### **device_auth_audit**
+
 ```sql
 CREATE TABLE device_auth_audit (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -274,10 +304,12 @@ CREATE TABLE device_auth_audit (
 ## Configuration
 
 ### **Environment Variables**
+
 - `NEXT_PUBLIC_SITE_URL` - Web app origin (e.g., `https://admin.ibimina.rw`)
 - `DATABASE_URL` - PostgreSQL connection string
 
 ### **Dependencies**
+
 ```json
 {
   "qrcode": "^1.5.4",
@@ -286,6 +318,7 @@ CREATE TABLE device_auth_audit (
 ```
 
 ### **Tailwind Classes Used**
+
 - `atlas-blue` - Primary blue color (#0066FF)
 - `neutral-*` - Neutral color scale
 - `shadow-atlas` - Custom shadow
@@ -294,7 +327,8 @@ CREATE TABLE device_auth_audit (
 ## Testing
 
 ### **Manual Test Flow**
-1. Visit `http://localhost:3000/device-login`
+
+1. Visit `http://localhost:3100/device-login`
 2. QR code should appear immediately
 3. Countdown timer shows 60 seconds
 4. Use Staff Mobile App to scan
@@ -302,6 +336,7 @@ CREATE TABLE device_auth_audit (
 6. Web page should redirect to dashboard within 2 seconds
 
 ### **Error Scenarios**
+
 - **No device enrolled:** Mobile app shows error
 - **QR expired:** Web shows "QR Code Expired" with retry button
 - **Network error:** Web shows "Error" with retry button
@@ -310,22 +345,27 @@ CREATE TABLE device_auth_audit (
 ## Future Enhancements
 
 ### **Same-Device Flow**
+
 For users on Android phone visiting web:
+
 - Use Android App Links to open mobile app
 - Pass session_id via deep link
 - Sign in-app and return to browser
 
 ### **WebSocket Instead of Polling**
+
 - Replace polling with WebSocket/SSE
 - Instant notification when authenticated
 - Reduced server load
 
 ### **Server-Side Public Key in QR**
+
 - Add `server_pubkey_id` to challenge
 - Enable key rotation
 - Verify server identity on mobile
 
 ### **Strict Integrity Enforcement**
+
 - Reject devices that fail Play Integrity
 - Configurable policy levels
 - Admin dashboard for device management
@@ -333,24 +373,28 @@ For users on Android phone visiting web:
 ## Troubleshooting
 
 ### **QR Code Not Generating**
+
 - Check `/api/device-auth/challenge` endpoint
 - Verify DATABASE_URL is set
 - Check database migration applied
 - Check browser console for errors
 
 ### **Mobile App Can't Verify**
+
 - Ensure device is enrolled first
 - Check origin matches exactly
 - Verify signature algorithm (ES256)
 - Check signed message has all 9 fields
 
 ### **Polling Not Detecting Success**
+
 - Check `/api/device-auth/verify-status` returns data
 - Verify challenge.used_at is set
 - Check device_auth_keys table has entry
 - Look for CORS errors in browser console
 
 ### **Session Not Created**
+
 - Verify Supabase auth configured
 - Check session cookie being set
 - Ensure redirect to `/` works
@@ -359,6 +403,7 @@ For users on Android phone visiting web:
 ## Files Created/Modified
 
 ### **New Files:**
+
 - `components/auth/qr-login.tsx` - Main QR login component
 - `components/auth/device-login-page.tsx` - Page wrapper
 - `app/(auth)/device-login/page.tsx` - Route handler
@@ -366,10 +411,12 @@ For users on Android phone visiting web:
 - `QR_LOGIN_IMPLEMENTATION.md` - This documentation
 
 ### **Modified Files:**
+
 - `app/(auth)/login/page.tsx` - Added biometric login button
 - `package.json` - Added qrcode dependency
 
 ### **Existing Files (Backend):**
+
 - `app/api/device-auth/challenge/route.ts` - Challenge generation
 - `app/api/device-auth/verify/route.ts` - Signature verification
 - `app/api/device-auth/enroll/route.ts` - Device enrollment
@@ -378,6 +425,7 @@ For users on Android phone visiting web:
 ## Summary
 
 The QR Login UI is **production-ready** and provides:
+
 - ✅ Secure biometric authentication
 - ✅ Phishing-resistant (origin binding)
 - ✅ Replay-resistant (one-time nonce)
@@ -387,4 +435,5 @@ The QR Login UI is **production-ready** and provides:
 - ✅ Error handling (retry, expired, network errors)
 - ✅ Atlas design system integration
 
-**Staff can now log in to the web app by scanning a QR code with their fingerprint/face!** 🎉
+**Staff can now log in to the web app by scanning a QR code with their
+fingerprint/face!** 🎉

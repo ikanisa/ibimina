@@ -21,7 +21,7 @@ if [ ! -d ".next" ]; then
 fi
 
 # Configuration with defaults
-PORT_ENV="${PORT:-3000}"
+PORT_ENV="${PORT:-3100}"
 HOST_ENV="${HOSTNAME:-0.0.0.0}"
 EXTRA_ARGS=()
 USE_STANDALONE="${ADMIN_USE_STANDALONE_START:-${USE_STANDALONE_START:-1}}"
@@ -55,7 +55,7 @@ while (($#)); do
 Usage: $0 [OPTIONS]
 
 Options:
-  --port, -p PORT           Set the port (default: 3000)
+  --port, -p PORT           Set the port (default: 3100)
   --hostname, --host HOST   Set the hostname (default: 0.0.0.0)
   --help, -h                Show this help message
 

@@ -14,7 +14,7 @@
 - **Root Directory**: `.`
 - **Install Command**: `pnpm install --frozen-lockfile`
 - **Build Command**: `pnpm run build`
-- **Start Command**: `PORT=3000 pnpm run start`
+- **Start Command**: `PORT=3100 pnpm run start`
 - **Output Directory**: `.next` (`output: 'standalone'` for simple Node hosting)
 - **Environment Strategy**:
   - Copy `.env.example` → `.env.local` and fill Supabase/OpenAI/HMAC/MFA
@@ -48,6 +48,6 @@
 2. `pnpm run lint`
 3. `pnpm run typecheck`
 4. `pnpm run build`
-5. `PORT=3000 pnpm run start`
-6. Hit `http://localhost:3000/api/healthz` to verify status payload (buildId,
+5. `PORT=3100 pnpm run start`
+6. Hit `http://localhost:3100/api/healthz` to verify status payload (buildId,
    environment, timestamp).

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -73,7 +74,7 @@ export async function GET() {
     .limit(10);
 
   if (emailCodeError) {
-    console.error("profile: failed to load email OTP records", emailCodeError);
+    logError("profile: failed to load email OTP records", emailCodeError);
   }
 
   const emailCodes = (emailCodeRows ?? []).map((record) => ({
@@ -112,7 +113,7 @@ export async function GET() {
     .limit(20);
 
   if (auditError) {
-    console.error("profile: failed to load audit logs", auditError);
+    logError("profile: failed to load audit logs", auditError);
   }
 
   const methodSet = new Set<string>([...(profile.mfa_methods ?? userRow?.mfa_methods ?? [])]);

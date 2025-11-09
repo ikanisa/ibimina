@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import {
   decodePendingEnrollment,
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
     .eq("id", user.id);
 
   if (updateError) {
-    console.error(updateError);
+    logError(updateError);
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 

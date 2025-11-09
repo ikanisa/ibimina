@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logWarn } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createAuthenticationOptions } from "@/lib/mfa/passkeys";
 
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     const { options, stateToken } = await createAuthenticationOptions(user, rememberDevice);
     return NextResponse.json({ options, stateToken });
   } catch (error) {
-    console.warn("Passkey auth options failed", error);
+    logWarn("Passkey auth options failed", error);
     return NextResponse.json({ error: "no_credentials" }, { status: 400 });
   }
 }

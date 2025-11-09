@@ -228,7 +228,7 @@ describe("Device Authentication - Signature Verification", () => {
     const validOrigins = [
       "https://admin.ibimina.rw",
       "https://staff.ibimina.gov.rw",
-      "http://localhost:3000",
+      "http://localhost:3100",
     ];
 
     const invalidOrigins = [

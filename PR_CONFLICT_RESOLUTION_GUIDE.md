@@ -2,24 +2,30 @@
 
 ## Executive Summary
 
-PRs #270, #305, and #307 are currently unmergeable due to fundamental architectural differences between:
-1. **Current main branch**: Simple orchestrator-based AI agent implementation  
-2. **PR branches**: Comprehensive implementation with embeddings, vector search, session management, and observability
+PRs #270, #305, and #307 are currently unmergeable due to fundamental
+architectural differences between:
 
-These are not simple merge conflicts - they represent two competing implementations that cannot be reconciled through standard conflict resolution.
+1. **Current main branch**: Simple orchestrator-based AI agent implementation
+2. **PR branches**: Comprehensive implementation with embeddings, vector search,
+   session management, and observability
+
+These are not simple merge conflicts - they represent two competing
+implementations that cannot be reconciled through standard conflict resolution.
 
 ## Problem Analysis
 
 ### PR #270: Sentry Observability, PostHog Funnels, and AI Guardrails
+
 - **Base SHA**: `f5929f6ef002644dc53c4bee862f343440e2934a` (older)
 - **Changes**: 22 files, +2351/-145
-- **Key Features**: 
+- **Key Features**:
   - Sentry integration with PII scrubbing
   - PostHog analytics
   - AI agent guardrails (inline implementation)
   - Streaming chat endpoint
 
 ### PR #305: AI Embedding Pipeline and Supabase Vector Schema
+
 - **Base SHA**: `3088181e2cfe6d1db61394855fc80bddbf7512da` (newer)
 - **Changes**: 15 files, +2024/-82
 - **Key Features**:
@@ -30,6 +36,7 @@ These are not simple merge conflicts - they represent two competing implementati
   - Monitoring and reindex utilities
 
 ### PR #307: Durable AI Agent Sessions with Rate Limits
+
 - **Base SHA**: `3088181e2cfe6d1db61394855fc80bddbf7512da` (newer)
 - **Changes**: 22 files, +2044/-108
 - **Key Features**:
@@ -40,15 +47,19 @@ These are not simple merge conflicts - they represent two competing implementati
   - Service role client utilities
 
 ### Current Main Branch Implementation
-- **AI Agent Structure**: Orchestrator-based with separate tools, agents, and guardrails modules
+
+- **AI Agent Structure**: Orchestrator-based with separate tools, agents, and
+  guardrails modules
 - **Dependencies**: Only OpenAI SDK, uses vitest for testing
 - **Approach**: Simple, modular design focusing on chat orchestration
 
 ## Architectural Incompatibility
 
-The main issue is that `packages/ai-agent/src/` has completely different file structures:
+The main issue is that `packages/ai-agent/src/` has completely different file
+structures:
 
 **Main branch:**
+
 - `agents.ts` - Agent implementations
 - `orchestrator.ts` - Orchestration logic
 - `guardrails.ts` - Separate guardrails module
@@ -56,9 +67,12 @@ The main issue is that `packages/ai-agent/src/` has completely different file st
 - `session.ts` - Simple session management
 
 **PR branches:**
+
 - PR #270: Inline `AIAgent` class with embedded guardrails
-- PR #305: `embeddingProvider.ts`, `vectorStore.ts`, `resolver.ts`, `ingestion.ts`
-- PR #307: `agent.ts`, `errors.ts`, `rate-limiter.ts`, `usage-logger.ts`, `opt-out-registry.ts`
+- PR #305: `embeddingProvider.ts`, `vectorStore.ts`, `resolver.ts`,
+  `ingestion.ts`
+- PR #307: `agent.ts`, `errors.ts`, `rate-limiter.ts`, `usage-logger.ts`,
+  `opt-out-registry.ts`
 
 ## Recommended Resolution Strategy
 
@@ -82,11 +96,13 @@ Merge features incrementally while preserving main's architecture:
    - Make knowledge base search a new tool in orchestrator
 
 **Advantages:**
+
 - Preserves existing working implementation
 - Allows gradual testing of each feature
 - Maintains backward compatibility
 
 **Disadvantages:**
+
 - Requires significant refactoring of PR code
 - Takes longer to deliver full feature set
 
@@ -99,10 +115,12 @@ Replace main's AI agent implementation entirely with PR implementations:
 3. Update all consumers to use new API
 
 **Advantages:**
+
 - Gets full feature set immediately
 - PRs can be merged largely as-is
 
 **Disadvantages:**
+
 - Breaking change for any existing consumers
 - Higher risk of bugs
 - All three PRs must work together perfectly
@@ -116,11 +134,13 @@ Keep both implementations and choose which to use via feature flag:
 3. Use environment variable to select implementation
 
 **Advantages:**
+
 - Zero downtime migration
 - Can test new implementation in production
 - Easy rollback if issues arise
 
 **Disadvantages:**
+
 - Doubled maintenance burden temporarily
 - Code duplication
 
@@ -137,7 +157,7 @@ git push origin backup/ai-agent-orchestrator
 
 git checkout main
 git rm -r packages/ai-agent/src/agents.ts
-git rm -r packages/ai-agent/src/orchestrator.ts  
+git rm -r packages/ai-agent/src/orchestrator.ts
 git rm -r packages/ai-agent/src/guardrails.ts
 git rm -r packages/ai-agent/src/tools.ts
 git commit -m "chore: remove orchestrator-based AI agent in preparation for RAG implementation"
@@ -152,7 +172,7 @@ git merge --no-ff origin/codex/integrate-sentry-with-pii-scrubbing
 # Conflicts to resolve:
 # - apps/admin/app/api/chat/route.ts - Keep PR version
 # - apps/admin/instrumentation.ts - Merge both Sentry configs
-# - apps/admin/sentry.*.config.ts - Keep PR version  
+# - apps/admin/sentry.*.config.ts - Keep PR version
 # - apps/platform-api/* - Keep PR Sentry setup
 # - packages/lib/src/observability/* - Keep PR PII scrubbing
 
@@ -205,11 +225,11 @@ export SUPABASE_SERVICE_ROLE_KEY=test-key
 
 # Run tests
 pnpm --filter @ibimina/ai-agent test
-pnpm --filter @ibimina/providers test  
+pnpm --filter @ibimina/providers test
 pnpm --filter @ibimina/admin test:unit
 
 # Test chat endpoint
-curl -X POST http://localhost:3000/api/agent/chat \
+curl -X POST http://localhost:3100/api/agent/chat \
   -H "Content-Type: application/json" \
   -d '{"org_id":"test","message":"Hello"}'
 ```
@@ -219,14 +239,16 @@ curl -X POST http://localhost:3000/api/agent/chat \
 If using Option 2, consumers need to update their imports:
 
 ### Before (Orchestrator API):
+
 ```typescript
 import { bootstrapAgentSession, runAgentTurn } from "@ibimina/ai-agent";
 import { evaluateGuardrails } from "@ibimina/ai-agent";
 ```
 
 ### After (RAG API):
+
 ```typescript
-import { AIAgent } from "@ibimina/ai-agent";  
+import { AIAgent } from "@ibimina/ai-agent";
 import { createAgentSessionStore } from "@ibimina/providers";
 import { SupabaseAgentRateLimiter } from "@ibimina/ai-agent";
 ```
@@ -291,11 +313,15 @@ git push origin main
 
 ## Conclusion
 
-**Recommended Action**: Choose Option 1 (Incremental Integration) for lowest risk, or Option 2 (Full Replacement) if you're confident in the PR implementations and can afford downtime for testing.
+**Recommended Action**: Choose Option 1 (Incremental Integration) for lowest
+risk, or Option 2 (Full Replacement) if you're confident in the PR
+implementations and can afford downtime for testing.
 
-**DO NOT** attempt to merge these PRs using standard GitHub merge - the conflicts are too fundamental and will likely result in broken code.
+**DO NOT** attempt to merge these PRs using standard GitHub merge - the
+conflicts are too fundamental and will likely result in broken code.
 
 **Next Steps**:
+
 1. Review this document with the team
 2. Decide on integration strategy (Option 1, 2, or 3)
 3. Schedule a maintenance window if choosing Option 2

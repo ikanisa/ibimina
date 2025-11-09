@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
@@ -26,7 +27,7 @@ export async function POST() {
 
   const { error } = await (supabase as any).from("users").update(updatePayload).eq("id", user.id);
   if (error) {
-    console.error("Enable email MFA failed", error);
+    logError("Enable email MFA failed", error);
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 
@@ -66,7 +67,7 @@ export async function DELETE() {
 
   const { error } = await (supabase as any).from("users").update(updatePayload).eq("id", user.id);
   if (error) {
-    console.error("Disable email MFA failed", error);
+    logError("Disable email MFA failed", error);
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 

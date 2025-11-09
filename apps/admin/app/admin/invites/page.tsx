@@ -42,7 +42,10 @@ export default async function StaffInvitesPage() {
         </p>
       </header>
 
-      <form action={inviteStaff} className="grid gap-4 rounded-2xl border border-ink/10 bg-ink/5 p-6 sm:grid-cols-2">
+      <form
+        action={inviteStaff}
+        className="grid gap-4 rounded-2xl border border-ink/10 bg-ink/5 p-6 sm:grid-cols-2"
+      >
         <label className="space-y-2">
           <span className="text-sm font-medium text-ink">Staff email</span>
           <input
@@ -112,7 +115,10 @@ export default async function StaffInvitesPage() {
                   {invite.created_at ? new Date(invite.created_at).toLocaleString() : "—"}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/invite/${invite.token}`} className="text-sm font-semibold text-emerald-600">
+                  <Link
+                    href={`/invite/${invite.token}`}
+                    className="text-sm font-semibold text-emerald-600"
+                  >
                     Open
                   </Link>
                 </td>

@@ -14,13 +14,15 @@ The Ibimina SACCO management system consists of 4 integrated applications:
 3. **Staff Android** - Staff mobile tools (Capacitor + Android)
 4. **Backend** - Supabase (PostgreSQL + Edge Functions)
 
-**Testing Goal:** Validate all features work end-to-end before production launch.
+**Testing Goal:** Validate all features work end-to-end before production
+launch.
 
 ---
 
 ## ✅ PHASE 1: BACKEND TESTING (30 minutes)
 
 ### 1.1 Database Connection
+
 ```bash
 cd /Users/jeanbosco/workspace/ibimina
 
@@ -37,6 +39,7 @@ curl -X GET "$SUPABASE_URL/rest/v1/" \
 ✅ **Expected:** JSON response with API version info
 
 ### 1.2 Test Edge Functions
+
 ```bash
 # List deployed functions
 supabase functions list
@@ -52,6 +55,7 @@ supabase functions list
 ✅ **Expected:** 30 functions listed, all status = ACTIVE
 
 ### 1.3 Test Key Tables
+
 ```bash
 # Test organizations table
 curl "$SUPABASE_URL/rest/v1/organizations?select=id,name&limit=3" \
@@ -69,6 +73,7 @@ curl "$SUPABASE_URL/rest/v1/user_profiles?select=id&limit=1" \
 ## ✅ PHASE 2: ADMIN PWA TESTING (45 minutes)
 
 ### 2.1 Build and Start
+
 ```bash
 cd /Users/jeanbosco/workspace/ibimina
 
@@ -84,27 +89,29 @@ pnpm install
 pnpm --filter @ibimina/admin dev
 ```
 
-✅ **Expected:** App runs on http://localhost:3000
+✅ **Expected:** App runs on http://localhost:3100
 
 ### 2.2 Manual Feature Testing
 
-| Feature | Steps | Pass/Fail |
-|---------|-------|-----------|
-| **🔐 Login** | 1. Go to http://localhost:3000<br>2. Enter test credentials<br>3. Should redirect to dashboard | ⬜ |
-| **📊 Dashboard** | 1. View KPI cards<br>2. Check charts load<br>3. Verify quick actions | ⬜ |
-| **👥 Users** | 1. Click "Users"<br>2. Search/filter<br>3. View user detail<br>4. Edit user | ⬜ |
-| **💰 Payments** | 1. View payment list<br>2. Filter by status<br>3. View payment detail | ⬜ |
-| **📨 SMS Inbox** | 1. View SMS list<br>2. Check parsed fields<br>3. Test manual reconciliation | ⬜ |
-| **⚙️ Settings** | 1. Update profile<br>2. Change theme (light/dark)<br>3. Verify changes persist | ⬜ |
-| **🌐 Offline Mode** | 1. Open DevTools > Network<br>2. Set to "Offline"<br>3. Try an action<br>4. Should show offline indicator | ⬜ |
+| Feature             | Steps                                                                                                     | Pass/Fail |
+| ------------------- | --------------------------------------------------------------------------------------------------------- | --------- |
+| **🔐 Login**        | 1. Go to http://localhost:3100<br>2. Enter test credentials<br>3. Should redirect to dashboard            | ⬜        |
+| **📊 Dashboard**    | 1. View KPI cards<br>2. Check charts load<br>3. Verify quick actions                                      | ⬜        |
+| **👥 Users**        | 1. Click "Users"<br>2. Search/filter<br>3. View user detail<br>4. Edit user                               | ⬜        |
+| **💰 Payments**     | 1. View payment list<br>2. Filter by status<br>3. View payment detail                                     | ⬜        |
+| **📨 SMS Inbox**    | 1. View SMS list<br>2. Check parsed fields<br>3. Test manual reconciliation                               | ⬜        |
+| **⚙️ Settings**     | 1. Update profile<br>2. Change theme (light/dark)<br>3. Verify changes persist                            | ⬜        |
+| **🌐 Offline Mode** | 1. Open DevTools > Network<br>2. Set to "Offline"<br>3. Try an action<br>4. Should show offline indicator | ⬜        |
 
 ### 2.3 PWA Testing
+
 ```bash
 # Open in Chrome
-open -a "Google Chrome" http://localhost:3000
+open -a "Google Chrome" http://localhost:3100
 ```
 
 **DevTools Checklist:**
+
 1. Application → Service Workers → Should see "activated" ⬜
 2. Application → Manifest → Should load without errors ⬜
 3. Application → Icons → Should show 192px, 512px icons ⬜
@@ -116,6 +123,7 @@ open -a "Google Chrome" http://localhost:3000
 ## ✅ PHASE 3: CLIENT MOBILE APP TESTING (60 minutes)
 
 ### 3.1 Setup Environment
+
 ```bash
 cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile
 
@@ -133,6 +141,7 @@ npm install
 ```
 
 ### 3.2 iOS Testing
+
 ```bash
 # Sync iOS
 npx cap sync ios
@@ -146,6 +155,7 @@ npx cap open ios
 ```
 
 ### 3.3 Android Testing
+
 ```bash
 # Sync Android
 npx cap sync android
@@ -160,28 +170,29 @@ npx cap open android
 
 ### 3.4 Mobile Feature Testing
 
-| Feature | iOS | Android | Notes |
-|---------|-----|---------|-------|
-| **📱 Onboarding** | ⬜ | ⬜ | 3 slides, skip button works |
-| **📞 WhatsApp OTP** | ⬜ | ⬜ | OTP sent, received, verified |
-| **👀 Browse Mode** | ⬜ | ⬜ | Can view features before login |
-| **🔒 Auth Guard** | ⬜ | ⬜ | Login prompt on protected action |
-| **🏠 Dashboard** | ⬜ | ⬜ | Balance displays, KPIs load |
-| **💸 Deposit** | ⬜ | ⬜ | Can initiate deposit |
-| **💵 Withdraw** | ⬜ | ⬜ | Can initiate withdrawal |
-| **↔️ Transfer** | ⬜ | ⬜ | Can transfer between accounts |
-| **📜 Transactions** | ⬜ | ⬜ | History displays, can filter |
-| **💳 Accounts** | ⬜ | ⬜ | Multiple accounts shown |
-| **👤 Profile** | ⬜ | ⬜ | Can edit profile fields |
-| **🌙 Dark Mode** | ⬜ | ⬜ | Toggle works |
-| **📴 Offline** | ⬜ | ⬜ | Offline banner shows |
-| **🔔 Push Notifications** | ⬜ | ⬜ | Receives test notification |
+| Feature                   | iOS | Android | Notes                            |
+| ------------------------- | --- | ------- | -------------------------------- |
+| **📱 Onboarding**         | ⬜  | ⬜      | 3 slides, skip button works      |
+| **📞 WhatsApp OTP**       | ⬜  | ⬜      | OTP sent, received, verified     |
+| **👀 Browse Mode**        | ⬜  | ⬜      | Can view features before login   |
+| **🔒 Auth Guard**         | ⬜  | ⬜      | Login prompt on protected action |
+| **🏠 Dashboard**          | ⬜  | ⬜      | Balance displays, KPIs load      |
+| **💸 Deposit**            | ⬜  | ⬜      | Can initiate deposit             |
+| **💵 Withdraw**           | ⬜  | ⬜      | Can initiate withdrawal          |
+| **↔️ Transfer**           | ⬜  | ⬜      | Can transfer between accounts    |
+| **📜 Transactions**       | ⬜  | ⬜      | History displays, can filter     |
+| **💳 Accounts**           | ⬜  | ⬜      | Multiple accounts shown          |
+| **👤 Profile**            | ⬜  | ⬜      | Can edit profile fields          |
+| **🌙 Dark Mode**          | ⬜  | ⬜      | Toggle works                     |
+| **📴 Offline**            | ⬜  | ⬜      | Offline banner shows             |
+| **🔔 Push Notifications** | ⬜  | ⬜      | Receives test notification       |
 
 ---
 
 ## ✅ PHASE 4: STAFF ANDROID APP TESTING (45 minutes)
 
 ### 4.1 Build APK
+
 ```bash
 cd /Users/jeanbosco/workspace/ibimina/apps/admin/android
 
@@ -196,6 +207,7 @@ cd /Users/jeanbosco/workspace/ibimina/apps/admin/android
 ```
 
 ### 4.2 Install on Device
+
 ```bash
 # Via USB
 adb devices
@@ -206,21 +218,21 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ### 4.3 Staff App Feature Testing
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| **📱 Launch** | ⬜ | App opens without crash |
-| **🔐 QR Login** | ⬜ | Scan PWA QR code |
-| **✅ Auth Success** | ⬜ | PWA session activates |
-| **📊 Dashboard** | ⬜ | Staff metrics display |
-| **👥 User List** | ⬜ | Can view SACCO members |
-| **🔍 Search** | ⬜ | Search by name/phone works |
-| **💰 Payment Entry** | ⬜ | Can record payment manually |
-| **📲 NFC TapMoMo** | ⬜ | Can read NFC payment (if supported) |
-| **📨 SMS Reader** | ⬜ | Reads MoMo SMS notifications |
-| **🤖 SMS Parsing** | ⬜ | OpenAI parses SMS correctly |
-| **✅ Auto-Match** | ⬜ | Payment matched to user |
-| **📴 Offline Queue** | ⬜ | Actions queue when offline |
-| **🔄 Sync** | ⬜ | Queue replays when back online |
+| Feature              | Status | Notes                               |
+| -------------------- | ------ | ----------------------------------- |
+| **📱 Launch**        | ⬜     | App opens without crash             |
+| **🔐 QR Login**      | ⬜     | Scan PWA QR code                    |
+| **✅ Auth Success**  | ⬜     | PWA session activates               |
+| **📊 Dashboard**     | ⬜     | Staff metrics display               |
+| **👥 User List**     | ⬜     | Can view SACCO members              |
+| **🔍 Search**        | ⬜     | Search by name/phone works          |
+| **💰 Payment Entry** | ⬜     | Can record payment manually         |
+| **📲 NFC TapMoMo**   | ⬜     | Can read NFC payment (if supported) |
+| **📨 SMS Reader**    | ⬜     | Reads MoMo SMS notifications        |
+| **🤖 SMS Parsing**   | ⬜     | OpenAI parses SMS correctly         |
+| **✅ Auto-Match**    | ⬜     | Payment matched to user             |
+| **📴 Offline Queue** | ⬜     | Actions queue when offline          |
+| **🔄 Sync**          | ⬜     | Queue replays when back online      |
 
 ---
 
@@ -291,23 +303,23 @@ Found an issue? Report it like this:
 **Reproducible:** Always / Sometimes / Rarely
 
 **Steps to Reproduce:**
+
 1. Open [app name]
 2. Navigate to [screen]
 3. Tap/click [button]
 4. Observe [issue]
 
-**Expected Behavior:**
-[What should happen]
+**Expected Behavior:** [What should happen]
 
-**Actual Behavior:**
-[What actually happens]
+**Actual Behavior:** [What actually happens]
 
-**Screenshots/Videos:**
-[Attach if available]
+**Screenshots/Videos:** [Attach if available]
 
 **Console Errors:**
 ```
+
 [Paste any error messages]
+
 ```
 
 **Device Info:**
@@ -320,14 +332,14 @@ Found an issue? Report it like this:
 
 ## 📊 TESTING PROGRESS TRACKER
 
-| Phase | Total Tests | Passed | Failed | Completion |
-|-------|-------------|--------|--------|------------|
-| **Backend** | 3 | 0 | 0 | 0% |
-| **Admin PWA** | 7 | 0 | 0 | 0% |
-| **Client Mobile** | 14 | 0 | 0 | 0% |
-| **Staff Android** | 13 | 0 | 0 | 0% |
-| **Integration** | 3 | 0 | 0 | 0% |
-| **OVERALL** | **40** | **0** | **0** | **0%** |
+| Phase             | Total Tests | Passed | Failed | Completion |
+| ----------------- | ----------- | ------ | ------ | ---------- |
+| **Backend**       | 3           | 0      | 0      | 0%         |
+| **Admin PWA**     | 7           | 0      | 0      | 0%         |
+| **Client Mobile** | 14          | 0      | 0      | 0%         |
+| **Staff Android** | 13          | 0      | 0      | 0%         |
+| **Integration**   | 3           | 0      | 0      | 0%         |
+| **OVERALL**       | **40**      | **0**  | **0**  | **0%**     |
 
 **Target:** 95%+ pass rate before production launch
 
@@ -336,6 +348,7 @@ Found an issue? Report it like this:
 ## 🆘 TROUBLESHOOTING
 
 ### Issue: "Cannot connect to Supabase"
+
 ```bash
 # Check environment variables
 echo $SUPABASE_URL
@@ -349,6 +362,7 @@ curl -I $SUPABASE_URL
 ```
 
 ### Issue: "Admin PWA won't start"
+
 ```bash
 cd apps/admin
 
@@ -366,6 +380,7 @@ pnpm build
 ```
 
 ### Issue: "Mobile app crashes on launch"
+
 ```bash
 # iOS: Clean build
 cd ios
@@ -381,6 +396,7 @@ npx react-native run-android
 ```
 
 ### Issue: "WhatsApp OTP not sending"
+
 ```bash
 # Check WhatsApp API credentials in Meta dashboard
 # Verify phone number is verified
@@ -389,6 +405,7 @@ supabase functions logs whatsapp-send-otp
 ```
 
 ### Issue: "NFC not working"
+
 ```
 Android:
 1. Settings → NFC → Enable NFC
@@ -436,6 +453,7 @@ Before marking testing as complete:
 ## 📞 SUPPORT
 
 If you need help during testing:
+
 - Check `PRODUCTION_READY_SUMMARY.md` for system overview
 - Check `NEXT_STEPS.md` for development roadmap
 - Check `QUICK_REFERENCE.md` for common commands

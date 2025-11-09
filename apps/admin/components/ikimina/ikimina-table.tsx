@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import type { CellContext, ColumnDef } from "@tanstack/react-table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
@@ -55,9 +55,9 @@ const relativeDate = (value: string | null) => {
 
 export function IkiminaTable({
   rows,
-  statusOptions,
-  typeOptions,
-  saccoOptions,
+  _statusOptions,
+  _typeOptions,
+  _saccoOptions,
   showSaccoColumn = false,
 }: IkiminaTableProps) {
   const { t } = useTranslation();
@@ -109,7 +109,7 @@ export function IkiminaTable({
 
   const filterChips = useMemo<FilterChipDefinition[]>(() => {
     const chips: FilterChipDefinition[] = [];
-    
+
     if (status) {
       chips.push({
         id: "status",
@@ -135,7 +135,7 @@ export function IkiminaTable({
         ),
       });
     }
-    
+
     if (type) {
       chips.push({
         id: "type",
@@ -161,7 +161,7 @@ export function IkiminaTable({
         ),
       });
     }
-    
+
     if (sacco) {
       chips.push({
         id: "sacco",
@@ -180,7 +180,7 @@ export function IkiminaTable({
         ),
       });
     }
-    
+
     return chips;
   }, [status, type, sacco, t]);
 

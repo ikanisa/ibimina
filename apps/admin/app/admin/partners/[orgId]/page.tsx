@@ -24,26 +24,24 @@ const updatePartnerConfig = async (formData: FormData) => {
   const contactPhone = (formData.get("contactPhone") as string | null)?.trim() || null;
 
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase
-    .from("partner_config")
-    .upsert(
-      {
-        org_id: orgId,
-        merchant_code: (formData.get("merchantCode") as string | null)?.trim() || null,
-        reference_prefix: (formData.get("referencePrefix") as string | null)?.trim() || null,
-        enabled_features: parseList(formData.get("enabledFeatures") as string | null),
-        telco_ids: parseList(formData.get("telcoIds") as string | null),
-        language_pack: parseList(formData.get("languagePack") as string | null),
-        contact:
-          contactEmail || contactPhone
-            ? {
-                email: contactEmail,
-                phone: contactPhone,
-              }
-            : null,
-      },
-      { onConflict: "org_id" }
-    );
+  const { error } = await supabase.from("partner_config").upsert(
+    {
+      org_id: orgId,
+      merchant_code: (formData.get("merchantCode") as string | null)?.trim() || null,
+      reference_prefix: (formData.get("referencePrefix") as string | null)?.trim() || null,
+      enabled_features: parseList(formData.get("enabledFeatures") as string | null),
+      telco_ids: parseList(formData.get("telcoIds") as string | null),
+      language_pack: parseList(formData.get("languagePack") as string | null),
+      contact:
+        contactEmail || contactPhone
+          ? {
+              email: contactEmail,
+              phone: contactPhone,
+            }
+          : null,
+    },
+    { onConflict: "org_id" }
+  );
 
   if (error) {
     throw error;
@@ -56,7 +54,9 @@ export default async function EditPartnerPage({ params }: { params: { orgId: str
   const supabase = createSupabaseAdminClient();
   const { data: partner, error } = await supabase
     .from("partner_config")
-    .select("org_id, merchant_code, reference_prefix, enabled_features, telco_ids, language_pack, contact")
+    .select(
+      "org_id, merchant_code, reference_prefix, enabled_features, telco_ids, language_pack, contact"
+    )
     .eq("org_id", params.orgId)
     .maybeSingle();
 
@@ -69,21 +69,26 @@ export default async function EditPartnerPage({ params }: { params: { orgId: str
   const languagePack = partner.language_pack?.join(", ") ?? "";
   const contactEmail =
     typeof partner.contact === "object" && partner.contact !== null
-      ? ((partner.contact as Record<string, unknown>).email as string | null) ?? ""
+      ? (((partner.contact as Record<string, unknown>).email as string | null) ?? "")
       : "";
   const contactPhone =
     typeof partner.contact === "object" && partner.contact !== null
-      ? ((partner.contact as Record<string, unknown>).phone as string | null) ?? ""
+      ? (((partner.contact as Record<string, unknown>).phone as string | null) ?? "")
       : "";
 
   return (
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold text-ink">Partner configuration</h1>
-        <p className="text-sm text-ink/70">Manage feature flags and telco routing for this partner.</p>
+        <p className="text-sm text-ink/70">
+          Manage feature flags and telco routing for this partner.
+        </p>
       </header>
 
-      <form action={updatePartnerConfig} className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6">
+      <form
+        action={updatePartnerConfig}
+        className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6"
+      >
         <input type="hidden" name="orgId" value={partner.org_id} />
 
         <div className="grid gap-4 sm:grid-cols-2">

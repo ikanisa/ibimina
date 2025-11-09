@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logWarn } from "@/lib/observability/logger";
 import { guardAdminAction } from "@/lib/admin/guard";
 import type { Database } from "@/lib/supabase/types";
 import { supabaseSrv } from "@/lib/supabase/server";
@@ -87,7 +88,7 @@ export async function PATCH(request: Request) {
     }
   } catch (e) {
     if (!(e && typeof e === "object" && (e as any).code)) {
-      console.warn("org_memberships upsert failed", e);
+      logWarn("org_memberships upsert failed", e);
     }
   }
 

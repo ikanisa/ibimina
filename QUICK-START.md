@@ -18,19 +18,20 @@ Working Tree: Clean
 
 ## 🎯 What's Included
 
-| Application | Technology | Status | Location |
-|------------|-----------|--------|----------|
-| Staff/Admin PWA | React + Vite | ✅ 100% | `apps/staff-admin-pwa/` |
-| Client Mobile | React Native | ✅ 100% | `apps/client-mobile/` |
-| Staff Android | Kotlin Native | ✅ 100% | `apps/staff-mobile-android/` |
-| Admin Web | Next.js 15 | ✅ 100% | `apps/admin/` |
-| Backend | Supabase | ✅ Deployed | `supabase/` |
+| Application     | Technology    | Status      | Location                     |
+| --------------- | ------------- | ----------- | ---------------------------- |
+| Staff/Admin PWA | React + Vite  | ✅ 100%     | `apps/staff-admin-pwa/`      |
+| Client Mobile   | React Native  | ✅ 100%     | `apps/client-mobile/`        |
+| Staff Android   | Kotlin Native | ✅ 100%     | `apps/staff-mobile-android/` |
+| Admin Web       | Next.js 15    | ✅ 100%     | `apps/admin/`                |
+| Backend         | Supabase      | ✅ Deployed | `supabase/`                  |
 
 ---
 
 ## ⚡ Quick Deploy Commands
 
 ### 1. Staff Admin PWA (Docker)
+
 ```bash
 cd apps/staff-admin-pwa
 docker compose up -d
@@ -38,15 +39,17 @@ docker compose up -d
 ```
 
 ### 2. Admin Web App (Next.js)
+
 ```bash
 cd apps/admin
 pnpm install
 pnpm build
 pnpm start
-# Access at http://localhost:3000
+# Access at http://localhost:3100
 ```
 
 ### 3. Client Mobile App
+
 ```bash
 cd apps/client-mobile
 
@@ -59,6 +62,7 @@ cd ios && pod install && xcodebuild archive
 ```
 
 ### 4. Staff Android App
+
 ```bash
 cd apps/admin/android
 ./gradlew assembleRelease
@@ -70,6 +74,7 @@ cd apps/admin/android
 ## 🔧 Backend (Supabase)
 
 ### Status Check
+
 ```bash
 # List deployed functions
 supabase functions list
@@ -79,6 +84,7 @@ psql "$DATABASE_URL" -c "\dt public.*"
 ```
 
 ### Deploy Updates
+
 ```bash
 # Deploy all functions
 supabase functions deploy
@@ -92,6 +98,7 @@ supabase db push
 ## 🔑 Environment Variables
 
 ### Required for All Apps
+
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
@@ -99,6 +106,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 ### WhatsApp OTP (Client Mobile)
+
 ```bash
 WHATSAPP_API_URL=https://graph.facebook.com/v18.0
 WHATSAPP_TOKEN=your-meta-token
@@ -106,11 +114,13 @@ WHATSAPP_PHONE_ID=your-phone-number-id
 ```
 
 ### OpenAI (SMS Parsing)
+
 ```bash
 OPENAI_API_KEY=your-openai-key
 ```
 
 ### TapMoMo (NFC)
+
 ```bash
 # Merchant secrets stored in Supabase
 # See: supabase/migrations/20260301000000_tapmomo_system.sql
@@ -121,6 +131,7 @@ OPENAI_API_KEY=your-openai-key
 ## 📱 Mobile App Features
 
 ### Client Mobile App
+
 - ✅ WhatsApp OTP Login
 - ✅ Onboarding (3 screens)
 - ✅ Browse without login
@@ -133,6 +144,7 @@ OPENAI_API_KEY=your-openai-key
 - ✅ Offline support
 
 ### Staff Mobile Android
+
 - ✅ TapMoMo NFC (payee + reader)
 - ✅ SMS reader + AI parsing
 - ✅ QR scanner for web 2FA
@@ -144,6 +156,7 @@ OPENAI_API_KEY=your-openai-key
 ## 🔐 Authentication Flows
 
 ### Client → WhatsApp OTP
+
 ```
 1. Enter phone number
 2. Receive OTP via WhatsApp
@@ -152,6 +165,7 @@ OPENAI_API_KEY=your-openai-key
 ```
 
 ### Staff → QR Code 2FA
+
 ```
 1. Open web app
 2. QR code displayed
@@ -160,6 +174,7 @@ OPENAI_API_KEY=your-openai-key
 ```
 
 ### TapMoMo → NFC Payment
+
 ```
 1. Merchant activates NFC (60s)
 2. Customer taps phone
@@ -173,6 +188,7 @@ OPENAI_API_KEY=your-openai-key
 ## 🧪 Testing
 
 ### Unit Tests
+
 ```bash
 # Client Mobile
 cd apps/client-mobile
@@ -188,6 +204,7 @@ deno test
 ```
 
 ### E2E Tests
+
 ```bash
 # Admin PWA
 cd apps/staff-admin-pwa
@@ -204,11 +221,13 @@ npm run e2e:android
 ## 📊 Monitoring
 
 ### Supabase Dashboard
+
 ```
 https://supabase.com/dashboard/project/YOUR_PROJECT_REF
 ```
 
 ### Key Metrics to Monitor
+
 - ✅ Edge Function invocations
 - ✅ Database connections
 - ✅ API error rates
@@ -221,6 +240,7 @@ https://supabase.com/dashboard/project/YOUR_PROJECT_REF
 ## 🚨 Troubleshooting
 
 ### Build Fails
+
 ```bash
 # Clear caches
 rm -rf node_modules pnpm-lock.yaml
@@ -231,6 +251,7 @@ pnpm build
 ```
 
 ### Supabase Connection Issues
+
 ```bash
 # Check env vars
 echo $NEXT_PUBLIC_SUPABASE_URL
@@ -242,6 +263,7 @@ curl -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY" \
 ```
 
 ### Android Build Issues
+
 ```bash
 # Clean gradle
 cd android
@@ -252,6 +274,7 @@ cd android
 ```
 
 ### WhatsApp OTP Not Sending
+
 ```bash
 # Check Meta Business Platform
 # Verify phone number verified
@@ -263,18 +286,19 @@ cd android
 
 ## 📚 Documentation
 
-| Document | Description |
-|----------|-------------|
+| Document                 | Description                               |
+| ------------------------ | ----------------------------------------- |
 | `VERIFICATION-REPORT.md` | Complete system verification (700+ lines) |
-| `apps/*/README.md` | App-specific documentation |
-| `docs/` | Architecture, deployment, operations |
-| `supabase/README.md` | Backend setup and Edge Functions |
+| `apps/*/README.md`       | App-specific documentation                |
+| `docs/`                  | Architecture, deployment, operations      |
+| `supabase/README.md`     | Backend setup and Edge Functions          |
 
 ---
 
 ## 🎯 Launch Checklist
 
 ### Pre-Launch
+
 - [x] All code committed
 - [x] All tests passing
 - [x] Environment variables set
@@ -285,6 +309,7 @@ cd android
 - [ ] Staff training completed
 
 ### Launch Day
+
 - [ ] Deploy Admin PWA to production
 - [ ] Distribute Staff Android APK
 - [ ] Submit Client Mobile to App Store
@@ -293,6 +318,7 @@ cd android
 - [ ] Announce to users
 
 ### Post-Launch
+
 - [ ] Monitor error rates
 - [ ] Gather user feedback
 - [ ] Address critical issues
@@ -304,11 +330,13 @@ cd android
 ## 🆘 Support
 
 ### Technical Issues
+
 - Check logs: `supabase functions logs <function-name>`
 - Review RLS policies: `psql $DATABASE_URL`
 - Test Edge Functions: `supabase functions serve`
 
 ### Business Issues
+
 - Review analytics dashboard
 - Check transaction reconciliation
 - Verify payment flows

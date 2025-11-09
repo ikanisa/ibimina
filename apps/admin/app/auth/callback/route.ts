@@ -4,21 +4,12 @@ import { createServerClient } from "@supabase/ssr";
 import type { Session } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 import { getSupabaseConfigStatus } from "@/lib/supabase/config";
+import { logError, logWarn } from "@/lib/observability/logger";
 
 type AuthCallbackPayload = {
   event: string;
   session: Session | null;
 };
-
-type LogDetails = Record<string, unknown>;
-
-function logError(event: string, details: LogDetails = {}) {
-  console.error(`auth.callback.${event}`, details);
-}
-
-function logWarn(event: string, details: LogDetails = {}) {
-  console.warn(`auth.callback.${event}`, details);
-}
 
 export async function POST(request: NextRequest) {
   const config = getSupabaseConfigStatus();

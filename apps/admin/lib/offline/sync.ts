@@ -1,3 +1,5 @@
+import { logWarn } from "@/lib/observability/logger";
+
 const BG_SYNC_TAG = "ibimina-offline-sync";
 
 type SyncManager = {
@@ -8,7 +10,7 @@ const textEncoder = new TextEncoder();
 
 async function hashString(value: string): Promise<string | null> {
   if (!globalThis.crypto?.subtle) {
-    console.warn("offline.sync.hash_unavailable");
+    logWarn("offline.sync.hash_unavailable");
     return null;
   }
 
@@ -18,7 +20,7 @@ async function hashString(value: string): Promise<string | null> {
       .map((byte) => byte.toString(16).padStart(2, "0"))
       .join("");
   } catch (error) {
-    console.warn("offline.sync.hash_failed", error);
+    logWarn("offline.sync.hash_failed", { error });
     return null;
   }
 }
@@ -31,7 +33,7 @@ async function getRegistration(): Promise<ServiceWorkerRegistration | null> {
   try {
     return await navigator.serviceWorker.ready;
   } catch (error) {
-    console.warn("offline.sync.ready_failed", error);
+    logWarn("offline.sync.ready_failed", { error });
     return null;
   }
 }
@@ -48,7 +50,7 @@ export async function requestBackgroundSync() {
       await syncManager.register(BG_SYNC_TAG);
       return true;
     } catch (error) {
-      console.warn("offline.sync.register_failed", error);
+      logWarn("offline.sync.register_failed", { error });
     }
   }
 

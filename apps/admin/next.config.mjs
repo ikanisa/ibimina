@@ -1,12 +1,17 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  output: "standalone",
+  // Ensure output tracing resolves from the monorepo root
+  outputFileTracingRoot: path.join(__dirname, "../.."),
   images: {
     unoptimized: true,
-  },
-  experimental: {
-    serverActions: false,
   },
   // TypeScript configuration
   typescript: {
@@ -21,7 +26,7 @@ const nextConfig = {
     // Handle node: protocol imports
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
-        resource.request = resource.request.replace(/^node:/, '');
+        resource.request = resource.request.replace(/^node:/, "");
       })
     );
 
@@ -37,6 +42,6 @@ const nextConfig = {
     }
     return config;
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

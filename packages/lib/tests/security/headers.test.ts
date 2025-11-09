@@ -116,7 +116,7 @@ describe("createContentSecurityPolicy", () => {
   it("enables development websocket connections when isDev is set", () => {
     const policy = createContentSecurityPolicy({ nonce: "dev", isDev: true });
 
-    expect(policy).toContain("connect-src 'self' ws://localhost:3000 ws://127.0.0.1:3000");
+    expect(policy).toContain("connect-src 'self' ws://localhost:3100 ws://127.0.0.1:3100");
     expect(policy).toContain("script-src 'self' 'nonce-dev' 'strict-dynamic' 'unsafe-eval'");
   });
 });

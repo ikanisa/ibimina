@@ -15,6 +15,7 @@ import {
 } from "react";
 import type { ProfileRow } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { logError } from "@/lib/observability/logger";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 import { useTranslation } from "@/providers/i18n-provider";
@@ -121,6 +122,7 @@ export function useCommandPaletteActions(
   const memoDeps = useMemo(() => [actions, ...Array.from(deps)], [actions, deps]);
   const computedActions = useMemo(
     () => (typeof actions === "function" ? actions() : actions),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     memoDeps
   );
   useEffect(() => registerActions(key, computedActions), [computedActions, key, registerActions]);
@@ -135,6 +137,7 @@ export function useCommandPaletteFilters(
   const memoDeps = useMemo(() => [generators, ...Array.from(deps)], [generators, deps]);
   const computedGenerators = useMemo(
     () => (typeof generators === "function" ? generators() : generators),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     memoDeps
   );
   useEffect(
@@ -198,7 +201,7 @@ function resolveSupabaseClient() {
   } catch (error) {
     const resolvedError = error instanceof Error ? error : new Error(String(error));
     supabaseClientInitError = resolvedError;
-    console.error("command-palette.supabase.init_failed", { message: resolvedError.message });
+    logError("command_palette.supabase_init_failed", { error: resolvedError });
     cachedSupabaseClient = null;
   }
 
@@ -275,11 +278,15 @@ export function CommandPaletteProvider({
 
   const contextualActions = useMemo(
     () => Array.from(actionsRef.current.values()).flat(),
+    // actionsVersion is intentionally included to trigger recomputation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [actionsVersion]
   );
 
   const contextualFilters = useMemo(
     () => Array.from(filtersRef.current.values()).flat(),
+    // filtersVersion is intentionally included to trigger recomputation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [filtersVersion]
   );
 
@@ -459,7 +466,7 @@ function CommandPaletteInternal({
       if (cancelled) return;
 
       if (supabaseError) {
-        console.error("command-palette.sacco.fetch_failed", supabaseError);
+        logError("command_palette.sacco_fetch_failed", { error: supabaseError });
         const message = supabaseError.message ?? "Failed to load ikimina";
         setError(message);
         setIkimina([]);
@@ -542,7 +549,7 @@ function CommandPaletteInternal({
 
       let memberRows: MemberResult[] = [];
       if (membersRes.error) {
-        console.error("command-palette.members.fetch_failed", membersRes.error);
+        logError("command_palette.members_fetch_failed", { error: membersRes.error });
         setMembersError(membersRes.error.message ?? "Failed to load members");
       } else {
         type MemberRow = {
@@ -567,7 +574,7 @@ function CommandPaletteInternal({
 
       let paymentRows: PaymentResult[] = [];
       if (paymentsRes.error) {
-        console.error("command-palette.payments.fetch_failed", paymentsRes.error);
+        logError("command_palette.payments_fetch_failed", { error: paymentsRes.error });
         setPaymentsError(paymentsRes.error.message ?? "Failed to load payments");
       } else {
         type PaymentRow = {

@@ -698,7 +698,7 @@ FROM node:20-bookworm-slim@sha256:... AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
+ENV PORT=3100
 
 # Create non-root user
 RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
@@ -726,7 +726,7 @@ EXPOSE 3000
 
 # Add health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get('http://localhost:3100/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })"
 
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
@@ -1000,7 +1000,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || "http://localhost:3000";
+const BASE_URL = __ENV.BASE_URL || "http://localhost:3100";
 
 export default function () {
   // Test dashboard endpoint
@@ -1133,7 +1133,7 @@ export const apiSpec = createDocument({
   },
   servers: [
     { url: "https://staff.ibimina.rw/api", description: "Production" },
-    { url: "http://localhost:3000/api", description: "Development" },
+    { url: "http://localhost:3100/api", description: "Development" },
   ],
   paths: {
     "/members": {

@@ -37,27 +37,27 @@ export function NotificationQueueTable({
         templateLabel: row.template_id
           ? (templateLookup.get(row.template_id) ?? row.template_id)
           : "—",
-        createdLabel: row.created_at 
-          ? new Intl.DateTimeFormat("en-US", { 
-              year: "numeric", 
-              month: "2-digit", 
-              day: "2-digit", 
-              hour: "2-digit", 
-              minute: "2-digit", 
+        createdLabel: row.created_at
+          ? new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
               hour12: false,
-              timeZone: "UTC" 
-            }).format(new Date(row.created_at)) 
+              timeZone: "UTC",
+            }).format(new Date(row.created_at))
           : "—",
-        scheduledLabel: row.scheduled_for 
-          ? new Intl.DateTimeFormat("en-US", { 
-              year: "numeric", 
-              month: "2-digit", 
-              day: "2-digit", 
-              hour: "2-digit", 
-              minute: "2-digit", 
+        scheduledLabel: row.scheduled_for
+          ? new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
               hour12: false,
-              timeZone: "UTC" 
-            }).format(new Date(row.scheduled_for)) 
+              timeZone: "UTC",
+            }).format(new Date(row.scheduled_for))
           : "—",
         channelLabel: row.channel ?? "—",
       })),

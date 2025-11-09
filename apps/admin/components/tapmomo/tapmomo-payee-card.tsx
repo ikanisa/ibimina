@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { logError } from "@/lib/observability/logger";
 import { GlassCard } from "@/components/ui/glass-card";
-import { StatusChip } from "@/components/common/status-chip";
+import { _StatusChip } from "@/components/common/status-chip";
 import { Trans } from "@/components/common/trans";
 
 interface TapMoMoPayeeCardProps {
@@ -24,7 +25,7 @@ export function TapMoMoPayeeCard({ merchants, nfcEnabled, saccoId }: TapMoMoPaye
   const [isActive, setIsActive] = useState(false);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [nonce, setNonce] = useState<string | null>(null);
+  const [_nonce, setNonce] = useState<string | null>(null);
 
   const activeMerchants = merchants.filter((m) => m.is_active);
 
@@ -77,7 +78,7 @@ export function TapMoMoPayeeCard({ merchants, nfcEnabled, saccoId }: TapMoMoPaye
     try {
       await (window as any).TapMoMo.disarmPayee();
     } catch (err) {
-      console.error("Failed to deactivate:", err);
+      logError("Failed to deactivate:", err);
     } finally {
       setIsActive(false);
       setExpiresAt(null);

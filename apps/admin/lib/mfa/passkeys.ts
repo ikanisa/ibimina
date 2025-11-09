@@ -88,7 +88,7 @@ const getExpectedOrigin = () => {
 
   const rpID = getRpId();
   if (rpID === "localhost") {
-    return "http://localhost:3000";
+    return process.env.MFA_DEV_ORIGIN ?? "http://localhost:3100";
   }
   return `https://${rpID}`;
 };

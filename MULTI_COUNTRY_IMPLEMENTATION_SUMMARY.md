@@ -98,7 +98,7 @@ client/staff/admin apps.
 **Steps**:
 
 1. Build application (`pnpm run build`)
-2. Start preview server on port 3000
+2. Start preview server on port 3100
 3. Wait for server to be ready
 4. Run Lighthouse in headless mode
 5. Upload Lighthouse artifact (`lighthouse-report`)

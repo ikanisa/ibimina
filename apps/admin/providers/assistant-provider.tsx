@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
+import { logWarn } from "@/lib/observability/logger";
 
 const STORAGE_PREFIX = "atlas.assistant" as const;
 const OPEN_STORAGE_KEY = `${STORAGE_PREFIX}.open` as const;
@@ -149,7 +150,7 @@ async function fetchRemoteVisibility(path: string, signal: AbortSignal): Promise
     if ((error as DOMException)?.name === "AbortError") {
       return null;
     }
-    console.warn("[assistant] Failed to fetch remote visibility", error);
+    logWarn("assistant.visibility.fetch_failed", { error });
     return null;
   }
 }
@@ -162,10 +163,13 @@ async function persistRemoteVisibility(path: string, visible: boolean) {
       body: JSON.stringify({ path, visible }),
     });
     if (!response.ok) {
-      console.warn("[assistant] Failed to persist visibility", await response.text());
+      logWarn("assistant.visibility.persist_failed", {
+        response: await response.text(),
+        status: response.status,
+      });
     }
   } catch (error) {
-    console.warn("[assistant] Failed to persist visibility", error);
+    logWarn("assistant.visibility.persist_failed", { error });
   }
 }
 

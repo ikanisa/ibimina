@@ -2,19 +2,15 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/lib/supabase/types";
+import { requireSupabaseConfig } from "@/lib/supabase/config";
 
 let client: ReturnType<typeof createBrowserClient<Database>> | null = null;
 
 export function getSupabaseBrowserClient() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    throw new Error("Supabase environment variables are not configured.");
-  }
+  const { url, anonKey } = requireSupabaseConfig("supabase-browser-client");
 
   if (!client) {
-    client = createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
+    client = createBrowserClient<Database>(url, anonKey);
   }
 
   return client;

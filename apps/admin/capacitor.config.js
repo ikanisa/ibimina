@@ -1,16 +1,16 @@
 /** @type {import('@capacitor/cli').CapacitorConfig} */
 const config = {
-  appId: 'rw.ibimina.staff',
-  appName: 'Ibimina Admin',
-  webDir: '.next',
+  appId: "rw.ibimina.staff",
+  appName: "Ibimina Admin",
+  webDir: ".next",
   server: {
-    // For Android emulator to reach your Mac's localhost:3000
-    url: 'http://10.0.2.2:3000',
-    cleartext: true
+    // For Android emulator to reach your Mac's localhost:3100
+    url: "http://10.0.2.2:3100",
+    cleartext: true,
   },
   android: {
-    allowMixedContent: true
-  }
+    allowMixedContent: true,
+  },
 };
 
 module.exports = config;

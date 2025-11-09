@@ -1,4 +1,5 @@
 import { issueEmailOtp } from "@/lib/mfa/email";
+import { logInfo } from "@/lib/observability/logger";
 import { createAuthenticationOptions } from "@/lib/mfa/passkeys";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -49,7 +50,7 @@ export const sendEmailOtp = async (user: { id: string; email: string | null }) =
 // WhatsApp OTP temporarily disabled - Meta WhatsApp Business API integration pending
 // Users should use passkey, TOTP, email, or backup codes for MFA
 export const sendWhatsAppOtp = async (user: { id: string }) => {
-  console.info("WhatsApp OTP temporarily disabled - Meta integration pending", { userId: user.id });
+  logInfo("WhatsApp OTP temporarily disabled - Meta integration pending", { userId: user.id });
   return {
     channel: "whatsapp",
     sent: false,

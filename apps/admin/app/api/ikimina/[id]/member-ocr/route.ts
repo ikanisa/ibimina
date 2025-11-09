@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { Buffer } from "node:buffer";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserAndProfile } from "@/lib/auth";
@@ -161,7 +162,7 @@ Ignore headers, totals, or narrative text. Limit the result to 300 members.`;
       warnings: response.warnings ?? [],
     });
   } catch (error) {
-    console.error("member-ocr error", error);
+    logError("member-ocr error", error);
     const status = (error as { status?: number }).status ?? 500;
     const message = error instanceof Error ? error.message : "Failed to process PDF";
     return NextResponse.json({ error: message }, { status });

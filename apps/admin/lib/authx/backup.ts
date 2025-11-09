@@ -1,4 +1,5 @@
 import { consumeBackupCode } from "@/lib/mfa";
+import { logError } from "@/lib/observability/logger";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type SupabaseAdminClient = ReturnType<typeof createSupabaseAdminClient>;
@@ -26,7 +27,7 @@ export const consumeBackup = async (userId: string, code: string) => {
   const userRow = data as UserRow | null;
 
   if (error || !userRow) {
-    console.error("consumeBackup: failed to read user", error);
+    logError("consumeBackup: failed to read user", error);
     return false;
   }
 
@@ -41,7 +42,7 @@ export const consumeBackup = async (userId: string, code: string) => {
     .update({ mfa_backup_hashes: next })
     .eq("id", userId);
   if (updateError) {
-    console.error("consumeBackup: failed to persist", updateError);
+    logError("consumeBackup: failed to persist", updateError);
     return false;
   }
 

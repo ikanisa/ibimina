@@ -57,7 +57,7 @@ supabase db dump --schema public > /tmp/schema.sql
 # Start dev server
 pnpm --filter @ibimina/admin dev
 
-# Open http://localhost:3000
+# Open http://localhost:3100
 # Login → Dashboard → Users → Create/Edit
 ```
 

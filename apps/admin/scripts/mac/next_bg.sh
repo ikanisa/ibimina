@@ -8,7 +8,7 @@ LOG_DIR="$REPO_ROOT/.logs"
 PID_FILE="$LOG_DIR/next.pid"
 LOG_FILE="$LOG_DIR/next.log"
 
-PORT="${PORT:-3000}"
+PORT="${PORT:-3100}"
 
 err() { printf "\033[31mERROR:\033[0m %s\n" "$1" >&2; }
 warn() { printf "\033[33mWARNING:\033[0m %s\n" "$1" >&2; }
@@ -44,4 +44,3 @@ fi
 
 echo "$PID" >"$PID_FILE"
 info "Next.js is running in the background (PID $PID). Logs: $LOG_FILE"
-

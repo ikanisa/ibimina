@@ -31,7 +31,7 @@ provisioned and reachable from the machine.
 
 - `GIT_COMMIT_SHA=<git SHA>` for `/api/healthz`
 - `APP_REGION=<location>` for regional diagnostics
-- `PORT=3000` (or another port) to override the listener
+- `PORT=3100` (or another port) to override the listener
 
 4. Mirror shared secrets in Supabase via `supabase/.env.example` (HMAC key, KMS
    data key, Resend API key, etc.).
@@ -63,7 +63,7 @@ make local-up    # starts Next.js + Caddy in background
 ```
 
 - This uses the macOS helpers to run Next.js and Caddy with sensible defaults.
-- Verify readiness with `curl http://localhost:3000/api/healthz` (confirm
+- Verify readiness with `curl http://localhost:3100/api/healthz` (confirm
   `buildId`, `environment`, `timestamp`).
 - Ensure `/manifest.json` and `/service-worker.js` are accessible if the PWA
   should remain installable.

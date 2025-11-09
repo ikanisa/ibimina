@@ -1,5 +1,6 @@
 "use client";
 
+import { logError } from "@/lib/observability/logger";
 import type {
   AuthenticationResponseJSON,
   PublicKeyCredentialRequestOptionsJSON,
@@ -96,7 +97,7 @@ const fetchMfaStatus = async (): Promise<MfaStatusResponse | null> => {
     const json = (await response.json()) as MfaStatusResponse;
     return json;
   } catch (error) {
-    console.error("[auth] fetchMfaStatus failed", error);
+    logError("[auth] fetchMfaStatus failed", error);
     return null;
   }
 };
@@ -145,7 +146,7 @@ export async function signInWithPassword(
     const factors = await listAuthxFactors();
     return { status: "mfa_required", factors };
   } catch (cause) {
-    console.error("[auth] listAuthxFactors failed", cause);
+    logError("[auth] listAuthxFactors failed", cause);
     return {
       status: "error",
       message: "We couldn't load available MFA methods. Try again.",
@@ -207,7 +208,7 @@ export const initiateAuthxFactor = async (
 
     return { status: "ready", factor };
   } catch (error) {
-    console.error("[auth] initiateAuthxFactor failed", error);
+    logError("[auth] initiateAuthxFactor failed", error);
     return { status: "error", factor, message: "network_error" };
   }
 };
@@ -258,7 +259,7 @@ export const verifyAuthxFactor = async (input: {
     const code = typeof payload.code === "string" ? payload.code : undefined;
     return { status: "error", message, code };
   } catch (error) {
-    console.error("[auth] verifyAuthxFactor failed", error);
+    logError("[auth] verifyAuthxFactor failed", error);
     return { status: "error", message: "verification_failed" };
   }
 };

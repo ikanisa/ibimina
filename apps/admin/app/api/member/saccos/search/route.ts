@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
 
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase.rpc("search_saccos", rpcArgs as never);
 
   if (error) {
-    console.error("Failed to search SACCOs", error);
+    logError("Failed to search SACCOs", error);
     return NextResponse.json(
       { results: [] },
       {

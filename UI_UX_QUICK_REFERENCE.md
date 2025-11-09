@@ -122,7 +122,7 @@ pnpm build --filter='@ibimina/*'
 # Website (port 5000)
 cd apps/website && pnpm dev
 
-# Client PWA (port 3000)
+# Client PWA (local dev server)
 cd apps/client && pnpm dev
 ```
 

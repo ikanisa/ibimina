@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/providers/i18n-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useToast } from "@/providers/toast-provider";
+import { logError } from "@/lib/observability/logger";
 
 const supabase = getSupabaseBrowserClient();
 
@@ -163,7 +164,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
     startUpdatingPassword(async () => {
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        console.error(updateError);
+        logError("profile.update_failed", { error: updateError });
         error(updateError.message ?? "Unable to update password");
         return;
       }
@@ -300,7 +301,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
       if (err instanceof DOMException && err.name === "NotAllowedError") {
         error(t("profile.passkeys.cancelled", "Passkey approval was cancelled."));
       } else {
-        console.error("Passkey registration error", err);
+        logError("profile.passkey_register_failed", { error: err });
         error(t("profile.passkeys.registrationUnknown", "Passkey registration did not complete."));
       }
     } finally {
@@ -317,7 +318,7 @@ export function ProfileClient({ email }: ProfileClientProps) {
         const response = await fetch("/api/mfa/email", { method: enable ? "POST" : "DELETE" });
         if (!response.ok) {
           const payload = (await response.json().catch(() => ({}))) as { error?: string };
-          console.error("Email MFA toggle failed", payload.error);
+          logError("profile.email_mfa_toggle_failed", { error: payload.error });
           if (enable) {
             error(t("profile.channels.email.enableError", "Unable to enable email codes."));
           } else {

@@ -104,7 +104,7 @@ export function VirtualTable<TData>({
       requestToken: token,
       ...(ux.context ?? {}),
     });
-  }, [ux?.tableId, ux?.requestToken]);
+  }, [ux?.tableId, ux?.requestToken, ux?.context]);
 
   useEffect(() => {
     if (!ux?.tableId || ttfrMarkedRef.current || !ttfrRequestRef.current) {

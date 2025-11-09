@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logError } from "@/lib/observability/logger";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Trans } from "@/components/common/trans";
 
@@ -82,7 +83,7 @@ export function TapMoMoPayerCard({ nfcEnabled, saccoId }: TapMoMoPayerCardProps)
     try {
       await (window as any).TapMoMo.stopReader();
     } catch (err) {
-      console.error("Failed to stop reader:", err);
+      logError("Failed to stop reader:", err);
     } finally {
       setIsReading(false);
     }

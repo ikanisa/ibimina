@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { logError } from "@/lib/observability/logger";
 import type { Database } from "@/lib/supabase/types";
 import { requireSupabaseConfig } from "@/lib/supabase/config";
 
@@ -8,7 +9,7 @@ function resolveServiceRoleKey(context: string): string {
   const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!rawKey || !rawKey.trim()) {
-    console.error("supabase.service-role.missing", { context });
+    logError("supabase.service-role.missing", { context });
     throw new Error(
       "SUPABASE_SERVICE_ROLE_KEY is not configured. Ensure the service role key is available in the server environment."
     );

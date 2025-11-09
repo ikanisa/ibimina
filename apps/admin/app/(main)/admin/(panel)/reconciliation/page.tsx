@@ -1,4 +1,5 @@
 import { GradientHeader } from "@/components/ui/gradient-header";
+import { logWarn, logError } from "@/lib/observability/logger";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { StatementImportWizard } from "@/components/ikimina/statement-import-wizard";
@@ -34,7 +35,7 @@ const parseSmsJson = (value: unknown): Record<string, unknown> | null => {
         return parsed as Record<string, unknown>;
       }
     } catch (error) {
-      console.warn("Unable to parse SMS JSON string", error);
+      logWarn("Unable to parse SMS JSON string", error);
     }
   }
   return null;
@@ -206,7 +207,7 @@ export default async function AdminReconciliationPage({ searchParams }: Reconcil
         }));
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
-      console.error(`[admin/reconciliation] Failed to fetch automation health: ${errMsg}`);
+      logError(`[admin/reconciliation] Failed to fetch automation health: ${errMsg}`);
       // Leave pollerIssues and gatewayIssues as empty arrays
     }
   }

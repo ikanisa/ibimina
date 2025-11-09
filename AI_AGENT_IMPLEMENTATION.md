@@ -102,7 +102,7 @@ Production-ready architecture
    ```
 
 3. **Open Chat Interface**:
-   - Navigate to `http://localhost:3000/agent`
+   - Navigate to `http://localhost:3100/agent`
    - Or click "AI Support Assistant" in the admin navigation
 
 ## 📚 Documentation

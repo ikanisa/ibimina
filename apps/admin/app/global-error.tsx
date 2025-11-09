@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, RefreshCcw } from "lucide-react";
+import { logError } from "@/lib/observability/logger";
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -8,7 +9,7 @@ interface GlobalErrorProps {
 }
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
-  console.error("[app/global-error.tsx] unhandled app error", error);
+  logError("global_error", { error });
 
   return (
     <html lang="en">

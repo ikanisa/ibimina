@@ -67,6 +67,7 @@ function buildRawEnv(source: ProcessEnvSource) {
     DISABLE_PWA: source.DISABLE_PWA,
     ANALYZE_BUNDLE: source.ANALYZE_BUNDLE,
     AUTH_E2E_STUB: source.AUTH_E2E_STUB,
+    AUTH_GUEST_MODE: source.AUTH_GUEST_MODE,
     E2E_BACKUP_PEPPER: source.E2E_BACKUP_PEPPER,
     E2E_MFA_SESSION_SECRET: source.E2E_MFA_SESSION_SECRET,
     E2E_TRUSTED_COOKIE_SECRET: source.E2E_TRUSTED_COOKIE_SECRET,
@@ -198,6 +199,7 @@ const schema = z
     DISABLE_PWA: optionalString,
     ANALYZE_BUNDLE: optionalString,
     AUTH_E2E_STUB: optionalString,
+    AUTH_GUEST_MODE: optionalString,
     E2E_BACKUP_PEPPER: optionalString,
     E2E_MFA_SESSION_SECRET: optionalString,
     E2E_TRUSTED_COOKIE_SECRET: optionalString,
@@ -264,7 +266,7 @@ const schema = z
 export type RawEnv = z.infer<typeof schema>;
 
 function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
-  if (raw.AUTH_E2E_STUB !== "1") {
+  if (raw.AUTH_E2E_STUB !== "1" && raw.AUTH_GUEST_MODE !== "1") {
     return raw;
   }
 
@@ -277,7 +279,7 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
     TRUSTED_COOKIE_SECRET: "stub-trusted-cookie-secret",
     HMAC_SHARED_SECRET: "stub-hmac-shared-secret",
     OPENAI_API_KEY: "stub-openai-api-key",
-    KMS_DATA_KEY_BASE64: "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ==",
+    KMS_DATA_KEY_BASE64: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
   } as const);
 
   const withFallback = (value: string | undefined, fallback: string) => {

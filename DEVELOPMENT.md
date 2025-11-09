@@ -114,7 +114,7 @@ pnpm dev
 pnpm --filter @ibimina/admin dev
 ```
 
-The development server will start on http://localhost:3000
+The development server will start on http://localhost:3100
 
 ### Development Server Features
 
@@ -415,10 +415,10 @@ Or kill the process using the port:
 
 ```bash
 # macOS/Linux
-lsof -ti:3000 | xargs kill -9
+lsof -ti:3100 | xargs kill -9
 
 # Windows
-netstat -ano | findstr :3000
+netstat -ano | findstr :3100
 taskkill /PID <PID> /F
 ```
 

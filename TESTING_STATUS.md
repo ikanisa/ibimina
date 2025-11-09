@@ -123,7 +123,7 @@ cat TESTING_GUIDE.md
 
 ```bash
 pnpm --filter @ibimina/admin dev
-# Open http://localhost:3000
+# Open http://localhost:3100
 ```
 
 **Test:**

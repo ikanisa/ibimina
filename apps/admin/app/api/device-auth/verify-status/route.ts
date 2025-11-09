@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { supabaseSrv } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
@@ -45,7 +46,7 @@ export async function GET(req: NextRequest) {
       session_id: sessionId,
     });
   } catch (error) {
-    console.error("Verify status error:", error);
+    logError("Verify status error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

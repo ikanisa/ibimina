@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { getSessionUser } from "@/lib/authx/session";
 import { listUserFactors } from "@/lib/authx/factors";
 
@@ -12,7 +13,7 @@ export async function GET() {
     const factors = await listUserFactors(user.id);
     return NextResponse.json(factors);
   } catch (error) {
-    console.error("authx.factors.list", error);
+    logError("authx.factors.list", error);
     return NextResponse.json({ error: "failed" }, { status: 500 });
   }
 }

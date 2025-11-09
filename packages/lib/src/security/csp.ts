@@ -51,7 +51,7 @@ function normalizeUrl(candidate: string): string {
 function allowUrl(
   directives: DirectiveMap,
   candidate: string | undefined,
-  { connect = true, image = false, script = false, style = false }: AllowlistOptions = {},
+  { connect = true, image = false, script = false, style = false }: AllowlistOptions = {}
 ): void {
   if (!candidate) {
     return;
@@ -105,7 +105,7 @@ export function createContentSecurityPolicy({
 
   if (isDev) {
     directives["script-src"].push("'unsafe-eval'");
-    directives["connect-src"].push("ws://localhost:3000", "ws://127.0.0.1:3000");
+    directives["connect-src"].push("ws://localhost:3100", "ws://127.0.0.1:3100");
   }
 
   if (supabaseUrl) {

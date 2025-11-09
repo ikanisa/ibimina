@@ -87,7 +87,7 @@ cd /Users/jeanbosco/workspace/ibimina
 pnpm --filter @ibimina/admin dev
 
 # Open browser
-open http://localhost:3000
+open http://localhost:3100
 ```
 
 ### Step 3: Build Client Mobile (10 min)
@@ -121,7 +121,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 | Component         | Status      | Tests | Notes                       |
 | ----------------- | ----------- | ----- | --------------------------- |
 | **Backend**       | ✅ Ready    | 0/3   | Migrations deployed         |
-| **Admin PWA**     | ✅ Ready    | 0/7   | Runs on localhost:3000      |
+| **Admin PWA**     | ✅ Ready    | 0/7   | Runs on localhost:3100      |
 | **Client Mobile** | ✅ Ready    | 0/14  | iOS + Android builds ready  |
 | **Staff Android** | ✅ Ready    | 0/13  | APK builds successfully     |
 | **Integration**   | ⚠️ Untested | 0/3   | Requires end-to-end testing |

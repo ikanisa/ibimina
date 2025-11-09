@@ -1,4 +1,5 @@
 import { GradientHeader } from "@/components/ui/gradient-header";
+import { logError } from "@/lib/observability/logger";
 import { StatusChip } from "@/components/common/status-chip";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
@@ -40,7 +41,7 @@ export default async function TapMoMoPage({ searchParams }: TapMoMoPageProps) {
   const { data: merchants, error: merchantsError } = await merchantsQuery;
 
   if (merchantsError) {
-    console.error("Error fetching merchants:", merchantsError);
+    logError("Error fetching merchants:", merchantsError);
   }
 
   // Get transaction stats

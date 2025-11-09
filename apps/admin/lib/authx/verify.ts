@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { logError } from "@/lib/observability/logger";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/types";
 import { verifyAuthentication } from "@/lib/mfa/passkeys";
 import {
@@ -44,7 +45,7 @@ export const verifyPasskey = async (
       credential: (result.credential as PasskeyCredential | null) ?? null,
     };
   } catch (error) {
-    console.error("authx.verifyPasskey", error);
+    logError("authx.verifyPasskey", error);
     return { ok: false as const };
   }
 };

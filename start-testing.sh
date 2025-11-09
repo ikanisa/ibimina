@@ -75,7 +75,7 @@ case $choice in
         
         print_step "Starting development server..."
         cd apps/admin
-        print_warning "Server will start on http://localhost:3000"
+        print_warning "Server will start on http://localhost:3100"
         print_warning "Follow test cases in COMPREHENSIVE_TESTING_GUIDE.md section 2"
         pnpm dev
         ;;
@@ -123,7 +123,7 @@ case $choice in
         print_warning "Follow test cases in COMPREHENSIVE_TESTING_GUIDE.md section 5"
         print_warning ""
         print_warning "You'll need:"
-        print_warning "- Staff Admin PWA running (http://localhost:3000)"
+        print_warning "- Staff Admin PWA running (http://localhost:3100)"
         print_warning "- Staff Android app installed"
         print_warning "- Client Mobile app running"
         print_warning "- 2 NFC-enabled Android devices for TapMoMo"

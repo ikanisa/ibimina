@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import {
   createOtpAuthUri,
@@ -75,7 +76,7 @@ export async function DELETE(request: NextRequest) {
   > | null;
 
   if (error || !record?.mfa_secret_enc) {
-    console.error(error);
+    logError(error);
     return NextResponse.json({ error: "mfa_not_configured" }, { status: 400 });
   }
 
@@ -95,7 +96,7 @@ export async function DELETE(request: NextRequest) {
       verified = verification.ok;
     } catch (e) {
       // If decryption fails (mismatched KMS_DATA_KEY), return invalid_code instead of 500
-      console.error("MFA disable: decrypt failed", (e as Error)?.message ?? e);
+      logError("MFA disable: decrypt failed", (e as Error)?.message ?? e);
       return NextResponse.json({ error: "configuration_error" }, { status: 500 });
     }
   }
@@ -127,13 +128,13 @@ export async function DELETE(request: NextRequest) {
     .eq("id", user.id);
 
   if (updateError) {
-    console.error(updateError);
+    logError(updateError);
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 
   const trustedResult = await supabase.from("trusted_devices").delete().eq("user_id", user.id);
   if (trustedResult.error) {
-    console.error("MFA disable: failed to delete trusted devices", trustedResult.error);
+    logError("MFA disable: failed to delete trusted devices", trustedResult.error);
     return NextResponse.json({ error: "update_failed" }, { status: 500 });
   }
 

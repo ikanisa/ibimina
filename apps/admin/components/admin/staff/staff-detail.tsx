@@ -193,7 +193,9 @@ export function StaffDetail({
           }),
         });
         if (!res.ok) {
-          const { error: msg } = await res.json().catch(() => ({ error: "Failed to add membership" }));
+          const { error: msg } = await res
+            .json()
+            .catch(() => ({ error: "Failed to add membership" }));
           error(String(msg ?? "Failed to add membership"));
           return;
         }

@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logError } from "@/lib/observability/logger";
 
 export interface AllocationTriageItem {
   id: string;
@@ -26,15 +27,13 @@ export async function loadAllocationTriage(limit = 50): Promise<AllocationTriage
 
   const { data, error } = await supabase
     .from("allocations")
-    .select(
-      "id, sacco_name, decoded_group, decoded_member, amount, match_status, ts, raw_ref"
-    )
+    .select("id, sacco_name, decoded_group, decoded_member, amount, match_status, ts, raw_ref")
     .in("match_status", ["UNALLOCATED", "PENDING", "FLAGGED"])
     .order("ts", { ascending: false })
     .limit(limit);
 
   if (error) {
-    console.error("Failed to load allocation triage queue", error);
+    logError("Failed to load allocation triage queue", error);
     return [];
   }
 
@@ -61,7 +60,7 @@ export async function loadReconExceptions(limit = 50): Promise<ReconExceptionIte
     .limit(limit);
 
   if (error) {
-    console.error("Failed to load recon exceptions", error);
+    logError("Failed to load recon exceptions", error);
     return [];
   }
 
@@ -91,7 +90,7 @@ export async function requestAllocationExport(params: {
   });
 
   if (error) {
-    console.error("Failed to queue allocation export", error);
+    logError("Failed to queue allocation export", error);
     throw new Error(error.message ?? "Failed to queue allocation export");
   }
 

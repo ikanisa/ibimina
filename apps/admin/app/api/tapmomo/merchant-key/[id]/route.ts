@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 
@@ -23,8 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Check if user has access to this merchant's SACCO
-    const { data: staffProfile } = await (supabase
-      .schema("app") as any)
+    const { data: staffProfile } = await (supabase.schema("app") as any)
       .from("staff_profiles")
       .select("sacco_id, role")
       .eq("user_id", profile.id)
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       secret_key: secretKeyBase64,
     });
   } catch (error: any) {
-    console.error("Error fetching merchant key:", error);
+    logError("Error fetching merchant key:", error);
     return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }

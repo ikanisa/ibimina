@@ -547,7 +547,7 @@ ANALYZE_BUNDLE=1 pnpm run build
 pnpm run assert:bundle
 
 # Run Lighthouse locally
-pnpm dlx lighthouse http://localhost:3000
+pnpm dlx lighthouse http://localhost:3100
 
 # Review performance metrics
 node scripts/assert-lighthouse.mjs

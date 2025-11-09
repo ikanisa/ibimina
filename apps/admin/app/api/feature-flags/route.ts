@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { z } from "zod";
 
 import { createFeatureFlagAdmin } from "@ibimina/flags";
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AdminPermissionError) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error("[feature-flags] Failed to load snapshot", error);
+    logError("[feature-flags] Failed to load snapshot", error);
     return NextResponse.json({ error: "Failed to load feature flags" }, { status: 500 });
   }
 }
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    console.error("[feature-flags] Failed to apply changes", error);
+    logError("[feature-flags] Failed to apply changes", error);
     return NextResponse.json({ error: "Failed to update feature flags" }, { status: 500 });
   }
 }

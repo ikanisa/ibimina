@@ -1,8 +1,9 @@
 # 🚀 Complete System Deployment Guide
+
 ## Ibimina SACCO Management Platform
 
 **Version:** 1.0.0  
-**Last Updated:** 2025-11-03  
+**Last Updated:** 2025-11-03
 
 ---
 
@@ -82,6 +83,7 @@ pnpm build
 ```
 
 **Or use the script:**
+
 ```bash
 ./scripts/implement-complete-system.sh
 ```
@@ -109,7 +111,7 @@ cd packages/api-client && pnpm typecheck
 cd apps/staff-admin-pwa
 pnpm install
 pnpm dev
-# Opens http://localhost:3000
+# Opens http://localhost:3100
 ```
 
 ### Production Build
@@ -304,6 +306,7 @@ eas build --platform ios --profile preview
 ### App Store Submission
 
 See detailed guides:
+
 - Android: `/docs/ANDROID_DEPLOYMENT.md`
 - iOS: `/docs/IOS_DEPLOYMENT.md`
 
@@ -344,14 +347,14 @@ supabase db push
 
 ```sql
 -- Check tables exist
-SELECT table_name 
-FROM information_schema.tables 
+SELECT table_name
+FROM information_schema.tables
 WHERE table_schema = 'public'
 AND table_name IN ('payments', 'unmatched_payments', 'sms_parsing_logs');
 
 -- Check RLS is enabled
-SELECT tablename, rowsecurity 
-FROM pg_tables 
+SELECT tablename, rowsecurity
+FROM pg_tables
 WHERE schemaname = 'public'
 AND tablename LIKE '%payment%';
 ```
@@ -362,20 +365,20 @@ AND tablename LIKE '%payment%';
 
 ### Required Secrets
 
-| Variable | Description | Where to Get |
-|----------|-------------|--------------|
-| `OPENAI_API_KEY` | OpenAI API key | https://platform.openai.com/api-keys |
-| `SUPABASE_URL` | Supabase project URL | Supabase Dashboard → Settings → API |
-| `SUPABASE_ANON_KEY` | Supabase anon/public key | Supabase Dashboard → Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | Supabase Dashboard → Settings → API |
+| Variable                    | Description               | Where to Get                         |
+| --------------------------- | ------------------------- | ------------------------------------ |
+| `OPENAI_API_KEY`            | OpenAI API key            | https://platform.openai.com/api-keys |
+| `SUPABASE_URL`              | Supabase project URL      | Supabase Dashboard → Settings → API  |
+| `SUPABASE_ANON_KEY`         | Supabase anon/public key  | Supabase Dashboard → Settings → API  |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | Supabase Dashboard → Settings → API  |
 
 ### Optional Secrets
 
-| Variable | Description | Where to Get |
-|----------|-------------|--------------|
-| `ONESIGNAL_APP_ID` | Push notifications | https://onesignal.com/ |
-| `SENTRY_DSN` | Error tracking | https://sentry.io/ |
-| `ANALYTICS_ID` | Analytics | Google Analytics, Mixpanel, etc. |
+| Variable           | Description        | Where to Get                     |
+| ------------------ | ------------------ | -------------------------------- |
+| `ONESIGNAL_APP_ID` | Push notifications | https://onesignal.com/           |
+| `SENTRY_DSN`       | Error tracking     | https://sentry.io/               |
+| `ANALYTICS_ID`     | Analytics          | Google Analytics, Mixpanel, etc. |
 
 ### Setting Secrets in GitHub Actions
 
@@ -471,6 +474,7 @@ pnpm test
 ### Manual Testing Checklist
 
 #### Staff Admin PWA
+
 - [ ] Login/logout works
 - [ ] Dashboard loads
 - [ ] Users CRUD operations
@@ -479,6 +483,7 @@ pnpm test
 - [ ] PWA installable
 
 #### Staff Admin Android
+
 - [ ] SMS permission granted
 - [ ] Reads mobile money SMS
 - [ ] Parses with OpenAI
@@ -487,6 +492,7 @@ pnpm test
 - [ ] Background processing works
 
 #### Client Mobile
+
 - [ ] Login with biometrics
 - [ ] View account balance
 - [ ] View transaction history
@@ -503,6 +509,7 @@ pnpm test
 #### 1. "Cannot find module '@ibimina/types'"
 
 **Solution:**
+
 ```bash
 # Build packages in correct order
 cd packages/types && pnpm build
@@ -513,6 +520,7 @@ cd ../sms-parser && pnpm build
 #### 2. "Supabase connection failed"
 
 **Solution:**
+
 - Check `SUPABASE_URL` in `.env`
 - Verify `SUPABASE_ANON_KEY` is correct
 - Ensure Supabase project is active
@@ -521,6 +529,7 @@ cd ../sms-parser && pnpm build
 #### 3. "OpenAI API key invalid"
 
 **Solution:**
+
 - Verify key starts with `sk-proj-` or `sk-`
 - Check billing is enabled on OpenAI account
 - Ensure key hasn't expired
@@ -533,6 +542,7 @@ cd ../sms-parser && pnpm build
 #### 4. "Android build fails"
 
 **Solution:**
+
 ```bash
 # Clean build
 cd apps/staff-admin-android/android
@@ -550,6 +560,7 @@ pnpm android
 #### 5. "iOS build fails" (macOS only)
 
 **Solution:**
+
 ```bash
 cd apps/client-mobile/ios
 pod install
@@ -653,8 +664,8 @@ Set up alerts for:
 
 ```sql
 -- Verify RLS is enabled on all tables
-SELECT tablename, rowsecurity 
-FROM pg_tables 
+SELECT tablename, rowsecurity
+FROM pg_tables
 WHERE schemaname = 'public';
 
 -- Should show rowsecurity = true for sensitive tables
@@ -776,23 +787,27 @@ Create these resources:
 ### Maintenance Schedule
 
 #### Daily
+
 - Monitor error logs
 - Check unmatched payment queue
 - Review SMS parsing success rate
 
 #### Weekly
+
 - Review performance metrics
 - Update SMS provider templates if needed
 - Security log review
 - Backup verification
 
 #### Monthly
+
 - Dependency updates
 - Security patches
 - Cost optimization review
 - User feedback analysis
 
 #### Quarterly
+
 - Full security audit
 - Performance benchmarking
 - Architecture review
@@ -812,6 +827,7 @@ Create these resources:
 Use this checklist for each deployment:
 
 ### Pre-Deployment
+
 - [ ] Code review completed
 - [ ] All tests passing
 - [ ] Security scan passed
@@ -823,6 +839,7 @@ Use this checklist for each deployment:
 - [ ] Rollback plan documented
 
 ### Deployment
+
 - [ ] Deploy to staging first
 - [ ] Run smoke tests on staging
 - [ ] Deploy database migrations
@@ -833,6 +850,7 @@ Use this checklist for each deployment:
 - [ ] Check performance metrics
 
 ### Post-Deployment
+
 - [ ] Announce to users
 - [ ] Monitor for 24 hours
 - [ ] Review logs for errors
@@ -848,6 +866,7 @@ Use this checklist for each deployment:
 ### Final Steps Before Production
 
 1. **Domain Setup**
+
    ```bash
    # Point domain to your hosting
    # Example for Cloudflare Pages:
@@ -856,24 +875,28 @@ Use this checklist for each deployment:
    ```
 
 2. **SSL Certificates**
+
    ```bash
    # Ensure HTTPS is enabled
    # Use Let's Encrypt or Cloudflare
    ```
 
 3. **Email Configuration**
+
    ```bash
    # Configure Supabase Auth emails
    # Set custom SMTP if needed
    ```
 
 4. **Push Notifications**
+
    ```bash
    # Configure OneSignal or FCM
    # Test notifications on devices
    ```
 
 5. **Analytics**
+
    ```bash
    # Set up Google Analytics or Mixpanel
    # Configure conversion tracking
@@ -896,11 +919,12 @@ You've now deployed the complete Ibimina platform:
 ✅ **Staff Admin Android** - APK distributed to staff devices  
 ✅ **Client Mobile App** - Available on Play Store and App Store  
 ✅ **Shared Packages** - Built and working across all apps  
-✅ **SMS Payment Integration** - Processing mobile money payments automatically  
+✅ **SMS Payment Integration** - Processing mobile money payments
+automatically  
 ✅ **Database** - Supabase with RLS policies and migrations applied  
 ✅ **CI/CD** - Automated testing and deployment pipeline  
 ✅ **Monitoring** - Error tracking and performance monitoring  
-✅ **Documentation** - Complete guides for users and developers  
+✅ **Documentation** - Complete guides for users and developers
 
 ### Next Steps
 

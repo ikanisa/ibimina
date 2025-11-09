@@ -5,7 +5,7 @@ schemas = ["public", "storage", "graphql_public", "app", "app_helpers"]
 extra_search_path = ["public", "extensions", "app", "app_helpers"]
 
 [auth]
-site_url = "http://localhost:3000"
+site_url = "http://localhost:3100"
 additional_redirect_urls = []
 
 [functions.parse-sms]

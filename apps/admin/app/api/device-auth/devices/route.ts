@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { supabaseSrv } from "@/lib/supabase/server";
 
 /**
@@ -30,7 +31,7 @@ export async function GET(_req: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Failed to fetch devices:", error);
+      logError("Failed to fetch devices:", error);
       return NextResponse.json({ error: "Failed to fetch devices" }, { status: 500 });
     }
 
@@ -39,7 +40,7 @@ export async function GET(_req: NextRequest) {
       devices: devices || [],
     });
   } catch (error) {
-    console.error("Error fetching devices:", error);
+    logError("Error fetching devices:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -101,7 +102,7 @@ export async function DELETE(req: NextRequest) {
       .eq("id", deviceId);
 
     if (revokeError) {
-      console.error("Failed to revoke device:", revokeError);
+      logError("Failed to revoke device:", revokeError);
       return NextResponse.json({ error: "Failed to revoke device" }, { status: 500 });
     }
 
@@ -123,7 +124,7 @@ export async function DELETE(req: NextRequest) {
       message: "Device revoked successfully",
     });
   } catch (error) {
-    console.error("Error revoking device:", error);
+    logError("Error revoking device:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

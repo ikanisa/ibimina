@@ -10,6 +10,7 @@ import { requireUserAndProfile } from "@/lib/auth";
 import { getDashboardSummary, EMPTY_DASHBOARD_SUMMARY } from "@/lib/dashboard";
 import { Trans } from "@/components/common/trans";
 import { TopIkiminaTable } from "@/components/dashboard/top-ikimina-table";
+import { logError } from "@/lib/observability/logger";
 
 export const runtime = "nodejs";
 
@@ -95,7 +96,7 @@ export default async function DashboardPage() {
   } catch (error) {
     summaryError = error;
     const errMsg = error instanceof Error ? error.message : String(error);
-    console.error(`[DashboardPage] failed to load summary: ${errMsg}`);
+    logError("dashboard.summary_failed", { error: errMsg });
     summary = { ...EMPTY_DASHBOARD_SUMMARY, generatedAt: new Date().toISOString() };
   }
 

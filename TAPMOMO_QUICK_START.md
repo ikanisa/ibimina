@@ -67,7 +67,7 @@ INSERT INTO app.tapmomo_merchants (
     'Demo Merchant - Test Store',
     'MTN',
     app.generate_merchant_secret()
-) RETURNING 
+) RETURNING
     merchant_code,
     display_name,
     network,
@@ -75,6 +75,7 @@ INSERT INTO app.tapmomo_merchants (
 ```
 
 **Save the output!** You'll need:
+
 - `merchant_code`: For configuring the Android app
 - `secret_key_base64`: For HMAC signing
 
@@ -99,12 +100,14 @@ adb install app/build/outputs/apk/release/app-release.apk
 **You need:** 2 Android devices with NFC
 
 **Device A (Merchant):**
+
 1. Open app → TapMoMo → "Get Paid"
 2. Enter amount: 2500 RWF
 3. Tap "Activate NFC"
 4. Keep screen on and unlocked
 
 **Device B (Customer):**
+
 1. Open app → TapMoMo → "Pay"
 2. Hold back-to-back with Device A
 3. Wait 2-3 seconds
@@ -112,7 +115,8 @@ adb install app/build/outputs/apk/release/app-release.apk
 5. USSD launches automatically (or dialer opens)
 
 **Verify in Admin PWA:**
-- Go to: http://localhost:3000/tapmomo/transactions
+
+- Go to: http://localhost:3100/tapmomo/transactions
 - See your transaction!
 
 ---
@@ -125,9 +129,10 @@ pnpm --filter @ibimina/admin dev
 ```
 
 **URLs:**
-- Dashboard: http://localhost:3000/tapmomo
-- Merchants: http://localhost:3000/tapmomo/merchants
-- Transactions: http://localhost:3000/tapmomo/transactions
+
+- Dashboard: http://localhost:3100/tapmomo
+- Merchants: http://localhost:3100/tapmomo/merchants
+- Transactions: http://localhost:3100/tapmomo/transactions
 
 ---
 
@@ -137,7 +142,7 @@ Run this checklist in Supabase SQL Editor:
 
 ```sql
 -- ✅ Tables exist
-SELECT tablename FROM pg_tables 
+SELECT tablename FROM pg_tables
 WHERE schemaname = 'app' AND tablename LIKE 'tapmomo%';
 -- Expected: 2 rows
 
@@ -172,14 +177,16 @@ SELECT merchant_code, display_name, network FROM app.tapmomo_merchants;
 ### Watch in Real-Time
 
 **Option 1: Admin PWA (Live Updates)**
+
 ```
-Open: http://localhost:3000/tapmomo/transactions
+Open: http://localhost:3100/tapmomo/transactions
 Watch the table auto-refresh as transaction status changes
 ```
 
 **Option 2: SQL (Manual Refresh)**
+
 ```sql
-SELECT 
+SELECT
   merchant_code,
   amount / 100.0 AS amount_rwf,
   network,
@@ -192,6 +199,7 @@ ORDER BY created_at DESC;
 ```
 
 **Option 3: Supabase Dashboard (With Logs)**
+
 ```
 Open: https://supabase.com/dashboard/project/vacltfdslodqybxojytc/editor
 Table: app.tapmomo_transactions
@@ -254,7 +262,7 @@ INSERT INTO app.tapmomo_merchants (
     'Merchant Display Name',
     'MTN',  -- or 'Airtel'
     app.generate_merchant_secret()
-) RETURNING 
+) RETURNING
     merchant_code,
     encode(secret_key, 'base64') AS secret_key_base64;
 
@@ -276,14 +284,14 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     'failed_rate_1h'::TEXT,
     COUNT(CASE WHEN status = 'failed' THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0),
     5.0,
-    CASE 
-      WHEN COUNT(CASE WHEN status = 'failed' THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0) > 5 
-      THEN 'ALERT' 
-      ELSE 'OK' 
+    CASE
+      WHEN COUNT(CASE WHEN status = 'failed' THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0) > 5
+      THEN 'ALERT'
+      ELSE 'OK'
     END
   FROM app.tapmomo_transactions
   WHERE created_at > NOW() - INTERVAL '1 hour';
@@ -305,6 +313,7 @@ SELECT cron.schedule(
 ## 🆘 Troubleshooting Quick Fixes
 
 ### "NFC not working"
+
 ```bash
 # Check if NFC is enabled on device
 adb shell settings get secure nfc_enabled
@@ -319,6 +328,7 @@ adb logcat -s TapMoMo:* NfcService:*
 ```
 
 ### "USSD not launching"
+
 ```kotlin
 // Add fallback intent in app:
 val ussdCode = "*182*8*1*MERCHANT*AMOUNT#"
@@ -328,6 +338,7 @@ startActivity(intent)
 ```
 
 ### "Transaction stuck in 'initiated'"
+
 ```sql
 -- Manually settle it:
 UPDATE app.tapmomo_transactions
@@ -349,17 +360,23 @@ curl -X POST \
 ## 📞 Get Help
 
 **Comprehensive Guides:**
+
 - Full Deployment: `TAPMOMO_FINAL_DEPLOYMENT_STATUS.md`
 - DB Migration: `TAPMOMO_DB_MIGRATION_QUICK_FIX.md`
 - Implementation Details: `TAPMOMO_IMPLEMENTATION_COMPLETE.md`
 
 **Quick Reference:**
-- Edge Function Endpoint: `https://vacltfdslodqybxojytc.supabase.co/functions/v1/tapmomo-reconcile`
-- Supabase Dashboard: `https://supabase.com/dashboard/project/vacltfdslodqybxojytc`
+
+- Edge Function Endpoint:
+  `https://vacltfdslodqybxojytc.supabase.co/functions/v1/tapmomo-reconcile`
+- Supabase Dashboard:
+  `https://supabase.com/dashboard/project/vacltfdslodqybxojytc`
 - GitHub Repo: `/Users/jeanbosco/workspace/ibimina`
 
 **Common Files:**
-- Database Schema: `supabase/migrations/20260303000000_apply_tapmomo_conditional.sql`
+
+- Database Schema:
+  `supabase/migrations/20260303000000_apply_tapmomo_conditional.sql`
 - Edge Function: `supabase/functions/tapmomo-reconcile/index.ts`
 - Android App: `apps/admin/android/`
 - Admin PWA: `apps/admin/app/tapmomo/`
@@ -381,15 +398,18 @@ curl -X POST \
 
 ---
 
-**Time to Complete:** 
+**Time to Complete:**
+
 - Fast Path (Dashboard): ~30 minutes
 - Full Path (CLI + Testing): ~2 hours
 - Production Ready: +30 minutes
 
-**Start here:** Open Supabase Dashboard SQL Editor → Run migration file → Create merchant → Test!
+**Start here:** Open Supabase Dashboard SQL Editor → Run migration file → Create
+merchant → Test!
 
 ---
 
-**Need Help?** Read the comprehensive guides mentioned above or contact the development team.
+**Need Help?** Read the comprehensive guides mentioned above or contact the
+development team.
 
 **Good luck! 🚀**

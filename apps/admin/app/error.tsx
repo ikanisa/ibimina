@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, Home, RefreshCcw } from "lucide-react";
+import { logError } from "@/lib/observability/logger";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -11,7 +12,7 @@ interface ErrorProps {
 
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    console.error("[app/error.tsx] segment error", error);
+    logError("segment_error", { error });
   }, [error]);
 
   return (

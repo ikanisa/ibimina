@@ -50,6 +50,7 @@ open -a "Android Studio" android/
 ### 4. Run on Device
 
 In Android Studio:
+
 1. Connect device or start emulator
 2. Click ▶️ Run button
 3. App launches on device
@@ -59,20 +60,20 @@ In Android Studio:
 ### Enhanced Notifications
 
 ```typescript
-import EnhancedNotifications from '@/lib/plugins/enhanced-notifications';
+import EnhancedNotifications from "@/lib/plugins/enhanced-notifications";
 
 // Show notification
 await EnhancedNotifications.showNotification({
-  title: 'Welcome!',
-  body: 'Capacitor enhancements are ready',
-  channelId: 'alerts'
+  title: "Welcome!",
+  body: "Capacitor enhancements are ready",
+  channelId: "alerts",
 });
 ```
 
 ### Network Monitoring
 
 ```typescript
-import NetworkMonitor from '@/lib/plugins/network-monitor';
+import NetworkMonitor from "@/lib/plugins/network-monitor";
 
 // Check status
 const status = await NetworkMonitor.getStatus();
@@ -80,8 +81,8 @@ console.log(`Connected: ${status.connected}`);
 
 // Monitor changes
 await NetworkMonitor.startMonitoring();
-NetworkMonitor.addListener('networkStatusChange', (status) => {
-  console.log('Network changed:', status);
+NetworkMonitor.addListener("networkStatusChange", (status) => {
+  console.log("Network changed:", status);
 });
 ```
 
@@ -102,7 +103,7 @@ cd apps/admin
 pnpm run dev
 
 # Terminal 2: Update Capacitor config to point to localhost
-# Edit capacitor.config.ts - url: 'http://10.0.2.2:3000'
+# Edit capacitor.config.ts - url: 'http://10.0.2.2:3100'
 
 # Sync and run
 npx cap sync android
@@ -147,7 +148,8 @@ cd apps/admin/android
 # Output: app/build/outputs/apk/release/
 ```
 
-**Note**: Release signing requires keystore. See [BUILD_ANDROID.md](../../BUILD_ANDROID.md#signing-release-apks) for setup.
+**Note**: Release signing requires keystore. See
+[BUILD_ANDROID.md](../../BUILD_ANDROID.md#signing-release-apks) for setup.
 
 ## Debugging
 
@@ -168,12 +170,14 @@ In Chrome DevTools console:
 console.log(Capacitor.Plugins);
 
 // Test enhanced notifications
-Capacitor.Plugins.EnhancedNotifications.checkPermissions()
-  .then(result => console.log('Notification permissions:', result));
+Capacitor.Plugins.EnhancedNotifications.checkPermissions().then((result) =>
+  console.log("Notification permissions:", result)
+);
 
 // Test network monitor
-Capacitor.Plugins.NetworkMonitor.getStatus()
-  .then(status => console.log('Network status:', status));
+Capacitor.Plugins.NetworkMonitor.getStatus().then((status) =>
+  console.log("Network status:", status)
+);
 ```
 
 ### ADB Logcat
@@ -205,7 +209,8 @@ echo 'export ANDROID_HOME=$HOME/Library/Android/sdk' >> ~/.zshrc
 
 ### ❌ "Plugin not found" error
 
-**Fix**: 
+**Fix**:
+
 1. Check plugin is registered in `MainActivity.java`
 2. Run `npx cap sync android` again
 3. Clean and rebuild in Android Studio
@@ -217,7 +222,7 @@ echo 'export ANDROID_HOME=$HOME/Library/Android/sdk' >> ~/.zshrc
 ```typescript
 // capacitor.config.ts
 server: {
-  url: process.env.CAPACITOR_SERVER_URL || 'http://10.0.2.2:3000',
+  url: process.env.CAPACITOR_SERVER_URL || 'http://10.0.2.2:3100',
   // 10.0.2.2 = localhost from Android emulator
 }
 ```
@@ -225,6 +230,7 @@ server: {
 ### ❌ Hot reload not working
 
 **Fix**:
+
 1. Ensure dev server is running: `pnpm run dev`
 2. Check device can reach dev server IP
 3. Verify URL in capacitor.config.ts
@@ -232,8 +238,10 @@ server: {
 
 ## Next Steps
 
-- 📖 Read [CAPACITOR_PLUGIN_GUIDE.md](CAPACITOR_PLUGIN_GUIDE.md) to create custom plugins
-- 📖 Read [PERFORMANCE_OPTIMIZATION.md](PERFORMANCE_OPTIMIZATION.md) for optimization tips
+- 📖 Read [CAPACITOR_PLUGIN_GUIDE.md](CAPACITOR_PLUGIN_GUIDE.md) to create
+  custom plugins
+- 📖 Read [PERFORMANCE_OPTIMIZATION.md](PERFORMANCE_OPTIMIZATION.md) for
+  optimization tips
 - 📖 See [README.md](README.md) for full feature documentation
 
 ## Resources
@@ -244,7 +252,8 @@ server: {
 
 ## Need Help?
 
-1. Check [BUILD_ANDROID.md troubleshooting](../../BUILD_ANDROID.md#troubleshooting)
+1. Check
+   [BUILD_ANDROID.md troubleshooting](../../BUILD_ANDROID.md#troubleshooting)
 2. Check [GitHub Issues](https://github.com/ikanisa/ibimina/issues)
 3. Review [CAPACITOR_PLUGIN_GUIDE.md](CAPACITOR_PLUGIN_GUIDE.md)
 

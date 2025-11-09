@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const host = process.env.HOSTNAME ?? "127.0.0.1";
-const port = process.env.PORT ?? "3000";
+const port = process.env.PORT ?? "3100";
 const preferStandalone = process.env.ADMIN_USE_STANDALONE_START === "1";
 const useDevServer = process.env.E2E_USE_DEV === "1";
 const standaloneEntry = path.resolve(projectRoot, ".next/standalone/server.js");

@@ -155,7 +155,7 @@ supabase functions schedule metrics-anomaly-detector "*/5 * * * *"
 # Application
 APP_ENV=production
 NODE_ENV=production
-PORT=3000  # Default port, can be overridden
+PORT=3100  # Default port, can be overridden
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co

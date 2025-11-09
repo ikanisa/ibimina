@@ -2,7 +2,9 @@
 
 ## Overview
 
-This system implements secure 2FA/MFA authentication for the Staff Admin Portal using QR code scanning from the mobile app. This provides bank-grade security with biometric verification.
+This system implements secure 2FA/MFA authentication for the Staff Admin Portal
+using QR code scanning from the mobile app. This provides bank-grade security
+with biometric verification.
 
 ## Architecture
 
@@ -42,6 +44,7 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 ### 1. Supabase Edge Functions
 
 #### `/functions/auth-qr-generate`
+
 - Generates secure QR authentication session
 - Creates unique session ID and challenge
 - Stores session in `auth_qr_sessions` table
@@ -49,6 +52,7 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 - Session expires in 5 minutes
 
 #### `/functions/auth-qr-verify`
+
 - Verifies QR scan from mobile app
 - Validates staff JWT token
 - Checks device registration status
@@ -58,6 +62,7 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 - Logs authentication event
 
 #### `/functions/auth-qr-poll`
+
 - Polls authentication status from web app
 - Returns session status (pending/authenticated/expired)
 - Returns access tokens and user data when authenticated
@@ -66,6 +71,7 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 ### 2. Database Tables
 
 #### `auth_qr_sessions`
+
 ```sql
 - id: UUID (primary key)
 - session_id: TEXT (unique, indexed)
@@ -86,6 +92,7 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 ```
 
 #### `staff_devices`
+
 ```sql
 - id: UUID (primary key)
 - device_id: TEXT (unique identifier)
@@ -102,6 +109,7 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 ```
 
 #### `auth_logs`
+
 ```sql
 - id: UUID (primary key)
 - staff_id: UUID (foreign key to auth.users)
@@ -120,11 +128,13 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 ### 3. PWA Web App
 
 #### Components
+
 - `QRAuthLogin.tsx` - QR code display and polling component
 - `Login.tsx` - Login page with tabs (QR / Email)
 - `qr-auth.ts` - API client for QR authentication
 
 #### Flow
+
 1. User opens web app
 2. App calls `/auth-qr-generate` to create session
 3. Displays QR code with countdown timer
@@ -134,12 +144,14 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 ### 4. Android Mobile App
 
 #### Features
+
 - QR code scanner with camera permission handling
 - Biometric authentication (fingerprint/face)
 - Device registration and management
 - Offline capability with sync queue
 
 #### Flow
+
 1. Staff opens mobile app (already logged in)
 2. Taps "Scan QR Code" button
 3. Camera opens with QR scanner
@@ -153,11 +165,13 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 ## Security Features
 
 ### 1. Multi-Factor Authentication
+
 - **Something you have**: Registered mobile device
 - **Something you are**: Biometric (fingerprint/face)
 - **Something you know**: Password (for initial mobile login)
 
 ### 2. Session Security
+
 - Sessions expire after 5 minutes
 - Cryptographic challenge prevents replay attacks
 - HMAC signature verification
@@ -165,12 +179,14 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 - IP address logging
 
 ### 3. Device Management
+
 - Devices must be pre-registered
 - Admin can revoke devices remotely
 - Device status tracking (active/suspended/revoked)
 - Last used timestamp for monitoring
 
 ### 4. Token Security
+
 - JWT tokens for mobile app authentication
 - Separate web access tokens for browser sessions
 - Refresh token rotation
@@ -178,6 +194,7 @@ This system implements secure 2FA/MFA authentication for the Staff Admin Portal 
 - Tokens stored in-memory in PWA (not localStorage)
 
 ### 5. Audit Trail
+
 - All authentication events logged
 - IP address and browser fingerprint tracked
 - Biometric usage recorded
@@ -225,6 +242,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 Generate HMAC secret:
+
 ```bash
 openssl rand -hex 32
 ```
@@ -258,13 +276,15 @@ Add to `apps/staff-admin-mobile/android/app/src/main/AndroidManifest.xml`:
 ### Test QR Authentication Flow
 
 1. **Start PWA**:
+
 ```bash
 cd apps/staff-admin-pwa
 pnpm dev
-# Open http://localhost:3000/login
+# Open http://localhost:3100/login
 ```
 
 2. **Start Android App**:
+
 ```bash
 cd apps/staff-admin-mobile
 pnpm android
@@ -303,11 +323,13 @@ pnpm android
 **POST** `/functions/v1/auth-qr-generate`
 
 **Headers**:
+
 ```
 x-browser-fingerprint: <optional-fingerprint>
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -325,11 +347,13 @@ x-browser-fingerprint: <optional-fingerprint>
 **POST** `/functions/v1/auth-qr-verify`
 
 **Headers**:
+
 ```
 Authorization: Bearer <staff-jwt-token>
 ```
 
 **Body**:
+
 ```json
 {
   "sessionId": "uuid",
@@ -341,6 +365,7 @@ Authorization: Bearer <staff-jwt-token>
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -353,6 +378,7 @@ Authorization: Bearer <staff-jwt-token>
 **GET** `/functions/v1/auth-qr-poll?sessionId=<uuid>`
 
 **Response (Pending)**:
+
 ```json
 {
   "success": true,
@@ -362,6 +388,7 @@ Authorization: Bearer <staff-jwt-token>
 ```
 
 **Response (Authenticated)**:
+
 ```json
 {
   "success": true,
@@ -389,7 +416,7 @@ Authorization: Bearer <staff-jwt-token>
 
 ```sql
 -- Recent QR authentications
-SELECT 
+SELECT
   al.event_type,
   al.biometric_used,
   al.created_at,
@@ -415,7 +442,7 @@ LIMIT 50;
 
 ```sql
 -- Currently active QR sessions
-SELECT 
+SELECT
   session_id,
   status,
   created_at,
@@ -431,7 +458,7 @@ ORDER BY created_at DESC;
 
 ```sql
 -- Most active devices
-SELECT 
+SELECT
   sd.device_name,
   sd.device_model,
   u.email,
@@ -453,6 +480,7 @@ ORDER BY login_count DESC;
 **Issue**: Error "Failed to generate QR code"
 
 **Solution**:
+
 1. Check Supabase is running: `supabase status`
 2. Check edge function logs: `supabase functions logs auth-qr-generate`
 3. Verify database table exists: `select * from auth_qr_sessions limit 1;`
@@ -463,7 +491,9 @@ ORDER BY login_count DESC;
 **Issue**: Error "Device not registered or inactive"
 
 **Solution**:
+
 1. Check device is registered:
+
 ```sql
 SELECT * FROM staff_devices WHERE device_id = 'your-device-id';
 ```
@@ -477,7 +507,9 @@ SELECT * FROM staff_devices WHERE device_id = 'your-device-id';
 **Issue**: QR code expires before scanning
 
 **Solution**:
+
 1. Increase expiration time in `auth-qr-generate/index.ts`:
+
 ```typescript
 const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 ```
@@ -491,13 +523,15 @@ const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 **Issue**: Biometric prompt doesn't appear
 
 **Solution**:
+
 1. Check biometric is enrolled on device
 2. Verify permission in AndroidManifest.xml
 3. Test with Capacitor Biometric plugin:
+
 ```typescript
-import { NativeBiometric } from '@capgo/capacitor-native-biometric';
+import { NativeBiometric } from "@capgo/capacitor-native-biometric";
 const result = await NativeBiometric.isAvailable();
-console.log('Biometric available:', result.isAvailable);
+console.log("Biometric available:", result.isAvailable);
 ```
 
 ## Security Recommendations

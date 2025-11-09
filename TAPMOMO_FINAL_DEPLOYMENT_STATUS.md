@@ -7,22 +7,24 @@
 
 ## 🎯 Deployment Overview
 
-All TapMoMo components are implemented and deployed. The system is ready for production use after resolving a pre-existing database migration issue unrelated to TapMoMo.
+All TapMoMo components are implemented and deployed. The system is ready for
+production use after resolving a pre-existing database migration issue unrelated
+to TapMoMo.
 
 ### Completion Status
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| **Backend - Database Schema** | ⚠️ Pending | Migration files ready, blocked by pre-existing migration error |
-| **Backend - Edge Function** | ✅ Deployed | `tapmomo-reconcile` live at Supabase |
-| **Android - Staff App** | ✅ Complete | HCE payee + NFC reader + USSD launcher |
-| **iOS - Not Implemented** | ❌ N/A | iOS HCE requires Apple's gated program |
-| **Admin PWA - UI Integration** | ✅ Complete | Merchant management + transaction monitoring |
-| **Documentation** | ✅ Complete | Full implementation guide + runbook |
+| Component                      | Status      | Notes                                                          |
+| ------------------------------ | ----------- | -------------------------------------------------------------- |
+| **Backend - Database Schema**  | ⚠️ Pending  | Migration files ready, blocked by pre-existing migration error |
+| **Backend - Edge Function**    | ✅ Deployed | `tapmomo-reconcile` live at Supabase                           |
+| **Android - Staff App**        | ✅ Complete | HCE payee + NFC reader + USSD launcher                         |
+| **iOS - Not Implemented**      | ❌ N/A      | iOS HCE requires Apple's gated program                         |
+| **Admin PWA - UI Integration** | ✅ Complete | Merchant management + transaction monitoring                   |
+| **Documentation**              | ✅ Complete | Full implementation guide + runbook                            |
 
 ---
 
-##  Production Deployment Steps
+## Production Deployment Steps
 
 ### ✅ Step 1: Edge Function Deployment (DONE)
 
@@ -32,31 +34,37 @@ supabase functions deploy tapmomo-reconcile --no-verify-jwt
 ```
 
 **Result:**
+
 ```
 ✓ Deployed Functions on project vacltfdslodqybxojytc: tapmomo-reconcile
 ✓ Dashboard: https://supabase.com/dashboard/project/vacltfdslodqybxojytc/functions
 ```
 
-**Endpoint:** `https://vacltfdslodqybxojytc.supabase.co/functions/v1/tapmomo-reconcile`
+**Endpoint:**
+`https://vacltfdslodqybxojytc.supabase.co/functions/v1/tapmomo-reconcile`
 
 ---
 
 ### ⚠️ Step 2: Database Migration (NEEDS MANUAL FIX)
 
-**Problem:** Pre-existing migration `20251027200000_staff_management.sql` fails with:
+**Problem:** Pre-existing migration `20251027200000_staff_management.sql` fails
+with:
+
 ```
 ERROR: ALTER action ADD COLUMN cannot be performed on relation "users" (SQLSTATE 42809)
 This operation is not supported for views.
 ```
 
-This is NOT a TapMoMo issue - it's a pre-existing broken migration that attempts to alter `public.users` (which is a view, not a table).
+This is NOT a TapMoMo issue - it's a pre-existing broken migration that attempts
+to alter `public.users` (which is a view, not a table).
 
 **Solution Options:**
 
 #### Option A: Fix the Broken Migration (Recommended)
 
 1. Edit `supabase/migrations/20251027200000_staff_management.sql`
-2. Change `public.users` references to the actual underlying table (likely `auth.users` or a different schema)
+2. Change `public.users` references to the actual underlying table (likely
+   `auth.users` or a different schema)
 3. Then run:
    ```bash
    supabase db push --include-all
@@ -65,18 +73,21 @@ This is NOT a TapMoMo issue - it's a pre-existing broken migration that attempts
 #### Option B: Skip the Broken Migration and Apply TapMoMo Manually
 
 1. **Apply TapMoMo schema directly via SQL:**
+
    ```bash
    supabase db execute --file supabase/migrations/20260303000000_apply_tapmomo_conditional.sql
    ```
 
 2. **Verify tables created:**
+
    ```sql
-   SELECT tablename FROM pg_tables 
-   WHERE schemaname = 'app' 
+   SELECT tablename FROM pg_tables
+   WHERE schemaname = 'app'
    AND tablename LIKE 'tapmomo%';
    ```
 
    Expected output:
+
    ```
    tapmomo_merchants
    tapmomo_transactions
@@ -86,7 +97,8 @@ This is NOT a TapMoMo issue - it's a pre-existing broken migration that attempts
 
 1. Go to: https://supabase.com/dashboard/project/vacltfdslodqybxojytc/editor
 2. Open SQL Editor
-3. Copy contents of `supabase/migrations/20260303000000_apply_tapmomo_conditional.sql`
+3. Copy contents of
+   `supabase/migrations/20260303000000_apply_tapmomo_conditional.sql`
 4. Execute
 5. Verify tables and functions created
 
@@ -118,8 +130,9 @@ INSERT INTO app.tapmomo_merchants (
 ```
 
 **Retrieve merchant key for mobile app:**
+
 ```sql
-SELECT 
+SELECT
     merchant_code,
     display_name,
     network,
@@ -135,8 +148,9 @@ WHERE merchant_code = 'MERCHANT001';
 The Android staff app (`apps/admin/android`) is already fully implemented with:
 
 #### Features Implemented:
+
 - ✅ HCE payee service (emulates NFC card)
-- ✅ NFC reader (reads from other devices)  
+- ✅ NFC reader (reads from other devices)
 - ✅ USSD launcher (auto-dials or falls back to dialer)
 - ✅ Payload validation (HMAC, TTL, nonce replay protection)
 - ✅ UI screens for "Get Paid" and "Pay" flows
@@ -144,19 +158,22 @@ The Android staff app (`apps/admin/android`) is already fully implemented with:
 #### Testing the App:
 
 1. **Build APK:**
+
    ```bash
    cd apps/admin/android
    ./gradlew assembleRelease
    ```
 
 2. **Install on device:**
+
    ```bash
    adb install app/build/outputs/apk/release/app-release.apk
    ```
 
 3. **Test NFC payment:**
    - **Payee device:** Open app → "Get Paid" → Enter amount → Activate NFC
-   - **Payer device:** Open app → "Pay" → Hold near payee device → Confirm → USSD launches
+   - **Payer device:** Open app → "Pay" → Hold near payee device → Confirm →
+     USSD launches
 
 ---
 
@@ -165,19 +182,22 @@ The Android staff app (`apps/admin/android`) is already fully implemented with:
 The Admin PWA integration is complete in `apps/admin/app/tapmomo/`:
 
 #### Features:
+
 - ✅ Merchant management (create, view, edit, deactivate)
 - ✅ Transaction monitoring (real-time status updates)
 - ✅ HMAC key management (secure generation and storage)
 - ✅ Dashboard analytics (transaction volumes, success rates)
 
 #### Access URLs:
+
 ```
-Local: http://localhost:3000/tapmomo
+Local: http://localhost:3100/tapmomo
 Staging: https://your-staging-url.com/tapmomo
 Production: https://your-production-url.com/tapmomo
 ```
 
 #### Key Screens:
+
 - `/tapmomo` - Dashboard overview
 - `/tapmomo/merchants` - Merchant list and management
 - `/tapmomo/merchants/[id]` - Merchant detail and transactions
@@ -228,14 +248,14 @@ Production: https://your-production-url.com/tapmomo
 ```sql
 -- Merchants: Store SACCO merchant configurations
 app.tapmomo_merchants (
-    id, sacco_id, user_id, merchant_code, 
-    display_name, network, secret_key, 
+    id, sacco_id, user_id, merchant_code,
+    display_name, network, secret_key,
     is_active, metadata, timestamps
 )
 
 -- Transactions: Track all NFC-initiated payments
 app.tapmomo_transactions (
-    id, merchant_id, sacco_id, nonce, 
+    id, merchant_id, sacco_id, nonce,
     amount, currency, ref, network, status,
     payer_hint, payload_ts, expires_at,
     payment_id -- Links to reconciled payment
@@ -306,8 +326,8 @@ ORDER BY created_at DESC;
 
 ```sql
 -- Cron job: Expire old transactions (runs every 5 minutes)
-SELECT jobname, schedule, command 
-FROM cron.job 
+SELECT jobname, schedule, command
+FROM cron.job
 WHERE jobname = 'expire-tapmomo-transactions';
 ```
 
@@ -328,6 +348,7 @@ WHERE jobname = 'expire-tapmomo-transactions';
 **Symptom:** Tap doesn't trigger anything
 
 **Checklist:**
+
 - [ ] NFC enabled in device settings
 - [ ] App has NFC permission granted
 - [ ] Screen is on and device is unlocked
@@ -336,6 +357,7 @@ WHERE jobname = 'expire-tapmomo-transactions';
 - [ ] Wait 2-3 seconds for connection
 
 **Debug:**
+
 ```bash
 adb logcat -s TapMoMo:* NfcService:*
 ```
@@ -347,11 +369,13 @@ adb logcat -s TapMoMo:* NfcService:*
 **Symptom:** Dialer doesn't open or USSD doesn't execute
 
 **Causes:**
+
 - Some carriers block `sendUssdRequest` API
 - SIM not active or in airplane mode
 - CALL_PHONE permission not granted
 
-**Fallback:** App automatically falls back to `ACTION_DIAL` with pre-filled USSD code that user can tap to dial
+**Fallback:** App automatically falls back to `ACTION_DIAL` with pre-filled USSD
+code that user can tap to dial
 
 ---
 
@@ -360,12 +384,24 @@ adb logcat -s TapMoMo:* NfcService:*
 **Symptom:** "Invalid signature" error when scanning
 
 **Debug steps:**
+
 1. Verify canonical payload format matches exactly:
+
    ```json
-   {"ver":1,"network":"MTN","merchantId":"MERCHANT001","currency":"RWF","amount":2500,"ref":"INV123","ts":1730419200000,"nonce":"uuid"}
+   {
+     "ver": 1,
+     "network": "MTN",
+     "merchantId": "MERCHANT001",
+     "currency": "RWF",
+     "amount": 2500,
+     "ref": "INV123",
+     "ts": 1730419200000,
+     "nonce": "uuid"
+   }
    ```
 
 2. Check key encoding:
+
    ```bash
    # Payee generates signature with:
    echo -n '{"ver":1,...}' | openssl dgst -sha256 -hmac "key_bytes_here" -binary | base64
@@ -380,15 +416,18 @@ adb logcat -s TapMoMo:* NfcService:*
 **Symptom:** Transactions never settle
 
 **Causes:**
+
 - SMS reconciliation not configured
 - SMS parsing failed
 - USSD was cancelled by user
 
 **Resolution:**
+
 1. Check SMS logs:
+
    ```sql
-   SELECT * FROM app.sms_logs 
-   WHERE body ILIKE '%transaction%' 
+   SELECT * FROM app.sms_logs
+   WHERE body ILIKE '%transaction%'
    ORDER BY received_at DESC;
    ```
 
@@ -421,6 +460,7 @@ adb logcat -s TapMoMo:* NfcService:*
 ## ✅ Production Readiness Checklist
 
 ### Infrastructure
+
 - [x] Database schema designed and scripted
 - [ ] Database migration applied (pending fix)
 - [x] Edge Function deployed and tested
@@ -428,6 +468,7 @@ adb logcat -s TapMoMo:* NfcService:*
 - [x] Backup strategy (handled by Supabase)
 
 ### Mobile App
+
 - [x] Android HCE payee implemented
 - [x] Android NFC reader implemented
 - [x] USSD launcher with fallback
@@ -438,6 +479,7 @@ adb logcat -s TapMoMo:* NfcService:*
 - [ ] iOS support (not required - Android-only feature)
 
 ### Admin Interface
+
 - [x] Merchant management UI
 - [x] Transaction monitoring dashboard
 - [x] Key management (generation, rotation)
@@ -445,6 +487,7 @@ adb logcat -s TapMoMo:* NfcService:*
 - [x] Audit logging
 
 ### Security
+
 - [x] HMAC signature validation
 - [x] TTL and nonce checks
 - [x] Secure key storage
@@ -453,6 +496,7 @@ adb logcat -s TapMoMo:* NfcService:*
 - [x] HTTPS/TLS for all API calls
 
 ### Testing
+
 - [x] Unit tests (crypto, canonical)
 - [x] Integration tests (NFC flow)
 - [x] Manual testing (real devices)
@@ -460,6 +504,7 @@ adb logcat -s TapMoMo:* NfcService:*
 - [ ] Security audit (recommend before scale)
 
 ### Documentation
+
 - [x] README with quickstart
 - [x] API documentation
 - [x] Deployment runbook
@@ -524,10 +569,12 @@ adb logcat -s TapMoMo:* NfcService:*
 ## 👥 Support & Contact
 
 **Technical Issues:**
+
 - GitHub Issues: [Repository URL]
 - Email: dev@yourdomain.com
 
 **Business/Operations:**
+
 - SACCO Admin Dashboard
 - Email: support@yourdomain.com
 

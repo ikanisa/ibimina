@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { logWarn } from "@/lib/observability/logger";
 
 type Updater<T> = T | ((previous: T) => T);
 
@@ -25,7 +26,7 @@ export function usePersistentState<T>(key: string, initialValue: T) {
     try {
       window.localStorage.setItem(key, JSON.stringify(state));
     } catch (error) {
-      console.warn("usePersistentState:set", error);
+      logWarn("usePersistentState:set", error);
     }
   }, [key, state]);
 

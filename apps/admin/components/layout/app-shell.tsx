@@ -32,16 +32,18 @@ import { OfflineBanner } from "@/components/system/offline-banner";
 import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
 import { OfflineConflictDialog } from "@/components/system/offline-conflict-dialog";
 
+const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
+
 function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
   if (!container) return [];
   const focusableSelectors = [
-    'a[href]',
-    'button:not([disabled])',
-    'textarea:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
+    "a[href]",
+    "button:not([disabled])",
+    "textarea:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
     '[tabindex]:not([tabindex="-1"])',
-  ].join(', ');
+  ].join(", ");
   return Array.from(container.querySelectorAll<HTMLElement>(focusableSelectors));
 }
 
@@ -105,7 +107,71 @@ export function AppShell({ children, profile }: AppShellProps) {
   if (isAdminPanel) {
     return <>{children}</>;
   }
+  if (GUEST_MODE) {
+    return <GuestAppShell profile={profile}>{children}</GuestAppShell>;
+  }
   return <DefaultAppShell profile={profile}>{children}</DefaultAppShell>;
+}
+
+const GUEST_NAV = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/ikimina", label: "Ikimina" },
+  { href: "/recon", label: "Reconciliation" },
+] as const;
+
+function GuestAppShell({ children, profile }: AppShellProps) {
+  const pathname = usePathname();
+  const { t } = useTranslation();
+  const saccoName = useMemo(
+    () => profile.sacco?.name ?? t("sacco.all", "All SACCOs"),
+    [profile.sacco?.name, t]
+  );
+
+  return (
+    <div className="min-h-screen bg-neutral-1 text-neutral-12">
+      <header className="sticky top-0 z-20 border-b border-neutral-6 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-9">
+              Ibimina Staff Console
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-neutral-11">
+              <span className="font-medium text-neutral-12">{saccoName}</span>
+              <span className="rounded-full bg-neutral-3 px-3 py-0.5 text-xs text-neutral-11">
+                Preview Mode
+              </span>
+              {profile.email && (
+                <span className="text-xs text-neutral-10">Signed in as {profile.email}</span>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <nav className="flex items-center gap-3 text-sm font-medium text-neutral-11">
+              {GUEST_NAV.map(({ href, label }) => {
+                const active = pathname?.startsWith(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                      "inline-flex items-center rounded-full px-3 py-1.5 transition",
+                      active
+                        ? "bg-neutral-3 text-neutral-12"
+                        : "text-neutral-10 hover:text-neutral-12"
+                    )}
+                  >
+                    <span className="text-xs uppercase tracking-wide">{label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <LanguageSwitcher popover side="bottom" className="text-neutral-11" />
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8">{children}</main>
+    </div>
+  );
 }
 
 function DefaultAppShell({ children, profile }: AppShellProps) {
@@ -384,7 +450,8 @@ function DefaultAppShellView({
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
   return (
-    <>{/* AssistantProvider removed - not imported */}
+    <>
+      {/* AssistantProvider removed - not imported */}
       <div className="relative flex min-h-screen flex-col">
         <a
           href="#main-content"
@@ -486,7 +553,6 @@ function DefaultAppShellView({
                   <div className="hidden md:block">
                     <LanguageSwitcher className="text-xs font-semibold" />
                   </div>
-
 
                   {/* Sign out button */}
                   <SignOutButton className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-md backdrop-blur-sm transition-all hover:bg-white/20 hover:shadow-lg" />

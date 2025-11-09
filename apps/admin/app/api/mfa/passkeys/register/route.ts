@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import type { RegistrationResponseJSON } from "@simplewebauthn/types";
 import { requireUserAndProfile } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Passkey registration failed", error);
+    logError("Passkey registration failed", error);
     return NextResponse.json({ error: "registration_failed" }, { status: 400 });
   }
 }

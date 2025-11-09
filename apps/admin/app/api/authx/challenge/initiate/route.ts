@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { z } from "zod";
 import { getSessionUser } from "@/lib/authx/session";
 import { initiateFactor } from "@/src/auth/factors";
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result.payload ?? { ok: true, factor: data.factor });
   } catch (error) {
-    console.error("authx.challenge.initiate", error);
+    logError("authx.challenge.initiate", error);
     return NextResponse.json({ error: "failed" }, { status: 500 });
   }
 }

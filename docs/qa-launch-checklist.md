@@ -15,7 +15,7 @@ as workflows expand.
 - [x] `npm run build` completes without warnings. _(2025-10-09: succeeded; see
       Next.js route table above)_
 - [ ] Dev server started (`npm run dev`) and Lighthouse executed with
-      `npm run check:lighthouse` against `http://localhost:3000`.
+      `npm run check:lighthouse` against `http://localhost:3100`.
   - Capture the generated HTML report (Command outputs path); add score summary
     to release notes.
 - [ ] Track total JS < 250 kB on Lighthouse mobile run; note any regressions.
@@ -25,7 +25,7 @@ as workflows expand.
 ## 2. Accessibility Sweep
 
 - [ ] Run automated checks (e.g.
-      `npx @axe-core/cli http://localhost:3000/dashboard`). Record any
+      `npx @axe-core/cli http://localhost:3100/dashboard`). Record any
       violations and file fixes.
 - [ ] Keyboard navigation: ensure primary nav, command palette, quick actions,
       recon tables, and admin forms are reachable and focus-styled.

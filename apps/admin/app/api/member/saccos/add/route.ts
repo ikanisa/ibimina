@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (authError) {
-    console.error("Failed to validate auth", authError);
+    logError("Failed to validate auth", authError);
     return NextResponse.json({ error: "Auth failure" }, { status: 500 });
   }
 
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     .upsert(insertPayload, { onConflict: "user_id,sacco_id" });
 
   if (error) {
-    console.error("Failed to add SACCO", error);
+    logError("Failed to add SACCO", error);
     return NextResponse.json({ error: "Unable to add SACCO" }, { status: 500 });
   }
 

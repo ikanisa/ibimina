@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   } = await supabase.auth.getUser();
 
   if (authError) {
-    console.error("Auth error", authError);
+    logError("Auth error", authError);
     return NextResponse.json({ error: "Auth error" }, { status: 500 });
   }
 
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     .maybeSingle();
 
   if (groupError) {
-    console.error("Failed to load group", groupError);
+    logError("Failed to load group", groupError);
     return NextResponse.json({ error: "Unable to create request" }, { status: 500 });
   }
 
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     .maybeSingle();
 
   if (existingError) {
-    console.error("Failed to load existing join request", existingError);
+    logError("Failed to load existing join request", existingError);
     return NextResponse.json({ error: "Unable to create request" }, { status: 500 });
   }
 
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   const { error } = await legacyClient.from("join_requests").insert(insertPayload);
 
   if (error) {
-    console.error("Failed to create join request", error);
+    logError("Failed to create join request", error);
     return NextResponse.json({ error: "Unable to create request" }, { status: 500 });
   }
 

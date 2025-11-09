@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
@@ -22,7 +23,7 @@ export async function DELETE(_: NextRequest, { params }: Params) {
     .eq("device_id", deviceId);
 
   if (error) {
-    console.error(error);
+    logError(error);
     return NextResponse.json({ error: "delete_failed" }, { status: 500 });
   }
 

@@ -43,7 +43,7 @@ pnpm build
 # Start (new terminal)
 pnpm dev
 
-# Visit: http://localhost:3000
+# Visit: http://localhost:3100
 # Login: admin@ibimina.rw / Test1234!
 ```
 
@@ -243,7 +243,7 @@ curl -X POST "$SUPABASE_URL/functions/v1/send-whatsapp-otp" \
 ## ✅ SUCCESS CHECKLIST
 
 - [ ] Backend: Migrations applied (45+), Functions deployed (30+)
-- [ ] Admin PWA: Builds, runs, no errors at http://localhost:3000
+- [ ] Admin PWA: Builds, runs, no errors at http://localhost:3100
 - [ ] Client Mobile: Runs on iOS + Android, login works
 - [ ] Staff Android: APK installs, QR + NFC work
 - [ ] Integration: Deposit → Reconcile → Loan flow completes

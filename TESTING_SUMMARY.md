@@ -99,7 +99,7 @@ Expected: All tests pass, 6 functions deployed
 pnpm --filter @ibimina/admin build
 pnpm --filter @ibimina/admin dev
 
-# Opens at http://localhost:3000
+# Opens at http://localhost:3100
 ```
 
 Test: Login, Dashboard, Users CRUD, SMS parsing, PWA features

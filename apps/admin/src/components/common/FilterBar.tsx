@@ -61,7 +61,7 @@ export function FilterBar({ filters, onClearAll, className, prefix, suffix }: Fi
     >
       {prefix}
       <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Table filters">
-        {filters.map((filter, index) => {
+        {filters.map((filter, _index) => {
           const tone = filter.tone ?? "default";
           return (
             <Popover key={filter.id} className="relative">

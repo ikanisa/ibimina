@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { logError } from "@/lib/observability/logger";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { CountryRow } from "@/lib/types/multicountry";
 
@@ -7,7 +8,7 @@ export default async function CountriesPage() {
   const { data, error } = await supa.from("countries").select("id, iso2, iso3, name, is_active");
 
   if (error) {
-    console.error("Failed to load countries:", error);
+    logError("Failed to load countries:", error);
   }
 
   return (

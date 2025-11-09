@@ -19,7 +19,8 @@ const updateCountry = async (formData: FormData) => {
       iso2: (formData.get("iso2") as string | null)?.trim().toUpperCase() ?? undefined,
       iso3: (formData.get("iso3") as string | null)?.trim().toUpperCase() ?? undefined,
       default_locale: (formData.get("defaultLocale") as string | null)?.trim() ?? undefined,
-      currency_code: (formData.get("currencyCode") as string | null)?.trim().toUpperCase() ?? undefined,
+      currency_code:
+        (formData.get("currencyCode") as string | null)?.trim().toUpperCase() ?? undefined,
       timezone: (formData.get("timezone") as string | null)?.trim() ?? undefined,
       is_active: formData.get("isActive") === "on",
     })
@@ -48,10 +49,15 @@ export default async function EditCountryPage({ params }: { params: { id: string
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold text-ink">{country.name}</h1>
-        <p className="text-sm text-ink/70">Manage locale, currency, and availability for this country.</p>
+        <p className="text-sm text-ink/70">
+          Manage locale, currency, and availability for this country.
+        </p>
       </header>
 
-      <form action={updateCountry} className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6">
+      <form
+        action={updateCountry}
+        className="space-y-4 rounded-2xl border border-ink/10 bg-ink/5 p-6"
+      >
         <input type="hidden" name="id" value={country.id} />
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-2">
@@ -114,7 +120,12 @@ export default async function EditCountryPage({ params }: { params: { id: string
         </div>
 
         <label className="flex items-center gap-2 text-sm text-ink">
-          <input type="checkbox" name="isActive" defaultChecked={country.is_active} className="h-4 w-4 rounded border-ink/30" />
+          <input
+            type="checkbox"
+            name="isActive"
+            defaultChecked={country.is_active}
+            className="h-4 w-4 rounded border-ink/30"
+          />
           <span>Country is active</span>
         </label>
 

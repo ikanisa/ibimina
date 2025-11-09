@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserAndProfile } from "@/lib/auth";
 import { requestStructuredJson } from "@/lib/openai";
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (paymentError) {
-      console.error("suggestion payment lookup failed", paymentError);
+      logError("suggestion payment lookup failed", paymentError);
       throw new Error("Failed to load payment");
     }
 
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
     const { data: candidates, error: candidateError } = await memberQuery;
 
     if (candidateError) {
-      console.error("candidate fetch error", candidateError);
+      logError("candidate fetch error", candidateError);
       throw new Error("Failed to load candidate members");
     }
 
@@ -230,7 +231,7 @@ If confidence is below 0.6 set suggestion to null, but you may populate up to th
       alternatives: aiResult.alternatives ?? [],
     });
   } catch (error) {
-    console.error("reconciliation suggest error", error);
+    logError("reconciliation suggest error", error);
     const message = error instanceof Error ? error.message : "Failed to generate suggestion";
     return NextResponse.json({ error: message }, { status: 500 });
   }

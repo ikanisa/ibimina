@@ -20,7 +20,10 @@ export default function AllocationExportPage() {
         </p>
       </header>
 
-      <form action={triggerExport} className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6">
+      <form
+        action={triggerExport}
+        className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-6"
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-2">
             <span className="text-sm font-medium text-neutral-100">SACCO ID (optional)</span>
@@ -50,8 +53,8 @@ export default function AllocationExportPage() {
         </label>
 
         <p className="text-xs text-neutral-200/70">
-          Exports run asynchronously via the <code>export-allocation</code> Edge function. You'll receive a
-          notification once the file is ready.
+          Exports run asynchronously via the <code>export-allocation</code> Edge function. You'll
+          receive a notification once the file is ready.
         </p>
 
         <div className="flex justify-end">

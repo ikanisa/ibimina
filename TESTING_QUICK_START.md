@@ -41,7 +41,7 @@ supabase functions list
 cd apps/admin
 pnpm dev
 
-# Open http://localhost:3000
+# Open http://localhost:3100
 # Login with test credentials
 # Check dashboard loads
 ```

@@ -55,7 +55,7 @@ production-ready.
 - [ ] If any step fails, remediate before proceeding (see CI artefacts under
       `.reports/` and `apps/admin/test-results/`).
 - [ ] Manually run
-      `pnpm --filter @ibimina/admin run start -- --hostname 0.0.0.0 --port 3000`,
+      `pnpm --filter @ibimina/admin run start -- --hostname 0.0.0.0 --port 3100`,
       visit `/api/healthz`, `/dashboard`, and `/offline` to confirm runtime
       env + service worker.
 

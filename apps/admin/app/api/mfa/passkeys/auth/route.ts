@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logWarn, logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import {
   issueSessionCookies,
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
     if ((rateError as Error).message === "rate_limit_exceeded") {
       return NextResponse.json({ error: "rate_limit_exceeded" }, { status: 429 });
     }
-    console.warn("Passkey rate limit check failed", (rateError as Error)?.message ?? rateError);
+    logWarn("Passkey rate limit check failed", (rateError as Error)?.message ?? rateError);
   }
 
   let rememberDevice = false;
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
         : { credentialId: null, deviceType: null },
     });
   } catch (error) {
-    console.error("Passkey verification failed", error);
+    logError("Passkey verification failed", error);
     await logAudit({ action: "MFA_PASSKEY_FAILED", entity: "USER", entityId: user.id, diff: null });
     return NextResponse.json({ error: "verification_failed" }, { status: 401 });
   }
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
     .update(updatePayload)
     .eq("id", user.id);
   if (updateResult.error) {
-    console.error("Failed to update user record after passkey success", updateResult.error);
+    logError("Failed to update user record after passkey success", updateResult.error);
     return NextResponse.json({ error: "configuration_error" }, { status: 500 });
   }
 

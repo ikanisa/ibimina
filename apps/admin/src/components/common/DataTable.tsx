@@ -303,7 +303,9 @@ export function DataTable<TData>({
       .map((column) => `${column.getSize()}px`)
       .join(" ");
     return template.length > 0 ? template : "repeat(auto-fit, minmax(160px, 1fr))";
-  }, [columnOrder, columnPinning, columnVisibility, table]);
+    // columnOrder, columnPinning, columnVisibility are intentionally omitted - table already includes them
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [table]);
 
   const leftOffsets = useMemo(() => {
     const offsets = new Map<string, number>();
@@ -551,6 +553,7 @@ export function DataTable<TData>({
     deleteView,
     handleSaveView,
     handleSetDefault,
+    setActiveViewId,
     triggerApplyView,
     viewScope,
     views,

@@ -10,7 +10,7 @@
 Your Ibimina platform consists of **5 applications**:
 
 1. **Admin PWA** (Staff Console) - Running ✅
-2. **Client PWA** (Member Portal) - Running ✅  
+2. **Client PWA** (Member Portal) - Running ✅
 3. **Website** (Public Marketing) - Running ✅
 4. **Admin Mobile App** (Android APK) - Configured ✅
 5. **Client Mobile App** (Android APK) - Configured ✅
@@ -20,12 +20,15 @@ Your Ibimina platform consists of **5 applications**:
 ## 🚀 Running Applications (PWAs)
 
 ### Admin PWA - Staff Console
-**Purpose**: Internal tool for SACCO staff to manage members, loans, transactions  
+
+**Purpose**: Internal tool for SACCO staff to manage members, loans,
+transactions  
 **Status**: ✅ Running  
 **Port**: 5000 (exposed via Replit webview)  
 **Access**: Click the webview panel in Replit
 
 **Features**:
+
 - Member management
 - Loan processing & approvals
 - Transaction reconciliation
@@ -36,6 +39,7 @@ Your Ibimina platform consists of **5 applications**:
 - Mobile money integration
 
 **Start Command**:
+
 ```bash
 cd apps/admin && npx next dev -p 5000 -H 0.0.0.0
 ```
@@ -45,12 +49,14 @@ cd apps/admin && npx next dev -p 5000 -H 0.0.0.0
 ---
 
 ### Client PWA - Member Portal
+
 **Purpose**: Self-service portal for SACCO members  
 **Status**: ✅ Running  
 **Port**: 3000 (internal)  
-**Access**: http://localhost:3000 (or via port forwarding)
+**Access**: http://localhost:3100 (or via port forwarding)
 
 **Features**:
+
 - View account balance
 - Transaction history
 - Loan applications
@@ -61,6 +67,7 @@ cd apps/admin && npx next dev -p 5000 -H 0.0.0.0
 - QR code payments
 
 **Start Command**:
+
 ```bash
 cd apps/client && npx next dev -p 3000 -H 0.0.0.0
 ```
@@ -68,12 +75,14 @@ cd apps/client && npx next dev -p 3000 -H 0.0.0.0
 ---
 
 ### Website - Public Marketing
+
 **Purpose**: Public-facing marketing and information website  
 **Status**: ✅ Running  
 **Port**: 3001 (internal)  
 **Access**: http://localhost:3001
 
 **Features**:
+
 - Homepage with SACCO features
 - About page
 - Pricing information
@@ -84,6 +93,7 @@ cd apps/client && npx next dev -p 3000 -H 0.0.0.0
 - Static export ready
 
 **Start Command**:
+
 ```bash
 cd apps/website && npx next dev -p 3001 -H 0.0.0.0
 ```
@@ -97,7 +107,7 @@ cd apps/website && npx next dev -p 3001 -H 0.0.0.0
 **App ID**: `rw.ibimina.staff`  
 **App Name**: Ibimina Staff  
 **Package**: `apps/admin/android/`  
-**Web Dir**: `.next`  
+**Web Dir**: `.next`
 
 **Build Commands** (Run on your local machine with Android Studio):
 
@@ -123,6 +133,7 @@ cd android && ./gradlew assembleRelease
 ```
 
 **Features**:
+
 - Full staff console on Android
 - Biometric authentication
 - NFC payment support (TapMoMo)
@@ -132,6 +143,7 @@ cd android && ./gradlew assembleRelease
 - Background services
 
 **Production Configuration**:
+
 ```bash
 # Set production server URL before syncing
 export CAPACITOR_SERVER_URL=https://staff.ibimina.rw
@@ -156,7 +168,7 @@ cd apps/client
 # 2. Build the Next.js app (static export)
 npx next build
 
-# 3. Sync assets to Android  
+# 3. Sync assets to Android
 npx cap sync android
 
 # 4. Build debug APK
@@ -171,6 +183,7 @@ cd android && ./gradlew assembleRelease
 ```
 
 **Features**:
+
 - Member self-service portal
 - WhatsApp OTP authentication
 - Biometric login
@@ -182,6 +195,7 @@ cd android && ./gradlew assembleRelease
 - Push notifications
 
 **Production Configuration**:
+
 ```bash
 # Set production server URL
 export CAPACITOR_SERVER_URL=https://client.ibimina.rw
@@ -205,7 +219,8 @@ Replit workflows are configured to run all PWAs:
 # Website: Port 3001 (console)
 ```
 
-**To access Client or Website externally**: You can temporarily change the port to 5000 for testing, or use port forwarding.
+**To access Client or Website externally**: You can temporarily change the port
+to 5000 for testing, or use port forwarding.
 
 ---
 
@@ -219,7 +234,7 @@ pnpm run build
 
 # This builds:
 # - Admin PWA
-# - Client PWA  
+# - Client PWA
 # - Website
 # - All shared packages
 ```
@@ -250,6 +265,7 @@ pnpm --filter @ibimina/website run build
 3. You get a public URL: `https://your-repl.repl.co`
 
 **Deployment Config** (already configured):
+
 ```typescript
 {
   deployment_target: "autoscale",
@@ -265,6 +281,7 @@ pnpm --filter @ibimina/website run build
 **Best for**: Production, high performance, global CDN
 
 **Admin App**:
+
 ```bash
 cd apps/admin
 CLOUDFLARE_BUILD=1 npx @cloudflare/next-on-pages
@@ -272,6 +289,7 @@ wrangler pages deploy .vercel/output/static --project-name ibimina-admin
 ```
 
 **Client App**:
+
 ```bash
 cd apps/client
 CLOUDFLARE_BUILD=1 npx @cloudflare/next-on-pages
@@ -279,6 +297,7 @@ wrangler pages deploy .vercel/output/static --project-name ibimina-client
 ```
 
 **Website**:
+
 ```bash
 cd apps/website
 npx next build
@@ -317,13 +336,14 @@ cd apps/website && vercel --prod
    - Accept SDK licenses
 
 2. **Java JDK 11+**
+
    ```bash
    # macOS (with Homebrew)
    brew install openjdk@11
-   
+
    # Ubuntu/Debian
    sudo apt install openjdk-11-jdk
-   
+
    # Windows
    # Download from: https://adoptium.net/
    ```
@@ -335,6 +355,7 @@ cd apps/website && vercel --prod
 5. **pnpm** (Already have this)
 
 **Environment Variables**:
+
 ```bash
 # Add to ~/.bashrc or ~/.zshrc
 export ANDROID_HOME=$HOME/Library/Android/sdk  # macOS
@@ -346,6 +367,7 @@ export PATH=$PATH:$ANDROID_HOME/tools
 ```
 
 **Verify Setup**:
+
 ```bash
 java -version          # Should show Java 11+
 android --version      # Should show Android SDK
@@ -359,24 +381,28 @@ android --version      # Should show Android SDK
 All PWAs (Admin, Client) include:
 
 ### Service Workers
+
 - Offline support
 - Background sync
 - Caching strategies
 - Push notifications
 
 ### Web App Manifest
+
 - Installable on devices
 - Custom app icons
 - Splash screens
 - Standalone mode
 
 ### Progressive Enhancement
+
 - Works offline
 - Fast loading
 - Responsive design
 - Touch-optimized
 
 **Check PWA Score**:
+
 ```bash
 # Run Lighthouse audit
 cd apps/admin
@@ -431,6 +457,7 @@ supabase test db
 ## 🌍 Multi-Language Support
 
 All apps support:
+
 - 🇬🇧 English (en)
 - 🇫🇷 French (fr)
 - 🇷🇼 Kinyarwanda (rw)
@@ -438,6 +465,7 @@ All apps support:
 **Translation Files**: `packages/locales/`
 
 **Usage in Apps**:
+
 ```typescript
 import { useTranslations } from 'next-intl';
 
@@ -454,12 +482,14 @@ function MyComponent() {
 ### Admin App Won't Load
 
 **Check**:
+
 1. ✅ Workflow is running (check Replit panel)
 2. ✅ Port 5000 is accessible
 3. ✅ Supabase credentials are correct
 4. ✅ Database migrations are run
 
 **Fix**:
+
 ```bash
 # Restart workflow
 # Or manually:
@@ -472,11 +502,13 @@ npx next dev -p 5000 -H 0.0.0.0
 ### Client App Shows Blank Screen
 
 **Check**:
+
 1. ✅ Port 3000 is running
 2. ✅ Environment variables set
 3. ✅ Build completed successfully
 
 **Fix**:
+
 ```bash
 # Clear Next.js cache
 cd apps/client
@@ -491,16 +523,19 @@ npx next dev -p 3000 -H 0.0.0.0
 **Common Issues**:
 
 1. **Java version mismatch**
+
    ```bash
    java -version  # Must be 11+
    ```
 
 2. **SDK licenses not accepted**
+
    ```bash
    sdkmanager --licenses
    ```
 
 3. **Gradle build failure**
+
    ```bash
    cd apps/admin/android
    ./gradlew clean
@@ -520,6 +555,7 @@ npx next dev -p 3000 -H 0.0.0.0
 **Error**: `Port 5000 already in use`
 
 **Fix**:
+
 ```bash
 # Find process using port
 lsof -ti:5000
@@ -549,6 +585,7 @@ ANALYZE_BUNDLE=true pnpm build
 ### Image Optimization
 
 All apps use Next.js Image component for automatic optimization:
+
 - WebP format
 - Lazy loading
 - Responsive sizes
@@ -557,8 +594,9 @@ All apps use Next.js Image component for automatic optimization:
 ### Caching Strategy
 
 **Service Worker Caching**:
+
 - API responses: Network-first
-- Static assets: Cache-first  
+- Static assets: Cache-first
 - Images: Stale-while-revalidate
 
 ---
@@ -604,6 +642,7 @@ cd apps/client/android
 ### Google Play Store (Android)
 
 **Requirements**:
+
 1. Google Play Developer account ($25 one-time fee)
 2. Signed release APK
 3. App icon (512x512px)
@@ -612,6 +651,7 @@ cd apps/client/android
 6. App description
 
 **Steps**:
+
 1. Create app in Play Console
 2. Upload signed APK
 3. Fill in store listing
@@ -625,16 +665,19 @@ cd apps/client/android
 ## 🎯 Summary
 
 ### ✅ Currently Running
+
 - Admin PWA on port 5000 (accessible via webview)
-- Client PWA on port 3000 (internal)
+- Client PWA on port 5173 (internal)
 - Website on port 3001 (internal)
 
 ### 📱 Android Apps
+
 - Configured and ready to build
 - Build on local machine with Android Studio
 - Both apps have Capacitor configurations
 
 ### 🚀 Deployment Ready
+
 - PWAs can be deployed to Replit, Cloudflare Pages, or Vercel
 - Android APKs can be published to Google Play Store
 - All apps are production-ready after database migrations

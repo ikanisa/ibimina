@@ -8,6 +8,7 @@ import type {
   SortingState,
 } from "@tanstack/react-table";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { logWarn } from "@/lib/observability/logger";
 
 export type TableDensity = "compact" | "cozy" | "comfortable";
 
@@ -54,7 +55,7 @@ async function fetchSavedViews(scope: string): Promise<SavedViewRecord[]> {
     .order("updated_at", { ascending: false });
 
   if (error) {
-    console.warn("[saved-views] failed to fetch views", error);
+    logWarn("savedViews.fetch_failed", { error, scope });
     return [];
   }
 
@@ -84,7 +85,7 @@ async function persistSavedView(input: SavedViewInput): Promise<SavedViewRecord 
       .maybeSingle();
 
     if (error) {
-      console.warn("[saved-views] failed to update view", error);
+      logWarn("savedViews.update_failed", { error, viewId: input.viewId });
       return null;
     }
 
@@ -100,7 +101,7 @@ async function persistSavedView(input: SavedViewInput): Promise<SavedViewRecord 
     .maybeSingle();
 
   if (error) {
-    console.warn("[saved-views] failed to save view", error);
+    logWarn("savedViews.save_failed", { error });
     return null;
   }
 
@@ -113,7 +114,7 @@ async function removeSavedView(viewId: string) {
   if (!supabase) return;
   const { error } = await (supabase as any).from("user_saved_views").delete().eq("id", viewId);
   if (error) {
-    console.warn("[saved-views] failed to delete view", error);
+    logWarn("savedViews.delete_failed", { error, viewId });
   }
 }
 
@@ -130,7 +131,7 @@ async function markDefault(viewId: string, scope: string, userId: string) {
     .update({ is_default: true })
     .eq("id", viewId);
   if (error) {
-    console.warn("[saved-views] failed to mark default", error);
+    logWarn("savedViews.mark_default_failed", { error, viewId, scope, userId });
   }
 }
 

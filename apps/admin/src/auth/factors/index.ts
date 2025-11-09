@@ -5,6 +5,7 @@ import { startPasskeyChallenge as baseStartPasskeyChallenge } from "@/lib/authx/
 import { verifyPasskeyFactor } from "./passkey";
 import { verifyTotpFactor } from "./totp";
 import { initiateWhatsAppFactor, verifyWhatsAppFactor } from "./whatsapp";
+import { logError } from "@/lib/observability/logger";
 
 type UserRow = Database["public"]["Tables"]["users"]["Row"];
 
@@ -147,7 +148,7 @@ export const initiateFactor = async (input: FactorInitiateInput): Promise<Factor
           payload: { factor: "passkey", ...challenge },
         } satisfies FactorInitiateResult;
       } catch (error) {
-        console.error("passkey_challenge_failed", error);
+        logError("passkey_challenge_failed", { error });
         return {
           ok: false,
           status: 500,

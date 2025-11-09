@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
   try {
     const { user } = await requireUserAndProfile();
     const supabase = await createSupabaseServerClient();
-    // Cast to any since user_preferences table not in generated types  
+    // Cast to any since user_preferences table not in generated types
     const result = await (supabase as any)
       .from("user_preferences")
       .select("preferences")
@@ -53,14 +54,14 @@ export async function GET(request: Request) {
     const { data, error } = result as { data: { preferences: unknown } | null; error: any };
 
     if (error) {
-      console.error("[assistant] Failed to load preferences", error);
+      logError("[assistant] Failed to load preferences", error);
       return NextResponse.json({ error: "Failed to load preferences" }, { status: 500 });
     }
 
     const visible = extractVisibility(data?.preferences ?? null, path);
     return NextResponse.json({ visible });
   } catch (error) {
-    console.error("[assistant] Preferences lookup failed", error);
+    logError("[assistant] Preferences lookup failed", error);
     return NextResponse.json({ error: "Unable to read preferences" }, { status: 500 });
   }
 }
@@ -90,7 +91,7 @@ export async function PATCH(request: Request) {
     };
 
     if (fetchError && fetchError.code !== "PGRST116") {
-      console.error("[assistant] Failed to load existing preferences", fetchError);
+      logError("[assistant] Failed to load existing preferences", fetchError);
       return NextResponse.json({ error: "Failed to update preferences" }, { status: 500 });
     }
 
@@ -109,13 +110,13 @@ export async function PATCH(request: Request) {
     const { error: upsertError } = result2 as { error: any };
 
     if (upsertError) {
-      console.error("[assistant] Failed to persist preferences", upsertError);
+      logError("[assistant] Failed to persist preferences", upsertError);
       return NextResponse.json({ error: "Failed to persist preferences" }, { status: 500 });
     }
 
     return NextResponse.json({ visible });
   } catch (error) {
-    console.error("[assistant] Failed to persist assistant preferences", error);
+    logError("[assistant] Failed to persist assistant preferences", error);
     return NextResponse.json({ error: "Failed to persist preferences" }, { status: 500 });
   }
 }

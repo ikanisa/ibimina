@@ -28,8 +28,8 @@ export default async function JoinDeepLinkPage({ params }: { params: { groupId: 
     <div className="mx-auto max-w-xl space-y-6 px-4 py-12 text-center">
       <h1 className="text-2xl font-semibold text-ink">Open in SACCO+ app</h1>
       <p className="text-sm text-ink/70">
-        Join request for <strong>{group.name}</strong>. If the SACCO+ app is installed, use the button
-        below. Otherwise copy the link or continue via the web console.
+        Join request for <strong>{group.name}</strong>. If the SACCO+ app is installed, use the
+        button below. Otherwise copy the link or continue via the web console.
       </p>
       <div className="space-y-3">
         <Link
@@ -44,8 +44,8 @@ export default async function JoinDeepLinkPage({ params }: { params: { groupId: 
         </div>
       </div>
       <p className="text-xs text-ink/60">
-        Having trouble? Share this page or enter the reference code in the SACCO+ app to join the group
-        manually.
+        Having trouble? Share this page or enter the reference code in the SACCO+ app to join the
+        group manually.
       </p>
     </div>
   );

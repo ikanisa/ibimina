@@ -8,6 +8,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserAndProfile } from "@/lib/auth";
+import { logError } from "@/lib/observability/logger";
 
 export async function POST(request: Request) {
   try {
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     });
 
     if (updateError) {
-      console.error("Password update error:", updateError);
+      logError("staff.password_update_failed", { error: updateError });
       return NextResponse.json({ error: "Failed to update password" }, { status: 500 });
     }
 
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
       });
 
     if (auditError) {
-      console.error("Audit log error:", auditError);
+      logError("staff.password_audit_failed", { error: auditError });
     }
 
     return NextResponse.json({
@@ -95,7 +96,7 @@ export async function POST(request: Request) {
       message: "Password updated successfully",
     });
   } catch (error) {
-    console.error("Password change error:", error);
+    logError("staff.password_change_unhandled", { error });
     return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
   }
 }

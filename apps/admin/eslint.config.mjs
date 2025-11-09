@@ -7,7 +7,7 @@ import {
   structuredLoggingRules,
 } from "../../config/tooling/eslint/shared-rules.mjs";
 
-export default createEslintConfig({
+const adminConfig = createEslintConfig({
   ignores: [
     "node_modules/**",
     ".next/**",
@@ -37,6 +37,18 @@ export default createEslintConfig({
     "@typescript-eslint/no-floating-promises": "off",
     "@typescript-eslint/no-misused-promises": "off",
     "@typescript-eslint/no-unused-vars": "off", // Conflicting with context.getScope
-    "ibimina/structured-logging": "warn", // Downgrade to warning instead of error
+    "ibimina/structured-logging": "error",
   },
 });
+
+// Allow console.* in scripts and tests
+const scriptsTestsOverrides = createEslintConfig({
+  files: ["scripts/**/*.{js,mjs,ts}", "tests/**/*.{ts,tsx}"],
+  includeIgnores: false,
+  includePrettier: false,
+  rules: {
+    "ibimina/structured-logging": "off",
+  },
+});
+
+export default [...adminConfig, ...scriptsTestsOverrides];

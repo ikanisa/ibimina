@@ -72,7 +72,7 @@ case $choice in
     echo ""
     
     echo "Starting development server..."
-    echo "Open http://localhost:3000 in browser"
+    echo "Open http://localhost:3100 in browser"
     echo ""
     echo "Follow checklist in TESTING_GUIDE.md section 'Phase 2'"
     echo ""
@@ -122,7 +122,7 @@ case $choice in
     echo ""
     
     echo "Integration tests require all apps running:"
-    echo "  - Staff PWA (http://localhost:3000)"
+    echo "  - Staff PWA (http://localhost:3100)"
     echo "  - Staff Android (on device)"
     echo "  - Client Mobile (on device)"
     echo ""
@@ -153,7 +153,7 @@ case $choice in
     pnpm --filter @ibimina/admin dev &
     PWA_PID=$!
     sleep 5
-    open http://localhost:3000
+    open http://localhost:3100
     read -p "Press Enter when PWA testing complete..."
     kill $PWA_PID
     

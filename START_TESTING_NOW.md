@@ -93,12 +93,12 @@ pnpm --filter @ibimina/admin build
 # Run dev server
 pnpm --filter @ibimina/admin dev
 
-# Opens at: http://localhost:3000
+# Opens at: http://localhost:3100
 ```
 
 ### Test Authentication
 
-1. Navigate to http://localhost:3000/login
+1. Navigate to http://localhost:3100/login
 2. Enter credentials:
    - Email: `admin@ibimina.rw`
    - Password: `SecurePass123!`
@@ -215,7 +215,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 **On Admin PWA:**
 
-1. Open http://localhost:3000/login
+1. Open http://localhost:3100/login
 2. QR code displays
 
 **On Staff Android:**
@@ -689,7 +689,7 @@ npx react-native run-android
 
 **1. PWA Login**
 
-- Open http://localhost:3000/login
+- Open http://localhost:3100/login
 - ✅ QR code displayed
 
 **2. Mobile Scan**

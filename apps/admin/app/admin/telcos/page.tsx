@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logError } from "@/lib/observability/logger";
 
 interface TelcoRow {
   id: string;
@@ -19,7 +20,7 @@ export default async function TelcoProvidersPage() {
     .order("name", { ascending: true });
 
   if (error) {
-    console.error("Failed to load telco providers", error);
+    logError("admin.telcos.fetch_failed", { error });
   }
 
   return (
@@ -58,9 +59,14 @@ export default async function TelcoProvidersPage() {
                   {telco.ussd_pattern ?? "—"}
                 </td>
                 <td className="px-4 py-3 text-ink/70">{telco.merchant_field_name ?? "merchant"}</td>
-                <td className="px-4 py-3 text-ink/70">{telco.reference_field_name ?? "reference"}</td>
+                <td className="px-4 py-3 text-ink/70">
+                  {telco.reference_field_name ?? "reference"}
+                </td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/telcos/${telco.id}`} className="text-sm font-semibold text-emerald-600">
+                  <Link
+                    href={`/admin/telcos/${telco.id}`}
+                    className="text-sm font-semibold text-emerald-600"
+                  >
                     Configure →
                   </Link>
                 </td>

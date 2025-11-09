@@ -1,7 +1,7 @@
 {$ADMIN_HOSTNAME}:8443 {
   tls internal
   encode zstd gzip
-  reverse_proxy localhost:3000
+  reverse_proxy localhost:3100
   header {
     Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
     Content-Security-Policy "default-src 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests"

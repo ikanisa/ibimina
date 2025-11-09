@@ -8,7 +8,8 @@
 
 ## 📊 System Overview
 
-The Ibimina SACCO management platform is a comprehensive monorepo with 4 interconnected applications and a complete backend infrastructure.
+The Ibimina SACCO management platform is a comprehensive monorepo with 4
+interconnected applications and a complete backend infrastructure.
 
 ### Architecture
 
@@ -30,6 +31,7 @@ ibimina/ (monorepo)
 ## ✅ Completed Features (100%)
 
 ### 1. Staff/Admin PWA (`apps/admin`)
+
 - **Platform:** Next.js 15 + React 19
 - **Status:** ✅ Production Ready
 - **Features:**
@@ -47,6 +49,7 @@ ibimina/ (monorepo)
 - **URL:** https://admin.ibimina.rw
 
 ### 2. Staff Mobile Android App (`apps/staff-mobile`)
+
 - **Platform:** React Native + Capacitor
 - **Status:** ✅ Production Ready
 - **Features:**
@@ -59,10 +62,12 @@ ibimina/ (monorepo)
   - ✅ Push notifications (via Supabase Realtime)
   - ✅ Camera permissions for QR/NFC
   - ✅ SMS permissions for payment SMS
-- **Build:** ✅ APK ready at `apps/staff-mobile/android/app/build/outputs/apk/release/`
+- **Build:** ✅ APK ready at
+  `apps/staff-mobile/android/app/build/outputs/apk/release/`
 - **Distribution:** Ready for Play Store
 
 ### 3. TapMoMo NFC Payment System
+
 - **Status:** ✅ Production Ready
 - **Components:**
   - ✅ Android HCE (Host Card Emulation) - Payee mode
@@ -74,9 +79,10 @@ ibimina/ (monorepo)
   - ✅ TTL validation with clock skew tolerance
   - ✅ Supabase reconciliation Edge Function
 - **Supported Networks:** MTN, Airtel Rwanda
-- **Security:**  Signed payloads, 120s TTL, 10min replay window
+- **Security:** Signed payloads, 120s TTL, 10min replay window
 
 ### 4. SMS Reconciliation System
+
 - **Status:** ✅ Production Ready
 - **Integration:** Staff Android app reads SMS
 - **AI Processing:** OpenAI GPT-4 parses payment details
@@ -89,6 +95,7 @@ ibimina/ (monorepo)
 - **Database:** Tables: `sms_logs`, `reconciliation_queue`
 
 ### 5. Web-to-Mobile 2FA
+
 - **Status:** ✅ Production Ready
 - **Flow:**
   1. Staff opens admin PWA
@@ -103,6 +110,7 @@ ibimina/ (monorepo)
   - Backend: `auth-qr-challenge` Edge Function
 
 ### 6. Client Web App (`apps/client`)
+
 - **Platform:** Next.js 15
 - **Status:** ✅ Production Ready
 - **Features:**
@@ -121,6 +129,7 @@ ibimina/ (monorepo)
 ## 🔄 In Progress (90% Complete)
 
 ### 7. Client Mobile App (`apps/client-mobile`)
+
 - **Platform:** React Native (iOS + Android)
 - **Status:** 🔄 90% Complete (10 hours remaining)
 - **Completed:**
@@ -146,6 +155,7 @@ ibimina/ (monorepo)
 ## 🗄️ Supabase Backend
 
 ### Database (PostgreSQL)
+
 - **Status:** ✅ All migrations applied
 - **Tables:** 35 tables
   - Core: users, accounts, transactions
@@ -160,6 +170,7 @@ ibimina/ (monorepo)
 - **Indexes:** ✅ Optimized for performance
 
 ### Edge Functions (Deno)
+
 - **Status:** ✅ All deployed
 - **Functions (12):**
   1. `whatsapp-otp` - Send WhatsApp OTP codes
@@ -180,6 +191,7 @@ ibimina/ (monorepo)
 ## 🔐 Security Features
 
 ### Authentication
+
 - ✅ JWT access tokens (15min)
 - ✅ Refresh tokens (7 days, HTTP-only)
 - ✅ WhatsApp OTP for client mobile
@@ -189,6 +201,7 @@ ibimina/ (monorepo)
 - ✅ Session management & device tracking
 
 ### Data Protection
+
 - ✅ Row-Level Security (RLS) on all tables
 - ✅ Encrypted at rest (Supabase managed)
 - ✅ TLS 1.3 in transit
@@ -197,6 +210,7 @@ ibimina/ (monorepo)
 - ✅ GDPR-compliant data export
 
 ### API Security
+
 - ✅ Rate limiting (100 req/min per user)
 - ✅ CORS whitelist
 - ✅ HMAC signature verification (TapMoMo)
@@ -208,6 +222,7 @@ ibimina/ (monorepo)
 ## 🚀 Deployment Status
 
 ### Infrastructure
+
 - **Platform:** Supabase (PostgreSQL + Edge Functions + Storage)
 - **Web Apps:** Vercel (admin, client)
 - **Mobile Apps:** Native binaries (Play Store / App Store)
@@ -215,24 +230,27 @@ ibimina/ (monorepo)
 - **CI/CD:** GitHub Actions
 
 ### Environments
-| Environment | Status | URL |
-|-------------|--------|-----|
-| Production  | ✅ Live | https://ibimina.rw |
-| Staging     | ✅ Live | https://staging.ibimina.rw |
-| Development | ✅ Local | localhost:3000 |
+
+| Environment | Status   | URL                        |
+| ----------- | -------- | -------------------------- |
+| Production  | ✅ Live  | https://ibimina.rw         |
+| Staging     | ✅ Live  | https://staging.ibimina.rw |
+| Development | ✅ Local | localhost:3100             |
 
 ### Mobile App Distribution
-| App | Platform | Status | Build |
-|-----|----------|--------|-------|
-| Client Mobile | Android | 🔄 90% | Play Store Internal Testing |
-| Client Mobile | iOS | 🔄 90% | TestFlight |
-| Staff Mobile | Android | ✅ 100% | APK Ready |
+
+| App           | Platform | Status  | Build                       |
+| ------------- | -------- | ------- | --------------------------- |
+| Client Mobile | Android  | 🔄 90%  | Play Store Internal Testing |
+| Client Mobile | iOS      | 🔄 90%  | TestFlight                  |
+| Staff Mobile  | Android  | ✅ 100% | APK Ready                   |
 
 ---
 
 ## 📈 Performance Metrics
 
 ### Web Apps (Lighthouse)
+
 - **Admin PWA:**
   - Performance: 95/100
   - Accessibility: 100/100
@@ -248,6 +266,7 @@ ibimina/ (monorepo)
   - PWA: 100/100
 
 ### Mobile Apps
+
 - **Bundle Size:**
   - Client Mobile: 45MB (Android), 52MB (iOS)
   - Staff Mobile: 38MB (Android only)
@@ -255,6 +274,7 @@ ibimina/ (monorepo)
 - **Offline Mode:** Full CRUD with sync queue
 
 ### Backend
+
 - **API Response Time:** <200ms (p95)
 - **Database Queries:** <50ms (p95)
 - **Edge Functions:** <100ms cold start, <10ms warm
@@ -265,6 +285,7 @@ ibimina/ (monorepo)
 ## 🧪 Testing Status
 
 ### Unit Tests
+
 - **Admin:** 85% coverage
 - **Client:** 80% coverage
 - **Staff Mobile:** 70% coverage
@@ -272,6 +293,7 @@ ibimina/ (monorepo)
 - **Supabase Functions:** 90% coverage
 
 ### Integration Tests
+
 - ✅ Auth flows (all apps)
 - ✅ Payment workflows
 - ✅ NFC handshake & USSD
@@ -280,6 +302,7 @@ ibimina/ (monorepo)
 - ✅ Offline sync & conflict resolution
 
 ### E2E Tests (Playwright)
+
 - ✅ Admin: User creation → transaction approval
 - ✅ Client: Registration → loan application
 - ✅ Staff: QR login → payment reconciliation
@@ -291,12 +314,15 @@ ibimina/ (monorepo)
 ### Client Mobile App Completion
 
 #### 1. Loan Application Screens (3 hours)
+
 **Files to create:**
+
 - `/apps/client-mobile/src/screens/loans/NewLoanApplicationScreen.tsx`
 - `/apps/client-mobile/src/screens/loans/LoanCalculatorScreen.tsx`
 - `/apps/client-mobile/src/screens/loans/LoanStatusScreen.tsx`
 
 **Features:**
+
 - Loan amount & duration picker
 - Real-time interest calculation
 - Document upload (ID, payslip)
@@ -305,13 +331,16 @@ ibimina/ (monorepo)
 - Application tracking
 
 #### 2. Group Contribution Screens (3 hours)
+
 **Files to create:**
+
 - `/apps/client-mobile/src/screens/groups/MyGroupsScreen.tsx`
 - `/apps/client-mobile/src/screens/groups/GroupDetailScreen.tsx`
 - `/apps/client-mobile/src/screens/groups/MakeContributionScreen.tsx`
 - `/apps/client-mobile/src/screens/groups/ContributionHistoryScreen.tsx`
 
 **Features:**
+
 - List user's groups (ibikingi)
 - Group balance & member list
 - Contribution calendar
@@ -319,18 +348,23 @@ ibimina/ (monorepo)
 - Chat/announcements
 
 #### 3. Push Notification Deep Linking (2 hours)
+
 **Files to update:**
+
 - `/apps/client-mobile/src/services/notificationService.ts`
 - `/apps/client-mobile/src/navigation/AppNavigator.tsx`
 
 **Implementation:**
+
 - Parse notification `data.screen` param
 - Navigate to specific screen on tap
 - Handle background/killed state
 - Update badge count
 
 #### 4. Production Builds (2 hours)
+
 **Android:**
+
 ```bash
 cd /apps/client-mobile/android
 ./gradlew bundleRelease  # AAB for Play Store
@@ -339,6 +373,7 @@ jarsigner -verify -verbose app-release.aab
 ```
 
 **iOS:**
+
 ```bash
 cd /apps/client-mobile/ios
 xcodebuild -scheme IbiminaClient -archivePath build/IbiminaClient.xcarchive archive
@@ -346,6 +381,7 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 ```
 
 **Tasks:**
+
 - Generate signing keys
 - Configure app signing
 - Update version numbers
@@ -357,6 +393,7 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 ## 🎯 Launch Checklist
 
 ### Pre-Launch (Complete These)
+
 - [ ] ✅ Database migrations applied
 - [ ] ✅ Edge Functions deployed & tested
 - [ ] ✅ SMS reconciliation tested with real MoMo SMS
@@ -372,6 +409,7 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 - [ ] ⏳ Disaster recovery drill
 
 ### Day 1 Launch
+
 - [ ] Staff training (2 hours)
 - [ ] Beta user onboarding (50 users)
 - [ ] Monitoring dashboards active
@@ -379,6 +417,7 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 - [ ] Rollback plan documented
 
 ### Week 1 Post-Launch
+
 - [ ] Daily health checks
 - [ ] User feedback collection
 - [ ] Bug triage & hotfixes
@@ -390,6 +429,7 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 ## 📞 Support & Documentation
 
 ### For Developers
+
 - **README:** `/README.md`
 - **API Docs:** `/docs/api/`
 - **Architecture:** `/docs/ARCHITECTURE.md`
@@ -397,12 +437,14 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 - **Changelog:** `/CHANGELOG.md`
 
 ### For Staff
+
 - **User Guide:** `/docs/staff-guide.pdf`
 - **TapMoMo Tutorial:** `/docs/tapmomo-howto.md`
 - **SMS Reconciliation:** `/docs/sms-reconciliation.md`
 - **Troubleshooting:** `/docs/FAQ.md`
 
 ### For Customers
+
 - **Help Center:** https://help.ibimina.rw
 - **Video Tutorials:** https://youtube.com/@ibimina
 - **WhatsApp Support:** +250 788 123 456
@@ -412,12 +454,14 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 ## 🏆 Next Steps (Priority Order)
 
 ### Immediate (Next 10 hours)
+
 1. **Complete client mobile loan screens** (3h)
 2. **Complete client mobile group screens** (3h)
 3. **Implement push notification deep links** (2h)
 4. **Generate production builds** (2h)
 
 ### Short-term (Next 2 weeks)
+
 1. **Internal beta testing** (50 users)
 2. **Security audit & penetration testing**
 3. **Load testing & performance tuning**
@@ -425,6 +469,7 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 5. **App Store submissions**
 
 ### Medium-term (Month 1-3)
+
 1. **Public launch** (5,000 users)
 2. **Feature additions:**
    - Savings goals
@@ -434,6 +479,7 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 4. **Marketing campaigns**
 
 ### Long-term (Quarter 2+)
+
 1. **Scale to 50,000 users**
 2. **Partner integrations** (banks, fintechs)
 3. **AI-powered financial advisor**
@@ -444,19 +490,21 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 ## 💰 Cost Estimate
 
 ### Monthly Operating Costs
-| Service | Cost (USD) |
-|---------|------------|
-| Supabase Pro | $25 |
-| Vercel Pro | $20 |
-| OpenAI API | $50 (est.) |
-| WhatsApp Business API | $10 |
-| SMS Gateway | $20 |
-| Sentry (Error Tracking) | $26 |
-| Google Play Console | $25 (one-time) |
-| Apple Developer Program | $99/year |
-| **Total Monthly** | **~$150** |
+
+| Service                 | Cost (USD)     |
+| ----------------------- | -------------- |
+| Supabase Pro            | $25            |
+| Vercel Pro              | $20            |
+| OpenAI API              | $50 (est.)     |
+| WhatsApp Business API   | $10            |
+| SMS Gateway             | $20            |
+| Sentry (Error Tracking) | $26            |
+| Google Play Console     | $25 (one-time) |
+| Apple Developer Program | $99/year       |
+| **Total Monthly**       | **~$150**      |
 
 ### Scaling Considerations
+
 - At 10,000 users: ~$300/month
 - At 50,000 users: ~$800/month
 - At 100,000 users: Migrate to dedicated infrastructure
@@ -465,21 +513,24 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 
 ## 🎉 Conclusion
 
-The Ibimina SACCO management platform is **95% complete** and **production-ready** pending the final 10 hours of client mobile app work.
+The Ibimina SACCO management platform is **95% complete** and
+**production-ready** pending the final 10 hours of client mobile app work.
 
 ### What's Working Now
+
 ✅ Staff can manage SACCOs, approve transactions, and reconcile payments  
 ✅ Staff mobile app supports NFC payments, SMS parsing, and QR-based web login  
 ✅ Client web app allows full SACCO operations  
 ✅ All backend systems operational & tested  
-✅ Security & compliance measures in place  
+✅ Security & compliance measures in place
 
 ### What's Needed for Launch
+
 🔄 Complete client mobile loan application screens  
 🔄 Complete client mobile group contribution screens  
 🔄 Finalize push notification handling  
 🔄 Generate signed production builds  
-⏳ Internal beta testing & final QA  
+⏳ Internal beta testing & final QA
 
 **Estimated Time to Launch:** 2 weeks  
 **Confidence Level:** High (95%)
@@ -489,6 +540,6 @@ The Ibimina SACCO management platform is **95% complete** and **production-ready
 **Generated:** November 3, 2025  
 **Last Updated:** November 3, 2025  
 **Version:** 1.0.0  
-**Status:** Living Document  
+**Status:** Living Document
 
 For questions or updates, contact: dev@ibimina.rw

@@ -53,7 +53,9 @@ export default async function AllocationTriagePage() {
                       {item.matchStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-neutral-200/80">{item.rawReference ?? "—"}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-neutral-200/80">
+                    {item.rawReference ?? "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>

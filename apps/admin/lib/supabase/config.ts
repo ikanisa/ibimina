@@ -1,3 +1,7 @@
+const DEFAULT_STUB_URL = process.env.SUPABASE_STUB_URL?.trim() || "http://127.0.0.1:54321";
+const DEFAULT_STUB_ANON_KEY = process.env.SUPABASE_STUB_ANON_KEY?.trim() || "stub-anon-key";
+const ALLOWED_STUB_ENV = new Set(["development", "local", "test"]);
+
 export type SupabaseConfig = {
   url: string;
   anonKey: string;
@@ -24,6 +28,45 @@ export function getSupabaseConfigStatus(): SupabaseConfigStatus {
   return readSupabaseEnv();
 }
 
+function getAppEnvironment(): string {
+  return (process.env.APP_ENV ?? process.env.NODE_ENV ?? "development").toLowerCase();
+}
+
+function shouldAllowStubConfig(): boolean {
+  if (process.env.SUPABASE_ALLOW_STUB === "1") {
+    return true;
+  }
+  if (process.env.SUPABASE_ALLOW_STUB === "0") {
+    return false;
+  }
+  return ALLOWED_STUB_ENV.has(getAppEnvironment());
+}
+
+const warnedStubContexts = new Set<string>();
+
+function warnStubFallback(context: string, status: SupabaseConfigStatus) {
+  if (warnedStubContexts.has(context)) {
+    return;
+  }
+  warnedStubContexts.add(context);
+  logWarn(
+    `[supabase] Falling back to stub credentials for "${context}". ` +
+      `Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to silence this warning.`,
+    {
+      appEnv: getAppEnvironment(),
+      hasUrl: status.hasUrl,
+      hasAnonKey: status.hasAnonKey,
+    }
+  );
+}
+
+function getStubSupabaseConfig(): SupabaseConfig {
+  return {
+    url: DEFAULT_STUB_URL,
+    anonKey: DEFAULT_STUB_ANON_KEY,
+  };
+}
+
 export function requireSupabaseConfig(context: string): SupabaseConfig {
   if (process.env.AUTH_E2E_STUB === "1") {
     return {
@@ -35,14 +78,19 @@ export function requireSupabaseConfig(context: string): SupabaseConfig {
   const status = readSupabaseEnv();
 
   if (!status.hasUrl || !status.hasAnonKey) {
-    console.error("supabase.config.missing", {
+    if (shouldAllowStubConfig()) {
+      warnStubFallback(context, status);
+      return getStubSupabaseConfig();
+    }
+
+    logError("supabase.config.missing", {
       context,
       hasUrl: status.hasUrl,
       hasAnonKey: status.hasAnonKey,
     });
 
     const error = new Error(
-      `Supabase environment variables are not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment (for example, .env.local or your process manager).`
+      `Supabase environment variables are not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment (for example, apps/admin/.env.local).`
     );
     error.name = "SupabaseConfigError";
     throw error;

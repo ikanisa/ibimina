@@ -77,7 +77,7 @@ cd /Users/jeanbosco/workspace/ibimina
 
 ```bash
 pnpm --filter @ibimina/admin dev
-# Open: http://localhost:3000/admin/tapmomo
+# Open: http://localhost:3100/admin/tapmomo
 ```
 
 ### Step 3: Build Android APK (Optional)

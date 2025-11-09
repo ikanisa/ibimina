@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/observability/logger";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { buildChannelSummary } from "@/lib/mfa/channels";
@@ -28,10 +29,10 @@ export async function GET() {
   ]);
 
   if (passkeysResult.error) {
-    console.error("Failed to load passkey records", passkeysResult.error);
+    logError("Failed to load passkey records", passkeysResult.error);
   }
   if (emailCodesResult.error) {
-    console.error("Failed to load email OTP records", emailCodesResult.error);
+    logError("Failed to load email OTP records", emailCodesResult.error);
   }
 
   const passkeys = (passkeysResult.data ?? ([] as PasskeyRow[])).map((record) => ({

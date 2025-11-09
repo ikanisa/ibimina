@@ -44,8 +44,8 @@ interface PipelineLoanRow {
 export default async function LoansPipelinePage({ searchParams }: LoansPipelinePageProps) {
   const { profile } = await requireUserAndProfile();
   const resolved = await resolveTenantScopeSearchParams(searchParams);
-  const scope = resolveTenantScope(profile, resolved);
-  const supabase = createSupabaseServiceRoleClient("admin/panel/loans");
+  resolveTenantScope(profile, resolved);
+  createSupabaseServiceRoleClient("admin/panel/loans");
 
   // Feature disabled: loan_applications table does not exist
   // Return empty state until feature is enabled

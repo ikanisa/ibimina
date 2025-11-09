@@ -11,6 +11,7 @@ import {
 } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
+import { logError } from "@/lib/observability/logger";
 import { StatusChip } from "@/components/common/status-chip";
 import { Input } from "@/components/ui/input";
 import { Drawer } from "@/components/ui/drawer";
@@ -155,23 +156,23 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
   const { t } = useTranslation();
   const [selected, setSelected] = useState<ReconciliationRow | null>(null);
   const [newStatus, setNewStatus] = useState<string>("POSTED");
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
+  const [_actionMessage, setActionMessage] = useState<string | null>(null);
+  const [_actionError, setActionError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkIkiminaId, setBulkIkiminaId] = useState("");
   const [bulkMessage, setBulkMessage] = useState<string | null>(null);
   const [bulkError, setBulkError] = useState<string | null>(null);
   const [memberQuery, setMemberQuery] = useState("");
-  const [memberResults, setMemberResults] = useState<MemberResult[]>([]);
-  const [memberLoading, setMemberLoading] = useState(false);
-  const [aiSuggestion, setAiSuggestion] = useState<{
+  const [_memberResults, setMemberResults] = useState<MemberResult[]>([]);
+  const [_memberLoading, setMemberLoading] = useState(false);
+  const [_aiSuggestion, setAiSuggestion] = useState<{
     member_id: string;
     ikimina_id: string | null;
     confidence: number;
     reason: string;
     member_code?: string | null;
   } | null>(null);
-  const [aiAlternatives, setAiAlternatives] = useState<
+  const [_aiAlternatives, setAiAlternatives] = useState<
     Array<{
       member_id: string;
       ikimina_id: string | null;
@@ -180,8 +181,8 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
       member_code?: string | null;
     }>
   >([]);
-  const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
-  const [aiError, setAiError] = useState<string | null>(null);
+  const [_aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [_aiError, setAiError] = useState<string | null>(null);
   const [aiRefreshToken, setAiRefreshToken] = useState(0);
   const [pending, startTransition] = useTransition();
   const { success: toastSuccess, error: toastError } = useToast();
@@ -398,7 +399,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     [filteredRows]
   );
 
-  const selectedReasons = useMemo(
+  const _selectedReasons = useMemo(
     () => (selected ? deriveReasons(selected) : []),
     [selected, deriveReasons]
   );
@@ -592,7 +593,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     setNewStatus("POSTED");
   };
 
-  const handleUpdateStatus = () => {
+  const _handleUpdateStatus = () => {
     if (!selected || !canWrite) return;
     if (!offlineQueue.isOnline) {
       const statusLabel = getStatusLabel(newStatus);
@@ -662,14 +663,14 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     });
   };
 
-  const handleLinkMember = (member: MemberResult) => {
+  const _handleLinkMember = (member: MemberResult) => {
     if (!canWrite) return;
     handleAssignToIkimina(member.ikimina_id, member.id);
     setMemberQuery("");
     setMemberResults([]);
   };
 
-  const applyAiSuggestion = (suggestion: {
+  const _applyAiSuggestion = (suggestion: {
     member_id: string;
     ikimina_id: string | null;
     confidence: number;
@@ -694,7 +695,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     handleAssignToIkimina(targetIkiminaId, suggestion.member_id);
   };
 
-  const refreshAiSuggestion = () => {
+  const _refreshAiSuggestion = () => {
     if (!selected) return;
     suggestionCache.current.delete(selected.id);
     setAiStatus("idle");
@@ -869,7 +870,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
         setAiStatus("ready");
       } catch (err) {
         if (cancelled) return;
-        console.error("AI suggestion fetch error", err);
+        logError("recon.ai_suggestion_failed", { error: err });
         const msg = err instanceof Error ? err.message : "Suggestion lookup failed";
         setAiError(t("recon.errors.suggestionFailed", msg));
         setAiStatus("error");
@@ -892,7 +893,7 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
     return unique.size === 1 ? references[0] : null;
   }, [selectedIds, rowMap]);
 
-  const recommendedQueries = useMemo(() => {
+  const _recommendedQueries = useMemo(() => {
     if (!selected) return [] as Array<{ value: string; primary: string; secondary: string }>;
     const suggestions = new Map<string, { primary: string; secondary: string }>();
 

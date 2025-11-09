@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { logWarn } from "@/lib/observability/logger";
 import { createSignedToken, verifySignedToken } from "@/lib/mfa/tokens";
 
 export const MFA_SESSION_COOKIE = "ibimina_mfa";
@@ -38,7 +39,7 @@ type TrustedPayload = SessionPayload & {
 export const createMfaSessionToken = (userId: string, ttlSeconds = sessionTtlSeconds()) => {
   const secret = sessionSecret();
   if (!secret) {
-    console.warn("MFA session secret is not configured; skipping cookie issuance.");
+    logWarn("MFA session secret is not configured; skipping cookie issuance.");
     return null;
   }
 
@@ -72,9 +73,7 @@ export const createTrustedDeviceToken = (
 ) => {
   const secret = trustedSecret();
   if (!secret) {
-    console.warn(
-      "Trusted device secret is not configured; skipping trusted device cookie issuance."
-    );
+    logWarn("Trusted device secret is not configured; skipping trusted device cookie issuance.");
     return null;
   }
 

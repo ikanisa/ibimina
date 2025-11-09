@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logError } from "@/lib/observability/logger";
 import type { CountryRow } from "@/lib/types/multicountry";
 
 export default async function GovernanceCountriesPage() {
@@ -10,7 +11,7 @@ export default async function GovernanceCountriesPage() {
     .order("name", { ascending: true });
 
   if (error) {
-    console.error("Failed to load countries:", error);
+    logError("admin.countries.fetch_failed", { error });
   }
 
   return (
@@ -18,7 +19,9 @@ export default async function GovernanceCountriesPage() {
       <header className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-ink">Countries</h2>
-          <p className="text-sm text-ink/70">Enable new markets and toggle availability per SACCO.</p>
+          <p className="text-sm text-ink/70">
+            Enable new markets and toggle availability per SACCO.
+          </p>
         </div>
         <Link
           href="/admin/countries/new"
@@ -51,7 +54,10 @@ export default async function GovernanceCountriesPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/countries/${country.id}`} className="text-sm font-semibold text-emerald-600">
+                  <Link
+                    href={`/admin/countries/${country.id}`}
+                    className="text-sm font-semibold text-emerald-600"
+                  >
                     Configure →
                   </Link>
                 </td>

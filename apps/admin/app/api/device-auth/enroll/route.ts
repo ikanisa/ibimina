@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseSrv } from "@/lib/supabase/server";
+import { logError, logInfo } from "@/lib/observability/logger";
 
 /**
  * Enroll a new device for device-bound authentication
@@ -116,7 +117,11 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error("Failed to enroll device:", insertError);
+      logError("deviceAuth.enroll.insert_failed", {
+        error: insertError,
+        deviceId: device_id,
+        userId: user.id,
+      });
       return NextResponse.json({ error: "Failed to enroll device" }, { status: 500 });
     }
 
@@ -161,7 +166,7 @@ export async function POST(req: NextRequest) {
       message: "Device enrolled successfully",
     });
   } catch (error) {
-    console.error("Enrollment error:", error);
+    logError("deviceAuth.enroll.unhandled_error", { error });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -177,7 +182,7 @@ async function verifyPlayIntegrity(token: string): Promise<any> {
   // See: https://developer.android.com/google/play/integrity/verdict
 
   // Mock implementation for development
-  console.log("Mock Play Integrity verification for token:", token);
+  logInfo("deviceAuth.enroll.play_integrity_mock", { token });
 
   return {
     meets_device_integrity: true,

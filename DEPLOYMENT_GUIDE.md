@@ -61,7 +61,7 @@ NEXT_PUBLIC_BUILD_ID=${GIT_COMMIT_SHA}
 
 ```bash
 # Port (optional, defaults to 3000)
-PORT=3000
+PORT=3100
 
 # Admin-specific features
 ADMIN_USE_STANDALONE_START=1
@@ -186,7 +186,7 @@ supabase db reset
 ```bash
 # Terminal 1: Admin app
 pnpm --filter @ibimina/admin dev
-# Access at http://localhost:3000
+# Access at http://localhost:3100
 
 # Terminal 2: Client app
 pnpm --filter @ibimina/client dev
@@ -201,7 +201,7 @@ pnpm --filter @ibimina/platform-api dev
 
 ```bash
 # Check admin app
-curl http://localhost:3000/api/health
+curl http://localhost:3100/api/health
 
 # Check client app
 curl http://localhost:3001/api/health
@@ -236,7 +236,7 @@ cd apps/admin
 
 # Set environment variables
 export NODE_ENV=production
-export PORT=3000
+export PORT=3100
 # ... (set all required vars)
 
 # Start app
@@ -299,7 +299,7 @@ server {
     ssl_certificate_key /path/to/key.pem;
 
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:3100;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -372,8 +372,8 @@ COPY --from=builder /app/apps/admin/.next/standalone ./
 COPY --from=builder /app/apps/admin/.next/static ./apps/admin/.next/static
 COPY --from=builder /app/apps/admin/public ./apps/admin/public
 USER nextjs
-EXPOSE 3000
-ENV PORT=3000
+EXPOSE 3100
+ENV PORT=3100
 CMD ["node", "apps/admin/server.js"]
 ```
 
@@ -392,7 +392,7 @@ services:
       context: .
       dockerfile: apps/admin/Dockerfile
     ports:
-      - "3000:3000"
+      - "3100:3100"
     env_file:
       - .env
       - apps/admin/.env.local
@@ -468,7 +468,7 @@ Follow their respective documentation for deployment.
 
 ### Admin App Access
 
-**URL**: https://admin.your-domain.com (or http://localhost:3000)
+**URL**: https://admin.your-domain.com (or http://localhost:3100)
 
 **Login Flow**:
 

@@ -4,9 +4,18 @@ import { AppProviders } from "@/providers/app-providers";
 import { headers, cookies } from "next/headers";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ibimina.local";
+
 export const metadata: Metadata = {
-  title: "Ibimina Staff Console",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Ibimina Staff Console",
+    template: "%s · Ibimina Staff Console",
+  },
+  applicationName: "Ibimina Staff Console",
   description: "Staff-only platform for Umurenge SACCO Ibimina operations.",
+  keywords: ["SACCO", "Ibimina", "PWA", "Finance", "Rwanda"],
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon" },
@@ -17,7 +26,20 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     shortcut: ["/favicon.ico"],
   },
-  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Ibimina Staff Console",
+  },
+  formatDetection: {
+    telephone: false,
+    date: false,
+    address: false,
+    email: false,
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
@@ -52,7 +74,7 @@ export default async function RootLayout({
 
   // Map "dark" to "nyungwe" for AppProviders since "dark" is not a valid theme option
   // Only "light" and "nyungwe" are valid forcedTheme values
-  const forcedTheme: "light" | "nyungwe" | undefined = 
+  const forcedTheme: "light" | "nyungwe" | undefined =
     storedTheme === "dark" ? "nyungwe" : storedTheme === "light" ? "light" : "nyungwe";
 
   const htmlClass = `${storedTheme} theme-${colorScheme}`;
@@ -68,6 +90,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       data-theme={colorScheme}
+      data-scroll-behavior="smooth"
       className={htmlClass}
       style={{ colorScheme }}
       suppressHydrationWarning

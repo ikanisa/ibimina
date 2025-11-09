@@ -41,7 +41,7 @@ APP_ENV=development
 NODE_ENV=development
 LOG_DRAIN_URL=your-log-drain-url
 MFA_RP_ID=localhost
-MFA_ORIGIN=http://localhost:3000
+MFA_ORIGIN=http://localhost:3100
 ```
 
 **For quick testing without Supabase**: Use placeholder values (build will
@@ -71,24 +71,27 @@ export KMS_DATA_KEY_BASE64=$(openssl rand -base64 32)
 ### Git Hooks and CI Environment
 
 This repository uses **Husky** to enforce code quality via Git hooks:
+
 - **pre-commit**: Runs `lint-staged` to format and lint changed files
 - **commit-msg**: Runs `commitlint` to enforce conventional commit format
 
 **Important for CI/CD and Automated Tools:**
 
 The hooks are **automatically disabled** in CI environments by checking for:
+
 - `CI` environment variable (set to any non-empty value)
 - `GITHUB_ACTIONS` environment variable
 - `HUSKY=0` environment variable
 
 **When creating GitHub Actions workflows:**
+
 ```yaml
 jobs:
   your-job:
     runs-on: ubuntu-latest
     env:
       CI: "true"
-      HUSKY: "0"  # Explicitly disable Husky hooks
+      HUSKY: "0" # Explicitly disable Husky hooks
     steps:
       - uses: actions/checkout@v4
         with:
@@ -98,15 +101,17 @@ jobs:
 ```
 
 **If you need to commit/push in a workflow:**
+
 ```yaml
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global core.hooksPath /dev/null  # Extra safety layer
+- name: Configure Git
+  run: |
+    git config --global user.name "github-actions[bot]"
+    git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    git config --global core.hooksPath /dev/null  # Extra safety layer
 ```
 
 **To test hooks locally without triggering them:**
+
 ```bash
 # Temporarily disable hooks
 export HUSKY=0
