@@ -16,12 +16,17 @@ export interface BadgeProps {
  * Used for status indicators, tags, and labels.
  */
 const variantClasses: Record<NonNullable<BadgeProps["variant"]>, string> = {
-  neutral: "bg-neutral-100 text-neutral-700 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700",
-  info: "bg-info-50 text-info-700 border-info-200 dark:bg-info-900 dark:text-info-300 dark:border-info-700",
-  success: "bg-success-50 text-success-700 border-success-200 dark:bg-success-900 dark:text-success-300 dark:border-success-700",
-  warning: "bg-warning-50 text-warning-700 border-warning-200 dark:bg-warning-900 dark:text-warning-300 dark:border-warning-700",
-  critical: "bg-error-50 text-error-700 border-error-200 dark:bg-error-900 dark:text-error-300 dark:border-error-700",
-  pending: "bg-warning-50 text-warning-700 border-warning-200 dark:bg-warning-900 dark:text-warning-300 dark:border-warning-700",
+  neutral:
+    "bg-neutral-100 text-neutral-700 border-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-700",
+  info: "bg-info-50 text-info-700 border-info-200 dark:bg-info-700 dark:text-info-50 dark:border-info-600",
+  success:
+    "bg-success-50 text-success-700 border-success-200 dark:bg-success-700 dark:text-success-50 dark:border-success-600",
+  warning:
+    "bg-warning-50 text-warning-700 border-warning-200 dark:bg-warning-700 dark:text-warning-50 dark:border-warning-600",
+  critical:
+    "bg-error-50 text-error-700 border-error-200 dark:bg-error-700 dark:text-error-50 dark:border-error-600",
+  pending:
+    "bg-warning-50 text-warning-700 border-warning-200 dark:bg-warning-700 dark:text-warning-50 dark:border-warning-600",
 };
 
 const sizeClasses: Record<NonNullable<BadgeProps["size"]>, string> = {
