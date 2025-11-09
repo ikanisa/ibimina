@@ -2,7 +2,8 @@
 
 ## Overview
 
-This document describes the GitHub Actions workflow configured for deploying the Staff Admin PWA to Cloudflare Pages.
+This document describes the GitHub Actions workflow configured for deploying the
+Staff Admin PWA to Cloudflare Pages.
 
 ## Workflow Details
 
@@ -14,16 +15,21 @@ This document describes the GitHub Actions workflow configured for deploying the
 
 ## GitHub Secrets Required
 
-The following secrets must be configured in your GitHub repository (Settings → Secrets and variables → Actions):
+The following secrets must be configured in your GitHub repository (Settings →
+Secrets and variables → Actions):
 
 ### Cloudflare Credentials
-- `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token with Pages deployment permissions
-  - **Value provided**: `FmATZTT0qMJ8AbMz8fwo05QTivXLQ1u98hKtjqcE`
+
+- `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token with Pages deployment
+  permissions
+- **Example value**: `<your-cloudflare-api-token>`
 - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID
   - **Value provided**: `2209b915a85b1c11cee79b7806c6e73b`
 
 ### Application Secrets (Required for Build)
+
 These must be configured in GitHub secrets:
+
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key
@@ -48,6 +54,7 @@ These must be configured in GitHub secrets:
 ### Option 2: Automatic Trigger on Push
 
 The workflow automatically runs when:
+
 - Code is pushed to the `main` branch
 - Changes are made to files in:
   - `apps/admin/**`
@@ -63,15 +70,20 @@ The workflow performs the following steps:
 3. **Install pnpm**: Installs pnpm v10.19.0
 4. **Setup pnpm cache**: Caches pnpm store for faster builds
 5. **Install dependencies**: Runs `pnpm install --frozen-lockfile`
-6. **Build workspace packages**: Builds shared packages (@ibimina/config, @ibimina/lib, @ibimina/locales, @ibimina/ui)
+6. **Build workspace packages**: Builds shared packages (@ibimina/config,
+   @ibimina/lib, @ibimina/locales, @ibimina/ui)
 7. **Fix config package imports**: Patches ES module imports
-8. **Build Admin App**: Builds the admin application with all required environment variables
-9. **Build for Cloudflare**: Runs Cloudflare Pages adapter (@cloudflare/next-on-pages)
-10. **Publish to Cloudflare Pages**: Deploys to Cloudflare Pages project `ibimina-staff-admin-pwa`
+8. **Build Admin App**: Builds the admin application with all required
+   environment variables
+9. **Build for Cloudflare**: Runs Cloudflare Pages adapter
+   (@cloudflare/next-on-pages)
+10. **Publish to Cloudflare Pages**: Deploys to Cloudflare Pages project
+    `ibimina-staff-admin-pwa`
 
 ## Build Output
 
 The build output is located at:
+
 ```
 apps/admin/.vercel/output/static
 ```
@@ -81,11 +93,13 @@ This directory is deployed to Cloudflare Pages.
 ## Monitoring Deployment
 
 ### In GitHub Actions
+
 - Navigate to Actions tab
 - Click on the running workflow
 - Monitor each step's progress and logs
 
 ### In Cloudflare Dashboard
+
 - Go to Cloudflare Dashboard
 - Navigate to Workers & Pages → Overview
 - Look for project `ibimina-staff-admin-pwa`
@@ -94,15 +108,19 @@ This directory is deployed to Cloudflare Pages.
 ## Troubleshooting
 
 ### Build Fails with "Missing Environment Variable"
+
 - Ensure all required secrets are configured in GitHub repository settings
 - Verify secret names match exactly (case-sensitive)
 
 ### Cloudflare Deployment Fails
+
 - Verify `CLOUDFLARE_API_TOKEN` has correct permissions (Cloudflare Pages:Edit)
 - Verify `CLOUDFLARE_ACCOUNT_ID` is correct
-- Check that the project `ibimina-staff-admin-pwa` exists in Cloudflare dashboard or will be auto-created
+- Check that the project `ibimina-staff-admin-pwa` exists in Cloudflare
+  dashboard or will be auto-created
 
 ### Build Takes Too Long
+
 - The build typically takes 5-10 minutes
 - Most time is spent on pnpm install and building packages
 - Caching helps reduce subsequent build times
@@ -112,7 +130,8 @@ This directory is deployed to Cloudflare Pages.
 1. Verify deployment in Cloudflare Dashboard
 2. Test the deployed application at the Cloudflare Pages URL
 3. Configure custom domain if needed (in Cloudflare Pages settings)
-4. Set up environment variables in Cloudflare Pages dashboard for runtime configuration
+4. Set up environment variables in Cloudflare Pages dashboard for runtime
+   configuration
 5. Monitor application logs and performance
 
 ## Related Documentation
@@ -124,26 +143,29 @@ This directory is deployed to Cloudflare Pages.
 ## Changes Made
 
 ### Updated Files
+
 - `.github/workflows/deploy-admin-cloudflare.yml`
   - Changed project name from `ibimina-admin` to `ibimina-staff-admin-pwa`
   - Updated workflow title to reflect "Staff Admin PWA" naming
   - All other configuration remains the same
 
 ### Workflow Now Uses
+
 - **Project Name**: `ibimina-staff-admin-pwa` (matches Cloudflare Pages project)
 - **Account ID**: `2209b915a85b1c11cee79b7806c6e73b`
 - **API Token**: Configured via `CLOUDFLARE_API_TOKEN` secret
 
 ## Security Notes
 
-⚠️ **Important**: 
+⚠️ **Important**:
+
 - Never commit API tokens or secrets to the repository
-- The Cloudflare API token provided in the issue should be added to GitHub Secrets only
+- The Cloudflare API token provided in the issue should be added to GitHub
+  Secrets only
 - Rotate credentials regularly
 - Use Cloudflare's token permissions to limit access scope
 
 ---
 
-**Last Updated**: 2025-11-04
-**Workflow Version**: v1.1
-**Cloudflare Project**: ibimina-staff-admin-pwa
+**Last Updated**: 2025-11-04 **Workflow Version**: v1.1 **Cloudflare Project**:
+ibimina-staff-admin-pwa

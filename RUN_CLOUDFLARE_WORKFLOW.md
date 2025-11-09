@@ -4,11 +4,14 @@
 
 Before running the workflow, ensure these GitHub Secrets are configured:
 
+> ⚠️ **Security note:** If an old token was exposed, revoke it in Cloudflare and
+> generate a new secret-scoped token before proceeding.
+
 ### Go to: Repository Settings → Secrets and variables → Actions → New repository secret
 
 Add these secrets:
 
-1. **CLOUDFLARE_API_TOKEN** = `FmATZTT0qMJ8AbMz8fwo05QTivXLQ1u98hKtjqcE`
+1. **CLOUDFLARE_API_TOKEN** = (Cloudflare API token with Pages:Edit access)
 2. **CLOUDFLARE_ACCOUNT_ID** = `2209b915a85b1c11cee79b7806c6e73b`
 3. **NEXT_PUBLIC_SUPABASE_URL** = (your Supabase URL)
 4. **NEXT_PUBLIC_SUPABASE_ANON_KEY** = (your Supabase anon key)
@@ -33,12 +36,14 @@ Add these secrets:
 ### Method 2: Automatic Trigger
 
 The workflow will automatically run when:
+
 - You push code to the `main` branch
 - Changes are in `apps/admin/**` or `packages/**`
 
 ## What Happens During Deployment 📦
 
 The workflow will:
+
 1. ✅ Install Node.js and pnpm
 2. ✅ Install dependencies
 3. ✅ Build workspace packages
@@ -51,11 +56,13 @@ Expected duration: **5-10 minutes**
 ## Monitoring Progress 👀
 
 ### In GitHub
+
 - Navigate to Actions tab
 - Click on the running workflow
 - Watch real-time logs for each step
 
 ### In Cloudflare
+
 - Go to Cloudflare Dashboard
 - Navigate to Workers & Pages
 - Find project: `ibimina-staff-admin-pwa`
@@ -64,29 +71,37 @@ Expected duration: **5-10 minutes**
 ## After Successful Deployment 🎉
 
 Your app will be available at:
+
 - Production: `https://ibimina-staff-admin-pwa.pages.dev`
 - Or your custom domain (if configured)
 
 ## Troubleshooting 🔧
 
 ### "Secret not found" error
+
 → Verify all secrets are added to GitHub repository settings
 
 ### "Project not found" error
+
 → The project will be auto-created on first deployment
 
 ### Build timeout
+
 → Normal for first build. Subsequent builds are faster due to caching.
 
 ### Cloudflare API error
+
 → Verify `CLOUDFLARE_API_TOKEN` has "Cloudflare Pages:Edit" permission
 
 ## Need Help? 📚
 
 See detailed documentation:
+
 - [CLOUDFLARE_WORKFLOW_SETUP.md](./CLOUDFLARE_WORKFLOW_SETUP.md)
 - [CLOUDFLARE_DEPLOYMENT_INSTRUCTIONS.md](./CLOUDFLARE_DEPLOYMENT_INSTRUCTIONS.md)
 
 ---
 
-**Ready to deploy?** Go to [GitHub Actions](https://github.com/ikanisa/ibimina/actions) and run the workflow! 🚀
+**Ready to deploy?** Go to
+[GitHub Actions](https://github.com/ikanisa/ibimina/actions) and run the
+workflow! 🚀

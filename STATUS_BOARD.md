@@ -47,7 +47,7 @@
 │ GITHUB SECRETS REQUIRED                                      ⚠️  USER ACTION │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │ Cloudflare Credentials (Provided):                                          │
-│   ✅ CLOUDFLARE_API_TOKEN       FmATZTT0qMJ8AbMz8fwo05QTivXLQ1u98hKtjqcE    │
+│   ✅ CLOUDFLARE_API_TOKEN       <set in repo secrets>                         │
 │   ✅ CLOUDFLARE_ACCOUNT_ID      2209b915a85b1c11cee79b7806c6e73b            │
 │                                                                              │
 │ Application Secrets (User Must Configure):                                  │

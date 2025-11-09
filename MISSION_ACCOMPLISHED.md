@@ -2,7 +2,8 @@
 
 ## ✅ Task Complete
 
-Your GitHub Actions workflow for deploying the Staff Admin PWA to Cloudflare Pages is now **fully configured and ready to run**.
+Your GitHub Actions workflow for deploying the Staff Admin PWA to Cloudflare
+Pages is now **fully configured and ready to run**.
 
 ---
 
@@ -17,6 +18,7 @@ Your GitHub Actions workflow for deploying the Staff Admin PWA to Cloudflare Pag
 5. **Access your app**: `https://ibimina-staff-admin-pwa.pages.dev`
 
 **Before running**, ensure these secrets are configured in GitHub:
+
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 - Plus all application secrets (see checklist below)
@@ -26,19 +28,22 @@ Your GitHub Actions workflow for deploying the Staff Admin PWA to Cloudflare Pag
 ## 📋 What Was Changed
 
 ### Workflow Configuration Updated
+
 **File**: `.github/workflows/deploy-admin-cloudflare.yml`
 
 **Changes**:
+
 - ✅ Project name: `ibimina-admin` → **`ibimina-staff-admin-pwa`**
 - ✅ Workflow title updated to "Deploy Staff Admin PWA to Cloudflare Pages"
 - ✅ YAML syntax validated and formatting cleaned
 - ✅ All secrets properly referenced
 
 ### Configuration Details
+
 ```
 Project Name:     ibimina-staff-admin-pwa
 Account ID:       2209b915a85b1c11cee79b7806c6e73b
-API Token:        FmATZTT0qMJ8AbMz8fwo05QTivXLQ1u98hKtjqcE
+API Token:        <redacted – replace with new Cloudflare API token>
 Workflow File:    .github/workflows/deploy-admin-cloudflare.yml
 Build Output:     apps/admin/.vercel/output/static
 ```
@@ -73,7 +78,8 @@ Build Output:     apps/admin/.vercel/output/static
    - Security best practices
    - Detailed troubleshooting
 
-5. **[WORKFLOW_CONFIGURATION_COMPLETE.md](./WORKFLOW_CONFIGURATION_COMPLETE.md)** ✅
+5. **[WORKFLOW_CONFIGURATION_COMPLETE.md](./WORKFLOW_CONFIGURATION_COMPLETE.md)**
+   ✅
    - Executive summary
    - Validation results
    - Next steps guide
@@ -88,10 +94,12 @@ Build Output:     apps/admin/.vercel/output/static
 Configure these in: **Repository Settings → Secrets and variables → Actions**
 
 #### Cloudflare Credentials ✅
-- [ ] `CLOUDFLARE_API_TOKEN` = `FmATZTT0qMJ8AbMz8fwo05QTivXLQ1u98hKtjqcE`
+
+- [ ] `CLOUDFLARE_API_TOKEN` = `<your-cloudflare-api-token>`
 - [ ] `CLOUDFLARE_ACCOUNT_ID` = `2209b915a85b1c11cee79b7806c6e73b`
 
 #### Application Secrets
+
 - [ ] `NEXT_PUBLIC_SUPABASE_URL` (your Supabase URL)
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` (your Supabase anon key)
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` (your Supabase service role key)
@@ -120,6 +128,7 @@ Configure these in: **Repository Settings → Secrets and variables → Actions*
 ### Method 2: Automatic Trigger
 
 Push to `main` branch with changes in:
+
 - `apps/admin/**`
 - `packages/**`
 - `.github/workflows/deploy-admin-cloudflare.yml`
@@ -128,27 +137,29 @@ Push to `main` branch with changes in:
 
 ## ⏱️ Expected Timeline
 
-| Stage | Duration | What Happens |
-|-------|----------|--------------|
-| Setup | ~30s | Node.js, pnpm, caching |
-| Dependencies | ~1-2min | Install packages |
-| Build Packages | ~1-2min | Config, lib, locales, ui |
-| Build App | ~2-3min | Admin app compilation |
-| Cloudflare Build | ~1-2min | Next.js adaptation |
-| Deploy | ~30s | Upload to Cloudflare |
-| **TOTAL** | **5-10 min** | Complete deployment |
+| Stage            | Duration     | What Happens             |
+| ---------------- | ------------ | ------------------------ |
+| Setup            | ~30s         | Node.js, pnpm, caching   |
+| Dependencies     | ~1-2min      | Install packages         |
+| Build Packages   | ~1-2min      | Config, lib, locales, ui |
+| Build App        | ~2-3min      | Admin app compilation    |
+| Cloudflare Build | ~1-2min      | Next.js adaptation       |
+| Deploy           | ~30s         | Upload to Cloudflare     |
+| **TOTAL**        | **5-10 min** | Complete deployment      |
 
 ---
 
 ## 📊 Monitoring Your Deployment
 
 ### GitHub Actions
+
 - ✅ Real-time logs for each step
 - ✅ Download build artifacts
 - ✅ Error messages with stack traces
 - ✅ Deployment status
 
 ### Cloudflare Dashboard
+
 - ✅ Go to: Workers & Pages → ibimina-staff-admin-pwa
 - ✅ View deployment status
 - ✅ Access live URL
@@ -164,6 +175,7 @@ Once deployment completes, your app will be live at:
 **Production URL**: `https://ibimina-staff-admin-pwa.pages.dev`
 
 ### Optional Next Steps:
+
 1. Configure custom domain in Cloudflare Pages
 2. Set up environment variables in Cloudflare dashboard
 3. Monitor application performance
@@ -175,14 +187,15 @@ Once deployment completes, your app will be live at:
 
 ### Common Issues and Solutions
 
-| Issue | Solution |
-|-------|----------|
-| **"Secret not found"** | Add the secret in GitHub Settings → Secrets |
-| **Cloudflare API error** | Verify token has "Cloudflare Pages:Edit" permission |
-| **Build timeout** | First build takes 5-10 min; subsequent builds are faster |
-| **Project not found** | Project auto-creates on first deployment |
+| Issue                    | Solution                                                 |
+| ------------------------ | -------------------------------------------------------- |
+| **"Secret not found"**   | Add the secret in GitHub Settings → Secrets              |
+| **Cloudflare API error** | Verify token has "Cloudflare Pages:Edit" permission      |
+| **Build timeout**        | First build takes 5-10 min; subsequent builds are faster |
+| **Project not found**    | Project auto-creates on first deployment                 |
 
 For more troubleshooting, see:
+
 - [RUN_CLOUDFLARE_WORKFLOW.md](./RUN_CLOUDFLARE_WORKFLOW.md#troubleshooting)
 - [CLOUDFLARE_WORKFLOW_SETUP.md](./CLOUDFLARE_WORKFLOW_SETUP.md#troubleshooting)
 
@@ -206,9 +219,11 @@ Everything has been validated and is ready:
 ## 📁 All Changes Summary
 
 ### Modified Files
+
 - `.github/workflows/deploy-admin-cloudflare.yml` (3 changes, validated ✅)
 
 ### Created Files
+
 - `CLOUDFLARE_DEPLOYMENT_INDEX.md` (7.0 KB)
 - `CLOUDFLARE_WORKFLOW_SETUP.md` (5.2 KB)
 - `RUN_CLOUDFLARE_WORKFLOW.md` (3.0 KB)
@@ -227,7 +242,7 @@ Everything has been validated and is ready:
 ✅ **Documentation complete** (5 comprehensive guides)  
 ✅ **Ready to deploy** from GitHub Actions  
 ✅ **Monitoring guides** included  
-✅ **Troubleshooting covered**  
+✅ **Troubleshooting covered**
 
 ---
 
@@ -256,9 +271,11 @@ Or browse all documentation:
 ## 📞 Need Help?
 
 1. Start with: [RUN_CLOUDFLARE_WORKFLOW.md](./RUN_CLOUDFLARE_WORKFLOW.md)
-2. Technical details: [CLOUDFLARE_WORKFLOW_SETUP.md](./CLOUDFLARE_WORKFLOW_SETUP.md)
+2. Technical details:
+   [CLOUDFLARE_WORKFLOW_SETUP.md](./CLOUDFLARE_WORKFLOW_SETUP.md)
 3. Visual guide: [WORKFLOW_DIAGRAM.md](./WORKFLOW_DIAGRAM.md)
-4. All documentation: [CLOUDFLARE_DEPLOYMENT_INDEX.md](./CLOUDFLARE_DEPLOYMENT_INDEX.md)
+4. All documentation:
+   [CLOUDFLARE_DEPLOYMENT_INDEX.md](./CLOUDFLARE_DEPLOYMENT_INDEX.md)
 
 ---
 
