@@ -190,14 +190,27 @@ build_app() {
     # Verify build output
     if [ -d ".vercel/output/static" ]; then
         local build_size=$(du -sh .vercel/output/static | cut -f1)
-        print_success "Build output created: $build_size"
-        
+        print_success "Static assets created: $build_size"
+
         # List some key files
-        print_info "Build artifacts:"
+        print_info "Static build artifacts:"
         ls -lh .vercel/output/static/ | head -10
     else
         print_error "Build output directory not found"
         exit 1
+    fi
+
+    if [ -d ".vercel/output/functions" ]; then
+        local functions_size=$(du -sh .vercel/output/functions | cut -f1)
+        print_success "Functions bundle created: $functions_size"
+    else
+        print_warning "Functions bundle not found. Dynamic routes may be unavailable."
+    fi
+
+    if [ -f ".vercel/output/config.json" ]; then
+        print_success "Found Cloudflare config.json"
+    else
+        print_warning "config.json missing. Ensure @cloudflare/next-on-pages build succeeded."
     fi
 }
 
@@ -210,11 +223,11 @@ deploy_to_cloudflare() {
     
     cd "$ADMIN_APP_DIR"
     
-    if [ ! -d ".vercel/output/static" ]; then
+    if [ ! -d ".vercel/output" ]; then
         print_error "Build output not found. Please run build first."
         exit 1
     fi
-    
+
     if [ "$DRY_RUN" = true ]; then
         print_warning "DRY RUN MODE - Skipping actual deployment"
         print_info "Would deploy to project: $project_name"
@@ -222,9 +235,9 @@ deploy_to_cloudflare() {
     fi
     
     print_info "Deploying to Cloudflare Pages project: $project_name"
-    
+
     # Deploy using wrangler
-    if pnpm exec wrangler pages deploy .vercel/output/static \
+    if pnpm exec wrangler pages deploy .vercel/output \
         --project-name="$project_name" \
         --branch=main; then
         print_success "$app_type deployment completed successfully"
