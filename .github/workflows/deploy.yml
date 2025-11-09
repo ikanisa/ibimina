@@ -56,13 +56,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build workspace packages
-        run: pnpm build:packages
-        env:
-          NODE_ENV: production
-
-      - name: Build Admin App
-        run: pnpm build:admin
+      - name: Build with Netlify CLI
+        run: pnpm dlx netlify-cli@17 build --context=production
+        working-directory: apps/admin
         env:
           NODE_ENV: production
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -76,19 +72,11 @@ jobs:
           KMS_DATA_KEY_BASE64: ${{ secrets.KMS_DATA_KEY_BASE64 }}
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
-        with:
-          publish-dir: "./apps/admin/.next"
-          production-branch: main
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: true
-          enable-commit-comment: true
-          overwrites-pull-request-comment: true
+        run: pnpm dlx netlify-cli@17 deploy --prod --dir=.netlify/build --site=$NETLIFY_SITE_ID --message "Deploy from GitHub Actions" --yes
+        working-directory: apps/admin
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_ADMIN_SITE_ID }}
-        timeout-minutes: 10
 
   deploy-client:
     name: Deploy Client App
@@ -127,13 +115,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build workspace packages
-        run: pnpm build:packages
-        env:
-          NODE_ENV: production
-
-      - name: Build Client App
-        run: pnpm build:client
+      - name: Build with Netlify CLI
+        run: pnpm dlx netlify-cli@17 build --context=production
+        working-directory: apps/client
         env:
           NODE_ENV: production
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -141,19 +125,11 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v3.0
-        with:
-          publish-dir: "./apps/client/.next"
-          production-branch: main
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: true
-          enable-commit-comment: true
-          overwrites-pull-request-comment: true
+        run: pnpm dlx netlify-cli@17 deploy --prod --dir=.netlify/build --site=$NETLIFY_SITE_ID --message "Deploy from GitHub Actions" --yes
+        working-directory: apps/client
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_CLIENT_SITE_ID }}
-        timeout-minutes: 10
 
   preview:
     name: Preview Deployment
