@@ -7,7 +7,9 @@
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
   "scripts": {
-    "build": "pnpm run clean && tsup src/index.ts --format cjs,esm && tsc -p tsconfig.json",
+    "build": "pnpm run clean && pnpm run build:esm && pnpm run build:cjs",
+    "build:esm": "tsc -p tsconfig.build.esm.json",
+    "build:cjs": "tsc -p tsconfig.build.cjs.json && node ../../scripts/build/prepare-cjs.mjs dist/cjs",
     "clean": "rimraf dist",
     "lint": "node ../../config/tooling/scripts/run-eslint.mjs ./src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
