@@ -4,6 +4,15 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Import PWA configuration conditionally
+let withPWA = (config) => config;
+try {
+  const pwaModule = await import("./next.config.pwa.mjs");
+  withPWA = pwaModule.default;
+} catch {
+  // PWA config not available, continue without it
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -44,4 +53,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);

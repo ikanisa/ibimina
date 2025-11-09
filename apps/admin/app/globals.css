@@ -106,6 +106,47 @@ button {
   transition: box-shadow var(--motion-duration-150, 150ms) var(--motion-ease-standard, ease);
 }
 
+/* High contrast mode support for accessibility */
+@media (prefers-contrast: high) {
+  :root {
+    --color-foreground: hsl(0, 0%, 0%);
+    --color-background: hsl(0, 0%, 100%);
+    --color-border: hsl(0, 0%, 0%);
+    --color-border-strong: hsl(0, 0%, 0%);
+    --color-canvas: hsl(0, 0%, 100%);
+  }
+  
+  [data-theme="dark"],
+  [data-theme="nyungwe"],
+  .theme-dark,
+  .theme-nyungwe {
+    --color-foreground: hsl(0, 0%, 100%);
+    --color-background: hsl(0, 0%, 0%);
+    --color-border: hsl(0, 0%, 100%);
+    --color-border-strong: hsl(0, 0%, 100%);
+    --color-canvas: hsl(0, 0%, 0%);
+  }
+
+  /* Ensure all text has maximum contrast */
+  body {
+    color: var(--color-foreground);
+    background: var(--color-background);
+  }
+
+  /* Buttons and interactive elements */
+  button,
+  a,
+  [role="button"] {
+    border-width: 2px;
+  }
+
+  /* Focus indicators more prominent */
+  *:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
 a,
 button {
   transition:
@@ -175,4 +216,209 @@ textarea,
 select,
 button {
   font: inherit;
+}
+
+/* ============================================
+   Utility Classes for Theme Support
+   ============================================ */
+
+/* Text utilities for better readability */
+.text-readable {
+  color: var(--color-foreground);
+}
+
+.text-muted-readable {
+  color: var(--color-foreground-subtle);
+}
+
+/* Background utilities */
+.bg-surface {
+  background-color: var(--color-canvas);
+}
+
+.bg-surface-elevated {
+  background-color: var(--color-surface);
+}
+
+/* Border utilities */
+.border-default {
+  border-color: var(--color-border);
+}
+
+.border-strong {
+  border-color: var(--color-border-strong);
+}
+
+/* Shadow utilities for dark mode */
+.shadow-elevated {
+  box-shadow: var(--shadow-1);
+}
+
+[data-theme="dark"] .shadow-elevated,
+[data-theme="nyungwe"] .shadow-elevated {
+  box-shadow: var(--shadow-2);
+}
+
+/* Card components with proper dark mode support */
+.card-elevated {
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  box-shadow: var(--shadow-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 0.5rem);
+}
+
+[data-theme="dark"] .card-elevated,
+[data-theme="nyungwe"] .card-elevated {
+  box-shadow: var(--shadow-2);
+}
+
+/* Form inputs with better dark mode visibility */
+.input-field {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  color: var(--color-foreground);
+}
+
+.input-field::placeholder {
+  color: var(--color-foreground-subtle);
+  opacity: 0.6;
+}
+
+.input-field:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: var(--focus-ring);
+}
+
+[data-theme="dark"] .input-field,
+[data-theme="nyungwe"] .input-field {
+  background: var(--color-surface-hover);
+}
+
+/* Button variants with proper contrast */
+.btn-primary {
+  background: var(--color-primary-500);
+  color: var(--color-foreground-inverse);
+  border: none;
+  transition: background-color 200ms ease;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-600);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-foreground);
+  border: 1px solid var(--color-border);
+  transition: all 200ms ease;
+}
+
+.btn-secondary:hover {
+  background: var(--color-surface-hover);
+}
+
+.btn-destructive {
+  background: var(--color-danger-500);
+  color: var(--color-foreground-inverse);
+  border: none;
+  transition: background-color 200ms ease;
+}
+
+.btn-destructive:hover {
+  background: var(--color-danger-600);
+}
+
+/* Status badges with proper contrast */
+.badge-success {
+  background: hsl(142, 76%, 36%);
+  color: hsl(0, 0%, 100%);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .badge-success,
+[data-theme="nyungwe"] .badge-success {
+  background: hsl(142, 60%, 25%);
+  color: hsl(142, 76%, 80%);
+}
+
+.badge-warning {
+  background: hsl(48, 96%, 53%);
+  color: hsl(24, 20%, 20%);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .badge-warning,
+[data-theme="nyungwe"] .badge-warning {
+  background: hsl(48, 80%, 30%);
+  color: hsl(48, 96%, 80%);
+}
+
+.badge-error {
+  background: hsl(0, 84%, 60%);
+  color: hsl(0, 0%, 100%);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .badge-error,
+[data-theme="nyungwe"] .badge-error {
+  background: hsl(0, 70%, 35%);
+  color: hsl(0, 84%, 85%);
+}
+
+.badge-info {
+  background: hsl(217, 91%, 60%);
+  color: hsl(0, 0%, 100%);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .badge-info,
+[data-theme="nyungwe"] .badge-info {
+  background: hsl(217, 80%, 35%);
+  color: hsl(217, 91%, 85%);
+}
+
+/* Table styles with proper contrast */
+.table-header {
+  background: var(--color-surface-hover);
+  color: var(--color-foreground);
+  font-weight: 600;
+}
+
+.table-row {
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color 150ms ease;
+}
+
+.table-row:hover {
+  background: var(--color-surface-hover);
+}
+
+/* Navigation items with proper contrast */
+.nav-item {
+  color: var(--color-foreground-subtle);
+  transition: all 150ms ease;
+}
+
+.nav-item:hover {
+  color: var(--color-foreground);
+  background: var(--color-surface-hover);
+}
+
+.nav-item-active {
+  background: var(--color-surface-hover);
+  color: var(--color-foreground);
+  font-weight: 500;
 }
