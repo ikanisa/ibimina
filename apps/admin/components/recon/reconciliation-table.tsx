@@ -186,6 +186,10 @@ export function ReconciliationTable({ rows, saccoId, canWrite }: ReconciliationT
   const { success: toastSuccess, error: toastError } = useToast();
   const offlineQueue = useOfflineQueue();
 
+  useEffect(() => {
+    setNewStatus(selected?.status ?? "POSTED");
+  }, [selected]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [showLowConfidence, setShowLowConfidence] = useState(false);
