@@ -42,9 +42,13 @@ async function fetchIkiminaDirectory(
     .order("updated_at", { ascending: false })
     .limit(500);
 
+  // If not includeAll and no saccoId, return early (already handled above)
+  // If not includeAll but have saccoId, filter by it
   const { data, error } = includeAll
     ? await baseQuery
-    : await baseQuery.eq("sacco_id", saccoId ?? "");
+    : saccoId
+      ? await baseQuery.eq("sacco_id", saccoId)
+      : { data: [], error: null };
 
   if (error) {
     throw error;
