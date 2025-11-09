@@ -272,7 +272,7 @@ export function DataTable<TData>({
 
   useEffect(() => {
     onRowSelectionChange?.(table.getSelectedRowModel().rows.map((row) => row.original));
-  }, [onRowSelectionChange, table]);
+  }, [onRowSelectionChange, rowSelection, table]);
 
   const isMobile = useMediaQuery("(max-width: 640px)");
   const densityDefinition = getDensityMeta(density);
