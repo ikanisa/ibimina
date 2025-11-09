@@ -16,15 +16,15 @@ type ButtonSize = "sm" | "md" | "lg";
  */
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-neutral-900 text-white hover:bg-neutral-800 active:bg-neutral-950 focus-visible:ring-neutral-900 disabled:opacity-50",
+    "bg-neutral-900 text-white hover:bg-neutral-800 active:bg-neutral-950 focus-visible:ring-neutral-900 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200 dark:active:bg-neutral-300 dark:focus-visible:ring-neutral-100",
   secondary:
-    "bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300 focus-visible:ring-neutral-500 disabled:opacity-50",
+    "bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300 focus-visible:ring-neutral-500 disabled:opacity-50 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 dark:active:bg-neutral-600 dark:focus-visible:ring-neutral-400",
   outline:
-    "border-2 border-neutral-300 text-neutral-900 hover:bg-neutral-50 active:bg-neutral-100 focus-visible:ring-neutral-500 disabled:opacity-50",
+    "border-2 border-neutral-300 text-neutral-900 hover:bg-neutral-50 active:bg-neutral-100 focus-visible:ring-neutral-500 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-800 dark:active:bg-neutral-700 dark:focus-visible:ring-neutral-400",
   ghost:
-    "text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-neutral-500 disabled:opacity-50",
+    "text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-neutral-500 disabled:opacity-50 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:active:bg-neutral-700 dark:focus-visible:ring-neutral-400",
   danger:
-    "bg-error-600 text-white hover:bg-error-700 active:bg-error-800 focus-visible:ring-error-600 disabled:opacity-50",
+    "bg-error-600 text-white hover:bg-error-700 active:bg-error-800 focus-visible:ring-error-600 disabled:opacity-50 dark:bg-error-500 dark:hover:bg-error-600 dark:active:bg-error-700 dark:focus-visible:ring-error-500",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {

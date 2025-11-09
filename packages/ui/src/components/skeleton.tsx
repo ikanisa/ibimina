@@ -20,7 +20,7 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        "relative overflow-hidden bg-neutral-200 animate-pulse",
+        "relative overflow-hidden bg-neutral-200 dark:bg-neutral-700 animate-pulse",
         variant === "default" && "rounded-lg",
         variant === "text" && "rounded h-4",
         variant === "circular" && "rounded-full",
@@ -32,7 +32,7 @@ export function Skeleton({
       aria-live={ariaLabel ? "polite" : undefined}
     >
       <div
-        className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/60 to-transparent"
+        className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/60 dark:via-white/20 to-transparent"
         aria-hidden="true"
         style={{
           animation: "shimmer 2s infinite",
@@ -47,7 +47,7 @@ export function Skeleton({
  */
 export function CardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("border border-neutral-200 rounded-xl p-6 space-y-4", className)}>
+    <div className={cn("border border-neutral-200 dark:border-neutral-700 rounded-xl p-6 space-y-4", className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 space-y-2">
           <Skeleton className="h-6 w-3/4" variant="text" />
