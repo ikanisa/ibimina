@@ -50,13 +50,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-neutral-900">
+        <label htmlFor={id} className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
           {label}
         </label>
       )}
       <div className="relative">
         {leftIcon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 dark:text-neutral-400 pointer-events-none">
             {leftIcon}
           </div>
         )}
@@ -70,14 +70,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             // Base styles
             "w-full rounded-lg border transition-all duration-200",
             "text-neutral-900 placeholder:text-neutral-400",
+            "dark:text-neutral-100 dark:placeholder:text-neutral-500",
+            "bg-white dark:bg-neutral-800",
             "focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-brand-blue",
+            "dark:focus:ring-brand-blue-light dark:focus:border-brand-blue-light",
             "disabled:bg-neutral-100 disabled:text-neutral-500 disabled:cursor-not-allowed",
+            "dark:disabled:bg-neutral-900 dark:disabled:text-neutral-600",
             // Size variants
             SIZE_CLASSES[inputSize],
             // Error state
             error
               ? "border-error-500 focus:ring-error-500 focus:border-error-500"
-              : "border-neutral-300",
+              : "border-neutral-300 dark:border-neutral-700",
             // Icon padding
             leftIcon ? "pl-10" : "",
             rightIcon ? "pr-10" : "",
@@ -86,7 +90,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {...props}
         />
         {rightIcon && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 dark:text-neutral-400 pointer-events-none">
             {rightIcon}
           </div>
         )}
@@ -103,7 +107,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         </span>
       )}
       {helperText && !error && (
-        <span id={helperTextId} className="text-sm text-neutral-600">
+        <span id={helperTextId} className="text-sm text-neutral-600 dark:text-neutral-400">
           {helperText}
         </span>
       )}
