@@ -36,6 +36,21 @@ CREATE POLICY "rate_limit_counters_service_only" ON public.rate_limit_counters
   USING (true)
   WITH CHECK (true);
 
+-- Ensure public.consume_rate_limit can continue to operate for authenticated callers
+ALTER FUNCTION public.consume_rate_limit(
+  p_key TEXT,
+  p_max_hits INTEGER,
+  p_window_seconds INTEGER
+)
+  SECURITY DEFINER;
+
+ALTER FUNCTION public.consume_rate_limit(
+  p_key TEXT,
+  p_max_hits INTEGER,
+  p_window_seconds INTEGER
+)
+  SET search_path = public;
+
 -- Enable RLS for sms_templates
 -- SMS templates should be readable by staff of the SACCO
 ALTER TABLE public.sms_templates ENABLE ROW LEVEL SECURITY;
