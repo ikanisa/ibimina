@@ -123,7 +123,9 @@ export function useCommandPaletteActions(
     () => (typeof actions === "function" ? actions() : actions),
     memoDeps
   );
-  useEffect(() => registerActions(key, computedActions), [computedActions, key, registerActions]);
+  useEffect(() => {
+    return registerActions(key, computedActions);
+  }, [computedActions, key, registerActions]);
 }
 
 export function useCommandPaletteFilters(
@@ -137,10 +139,9 @@ export function useCommandPaletteFilters(
     () => (typeof generators === "function" ? generators() : generators),
     memoDeps
   );
-  useEffect(
-    () => registerFilterGenerators(key, computedGenerators),
-    [computedGenerators, key, registerFilterGenerators]
-  );
+  useEffect(() => {
+    return registerFilterGenerators(key, computedGenerators);
+  }, [computedGenerators, key, registerFilterGenerators]);
 }
 
 type SearchCacheEntry = {
