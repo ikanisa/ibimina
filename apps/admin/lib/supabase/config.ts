@@ -1,6 +1,8 @@
+import { logError, logWarn } from "@/lib/observability/logger";
+
 const DEFAULT_STUB_URL = process.env.SUPABASE_STUB_URL?.trim() || "http://127.0.0.1:54321";
 const DEFAULT_STUB_ANON_KEY = process.env.SUPABASE_STUB_ANON_KEY?.trim() || "stub-anon-key";
-const ALLOWED_STUB_ENV = new Set(["development", "local", "test"]);
+const ALLOWED_STUB_ENV = new Set(["development", "local"]);
 
 export type SupabaseConfig = {
   url: string;
@@ -32,14 +34,20 @@ function getAppEnvironment(): string {
   return (process.env.APP_ENV ?? process.env.NODE_ENV ?? "development").toLowerCase();
 }
 
-function shouldAllowStubConfig(): boolean {
+function shouldAllowStubConfig(status: SupabaseConfigStatus): boolean {
   if (process.env.SUPABASE_ALLOW_STUB === "1") {
     return true;
   }
   if (process.env.SUPABASE_ALLOW_STUB === "0") {
     return false;
   }
-  return ALLOWED_STUB_ENV.has(getAppEnvironment());
+  if (!ALLOWED_STUB_ENV.has(getAppEnvironment())) {
+    return false;
+  }
+
+  const stubUrl = process.env.SUPABASE_STUB_URL?.trim();
+  const stubAnonKey = process.env.SUPABASE_STUB_ANON_KEY?.trim();
+  return Boolean(stubUrl || stubAnonKey);
 }
 
 const warnedStubContexts = new Set<string>();
@@ -78,7 +86,7 @@ export function requireSupabaseConfig(context: string): SupabaseConfig {
   const status = readSupabaseEnv();
 
   if (!status.hasUrl || !status.hasAnonKey) {
-    if (shouldAllowStubConfig()) {
+    if (shouldAllowStubConfig(status)) {
       warnStubFallback(context, status);
       return getStubSupabaseConfig();
     }

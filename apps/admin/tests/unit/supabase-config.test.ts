@@ -80,9 +80,21 @@ describe("supabase config helpers", () => {
     }
 
     assert.equal(errorLogs.length, 1);
-    assert.deepEqual(errorLogs[0], [
-      "supabase.config.missing",
-      { context: "unit-test", hasUrl: false, hasAnonKey: false },
-    ]);
+    const [firstEntry] = errorLogs;
+
+    if (firstEntry.length === 1 && typeof firstEntry[0] === "string") {
+      const parsed = JSON.parse(String(firstEntry[0]));
+      assert.equal(parsed.event, "supabase.config.missing");
+      assert.deepEqual(parsed.payload, {
+        context: "unit-test",
+        hasUrl: false,
+        hasAnonKey: false,
+      });
+    } else {
+      assert.deepEqual(firstEntry, [
+        "supabase.config.missing",
+        { context: "unit-test", hasUrl: false, hasAnonKey: false },
+      ]);
+    }
   });
 });
