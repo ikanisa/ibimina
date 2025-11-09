@@ -5,10 +5,10 @@ import { useToast } from "@/providers/toast-provider";
 
 /**
  * PWA Update Notifier
- * 
+ *
  * Detects when a new version of the PWA is available and prompts the user to update.
  * Uses the Workbox service worker lifecycle events to detect updates.
- * 
+ *
  * Features:
  * - Automatic update detection
  * - User-friendly toast notification
@@ -41,7 +41,7 @@ export function PWAUpdateNotifier() {
     const checkForUpdates = async () => {
       try {
         const registration = await navigator.serviceWorker.getRegistration();
-        
+
         if (!registration) {
           return;
         }
@@ -68,13 +68,16 @@ export function PWAUpdateNotifier() {
         navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
 
         // Check for updates periodically (every 5 minutes)
-        const interval = setInterval(async () => {
-          try {
-            await registration.update();
-          } catch {
-            // Ignore update errors
-          }
-        }, 5 * 60 * 1000);
+        const interval = setInterval(
+          async () => {
+            try {
+              await registration.update();
+            } catch {
+              // Ignore update errors
+            }
+          },
+          5 * 60 * 1000
+        );
 
         return () => {
           clearInterval(interval);
@@ -93,7 +96,8 @@ export function PWAUpdateNotifier() {
       // Show toast with update button
       const updateButton = document.createElement("button");
       updateButton.textContent = "Update Now";
-      updateButton.className = "ml-3 text-sm font-medium text-primary-500 hover:text-primary-600 underline";
+      updateButton.className =
+        "ml-3 text-sm font-medium text-primary-500 hover:text-primary-600 underline";
       updateButton.onclick = () => {
         waitingWorker.postMessage({ type: "SKIP_WAITING" });
         setShowReload(false);
@@ -111,7 +115,7 @@ export function PWAUpdateNotifier() {
 
       // Use custom toast implementation
       success("A new version is available. Click 'Update Now' to refresh.");
-      
+
       setShowReload(false);
     }
   }, [showReload, waitingWorker, success]);
@@ -121,7 +125,7 @@ export function PWAUpdateNotifier() {
 
 /**
  * PWA Install Prompt Enhanced
- * 
+ *
  * Enhances the existing PWA install prompt with better UX.
  * Shows a banner when the app can be installed.
  */
@@ -157,7 +161,7 @@ export function PWAInstallPromptEnhanced() {
 
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     if (outcome === "accepted") {
       setDeferredPrompt(null);
       setShowInstall(false);

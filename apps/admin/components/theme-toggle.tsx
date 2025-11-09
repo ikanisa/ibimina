@@ -5,10 +5,10 @@ import { useTheme } from "next-themes";
 
 /**
  * Theme Toggle Component
- * 
+ *
  * Provides a dropdown menu to switch between light, dark, and nyungwe themes.
  * Uses next-themes for theme management with proper SSR support.
- * 
+ *
  * Features:
  * - System preference detection
  * - Smooth theme transitions
@@ -31,12 +31,7 @@ export function ThemeToggle() {
         className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--color-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:ring-offset-2"
         aria-label="Toggle theme"
       >
-        <svg
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -114,18 +109,8 @@ export function ThemeToggle() {
       >
         {getThemeIcon(theme || "light")}
         <span className="hidden sm:inline">{getThemeLabel(theme || "light")}</span>
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
     </div>
@@ -134,7 +119,7 @@ export function ThemeToggle() {
 
 /**
  * Simple Theme Toggle Button (Icon Only)
- * 
+ *
  * A minimal theme toggle that cycles through themes without a dropdown.
  * Perfect for mobile or compact layouts.
  */
