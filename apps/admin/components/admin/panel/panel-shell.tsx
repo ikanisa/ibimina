@@ -27,7 +27,7 @@ import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { AdminPanelTopBar } from "@/components/admin/panel/top-bar";
 import type { PanelBadgeTone, PanelIconKey, TenantOption } from "@/components/admin/panel/types";
-import { ADMIN_NAV_LINKS } from "@/components/admin/panel/nav-items";
+import { ADMIN_NAV_LINKS, ADMIN_NAV_GROUPS } from "@/components/admin/panel/nav-items";
 import { AdminPanelShortcuts } from "@/components/admin/panel/shortcuts";
 import {
   CommandPaletteProvider,
@@ -177,44 +177,59 @@ export function AdminPanelShell({
   }, [alertsBreakdown.approvals, alertsBreakdown.reconciliation]);
 
   const nav = (
-    <nav className="flex h-full flex-col gap-1.5 overflow-y-auto p-3">
-      {navItems.map((item) => {
-        const Icon = ICON_MAP[item.icon];
-        const isActive = activePath === item.href;
-        return (
-          <Link
-            key={item.href}
-            href={{ pathname: item.href, query: saccoFilter ? { sacco: saccoFilter } : undefined }}
-            onClick={() => setMobileOpen(false)}
-            className={cn(
-              "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-interactive",
-              isActive
-                ? "bg-atlas-blue text-white shadow-atlas shadow-atlas-blue/30"
-                : "text-neutral-700 hover:bg-atlas-blue/5 hover:text-atlas-blue-dark dark:text-neutral-100 dark:hover:bg-atlas-blue/10 dark:hover:text-atlas-blue"
-            )}
-          >
-            <Icon className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate">{item.label}</span>
-            {item.badge && (
-              <span
-                className={cn(
-                  "ml-auto inline-flex min-h-[1.25rem] items-center justify-center rounded-full px-2 text-[0.625rem] font-semibold uppercase tracking-wider",
-                  item.badge.tone === "critical" &&
-                    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
-                  item.badge.tone === "warning" &&
-                    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200",
-                  item.badge.tone === "info" &&
-                    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200",
-                  item.badge.tone === "success" &&
-                    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200"
-                )}
-              >
-                {item.badge.label}
-              </span>
-            )}
-          </Link>
-        );
-      })}
+    <nav className="flex h-full flex-col gap-2 overflow-y-auto p-3">
+      {ADMIN_NAV_GROUPS.map((group, groupIndex) => (
+        <div key={group.title} className={cn(groupIndex > 0 && "mt-2")}>
+          <h3 className="mb-1.5 px-3.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+            {group.title}
+          </h3>
+          <div className="flex flex-col gap-1">
+            {group.links.map((link) => {
+              const navItem = navItems.find((item) => item.href === link.href);
+              if (!navItem) return null;
+
+              const Icon = ICON_MAP[navItem.icon];
+              const isActive = activePath === navItem.href;
+              return (
+                <Link
+                  key={navItem.href}
+                  href={{
+                    pathname: navItem.href,
+                    query: saccoFilter ? { sacco: saccoFilter } : undefined,
+                  }}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-interactive",
+                    isActive
+                      ? "bg-atlas-blue text-white shadow-atlas shadow-atlas-blue/30"
+                      : "text-neutral-700 hover:bg-atlas-blue/5 hover:text-atlas-blue-dark dark:text-neutral-100 dark:hover:bg-atlas-blue/10 dark:hover:text-atlas-blue"
+                  )}
+                >
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{navItem.label}</span>
+                  {navItem.badge && (
+                    <span
+                      className={cn(
+                        "ml-auto inline-flex min-h-[1.25rem] items-center justify-center rounded-full px-2 text-[0.625rem] font-semibold uppercase tracking-wider",
+                        navItem.badge.tone === "critical" &&
+                          "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
+                        navItem.badge.tone === "warning" &&
+                          "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200",
+                        navItem.badge.tone === "info" &&
+                          "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200",
+                        navItem.badge.tone === "success" &&
+                          "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200"
+                      )}
+                    >
+                      {navItem.badge.label}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   );
 
