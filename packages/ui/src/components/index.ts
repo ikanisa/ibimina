@@ -46,5 +46,11 @@ export type {
 export { SavedViews, useSavedViews } from "./saved-views";
 export type { SavedView, FilterValue, SavedViewsProps } from "./saved-views";
 
+export { VirtualTable, VirtualList } from "./virtual-table";
+export type { VirtualTableProps, VirtualTableColumn, VirtualListProps } from "./virtual-table";
+
+export { PWAInstallPrompt, PWAUpdateBanner, usePWAInstall } from "./pwa-install";
+export type { PWAInstallPromptProps, PWAUpdateBannerProps } from "./pwa-install";
+
 // Accessibility Components
 export * from "./accessibility/AccessibleActionButton";
