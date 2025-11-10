@@ -47,14 +47,14 @@ export function AdminPanelTopBar({
           <button
             type="button"
             onClick={openPalette}
-            className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-neutral-100 px-3 py-2 text-sm text-neutral-900 shadow-sm transition hover:bg-neutral-200 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-neutral-300 bg-neutral-100 px-4 py-2.5 text-sm text-neutral-900 shadow-sm transition hover:bg-neutral-200 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600"
             aria-haspopup="dialog"
             aria-expanded={paletteOpen}
-            aria-label="Search"
+            aria-label="Search operations, SACCOs, members, and more"
           >
             <Search className="h-4 w-4" />
-            <span className="hidden sm:inline">Search</span>
-            <kbd className="hidden rounded bg-neutral-200 px-2 py-0.5 text-[10px] font-semibold text-neutral-700 dark:bg-neutral-600 dark:text-neutral-200 sm:inline">
+            <span className="hidden md:inline">Search</span>
+            <kbd className="hidden rounded bg-neutral-200 px-2 py-0.5 text-[10px] font-semibold text-neutral-700 dark:bg-neutral-600 dark:text-neutral-200 md:inline">
               ⌘K
             </kbd>
           </button>
