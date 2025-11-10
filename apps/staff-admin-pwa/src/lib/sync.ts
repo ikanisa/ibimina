@@ -32,10 +32,20 @@ type SyncCapableRegistration = ServiceWorkerRegistration & {
   };
 };
 
-const serviceWorkerPrototype = ServiceWorkerRegistration.prototype as SyncCapableRegistration;
+const hasServiceWorkerRegistration =
+  typeof ServiceWorkerRegistration !== 'undefined';
+
+const serviceWorkerPrototype: SyncCapableRegistration | undefined =
+  hasServiceWorkerRegistration
+    ? (ServiceWorkerRegistration.prototype as SyncCapableRegistration)
+    : undefined;
 
 export const setupBackgroundSync = (): void => {
-  if ('serviceWorker' in navigator && 'sync' in serviceWorkerPrototype) {
+  if (
+    'serviceWorker' in navigator &&
+    serviceWorkerPrototype &&
+    'sync' in serviceWorkerPrototype
+  ) {
     window.addEventListener('online', () => {
       navigator.serviceWorker.ready.then((registration) => {
         const syncCapableRegistration = registration as SyncCapableRegistration;
