@@ -29,7 +29,7 @@ export * from "./theme";
 export * from "./utils/cn";
 export * from "./utils/blur-placeholder";
 export * from "./utils/accessibility";
-export * from "./utils/bundle-optimization.tsx";
+export * from "./utils/bundle-optimization";
 
 // Accessibility
 export * from "./components/accessibility/AccessibleActionButton";

@@ -154,7 +154,7 @@ export const ListCard = forwardRef<HTMLDivElement, ListCardProps>(function ListC
  * InfoCard - For informational content with icon
  * Consolidates: alert-card, banner-card, notice-card
  */
-export interface InfoCardProps extends CardProps {
+export interface InfoCardProps extends Omit<CardProps, "variant"> {
   variant?: "info" | "success" | "warning" | "error";
   title?: string;
   message: ReactNode;
