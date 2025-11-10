@@ -15,13 +15,14 @@ export function StaffNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap gap-2">
+    <nav className="flex flex-wrap gap-2" aria-label="Staff navigation">
       {NAV_ITEMS.map((item) => {
         const isActive = pathname?.startsWith(item.href);
         return (
           <Link
             key={item.href}
             href={item.href}
+            aria-current={isActive ? "page" : undefined}
             className={cn(
               "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
               isActive

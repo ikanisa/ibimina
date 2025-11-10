@@ -198,6 +198,7 @@ export function AdminPanelShell({
                     query: saccoFilter ? { sacco: saccoFilter } : undefined,
                   }}
                   onClick={() => setMobileOpen(false)}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-interactive",
                     isActive
@@ -205,7 +206,7 @@ export function AdminPanelShell({
                       : "text-neutral-700 hover:bg-atlas-blue/5 hover:text-atlas-blue-dark dark:text-neutral-100 dark:hover:bg-atlas-blue/10 dark:hover:text-atlas-blue"
                   )}
                 >
-                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                   <span className="truncate">{navItem.label}</span>
                   {navItem.badge && (
                     <span
