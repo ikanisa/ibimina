@@ -1,17 +1,38 @@
 {
-  "welcome": "Murakaza neza!",
-  "quickActions": "Ibikorwa Byihuse",
-  "myGroups": "Amatsinda Yanjye",
-  "recentActivity": "Ibikorwa Biheruka",
-  "noGroups": "Nturafite itsinda",
-  "joinFirstGroup": "Injira mu itsinda rya mbere",
-  "totalSavings": "Amafaranga Yose",
-  "recentConfirmations": "Byemejwe Vuba",
-  "noActivity": "Nta bikorwa",
-  "actions": {
-    "pay": "Kwishyura",
-    "viewGroups": "Reba Amatsinda",
-    "viewStatements": "Reba Raporo",
-    "joinGroup": "Injira mu Itsinda"
+  "quickActions": {
+    "title": "Ibikorwa byihuse",
+    "items": {
+      "pay": {
+        "label": "Ishyura imisanzu"
+      },
+      "send": {
+        "label": "Ohereza amafaranga"
+      },
+      "loan": {
+        "label": "Saba inguzanyo"
+      },
+      "statement": {
+        "label": "Reba raporo"
+      }
+    }
+  },
+  "cards": {
+    "balance": {
+      "label": "Umubare w'ubwizigame"
+    },
+    "activity": {
+      "title": "Ibikorwa biheruka",
+      "empty": "Nta bikorwa biheruka"
+    },
+    "deadlines": {
+      "title": "Ibyishyurwa biri hafi",
+      "empty": "Nta byishyurwa biri hafi",
+      "cta": "Ishyura"
+    }
+  },
+  "groups": {
+    "title": "Amatsinda yanjye",
+    "empty": "Nturinjira mu itsinda na rimwe.",
+    "cta": "Shakisha amatsinda"
   }
 }
