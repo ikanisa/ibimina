@@ -19,7 +19,9 @@
     "back": "Subira",
     "next": "Komeza",
     "done": "Byarangiye",
-    "retry": "Ongera ugerageze"
+    "retry": "Ongera ugerageze",
+    "sync": "Sunganya",
+    "clear": "Siba urutonde"
   },
   "status": {
     "loading": "Biratunganywa...",
@@ -28,7 +30,9 @@
     "pending": "Bitegerezwa",
     "confirmed": "Byemejwe",
     "failed": "Ntibyakunze",
-    "processing": "Biratunganywa"
+    "processing": "Biratunganywa",
+    "offline": "Nta interineti",
+    "online": "Hifashijwe interineti"
   },
   "errors": {
     "generic": "Habaye ikosa. Ongera ugerageze.",
@@ -36,5 +40,16 @@
     "unauthorized": "Nturemerewe gukora ibi.",
     "notFound": "Ntabwo byabonetse.",
     "validation": "Reba amakuru wanditse hanyuma wongere ugerageze."
+  },
+  "theme": {
+    "light": "Uburyo bwa kumunsi",
+    "dark": "Uburyo bwa nijoro"
+  },
+  "offlineBanner": {
+    "offline": "Nta interineti: amakuru aheruka abitswe",
+    "queuedOne": "{{count}} igikorwa kirategereje",
+    "queuedOther": "{{count}} ibikorwa birategereje",
+    "sync": "Sunganya nonaha",
+    "clear": "Siba urutonde"
   }
 }

@@ -19,7 +19,9 @@
     "back": "Retour",
     "next": "Suivant",
     "done": "Terminé",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "sync": "Synchroniser",
+    "clear": "Vider"
   },
   "status": {
     "loading": "Chargement...",
@@ -28,7 +30,9 @@
     "pending": "En attente",
     "confirmed": "Confirmé",
     "failed": "Échoué",
-    "processing": "En traitement"
+    "processing": "En traitement",
+    "offline": "Hors ligne",
+    "online": "En ligne"
   },
   "errors": {
     "generic": "Une erreur s'est produite. Veuillez réessayer.",
@@ -36,5 +40,16 @@
     "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action.",
     "notFound": "Ressource non trouvée.",
     "validation": "Veuillez vérifier vos entrées et réessayer."
+  },
+  "theme": {
+    "light": "Mode clair",
+    "dark": "Mode sombre"
+  },
+  "offlineBanner": {
+    "offline": "Hors ligne : dernières données mises en cache",
+    "queuedOne": "{{count}} action en attente",
+    "queuedOther": "{{count}} actions en attente",
+    "sync": "Synchroniser maintenant",
+    "clear": "Vider la file"
   }
 }

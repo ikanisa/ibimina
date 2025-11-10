@@ -19,7 +19,9 @@
     "back": "Back",
     "next": "Next",
     "done": "Done",
-    "retry": "Retry"
+    "retry": "Retry",
+    "sync": "Sync",
+    "clear": "Clear"
   },
   "status": {
     "loading": "Loading...",
@@ -28,7 +30,9 @@
     "pending": "Pending",
     "confirmed": "Confirmed",
     "failed": "Failed",
-    "processing": "Processing"
+    "processing": "Processing",
+    "offline": "Offline",
+    "online": "Online"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -36,5 +40,16 @@
     "unauthorized": "You are not authorized to perform this action.",
     "notFound": "Resource not found.",
     "validation": "Please check your input and try again."
+  },
+  "theme": {
+    "light": "Light mode",
+    "dark": "Dark mode"
+  },
+  "offlineBanner": {
+    "offline": "Offline: recent data cached",
+    "queuedOne": "{{count}} action queued",
+    "queuedOther": "{{count}} actions queued",
+    "sync": "Sync now",
+    "clear": "Clear queue"
   }
 }

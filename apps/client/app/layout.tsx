@@ -21,7 +21,9 @@ import "./globals.css";
 import { FeatureFlagProvider } from "@/components/FeatureFlagProvider";
 import { ToastProvider } from "@/components/ui/base";
 import { loadFeatureFlags } from "@/lib/feature-flags/service";
-import { ClientBottomNav } from "@/components/ui/client-bottom-nav";
+import { AppShell } from "@/src/components/layout/AppShell";
+import { UIProvider } from "@/src/state/ui-store";
+import { defaultLocale } from "../i18n";
 
 export const metadata: Metadata = {
   title: {
@@ -64,8 +66,8 @@ export default async function RootLayout({
   const featureFlags = await loadFeatureFlags();
 
   return (
-    <html lang="en">
-      <body className="bg-gray-50">
+    <html lang={defaultLocale}>
+      <body className="antialiased">
         <ToastProvider>
           <FeatureFlagProvider initialFlags={featureFlags}>
             {/* Skip to main content link for keyboard navigation */}
@@ -76,11 +78,9 @@ export default async function RootLayout({
               Skip to main content
             </a>
 
-            {/* Main content */}
-            <div id="main-content">{children}</div>
-
-            {/* Bottom Navigation - conditionally rendered */}
-            <ClientBottomNav />
+            <UIProvider>
+              <AppShell mainId="main-content">{children}</AppShell>
+            </UIProvider>
           </FeatureFlagProvider>
         </ToastProvider>
       </body>
