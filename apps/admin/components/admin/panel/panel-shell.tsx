@@ -190,7 +190,7 @@ export function AdminPanelShell({
               "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-interactive",
               isActive
                 ? "bg-atlas-blue text-white shadow-atlas shadow-atlas-blue/30"
-                : "text-neutral-600 hover:bg-atlas-blue/5 hover:text-atlas-blue-dark dark:text-neutral-300 dark:hover:bg-atlas-blue/10"
+                : "text-neutral-700 hover:bg-atlas-blue/5 hover:text-atlas-blue-dark dark:text-neutral-100 dark:hover:bg-atlas-blue/10 dark:hover:text-atlas-blue"
             )}
           >
             <Icon className="h-4 w-4 flex-shrink-0" />
@@ -225,7 +225,7 @@ export function AdminPanelShell({
       actionGroups={paletteActionGroups}
     >
       <AdminPanelShortcuts>
-        <div className="flex min-h-screen flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
+        <div className="flex min-h-screen flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-950">
           <AdminPanelTopBar
             profile={profile}
             tenantOptions={tenantOptions}
@@ -234,7 +234,7 @@ export function AdminPanelShell({
             alertsBreakdown={alertsBreakdown}
           />
           <div className="flex flex-1">
-            <aside className="hidden w-64 flex-shrink-0 border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:block">
+            <aside className="hidden w-64 flex-shrink-0 border-r border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800 lg:block">
               {nav}
             </aside>
             <div className="flex-1">
@@ -257,7 +257,7 @@ export function AdminPanelShell({
                 role="presentation"
               >
                 <div
-                  className="absolute inset-x-4 bottom-20 rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
+                  className="absolute inset-x-4 bottom-20 rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-600 dark:bg-neutral-800"
                   onClick={(e) => e.stopPropagation()}
                   role="dialog"
                   aria-modal="true"
