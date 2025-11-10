@@ -16,6 +16,9 @@ import {
   type TenantScopeSearchParamsInput,
 } from "@/lib/admin/scope";
 
+// Settings change infrequently, enable caching with revalidation
+export const revalidate = 300; // 5 minutes
+
 interface SettingsPageProps {
   searchParams?: TenantScopeSearchParamsInput;
 }

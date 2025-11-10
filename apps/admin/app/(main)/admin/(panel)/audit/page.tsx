@@ -14,6 +14,9 @@ import {
   type TenantScopeSearchParamsInput,
 } from "@/lib/admin/scope";
 
+// Audit logs are historical, can be cached with short revalidation
+export const revalidate = 60; // 1 minute
+
 interface AuditPageProps {
   searchParams?: TenantScopeSearchParamsInput;
 }

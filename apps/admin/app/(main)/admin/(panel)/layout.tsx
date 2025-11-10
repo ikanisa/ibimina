@@ -4,13 +4,36 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { isMissingRelationError } from "@/lib/supabase/errors";
 import { AdminPanelShell } from "@/components/admin/panel/panel-shell";
 import type { TenantOption } from "@/components/admin/panel/types";
+import { unstable_cache } from "next/cache";
 
-async function getTenantOptions(
-  profile: Awaited<ReturnType<typeof requireUserAndProfile>>["profile"]
-) {
+// Cache tenant options for 5 minutes as they rarely change
+const getCachedTenantOptions = unstable_cache(
+  async (
+    userId: string,
+    role: string,
+    saccoId: string | null,
+    saccoName: string | null,
+    saccoCategory: string | null
+  ) => {
+    return getTenantOptionsInternal(userId, role, saccoId, saccoName, saccoCategory);
+  },
+  ["tenant-options"],
+  {
+    revalidate: 300, // 5 minutes
+    tags: ["tenant-options"],
+  }
+);
+
+async function getTenantOptionsInternal(
+  userId: string,
+  role: string,
+  saccoId: string | null,
+  saccoName: string | null,
+  saccoCategory: string | null
+): Promise<TenantOption[]> {
   const supabase = createSupabaseServiceRoleClient("admin/panel/layout:getTenantOptions");
 
-  if (profile.role === "SYSTEM_ADMIN") {
+  if (role === "SYSTEM_ADMIN") {
     const { data, error } = await supabase
       .schema("app")
       .from("saccos")
@@ -37,12 +60,12 @@ async function getTenantOptions(
     return options;
   }
 
-  if (profile.sacco_id && profile.sacco?.name) {
+  if (saccoId && saccoName) {
     return [
       {
-        id: profile.sacco_id,
-        name: profile.sacco.name,
-        badge: profile.sacco.category,
+        id: saccoId,
+        name: saccoName,
+        badge: saccoCategory,
       },
     ];
   }
@@ -119,7 +142,13 @@ export default async function AdminPanelLayout({ children }: { children: React.R
   }
 
   const [tenantOptions, alertSummary] = await Promise.all([
-    getTenantOptions(auth.profile),
+    getCachedTenantOptions(
+      auth.user.id,
+      auth.profile.role,
+      auth.profile.sacco_id,
+      auth.profile.sacco?.name ?? null,
+      auth.profile.sacco?.category ?? null
+    ),
     getAlertSummary(auth.profile),
   ]);
 

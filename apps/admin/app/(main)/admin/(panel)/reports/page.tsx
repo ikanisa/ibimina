@@ -10,6 +10,9 @@ import { ReportsClient } from "@/app/(main)/reports/client";
 import { mapSubscriptionRow } from "@/app/(main)/reports/subscription-utils";
 import type { ReportSubscription } from "@/app/(main)/reports/types";
 
+// Reports data changes infrequently, enable caching
+export const revalidate = 180; // 3 minutes
+
 interface ReportsAdminPageProps {
   searchParams?: TenantScopeSearchParamsInput;
 }

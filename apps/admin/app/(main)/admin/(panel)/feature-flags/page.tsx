@@ -5,6 +5,9 @@ import { FeatureFlagsCard } from "@/components/admin/feature-flags-card";
 import { Trans } from "@/components/common/trans";
 import { requireUserAndProfile } from "@/lib/auth";
 
+// Feature flags change rarely, enable caching
+export const revalidate = 120; // 2 minutes
+
 export default async function FeatureFlagsPage() {
   const { profile } = await requireUserAndProfile();
   const canEdit = profile.role === "SYSTEM_ADMIN";
