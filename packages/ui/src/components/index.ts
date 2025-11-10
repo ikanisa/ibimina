@@ -5,6 +5,15 @@ export type { ButtonProps } from "./button";
 export { Card, CardHeader, CardContent, CardFooter } from "./card";
 export type { CardProps, CardHeaderProps, CardContentProps, CardFooterProps } from "./card";
 
+export { StatCard, ActionCard, ListCard, InfoCard, FormCard } from "./card-variants";
+export type {
+  StatCardProps,
+  ActionCardProps,
+  ListCardProps,
+  InfoCardProps,
+  FormCardProps,
+} from "./card-variants";
+
 export { Badge } from "./badge";
 export type { BadgeProps } from "./badge";
 
@@ -22,6 +31,17 @@ export { PageHeader } from "./page-header";
 
 // Form Components
 export * from "./form";
+
+// Advanced Components
+export { PulseInsights } from "./pulse-insights";
+export type { PulseInsight, PulseInsightsProps } from "./pulse-insights";
+
+export { ProgressiveDisclosure, StepForm } from "./progressive-disclosure";
+export type {
+  ProgressiveDisclosureProps,
+  DisclosureSection,
+  StepFormProps,
+} from "./progressive-disclosure";
 
 // Accessibility Components
 export * from "./accessibility/AccessibleActionButton";
