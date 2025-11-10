@@ -1622,8 +1622,8 @@ k6 run scripts/load-test.js
 
 ## ✅ Sign-Off
 
-**Tested By:** ********\_********  
-**Date:** ********\_********  
+**Tested By:** _______________  
+**Date:** _______________  
 **Environment:** ☐ Dev ☐ Staging ☐ Production  
 **Overall Status:** ☐ Pass ☐ Pass with Issues ☐ Fail
 

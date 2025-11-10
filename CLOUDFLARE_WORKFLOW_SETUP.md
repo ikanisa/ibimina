@@ -18,9 +18,11 @@ The following secrets must be configured in your GitHub repository (Settings →
 
 ### Cloudflare Credentials
 - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token with Pages deployment permissions
-  - **Value provided**: `FmATZTT0qMJ8AbMz8fwo05QTivXLQ1u98hKtjqcE`
+  - **Value provided**: `<YOUR_CLOUDFLARE_API_TOKEN>`
+  - **Note**: Obtain from Cloudflare Dashboard → My Profile → API Tokens
 - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID
-  - **Value provided**: `2209b915a85b1c11cee79b7806c6e73b`
+  - **Value provided**: `<YOUR_CLOUDFLARE_ACCOUNT_ID>`
+  - **Note**: Found in Cloudflare Dashboard → Account ID (right sidebar)
 
 ### Application Secrets (Required for Build)
 These must be configured in GitHub secrets:

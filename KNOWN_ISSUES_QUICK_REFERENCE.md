@@ -16,7 +16,10 @@ Admin PWA at :3000 has internal error → Use staff-admin-pwa instead
 **Resolution:**
 ```bash
 # Use the PRODUCTION admin app
-pnpm dev
+# Run from repository root (specify workspace to avoid ambiguity):
+pnpm --filter @ibimina/admin dev
+# Or cd to the app directory first:
+cd apps/admin && pnpm dev
 # Opens: http://localhost:3000
 ```
 
