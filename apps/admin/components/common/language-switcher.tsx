@@ -31,7 +31,7 @@ export function LanguageSwitcher({ className, variant = "default" }: LanguageSwi
   return (
     <label
       className={cn(
-        "flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-neutral-2",
+        "flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-neutral-600 dark:text-neutral-400",
         variant === "compact" && "gap-1 text-[10px]",
         className
       )}
@@ -40,8 +40,10 @@ export function LanguageSwitcher({ className, variant = "default" }: LanguageSwi
       <select
         value={locale}
         onChange={handleChange}
+        aria-label={labelText}
+        title={labelText}
         className={cn(
-          "rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-0 focus:outline-none focus:ring-2 focus:ring-rw-blue",
+          "rounded-full border border-neutral-300 bg-neutral-100 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-900 transition hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-atlas-blue dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600",
           variant === "compact" && "px-2"
         )}
       >
