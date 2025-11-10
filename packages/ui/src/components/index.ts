@@ -43,5 +43,8 @@ export type {
   StepFormProps,
 } from "./progressive-disclosure";
 
+export { SavedViews, useSavedViews } from "./saved-views";
+export type { SavedView, FilterValue, SavedViewsProps } from "./saved-views";
+
 // Accessibility Components
 export * from "./accessibility/AccessibleActionButton";
