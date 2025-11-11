@@ -56,6 +56,13 @@ export function ThemeToggle() {
             />
           </svg>
         );
+      case "high-contrast":
+        return (
+          <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth={2} fill="none" />
+            <path d="M12 4a8 8 0 000 16V4z" fill="currentColor" />
+          </svg>
+        );
       case "dark":
       case "nyungwe":
         return (
@@ -90,6 +97,8 @@ export function ThemeToggle() {
         return "Dark";
       case "nyungwe":
         return "Nyungwe";
+      case "high-contrast":
+        return "High contrast";
       default:
         return themeName.charAt(0).toUpperCase() + themeName.slice(1);
     }
@@ -167,6 +176,14 @@ export function ThemeToggleSimple() {
             strokeWidth={2}
             d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
           />
+        </svg>
+      );
+    }
+    if (theme === "high-contrast") {
+      return (
+        <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={2} fill="none" />
+          <path d="M12 3a9 9 0 000 18V3z" fill="currentColor" />
         </svg>
       );
     }
