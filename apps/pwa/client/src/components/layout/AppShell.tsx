@@ -39,8 +39,13 @@ export function AppShell({ children, mainId = "main-content" }: AppShellProps) {
     [navigation]
   );
 
+  const skipLabel = navigation.skipToContent ?? "Skip to content";
+
   return (
     <div className={styles.appShell}>
+      <a href={`#${mainId}`} className={styles.skipLink}>
+        {skipLabel}
+      </a>
       <OfflineBanner />
       <header className={styles.topbar}>
         <div className={styles.topbarInner}>

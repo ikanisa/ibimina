@@ -4,16 +4,36 @@ import { useEffect, useState } from "react";
 
 export interface ResponsiveState {
   isDesktop: boolean;
+  isLargeDesktop: boolean;
+  isXLDesktop: boolean;
   isMobile: boolean;
   isTablet: boolean;
 }
 
-const DESKTOP_BREAKPOINT = 1024;
-const TABLET_BREAKPOINT = 768;
+const BREAKPOINT_FALLBACKS = {
+  tablet: 768,
+  desktop: 960,
+  largeDesktop: 1200,
+  xlDesktop: 1440,
+} as const;
+
+function resolveBreakpoint(token: string, fallback: number): number {
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+  const value = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+  if (!value) {
+    return fallback;
+  }
+  const numeric = Number.parseInt(value.replace("px", ""), 10);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
 
 export function useResponsive(): ResponsiveState {
   const [state, setState] = useState<ResponsiveState>(() => ({
     isDesktop: false,
+    isLargeDesktop: false,
+    isXLDesktop: false,
     isTablet: false,
     isMobile: true,
   }));
@@ -21,27 +41,40 @@ export function useResponsive(): ResponsiveState {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const desktopQuery = window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
-    const tabletQuery = window.matchMedia(
-      `(min-width: ${TABLET_BREAKPOINT}px) and (max-width: ${DESKTOP_BREAKPOINT - 1}px)`
-    );
+    const breakpoints = {
+      tablet: resolveBreakpoint("--breakpoint-md", BREAKPOINT_FALLBACKS.tablet),
+      desktop: resolveBreakpoint("--breakpoint-lg", BREAKPOINT_FALLBACKS.desktop),
+      largeDesktop: resolveBreakpoint("--breakpoint-xl", BREAKPOINT_FALLBACKS.largeDesktop),
+      xlDesktop: resolveBreakpoint("--breakpoint-2xl", BREAKPOINT_FALLBACKS.xlDesktop),
+    };
+
+    const tabletMinQuery = window.matchMedia(`(min-width: ${breakpoints.tablet}px)`);
+    const desktopQuery = window.matchMedia(`(min-width: ${breakpoints.desktop}px)`);
+    const largeDesktopQuery = window.matchMedia(`(min-width: ${breakpoints.largeDesktop}px)`);
+    const xlDesktopQuery = window.matchMedia(`(min-width: ${breakpoints.xlDesktop}px)`);
 
     const update = () => {
       setState({
         isDesktop: desktopQuery.matches,
-        isTablet: tabletQuery.matches,
-        isMobile: !desktopQuery.matches,
+        isLargeDesktop: largeDesktopQuery.matches,
+        isXLDesktop: xlDesktopQuery.matches,
+        isTablet: !desktopQuery.matches && tabletMinQuery.matches,
+        isMobile: !tabletMinQuery.matches,
       });
     };
 
     update();
 
     desktopQuery.addEventListener("change", update);
-    tabletQuery.addEventListener("change", update);
+    largeDesktopQuery.addEventListener("change", update);
+    xlDesktopQuery.addEventListener("change", update);
+    tabletMinQuery.addEventListener("change", update);
 
     return () => {
       desktopQuery.removeEventListener("change", update);
-      tabletQuery.removeEventListener("change", update);
+      largeDesktopQuery.removeEventListener("change", update);
+      xlDesktopQuery.removeEventListener("change", update);
+      tabletMinQuery.removeEventListener("change", update);
     };
   }, []);
 

@@ -23,6 +23,7 @@ import {
   SaccoSearchCombobox,
   type SaccoSearchResult,
 } from "@/components/saccos/sacco-search-combobox";
+import { useFocusTrap } from "@/src/lib/a11y/useFocusTrap";
 
 const BADGE_TONE_STYLES = {
   critical: "border-red-500/40 bg-red-500/15 text-red-200",
@@ -344,6 +345,8 @@ function CommandPaletteInternal({
   const toast = useToast();
   const toastShownRef = useRef(false);
   const refreshBadgeTimer = useRef<NodeJS.Timeout | null>(null);
+  const dialogContainerRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     return () => {
@@ -732,6 +735,11 @@ function CommandPaletteInternal({
     [onOpenChange, router]
   );
 
+  useFocusTrap(open, dialogContainerRef, {
+    onEscape: () => onOpenChange(false),
+    initialFocus: () => searchInputRef.current,
+  });
+
   return (
     <CommandPrimitive.Dialog
       open={open}
@@ -739,7 +747,11 @@ function CommandPaletteInternal({
       label={t("search.console.title", "Search console")}
     >
       <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 md:items-center">
-        <div className="glass relative w-full max-w-3xl rounded-3xl border border-white/10 bg-neutral-950/90 p-6 shadow-2xl">
+        <div
+          ref={dialogContainerRef}
+          tabIndex={-1}
+          className="glass relative w-full max-w-3xl rounded-3xl border border-white/10 bg-neutral-950/90 p-6 shadow-2xl"
+        >
           <div className="flex items-center justify-between gap-3">
             <span className="text-lg font-semibold text-neutral-0">
               {t("search.console.title", "Search console")}
@@ -761,6 +773,7 @@ function CommandPaletteInternal({
           <div className="relative mt-5">
             <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-2" />
             <CommandPrimitive.Input
+              ref={searchInputRef}
               autoFocus
               value={search}
               onValueChange={setSearch}
