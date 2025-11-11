@@ -102,7 +102,7 @@ case $choice in
     echo "  2. Android"
     read -p "Enter choice: " platform
     
-    cd apps/client-mobile
+    cd apps/pwa/client-mobile
     
     if [ "$platform" = "1" ]; then
       echo "Starting iOS..."
@@ -206,7 +206,7 @@ case $choice in
     # Check mobile builds
     echo ""
     echo "Checking mobile apps..."
-    if [ -d "apps/client-mobile/node_modules" ]; then
+    if [ -d "apps/pwa/client-mobile/node_modules" ]; then
       echo -e "${GREEN}✓ Client mobile dependencies installed${NC}"
     else
       echo -e "${YELLOW}⚠ Client mobile needs setup${NC}"

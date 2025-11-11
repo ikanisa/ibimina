@@ -14,7 +14,7 @@ import UIKit
  * - TapMoMo payment verification
  * - Member card scanning
  */
-class NFCReaderManager: NSObject, NFCNDEFReaderSessionDelegate {
+class NFCReaderManager: NSObject, ObservableObject, NFCNDEFReaderSessionDelegate {
     
     var session: NFCNDEFReaderSession?
     var onTagRead: ((String) -> Void)?
