@@ -63,23 +63,27 @@ The following 28 files were deleted as part of the conflict resolution (they wer
 
 **Rationale**: The PR removes Capacitor dependencies, so the documentation should reflect the new architecture where native capabilities are simulated in the web dashboard without requiring the Capacitor bridge.
 
+## ⚠️ IMPORTANT: Resolution Status
+
+The conflict resolution has been completed **locally** in this sandbox environment. The merge commit exists at:
+- **Commit SHA**: `13c87338`
+- **Local Branch**: `codex/cleanup-admin-package-and-refactor-settings`
+- **Status**: NOT YET PUSHED to GitHub
+
+### Why it's not pushed yet
+This resolution was created in a GitHub Codex sandbox environment which doesn't have direct push access to the PR branch. The PR maintainer needs to apply this resolution.
+
 ## How to Apply This Resolution
 
-The conflict resolution already exists on the `codex/cleanup-admin-package-and-refactor-settings` branch at commit `13c87338`.
-
-### Option 1: Fetch the resolved branch
+### Option 1: Use the merge commit reference
+If you have access to this sandbox or the commit was somehow shared:
 ```bash
-git fetch origin codex/cleanup-admin-package-and-refactor-settings
+git fetch <sandbox-or-fork-remote>
 git checkout codex/cleanup-admin-package-and-refactor-settings
+git merge 13c87338
 ```
 
-### Option 2: Cherry-pick the merge commit
-```bash
-git checkout codex/cleanup-admin-package-and-refactor-settings  
-git cherry-pick 13c87338
-```
-
-### Option 3: Manual Resolution (if needed)
+### Option 2: Manual Resolution (RECOMMENDED)
 If you need to recreate the resolution:
 
 1. **Merge main into PR branch**:
