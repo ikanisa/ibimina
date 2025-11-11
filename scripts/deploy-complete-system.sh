@@ -395,7 +395,7 @@ print_summary() {
   
   log_info ""
   log_info "Next steps:"
-  log_info "  1. Build Android app: cd apps/admin && pnpm exec cap sync android && cd android && ./gradlew assembleRelease"
+  log_info "  1. Build Android app: cd apps/pwa/staff-admin && pnpm exec cap sync android && cd android && ./gradlew assembleRelease"
   log_info "  2. Test TapMoMo: Open admin app, navigate to TapMoMo, test NFC tap"
   log_info "  3. Test QR Auth: Open web app, scan QR code with mobile"
   log_info "  4. Test SMS: Send test SMS to ingest-sms function"
