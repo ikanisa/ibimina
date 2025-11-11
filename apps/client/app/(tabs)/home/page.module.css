@@ -1,0 +1,108 @@
+.container {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.halfWidth {
+  grid-column: span 12;
+}
+
+@media (min-width: 768px) {
+  .container {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .halfWidth {
+    grid-column: span 6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .halfWidth {
+    grid-column: span 6;
+  }
+}
+
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  margin-bottom: var(--spacing-2);
+}
+
+.emptyState {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  text-align: center;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+}
+
+.cta:hover,
+.cta:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(0, 161, 222, 0.25);
+}
+
+.groupGrid {
+  display: grid;
+  gap: var(--spacing-3);
+}
+
+@media (min-width: 768px) {
+  .groupGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.groupCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  transition: border-color var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.groupCard:hover,
+.groupCard:focus-visible {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.groupMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.groupTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}

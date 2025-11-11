@@ -1,0 +1,35 @@
+{
+  "title": "Profile",
+  "sections": {
+    "personal": "Personal Information",
+    "contact": "Contact Information",
+    "preferences": "Preferences",
+    "support": "Help & Support",
+    "legal": "Legal"
+  },
+  "fields": {
+    "name": "Name",
+    "phone": "Phone Number",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "momo": "Mobile Money",
+    "language": "Language",
+    "referenceToken": "Reference Token"
+  },
+  "language": {
+    "select": "Select Language",
+    "en": "English",
+    "rw": "Kinyarwanda",
+    "fr": "French"
+  },
+  "support": {
+    "help": "Help Center",
+    "contact": "Contact Support",
+    "faq": "FAQs"
+  },
+  "legal": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
+  },
+  "version": "App Version"
+}

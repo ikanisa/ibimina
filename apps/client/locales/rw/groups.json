@@ -1,0 +1,25 @@
+{
+  "title": "Amatsinda",
+  "browse": "Shakisha Amatsinda",
+  "myGroups": "Amatsinda Yanjye",
+  "joinRequest": {
+    "title": "Injira mu Itsinda",
+    "note": "Tanga impamvu (ntabwo bisabwa)",
+    "notePlaceholder": "Bavugire impamvu ushaka kwinjira...",
+    "submit": "Ohereza Icyifuzo",
+    "pending": "Icyifuzo Kirategerezwa",
+    "approved": "Icyifuzo Cyemerejwe",
+    "rejected": "Icyifuzo Cyanzwe",
+    "success": "Icyifuzo cyawe cyoherejwe"
+  },
+  "details": {
+    "members": "Abanyamuryango",
+    "savings": "Amafaranga Yose",
+    "description": "Ibisobanuro",
+    "joinedDate": "Winjiye"
+  },
+  "empty": {
+    "title": "Nta matsinda ariho",
+    "description": "Garuka nyuma kugira ngo urebe amatsinda mashya"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "quickActions": {
+    "title": "Actions rapides",
+    "items": {
+      "pay": {
+        "label": "Payer les cotisations"
+      },
+      "send": {
+        "label": "Envoyer de l'argent"
+      },
+      "loan": {
+        "label": "Demander un prêt"
+      },
+      "statement": {
+        "label": "Consulter les relevés"
+      }
+    }
+  },
+  "cards": {
+    "balance": {
+      "label": "Solde total"
+    },
+    "activity": {
+      "title": "Activité récente",
+      "empty": "Aucune transaction récente"
+    },
+    "deadlines": {
+      "title": "Échéances à venir",
+      "empty": "Aucune échéance à venir",
+      "cta": "Payer"
+    }
+  },
+  "groups": {
+    "title": "Mes groupes",
+    "empty": "Vous n'avez rejoint aucun groupe.",
+    "cta": "Parcourir les groupes"
+  }
+}

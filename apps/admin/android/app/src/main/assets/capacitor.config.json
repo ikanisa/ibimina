@@ -1,0 +1,12 @@
+{
+  "appId": "rw.ibimina.staff",
+  "appName": "Ibimina Admin",
+  "webDir": ".next",
+  "server": {
+    "url": "http://10.0.2.2:3100",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

@@ -1,0 +1,5 @@
+
+# Android Release Signing (NEVER commit!)
+android/app/*.keystore
+android/app/*.jks
+android/app/KEYSTORE_INFO.txt

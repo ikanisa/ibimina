@@ -1,0 +1,16 @@
+{
+  "home": "Accueil",
+  "groups": "Groupes",
+  "pay": "Payer",
+  "statements": "Relevés",
+  "profile": "Profil",
+  "skipToContent": "Aller au contenu",
+  "searchPlaceholder": "Rechercher ou aller à…",
+  "omniboxGroups": {
+    "navigation": "Navigation",
+    "account": "Comptes",
+    "group": "Groupes",
+    "member": "Membres",
+    "action": "Actions"
+  }
+}

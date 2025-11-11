@@ -1,0 +1,38 @@
+{
+  "quickActions": {
+    "title": "Ibikorwa byihuse",
+    "items": {
+      "pay": {
+        "label": "Ishyura imisanzu"
+      },
+      "send": {
+        "label": "Ohereza amafaranga"
+      },
+      "loan": {
+        "label": "Saba inguzanyo"
+      },
+      "statement": {
+        "label": "Reba raporo"
+      }
+    }
+  },
+  "cards": {
+    "balance": {
+      "label": "Umubare w'ubwizigame"
+    },
+    "activity": {
+      "title": "Ibikorwa biheruka",
+      "empty": "Nta bikorwa biheruka"
+    },
+    "deadlines": {
+      "title": "Ibyishyurwa biri hafi",
+      "empty": "Nta byishyurwa biri hafi",
+      "cta": "Ishyura"
+    }
+  },
+  "groups": {
+    "title": "Amatsinda yanjye",
+    "empty": "Nturinjira mu itsinda na rimwe.",
+    "cta": "Shakisha amatsinda"
+  }
+}

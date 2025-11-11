@@ -1,0 +1,16 @@
+{
+  "home": "Ahabanza",
+  "groups": "Amatsinda",
+  "pay": "Kwishyura",
+  "statements": "Raporo",
+  "profile": "Umwirondoro",
+  "skipToContent": "Simbuka ku birimo",
+  "searchPlaceholder": "Shakisha cyangwa ujye kuri…",
+  "omniboxGroups": {
+    "navigation": "Ibyerekezo",
+    "account": "Konti",
+    "group": "Amatsinda",
+    "member": "Abanyamuryango",
+    "action": "Ibikorwa"
+  }
+}

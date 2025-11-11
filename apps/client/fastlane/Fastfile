@@ -1,0 +1,79 @@
+require "fileutils"
+require "shellwords"
+
+ARTIFACT_ROOT = File.expand_path("../dist/releases", __dir__)
+
+def ensure_artifact_dir(platform:, profile:)
+  dir = File.join(ARTIFACT_ROOT, platform.to_s, profile.to_s)
+  FileUtils.mkdir_p(dir)
+  dir
+end
+
+def run_eas_build(profile:, platform:)
+  sh("eas build --profile #{profile} --platform #{platform} --non-interactive --wait")
+end
+
+def download_eas_artifact(profile:, platform:, filename:)
+  dir = ensure_artifact_dir(platform: platform, profile: profile)
+  path = File.join(dir, filename)
+  sh(
+    "eas build:download --profile #{profile} --platform #{platform} --non-interactive --latest --path #{Shellwords.escape(path)}"
+  )
+  path
+end
+
+platform :ios do
+  desc "Build internal TestFlight build"
+  lane :internal do
+    ENV["FEATURE_FLAG_VOUCHERS"] = "1"
+    ENV["FEATURE_FLAG_LOANS"] = "0"
+
+    run_eas_build(profile: "internal", platform: "ios")
+    download_eas_artifact(profile: "internal", platform: "ios", filename: "client-internal.ipa")
+  end
+
+  desc "Build alpha TestFlight build"
+  lane :alpha do
+    ENV["FEATURE_FLAG_VOUCHERS"] = "1"
+    ENV["FEATURE_FLAG_LOANS"] = "1"
+
+    run_eas_build(profile: "alpha", platform: "ios")
+    download_eas_artifact(profile: "alpha", platform: "ios", filename: "client-alpha.ipa")
+  end
+
+  desc "Submit production build"
+  lane :release do
+    ENV["FEATURE_FLAG_VOUCHERS"] = "1"
+    ENV["FEATURE_FLAG_LOANS"] = "1"
+    ENV["FEATURE_FLAG_NFC_REFERENCE_CARDS"] = "1"
+
+    run_eas_build(profile: "production", platform: "ios")
+    ipa_path = download_eas_artifact(profile: "production", platform: "ios", filename: "client-production.ipa")
+    sh("eas submit --platform ios --path #{Shellwords.escape(ipa_path)} --non-interactive --wait")
+  end
+end
+
+platform :android do
+  desc "Build internal track"
+  lane :internal do
+    run_eas_build(profile: "internal", platform: "android")
+    aab_path = download_eas_artifact(profile: "internal", platform: "android", filename: "client-internal.aab")
+    sh(
+      "fastlane supply --track internal --aab #{Shellwords.escape(aab_path)} --skip_upload_metadata --skip_upload_changelogs"
+    )
+  end
+
+  desc "Build open testing"
+  lane :alpha do
+    run_eas_build(profile: "alpha", platform: "android")
+    aab_path = download_eas_artifact(profile: "alpha", platform: "android", filename: "client-alpha.aab")
+    sh("fastlane supply --track alpha --aab #{Shellwords.escape(aab_path)} --skip_upload_images --skip_upload_screenshots")
+  end
+
+  desc "Rollout production"
+  lane :release do
+    run_eas_build(profile: "production", platform: "android")
+    aab_path = download_eas_artifact(profile: "production", platform: "android", filename: "client-production.aab")
+    sh("fastlane supply --track production --aab #{Shellwords.escape(aab_path)}")
+  end
+end

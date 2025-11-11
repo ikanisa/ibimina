@@ -1,0 +1,38 @@
+{
+  "quickActions": {
+    "title": "Quick actions",
+    "items": {
+      "pay": {
+        "label": "Pay dues"
+      },
+      "send": {
+        "label": "Send money"
+      },
+      "loan": {
+        "label": "Apply for a loan"
+      },
+      "statement": {
+        "label": "View statements"
+      }
+    }
+  },
+  "cards": {
+    "balance": {
+      "label": "Total balance"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "empty": "No recent transactions"
+    },
+    "deadlines": {
+      "title": "Due soon",
+      "empty": "No upcoming deadlines",
+      "cta": "Pay"
+    }
+  },
+  "groups": {
+    "title": "My groups",
+    "empty": "You have not joined any groups yet.",
+    "cta": "Browse groups"
+  }
+}

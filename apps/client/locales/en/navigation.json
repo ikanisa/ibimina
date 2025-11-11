@@ -1,0 +1,16 @@
+{
+  "home": "Home",
+  "groups": "Groups",
+  "pay": "Pay",
+  "statements": "Statements",
+  "profile": "Profile",
+  "skipToContent": "Skip to content",
+  "searchPlaceholder": "Search or go to…",
+  "omniboxGroups": {
+    "navigation": "Navigation",
+    "account": "Accounts",
+    "group": "Groups",
+    "member": "Members",
+    "action": "Actions"
+  }
+}

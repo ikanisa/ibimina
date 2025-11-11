@@ -1,0 +1,55 @@
+{
+  "app": {
+    "name": "SACCO+",
+    "tagline": "SACCO yawe, yoroshye"
+  },
+  "actions": {
+    "save": "Bika",
+    "cancel": "Hagarika",
+    "close": "Funga",
+    "confirm": "Emeza",
+    "delete": "Siba",
+    "edit": "Hindura",
+    "submit": "Ohereza",
+    "copy": "Kopi",
+    "copied": "Yakopowe!",
+    "share": "Sangiza",
+    "export": "Sohora",
+    "refresh": "Kongera",
+    "back": "Subira",
+    "next": "Komeza",
+    "done": "Byarangiye",
+    "retry": "Ongera ugerageze",
+    "sync": "Sunganya",
+    "clear": "Siba urutonde"
+  },
+  "status": {
+    "loading": "Biratunganywa...",
+    "success": "Byagenze neza",
+    "error": "Habaye ikosa",
+    "pending": "Bitegerezwa",
+    "confirmed": "Byemejwe",
+    "failed": "Ntibyakunze",
+    "processing": "Biratunganywa",
+    "offline": "Nta interineti",
+    "online": "Hifashijwe interineti"
+  },
+  "errors": {
+    "generic": "Habaye ikosa. Ongera ugerageze.",
+    "network": "Ikosa rya interineti. Reba umuyoboro wawe.",
+    "unauthorized": "Nturemerewe gukora ibi.",
+    "notFound": "Ntabwo byabonetse.",
+    "validation": "Reba amakuru wanditse hanyuma wongere ugerageze."
+  },
+  "theme": {
+    "light": "Uburyo bwa kumunsi",
+    "dark": "Uburyo bwa nijoro"
+  },
+  "offlineBanner": {
+    "offline": "Nta interineti: amakuru aheruka abitswe",
+    "queuedOne": "{{count}} igikorwa kirategereje",
+    "queuedOther": "{{count}} ibikorwa birategereje",
+    "sync": "Sunganya nonaha",
+    "clear": "Siba urutonde"
+  }
+}

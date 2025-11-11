@@ -1,0 +1,55 @@
+{
+  "app": {
+    "name": "SACCO+",
+    "tagline": "Votre SACCO, simplifiée"
+  },
+  "actions": {
+    "save": "Sauvegarder",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "submit": "Soumettre",
+    "copy": "Copier",
+    "copied": "Copié!",
+    "share": "Partager",
+    "export": "Exporter",
+    "refresh": "Actualiser",
+    "back": "Retour",
+    "next": "Suivant",
+    "done": "Terminé",
+    "retry": "Réessayer",
+    "sync": "Synchroniser",
+    "clear": "Vider"
+  },
+  "status": {
+    "loading": "Chargement...",
+    "success": "Succès",
+    "error": "Erreur",
+    "pending": "En attente",
+    "confirmed": "Confirmé",
+    "failed": "Échoué",
+    "processing": "En traitement",
+    "offline": "Hors ligne",
+    "online": "En ligne"
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite. Veuillez réessayer.",
+    "network": "Erreur réseau. Vérifiez votre connexion.",
+    "unauthorized": "Vous n'êtes pas autorisé à effectuer cette action.",
+    "notFound": "Ressource non trouvée.",
+    "validation": "Veuillez vérifier vos entrées et réessayer."
+  },
+  "theme": {
+    "light": "Mode clair",
+    "dark": "Mode sombre"
+  },
+  "offlineBanner": {
+    "offline": "Hors ligne : dernières données mises en cache",
+    "queuedOne": "{{count}} action en attente",
+    "queuedOther": "{{count}} actions en attente",
+    "sync": "Synchroniser maintenant",
+    "clear": "Vider la file"
+  }
+}
