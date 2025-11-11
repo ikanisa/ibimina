@@ -14,7 +14,7 @@ import UIKit
  * - TapMoMo payment handoff (merchant side)
  * - Creating payment shortcuts
  */
-class NFCWriterManager: NSObject, NFCNDEFReaderSessionDelegate {
+class NFCWriterManager: NSObject, ObservableObject, NFCNDEFReaderSessionDelegate {
     
     var session: NFCNDEFReaderSession?
     var dataToWrite: String = ""
