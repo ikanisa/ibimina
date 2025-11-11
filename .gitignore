@@ -68,3 +68,4 @@ apps/website/.vercel/
 
 # APK distribution directory
 /dist/
+.env
