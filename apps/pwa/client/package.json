@@ -6,7 +6,7 @@
     "dev": "next dev -p 5000 -H 0.0.0.0",
     "build": "next build",
     "start": "next start -p 5000 -H 0.0.0.0",
-    "lint": "node ../../config/tooling/scripts/run-eslint.mjs .",
+    "lint": "node ../../../config/tooling/scripts/run-eslint.mjs .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm run test:unit",
     "test:unit": "pnpm exec c8 --clean=false --temp-directory=.nyc_output --report-dir=coverage/unit --reporter=lcov --reporter=json-summary --reporter=text-summary tsx --test tests/unit/*.test.ts",

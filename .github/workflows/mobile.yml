@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     paths:
-      - "apps/client/**"
+      - "apps/pwa/client/**"
       - "apps/mobile/**"
       - "packages/core/**"
       - "packages/config/**"
@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: detox-report
-          path: apps/client/tests/detox
+          path: apps/pwa/client/tests/detox
 
   telemetry:
     runs-on: ubuntu-latest

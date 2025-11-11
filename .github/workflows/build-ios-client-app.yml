@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - "apps/client/**"
+      - "apps/pwa/client/**"
       - ".github/workflows/build-ios-client-app.yml"
   workflow_dispatch:
     inputs:
@@ -42,28 +42,28 @@ jobs:
         env:
           SERVER_URL: ${{ github.event.inputs.server_url }}
         run: |
-          cd apps/client
+          cd apps/pwa/client
           sed -i '' "s|https://.*kirk.replit.dev|$SERVER_URL|g" capacitor.config.ts
           sed -i '' "s|https://.*kirk.replit.dev|$SERVER_URL|g" .next-static/index.html
 
       - name: Add iOS platform
         run: |
-          cd apps/client
+          cd apps/pwa/client
           npx cap add ios || echo "iOS platform already exists"
 
       - name: Install CocoaPods dependencies
         run: |
-          cd apps/client/ios/App
+          cd apps/pwa/client/ios/App
           pod install
 
       - name: Sync Capacitor
         run: |
-          cd apps/client
+          cd apps/pwa/client
           npx cap sync ios
 
       - name: Build iOS App
         run: |
-          cd apps/client/ios/App
+          cd apps/pwa/client/ios/App
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Debug \
@@ -74,21 +74,21 @@ jobs:
 
       - name: Create .app archive
         run: |
-          cd apps/client/ios/App/build/Build/Products/Debug-iphonesimulator
+          cd apps/pwa/client/ios/App/build/Build/Products/Debug-iphonesimulator
           zip -r Ibimina-iOS-Simulator.zip App.app
 
       - name: Upload iOS App
         uses: actions/upload-artifact@v4
         with:
           name: ibimina-client-ios-simulator
-          path: apps/client/ios/App/build/Build/Products/Debug-iphonesimulator/Ibimina-iOS-Simulator.zip
+          path: apps/pwa/client/ios/App/build/Build/Products/Debug-iphonesimulator/Ibimina-iOS-Simulator.zip
           retention-days: 30
 
       - name: Create Release (on tag)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: apps/client/ios/App/build/Build/Products/Debug-iphonesimulator/Ibimina-iOS-Simulator.zip
+          files: apps/pwa/client/ios/App/build/Build/Products/Debug-iphonesimulator/Ibimina-iOS-Simulator.zip
           name: Client App (iOS) ${{ github.ref_name }}
           body: |
             ## Ibimina Client Mobile App (iOS)
@@ -143,17 +143,17 @@ jobs:
 
       - name: Add iOS platform
         run: |
-          cd apps/client
+          cd apps/pwa/client
           npx cap add ios || echo "iOS platform already exists"
 
       - name: Install CocoaPods dependencies
         run: |
-          cd apps/client/ios/App
+          cd apps/pwa/client/ios/App
           pod install
 
       - name: Sync Capacitor
         run: |
-          cd apps/client
+          cd apps/pwa/client
           npx cap sync ios
 
       - name: Import Code Signing Certificates
@@ -172,7 +172,7 @@ jobs:
 
       - name: Build and Archive
         run: |
-          cd apps/client/ios/App
+          cd apps/pwa/client/ios/App
           xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
@@ -182,7 +182,7 @@ jobs:
 
       - name: Export IPA
         run: |
-          cd apps/client/ios/App
+          cd apps/pwa/client/ios/App
           xcodebuild -exportArchive \
             -archivePath build/App.xcarchive \
             -exportPath build \
@@ -191,7 +191,7 @@ jobs:
       - name: Upload to TestFlight
         uses: apple-actions/upload-testflight-build@v1
         with:
-          app-path: apps/client/ios/App/build/App.ipa
+          app-path: apps/pwa/client/ios/App/build/App.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
@@ -200,5 +200,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ibimina-client-ios-release
-          path: apps/client/ios/App/build/App.ipa
+          path: apps/pwa/client/ios/App/build/App.ipa
           retention-days: 90

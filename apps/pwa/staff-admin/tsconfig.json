@@ -1,13 +1,13 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
     "paths": {
       "@/*": ["./*"],
-      "@ibimina/config": ["../../packages/config/src/index.ts"],
-      "@ibimina/lib": ["../../packages/lib/src/index.ts"],
-      "@ibimina/flags": ["../../packages/flags/src/index.ts"],
-      "@ibimina/locales": ["../../packages/locales/src/index.ts"],
-      "@ibimina/ui": ["../../packages/ui/src/index.ts"]
+      "@ibimina/config": ["../../../packages/config/src/index.ts"],
+      "@ibimina/lib": ["../../../packages/lib/src/index.ts"],
+      "@ibimina/flags": ["../../../packages/flags/src/index.ts"],
+      "@ibimina/locales": ["../../../packages/locales/src/index.ts"],
+      "@ibimina/ui": ["../../../packages/ui/src/index.ts"]
     },
     "baseUrl": ".",
     "jsx": "preserve",
@@ -31,5 +31,5 @@
     "workers/**/*.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", ".next", "../../supabase"]
+  "exclude": ["node_modules", ".next", "../../../supabase"]
 }

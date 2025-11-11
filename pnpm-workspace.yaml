@@ -1,5 +1,7 @@
 packages:
-  - apps/*
+  - apps/pwa/*
+  - apps/mobile/*
+  - apps/website
   - packages/*
 
 ignoredBuiltDependencies:

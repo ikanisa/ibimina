@@ -110,7 +110,7 @@ implement_tapmomo_nfc() {
 implement_client_mobile() {
     log_info "=== IMPLEMENTING CLIENT MOBILE APP ==="
     
-    local CLIENT_DIR="apps/client-mobile"
+    local CLIENT_DIR="apps/pwa/client-mobile"
     
     if [ -d "$CLIENT_DIR" ]; then
         log_warn "Client mobile app already exists"

@@ -59,7 +59,7 @@ try {
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  outputFileTracingRoot: path.join(__dirname, "../../"),
+  outputFileTracingRoot: path.join(__dirname, "../../../"),
 
   // Ignore ESLint errors during build (known issues in client app)
   eslint: {
