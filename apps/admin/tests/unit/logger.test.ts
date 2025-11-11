@@ -1,3 +1,4 @@
+/* eslint-disable ibimina/structured-logging */
 import { afterEach, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 

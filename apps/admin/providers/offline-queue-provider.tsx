@@ -55,6 +55,17 @@ interface OfflineConflictState {
 
 const OfflineQueueContext = createContext<OfflineQueueContextValue | null>(null);
 
+class OfflineSyncError extends Error {
+  constructor(
+    message: string,
+    public readonly status?: number,
+    public readonly details?: unknown
+  ) {
+    super(message);
+    this.name = "OfflineSyncError";
+  }
+}
+
 async function safeListActions() {
   try {
     return await listActions();
@@ -101,17 +112,6 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
   type PaymentStatus = Database["app"]["Tables"]["payments"]["Row"]["status"];
 
   type QueueHandler = (action: OfflineAction) => Promise<void>;
-
-  class OfflineSyncError extends Error {
-    constructor(
-      message: string,
-      public readonly status?: number,
-      public readonly details?: unknown
-    ) {
-      super(message);
-      this.name = "OfflineSyncError";
-    }
-  }
 
   const callPaymentsEndpoint = useCallback(
     async (path: string, payload: Record<string, unknown>) => {

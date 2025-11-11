@@ -15,10 +15,9 @@ interface TapMoMoPayeeCardProps {
     is_active: boolean;
   }>;
   nfcEnabled: boolean;
-  saccoId?: string;
 }
 
-export function TapMoMoPayeeCard({ merchants, nfcEnabled, saccoId }: TapMoMoPayeeCardProps) {
+export function TapMoMoPayeeCard({ merchants, nfcEnabled }: TapMoMoPayeeCardProps) {
   const [selectedMerchant, setSelectedMerchant] = useState(merchants[0]?.id || "");
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");

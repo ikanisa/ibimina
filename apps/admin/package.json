@@ -24,19 +24,12 @@
     "test:rls:docker": "bash scripts/test-rls-docker.sh",
     "test:auth": "pnpm exec c8 --clean=false --temp-directory=.nyc_output --report-dir=coverage/auth --reporter=lcov --reporter=json-summary --reporter=text-summary tsx --test tests/integration/authx-security.test.ts",
     "test:unit": "pnpm exec c8 --clean=false --temp-directory=.nyc_output --report-dir=coverage/unit --reporter=lcov --reporter=json-summary --reporter=text-summary tsx --test tests/unit/*.test.ts",
+    "test:component": "vitest run --config vitest.config.mts",
     "start:e2e": "node scripts/start-e2e.mjs",
     "verify:log-drain": "tsx scripts/verify-log-drain.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.4",
-    "@capacitor/app": "^7.1.0",
-    "@capacitor/camera": "^7.0.2",
-    "@capacitor/cli": "^7.4.4",
-    "@capacitor/core": "^7.4.4",
-    "@capacitor/device": "^7.0.2",
-    "@capacitor/haptics": "^7.0.2",
-    "@capacitor/preferences": "^7.0.2",
     "@headlessui/react": "^2.1.10",
     "@ibimina/config": "workspace:*",
     "@ibimina/flags": "workspace:*",
@@ -79,6 +72,11 @@
     "@eslint/eslintrc": "^3",
     "@next/bundle-analyzer": "^14.2.13",
     "@playwright/test": "^1.49.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitejs/plugin-react": "^5.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.16",
@@ -87,9 +85,11 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
+    "jsdom": "^24.1.0",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.9"
   },
   "engines": {
     "node": ">=18.18.0"

@@ -21,7 +21,6 @@ import { useTranslation } from "@/providers/i18n-provider";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import {
   CommandPaletteProvider,
-  useCommandPalette,
   type CommandActionGroup as PaletteActionGroup,
   type CommandNavTarget as PaletteNavTarget,
 } from "@/src/components/common/CommandPalette";
@@ -384,7 +383,6 @@ function DefaultAppShellView({
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
   const wasQuickActionsOpenRef = useRef(false);
-  const { open: paletteOpen, openPalette } = useCommandPalette();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -439,12 +437,6 @@ function DefaultAppShellView({
 
     container?.addEventListener("keydown", handleKeyDown);
     return () => container?.removeEventListener("keydown", handleKeyDown);
-  }, [showActions]);
-
-  useEffect(() => {
-    const container = quickActionsRef.current;
-
-    // Removed unused firstQuickActionRef reference
   }, [showActions]);
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);

@@ -86,20 +86,16 @@ describe("Feature flag service", () => {
 
     globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       const requestUrl = String(input);
-      assert.ok(requestUrl.includes("/rest/v1/configuration"));
+      assert.ok(requestUrl.includes("/rest/v1/feature_flags"));
       const headers = init?.headers as Record<string, string> | undefined;
       assert.strictEqual(headers?.Authorization, "Bearer service-role");
       assert.strictEqual(headers?.apikey, "anon-key");
 
       return new Response(
         JSON.stringify([
-          {
-            value: {
-              AdvancedModules: true,
-              LoansEnabled: true,
-              WalletEnabled: false,
-            },
-          },
+          { key: "AdvancedModules", is_enabled: true },
+          { key: "LoansEnabled", is_enabled: true },
+          { key: "WalletEnabled", is_enabled: false },
         ])
       );
     };

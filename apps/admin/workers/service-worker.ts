@@ -24,6 +24,7 @@ import { registerRoute, setCatchHandler } from "workbox-routing";
 import { StaleWhileRevalidate, NetworkFirst, CacheFirst } from "workbox-strategies";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 import { ExpirationPlugin } from "workbox-expiration";
+import { syncQueuedOnboarding } from "../lib/offline/onboarding-queue";
 
 declare let self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<PrecacheEntry>;
@@ -271,10 +272,17 @@ self.addEventListener("message", (event) => {
       break;
     case "OFFLINE_QUEUE_PROCESS":
       event.waitUntil(
-        broadcast({
-          type: "OFFLINE_QUEUE_PROCESS",
-          reason: data.reason ?? "manual",
-        })
+        (async () => {
+          try {
+            await syncQueuedOnboarding();
+          } catch (error) {
+            console.warn("sw.onboarding_queue.sync_failed", error);
+          }
+          await broadcast({
+            type: "OFFLINE_QUEUE_PROCESS",
+            reason: data.reason ?? "manual",
+          });
+        })()
       );
       break;
     case "AUTH_SCOPE_UPDATE":
@@ -299,10 +307,17 @@ self.addEventListener("message", (event) => {
 self.addEventListener("sync", (event) => {
   if (event.tag === BG_SYNC_TAG) {
     event.waitUntil(
-      broadcast({
-        type: "OFFLINE_QUEUE_PROCESS",
-        reason: "background-sync",
-      })
+      (async () => {
+        try {
+          await syncQueuedOnboarding();
+        } catch (error) {
+          console.warn("sw.onboarding_queue.sync_failed", error);
+        }
+        await broadcast({
+          type: "OFFLINE_QUEUE_PROCESS",
+          reason: "background-sync",
+        });
+      })()
     );
   }
 });

@@ -3,6 +3,8 @@ import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { logError, logInfo } from "./utils/logger.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextBin = path.resolve(
   __dirname,
@@ -18,7 +20,7 @@ const explicitPort = process.env.PORT;
 const defaultPort = Number.parseInt(explicitPort ?? "3100", 10);
 
 if (!["dev", "start"].includes(mode)) {
-  console.error(`Unsupported Next.js mode "${mode}". Use "dev" or "start".`);
+  logError("admin.run-next.invalid-mode", { mode });
   process.exit(1);
 }
 
@@ -28,7 +30,7 @@ const port =
     : defaultPort;
 
 if (mode === "dev" && explicitPort === undefined && port !== defaultPort) {
-  console.log(`Port ${defaultPort} is in use. Falling back to ${port}.`);
+  logInfo("admin.run-next.port-fallback", { requested: defaultPort, selected: port });
 }
 
 const args = [mode, "--port", String(port), "--hostname", host];
@@ -46,7 +48,7 @@ child.on("close", (code, signal) => {
 });
 
 child.on("error", (error) => {
-  console.error(`Failed to launch "next ${mode}":`, error);
+  logError("admin.run-next.launch-error", { mode, error });
   process.exit(1);
 });
 

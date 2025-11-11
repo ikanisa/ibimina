@@ -1,6 +1,6 @@
 import http from "node:http";
 import { once } from "node:events";
-import { logInfo } from "@/lib/observability/logger";
+import { logError, logInfo } from "@/lib/observability/logger";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -68,6 +68,8 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("log drain verification failed", error);
+  logError("ci_drain_check_failed", {
+    error,
+  });
   process.exit(1);
 });

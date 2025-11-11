@@ -65,16 +65,7 @@ export async function POST(request: NextRequest) {
     const supabase = createSupabaseServiceRoleClient("tapmomo/transactions");
 
     const body = await request.json();
-    const {
-      merchant_code,
-      nonce,
-      amount,
-      currency = "RWF",
-      ref,
-      network,
-      sacco_id,
-      payload_ts,
-    } = body;
+    const { merchant_code, nonce, amount, currency = "RWF", ref, network, payload_ts } = body;
 
     // Validate required fields
     if (!merchant_code || !nonce || !network) {

@@ -2,6 +2,8 @@
 import { spawn } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 
+import { logError, logResult } from "./utils/logger.mjs";
+
 const PORT = Number(process.env.DEV_HEALTH_PORT ?? 3200);
 const HOST = "127.0.0.1";
 const BASE = `http://${HOST}:${PORT}`;
@@ -11,19 +13,23 @@ const results = [];
 async function step(name, fn) {
   try {
     await fn();
-    results.push({ name, ok: true });
+    const result = { name, ok: true };
+    results.push(result);
+    logResult("admin.dev-healthcheck.step", result);
   } catch (error) {
-    results.push({ name, ok: false, error });
+    const result = { name, ok: false, error };
+    results.push(result);
+    logResult("admin.dev-healthcheck.step", result);
   }
 }
 
 function logSummary() {
   for (const item of results) {
-    if (item.ok) console.log(`✅  ${item.name}`);
-    else {
-      console.error(`❌  ${item.name}`);
-      if (item.error) console.error(`    ${item.error.message ?? String(item.error)}`);
-    }
+    logResult("admin.dev-healthcheck.summary", {
+      name: item.name,
+      ok: item.ok,
+      error: item.error,
+    });
   }
 }
 
@@ -69,6 +75,6 @@ async function run() {
 }
 
 run().catch((err) => {
-  console.error(err);
+  logError("admin.dev-healthcheck.unhandled", { error: err });
   process.exit(1);
 });

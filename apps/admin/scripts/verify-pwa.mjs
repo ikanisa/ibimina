@@ -4,36 +4,40 @@ import { access } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
 
+import { logError, logInfo, logResult, logWarn } from "./utils/logger.mjs";
+
 const results = [];
 const args = new Set(process.argv.slice(2));
 
 const skipBuild = args.has("--skip-build") || process.env.SKIP_PWA_BUILD === "1";
 
 function recordSkip(name) {
-  results.push({ name, ok: true, skipped: true });
+  const result = { name, ok: true, skipped: true };
+  results.push(result);
+  logResult("admin.verify-pwa.step", result);
 }
 
 async function step(name, fn) {
   try {
     await fn();
-    results.push({ name, ok: true });
+    const result = { name, ok: true };
+    results.push(result);
+    logResult("admin.verify-pwa.step", result);
   } catch (error) {
-    results.push({ name, ok: false, error });
+    const result = { name, ok: false, error };
+    results.push(result);
+    logResult("admin.verify-pwa.step", result);
   }
 }
 
 function logSummary() {
   for (const item of results) {
-    if (item.skipped) {
-      console.log(`⏭️  ${item.name} (skipped)`);
-    } else if (item.ok) {
-      console.log(`✅  ${item.name}`);
-    } else {
-      console.error(`❌  ${item.name}`);
-      if (item.error) {
-        console.error(`    ${item.error instanceof Error ? item.error.message : item.error}`);
-      }
-    }
+    logResult("admin.verify-pwa.summary", {
+      name: item.name,
+      ok: item.ok,
+      skipped: item.skipped ?? false,
+      error: item.error,
+    });
   }
 }
 
@@ -116,7 +120,10 @@ async function runServerHealthcheck() {
       try {
         const response = await fetch(url, { signal: controller.signal });
         if (response.ok) {
-          console.log("Healthcheck OK:", await response.text());
+          logInfo("admin.verify-pwa.healthcheck", {
+            status: "ok",
+            response: await response.text(),
+          });
           success = true;
           break;
         }
@@ -135,9 +142,11 @@ async function runServerHealthcheck() {
 
   if (!success) {
     if (exitCode !== null) {
-      console.warn(
-        `⚠️  Could not verify /api/healthz locally (exit code ${exitCode}${exitSignal ? `, signal ${exitSignal}` : ""}). Double-check env vars and rerun.`
-      );
+      logWarn("admin.verify-pwa.healthcheck-exit", {
+        exitCode,
+        exitSignal,
+        message: "Could not verify /api/healthz locally; double-check env vars and rerun.",
+      });
       return;
     }
     throw new Error("Failed to confirm /api/healthz within 45s");
@@ -162,6 +171,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error);
+  logError("admin.verify-pwa.unhandled", { error });
   process.exit(1);
 });

@@ -87,22 +87,31 @@ export function DeepLinkProvider({ children }: { children: React.ReactNode }) {
  * Generate and share deep links from any component.
  */
 
-import { Share } from "@capacitor/share";
 import { generateDeepLink } from "@/lib/deep-links";
 
 export function GroupInviteButton({ groupId }: { groupId: string }) {
+  const canUseWebShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+
   const handleShare = async () => {
     try {
-      // Generate deep link
       const link = generateDeepLink({ type: "join", groupId });
 
-      // Share using Capacitor Share API
-      await Share.share({
-        title: "Join our savings group",
-        text: "You've been invited to join our group on Ibimina",
-        url: link,
-        dialogTitle: "Share invite link",
-      });
+      if (canUseWebShare) {
+        await navigator.share({
+          title: "Join our savings group",
+          text: "You've been invited to join our group on Ibimina",
+          url: link,
+        });
+        return;
+      }
+
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(link);
+        alert("Invite link copied to clipboard");
+        return;
+      }
+
+      prompt("Copy this invite link", link);
     } catch (error) {
       console.error("Share failed:", error);
     }
@@ -121,38 +130,25 @@ export function GroupInviteButton({ groupId }: { groupId: string }) {
  * Listen for MoMo payment notifications in your app.
  */
 
-import { Capacitor, registerPlugin } from "@capacitor/core";
 import { useEffect, useState } from "react";
 
-const MoMoNotificationListener = Capacitor.isNativePlatform()
-  ? registerPlugin<Record<string, unknown>>("MoMoNotificationListener")
-  : null;
+const MOMO_EVENT = "ibimina:momo-notification";
 
 export function PaymentDetectionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    if (!MoMoNotificationListener) return;
+    if (typeof window === "undefined") return;
 
-    // Check permission status
-    const checkPermission = async () => {
-      await MoMoNotificationListener.checkPermission();
+    const listener = (event: Event) => {
+      const detail = (event as CustomEvent<{ text: string; source: string; timestamp: number }>)
+        .detail;
+      // eslint-disable-next-line ibimina/structured-logging
+      console.log("Payment notification received:", detail);
     };
 
-    checkPermission();
-
-    // Listen for SMS notifications
-    const listener = MoMoNotificationListener.addListener(
-      "smsReceived",
-      (data: { text: string; source: string; timestamp: number }) => {
-        // eslint-disable-next-line ibimina/structured-logging
-        console.log("Payment notification received:", data);
-        // Show toast notification
-        // Parse transaction details
-        // Update UI
-      }
-    );
+    window.addEventListener(MOMO_EVENT, listener as EventListener);
 
     return () => {
-      listener.remove();
+      window.removeEventListener(MOMO_EVENT, listener as EventListener);
     };
   }, []);
 
@@ -161,25 +157,16 @@ export function PaymentDetectionProvider({ children }: { children: React.ReactNo
 
 export function RequestNotificationPermission() {
   const handleRequest = async () => {
-    if (!MoMoNotificationListener) {
-      alert("Not available on this platform");
-      return;
-    }
-
-    try {
-      // Opens system notification settings
-      await MoMoNotificationListener.requestPermission();
-    } catch (error) {
-      console.error("Failed to request permission:", error);
-    }
+    alert("Payment detection permissions are managed by the native mobile app.");
   };
 
   return (
     <div className="card">
       <h2>Enable Payment Detection</h2>
       <p>
-        To automatically detect your MoMo payments, Ibimina needs permission to read payment
-        notifications from MTN MoMo and Airtel Money.
+        To automatically detect your MoMo payments, the native mobile app listens for SMS or push
+        notifications. In the web app you can still trigger the demo by dispatching a custom{" "}
+        <code>ibimina:momo-notification</code> event.
       </p>
       <button onClick={handleRequest} className="btn-primary">
         Enable Payment Detection

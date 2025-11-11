@@ -1,16 +1,3 @@
-import { registerPlugin } from "@capacitor/core";
-import type { PluginListenerHandle } from "@capacitor/core";
-
-/**
- * Network Monitor Plugin
- *
- * Provides real-time network connectivity monitoring with:
- * - Connection type detection (WiFi, Cellular, Ethernet)
- * - Connection quality estimation
- * - Network change notifications
- * - Offline/online state management
- */
-
 export type ConnectionType = "wifi" | "cellular" | "ethernet" | "bluetooth" | "none" | "unknown";
 
 export interface NetworkStatus {
@@ -21,32 +8,81 @@ export interface NetworkStatus {
   linkUpstreamBandwidthKbps?: number;
 }
 
-export interface NetworkMonitorPlugin {
-  /**
-   * Get current network status
-   */
-  getStatus(): Promise<NetworkStatus>;
+type Listener = (status: NetworkStatus) => void;
 
-  /**
-   * Start monitoring network changes
-   * Emits 'networkStatusChange' events
-   */
-  startMonitoring(): Promise<{ success: boolean }>;
+const listeners = new Set<Listener>();
 
-  /**
-   * Stop monitoring network changes
-   */
-  stopMonitoring(): Promise<{ success: boolean }>;
+function getConnectionType(): ConnectionType {
+  if (typeof navigator === "undefined") {
+    return "unknown";
+  }
 
-  /**
-   * Add listener for network status changes
-   */
-  addListener(
-    eventName: "networkStatusChange",
-    listenerFunc: (status: NetworkStatus) => void
-  ): Promise<PluginListenerHandle>;
+  const connection = (navigator as Navigator & { connection?: { type?: string } }).connection;
+  if (!connection || !connection.type) {
+    return navigator.onLine ? "wifi" : "none";
+  }
+
+  const type = connection.type.toLowerCase();
+  if (type.includes("wifi")) return "wifi";
+  if (type.includes("cell")) return "cellular";
+  if (type.includes("ethernet")) return "ethernet";
+  if (type.includes("bluetooth")) return "bluetooth";
+  return "unknown";
 }
 
-const NetworkMonitor = registerPlugin<NetworkMonitorPlugin>("NetworkMonitor");
+function currentStatus(): NetworkStatus {
+  const connected = typeof navigator !== "undefined" ? navigator.onLine : true;
+  return {
+    connected,
+    connectionType: connected ? getConnectionType() : "none",
+  };
+}
+
+function notify(status: NetworkStatus) {
+  listeners.forEach((listener) => {
+    try {
+      listener(status);
+    } catch (error) {
+      console.error("Network monitor listener failed", error);
+    }
+  });
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("online", () => notify(currentStatus()));
+  window.addEventListener("offline", () => notify(currentStatus()));
+}
+
+export const NetworkMonitor = {
+  async getStatus(): Promise<NetworkStatus> {
+    return currentStatus();
+  },
+
+  async startMonitoring(): Promise<{ success: boolean }> {
+    notify(currentStatus());
+    return { success: true };
+  },
+
+  async stopMonitoring(): Promise<{ success: boolean }> {
+    listeners.clear();
+    return { success: true };
+  },
+
+  async addListener(
+    eventName: "networkStatusChange",
+    listenerFunc: Listener
+  ): Promise<{ remove: () => void }> {
+    if (eventName !== "networkStatusChange") {
+      throw new Error(`Unsupported event: ${eventName}`);
+    }
+
+    listeners.add(listenerFunc);
+    return {
+      remove: () => {
+        listeners.delete(listenerFunc);
+      },
+    };
+  },
+};
 
 export default NetworkMonitor;

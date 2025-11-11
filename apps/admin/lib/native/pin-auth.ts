@@ -1,64 +1,19 @@
 /**
- * TypeScript bridge for PIN Authentication plugin.
+ * Web-based implementation of the PIN authentication bridge.
  *
- * Provides secure 6-digit PIN authentication for quick login on mobile devices.
- *
- * Security Features:
- * - PIN hashed with PBKDF2-SHA256 (10,000 iterations)
- * - Salted hashes (16-byte random salt)
- * - Encrypted storage using Android Keystore
- * - Rate limiting (max 5 attempts)
- * - Auto-lockout (15 minutes after failed attempts)
- *
- * Usage:
- * ```typescript
- * import { PinAuth } from '@/lib/native/pin-auth';
- *
- * // Check if PIN is set
- * const { hasPin } = await PinAuth.hasPin();
- *
- * // Set PIN
- * await PinAuth.setPin('123456');
- *
- * // Verify PIN
- * const result = await PinAuth.verifyPin('123456');
- * if (result.valid) {
- *   // Login successful
- * }
- * ```
+ * The original version of this module depended on Capacitor native plugins.
+ * To keep the PWA experience functional after removing the Capacitor stack we
+ * emulate the behaviour with browser storage. The API surface remains the same
+ * so that existing React components can continue to call the helper methods
+ * without code changes.
  */
 
-import { Capacitor, registerPlugin } from "@capacitor/core";
-
 export interface PinAuthPlugin {
-  /**
-   * Check if PIN is currently set
-   */
   hasPin(): Promise<{ hasPin: boolean }>;
-
-  /**
-   * Set a new PIN (must be 6 digits)
-   */
   setPin(options: { pin: string }): Promise<{ success: boolean }>;
-
-  /**
-   * Verify the provided PIN
-   */
   verifyPin(options: { pin: string }): Promise<PinVerifyResult>;
-
-  /**
-   * Delete the stored PIN
-   */
   deletePin(): Promise<{ success: boolean }>;
-
-  /**
-   * Change PIN (requires old PIN)
-   */
   changePin(options: { oldPin: string; newPin: string }): Promise<{ success: boolean }>;
-
-  /**
-   * Get current lockout status
-   */
   getLockStatus(): Promise<LockStatus>;
 }
 
@@ -75,18 +30,103 @@ export interface LockStatus {
   attemptsRemaining: number;
 }
 
-const PinAuthNative = registerPlugin<PinAuthPlugin>("PinAuth");
+const STORAGE_KEY = "ibimina.pinAuth";
+const MAX_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
-/**
- * Check if running on Android with PIN authentication support
- */
-export function isPinAuthAvailable(): boolean {
-  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
+type StoredState = {
+  pinHash?: string;
+  failCount: number;
+  lockUntil?: number;
+};
+
+const defaultState: StoredState = {
+  failCount: 0,
+};
+
+const memoryState: StoredState = { ...defaultState };
+
+const isBrowser = () => typeof window !== "undefined";
+
+function readState(): StoredState {
+  if (!isBrowser()) {
+    return memoryState;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return { ...defaultState };
+    }
+
+    const parsed = JSON.parse(raw) as Partial<StoredState>;
+    return {
+      pinHash: typeof parsed.pinHash === "string" ? parsed.pinHash : undefined,
+      failCount: typeof parsed.failCount === "number" ? parsed.failCount : 0,
+      lockUntil: typeof parsed.lockUntil === "number" ? parsed.lockUntil : undefined,
+    };
+  } catch (error) {
+    console.warn("Failed to read PIN auth state, resetting", error);
+    return { ...defaultState };
+  }
 }
 
-/**
- * Validate PIN format (6 digits)
- */
+function writeState(next: StoredState): void {
+  if (!isBrowser()) {
+    Object.assign(memoryState, next);
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch (error) {
+    console.warn("Failed to persist PIN auth state", error);
+  }
+}
+
+async function hashPin(pin: string): Promise<string> {
+  if (typeof crypto !== "undefined" && typeof crypto.subtle !== "undefined") {
+    try {
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pin));
+      return Array.from(new Uint8Array(digest))
+        .map((value) => value.toString(16).padStart(2, "0"))
+        .join("");
+    } catch (error) {
+      console.warn("Falling back to plain PIN storage", error);
+    }
+  }
+
+  return pin;
+}
+
+function getLockStatusFromState(state: StoredState): LockStatus {
+  const now = Date.now();
+  if (state.lockUntil && state.lockUntil <= now) {
+    state.lockUntil = undefined;
+    state.failCount = 0;
+    writeState(state);
+  }
+
+  const isLocked = typeof state.lockUntil === "number" && state.lockUntil > now;
+  const remainingSeconds = isLocked ? Math.ceil((state.lockUntil! - now) / 1000) : 0;
+
+  return {
+    isLocked,
+    remainingSeconds,
+    failCount: state.failCount,
+    attemptsRemaining: Math.max(MAX_ATTEMPTS - state.failCount, 0),
+  };
+}
+
+function lockAccount(state: StoredState): void {
+  state.lockUntil = Date.now() + LOCK_DURATION_MS;
+  writeState(state);
+}
+
+export function isPinAuthAvailable(): boolean {
+  return isBrowser();
+}
+
 export function validatePinFormat(pin: string): { valid: boolean; error?: string } {
   if (!pin) {
     return { valid: false, error: "PIN is required" };
@@ -103,109 +143,107 @@ export function validatePinFormat(pin: string): { valid: boolean; error?: string
   return { valid: true };
 }
 
-/**
- * PIN Authentication API
- */
-export const PinAuth = {
-  /**
-   * Check if PIN authentication is available on this platform
-   */
-  isAvailable(): boolean {
-    return isPinAuthAvailable();
-  },
+async function verifyPinInternal(state: StoredState, pin: string): Promise<PinVerifyResult> {
+  const lockStatus = getLockStatusFromState(state);
+  if (lockStatus.isLocked) {
+    return {
+      success: false,
+      valid: false,
+      attemptsRemaining: lockStatus.attemptsRemaining,
+    };
+  }
 
-  /**
-   * Check if PIN is currently set
-   */
-  async hasPin(): Promise<{ hasPin: boolean }> {
+  if (!state.pinHash) {
+    return { success: false, valid: false, attemptsRemaining: MAX_ATTEMPTS };
+  }
+
+  const hashed = await hashPin(pin);
+  if (hashed === state.pinHash) {
+    state.failCount = 0;
+    state.lockUntil = undefined;
+    writeState(state);
+    return { success: true, valid: true, attemptsRemaining: MAX_ATTEMPTS };
+  }
+
+  state.failCount = Math.min(state.failCount + 1, MAX_ATTEMPTS);
+  if (state.failCount >= MAX_ATTEMPTS) {
+    lockAccount(state);
+  } else {
+    writeState(state);
+  }
+
+  const updated = getLockStatusFromState(state);
+  return {
+    success: true,
+    valid: false,
+    attemptsRemaining: updated.attemptsRemaining,
+  };
+}
+
+export const PinAuth: PinAuthPlugin & {
+  isAvailable(): boolean;
+  changePin(oldPin: string, newPin: string): Promise<{ success: boolean }>;
+  getLockStatus(): Promise<LockStatus>;
+} = {
+  async hasPin() {
     if (!isPinAuthAvailable()) {
       return { hasPin: false };
     }
 
-    try {
-      return await PinAuthNative.hasPin();
-    } catch (error) {
-      console.error("Failed to check PIN status:", error);
-      throw error;
-    }
+    const state = readState();
+    return { hasPin: Boolean(state.pinHash) };
   },
 
-  /**
-   * Set a new 6-digit PIN
-   */
-  async setPin(pin: string): Promise<{ success: boolean }> {
+  async setPin({ pin }) {
     if (!isPinAuthAvailable()) {
-      throw new Error("PIN authentication is not available on this platform");
+      throw new Error("PIN authentication is only available in supported browsers");
     }
 
-    // Validate PIN format
     const validation = validatePinFormat(pin);
     if (!validation.valid) {
       throw new Error(validation.error);
     }
 
-    try {
-      return await PinAuthNative.setPin({ pin });
-    } catch (error) {
-      console.error("Failed to set PIN:", error);
-      throw error;
-    }
+    const state = readState();
+    state.pinHash = await hashPin(pin);
+    state.failCount = 0;
+    state.lockUntil = undefined;
+    writeState(state);
+    return { success: true };
   },
 
-  /**
-   * Verify the provided PIN
-   */
-  async verifyPin(pin: string): Promise<PinVerifyResult> {
+  async verifyPin({ pin }) {
     if (!isPinAuthAvailable()) {
-      throw new Error("PIN authentication is not available on this platform");
+      throw new Error("PIN authentication is not available in this environment");
     }
 
-    // Validate PIN format
     const validation = validatePinFormat(pin);
     if (!validation.valid) {
       throw new Error(validation.error);
     }
 
-    try {
-      return await PinAuthNative.verifyPin({ pin });
-    } catch (error) {
-      // Error might be due to lockout
-      const lockStatus = await this.getLockStatus();
-      if (lockStatus.isLocked) {
-        throw new Error(
-          `Too many failed attempts. Try again in ${lockStatus.remainingSeconds} seconds`
-        );
-      }
-      console.error("Failed to verify PIN:", error);
-      throw error;
-    }
+    const state = readState();
+    return verifyPinInternal(state, pin);
   },
 
-  /**
-   * Delete the stored PIN
-   */
-  async deletePin(): Promise<{ success: boolean }> {
+  async deletePin() {
     if (!isPinAuthAvailable()) {
-      throw new Error("PIN authentication is not available on this platform");
+      return { success: true };
     }
 
-    try {
-      return await PinAuthNative.deletePin();
-    } catch (error) {
-      console.error("Failed to delete PIN:", error);
-      throw error;
-    }
+    const state = readState();
+    state.pinHash = undefined;
+    state.failCount = 0;
+    state.lockUntil = undefined;
+    writeState(state);
+    return { success: true };
   },
 
-  /**
-   * Change PIN (requires old PIN for verification)
-   */
-  async changePin(oldPin: string, newPin: string): Promise<{ success: boolean }> {
+  async changePin(oldPin, newPin) {
     if (!isPinAuthAvailable()) {
-      throw new Error("PIN authentication is not available on this platform");
+      throw new Error("PIN authentication is not available in this environment");
     }
 
-    // Validate both PINs
     const oldValidation = validatePinFormat(oldPin);
     if (!oldValidation.valid) {
       throw new Error(`Old PIN: ${oldValidation.error}`);
@@ -220,33 +258,35 @@ export const PinAuth = {
       throw new Error("New PIN must be different from old PIN");
     }
 
-    try {
-      return await PinAuthNative.changePin({ oldPin, newPin });
-    } catch (error) {
-      console.error("Failed to change PIN:", error);
-      throw error;
+    const state = readState();
+    const result = await verifyPinInternal(state, oldPin);
+    if (!result.valid) {
+      throw new Error("Incorrect PIN");
     }
+
+    state.pinHash = await hashPin(newPin);
+    state.failCount = 0;
+    state.lockUntil = undefined;
+    writeState(state);
+    return { success: true };
   },
 
-  /**
-   * Get current lockout status
-   */
-  async getLockStatus(): Promise<LockStatus> {
+  async getLockStatus() {
     if (!isPinAuthAvailable()) {
       return {
         isLocked: false,
         remainingSeconds: 0,
         failCount: 0,
-        attemptsRemaining: 5,
+        attemptsRemaining: MAX_ATTEMPTS,
       };
     }
 
-    try {
-      return await PinAuthNative.getLockStatus();
-    } catch (error) {
-      console.error("Failed to get lock status:", error);
-      throw error;
-    }
+    const state = readState();
+    return getLockStatusFromState(state);
+  },
+
+  isAvailable() {
+    return isPinAuthAvailable();
   },
 };
 

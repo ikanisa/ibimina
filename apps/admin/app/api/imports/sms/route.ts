@@ -30,14 +30,6 @@ type ParsedTransaction = {
   confidence?: number;
 };
 
-type SmsParseResponse = {
-  success: boolean;
-  parsed?: ParsedTransaction;
-  parseSource?: string;
-  modelUsed?: string | null;
-  error?: string;
-};
-
 type PaymentRow = {
   id: string;
   txn_id: string;

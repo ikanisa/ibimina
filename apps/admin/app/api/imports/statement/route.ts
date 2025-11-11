@@ -40,13 +40,6 @@ type IkiminaRecord = {
   sacco_id: string;
 };
 
-type ImportSummary = {
-  inserted: number;
-  duplicates: number;
-  posted: number;
-  unallocated: number;
-};
-
 const normalizeTxnId = (value: string) => value.trim();
 
 const normalizeMsisdn = (value: string) => value.replace(/\s+/g, "").trim();
