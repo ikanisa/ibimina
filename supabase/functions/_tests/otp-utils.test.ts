@@ -17,11 +17,8 @@ import {
   normalizePhoneNumber,
   validatePhoneNumber,
 } from "../whatsapp-otp-send/index.ts";
-import {
-  base64UrlEncode,
-  handler as verifyHandler,
-  signJwt,
-} from "../whatsapp-otp-verify/index.ts";
+import { base64UrlEncode, signAuthJwt, signJwt } from "../_shared/jwt.ts";
+import { handler as verifyHandler } from "../whatsapp-otp-verify/index.ts";
 
 const decodeSegment = (segment: string) => {
   const normalized = segment.replace(/-/g, "+").replace(/_/g, "/");
@@ -112,6 +109,30 @@ Deno.test("signJwt creates a token with expected claims", async () => {
   assertExists(payload.iat);
   assertExists(payload.exp);
   assertEquals((payload.exp as number) - (payload.iat as number), 60);
+});
+
+Deno.test("signAuthJwt preserves explicit expiration", async () => {
+  const exp = Math.floor(Date.now() / 1000) + 120;
+  Deno.env.set("AUTH_JWT_SECRET", "auth-secret");
+  try {
+    const token = await signAuthJwt({
+      sub: "user-456",
+      auth: "member",
+      exp,
+      factor: "whatsapp",
+    });
+
+    const [, payloadSeg] = token.split(".");
+    const payload = decodeSegment(payloadSeg);
+
+    assertEquals(payload.sub, "user-456");
+    assertEquals(payload.auth, "member");
+    assertEquals(payload.factor, "whatsapp");
+    assertEquals(payload.exp, exp);
+    assertExists(payload.iat);
+  } finally {
+    Deno.env.delete("AUTH_JWT_SECRET");
+  }
 });
 
 Deno.test("send handler rejects missing phone", async () => {

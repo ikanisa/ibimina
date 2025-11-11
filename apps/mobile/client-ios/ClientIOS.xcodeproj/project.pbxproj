@@ -1,0 +1,295 @@
+// !$*UTF8*$!
+{
+archiveVersion = 1;
+classes = {};
+objectVersion = 55;
+objects = {
+
+/* Begin PBXBuildFile section */
+tIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000020 /* ClientIOSApp.swift */; };
+ Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000021 /* AppDelegate.swift */; };
+eDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000022 /* SceneDelegate.swift */; };
+ Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000023 /* SupabaseService.swift */; };
+saction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000024 /* Transaction.swift */; };
+FCReaderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000025 /* NFCReaderManager.swift */; };
+FCWriterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000026 /* NFCWriterManager.swift */; };
+tentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000027 /* ContentView.swift */; };
+sactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000028 /* TransactionsView.swift */; };
+FCReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A700000029 /* NFCReaderView.swift */; };
+FCWriterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A70000002A /* NFCWriterView.swift */; };
+ Resources */ = {isa = PBXBuildFile; fileRef = 8E5E0C4C29A1B3A70000002C /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+tIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClientIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+tIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientIOSApp.swift; sourceTree = "<group>"; };
+= PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+eDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+= PBXFileReference; lastKnownFileType = sourcecode.swift; name = SupabaseService.swift; path = Services/SupabaseService.swift; sourceTree = "<group>"; };
+saction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Transaction.swift; path = Models/Transaction.swift; sourceTree = "<group>"; };
+FCReaderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NFCReaderManager.swift; path = NFC/NFCReaderManager.swift; sourceTree = "<group>"; };
+FCWriterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NFCWriterManager.swift; path = NFC/NFCWriterManager.swift; sourceTree = "<group>"; };
+tentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = Views/ContentView.swift; sourceTree = "<group>"; };
+sactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TransactionsView.swift; path = Views/TransactionsView.swift; sourceTree = "<group>"; };
+FCReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NFCReaderView.swift; path = Views/NFCReaderView.swift; sourceTree = "<group>"; };
+FCWriterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NFCWriterView.swift; path = Views/NFCWriterView.swift; sourceTree = "<group>"; };
+fo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ClientIOS/Info.plist; sourceTree = SOURCE_ROOT; };
+= PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ClientIOS/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+tIOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = ClientIOS.entitlements; path = ClientIOS/ClientIOS.entitlements; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+= PBXFrameworksBuildPhase;
+Mask = 2147483647;
+OnlyForDeploymentPostprocessing = 0;
+d PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+ = (
+tIOS */,
+/* ClientIOS */ = {
+ = (
+tIOSApp.swift */,
+eDelegate.swift */,
+*/,
+FC */,
+fo.plist */,
+tIOS.entitlements */,
+tIOS;
+= {
+ = (
+saction.swift */,
+ame = Models;
+= {
+ = (
+ame = Services;
+FC */ = {
+ = (
+FCReaderManager.swift */,
+FCWriterManager.swift */,
+ame = NFC;
+= {
+ = (
+tentView.swift */,
+sactionsView.swift */,
+FCReaderView.swift */,
+FCWriterView.swift */,
+ame = Views;
+= {
+ = (
+tIOS.app */,
+ame = Products;
+d PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+tIOS */ = {
+ativeTarget;
+figurationList = 8E5E0C4C29A1B3A700000006 /* Build configuration list for PBXNativeTarget "ClientIOS" */;
+/* Frameworks */,
+dencies = (
+ame = ClientIOS;
+ame = ClientIOS;
+ce = 8E5E0C4C29A1B3A700000012 /* ClientIOS.app */;
+";
+d PBXNativeTarget section */
+
+/* Begin PBXProject section */
+{
+1500;
+ToolsVersion = 15.0;
+figurationList = 8E5E0C4C29A1B3A700000002 /* Build configuration list for PBXProject "ClientIOS" */;
+ = "Xcode 15.0";
+tRegion = en;
+nedForEncodings = 0;
+ownRegions = (
+,
+Group = 8E5E0C4C29A1B3A70000000C;
+= "";
+ClientIOS */,
+d PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+= PBXResourcesBuildPhase;
+Mask = 2147483647;
+ Resources */,
+OnlyForDeploymentPostprocessing = 0;
+d PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+= PBXSourcesBuildPhase;
+Mask = 2147483647;
+tIOSApp.swift in Sources */,
+ Sources */,
+eDelegate.swift in Sources */,
+ Sources */,
+saction.swift in Sources */,
+FCReaderManager.swift in Sources */,
+FCWriterManager.swift in Sources */,
+tentView.swift in Sources */,
+sactionsView.swift in Sources */,
+FCReaderView.swift in Sources */,
+FCWriterView.swift in Sources */,
+OnlyForDeploymentPostprocessing = 0;
+d PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+= XCBuildConfiguration;
+gs = {
+O;
+G_ANALYZER_NONNULL = YES;
+G_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+G_CXX_LANGUAGE_STANDARD = "gnu++20";
+G_ENABLE_MODULES = YES;
+G_ENABLE_OBJC_ARC = YES;
+G_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+G_WARN_BOOL_CONVERSION = YES;
+G_WARN_COMMA = YES;
+G_WARN_CONSTANT_CONVERSION = YES;
+G_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+G_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+G_WARN_DOCUMENTATION_COMMENTS = YES;
+G_WARN_EMPTY_BODY = YES;
+G_WARN_ENUM_CONVERSION = YES;
+G_WARN_INFINITE_RECURSION = YES;
+G_WARN_INT_CONVERSION = YES;
+G_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+G_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+G_WARN_OBJC_LITERAL_CONVERSION = YES;
+G_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+G_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+G_WARN_RANGE_LOOP_ANALYSIS = YES;
+G_WARN_STRICT_PROTOTYPES = YES;
+G_WARN_SUSPICIOUS_MOVE = YES;
+G_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+_IDENTITY = "Apple Development";
+O;
+FORMATION_FORMAT = dwarf;
+ABLE_STRICT_OBJC_MSGSEND = YES;
+ABLE_TESTABILITY = YES;
+GUAGE_STANDARD = gnu17;
+AMIC_NO_PIC = NO;
+O_COMMON_BLOCKS = YES;
+_LEVEL = 0;
+ITIONS = (
+herited)",
+_64_TO_32_BIT_CONVERSION = YES;
+_ABOUT_RETURN_TYPE = YES_ERROR;
+_UNDECLARED_SELECTOR = YES;
+_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+_UNUSED_FUNCTION = YES;
+_UNUSED_VARIABLE = YES;
+EOS_DEPLOYMENT_TARGET = 16.0;
+ABLE_DEBUG_INFO = INCLUDE_SOURCE;
+LY_ACTIVE_ARCH = YES;
+eos;
+_CONDITIONS = DEBUG;
+_LEVEL = "-Onone";
+ame = Debug;
+= XCBuildConfiguration;
+gs = {
+O;
+G_ANALYZER_NONNULL = YES;
+G_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+G_CXX_LANGUAGE_STANDARD = "gnu++20";
+G_ENABLE_MODULES = YES;
+G_ENABLE_OBJC_ARC = YES;
+G_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+G_WARN_BOOL_CONVERSION = YES;
+G_WARN_COMMA = YES;
+G_WARN_CONSTANT_CONVERSION = YES;
+G_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+G_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+G_WARN_DOCUMENTATION_COMMENTS = YES;
+G_WARN_EMPTY_BODY = YES;
+G_WARN_ENUM_CONVERSION = YES;
+G_WARN_INFINITE_RECURSION = YES;
+G_WARN_INT_CONVERSION = YES;
+G_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+G_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+G_WARN_OBJC_LITERAL_CONVERSION = YES;
+G_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+G_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+G_WARN_RANGE_LOOP_ANALYSIS = YES;
+G_WARN_STRICT_PROTOTYPES = YES;
+G_WARN_SUSPICIOUS_MOVE = YES;
+G_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+_IDENTITY = "Apple Development";
+O;
+FORMATION_FORMAT = "dwarf-with-dsym";
+ABLE_NS_ASSERTIONS = NO;
+ABLE_STRICT_OBJC_MSGSEND = YES;
+GUAGE_STANDARD = gnu17;
+O_COMMON_BLOCKS = YES;
+_64_TO_32_BIT_CONVERSION = YES;
+_ABOUT_RETURN_TYPE = YES_ERROR;
+_UNDECLARED_SELECTOR = YES;
+_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+_UNUSED_FUNCTION = YES;
+_UNUSED_VARIABLE = YES;
+EOS_DEPLOYMENT_TARGET = 16.0;
+ABLE_DEBUG_INFO = NO;
+eos;
+_MODE = wholemodule;
+_LEVEL = "-O";
+ame = Release;
+= XCBuildConfiguration;
+gs = {
+_NAME = AppIcon;
+_ENTITLEMENTS = ClientIOS/ClientIOS.entitlements;
+_STYLE = Automatic;
+T_PROJECT_VERSION = 1;
+T_ASSET_PATHS = "ClientIOS/Preview Content";
+T_TEAM = "";
+ERATE_INFOPLIST_FILE = NO;
+FOPLIST_FILE = ClientIOS/Info.plist;
+EOS_DEPLOYMENT_TARGET = 16.0;
+PATH_SEARCH_PATHS = (
+herited)",
+G_VERSION = 1.0;
+DLE_IDENTIFIER = com.example.clientios;
+AME = "$(TARGET_NAME)";
+eos iphonesimulator";
+GS = YES;
+ = 5.0;
+FOPLIST_KEY_CFBundleDisplayName = ClientIOS;
+ame = Debug;
+= XCBuildConfiguration;
+gs = {
+_NAME = AppIcon;
+_ENTITLEMENTS = ClientIOS/ClientIOS.entitlements;
+_STYLE = Automatic;
+T_PROJECT_VERSION = 1;
+T_ASSET_PATHS = "ClientIOS/Preview Content";
+T_TEAM = "";
+ERATE_INFOPLIST_FILE = NO;
+FOPLIST_FILE = ClientIOS/Info.plist;
+EOS_DEPLOYMENT_TARGET = 16.0;
+PATH_SEARCH_PATHS = (
+herited)",
+G_VERSION = 1.0;
+DLE_IDENTIFIER = com.example.clientios;
+AME = "$(TARGET_NAME)";
+eos iphonesimulator";
+GS = YES;
+ = 5.0;
+FOPLIST_KEY_CFBundleDisplayName = ClientIOS;
+ame = Release;
+d XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+figuration list for PBXProject "ClientIOS" */ = {
+figurationList;
+figurations = (
+*/,
+figurationIsVisible = 0;
+figurationName = Release;
+figuration list for PBXNativeTarget "ClientIOS" */ = {
+figurationList;
+figurations = (
+*/,
+figurationIsVisible = 0;
+figurationName = Release;
+d XCConfigurationList section */
+};
+rootObject = 8E5E0C4C29A1B3A700000001 /* Project object */;
+}

@@ -9,7 +9,8 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@/utils/*": ["./src/utils/*"]
+      "@/utils/*": ["./src/utils/*"],
+      "@ibimina/supabase-schemas": ["../../packages/supabase-schemas/src/index.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
