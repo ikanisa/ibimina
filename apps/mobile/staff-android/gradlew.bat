@@ -73,8 +73,27 @@ goto fail
 set CLASSPATH=
 
 
+set "WRAPPER_JAR=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar"
+if not exist "%WRAPPER_JAR%" (
+    set "WRAPPER_BOOTSTRAP=%APP_HOME%\gradle\wrapper\bootstrap-wrapper.ps1"
+    if exist "%WRAPPER_BOOTSTRAP%" (
+        powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%WRAPPER_BOOTSTRAP%" "%APP_HOME%"
+        if errorlevel 1 goto fail
+    ) else (
+        echo. 1>&2
+        echo ERROR: Missing bootstrap script: %WRAPPER_BOOTSTRAP% 1>&2
+        goto fail
+    )
+)
+
+if not exist "%WRAPPER_JAR%" (
+    echo. 1>&2
+    echo ERROR: Failed to create Gradle wrapper JAR. 1>&2
+    goto fail
+)
+
 @rem Execute Gradle
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" -jar "%WRAPPER_JAR%" %*
 
 :end
 @rem End local scope for the variables with windows NT shell

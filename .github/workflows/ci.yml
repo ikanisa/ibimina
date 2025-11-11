@@ -153,9 +153,9 @@ jobs:
           name: coverage-reports
           path: |
             .reports/coverage
-            apps/admin/coverage
+            apps/pwa/staff-admin/coverage
             apps/platform-api/coverage
-            apps/client/coverage
+            apps/pwa/client/coverage
             packages/ui/coverage
           if-no-files-found: warn
 
@@ -167,7 +167,7 @@ jobs:
           pnpm dlx lighthouse http://127.0.0.1:3000 \
             --quiet \
             --chrome-flags="--headless" \
-            --config-path=apps/admin/lighthouse.config.cjs \
+            --config-path=apps/pwa/staff-admin/lighthouse.config.cjs \
             --output=json \
             --output-path=.reports/lighthouse/admin.json
           kill $(cat .reports/admin.pid) || true
@@ -180,7 +180,7 @@ jobs:
           pnpm dlx lighthouse http://127.0.0.1:3001 \
             --quiet \
             --chrome-flags="--headless" \
-            --config-path=apps/client/lighthouse.config.cjs \
+            --config-path=apps/pwa/client/lighthouse.config.cjs \
             --output=json \
             --output-path=.reports/lighthouse/client.json
           kill $(cat .reports/client.pid) || true
@@ -230,7 +230,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           script: |
-            cd apps/client/android
+            cd apps/pwa/client/android
             chmod +x gradlew
             ./gradlew :feature-tapmomo:assembleDebug
             ./gradlew :feature-tapmomo:connectedDebugAndroidTest
@@ -273,7 +273,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: client-playwright-coverage
-          path: apps/client/.reports/coverage
+          path: apps/pwa/client/.reports/coverage
           if-no-files-found: warn
 
       - name: Upload Playwright report
@@ -281,7 +281,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: client-playwright-report
-          path: apps/client/.reports/playwright
+          path: apps/pwa/client/.reports/playwright
           if-no-files-found: warn
 
   admin-playwright:
@@ -320,7 +320,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: admin-playwright-coverage
-          path: apps/admin/.reports/coverage
+          path: apps/pwa/staff-admin/.reports/coverage
           if-no-files-found: warn
 
       - name: Upload Playwright report
@@ -328,7 +328,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: admin-playwright-report
-          path: apps/admin/.reports/playwright
+          path: apps/pwa/staff-admin/.reports/playwright
           if-no-files-found: warn
 
   mobile-detox:

@@ -1,26 +1,20 @@
-# Podfile for Ibimina Client iOS App
+platform :ios, '16.0'
 
-platform :ios, '14.0'
 use_frameworks!
 
+workspace 'IbiminaClient'
+project 'IbiminaClient.xcodeproj'
+
 target 'IbiminaClient' do
-  # Supabase Swift SDK
   pod 'Supabase', '~> 1.0'
-  
-  # Networking
   pod 'Alamofire', '~> 5.8'
-  
-  # JSON parsing
   pod 'SwiftyJSON', '~> 5.0'
-  
-  # Keychain for secure storage
   pod 'KeychainAccess', '~> 4.2'
-  
-  # Testing
+
   target 'IbiminaClientTests' do
     inherit! :search_paths
   end
-  
+
   target 'IbiminaClientUITests' do
     inherit! :search_paths
   end
@@ -29,15 +23,7 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
     end
   end
-platform :ios, '16.0'
-use_frameworks!
-
-workspace 'ClientIOS'
-project 'ClientIOS.xcodeproj'
-
-target 'ClientIOS' do
-  pod 'Supabase', :git => 'https://github.com/supabase-community/supabase-swift.git', :branch => 'main'
 end

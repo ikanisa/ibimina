@@ -1,0 +1,535 @@
+// !$*UTF8*$!
+{
+archiveVersion = 1;
+classes = {};
+objectVersion = 55;
+objects = {
+
+/* Begin PBXBuildFile section */
+	8AFE412B7AC04FC58A42E8C1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7253AFE440214F2B8B6ACE72 /* AppDelegate.swift */; };
+	C4FDA459E6B7460287EB0CEB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70F15F9EFAC140E99320CA82 /* SceneDelegate.swift */; };
+	5717BBB2B85A4799AD6BC564 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB5EE72992E449119E7D049D /* ContentView.swift */; };
+	5EA8292C325143B8A4842EFE /* GroupsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FF08114320C4BE8A32EA75C /* GroupsListView.swift */; };
+	D12DA6F4682F4AB2B8E1ECBE /* TransactionsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9BAC5086C544A9B883156B7 /* TransactionsListView.swift */; };
+	3941B9735F494E5D8BDDE23D /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71F6DFDC62DE443C8AF4DDFA /* SupabaseService.swift */; };
+	49ADD47ABFE6458F835BE696 /* PaymentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 608746FF72BD45DDA5FBD86D /* PaymentModels.swift */; };
+	2E619894395C401E97D0A54E /* NFCTagHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2D0B348DDB46E0A0B994FB /* NFCTagHandler.swift */; };
+	40B04BED48754C6ABE85764F /* NFCReaderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCB815EB932C4660ADABC0C7 /* NFCReaderManager.swift */; };
+	8A34DC553EAD460F8F31BD70 /* NFCWriterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEFAE80ACC0D44C58D960174 /* NFCWriterManager.swift */; };
+	0B3B92E703EB4E50B55E4F56 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBD09F25685242898F9B6137 /* Assets.xcassets */; };
+	326D6DD5B41E49CEA040F95B /* IbiminaClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 055A8FAF0D824C28ADC6441B /* IbiminaClientTests.swift */; };
+	04FAECED04A94102B16CE562 /* ContentViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0A14A890B44E2CB2DBC0D4 /* ContentViewModelTests.swift */; };
+	1561A4D447134CCF841B296B /* MockSupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8747C4F352647508327EB97 /* MockSupabaseService.swift */; };
+	FD67C504D15C45AABA66ED75 /* IbiminaClientUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36A8CEDC324F478BB5361494 /* IbiminaClientUITests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+	D7473E85486643699D0B9B71 /* PBXContainerItemProxy */ = {
+		isa = PBXContainerItemProxy;
+		containerPortal = C19A4A3048E446ED976B9F3F /* Project object */;
+		proxyType = 1;
+		remoteGlobalIDString = 098BEDE453DD4B61B5D47C9F;
+		remoteInfo = IbiminaClient;
+	};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+	BAE13286FEC0466D8B3397F1 /* IbiminaClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IbiminaClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
+	7253AFE440214F2B8B6ACE72 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+	70F15F9EFAC140E99320CA82 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+	CB5EE72992E449119E7D049D /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+	6FF08114320C4BE8A32EA75C /* GroupsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListView.swift; sourceTree = "<group>"; };
+	E9BAC5086C544A9B883156B7 /* TransactionsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsListView.swift; sourceTree = "<group>"; };
+	71F6DFDC62DE443C8AF4DDFA /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+	608746FF72BD45DDA5FBD86D /* PaymentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentModels.swift; sourceTree = "<group>"; };
+	0F2D0B348DDB46E0A0B994FB /* NFCTagHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCTagHandler.swift; sourceTree = "<group>"; };
+	FCB815EB932C4660ADABC0C7 /* NFCReaderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCReaderManager.swift; sourceTree = "<group>"; };
+	AEFAE80ACC0D44C58D960174 /* NFCWriterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCWriterManager.swift; sourceTree = "<group>"; };
+	1FB7204DA75842778BDD43BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+	DBD09F25685242898F9B6137 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+	434BF35575F7427EB87F1BDD /* IbiminaClient.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IbiminaClient.entitlements; sourceTree = "<group>"; };
+	FAFC2270F8D943839DAA8B94 /* IbiminaClientTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IbiminaClientTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+	055A8FAF0D824C28ADC6441B /* IbiminaClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IbiminaClientTests.swift; sourceTree = "<group>"; };
+	0E0A14A890B44E2CB2DBC0D4 /* ContentViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModelTests.swift; sourceTree = "<group>"; };
+	E8747C4F352647508327EB97 /* MockSupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockSupabaseService.swift; sourceTree = "<group>"; };
+	FB795B7D37A94AF8B39F10C0 /* IbiminaClientUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IbiminaClientUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+	36A8CEDC324F478BB5361494 /* IbiminaClientUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IbiminaClientUITests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+	1B8A7917778943F6B678137D /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
+	59675EA1795B471783313F80 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
+	81D19128D37B4E559A25861A /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+	88C2DB447BDC488BA150213F = {
+		isa = PBXGroup;
+		children = (
+			4C4484E00E344892AA5AE9B5 /* IbiminaClient */,
+			4FD7505623E1408AB215B9D3 /* IbiminaClientTests */,
+			748A22D50ED145A38A09D560 /* IbiminaClientUITests */,
+			50BF8E42836742DE824BAEE7 /* Frameworks */,
+			CDD9E584938D48468625E74E /* Products */
+		);
+		sourceTree = "<group>";
+	};
+	4C4484E00E344892AA5AE9B5 /* IbiminaClient */ = {
+		isa = PBXGroup;
+		children = (
+			E1EFF105A0BB4EA2A30A25DF /* App */,
+			8FB53B29BCFE4B95A040DDA5 /* Views */,
+			6997CCB3AB4046469EBCEEC4 /* Services */,
+			0612C3FB059C49939A5C9AB2 /* Models */,
+			D31AAA47CCA343528B5D5E54 /* NFC */,
+			DBA8B18A986E49B9B51F3E4F /* Resources */
+		);
+		path = IbiminaClient;
+		sourceTree = "<group>";
+	};
+	E1EFF105A0BB4EA2A30A25DF /* App */ = {
+		isa = PBXGroup;
+		children = (
+			7253AFE440214F2B8B6ACE72 /* AppDelegate.swift */,
+			70F15F9EFAC140E99320CA82 /* SceneDelegate.swift */
+		);
+		path = App;
+		sourceTree = "<group>";
+	};
+	8FB53B29BCFE4B95A040DDA5 /* Views */ = {
+		isa = PBXGroup;
+		children = (
+			CB5EE72992E449119E7D049D /* ContentView.swift */,
+			6FF08114320C4BE8A32EA75C /* GroupsListView.swift */,
+			E9BAC5086C544A9B883156B7 /* TransactionsListView.swift */
+		);
+		path = Views;
+		sourceTree = "<group>";
+	};
+	6997CCB3AB4046469EBCEEC4 /* Services */ = {
+		isa = PBXGroup;
+		children = (
+			71F6DFDC62DE443C8AF4DDFA /* SupabaseService.swift */
+		);
+		path = Services;
+		sourceTree = "<group>";
+	};
+	0612C3FB059C49939A5C9AB2 /* Models */ = {
+		isa = PBXGroup;
+		children = (
+			608746FF72BD45DDA5FBD86D /* PaymentModels.swift */
+		);
+		path = Models;
+		sourceTree = "<group>";
+	};
+	D31AAA47CCA343528B5D5E54 /* NFC */ = {
+		isa = PBXGroup;
+		children = (
+			0F2D0B348DDB46E0A0B994FB /* NFCTagHandler.swift */,
+			FCB815EB932C4660ADABC0C7 /* NFCReaderManager.swift */,
+			AEFAE80ACC0D44C58D960174 /* NFCWriterManager.swift */
+		);
+		path = NFC;
+		sourceTree = "<group>";
+	};
+	DBA8B18A986E49B9B51F3E4F /* Resources */ = {
+		isa = PBXGroup;
+		children = (
+			DBD09F25685242898F9B6137 /* Assets.xcassets */,
+			1FB7204DA75842778BDD43BC /* Info.plist */,
+			434BF35575F7427EB87F1BDD /* IbiminaClient.entitlements */
+		);
+		path = Resources;
+		sourceTree = "<group>";
+	};
+	CDD9E584938D48468625E74E /* Products */ = {
+		isa = PBXGroup;
+		children = (
+			BAE13286FEC0466D8B3397F1 /* IbiminaClient.app */,
+			FAFC2270F8D943839DAA8B94 /* IbiminaClientTests.xctest */,
+			FB795B7D37A94AF8B39F10C0 /* IbiminaClientUITests.xctest */
+		);
+		name = Products;
+		sourceTree = "<group>";
+	};
+	50BF8E42836742DE824BAEE7 /* Frameworks */ = {
+		isa = PBXGroup;
+		children = (
+		);
+		name = Frameworks;
+		sourceTree = "<group>";
+	};
+	4FD7505623E1408AB215B9D3 /* IbiminaClientTests */ = {
+		isa = PBXGroup;
+		children = (
+			055A8FAF0D824C28ADC6441B /* IbiminaClientTests.swift */,
+			0E0A14A890B44E2CB2DBC0D4 /* ContentViewModelTests.swift */,
+			E8747C4F352647508327EB97 /* MockSupabaseService.swift */
+		);
+		path = IbiminaClientTests;
+		sourceTree = "<group>";
+	};
+	748A22D50ED145A38A09D560 /* IbiminaClientUITests */ = {
+		isa = PBXGroup;
+		children = (
+			36A8CEDC324F478BB5361494 /* IbiminaClientUITests.swift */
+		);
+		path = IbiminaClientUITests;
+		sourceTree = "<group>";
+	};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+	098BEDE453DD4B61B5D47C9F /* IbiminaClient */ = {
+		isa = PBXNativeTarget;
+		buildConfigurationList = A1FF173501D54936AB0F5E38 /* Build configuration list for PBXNativeTarget "IbiminaClient" */;
+		buildPhases = (
+			0EACCEC238864A8D819DA02E /* Sources */,
+			1B8A7917778943F6B678137D /* Frameworks */,
+			EDC2BB98B33B4D5384ACD6C7 /* Resources */
+		);
+		buildRules = (
+		);
+		dependencies = (
+		);
+		name = IbiminaClient;
+		productName = IbiminaClient;
+		productReference = BAE13286FEC0466D8B3397F1 /* IbiminaClient.app */;
+		productType = "com.apple.product-type.application";
+	};
+	922CD046B8954C459C3E68D6 /* IbiminaClientTests */ = {
+		isa = PBXNativeTarget;
+		buildConfigurationList = B50D859FC1F64B19B75CF93E /* Build configuration list for PBXNativeTarget "IbiminaClientTests" */;
+		buildPhases = (
+			06C677CDAC684C3C80787E7A /* Sources */,
+			59675EA1795B471783313F80 /* Frameworks */,
+			63368AF22940476DBB78228A /* Resources */
+		);
+		buildRules = (
+		);
+		dependencies = (
+			869886ED6CD645269AD3F194 /* PBXTargetDependency */
+		);
+		name = IbiminaClientTests;
+		productName = IbiminaClientTests;
+		productReference = FAFC2270F8D943839DAA8B94 /* IbiminaClientTests.xctest */;
+		productType = "com.apple.product-type.bundle.unit-test";
+	};
+	5EAE7CD2DE9C4060AF6496AE /* IbiminaClientUITests */ = {
+		isa = PBXNativeTarget;
+		buildConfigurationList = F80E094845EF4ECCAE456088 /* Build configuration list for PBXNativeTarget "IbiminaClientUITests" */;
+		buildPhases = (
+			DC4B6FEF36574A20AB0334CA /* Sources */,
+			81D19128D37B4E559A25861A /* Frameworks */,
+			065E7689BB124DB09B761338 /* Resources */
+		);
+		buildRules = (
+		);
+		dependencies = (
+			40D6043B8B1A44B18E9E27AB /* PBXTargetDependency */
+		);
+		name = IbiminaClientUITests;
+		productName = IbiminaClientUITests;
+		productReference = FB795B7D37A94AF8B39F10C0 /* IbiminaClientUITests.xctest */;
+		productType = "com.apple.product-type.bundle.ui-testing";
+	};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+	C19A4A3048E446ED976B9F3F /* Project object */ = {
+		isa = PBXProject;
+		attributes = {
+			BuildIndependentTargetsInParallel = 1;
+			LastSwiftUpdateCheck = 1500;
+			LastUpgradeCheck = 1500;
+			TargetAttributes = {
+				098BEDE453DD4B61B5D47C9F = {
+					CreatedOnToolsVersion = 15.0;
+				};
+				922CD046B8954C459C3E68D6 = {
+					CreatedOnToolsVersion = 15.0;
+					TestTargetID = 098BEDE453DD4B61B5D47C9F;
+				};
+				5EAE7CD2DE9C4060AF6496AE = {
+					CreatedOnToolsVersion = 15.0;
+					TestTargetID = 098BEDE453DD4B61B5D47C9F;
+				};
+			};
+		};
+		buildConfigurationList = C035A8FE983548C6977CE16C /* Build configuration list for PBXProject "IbiminaClient" */;
+		compatibilityVersion = "Xcode 15.0";
+		developmentRegion = en;
+		hasScannedForEncodings = 0;
+		knownRegions = (
+			en
+		);
+		mainGroup = 88C2DB447BDC488BA150213F;
+		productRefGroup = CDD9E584938D48468625E74E /* Products */;
+		projectDirPath = "";
+		projectRoot = "";
+		targets = (
+			098BEDE453DD4B61B5D47C9F /* IbiminaClient */,
+			922CD046B8954C459C3E68D6 /* IbiminaClientTests */,
+			5EAE7CD2DE9C4060AF6496AE /* IbiminaClientUITests */
+		);
+	};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+	EDC2BB98B33B4D5384ACD6C7 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+		0B3B92E703EB4E50B55E4F56 /* Assets.xcassets in Resources */
+	); runOnlyForDeploymentPostprocessing = 0; };
+	63368AF22940476DBB78228A /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
+	065E7689BB124DB09B761338 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = ( ); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+	0EACCEC238864A8D819DA02E /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+		8AFE412B7AC04FC58A42E8C1 /* AppDelegate.swift in Sources */,
+		C4FDA459E6B7460287EB0CEB /* SceneDelegate.swift in Sources */,
+		5717BBB2B85A4799AD6BC564 /* ContentView.swift in Sources */,
+		5EA8292C325143B8A4842EFE /* GroupsListView.swift in Sources */,
+		D12DA6F4682F4AB2B8E1ECBE /* TransactionsListView.swift in Sources */,
+		3941B9735F494E5D8BDDE23D /* SupabaseService.swift in Sources */,
+		49ADD47ABFE6458F835BE696 /* PaymentModels.swift in Sources */,
+		2E619894395C401E97D0A54E /* NFCTagHandler.swift in Sources */,
+		40B04BED48754C6ABE85764F /* NFCReaderManager.swift in Sources */,
+		8A34DC553EAD460F8F31BD70 /* NFCWriterManager.swift in Sources */,
+	); runOnlyForDeploymentPostprocessing = 0; }};
+	06C677CDAC684C3C80787E7A /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+		326D6DD5B41E49CEA040F95B /* IbiminaClientTests.swift in Sources */,
+		04FAECED04A94102B16CE562 /* ContentViewModelTests.swift in Sources */,
+		1561A4D447134CCF841B296B /* MockSupabaseService.swift in Sources */
+	); runOnlyForDeploymentPostprocessing = 0; };
+	DC4B6FEF36574A20AB0334CA /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+		FD67C504D15C45AABA66ED75 /* IbiminaClientUITests.swift in Sources */
+	); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+	869886ED6CD645269AD3F194 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = 098BEDE453DD4B61B5D47C9F /* IbiminaClient */; targetProxy = D7473E85486643699D0B9B71 /* PBXContainerItemProxy */; };
+	40D6043B8B1A44B18E9E27AB /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = 098BEDE453DD4B61B5D47C9F /* IbiminaClient */; targetProxy = D7473E85486643699D0B9B71 /* PBXContainerItemProxy */; };
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+	2175C7FCC7E84CE2B0E91566 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+		ALWAYS_SEARCH_USER_PATHS = NO;
+		CLANG_ANALYZER_NONNULL = YES;
+		CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+		CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+		CLANG_ENABLE_MODULES = YES;
+		CLANG_ENABLE_OBJC_ARC = YES;
+		CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+		CLANG_WARN_BOOL_CONVERSION = YES;
+		CLANG_WARN_COMMA = YES;
+		CLANG_WARN_CONSTANT_CONVERSION = YES;
+		CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+		CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+		CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+		CLANG_WARN_EMPTY_BODY = YES;
+		CLANG_WARN_ENUM_CONVERSION = YES;
+		CLANG_WARN_INFINITE_RECURSION = YES;
+		CLANG_WARN_INT_CONVERSION = YES;
+		CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+		CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+		CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+		CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+		CLANG_WARN_STRICT_PROTOTYPES = YES;
+		CLANG_WARN_SUSPICIOUS_MOVE = YES;
+		CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+		CODE_SIGN_STYLE = Automatic;
+		COPY_PHASE_STRIP = NO;
+		DEBUG_INFORMATION_FORMAT = dwarf;
+		ENABLE_STRICT_OBJC_MSGSEND = YES;
+		ENABLE_TESTABILITY = YES;
+		GCC_C_LANGUAGE_STANDARD = gnu17;
+		GCC_DYNAMIC_NO_PIC = NO;
+		GCC_NO_COMMON_BLOCKS = YES;
+		GCC_OPTIMIZATION_LEVEL = 0;
+		GCC_PREPROCESSOR_DEFINITIONS = (
+			"DEBUG=1",
+			"$(inherited)",
+		);
+		GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+		GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+		GCC_WARN_UNDECLARED_SELECTOR = YES;
+		GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+		GCC_WARN_UNUSED_FUNCTION = YES;
+		GCC_WARN_UNUSED_VARIABLE = YES;
+		IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+		MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+		ONLY_ACTIVE_ARCH = YES;
+		SDKROOT = iphoneos;
+		SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+		SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+	}};
+		name = Debug;
+	};
+	41025B8D827F40A38E9B6C3B /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+		ALWAYS_SEARCH_USER_PATHS = NO;
+		CLANG_ANALYZER_NONNULL = YES;
+		CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+		CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+		CLANG_ENABLE_MODULES = YES;
+		CLANG_ENABLE_OBJC_ARC = YES;
+		CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+		CLANG_WARN_BOOL_CONVERSION = YES;
+		CLANG_WARN_COMMA = YES;
+		CLANG_WARN_CONSTANT_CONVERSION = YES;
+		CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+		CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+		CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+		CLANG_WARN_EMPTY_BODY = YES;
+		CLANG_WARN_ENUM_CONVERSION = YES;
+		CLANG_WARN_INFINITE_RECURSION = YES;
+		CLANG_WARN_INT_CONVERSION = YES;
+		CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+		CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+		CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+		CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+		CLANG_WARN_STRICT_PROTOTYPES = YES;
+		CLANG_WARN_SUSPICIOUS_MOVE = YES;
+		CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+		CODE_SIGN_STYLE = Automatic;
+		COPY_PHASE_STRIP = NO;
+		DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+		ENABLE_NS_ASSERTIONS = NO;
+		ENABLE_STRICT_OBJC_MSGSEND = YES;
+		GCC_C_LANGUAGE_STANDARD = gnu17;
+		GCC_NO_COMMON_BLOCKS = YES;
+		GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+		GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+		GCC_WARN_UNDECLARED_SELECTOR = YES;
+		GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+		GCC_WARN_UNUSED_FUNCTION = YES;
+		GCC_WARN_UNUSED_VARIABLE = YES;
+		IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+		MTL_ENABLE_DEBUG_INFO = NO;
+		SDKROOT = iphoneos;
+		SWIFT_COMPILATION_MODE = wholemodule;
+		SWIFT_OPTIMIZATION_LEVEL = "-O";
+	}};
+		name = Release;
+	};
+	8CFE4AE6FDE04C62BDABFE03 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+		ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+		ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+		CODE_SIGN_ENTITLEMENTS = IbiminaClient/Resources/IbiminaClient.entitlements;
+		CODE_SIGN_STYLE = Automatic;
+		DEVELOPMENT_TEAM = "";
+		INFOPLIST_FILE = IbiminaClient/Resources/Info.plist;
+		IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+		LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+		PRODUCT_BUNDLE_IDENTIFIER = com.ibimina.client;
+		PRODUCT_NAME = "$(TARGET_NAME)";
+		SUPABASE_ANON_KEY = "public-anon-key";
+		SUPABASE_URL = "https://example.supabase.co";
+		SWIFT_EMIT_LOC_STRINGS = NO;
+		SWIFT_VERSION = 5.0;
+		TARGETED_DEVICE_FAMILY = "1,2";
+	}};
+		name = Debug;
+	};
+	5838AFE43E4F4946842ECC11 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+		ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+		ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+		CODE_SIGN_ENTITLEMENTS = IbiminaClient/Resources/IbiminaClient.entitlements;
+		CODE_SIGN_STYLE = Automatic;
+		DEVELOPMENT_TEAM = "";
+		INFOPLIST_FILE = IbiminaClient/Resources/Info.plist;
+		IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+		LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+		PRODUCT_BUNDLE_IDENTIFIER = com.ibimina.client;
+		PRODUCT_NAME = "$(TARGET_NAME)";
+		SUPABASE_ANON_KEY = "public-anon-key";
+		SUPABASE_URL = "https://example.supabase.co";
+		SWIFT_EMIT_LOC_STRINGS = NO;
+		SWIFT_VERSION = 5.0;
+		TARGETED_DEVICE_FAMILY = "1,2";
+	}};
+		name = Release;
+	};
+	C1AB050791AB4616BCBE10E8 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+		CODE_SIGN_STYLE = Automatic;
+		DEVELOPMENT_TEAM = "";
+		INFOPLIST_FILE = IbiminaClientTests/Info.plist;
+		IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+		LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+		PRODUCT_BUNDLE_IDENTIFIER = com.ibimina.client.tests;
+		PRODUCT_NAME = "$(TARGET_NAME)";
+		SWIFT_EMIT_LOC_STRINGS = NO;
+		SWIFT_VERSION = 5.0;
+		TARGETED_DEVICE_FAMILY = "1,2";
+		TEST_HOST = "";
+	}};
+		name = Debug;
+	};
+	BC002A1082604335856DBEC9 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+		CODE_SIGN_STYLE = Automatic;
+		DEVELOPMENT_TEAM = "";
+		INFOPLIST_FILE = IbiminaClientTests/Info.plist;
+		IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+		LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+		PRODUCT_BUNDLE_IDENTIFIER = com.ibimina.client.tests;
+		PRODUCT_NAME = "$(TARGET_NAME)";
+		SWIFT_EMIT_LOC_STRINGS = NO;
+		SWIFT_VERSION = 5.0;
+		TARGETED_DEVICE_FAMILY = "1,2";
+		TEST_HOST = "";
+	}};
+		name = Release;
+	};
+	303087544FED43FC91C2AEC9 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+		CODE_SIGN_STYLE = Automatic;
+		DEVELOPMENT_TEAM = "";
+		INFOPLIST_FILE = IbiminaClientUITests/Info.plist;
+		IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+		LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+		PRODUCT_BUNDLE_IDENTIFIER = com.ibimina.client.uitests;
+		PRODUCT_NAME = "$(TARGET_NAME)";
+		SWIFT_EMIT_LOC_STRINGS = NO;
+		SWIFT_VERSION = 5.0;
+		TARGETED_DEVICE_FAMILY = "1,2";
+		TEST_HOST = "";
+	}};
+		name = Debug;
+	};
+	189D6E8D39A64022BF63C82A /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+		CODE_SIGN_STYLE = Automatic;
+		DEVELOPMENT_TEAM = "";
+		INFOPLIST_FILE = IbiminaClientUITests/Info.plist;
+		IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+		LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+		PRODUCT_BUNDLE_IDENTIFIER = com.ibimina.client.uitests;
+		PRODUCT_NAME = "$(TARGET_NAME)";
+		SWIFT_EMIT_LOC_STRINGS = NO;
+		SWIFT_VERSION = 5.0;
+		TARGETED_DEVICE_FAMILY = "1,2";
+		TEST_HOST = "";
+	}};
+		name = Release;
+	};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+	C035A8FE983548C6977CE16C /* Build configuration list for PBXProject "IbiminaClient" */ = {isa = XCConfigurationList; buildConfigurations = (
+		2175C7FCC7E84CE2B0E91566 /* Debug */,
+		41025B8D827F40A38E9B6C3B /* Release */
+	); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+	A1FF173501D54936AB0F5E38 /* Build configuration list for PBXNativeTarget "IbiminaClient" */ = {isa = XCConfigurationList; buildConfigurations = (
+		8CFE4AE6FDE04C62BDABFE03 /* Debug */,
+		5838AFE43E4F4946842ECC11 /* Release */
+	); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+	B50D859FC1F64B19B75CF93E /* Build configuration list for PBXNativeTarget "IbiminaClientTests" */ = {isa = XCConfigurationList; buildConfigurations = (
+		C1AB050791AB4616BCBE10E8 /* Debug */,
+		BC002A1082604335856DBEC9 /* Release */
+	); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+	F80E094845EF4ECCAE456088 /* Build configuration list for PBXNativeTarget "IbiminaClientUITests" */ = {isa = XCConfigurationList; buildConfigurations = (
+		303087544FED43FC91C2AEC9 /* Debug */,
+		189D6E8D39A64022BF63C82A /* Release */
+	); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+};
+rootObject = C19A4A3048E446ED976B9F3F /* Project object */;
+}
