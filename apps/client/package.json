@@ -19,6 +19,7 @@
     "@ibimina/data-access": "workspace:*",
     "@ibimina/config": "workspace:*",
     "@ibimina/lib": "workspace:*",
+    "@ibimina/supabase-schemas": "workspace:^",
     "@ibimina/locales": "workspace:*",
     "@ibimina/ui": "workspace:*",
     "@sentry/nextjs": "^10.22.0",
