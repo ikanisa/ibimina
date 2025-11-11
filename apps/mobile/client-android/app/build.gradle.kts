@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -90,6 +91,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:gotrue-kt:2.0.0")
     implementation("io.github.jan-tennert.supabase:realtime-kt:2.0.0")
     implementation("io.ktor:ktor-client-android:2.3.7")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     
     // Network
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

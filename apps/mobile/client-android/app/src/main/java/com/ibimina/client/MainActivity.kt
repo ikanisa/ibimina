@@ -1,29 +1,26 @@
 package com.ibimina.client
 
+import android.content.Intent
+import android.nfc.NfcAdapter
+import android.nfc.Tag
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
+import com.ibimina.client.presentation.nfc.NfcViewModel
+import com.ibimina.client.presentation.navigation.IbiminaNavHost
 import com.ibimina.client.ui.theme.IbiminaClientTheme
-import com.ibimina.client.ui.navigation.AppNavigation
 
-/**
- * MainActivity for Ibimina Client Android App
- * 
- * This is the entry point for the native Android client application.
- * Features:
- * - TapMoMo NFC payment handoff
- * - View groups and savings
- * - Payment history
- * - Member profile management
- * - Real-time sync with Supabase
- */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val nfcSharedViewModel: NfcViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -32,9 +29,28 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    IbiminaNavHost()
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        nfcSharedViewModel.initialize(this)
+        nfcSharedViewModel.enableForegroundDispatch(this)
+        intent?.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)?.let(nfcSharedViewModel::onNewTag)
+    }
+
+    override fun onPause() {
+        nfcSharedViewModel.disableForegroundDispatch(this)
+        super.onPause()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        nfcSharedViewModel.readFromIntent(intent)
+        intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)?.let(nfcSharedViewModel::onNewTag)
     }
 }
