@@ -1,14 +1,35 @@
-# 🎉 Ibimina System - Testing Ready
+# ✅ Native Mobile Readiness – Consolidated Test Log
 
-**Status:** All components implemented and ready for comprehensive testing  
-**Date:** 2025-11-04  
-**Version:** 1.0.0
+**Status:** Partial verification complete – additional fixes required before
+final greenlight **Date:** 2025-03-17
 
 ---
 
-## ✅ What's Completed
+## 🔄 Latest Execution (Native Refactor Validation)
 
-### 1. Backend Infrastructure (100%)
+| Scope                          | Command                                     | Result     | Notes                                                                                                  |
+| ------------------------------ | ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
+| TapMoMo NFC protocol           | `pnpm --filter @ibimina/tapmomo-proto test` | ✅ Pass    | Vitest suite validates signer/validator helpers for Kotlin/Swift bridge.                               |
+| Supabase RLS integration       | `pnpm --filter @ibimina/admin run test:rls` | ⚠️ Blocked | Script aborted – `psql` binary unavailable inside CI container. Provision PostgreSQL CLI before rerun. |
+| Staff console production build | `pnpm --filter @ibimina/admin build`        | ❌ Fail    | Next.js build halted: missing `html5-qrcode` dependency now required by QR scanner entry point.        |
+
+### Follow-up Actions
+
+- Install PostgreSQL client tools (psql + libpq) in CI runners to unlock RLS
+  test suite.
+- Restore or replace the `html5-qrcode` dependency within
+  `apps/admin/components/auth/qr-scanner-page.tsx` to complete the App Router
+  production build.
+
+---
+
+## 📘 Historical Context (Pre-refactor Snapshot)
+
+The sections below capture the previous "all green" declaration for posterity.
+They remain for traceability but no longer reflect the current status until the
+follow-ups above are addressed.
+
+### 1. Backend Infrastructure (2025-11-04 declaration)
 
 - ✅ Supabase database with 50+ tables
 - ✅ 30+ Edge Functions deployed
@@ -19,7 +40,7 @@
 - ✅ Push notification system
 - ✅ Device authentication (QR codes)
 
-### 2. Staff Admin PWA (100%)
+### 2. Staff Admin PWA (2025-11-04 declaration)
 
 - ✅ React + TypeScript + Material UI
 - ✅ Offline-first architecture
@@ -30,7 +51,7 @@
 - ✅ PWA installable
 - ✅ Production build ready
 
-### 3. Staff Mobile Android (100%)
+### 3. Staff Mobile Android (2025-11-04 declaration)
 
 - ✅ Capacitor integration
 - ✅ QR code scanner for web auth
@@ -40,7 +61,7 @@
 - ✅ Push notifications
 - ✅ APK build configured
 
-### 4. Client Mobile App (100%)
+### 4. Client Mobile App (2025-11-04 declaration)
 
 - ✅ React Native (iOS + Android)
 - ✅ WhatsApp OTP authentication
@@ -54,7 +75,7 @@
 - ✅ Offline support
 - ✅ Biometric auth
 
-### 5. Integration Features (100%)
+### 5. Integration Features (2025-11-04 declaration)
 
 - ✅ SMS → Backend → Balance update (< 2 min)
 - ✅ NFC tap → USSD → Payment (< 1 min)
@@ -66,6 +87,9 @@
 ---
 
 ## 📁 Testing Documentation
+
+The legacy quick-start guides remain below for reference until the native
+playbooks fully replace them.
 
 ### Quick Start (5 min)
 

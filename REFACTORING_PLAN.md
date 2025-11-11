@@ -1,5 +1,17 @@
 # Ibimina Repository Refactoring Plan
 
+## ✅ Native migration status (March 2025)
+
+- **Structure aligned** – Kotlin TapMoMo module + proto signer tests pass via
+  `pnpm --filter @ibimina/tapmomo-proto test`.
+- **Integration follow-up** – Supabase RLS regression harness requires `psql`
+  installation before the plan can be fully signed off.
+- **Web companion** – Staff App Router build fails on missing `html5-qrcode`;
+  add the dependency back before merging to `main`.
+- **Hybrid audit** – Remaining Capacitor/Ionic assets have been catalogued for
+  archival; see
+  [docs/releases/NATIVE_REFACTOR_RELEASE_NOTES.md](docs/releases/NATIVE_REFACTOR_RELEASE_NOTES.md).
+
 ## 1. New Repository Structure
 
 ```

@@ -17,4 +17,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "staff-android"
+rootProject.name = "IbiminaStaff"
 include(":app")

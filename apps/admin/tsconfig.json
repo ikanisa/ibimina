@@ -5,6 +5,7 @@
       "@/*": ["./*"],
       "@ibimina/config": ["../../packages/config/src/index.ts"],
       "@ibimina/lib": ["../../packages/lib/src/index.ts"],
+      "@ibimina/supabase-schemas": ["../../packages/supabase-schemas/src/index.ts"],
       "@ibimina/flags": ["../../packages/flags/src/index.ts"],
       "@ibimina/locales": ["../../packages/locales/src/index.ts"],
       "@ibimina/ui": ["../../packages/ui/src/index.ts"]
