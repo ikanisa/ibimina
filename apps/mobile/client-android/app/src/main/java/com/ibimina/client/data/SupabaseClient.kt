@@ -1,10 +1,11 @@
 package com.ibimina.client.data
 
+import com.ibimina.client.BuildConfig
 import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.gotrue.Auth
-import io.github.jan.supabase.realtime.Realtime
+import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.realtime.Realtime
 import kotlinx.serialization.Serializable
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,6 +33,9 @@ class SupabaseClient @Inject constructor() {
         install(Auth)
         install(Realtime)
     }
+
+    val isConfigured: Boolean
+        get() = supabaseUrl.isNotBlank() && supabaseKey.isNotBlank()
     
     /**
      * Get user's groups (ibimina)

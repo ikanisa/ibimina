@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
 import com.ibimina.client.ui.theme.IbiminaClientTheme
-import com.ibimina.client.ui.navigation.AppNavigation
+import com.ibimina.client.ui.navigation.AppNavHost
 
 /**
  * MainActivity for Ibimina Client Android App
@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    AppNavHost()
                 }
             }
         }
