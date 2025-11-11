@@ -9,6 +9,20 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GroupDao {
+    @Query("SELECT * FROM groups WHERE isActive = 1")
+    fun observeAll(): Flow<List<GroupEntity>>
+    
+    @Query("SELECT * FROM groups WHERE isActive = 1")
+    suspend fun getAll(): List<GroupEntity>
+    
+    @Query("SELECT * FROM groups WHERE id = :id")
+    suspend fun getById(id: String): GroupEntity?
+    
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(groups: List<GroupEntity>)
+    
+    @Delete
+    suspend fun delete(group: GroupEntity)
     @Query("SELECT * FROM groups ORDER BY name ASC")
     fun observeGroups(): Flow<List<GroupEntity>>
 

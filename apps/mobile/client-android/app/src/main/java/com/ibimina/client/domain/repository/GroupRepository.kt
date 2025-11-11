@@ -1,34 +1,39 @@
 package com.ibimina.client.domain.repository
 
 import com.ibimina.client.domain.model.Group
+import com.ibimina.client.domain.model.GroupMember
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Repository interface for group operations
+ * Repository interface for Group-related operations
+ * 
+ * Follows Clean Architecture principles by defining the contract
+ * in the domain layer while implementation lives in the data layer.
  */
 interface GroupRepository {
-    /**
-     * Get all groups for a user
-     */
-    suspend fun getUserGroups(userId: String): Flow<List<Group>>
     
     /**
-     * Get a single group by ID
+     * Get all groups for the current user
      */
-    suspend fun getGroupById(groupId: String): Group?
+    suspend fun getGroups(): Result<List<Group>>
     
     /**
-     * Join a group
+     * Get a specific group by ID
      */
-    suspend fun joinGroup(groupId: String, userId: String): Result<Unit>
+    suspend fun getGroupById(groupId: String): Result<Group>
     
     /**
-     * Leave a group
+     * Observe groups as a Flow for real-time updates
      */
-    suspend fun leaveGroup(groupId: String, userId: String): Result<Unit>
+    fun observeGroups(): Flow<List<Group>>
     
     /**
-     * Sync groups with remote server
+     * Get members of a specific group
+     */
+    suspend fun getGroupMembers(groupId: String): Result<List<GroupMember>>
+    
+    /**
+     * Sync groups from server
      */
     suspend fun syncGroups(): Result<Unit>
 }
