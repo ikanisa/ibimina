@@ -212,7 +212,7 @@ export const tailwindTokens = {
   screens: breakpointScale,
 } as const;
 
-export const themeNames = ["light", "dark"] as const;
+export const themeNames = ["light", "dark", "high-contrast"] as const;
 export type ThemeName = (typeof themeNames)[number];
 export const themeAliases = { nyungwe: "dark" } as const;
 export type ThemeAlias = keyof typeof themeAliases;
@@ -220,6 +220,7 @@ export type ThemeAlias = keyof typeof themeAliases;
 export const nextThemeValueMap = {
   light: "light",
   dark: "dark",
+  "high-contrast": "high-contrast",
   nyungwe: "dark",
 } as const;
 
