@@ -42,6 +42,7 @@
     "@ibimina/flags": "workspace:*",
     "@ibimina/lib": "workspace:^",
     "@ibimina/locales": "workspace:*",
+    "@ibimina/supabase-schemas": "workspace:^",
     "@ibimina/ui": "workspace:*",
     "@openai/agents": "^0.1.11",
     "@sentry/nextjs": "^10.22.0",

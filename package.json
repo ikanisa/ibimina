@@ -42,7 +42,7 @@
     "setup:agent": "tsx scripts/setupAgent.ts",
     "check:flags": "node scripts/check-feature-flags.mjs",
     "check:manifest": "node scripts/check-manifest.mjs",
-    "gen:types": "supabase gen types typescript --local > apps/pwa/staff-admin/lib/supabase/types.ts",
+    "gen:types": "supabase gen types typescript --local > packages/supabase-schemas/src/database.types.ts",
     "deploy:function:reconcile": "cd supabase && supabase functions deploy reconcile",
     "check:types": "bash scripts/check-supabase-types.sh",
     "perf:budget": "pnpm --filter @ibimina/admin perf:budget",
