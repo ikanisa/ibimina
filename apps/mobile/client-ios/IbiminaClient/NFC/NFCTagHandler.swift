@@ -95,26 +95,3 @@ class NFCTagHandler {
         return currentTime - payment.timestamp > Double(ttlSeconds)
     }
 }
-
-/**
- * PaymentData model for TapMoMo payments
- */
-struct PaymentData: Codable {
-    let amount: Double
-    let network: String // "MTN" or "Airtel"
-    let merchant_id: String
-    let reference: String
-    let timestamp: Double
-    let nonce: String
-    let signature: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case amount
-        case network
-        case merchant_id
-        case reference
-        case timestamp
-        case nonce
-        case signature
-    }
-}

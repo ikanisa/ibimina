@@ -1,11 +1,13 @@
 package com.ibimina.client.data
 
+import com.ibimina.client.BuildConfig
 import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.gotrue.Auth
-import io.github.jan.supabase.realtime.Realtime
+import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.realtime.Realtime
 import kotlinx.serialization.Serializable
+import io.github.jan.supabase.realtime.Realtime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,6 +34,9 @@ class SupabaseClient @Inject constructor() {
         install(Auth)
         install(Realtime)
     }
+
+    val isConfigured: Boolean
+        get() = supabaseUrl.isNotBlank() && supabaseKey.isNotBlank()
     
     /**
      * Get user's groups (ibimina)
@@ -68,30 +73,3 @@ class SupabaseClient @Inject constructor() {
             .insert(allocation)
     }
 }
-
-@Serializable
-data class Group(
-    val id: String,
-    val name: String,
-    val group_id: String,
-    val member_code: String
-)
-
-@Serializable
-data class Transaction(
-    val id: String,
-    val amount: Double,
-    val reference: String,
-    val status: String,
-    val created_at: String
-)
-
-@Serializable
-data class AllocationRequest(
-    val org_id: String,
-    val group_id: String,
-    val member_id: String,
-    val amount: Double,
-    val raw_ref: String,
-    val source: String
-)
