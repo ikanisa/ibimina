@@ -147,7 +147,7 @@ fi
 # Build Android app
 print_step "Building Android app"
 
-cd "$PROJECT_ROOT/apps/admin"
+cd "$PROJECT_ROOT/apps/pwa/staff-admin"
 
 echo "Syncing Capacitor..."
 pnpm exec cap sync android

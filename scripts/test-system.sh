@@ -84,7 +84,7 @@ case $choice in
     echo ""
     
     echo "Building Android app..."
-    cd apps/admin
+    cd apps/pwa/staff-admin
     npx cap sync android
     npx cap open android
     
@@ -102,7 +102,7 @@ case $choice in
     echo "  2. Android"
     read -p "Enter choice: " platform
     
-    cd apps/client-mobile
+    cd apps/pwa/client-mobile
     
     if [ "$platform" = "1" ]; then
       echo "Starting iOS..."
@@ -197,7 +197,7 @@ case $choice in
     # Check PWA build
     echo ""
     echo "Checking PWA build..."
-    if [ -d "apps/admin/.next" ]; then
+    if [ -d "apps/pwa/staff-admin/.next" ]; then
       echo -e "${GREEN}✓ PWA built${NC}"
     else
       echo -e "${YELLOW}⚠ PWA not built (run: pnpm --filter @ibimina/admin build)${NC}"
@@ -206,13 +206,13 @@ case $choice in
     # Check mobile builds
     echo ""
     echo "Checking mobile apps..."
-    if [ -d "apps/client-mobile/node_modules" ]; then
+    if [ -d "apps/pwa/client-mobile/node_modules" ]; then
       echo -e "${GREEN}✓ Client mobile dependencies installed${NC}"
     else
       echo -e "${YELLOW}⚠ Client mobile needs setup${NC}"
     fi
     
-    if [ -d "apps/admin/android" ]; then
+    if [ -d "apps/pwa/staff-admin/android" ]; then
       echo -e "${GREEN}✓ Staff Android configured${NC}"
     else
       echo -e "${YELLOW}⚠ Staff Android needs Capacitor sync${NC}"
