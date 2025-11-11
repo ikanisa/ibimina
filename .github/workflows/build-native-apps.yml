@@ -9,7 +9,7 @@ on:
 
 permissions:
   contents: read
-  actions: read
+  actions: write
   id-token: write
 
 concurrency:
@@ -61,7 +61,7 @@ jobs:
         with:
           name: ${{ matrix.app }}-android-apks
           path: |
-            app/build/outputs/apk/**/*.apk
+            apps/${{ matrix.app }}/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
 
   ios:
