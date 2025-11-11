@@ -1,220 +1,335 @@
 import SwiftUI
 import CoreNFC
 
-/**
- * ContentView - Main view for Ibimina Client iOS app
- * 
- * Features:
- * - NFC payment handling (TapMoMo)
- * - View groups and transactions
- * - Member profile
- */
+/// Main entry point for the Ibimina client experience.
 struct ContentView: View {
-    
+    @StateObject private var viewModel = ContentViewModel()
     @StateObject private var nfcReader = NFCReaderManager()
     @StateObject private var nfcWriter = NFCWriterManager()
-    @State private var nfcData: String = ""
-    @State private var showingReader = false
-    @State private var showingWriter = false
-    @State private var paymentData: PaymentData?
-    @State private var errorMessage: String?
-    
+
     var body: some View {
-        NavigationView {
-            VStack(spacing: 24) {
-                // App Header
-                VStack(spacing: 8) {
-                    Image(systemName: "person.3.fill")
-                        .font(.system(size: 64))
-                        .foregroundColor(.blue)
-                    
-                    Text("Ibimina Client")
-                        .font(.title)
-                        .fontWeight(.bold)
-                    
-                    Text("Your Groups & Savings")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-                .padding(.top, 40)
-                
-                Spacer()
-                
-                // NFC Actions
-                VStack(spacing: 16) {
-                    // Read NFC Tag
-                    Button(action: {
-                        startNFCReader()
-                    }) {
-                        HStack {
-                            Image(systemName: "wave.3.right")
-                            Text("Scan NFC Payment")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    header
+
+                    actionButtons
+                        .padding(.horizontal, 24)
+
+                    if let writerStatus = viewModel.writerStatus {
+                        statusBanner(text: writerStatus, color: .green)
                     }
-                    .disabled(!NFCReaderManager.isAvailable)
-                    
-                    // Write NFC Tag
-                    Button(action: {
-                        startNFCWriter()
-                    }) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.down")
-                            Text("Create Payment Tag")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+
+                    if let error = viewModel.errorMessage {
+                        statusBanner(text: error, color: .red)
                     }
-                    .disabled(!NFCWriterManager.isAvailable)
-                    
-                    // View Groups
-                    NavigationLink(destination: GroupsListView()) {
-                        HStack {
-                            Image(systemName: "person.3")
-                            Text("My Groups")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.purple)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+
+                    if !viewModel.lastScanPayload.isEmpty {
+                        scannedPayload
+                            .padding(.horizontal, 24)
                     }
-                    
-                    // View Transactions
-                    NavigationLink(destination: TransactionsListView()) {
-                        HStack {
-                            Image(systemName: "list.bullet.rectangle")
-                            Text("Transaction History")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.orange)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+
+                    if let allocation = viewModel.latestAllocation {
+                        allocationSummary(allocation)
+                            .padding(.horizontal, 24)
                     }
-                }
-                .padding(.horizontal, 24)
-                
-                // NFC Data Display
-                if !nfcData.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Last Scanned:")
+
+                    if let payment = viewModel.paymentData {
+                        paymentSummary(payment)
+                            .padding(.horizontal, 24)
+                    }
+
+                    if !NFCReaderManager.isAvailable {
+                        Text("NFC is not available on this device")
                             .font(.caption)
                             .foregroundColor(.gray)
-                        
-                        Text(nfcData)
-                            .font(.system(.body, design: .monospaced))
                             .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(8)
                     }
-                    .padding(.horizontal, 24)
                 }
-                
-                // Error Message
-                if let error = errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.horizontal, 24)
-                }
-                
-                Spacer()
-                
-                // NFC Availability Info
-                if !NFCReaderManager.isAvailable {
-                    Text("NFC is not available on this device")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                        .padding()
-                }
+                .padding(.vertical, 32)
             }
-            .navigationBarHidden(true)
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
-    
-    // MARK: - NFC Reader
-    
-    private func startNFCReader() {
-        errorMessage = nil
-        nfcReader.onTagRead = { data in
-            self.nfcData = data
-            
-            // Parse payment data
-            if let payment = NFCTagHandler.parsePaymentData(data) {
-                self.paymentData = payment
-                
-                // Verify signature and TTL
-                if NFCTagHandler.isPaymentExpired(payment) {
-                    self.errorMessage = "Payment request expired (over 2 minutes old)"
-                }
+
+    private var header: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "person.3.fill")
+                .font(.system(size: 64))
+                .foregroundColor(.blue)
+
+            Text("Ibimina Client")
+                .font(.title)
+                .fontWeight(.bold)
+
+            Text("Your groups & savings")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+        }
+    }
+
+    private var actionButtons: some View {
+        VStack(spacing: 16) {
+            Button(action: startNFCReader) {
+                Label("Scan NFC Payment", systemImage: "wave.3.right")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            .disabled(!NFCReaderManager.isAvailable)
+
+            Button(action: startNFCWriter) {
+                Label("Create Payment Tag", systemImage: "square.and.arrow.down")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            .disabled(!NFCWriterManager.isAvailable)
+
+            NavigationLink {
+                GroupsListView(userId: viewModel.userId)
+            } label: {
+                Label("My Groups", systemImage: "person.3")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.purple)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+
+            NavigationLink {
+                TransactionsListView(userId: viewModel.userId)
+            } label: {
+                Label("Transaction History", systemImage: "list.bullet.rectangle")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.orange)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
             }
         }
-        
-        nfcReader.onError = { error in
-            self.errorMessage = error
+    }
+
+    private var scannedPayload: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Last scanned payload")
+                .font(.caption)
+                .foregroundColor(.gray)
+
+            Text(viewModel.lastScanPayload)
+                .font(.system(.body, design: .monospaced))
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(8)
+                .accessibilityIdentifier("nfc-last-scan")
         }
-        
+    }
+
+    private func paymentSummary(_ payment: PaymentData) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Payment details")
+                .font(.headline)
+            HStack {
+                Label("Amount", systemImage: "creditcard")
+                Spacer()
+                Text(payment.amount, format: .currency(code: "UGX"))
+            }
+            HStack {
+                Label("Network", systemImage: "antenna.radiowaves.left.and.right")
+                Spacer()
+                Text(payment.network)
+            }
+            HStack {
+                Label("Reference", systemImage: "number")
+                Spacer()
+                Text(payment.reference)
+                    .textSelection(.enabled)
+            }
+        }
+        .padding()
+        .background(Color.blue.opacity(0.08))
+        .cornerRadius(12)
+        .accessibilityIdentifier("payment-summary")
+    }
+
+    private func allocationSummary(_ allocation: Transaction?) -> some View {
+        Group {
+            if let allocation {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Supabase allocation")
+                        .font(.headline)
+                    Text("Status: \(allocation.status.capitalized)")
+                        .font(.subheadline)
+                    Text("Reference: \(allocation.reference)")
+                        .font(.subheadline)
+                        .textSelection(.enabled)
+                }
+                .padding()
+                .background(Color.orange.opacity(0.08))
+                .cornerRadius(12)
+                .accessibilityIdentifier("allocation-summary")
+            }
+        }
+    }
+
+    private func statusBanner(text: String, color: Color) -> some View {
+        Text(text)
+            .font(.footnote)
+            .foregroundColor(color == .red ? .white : .black)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(color.opacity(color == .red ? 0.8 : 0.2))
+            .cornerRadius(12)
+            .padding(.horizontal, 24)
+    }
+
+    // MARK: - NFC Triggers
+
+    private func startNFCReader() {
+        viewModel.resetMessages()
+        nfcReader.onTagRead = { payload in
+            Task { await viewModel.handleReaderPayload(payload) }
+        }
+        nfcReader.onError = { error in
+            Task { await viewModel.handleReaderError(error) }
+        }
         nfcReader.beginScanning()
     }
-    
-    // MARK: - NFC Writer
-    
+
     private func startNFCWriter() {
-        errorMessage = nil
-        
-        // Create sample payment data
-        let payment = PaymentData(
-            amount: 5000.0,
-            network: "MTN",
-            merchant_id: "SACCO123",
-            reference: "REF\(Int(Date().timeIntervalSince1970))",
-            timestamp: Date().timeIntervalSince1970,
-            nonce: UUID().uuidString,
-            signature: nil
+        viewModel.resetMessages()
+        Task {
+            do {
+                let payload = try await viewModel.prepareWriterPayload()
+                nfcWriter.onWriteSuccess = {
+                    Task { await viewModel.handleWriterSuccess() }
+                }
+                nfcWriter.onWriteError = { error in
+                    Task { await viewModel.handleWriterError(error) }
+                }
+                nfcWriter.beginWriting(data: payload)
+            } catch {
+                await viewModel.register(error: error)
+            }
+        }
+    }
+}
+
+// MARK: - View Model
+
+@MainActor
+final class ContentViewModel: ObservableObject {
+    @Published var lastScanPayload: String = ""
+    @Published var writerStatus: String?
+    @Published var errorMessage: String?
+    @Published var paymentData: PaymentData?
+    @Published var latestAllocation: Transaction?
+
+    let userId: String
+    private let context: PaymentContext
+    private let service: SupabaseServiceProtocol
+
+    init(
+        userId: String = "demo-member",
+        context: PaymentContext? = nil,
+        service: SupabaseServiceProtocol = SupabaseService.shared
+    ) {
+        self.userId = userId
+        self.service = service
+        self.context = context ?? PaymentContext(
+            orgId: "org-demo",
+            groupId: "group-demo",
+            memberId: userId,
+            sourceNetwork: "MTN"
         )
-        
-        guard let paymentJSON = NFCTagHandler.formatPaymentData(payment) else {
-            errorMessage = "Failed to format payment data"
+    }
+
+    func resetMessages() {
+        errorMessage = nil
+        writerStatus = nil
+    }
+
+    func handleReaderPayload(_ payload: String) async {
+        lastScanPayload = payload
+        writerStatus = nil
+
+        guard NFCTagHandler.validatePaymentData(payload) else {
+            errorMessage = "Invalid payment payload"
             return
         }
-        
-        nfcWriter.onWriteSuccess = {
-            self.nfcData = "Payment tag created successfully"
+
+        guard let payment = NFCTagHandler.parsePaymentData(payload) else {
+            errorMessage = "Unable to decode payment"
+            return
         }
-        
-        nfcWriter.onWriteError = { error in
-            self.errorMessage = error
+
+        paymentData = payment
+
+        if NFCTagHandler.isPaymentExpired(payment) {
+            errorMessage = "Payment request expired (over 2 minutes old)"
+            return
         }
-        
-        nfcWriter.beginWriting(data: paymentJSON)
+
+        do {
+            latestAllocation = try await service.fetchAllocationByReference(reference: payment.reference)
+            errorMessage = nil
+        } catch {
+            errorMessage = "Failed to verify payment: \(error.localizedDescription)"
+        }
+    }
+
+    func handleReaderError(_ message: String) {
+        errorMessage = message
+    }
+
+    func prepareWriterPayload() async throws -> String {
+        let payment = PaymentData.sample(network: context.sourceNetwork, merchantId: context.orgId)
+        paymentData = payment
+
+        guard let payload = NFCTagHandler.formatPaymentData(payment) else {
+            throw WriterError.encodingFailed
+        }
+
+        do {
+            try await service.createAllocation(allocation: payment.allocationRequest(context: context))
+            latestAllocation = try await service.fetchAllocationByReference(reference: payment.reference)
+        } catch {
+            throw WriterError.allocationFailed(error)
+        }
+
+        return payload
+    }
+
+    func handleWriterSuccess() {
+        writerStatus = "Payment tag created successfully"
+    }
+
+    func handleWriterError(_ message: String) {
+        errorMessage = message
+    }
+
+    func register(error: Error) async {
+        errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+    }
+
+    enum WriterError: LocalizedError {
+        case encodingFailed
+        case allocationFailed(Error)
+
+        var errorDescription: String? {
+            switch self {
+            case .encodingFailed:
+                return "Failed to encode payment data"
+            case .allocationFailed(let error):
+                return "Unable to register payment: \(error.localizedDescription)"
+            }
+        }
     }
 }
-
-// MARK: - Placeholder Views
-
-struct GroupsListView: View {
-    var body: some View {
-        Text("Groups List")
-            .navigationTitle("My Groups")
-    }
-}
-
-struct TransactionsListView: View {
-    var body: some View {
-        Text("Transactions List")
-            .navigationTitle("Transactions")
-    }
-}
-
-// MARK: - Preview
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {

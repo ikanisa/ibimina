@@ -10,12 +10,19 @@ import Supabase
  * - Real-time subscriptions
  * - Transaction management
  */
-class SupabaseService {
-    
+protocol SupabaseServiceProtocol {
+    func fetchUserGroups(userId: String) async throws -> [Group]
+    func fetchTransactions(userId: String) async throws -> [Transaction]
+    func fetchAllocationByReference(reference: String) async throws -> Transaction?
+    func createAllocation(allocation: AllocationRequest) async throws
+}
+
+final class SupabaseService: SupabaseServiceProtocol {
+
     static let shared = SupabaseService()
-    
-    private var client: SupabaseClient!
-    
+
+    private var client: SupabaseClient?
+
     private init() {}
     
     /**
@@ -40,21 +47,21 @@ class SupabaseService {
      * Sign in with email and password
      */
     func signIn(email: String, password: String) async throws -> Session {
-        return try await client.auth.signIn(email: email, password: password)
+        return try await requireClient().auth.signIn(email: email, password: password)
     }
     
     /**
      * Sign out current user
      */
     func signOut() async throws {
-        try await client.auth.signOut()
+        try await requireClient().auth.signOut()
     }
     
     /**
      * Get current user session
      */
     func getCurrentSession() async throws -> Session? {
-        return try await client.auth.session
+        return try await requireClient().auth.session
     }
     
     // MARK: - Groups (Ibimina)
@@ -63,7 +70,7 @@ class SupabaseService {
      * Fetch user's groups
      */
     func fetchUserGroups(userId: String) async throws -> [Group] {
-        let response = try await client.database
+        let response = try await requireClient().database
             .from("group_members")
             .select()
             .eq("user_id", value: userId)
@@ -77,7 +84,7 @@ class SupabaseService {
      * Fetch group details
      */
     func fetchGroupDetails(groupId: String) async throws -> GroupDetails {
-        let response = try await client.database
+        let response = try await requireClient().database
             .from("groups")
             .select()
             .eq("id", value: groupId)
@@ -94,7 +101,7 @@ class SupabaseService {
      * Fetch user's transaction history
      */
     func fetchTransactions(userId: String) async throws -> [Transaction] {
-        let response = try await client.database
+        let response = try await requireClient().database
             .from("allocations")
             .select()
             .eq("member_id", value: userId)
@@ -112,29 +119,41 @@ class SupabaseService {
         let encoder = JSONEncoder()
         let data = try encoder.encode(allocation)
         
-        _ = try await client.database
+        _ = try await requireClient().database
             .from("allocations")
             .insert(data)
             .execute()
     }
-    
+
     /**
      * Fetch allocation by reference
      */
     func fetchAllocationByReference(reference: String) async throws -> Transaction? {
-        let response = try await client.database
+        let response = try await requireClient().database
             .from("allocations")
             .select()
             .eq("raw_ref", value: reference)
             .maybeSingle()
             .execute()
-        
+
         guard response.data.count > 0 else {
             return nil
         }
-        
+
         let decoder = JSONDecoder()
         return try decoder.decode(Transaction.self, from: response.data)
+    }
+
+    func submit(payment: PaymentData, context: PaymentContext) async throws -> Transaction? {
+        try await createAllocation(allocation: payment.allocationRequest(context: context))
+        return try await fetchAllocationByReference(reference: payment.reference)
+    }
+
+    private func requireClient() -> SupabaseClient {
+        guard let client else {
+            fatalError("SupabaseService.initialize() must be called before use")
+        }
+        return client
     }
 }
 
@@ -152,7 +171,7 @@ private enum Configuration {
 
 // MARK: - Models
 
-struct Group: Codable {
+struct Group: Codable, Identifiable, Equatable {
     let id: String
     let name: String
     let groupId: String
@@ -166,7 +185,7 @@ struct Group: Codable {
     }
 }
 
-struct GroupDetails: Codable {
+struct GroupDetails: Codable, Equatable {
     let id: String
     let name: String
     let orgId: String
@@ -180,13 +199,13 @@ struct GroupDetails: Codable {
     }
 }
 
-struct GroupSettings: Codable {
+struct GroupSettings: Codable, Equatable {
     let amount: Double?
     let frequency: String?
     let cycle: String?
 }
 
-struct Transaction: Codable {
+struct Transaction: Codable, Identifiable, Equatable {
     let id: String
     let amount: Double
     let reference: String
