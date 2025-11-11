@@ -52,7 +52,7 @@ echo "✅ Build environment ready"
 echo ""
 
 # Change to Android directory
-cd apps/client/android
+cd apps/pwa/client/android
 
 echo "📦 Cleaning previous builds..."
 ./gradlew clean

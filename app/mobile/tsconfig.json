@@ -4,7 +4,11 @@
     "baseUrl": "./src",
     "moduleResolution": "node",
     "types": ["node", "react"],
-    "typeRoots": ["./types", "../../node_modules/@types", "../../apps/client/node_modules/@types"],
+    "typeRoots": [
+      "./types",
+      "../../node_modules/@types",
+      "../../apps/pwa/client/node_modules/@types"
+    ],
     "paths": {
       "@theme/*": ["theme/*"],
       "@components/*": ["components/*"],

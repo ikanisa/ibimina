@@ -15,8 +15,6 @@ semantic SACCO search.
   guide
 - [**docs/**](docs/) - Additional documentation on architecture, deployment, and
   operations
-- [**Native Refactor Release Notes**](docs/releases/NATIVE_REFACTOR_RELEASE_NOTES.md) -
-  Summary of the Kotlin/Swift migration scope and deployment readiness
 
 ### Essential Documentation
 
@@ -68,22 +66,6 @@ semantic SACCO search.
 - [**.env.cloudflare.template**](.env.cloudflare.template) - Environment
   variables template for Cloudflare
 - [**DEPLOYMENT_GUIDE.md**](DEPLOYMENT_GUIDE.md) - General deployment guide
-
-## Native refactor snapshot
-
-- ✅ **TapMoMo Kotlin core** – shared signer/validator protocol validated via
-  Vitest; see [TESTING_STATUS.md](TESTING_STATUS.md) for the latest run log.
-- ⚠️ **Supabase RLS harness** – blocked in container CI because the `psql`
-  client is absent; provision PostgreSQL tooling before final certification.
-- ❌ **Staff console build** – `html5-qrcode` dependency missing from the App
-  Router bundle; tracked in [TESTING_STATUS.md](TESTING_STATUS.md).
-- 🔍 **Legacy hybrid wrappers** – repo-wide search enumerates remaining
-  Capacitor/Ionic traces so they can be archived alongside the native rollout
-  (see
-  [docs/releases/NATIVE_REFACTOR_RELEASE_NOTES.md](docs/releases/NATIVE_REFACTOR_RELEASE_NOTES.md)).
-
-Refer to the release notes for a full breakdown of Kotlin/Swift project layout,
-handover steps, and integration checkpoints.
 
 ## Overview
 

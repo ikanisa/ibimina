@@ -132,9 +132,6 @@ importers:
       '@ibimina/locales':
         specifier: workspace:*
         version: link:../../packages/locales
-      '@ibimina/supabase-schemas':
-        specifier: workspace:^
-        version: link:../../packages/supabase-schemas
       '@ibimina/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -343,9 +340,6 @@ importers:
       '@ibimina/locales':
         specifier: workspace:*
         version: link:../../packages/locales
-      '@ibimina/supabase-schemas':
-        specifier: workspace:^
-        version: link:../../packages/supabase-schemas
       '@ibimina/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -615,12 +609,6 @@ importers:
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
-  packages/supabase-schemas:
-    devDependencies:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

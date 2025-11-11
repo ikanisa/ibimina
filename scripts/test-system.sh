@@ -84,7 +84,7 @@ case $choice in
     echo ""
     
     echo "Building Android app..."
-    cd apps/admin
+    cd apps/pwa/staff-admin
     npx cap sync android
     npx cap open android
     
@@ -197,7 +197,7 @@ case $choice in
     # Check PWA build
     echo ""
     echo "Checking PWA build..."
-    if [ -d "apps/admin/.next" ]; then
+    if [ -d "apps/pwa/staff-admin/.next" ]; then
       echo -e "${GREEN}✓ PWA built${NC}"
     else
       echo -e "${YELLOW}⚠ PWA not built (run: pnpm --filter @ibimina/admin build)${NC}"
@@ -212,7 +212,7 @@ case $choice in
       echo -e "${YELLOW}⚠ Client mobile needs setup${NC}"
     fi
     
-    if [ -d "apps/admin/android" ]; then
+    if [ -d "apps/pwa/staff-admin/android" ]; then
       echo -e "${GREEN}✓ Staff Android configured${NC}"
     else
       echo -e "${YELLOW}⚠ Staff Android needs Capacitor sync${NC}"

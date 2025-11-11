@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "apps/admin/**"
+      - "apps/pwa/staff-admin/**"
       - ".github/workflows/android-build.yml"
   workflow_dispatch:
     inputs:
@@ -57,18 +57,18 @@ jobs:
         run: pnpm run build:packages
 
       - name: Build staff web application
-        working-directory: apps/admin
+        working-directory: apps/pwa/staff-admin
         run: pnpm run build
 
       - name: Sync Capacitor assets
-        working-directory: apps/admin
+        working-directory: apps/pwa/staff-admin
         run: npx cap sync android
 
       - name: Determine version metadata
         id: version
         run: |
           set -euo pipefail
-          VERSION_NAME=$(node -pe "require('./apps/admin/package.json').version")
+          VERSION_NAME=$(node -pe "require('./apps/pwa/staff-admin/package.json').version")
           VERSION_CODE=$((10000 + $GITHUB_RUN_NUMBER))
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
@@ -82,16 +82,16 @@ jobs:
             echo "::error::ANDROID_KEYSTORE_BASE64 secret is missing."
             exit 1
           fi
-          mkdir -p apps/admin/android/app
-          echo "${ANDROID_KEYSTORE_BASE64}" | base64 --decode > apps/admin/android/app/release.keystore
-          chmod 600 apps/admin/android/app/release.keystore
+          mkdir -p apps/pwa/staff-admin/android/app
+          echo "${ANDROID_KEYSTORE_BASE64}" | base64 --decode > apps/pwa/staff-admin/android/app/release.keystore
+          chmod 600 apps/pwa/staff-admin/android/app/release.keystore
 
       - name: Build signed Android App Bundle
-        working-directory: apps/admin/android
+        working-directory: apps/pwa/staff-admin/android
         env:
           ANDROID_VERSION_CODE: ${{ steps.version.outputs.version_code }}
           ANDROID_VERSION_NAME: ${{ steps.version.outputs.version_name }}
-          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/apps/admin/android/app/release.keystore
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/apps/pwa/staff-admin/android/app/release.keystore
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -104,7 +104,7 @@ jobs:
         id: bundle
         run: |
           set -euo pipefail
-          OUTPUT_DIR="apps/admin/android/app/build/outputs/bundle/release"
+          OUTPUT_DIR="apps/pwa/staff-admin/android/app/build/outputs/bundle/release"
           BUNDLE_PREFIX="ibimina-staff-${{ steps.version.outputs.version_name }}"
           readarray -t MATCHING_BUNDLES < <(find "$OUTPUT_DIR" -maxdepth 1 -type f -name "${BUNDLE_PREFIX}-*.aab" -print)
           if [ "${#MATCHING_BUNDLES[@]}" -eq 0 ]; then

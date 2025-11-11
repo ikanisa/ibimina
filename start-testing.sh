@@ -74,7 +74,7 @@ case $choice in
         echo ""
         
         print_step "Starting development server..."
-        cd apps/admin
+        cd apps/pwa/staff-admin
         print_warning "Server will start on http://localhost:3100"
         print_warning "Follow test cases in COMPREHENSIVE_TESTING_GUIDE.md section 2"
         pnpm dev
@@ -85,7 +85,7 @@ case $choice in
         echo ""
         
         print_step "Building Android APK..."
-        cd apps/admin/android
+        cd apps/pwa/staff-admin/android
         ./gradlew assembleDebug
         
         print_warning "Install APK with: adb install app/build/outputs/apk/debug/app-debug.apk"
@@ -134,7 +134,7 @@ case $choice in
         echo ""
         
         print_step "Running performance audit..."
-        cd apps/admin
+        cd apps/pwa/staff-admin
         pnpm build
         npx @lhci/cli@latest autorun || print_warning "Lighthouse audit completed with warnings"
         
@@ -143,7 +143,7 @@ case $choice in
         pnpm audit || print_warning "Found vulnerabilities - review manually"
         
         print_step "Testing production builds..."
-        cd apps/admin/android
+        cd apps/pwa/staff-admin/android
         ./gradlew assembleRelease
         
         print_step "Production readiness tests complete!"

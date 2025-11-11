@@ -3,7 +3,7 @@ import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { resolve } from "node:path";
 
-const manifestPath = resolve("apps/client/public/manifest.json");
+const manifestPath = resolve("apps/pwa/client/public/manifest.json");
 
 const requiredIconSizes = [
   { size: "192x192", purpose: "maskable" },
@@ -22,7 +22,7 @@ const assert = (condition, message) => {
 };
 
 const fileExists = async (relativePath) => {
-  const path = resolve("apps/client/public", relativePath.replace(/^\//, ""));
+  const path = resolve("apps/pwa/client/public", relativePath.replace(/^\//, ""));
   try {
     await access(path, constants.R_OK);
     return true;

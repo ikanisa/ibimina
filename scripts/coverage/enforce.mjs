@@ -10,7 +10,7 @@ const DOMAINS = {
   web: {
     threshold: 80,
     packages: [
-      { name: "@ibimina/admin", path: "apps/admin" },
+      { name: "@ibimina/admin", path: "apps/pwa/staff-admin" },
       { name: "@ibimina/ui", path: "packages/ui" },
     ],
   },
@@ -20,7 +20,7 @@ const DOMAINS = {
   },
   mobile: {
     threshold: 60,
-    packages: [{ name: "@ibimina/client", path: "apps/client" }],
+    packages: [{ name: "@ibimina/client", path: "apps/pwa/client" }],
   },
 };
 

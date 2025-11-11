@@ -64,4 +64,4 @@ fi
 
 echo ""
 echo "✨ Done! You can now run:"
-echo "   cd apps/admin/android && JAVA_HOME=\$(/usr/libexec/java_home -v 21) ./gradlew assembleDebug"
+echo "   cd apps/pwa/staff-admin/android && JAVA_HOME=\$(/usr/libexec/java_home -v 21) ./gradlew assembleDebug"

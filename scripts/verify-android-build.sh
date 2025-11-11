@@ -43,7 +43,7 @@ else
 fi
 
 # Navigate to Android directory
-cd "$(dirname "$0")/../apps/admin/android" || exit 1
+cd "$(dirname "$0")/../apps/pwa/staff-admin/android" || exit 1
 
 echo ""
 echo "Current directory: $(pwd)"
@@ -53,7 +53,7 @@ echo ""
 if [ ! -f "app/google-services.json" ]; then
     echo -e "${YELLOW}⚠️  google-services.json not found${NC}"
     echo "   Push notifications won't work without Firebase setup"
-    echo "   Place google-services.json in apps/admin/android/app/"
+    echo "   Place google-services.json in apps/pwa/staff-admin/android/app/"
 fi
 
 # Clean build
@@ -118,7 +118,7 @@ else
     echo ""
     echo "Check the error log above for specific issues."
     echo ""
-    echo "For help, see: apps/admin/android/ANDROID_BUILD_FIX.md"
+    echo "For help, see: apps/pwa/staff-admin/android/ANDROID_BUILD_FIX.md"
     
     exit 1
 fi

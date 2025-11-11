@@ -53,25 +53,25 @@ curl -s "$SUPABASE_URL/rest/v1/" -H "apikey: $SUPABASE_ANON_KEY" | head -20
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Test 1: Type check
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm typecheck
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm typecheck
 
 # Test 2: Lint
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm lint
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm lint
 
 # Test 3: Unit tests
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm test:unit
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm test:unit
 
 # Test 4: Build
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm build
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm build
 
 # Test 5: Install Playwright (first time only)
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm exec playwright install
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm exec playwright install
 
 # Test 6: E2E tests
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm test:e2e
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm test:e2e
 
 # Test 7: Start dev server
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm dev
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm dev
 # Then open: http://localhost:3100
 
 
@@ -109,22 +109,22 @@ cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile/android && ./gradlew as
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Test 1: Sync Capacitor
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && npx cap sync android
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && npx cap sync android
 
 # Test 2: Open in Android Studio
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && npx cap open android
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && npx cap open android
 
 # Test 3: Build debug APK (command line)
-cd /Users/jeanbosco/workspace/ibimina/apps/admin/android && ./gradlew assembleDebug
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android && ./gradlew assembleDebug
 
 # Test 4: Build release APK
-cd /Users/jeanbosco/workspace/ibimina/apps/admin/android && ./gradlew assembleRelease
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android && ./gradlew assembleRelease
 
 # Test 5: Run unit tests
-cd /Users/jeanbosco/workspace/ibimina/apps/admin/android && ./gradlew test
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android && ./gradlew test
 
 # Test 6: Install on device
-cd /Users/jeanbosco/workspace/ibimina/apps/admin/android && ./gradlew installDebug
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android && ./gradlew installDebug
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -143,7 +143,7 @@ cd /Users/jeanbosco/workspace/ibimina && bash scripts/quick-health-check.sh
 cd /Users/jeanbosco/workspace/ibimina && supabase start
 
 # Step 2: Start Admin PWA (Terminal 1)
-cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm dev
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm dev
 
 # Step 3: Start Client Mobile (Terminal 2)
 cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile && npm start
@@ -176,7 +176,7 @@ supabase functions list
 pnpm test:rls
 
 # 2. Admin PWA
-cd apps/admin
+cd apps/pwa/staff-admin
 pnpm typecheck && pnpm lint && pnpm test:unit && pnpm build && pnpm test:e2e
 cd ../..
 
@@ -186,7 +186,7 @@ npm install && npm run typecheck && npm test && npm run android
 cd ../..
 
 # 4. Staff Android
-cd apps/admin/android
+cd apps/pwa/staff-admin/android
 ./gradlew clean assembleDebug test
 cd ../../..
 
@@ -210,13 +210,13 @@ supabase db reset
 pnpm test:rls
 
 # Problem: Admin build fails
-cd /Users/jeanbosco/workspace/ibimina/apps/admin
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin
 rm -rf .next node_modules
 pnpm install
 pnpm build
 
 # Problem: Android build fails
-cd /Users/jeanbosco/workspace/ibimina/apps/admin/android
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android
 ./gradlew clean
 ./gradlew --refresh-dependencies
 ./gradlew assembleDebug
@@ -234,7 +234,7 @@ npm start -- --reset-cache
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Playwright report
-cd /Users/jeanbosco/workspace/ibimina/apps/admin
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin
 pnpm exec playwright show-report
 
 # Jest coverage
@@ -243,7 +243,7 @@ npm test -- --coverage
 open coverage/lcov-report/index.html
 
 # Lighthouse performance
-cd /Users/jeanbosco/workspace/ibimina/apps/admin
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin
 pnpm build
 pnpm exec lighthouse http://localhost:3100 --view
 
