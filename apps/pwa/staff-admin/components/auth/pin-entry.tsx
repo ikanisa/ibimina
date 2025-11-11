@@ -27,7 +27,7 @@ export function PinEntry({ onSuccess, onUseBiometric, allowBiometric = true }: P
     try {
       const status = await PinAuth.getLockStatus();
       setLockStatus(status);
-      
+
       if (status.isLocked) {
         setError(`Too many attempts. Try again in ${status.remainingSeconds} seconds`);
       }
@@ -51,11 +51,11 @@ export function PinEntry({ onSuccess, onUseBiometric, allowBiometric = true }: P
     }
 
     setError("");
-    
+
     if (pin.length < 6) {
       const newPin = pin + digit;
       setPin(newPin);
-      
+
       if (newPin.length === 6) {
         // Auto-verify when complete
         setTimeout(() => {
@@ -80,7 +80,7 @@ export function PinEntry({ onSuccess, onUseBiometric, allowBiometric = true }: P
     setIsLoading(true);
     try {
       const result = await PinAuth.verifyPin(enteredPin);
-      
+
       if (result.valid) {
         onSuccess();
       } else {
@@ -147,9 +147,7 @@ export function PinEntry({ onSuccess, onUseBiometric, allowBiometric = true }: P
       {error && (
         <div
           className={`flex items-center gap-2 rounded-lg border px-4 py-3 max-w-sm ${
-            lockStatus?.isLocked
-              ? "bg-red-50 border-red-200"
-              : "bg-orange-50 border-orange-200"
+            lockStatus?.isLocked ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"
           }`}
         >
           <AlertCircle
@@ -157,9 +155,7 @@ export function PinEntry({ onSuccess, onUseBiometric, allowBiometric = true }: P
               lockStatus?.isLocked ? "text-red-600" : "text-orange-600"
             }`}
           />
-          <p
-            className={`text-sm ${lockStatus?.isLocked ? "text-red-600" : "text-orange-600"}`}
-          >
+          <p className={`text-sm ${lockStatus?.isLocked ? "text-red-600" : "text-orange-600"}`}>
             {error}
           </p>
         </div>

@@ -49,8 +49,5 @@
       "type": "image/png"
     }
   ],
-  "categories": [
-    "finance",
-    "business"
-  ]
+  "categories": ["finance", "business"]
 }

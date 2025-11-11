@@ -67,15 +67,15 @@ echo ""
 # Admin PWA tests
 echo -e "${BLUE}━━━ PHASE 2: ADMIN PWA TESTS ━━━${NC}"
 
-run_test "Admin dependencies installed" "[ -d /Users/jeanbosco/workspace/ibimina/apps/admin/node_modules ]"
+run_test "Admin dependencies installed" "[ -d /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/node_modules ]"
 
-run_test "Admin TypeScript check" "cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm typecheck"
+run_test "Admin TypeScript check" "cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm typecheck"
 
-run_test "Admin lint" "cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm lint --max-warnings 0 || true"
+run_test "Admin lint" "cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm lint --max-warnings 0 || true"
 
-run_test "Admin build" "cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm build"
+run_test "Admin build" "cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm build"
 
-run_test "Admin unit tests" "cd /Users/jeanbosco/workspace/ibimina/apps/admin && pnpm test:unit || true"
+run_test "Admin unit tests" "cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm test:unit || true"
 
 echo ""
 
@@ -95,9 +95,9 @@ echo ""
 # Staff Android tests
 echo -e "${BLUE}━━━ PHASE 4: STAFF ANDROID TESTS ━━━${NC}"
 
-run_test "Android Gradle wrapper exists" "[ -f /Users/jeanbosco/workspace/ibimina/apps/admin/android/gradlew ]"
+run_test "Android Gradle wrapper exists" "[ -f /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android/gradlew ]"
 
-run_test "Android build (debug APK)" "cd /Users/jeanbosco/workspace/ibimina/apps/admin/android && ./gradlew assembleDebug -q || true"
+run_test "Android build (debug APK)" "cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android && ./gradlew assembleDebug -q || true"
 
 echo ""
 

@@ -1,12 +1,14 @@
 # Plugin Integration Examples
 
-This directory contains example components demonstrating how to use the enhanced Capacitor plugins in your Next.js application.
+This directory contains example components demonstrating how to use the enhanced
+Capacitor plugins in your Next.js application.
 
 ## Available Examples
 
 ### NotificationExample
 
 Demonstrates the `EnhancedNotifications` plugin:
+
 - Request notification permissions (Android 13+)
 - Show notifications with custom channels
 - Add action buttons to notifications
@@ -14,8 +16,9 @@ Demonstrates the `EnhancedNotifications` plugin:
 - Cancel individual or all notifications
 
 **Usage**:
+
 ```tsx
-import { NotificationExample } from '@/components/examples';
+import { NotificationExample } from "@/components/examples";
 
 export default function DemoPage() {
   return <NotificationExample />;
@@ -25,6 +28,7 @@ export default function DemoPage() {
 ### NetworkMonitorExample
 
 Demonstrates the `NetworkMonitor` plugin:
+
 - Display current network status
 - Monitor network changes in real-time
 - Show connection quality metrics (bandwidth)
@@ -32,8 +36,9 @@ Demonstrates the `NetworkMonitor` plugin:
 - View status history
 
 **Usage**:
+
 ```tsx
-import { NetworkMonitorExample } from '@/components/examples';
+import { NetworkMonitorExample } from "@/components/examples";
 
 export default function DemoPage() {
   return <NetworkMonitorExample />;
@@ -46,10 +51,10 @@ export default function DemoPage() {
 
 ```tsx
 // In any client component
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import EnhancedNotifications from '@/lib/plugins/enhanced-notifications';
+import { useEffect, useState } from "react";
+import EnhancedNotifications from "@/lib/plugins/enhanced-notifications";
 
 export function MyComponent() {
   useEffect(() => {
@@ -64,9 +69,9 @@ export function MyComponent() {
 
   const handleNotification = async () => {
     await EnhancedNotifications.showNotification({
-      title: 'Hello',
-      body: 'This is a test notification',
-      channelId: 'default'
+      title: "Hello",
+      body: "This is a test notification",
+      channelId: "default",
     });
   };
 
@@ -77,10 +82,10 @@ export function MyComponent() {
 ### 2. Network-Aware Data Fetching
 
 ```tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import NetworkMonitor from '@/lib/plugins/network-monitor';
+import { useEffect, useState } from "react";
+import NetworkMonitor from "@/lib/plugins/network-monitor";
 
 export function DataFetcher() {
   const [isOnline, setIsOnline] = useState(true);
@@ -89,12 +94,12 @@ export function DataFetcher() {
   useEffect(() => {
     // Start monitoring
     NetworkMonitor.startMonitoring();
-    
+
     // Listen for changes
-    NetworkMonitor.addListener('networkStatusChange', (status) => {
+    NetworkMonitor.addListener("networkStatusChange", (status) => {
       setIsOnline(status.connected);
       setIsMetered(status.isMetered ?? false);
-      
+
       if (!status.connected) {
         // Show offline banner
         showOfflineMessage();
@@ -122,31 +127,31 @@ export function DataFetcher() {
 
 ```tsx
 // In your transaction processing logic
-import EnhancedNotifications from '@/lib/plugins/enhanced-notifications';
+import EnhancedNotifications from "@/lib/plugins/enhanced-notifications";
 
 async function processTransaction(transaction: Transaction) {
   try {
     const result = await submitTransaction(transaction);
-    
+
     // Show success notification
     await EnhancedNotifications.showNotification({
-      title: 'Transaction Complete',
+      title: "Transaction Complete",
       body: `Successfully processed ${transaction.amount} RWF`,
-      channelId: 'transactions',
-      groupKey: 'transactions',
+      channelId: "transactions",
+      groupKey: "transactions",
       actions: [
-        { id: 'view', title: 'View Receipt' },
-        { id: 'share', title: 'Share' }
+        { id: "view", title: "View Receipt" },
+        { id: "share", title: "Share" },
       ],
-      data: JSON.stringify({ transactionId: result.id })
+      data: JSON.stringify({ transactionId: result.id }),
     });
   } catch (error) {
     // Show error notification
     await EnhancedNotifications.showNotification({
-      title: 'Transaction Failed',
+      title: "Transaction Failed",
       body: error.message,
-      channelId: 'alerts',
-      priority: 1 // High priority
+      channelId: "alerts",
+      priority: 1, // High priority
     });
   }
 }
@@ -155,6 +160,7 @@ async function processTransaction(transaction: Transaction) {
 ## Testing on Device
 
 1. **Build and sync**:
+
 ```bash
 cd apps/admin
 pnpm run build
@@ -162,6 +168,7 @@ npx cap sync android
 ```
 
 2. **Open in Android Studio**:
+
 ```bash
 npx cap open android
 ```
@@ -170,7 +177,8 @@ npx cap open android
 
 4. **Test permissions**: On Android 13+, you'll see permission request dialogs
 
-5. **Test notifications**: Try different channels, priorities, and action buttons
+5. **Test notifications**: Try different channels, priorities, and action
+   buttons
 
 6. **Test network monitoring**: Toggle WiFi/mobile data to see real-time updates
 
@@ -179,7 +187,8 @@ npx cap open android
 - **Permissions**: Always check permissions before showing notifications
 - **Error Handling**: Wrap plugin calls in try-catch blocks
 - **Type Safety**: Use the provided TypeScript interfaces
-- **Platform Detection**: Use `Capacitor.getPlatform()` to conditionally use plugins
+- **Platform Detection**: Use `Capacitor.getPlatform()` to conditionally use
+  plugins
 - **Web Fallbacks**: Plugins throw errors on web - implement fallbacks if needed
 
 ## See Also

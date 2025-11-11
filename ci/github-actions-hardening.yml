@@ -152,8 +152,8 @@ jobs:
         with:
           name: pwa-build-artifacts
           path: |
-            apps/client/.next
-            apps/admin/.next
+            apps/pwa/client/.next
+            apps/pwa/staff-admin/.next
         if: always()
 
   lighthouse:
@@ -172,7 +172,7 @@ jobs:
       - name: Start preview server
         run: pnpm --filter @ibimina/client run start &
       - name: Run Lighthouse
-        run: npx @lhci/cli autorun --config=apps/client/lighthouse.config.cjs
+        run: npx @lhci/cli autorun --config=apps/pwa/client/lighthouse.config.cjs
       - name: Upload Lighthouse report
         uses: actions/upload-artifact@v4
         with:

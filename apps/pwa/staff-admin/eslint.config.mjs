@@ -1,11 +1,11 @@
 import reactHooks from "eslint-plugin-react-hooks";
 
-import ibiminaPlugin from "../../packages/eslint-plugin-ibimina/index.js";
-import { createEslintConfig } from "../../config/tooling/eslint/factory.mjs";
+import ibiminaPlugin from "../../../packages/eslint-plugin-ibimina/index.js";
+import { createEslintConfig } from "../../../config/tooling/eslint/factory.mjs";
 import {
   sharedReactRules,
   structuredLoggingRules,
-} from "../../config/tooling/eslint/shared-rules.mjs";
+} from "../../../config/tooling/eslint/shared-rules.mjs";
 
 const adminConfig = createEslintConfig({
   ignores: [
@@ -19,7 +19,7 @@ const adminConfig = createEslintConfig({
     "legacy/**",
     "legacy-src/**",
     "legacy-public/**",
-    "../../supabase/functions/**",
+    "../../../supabase/functions/**",
   ],
   parserOptions: {
     project: "./tsconfig.json",

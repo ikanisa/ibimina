@@ -4,7 +4,7 @@ import { QrScannerPage } from "@/components/auth/qr-scanner-page";
 
 /**
  * QR Scanner for Web Login
- * 
+ *
  * Staff members can scan QR codes displayed on the web dashboard
  * to authenticate using their mobile device with biometric authentication.
  */

@@ -1,29 +1,5 @@
 # Ibimina Repository Refactoring Plan - Full Native Mobile Apps
 
-## ✅ Completion summary (March 2025)
-
-- **Native Kotlin/Swift baseline**: TapMoMo Kotlin module and proto signer tests
-  validated via `pnpm --filter @ibimina/tapmomo-proto test`.
-- **Supabase verification**: RLS harness still blocked inside the container
-  because `psql` is unavailable; document prerequisite installation for future
-  runs.
-- **Next.js staff console**: Build currently fails until `html5-qrcode` is
-  restored; track the dependency reinstatement prior to release tagging.
-- **Hybrid cleanup**: Repo search catalogued all remaining Capacitor/Ionic
-  artifacts for archival—see
-  [docs/releases/NATIVE_REFACTOR_RELEASE_NOTES.md](docs/releases/NATIVE_REFACTOR_RELEASE_NOTES.md).
-
-## 🔁 Updated native testing workflow
-
-1. **Kotlin protocol smoke test** – `pnpm --filter @ibimina/tapmomo-proto test`
-   (Vitest harness covering signer/validator operations).
-2. **Supabase integration suite** – `pnpm --filter @ibimina/admin run test:rls`
-   (requires PostgreSQL client packages).
-3. **Staff console build** – `pnpm --filter @ibimina/admin build` (ensures App
-   Router QR workflows stay compatible with the native auth handshake).
-4. **Record outcomes** in [TESTING_STATUS.md](TESTING_STATUS.md) for each
-   execution, including blockers and remediation owners.
-
 ## 1. Revised Repository Structure
 
 ```

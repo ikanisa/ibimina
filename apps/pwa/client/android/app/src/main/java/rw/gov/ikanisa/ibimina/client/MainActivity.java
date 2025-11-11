@@ -3,8 +3,6 @@ package rw.gov.ikanisa.ibimina.client;
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
 import rw.gov.ikanisa.ibimina.client.auth.DeviceAuthPlugin;
-import rw.gov.ikanisa.ibimina.client.nfc.NfcReaderPlugin;
-import rw.gov.ikanisa.ibimina.client.ussd.UssdDialerPlugin;
 
 public class MainActivity extends BridgeActivity {
     @Override
@@ -15,7 +13,5 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(MoMoNotificationListenerPlugin.class);
         registerPlugin(SmsUserConsentPlugin.class);
         registerPlugin(DeviceAuthPlugin.class);
-        registerPlugin(NfcReaderPlugin.class);
-        registerPlugin(UssdDialerPlugin.class);
     }
 }

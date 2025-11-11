@@ -18,11 +18,11 @@ echo "2) Client (Member) App"
 read -p "Enter choice [1-2]: " app_choice
 
 if [ "$app_choice" = "1" ]; then
-    APP_DIR="apps/admin"
+    APP_DIR="apps/pwa/staff-admin"
     APP_NAME="Ibimina Staff"
     APP_ID="rw.ibimina.staff"
 elif [ "$app_choice" = "2" ]; then
-    APP_DIR="apps/client"
+    APP_DIR="apps/pwa/client"
     APP_NAME="Ibimina Client"
     APP_ID="rw.gov.ikanisa.ibimina.client"
 else
