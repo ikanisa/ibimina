@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 
+import { logError, logInfo } from "./utils/logger.mjs";
+
 const REPORT_PATH = ".reports/lighthouse.json";
 const THRESHOLDS = {
   performance: 0.9,
@@ -18,7 +20,7 @@ async function main() {
   try {
     raw = await readFile(REPORT_PATH, "utf8");
   } catch (error) {
-    console.error(`Unable to read Lighthouse report at ${REPORT_PATH}`);
+    logError("admin.lighthouse.read-failed", { path: REPORT_PATH, error });
     throw error;
   }
 
@@ -34,28 +36,39 @@ async function main() {
     }
 
     if (score < minimum) {
-      failures.push(
-        `${category} scored ${formatScore(score)} (required ≥ ${Math.round(minimum * 100)}%)`
-      );
+      failures.push({
+        category,
+        score,
+        minimum,
+      });
     } else {
-      console.log(
-        `✅  ${category} score ${formatScore(score)} (threshold ${Math.round(minimum * 100)}%)`
-      );
+      logInfo("admin.lighthouse.threshold", {
+        category,
+        score,
+        formattedScore: formatScore(score),
+        minimum,
+        formattedMinimum: Math.round(minimum * 100),
+      });
     }
   }
 
   if (failures.length > 0) {
-    console.error("\nLighthouse budgets failed:");
-    for (const failure of failures) {
-      console.error(` - ${failure}`);
-    }
+    logError("admin.lighthouse.failed", {
+      failures: failures.map((failure) => ({
+        category: failure.category,
+        score: failure.score,
+        formattedScore: formatScore(failure.score),
+        minimum: failure.minimum,
+        formattedMinimum: Math.round(failure.minimum * 100),
+      })),
+    });
     process.exit(1);
   }
 
-  console.log("All Lighthouse thresholds satisfied.");
+  logInfo("admin.lighthouse.ok");
 }
 
 main().catch((error) => {
-  console.error(error);
+  logError("admin.lighthouse.unhandled", { error });
   process.exit(1);
 });

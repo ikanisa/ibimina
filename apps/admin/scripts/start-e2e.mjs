@@ -4,6 +4,8 @@ import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
+import { logError, logWarn } from "./utils/logger.mjs";
+
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const host = process.env.HOSTNAME ?? "127.0.0.1";
 const port = process.env.PORT ?? "3100";
@@ -34,9 +36,10 @@ if (useDevServer) {
     child = run(process.execPath, [standaloneEntry]);
   } else {
     if (preferStandalone) {
-      console.warn(
-        "ADMIN_USE_STANDALONE_START requested but standalone bundle is incomplete; falling back to next start."
-      );
+      logWarn("admin.start-e2e.standalone-missing", {
+        message:
+          "ADMIN_USE_STANDALONE_START requested but standalone bundle is incomplete; falling back to next start.",
+      });
     }
     const args = ["start", "--hostname", host, "--port", port];
     child = run(process.execPath, [nextCli, ...args]);
@@ -52,6 +55,6 @@ child.on("close", (code, signal) => {
 });
 
 child.on("error", (error) => {
-  console.error("Failed to launch e2e server", error);
+  logError("admin.start-e2e.launch-error", { error });
   process.exit(1);
 });

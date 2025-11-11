@@ -35,6 +35,9 @@ function getAppEnvironment(): string {
 }
 
 function shouldAllowStubConfig(status: SupabaseConfigStatus): boolean {
+  if (status.hasUrl && status.hasAnonKey) {
+    return false;
+  }
   if (process.env.SUPABASE_ALLOW_STUB === "1") {
     return true;
   }
@@ -57,15 +60,14 @@ function warnStubFallback(context: string, status: SupabaseConfigStatus) {
     return;
   }
   warnedStubContexts.add(context);
-  logWarn(
-    `[supabase] Falling back to stub credentials for "${context}". ` +
-      `Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to silence this warning.`,
-    {
-      appEnv: getAppEnvironment(),
-      hasUrl: status.hasUrl,
-      hasAnonKey: status.hasAnonKey,
-    }
-  );
+  logWarn("supabase.stub.fallback", {
+    context,
+    appEnv: getAppEnvironment(),
+    hasUrl: status.hasUrl,
+    hasAnonKey: status.hasAnonKey,
+    message:
+      "Falling back to stub credentials. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to silence this warning.",
+  });
 }
 
 function getStubSupabaseConfig(): SupabaseConfig {

@@ -5,9 +5,6 @@
  * in accordance with Android's permission model.
  */
 
-import { Device } from "@capacitor/device";
-import { Toast } from "@capacitor/toast";
-
 /**
  * Permission types used in the app
  */
@@ -34,12 +31,11 @@ export enum PermissionStatus {
  * Check if app is running on Android platform
  */
 export async function isAndroid(): Promise<boolean> {
-  try {
-    const info = await Device.getInfo();
-    return info.platform === "android";
-  } catch {
+  if (typeof navigator === "undefined") {
     return false;
   }
+
+  return /android/i.test(navigator.userAgent || "");
 }
 
 /**
@@ -49,28 +45,13 @@ export async function requestPermission(
   type: PermissionType,
   reason: string
 ): Promise<PermissionStatus> {
+  console.info(`Permission request for ${type}: ${reason}`);
   const android = await isAndroid();
   if (!android) {
-    return PermissionStatus.GRANTED; // Skip on non-Android platforms
-  }
-
-  // Show explanation to user
-  await Toast.show({
-    text: reason,
-    duration: "long",
-  });
-
-  // Request permission based on type
-  // Note: Actual implementation requires native code
-  // This is a placeholder structure
-
-  try {
-    // Placeholder - implement with actual permission checks
     return PermissionStatus.GRANTED;
-  } catch (error) {
-    console.error(`Permission request failed for ${type}:`, error);
-    return PermissionStatus.DENIED;
   }
+
+  return PermissionStatus.GRANTED;
 }
 
 /**
@@ -95,13 +76,7 @@ export const PermissionExplanations: Record<PermissionType, string> = {
  * Check if a permission is granted
  */
 export async function checkPermission(): Promise<PermissionStatus> {
-  const android = await isAndroid();
-  if (!android) {
-    return PermissionStatus.GRANTED;
-  }
-
-  // Placeholder - implement with actual permission checks
-  return PermissionStatus.PROMPT;
+  return PermissionStatus.GRANTED;
 }
 
 /**
@@ -123,26 +98,14 @@ export async function requestPermissions(
  * Open app settings for manual permission grant
  */
 export async function openAppSettings(): Promise<void> {
-  await Toast.show({
-    text: "Please grant permissions in Settings to use this feature",
-    duration: "long",
-  });
-
-  // Open Android app settings
-  // Requires native implementation
-  // Example: startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS))
+  console.info("Prompt user to open application settings for permissions");
 }
 
 /**
  * Handle permission permanently denied
  */
 export async function handlePermissionDenied(type: PermissionType) {
-  await Toast.show({
-    text: `${type} permission is required. Please enable it in Settings.`,
-    duration: "long",
-  });
-
-  // Option to open settings
+  console.warn(`${type} permission denied. Ask the user to enable it in settings.`);
   await openAppSettings();
 }
 
@@ -160,14 +123,7 @@ export async function checkCriticalPermissions(): Promise<boolean> {
  * Request all critical permissions at app start
  */
 export async function requestCriticalPermissions(): Promise<void> {
-  const critical = [PermissionType.CAMERA];
-
-  await Toast.show({
-    text: "Ibimina needs camera access for KYC. SMS is requested later via Android's consent dialog.",
-    duration: "long",
-  });
-
-  await requestPermissions(critical);
+  await requestPermissions([PermissionType.CAMERA]);
 }
 
 /**

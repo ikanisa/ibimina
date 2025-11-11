@@ -2,6 +2,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { logInfo } from "./utils/logger.mjs";
+
 const localesDir = path.resolve("locales");
 
 function loadJson(file) {
@@ -308,4 +310,4 @@ function applyUpdates(localeFile, updates) {
 applyUpdates("rw/common.json", rwUpdates);
 applyUpdates("fr/common.json", frUpdates);
 
-console.log("Updated translations for rw and fr locales.");
+logInfo("admin.i18n.updated", { locales: ["rw", "fr"] });

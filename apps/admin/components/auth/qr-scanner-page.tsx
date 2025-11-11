@@ -31,7 +31,6 @@ export function QrScannerPage() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string>("");
-  const [cameraId, setCameraId] = useState<string>("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
 
@@ -82,7 +81,6 @@ export function QrScannerPage() {
       // Prefer back camera
       const backCamera = cameras.find((cam) => cam.label.toLowerCase().includes("back"));
       const selectedCamera = backCamera || cameras[0];
-      setCameraId(selectedCamera.id);
 
       await scanner.start(
         selectedCamera.id,
@@ -93,7 +91,7 @@ export function QrScannerPage() {
         (decodedText) => {
           handleScanSuccess(decodedText);
         },
-        (errorMessage) => {
+        (_errorMessage) => {
           // Ignore scan errors (user is still scanning)
         }
       );
@@ -113,7 +111,7 @@ export function QrScannerPage() {
         await scannerRef.current.stop();
         scannerRef.current.clear();
       } catch (err) {
-        console.error("Error stopping scanner:", err);
+        logError("camera_stop_failed", { error: err });
       }
       scannerRef.current = null;
     }
@@ -174,11 +172,7 @@ export function QrScannerPage() {
       const userId = deviceInfo?.deviceId || "unknown";
 
       // Sign challenge (this will trigger biometric prompt)
-      const signingResult = await DeviceAuth.signChallenge(
-        challengeJson,
-        userId,
-        challenge.origin
-      );
+      const signingResult = await DeviceAuth.signChallenge(challengeJson, userId, challenge.origin);
 
       if (!signingResult.success) {
         throw new Error("Failed to sign challenge");
@@ -326,8 +320,11 @@ export function QrScannerPage() {
 
       {isScanning && (
         <div className="relative w-full max-w-md">
-          <div id="qr-reader" className="rounded-2xl overflow-hidden border-4 border-primary-500/20" />
-          
+          <div
+            id="qr-reader"
+            className="rounded-2xl overflow-hidden border-4 border-primary-500/20"
+          />
+
           <button
             onClick={stopScanning}
             className="absolute top-4 right-4 rounded-full bg-red-500 p-2 text-white hover:bg-red-600 transition-colors"

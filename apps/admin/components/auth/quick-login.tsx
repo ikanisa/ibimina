@@ -37,7 +37,7 @@ export function QuickLogin() {
   const handleBiometricLogin = async () => {
     try {
       setIsLoading(true);
-      
+
       // Check if device has key
       const keyStatus = await DeviceAuth.hasDeviceKey();
       if (!keyStatus.hasKey) {
@@ -48,7 +48,7 @@ export function QuickLogin() {
       // Trigger biometric authentication
       // This would typically sign a challenge for authentication
       // For now, we'll just navigate to dashboard on success
-      
+
       router.push("/dashboard");
     } catch (err) {
       console.error("Biometric login failed:", err);
@@ -147,7 +147,7 @@ export function QuickLogin() {
       </div>
 
       {/* Info */}
-      {(!hasPin && !hasBiometric) && (
+      {!hasPin && !hasBiometric && (
         <div className="rounded-lg bg-neutral-3 border border-neutral-6 p-4 max-w-sm">
           <p className="text-sm text-neutral-11 text-center">
             Quick login is not set up. Sign in with email and password to set up PIN or biometric.

@@ -2,6 +2,8 @@
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
+import { logError, logInfo, logWarn } from "./utils/logger.mjs";
+
 const BUILD_MANIFEST_PATH = path.join(process.cwd(), ".next", "build-manifest.json");
 const APP_MANIFEST_PATH = path.join(process.cwd(), ".next", "app-build-manifest.json");
 
@@ -38,14 +40,22 @@ async function main() {
   try {
     buildManifest = JSON.parse(await readFile(BUILD_MANIFEST_PATH, "utf8"));
   } catch (error) {
-    console.error(`Unable to read build manifest at ${BUILD_MANIFEST_PATH}`);
+    logError("admin.bundle-budgets.read-failed", {
+      manifest: "build",
+      path: BUILD_MANIFEST_PATH,
+      error,
+    });
     throw error;
   }
 
   try {
     appManifest = JSON.parse(await readFile(APP_MANIFEST_PATH, "utf8"));
   } catch (error) {
-    console.error(`Unable to read app manifest at ${APP_MANIFEST_PATH}`);
+    logError("admin.bundle-budgets.read-failed", {
+      manifest: "app",
+      path: APP_MANIFEST_PATH,
+      error,
+    });
     throw error;
   }
 
@@ -76,34 +86,47 @@ async function main() {
       limit: 360 * 1024,
     });
   } else {
-    console.warn("⚠️  Dashboard route missing from app manifest; skipping dashboard budget.");
+    logWarn("admin.bundle-budgets.dashboard-missing", {
+      message: "Dashboard route missing from app manifest; skipping dashboard budget.",
+    });
   }
 
   const failures = [];
   for (const check of checks) {
     if (check.value > check.limit) {
-      failures.push(
-        `${check.label} ${formatBytes(check.value)} (limit ${formatBytes(check.limit)})`
-      );
+      failures.push({
+        label: check.label,
+        actual: check.value,
+        limit: check.limit,
+      });
     } else {
-      console.log(
-        `✅  ${check.label} ${formatBytes(check.value)} (limit ${formatBytes(check.limit)})`
-      );
+      logInfo("admin.bundle-budgets.check", {
+        label: check.label,
+        value: check.value,
+        formattedValue: formatBytes(check.value),
+        limit: check.limit,
+        formattedLimit: formatBytes(check.limit),
+      });
     }
   }
 
   if (failures.length > 0) {
-    console.error("\nBundle budgets failed:");
-    for (const failure of failures) {
-      console.error(` - ${failure}`);
-    }
+    logError("admin.bundle-budgets.failed", {
+      failures: failures.map((failure) => ({
+        label: failure.label,
+        actual: failure.actual,
+        formattedActual: formatBytes(failure.actual),
+        limit: failure.limit,
+        formattedLimit: formatBytes(failure.limit),
+      })),
+    });
     process.exit(1);
   }
 
-  console.log("Bundle size budgets satisfied.");
+  logInfo("admin.bundle-budgets.ok");
 }
 
 main().catch((error) => {
-  console.error(error);
+  logError("admin.bundle-budgets.unhandled", { error });
   process.exit(1);
 });

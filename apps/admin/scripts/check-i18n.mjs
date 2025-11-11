@@ -2,6 +2,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { logError, logInfo } from "./utils/logger.mjs";
+
 const localesDir = path.resolve("locales");
 const files = ["en/common.json", "rw/common.json", "fr/common.json"];
 
@@ -42,11 +44,10 @@ let exit = 0;
 for (const [locale, missing] of Object.entries(report)) {
   if (missing.length) {
     exit = 1;
-    console.log(`Missing keys in ${locale}:`);
-    for (const k of missing) console.log(`  - ${k}`);
+    logError("admin.i18n.missing-keys", { locale, missing });
   }
 }
 
-if (!exit) console.log("All locale files have matching keys.");
+if (!exit) logInfo("admin.i18n.keys-match");
 // Exit non-zero when keys are missing so CI can fail fast
 process.exit(exit);

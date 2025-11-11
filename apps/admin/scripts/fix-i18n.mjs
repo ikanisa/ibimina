@@ -2,6 +2,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { logInfo } from "./utils/logger.mjs";
+
 const localesDir = path.resolve("locales");
 
 function loadJson(file) {
@@ -64,4 +66,9 @@ const frOutFlat = Object.fromEntries(
 saveJson("rw/common.json", rwOutFlat);
 saveJson("fr/common.json", frOutFlat);
 
-console.log(`Filled missing keys → rw:+${addedRw}, fr:+${addedFr}`);
+logInfo("admin.i18n.fill-missing", {
+  added: {
+    rw: addedRw,
+    fr: addedFr,
+  },
+});

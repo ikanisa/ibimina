@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { GlassCard } from "@/components/ui/glass-card";
 import { _StatusChip } from "@/components/common/status-chip";
 import { Trans } from "@/components/common/trans";
 import { TapMoMoPayeeCard } from "./tapmomo-payee-card";
@@ -84,11 +83,7 @@ export function TapMoMoDashboard({ saccoId, merchants }: TapMoMoDashboardProps) 
 
       {/* Tab Content */}
       {activeTab === "payee" && (
-        <TapMoMoPayeeCard
-          merchants={merchants}
-          nfcEnabled={nfcEnabled === true}
-          saccoId={saccoId}
-        />
+        <TapMoMoPayeeCard merchants={merchants} nfcEnabled={nfcEnabled === true} />
       )}
 
       {activeTab === "payer" && (

@@ -15,9 +15,6 @@
  * - /profile - Navigate to profile
  */
 
-import { App, URLOpenListenerEvent } from "@capacitor/app";
-import { Capacitor } from "@capacitor/core";
-
 export type DeepLinkRoute =
   | { type: "join"; groupId: string }
   | { type: "invite"; token: string }
@@ -30,8 +27,8 @@ export type DeepLinkRoute =
 
 export type DeepLinkHandler = (route: DeepLinkRoute) => void | Promise<void>;
 
-const isNative =
-  typeof window !== "undefined" && typeof Capacitor !== "undefined" && Capacitor.isNativePlatform();
+const isBrowser = typeof window !== "undefined";
+const EVENT_NAME = "ibimina:deep-link";
 
 /**
  * Parse a URL into a DeepLinkRoute
@@ -102,13 +99,13 @@ export function parseDeepLink(url: string): DeepLinkRoute {
  * Returns a cleanup function to remove the listener
  */
 export function registerDeepLinkHandler(handler: DeepLinkHandler): () => void {
-  if (!isNative) {
-    console.warn("Deep link handler registered but not on native platform");
+  if (!isBrowser) {
     return () => {};
   }
 
-  const listener = async (event: URLOpenListenerEvent) => {
-    const url = event.url;
+  const listener = async (event: Event) => {
+    const detail = (event as CustomEvent<string>).detail;
+    const url = typeof detail === "string" ? detail : window.location.href;
     // eslint-disable-next-line ibimina/structured-logging
     console.log("Deep link received:", url);
 
@@ -123,12 +120,10 @@ export function registerDeepLinkHandler(handler: DeepLinkHandler): () => void {
     }
   };
 
-  // Add listener (returns Promise<PluginListenerHandle>)
-  const appUrlListenerHandle = App.addListener("appUrlOpen", listener);
+  window.addEventListener(EVENT_NAME, listener as EventListener);
 
-  // Return cleanup function
   return () => {
-    appUrlListenerHandle.then((handle) => handle.remove());
+    window.removeEventListener(EVENT_NAME, listener as EventListener);
   };
 }
 
@@ -137,18 +132,12 @@ export function registerDeepLinkHandler(handler: DeepLinkHandler): () => void {
  * Call this on app startup to handle initial deep link
  */
 export async function checkInitialDeepLink(handler: DeepLinkHandler): Promise<void> {
-  if (!isNative) {
-    return;
-  }
+  if (!isBrowser) return;
 
   try {
-    const result = await App.getLaunchUrl();
-    if (result?.url) {
-      // eslint-disable-next-line ibimina/structured-logging
-      console.log("App opened with deep link:", result.url);
-      const route = parseDeepLink(result.url);
-      await handler(route);
-    }
+    const currentUrl = window.location.href;
+    const route = parseDeepLink(currentUrl);
+    await handler(route);
   } catch (error) {
     console.error("Failed to check initial deep link:", error);
   }
@@ -202,4 +191,10 @@ export function generateCustomSchemeLink(route: DeepLinkRoute): string {
     default:
       return `ibimina://home`;
   }
+}
+
+export function emitDeepLink(url: string): void {
+  if (!isBrowser) return;
+
+  window.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: url }));
 }

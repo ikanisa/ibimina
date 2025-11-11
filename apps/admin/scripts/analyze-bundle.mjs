@@ -4,6 +4,8 @@ import { cp, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
+import { logInfo, logWarn } from "./utils/logger.mjs";
+
 const reportsDir = path.join(process.cwd(), ".reports", "bundle");
 await mkdir(reportsDir, { recursive: true });
 
@@ -17,9 +19,12 @@ build.on("exit", async (code) => {
     const analyzeDir = path.join(process.cwd(), ".next", "analyze");
     if (existsSync(analyzeDir)) {
       await cp(analyzeDir, reportsDir, { recursive: true });
-      console.log(`Bundle analyzer output copied to ${reportsDir}`);
+      logInfo("admin.bundle-analyzer.copied", { reportsDir });
     } else {
-      console.warn("Bundle analyzer output not found; ensure @next/bundle-analyzer is installed.");
+      logWarn("admin.bundle-analyzer.missing", {
+        message: "Bundle analyzer output not found.",
+        hint: "Install @next/bundle-analyzer to generate reports.",
+      });
     }
   }
   process.exit(code ?? 1);

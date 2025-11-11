@@ -1,27 +1,14 @@
-import { Capacitor, registerPlugin } from "@capacitor/core";
-
 export interface SmsUserConsentResult {
   message: string | null;
   otp: string | null;
   receivedAt: number;
 }
 
-export interface SmsUserConsentPlugin {
-  request(options?: { sender?: string | null }): Promise<SmsUserConsentResult>;
-  cancel(): Promise<void>;
-}
-
-const isNative = typeof window !== "undefined" && Capacitor.isNativePlatform();
-
-const smsUserConsentPlugin = isNative
-  ? registerPlugin<SmsUserConsentPlugin>("SmsUserConsent")
-  : null;
-
 /**
  * Whether the native SMS User Consent plugin can be invoked on this platform.
  */
 export function isSmsUserConsentAvailable(): boolean {
-  return Boolean(smsUserConsentPlugin);
+  return typeof window !== "undefined";
 }
 
 /**
@@ -31,15 +18,25 @@ export function isSmsUserConsentAvailable(): boolean {
 export async function requestSmsUserConsent(options?: {
   sender?: string | null;
 }): Promise<SmsUserConsentResult> {
-  if (!smsUserConsentPlugin) {
+  if (typeof window === "undefined") {
     throw new Error("sms_user_consent_unavailable");
   }
 
-  const result = await smsUserConsentPlugin.request(options ?? {});
+  const promptMessage = options?.sender
+    ? `Enter the SMS message received from ${options.sender || "your provider"}`
+    : "Enter the SMS message content";
+
+  const response = window.prompt(promptMessage);
+  if (response === null) {
+    throw "cancelled";
+  }
+
+  const otpMatch = response.match(/\b(\d{4,8})\b/);
+
   return {
-    message: result.message ?? null,
-    otp: result.otp ?? null,
-    receivedAt: result.receivedAt,
+    message: response,
+    otp: otpMatch ? otpMatch[1] : null,
+    receivedAt: Date.now(),
   };
 }
 
@@ -47,9 +44,5 @@ export async function requestSmsUserConsent(options?: {
  * Attempt to cancel any pending consent flow.
  */
 export async function cancelSmsUserConsent(): Promise<void> {
-  if (!smsUserConsentPlugin) {
-    return;
-  }
-
-  await smsUserConsentPlugin.cancel();
+  // Nothing to cancel in the browser stub. Method kept for API parity.
 }

@@ -3,6 +3,8 @@ import { spawn } from "node:child_process";
 import process from "node:process";
 import { setTimeout as sleep } from "node:timers/promises";
 
+import { logError, logInfo } from "./utils/logger.mjs";
+
 const REPORT_PATH = new URL("../.lighthouse/report.json", import.meta.url);
 const BUDGET_PATH = new URL("../lighthouse.budgets.json", import.meta.url);
 
@@ -102,38 +104,63 @@ async function main() {
         ? totalBytes / 1024
         : extractResourceSize(resourceItems, entry.resourceType);
     if (actual > entry.budget) {
-      errors.push(
-        `${entry.resourceType} budget exceeded: ${actual.toFixed(1)}KB > ${entry.budget}KB`
-      );
+      errors.push({
+        type: "resource-size",
+        resourceType: entry.resourceType,
+        actualKb: Number(actual.toFixed(1)),
+        budgetKb: entry.budget,
+      });
     }
   }
 
   const resourceCountBudgets = budget.resourceCounts ?? [];
   for (const entry of resourceCountBudgets) {
     if (entry.resourceType === "third-party" && thirdPartyCount > entry.budget) {
-      errors.push(`Third-party requests ${thirdPartyCount} exceed budget of ${entry.budget}`);
+      errors.push({
+        type: "resource-count",
+        resourceType: "third-party",
+        count: thirdPartyCount,
+        budget: entry.budget,
+      });
     }
   }
 
   const timingBudgets = budget.timings ?? [];
   for (const entry of timingBudgets) {
     if (entry.metric === "interactive" && interactive > entry.budget) {
-      errors.push(`Time to interactive ${Math.round(interactive)}ms exceeds ${entry.budget}ms`);
+      errors.push({
+        type: "timing",
+        metric: entry.metric,
+        actualMs: Math.round(interactive),
+        budgetMs: entry.budget,
+      });
     }
     if (entry.metric === "first-contentful-paint" && fcp > entry.budget) {
-      errors.push(`First contentful paint ${Math.round(fcp)}ms exceeds ${entry.budget}ms`);
+      errors.push({
+        type: "timing",
+        metric: entry.metric,
+        actualMs: Math.round(fcp),
+        budgetMs: entry.budget,
+      });
     }
   }
 
   if (errors.length > 0) {
-    console.error("Performance budgets failed:\n" + errors.map((line) => ` - ${line}`).join("\n"));
+    logError("admin.performance-budgets.failed", { errors });
     process.exit(1);
   }
 
-  console.log("Performance budgets passed.");
+  logInfo("admin.performance-budgets.passed", {
+    totals: {
+      totalBytes,
+      interactive,
+      firstContentfulPaint: fcp,
+      thirdPartyCount,
+    },
+  });
 }
 
 main().catch((error) => {
-  console.error(error);
+  logError("admin.performance-budgets.unhandled", { error });
   process.exit(1);
 });

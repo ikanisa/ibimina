@@ -2,6 +2,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { logError, logInfo } from "./utils/logger.mjs";
+
 const localesDir = path.resolve("locales");
 
 function load(file) {
@@ -141,15 +143,18 @@ for (const rule of expectations) {
     const expected = rule[locale];
     if (!expected) continue;
     if (got[locale] !== expected) {
-      bad++;
-      console.log(
-        `Inconsistent (${rule.key}) for ${locale}: expected "${expected}", got "${got[locale]}"`
-      );
+      bad += 1;
+      logError("admin.i18n-consistency.mismatch", {
+        key: rule.key,
+        locale,
+        expected,
+        actual: got[locale],
+      });
     }
   }
 }
 
 if (bad === 0) {
-  console.log("i18n glossary consistency: OK");
+  logInfo("admin.i18n-consistency.ok");
 }
 process.exit(bad ? 1 : 0);
