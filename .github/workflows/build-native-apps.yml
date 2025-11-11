@@ -1,0 +1,355 @@
+name: Build Native Mobile Apps
+
+on:
+  push:
+    branches: [main, work]
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/build-native-apps.yml'
+  pull_request:
+    branches: [main, work]
+    paths:
+      - 'apps/mobile/**'
+
+jobs:
+  build-android-staff:
+    name: Build Staff Android App
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x apps/mobile/staff-android/gradlew
+      
+      - name: Build Staff Android Debug APK
+        run: |
+          cd apps/mobile/staff-android
+          ./gradlew assembleDebug
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      
+      - name: Upload Staff Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: staff-android-debug
+          path: apps/mobile/staff-android/app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+  build-android-client:
+    name: Build Client Android App
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x apps/mobile/client-android/gradlew
+      
+      - name: Build Client Android Debug APK
+        run: |
+          cd apps/mobile/client-android
+          ./gradlew assembleDebug
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      
+      - name: Upload Client Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-android-debug
+          path: apps/mobile/client-android/app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+  build-ios-client:
+    name: Build Client iOS App
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
+      
+      - name: Install CocoaPods
+        run: |
+          cd apps/mobile/client-ios
+          pod install
+      
+      - name: Build iOS App
+        run: |
+          cd apps/mobile/client-ios
+          xcodebuild -workspace IbiminaClient.xcworkspace \
+                     -scheme IbiminaClient \
+                     -configuration Debug \
+                     -sdk iphonesimulator \
+                     -derivedDataPath build \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      
+      - name: Upload iOS Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-ios-debug
+          path: apps/mobile/client-ios/build/Build/Products/Debug-iphonesimulator/
+          retention-days: 30
+
+  # Release builds (only on main branch)
+  build-android-staff-release:
+    name: Build Staff Android Release
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+      
+      - name: Decode Keystore
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x apps/mobile/staff-android/gradlew
+      
+      - name: Build Staff Android Release APK
+        run: |
+          cd apps/mobile/staff-android
+          ./gradlew assembleRelease
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          KEYSTORE_FILE: ../../../keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      
+      - name: Upload Staff Android Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: staff-android-release
+          path: apps/mobile/staff-android/app/build/outputs/apk/release/*.apk
+          retention-days: 90
+
+  build-android-client-release:
+    name: Build Client Android Release
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+      
+      - name: Decode Keystore
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x apps/mobile/client-android/gradlew
+      
+      - name: Build Client Android Release AAB
+        run: |
+          cd apps/mobile/client-android
+          ./gradlew bundleRelease
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          KEYSTORE_FILE: ../../../keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      
+      - name: Upload Client Android Release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-android-release
+          path: apps/mobile/client-android/app/build/outputs/bundle/release/*.aab
+          retention-days: 90
+name: Build Native Apps
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/**"
+      - ".github/workflows/build-native-apps.yml"
+
+permissions:
+  contents: read
+  actions: write
+  id-token: write
+
+concurrency:
+  group: build-native-apps-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [client, admin]
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}/android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Ensure Gradle wrapper is executable
+        run: chmod +x gradlew
+
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ matrix.app }}-${{ hashFiles(format('apps/{0}/android/**/*.gradle*', matrix.app), format('apps/{0}/android/**/gradle-wrapper.properties', matrix.app)) }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-${{ matrix.app }}-
+            ${{ runner.os }}-gradle-
+
+      - name: Build release APK
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-android-apks
+          path: |
+            apps/${{ matrix.app }}/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+  ios:
+    name: iOS Client
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        run: |
+          corepack enable
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --filter "@ibimina/client..."
+
+      - name: Sync iOS platform
+        run: pnpm --filter @ibimina/client cap:sync:ios
+        env:
+          CAPACITOR_SKIP_UPDATE_NOTIFIER: "1"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Install CocoaPods
+        run: gem install cocoapods --no-document
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/client/ios/App/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods/repos
+          key: ${{ runner.os }}-pods-${{ hashFiles('apps/client/ios/App/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install CocoaPods dependencies
+        working-directory: apps/client/ios/App
+        run: pod install
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_15.4.app
+
+      - name: Build iOS archive
+        working-directory: apps/client/ios/App
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+        run: |
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $PWD/build/App.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            clean archive
+
+      - name: Package IPA
+        working-directory: apps/client/ios/App
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+        run: |
+          rm -rf build/Payload
+          mkdir -p build/Payload
+          cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
+          (cd build && zip -qry App.ipa Payload)
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-ios-ipa
+          path: apps/client/ios/App/build/App.ipa
+          if-no-files-found: error

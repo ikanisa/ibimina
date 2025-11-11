@@ -26,7 +26,7 @@ echo "🔧 [1/12] Fixing PWA secondary text contrast..."
 
 # Find all files in client PWA and replace text-neutral-600 with text-neutral-700
 # Only on bg-neutral-50 or bg-white contexts
-find apps/client/app apps/client/components -type f \( -name "*.tsx" -o -name "*.ts" \) 2>/dev/null | while read file; do
+find apps/pwa/client/app apps/pwa/client/components -type f \( -name "*.tsx" -o -name "*.ts" \) 2>/dev/null | while read file; do
     if grep -q "text-neutral-600" "$file"; then
         # Replace in secondary text contexts
         sed -i.bak 's/text-neutral-600/text-neutral-700/g' "$file"
@@ -43,7 +43,7 @@ echo ""
 echo "🔧 [2/12] Adding alt text to PWA images..."
 
 # This requires manual review, but we'll add a check
-find apps/client/app apps/client/components -type f -name "*.tsx" 2>/dev/null | while read file; do
+find apps/pwa/client/app apps/pwa/client/components -type f -name "*.tsx" 2>/dev/null | while read file; do
     if grep -q '<img' "$file" && ! grep -q 'alt=' "$file"; then
         echo "  ⚠️  Missing alt text in: $file"
     fi
@@ -56,7 +56,7 @@ echo ""
 echo "🔧 [3/12] Standardizing button styles..."
 
 # Create standardized Button component if it doesn't exist
-BUTTON_COMPONENT="$REPO_ROOT/apps/client/components/ui/Button.tsx"
+BUTTON_COMPONENT="$REPO_ROOT/apps/pwa/client/components/ui/Button.tsx"
 
 if [ ! -f "$BUTTON_COMPONENT" ]; then
     echo "  Creating standardized Button component..."
@@ -138,7 +138,7 @@ echo ""
 echo "🔧 [4/12] Improving error messages..."
 
 # Create error message utility
-ERROR_UTIL="$REPO_ROOT/apps/client/lib/errors.ts"
+ERROR_UTIL="$REPO_ROOT/apps/pwa/client/lib/errors.ts"
 
 if [ ! -f "$ERROR_UTIL" ]; then
     echo "  Creating error message utility..."
@@ -276,7 +276,7 @@ echo ""
 echo "🔧 [5/12] Adding keyboard access to group cards..."
 
 # Find group card components and add keyboard support
-find apps/client/app apps/client/components -type f -name "*group*.tsx" 2>/dev/null | while read file; do
+find apps/pwa/client/app apps/pwa/client/components -type f -name "*group*.tsx" 2>/dev/null | while read file; do
     if grep -q 'onClick' "$file" && ! grep -q 'onKeyDown' "$file"; then
         echo "  ⚠️  Needs keyboard support: $file"
         # Note: This requires manual intervention to add proper keyboard handlers
@@ -290,7 +290,7 @@ echo ""
 echo "🔧 [6/12] Verifying aria-hidden on bottom nav icons..."
 
 # Check bottom nav component
-find apps/client -type f -name "*bottom-nav*.tsx" -o -name "*nav*.tsx" 2>/dev/null | while read file; do
+find apps/pwa/client -type f -name "*bottom-nav*.tsx" -o -name "*nav*.tsx" 2>/dev/null | while read file; do
     if grep -q '<svg' "$file" || grep -q 'Icon' "$file"; then
         if ! grep -q 'aria-hidden="true"' "$file"; then
             echo "  ⚠️  Missing aria-hidden in: $file"

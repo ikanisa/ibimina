@@ -48,7 +48,7 @@ for attempt in {1..30}; do
   printf '\rWaiting for Postgres to accept connections'
 done
 
-DB_RESET_SCRIPT="$REPO_ROOT/apps/admin/scripts/db-reset.sh"
+DB_RESET_SCRIPT="$REPO_ROOT/apps/pwa/staff-admin/scripts/db-reset.sh"
 if [[ ! -x "$DB_RESET_SCRIPT" ]]; then
   echo "Error: Expected reset script at $DB_RESET_SCRIPT" >&2
   exit 1

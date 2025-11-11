@@ -296,9 +296,9 @@ section "Client App"
 
 # Check for critical routes
 CLIENT_ROUTES=(
-    "apps/client/app/api/ocr/upload/route.ts"
-    "apps/client/app/api/push/subscribe/route.ts"
-    "apps/client/app/api/saccos/search/route.ts"
+    "apps/pwa/client/app/api/ocr/upload/route.ts"
+    "apps/pwa/client/app/api/push/subscribe/route.ts"
+    "apps/pwa/client/app/api/saccos/search/route.ts"
 )
 
 for route in "${CLIENT_ROUTES[@]}"; do
@@ -310,7 +310,7 @@ for route in "${CLIENT_ROUTES[@]}"; do
 done
 
 # Check PWA manifest
-if [ -f "apps/client/public/manifest.json" ]; then
+if [ -f "apps/pwa/client/public/manifest.json" ]; then
     pass "PWA manifest exists"
 else
     warn "PWA manifest not found"
@@ -323,8 +323,8 @@ section "Admin App"
 
 # Check for critical routes
 ADMIN_ROUTES=(
-    "apps/admin/app/api/health/route.ts"
-    "apps/admin/app/(main)/admin/(panel)/health/page.tsx"
+    "apps/pwa/staff-admin/app/api/health/route.ts"
+    "apps/pwa/staff-admin/app/(main)/admin/(panel)/health/page.tsx"
 )
 
 for route in "${ADMIN_ROUTES[@]}"; do

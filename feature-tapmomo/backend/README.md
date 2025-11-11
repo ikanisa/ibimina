@@ -11,6 +11,14 @@ The backend provides:
 2. **Transaction Reconciliation**: Server-side transaction records and status
    updates
 3. **Edge Function**: API endpoint for transaction reconciliation
+4. **Native App Integration**: Mobile clients in `apps/client` call the
+   reconciliation endpoint after NFC tap or manual entry to reconcile
+   transactions in real time.
+
+> ℹ️ The Android mobile client lives in `apps/client` (Capacitor). Its TapMoMo
+> network module uses the configuration values documented below. The TypeScript
+> data contracts are shared through `@ibimina/supabase-schemas` so both the
+> backend and the native app reference the same Supabase schema.
 
 ## Setup Instructions
 
