@@ -2,10 +2,10 @@
 const config = {
   appId: "rw.ibimina.staff",
   appName: "Ibimina Admin",
-  webDir: ".next",
+  webDir: "public", // Fallback directory
   server: {
-    // For Android emulator to reach your Mac's localhost:3100
-    url: "http://10.0.2.2:3100",
+    // Connect to dev server running on your Mac
+    url: "http://192.168.1.80:3101",
     cleartext: true,
   },
   android: {

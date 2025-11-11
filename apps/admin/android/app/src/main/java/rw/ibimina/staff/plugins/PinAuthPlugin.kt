@@ -225,9 +225,24 @@ class PinAuthPlugin : Plugin() {
                 return
             }
             
-            // Set new PIN
-            val newPinCall = PluginCall(bridge, "setPin", "PinAuth", call.callbackId, JSObject().put("pin", newPin))
-            setPin(newPinCall)
+            // Old PIN verified, now set new PIN
+            val newSalt = ByteArray(16)
+            SecureRandom().nextBytes(newSalt)
+            val newPinHash = hashPin(newPin, newSalt)
+            val newEncryptedData = encryptPinHash(newPinHash)
+            
+            prefs.edit().apply {
+                putString(PREF_PIN_HASH, Base64.encodeToString(newEncryptedData.encrypted, Base64.DEFAULT))
+                putString(PREF_PIN_SALT, Base64.encodeToString(newSalt, Base64.DEFAULT))
+                putString(PREF_IV, Base64.encodeToString(newEncryptedData.iv, Base64.DEFAULT))
+                putInt(PREF_FAIL_COUNT, 0)
+                putLong(PREF_LOCK_UNTIL, 0)
+                apply()
+            }
+            
+            val ret = JSObject()
+            ret.put("success", true)
+            call.resolve(ret)
         } catch (e: Exception) {
             call.reject("Failed to change PIN", e)
         }

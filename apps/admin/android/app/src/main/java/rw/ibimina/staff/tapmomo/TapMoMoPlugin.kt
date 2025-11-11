@@ -92,7 +92,8 @@ class TapMoMoPlugin : Plugin() {
             }.toString()
             
             // Arm HCE service
-            val ttlMs = call.getInt("ttlSeconds", 60) * 1000L
+            val ttlSecondsValue = call.getInt("ttlSeconds", 60) ?: 60
+            val ttlMs = ttlSecondsValue * 1000L
             PayeeCardService.ActivePayload.arm(json.toByteArray(Charsets.UTF_8), ttlMs)
             
             Log.d(TAG, "Payee armed: $json")

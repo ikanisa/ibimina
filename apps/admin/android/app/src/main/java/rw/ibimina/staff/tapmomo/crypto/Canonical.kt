@@ -25,7 +25,7 @@ object Canonical {
      * @param p Payload to canonicalize
      * @return UTF-8 bytes of canonical JSON
      */
-    fun withoutSig(p: Payload): ByteArray {
+    fun canonicalWithoutSig(p: Payload): ByteArray {
         val sb = StringBuilder()
         sb.append("{\"ver\":").append(p.ver)
             .append(",\"network\":\"").append(p.network).append("\"")
