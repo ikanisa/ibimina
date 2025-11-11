@@ -45,7 +45,7 @@ fi
 
 # Check 4: Admin PWA
 echo -n "Checking Admin PWA... "
-cd apps/admin
+cd apps/pwa/staff-admin
 if pnpm typecheck --noEmit &>/dev/null; then
   echo -e "${GREEN}✅ Type-safe${NC}"
 else
@@ -55,15 +55,15 @@ cd ../..
 
 # Check 5: Client Mobile
 echo -n "Checking Client Mobile... "
-if [ -d "apps/client-mobile/node_modules" ]; then
+if [ -d "apps/pwa/client-mobile/node_modules" ]; then
   echo -e "${GREEN}✅ Dependencies OK${NC}"
 else
-  echo -e "${YELLOW}⚠️  Run 'npm install' in apps/client-mobile${NC}"
+  echo -e "${YELLOW}⚠️  Run 'npm install' in apps/pwa/client-mobile${NC}"
 fi
 
 # Check 6: Staff Android
 echo -n "Checking Staff Android... "
-if [ -f "apps/admin/android/gradlew" ]; then
+if [ -f "apps/pwa/staff-admin/android/gradlew" ]; then
   echo -e "${GREEN}✅ Gradle ready${NC}"
 else
   echo -e "${RED}❌ Capacitor not synced${NC}"

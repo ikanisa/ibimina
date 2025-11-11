@@ -7,25 +7,25 @@ echo ""
 
 # Remove Vercel configuration files
 echo "❌ Removing Vercel configuration files..."
-rm -rf apps/admin/.vercel || true
-rm -rf apps/client/.vercel || true
+rm -rf apps/pwa/staff-admin/.vercel || true
+rm -rf apps/pwa/client/.vercel || true
 rm -rf apps/website/.vercel || true
 rm -f infra/scripts/deploy-vercel.ts || true
-rm -f apps/client/public/vercel.svg || true
+rm -f apps/pwa/client/public/vercel.svg || true
 rm -f apps/website/public/vercel.svg || true
 rm -f docs/releases/2025-12-05-vercel-supabase.md || true
 
 # Remove Cloudflare configuration files
 echo "❌ Removing Cloudflare configuration files..."
 rm -f .env.cloudflare.template || true
-rm -f apps/admin/.env.cloudflare.template || true
-rm -f apps/client/.env.cloudflare.template || true
-rm -f apps/admin/wrangler.toml || true
-rm -f apps/admin/wrangler.staff.toml || true
-rm -f apps/admin/wrangler.pages.backup.toml || true
-rm -f apps/client/wrangler.toml || true
+rm -f apps/pwa/staff-admin/.env.cloudflare.template || true
+rm -f apps/pwa/client/.env.cloudflare.template || true
+rm -f apps/pwa/staff-admin/wrangler.toml || true
+rm -f apps/pwa/staff-admin/wrangler.staff.toml || true
+rm -f apps/pwa/staff-admin/wrangler.pages.backup.toml || true
+rm -f apps/pwa/client/wrangler.toml || true
 rm -f apps/website/wrangler.toml || true
-rm -f apps/admin/scripts/mac/install_caddy_cloudflared.sh || true
+rm -f apps/pwa/staff-admin/scripts/mac/install_caddy_cloudflared.sh || true
 rm -rf infra/cloudflared || true
 rm -f docs/local-caddy-cloudflare-tunnel.md || true
 

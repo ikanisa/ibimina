@@ -4,8 +4,8 @@ on:
   pull_request:
     branches: [main, work]
     paths:
-      - "apps/admin/**"
-      - "apps/client/**"
+      - "apps/pwa/staff-admin/**"
+      - "apps/pwa/client/**"
       - "apps/*/android/**"
       - ".github/workflows/android-ci.yml"
 
