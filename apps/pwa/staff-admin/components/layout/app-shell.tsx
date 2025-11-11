@@ -1,20 +1,11 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Children, Fragment, useEffect, useMemo, useRef, useState, isValidElement } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  UsersRound,
-  Workflow,
-  BarChartBig,
-  Settings2,
-  Plus,
-  ListPlus,
-  Inbox,
-  LineChart,
-} from "lucide-react";
+import { Command, Menu, Plus, Settings2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -31,6 +22,18 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { NetworkStatusIndicator } from "@/components/system/network-status-indicator";
 import { OfflineBanner } from "@/components/system/offline-banner";
 import { OfflineConflictDialog } from "@/components/system/offline-conflict-dialog";
+import {
+  getBreadcrumbChain,
+  getGroupDescription,
+  getNavigationGroups,
+} from "@/app/(main)/route-config";
+import { Breadcrumbs } from "@/components/layout/breadcrumbs";
+import { NavigationRail } from "@/components/layout/navigation-rail";
+import type { NavigationRailProps } from "@/components/layout/navigation-rail";
+import { Drawer } from "@/components/ui/drawer";
+
+const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
+
 import { useFocusTrap } from "@/src/lib/a11y/useFocusTrap";
 
 const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
@@ -78,27 +81,10 @@ interface AppShellProps {
   profile: ProfileRow;
 }
 
-const NAV_ITEMS = [
-  { href: "/dashboard" as const, key: "nav.dashboard", icon: LayoutDashboard },
-  { href: "/ikimina" as const, key: "nav.ikimina", icon: Workflow },
-  { href: "/recon" as const, key: "nav.recon", icon: Inbox },
-  { href: "/analytics" as const, key: "nav.analytics", icon: LineChart },
-  { href: "/ops" as const, key: "nav.ops", icon: Settings2 },
-  { href: "/reports" as const, key: "nav.reports", icon: BarChartBig },
-  { href: "/admin" as const, key: "nav.admin", icon: UsersRound },
-];
-
 const BADGE_TONE_STYLES = {
   critical: "border-red-500/40 bg-red-500/15 text-red-200",
   info: "border-sky-500/40 bg-sky-500/15 text-sky-100",
   success: "border-emerald-500/40 bg-emerald-500/15 text-emerald-200",
-} as const;
-
-const BADGE_DOT_STYLES = {
-  critical: "bg-red-400",
-  info: "bg-sky-400",
-  success: "bg-emerald-400",
-  warning: "bg-amber-400",
 } as const;
 
 type QuickActionBadge = { label: string; tone: keyof typeof BADGE_TONE_STYLES };
@@ -125,6 +111,7 @@ type UiNavTarget = {
   secondary: string;
   icon: LucideIcon;
   badge?: { label: string; tone: keyof typeof BADGE_TONE_STYLES } | null;
+  groupId: string;
 };
 
 export function AppShell({ children, profile }: AppShellProps) {
@@ -201,8 +188,8 @@ function GuestAppShell({ children, profile }: AppShellProps) {
 }
 
 function DefaultAppShell({ children, profile }: AppShellProps) {
+  const pathname = usePathname();
   const { t } = useTranslation();
-
   const saccoName = useMemo(
     () => profile.sacco?.name ?? t("sacco.all", "All SACCOs"),
     [profile.sacco?.name, t]
@@ -322,16 +309,50 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
     ];
   }, [profile.failed_mfa_count, profile.mfa_enabled, t]);
 
+  const navigationGroups = useMemo<NavigationRailProps["groups"]>(() => {
+    const groups = getNavigationGroups();
+    return groups
+      .map(({ group, routes }) => {
+        const descriptionMeta = getGroupDescription(group.id);
+        return {
+          id: group.id,
+          title: t(group.titleKey, group.fallbackTitle),
+          description: descriptionMeta
+            ? t(descriptionMeta.labelKey, descriptionMeta.fallbackLabel)
+            : undefined,
+          items: routes.map((route) => {
+            const label = t(route.titleKey, route.fallbackTitle);
+            const description = route.descriptionKey
+              ? t(route.descriptionKey, route.fallbackDescription ?? "")
+              : (route.fallbackDescription ?? "");
+            const Icon = route.icon ?? Settings2;
+            return {
+              id: route.id,
+              href: route.path,
+              label,
+              description: description || undefined,
+              icon: Icon,
+              badge: navBadges[route.path] ?? null,
+            };
+          }),
+        };
+      })
+      .filter((group) => group.items.length > 0);
+  }, [navBadges, t]);
+
   const uiNavTargets = useMemo<UiNavTarget[]>(
     () =>
-      NAV_ITEMS.map((item) => ({
-        href: item.href,
-        primary: t(item.key),
-        secondary: t(item.key),
-        icon: item.icon,
-        badge: navBadges[item.href] ?? null,
-      })),
-    [navBadges, t]
+      navigationGroups.flatMap((group) =>
+        group.items.map((item) => ({
+          href: item.href,
+          primary: item.label,
+          secondary: item.description ?? item.label,
+          icon: item.icon,
+          badge: item.badge ?? null,
+          groupId: group.id,
+        }))
+      ),
+    [navigationGroups]
   );
 
   const paletteNavTargets = useMemo<PaletteNavTarget[]>(
@@ -342,7 +363,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
         label: item.primary,
         description: item.secondary,
         badge: item.badge ?? null,
-        keywords: [item.href, item.primary].filter(Boolean),
+        keywords: [item.href, item.primary, item.secondary].filter(Boolean),
       })),
     [uiNavTargets]
   );
@@ -374,6 +395,15 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
     [quickActionGroups]
   );
 
+  const breadcrumbs = useMemo(
+    () =>
+      getBreadcrumbChain(pathname).map((crumb) => ({
+        label: t(crumb.labelKey, crumb.fallbackLabel),
+        href: crumb.href,
+      })),
+    [pathname, t]
+  );
+
   return (
     <CommandPaletteProvider
       profile={profile}
@@ -384,6 +414,8 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
         saccoName={saccoName}
         navTargets={uiNavTargets}
         quickActionGroups={quickActionGroups}
+        navigationGroups={navigationGroups}
+        breadcrumbs={breadcrumbs}
       >
         {children}
       </DefaultAppShellView>
@@ -396,6 +428,8 @@ interface DefaultAppShellViewProps {
   saccoName: string;
   navTargets: UiNavTarget[];
   quickActionGroups: QuickActionGroupDefinition[];
+  navigationGroups: NavigationRailProps["groups"];
+  breadcrumbs: Array<{ label: string; href?: string | null }>;
 }
 
 function DefaultAppShellView({
@@ -403,8 +437,131 @@ function DefaultAppShellView({
   saccoName,
   navTargets,
   quickActionGroups,
+  navigationGroups,
+  breadcrumbs,
 }: DefaultAppShellViewProps) {
   const pathname = usePathname();
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [railCollapsed, setRailCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [mobileQuickOpen, setMobileQuickOpen] = useState(false);
+  const { openPalette } = useCommandPalette();
+  const { t } = useTranslation();
+
+  const toggleSection = (id: string) => {
+    setCollapsedSections((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
+
+  return (
+    <>
+      <div className="relative flex min-h-screen bg-[color-mix(in_srgb,#020617_92%,rgba(15,23,42,0.75))] text-neutral-2">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-kigali focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"
+        >
+          Skip to content · Siga ujye ku bikorwa
+        </a>
+
+        <NavigationRail
+          groups={navigationGroups}
+          collapsedGroups={collapsedSections}
+          onToggleGroup={toggleSection}
+          collapsed={railCollapsed}
+          onToggleCollapsed={() => setRailCollapsed((value) => !value)}
+          saccoName={saccoName}
+          brandLabel={t("brand.consoleTitle", "Ibimina Staff Console")}
+        />
+
+        <div className="flex min-h-screen flex-1 flex-col">
+          <header className="border-b border-white/10 bg-white/5 backdrop-blur">
+            <div className="flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-neutral-3 transition hover:bg-white/10 hover:text-neutral-0 lg:hidden"
+                  onClick={() => setMobileNavOpen(true)}
+                  aria-label={t("nav.open", "Open navigation")}
+                >
+                  <Menu className="h-5 w-5" aria-hidden="true" />
+                </button>
+                <div>
+                  <p className="text-[0.65rem] font-bold uppercase tracking-[0.3em] text-neutral-6">
+                    {t("brand.org", "Umurenge SACCO")}
+                  </p>
+                  <h1 className="text-lg font-semibold text-neutral-0 lg:text-xl">{saccoName}</h1>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                <NetworkStatusIndicator />
+                <button
+                  type="button"
+                  onClick={openPalette}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-3 transition hover:bg-white/10 hover:text-neutral-0"
+                >
+                  <Command className="h-4 w-4" aria-hidden="true" />
+                  {t("nav.search", "Command Palette")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileQuickOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-3 transition hover:bg-white/10 hover:text-neutral-0 lg:hidden"
+                >
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  {t("dashboard.quick.title", "Quick actions")}
+                </button>
+                <LanguageSwitcher className="text-xs font-semibold" />
+                <SignOutButton className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide shadow-md backdrop-blur-sm transition-all hover:border-white/25 hover:bg-white/20 hover:text-neutral-0" />
+              </div>
+            </div>
+            <div className="px-4 pb-4 lg:px-8">
+              <Breadcrumbs items={breadcrumbs} />
+            </div>
+          </header>
+
+          <OfflineBanner />
+
+          <div className="flex flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-6">
+            <main
+              id="main-content"
+              className="flex flex-1 flex-col gap-6 px-4 pb-20 pt-6 lg:px-8 lg:pb-12"
+            >
+              {children}
+            </main>
+
+            <aside className="hidden border-l border-white/10 bg-white/5 px-6 py-6 lg:flex lg:flex-col lg:gap-6">
+              <QuickActionsPanel groups={quickActionGroups} onCommandPalette={openPalette} />
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <QueuedSyncSummary />
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <MobileNavigationDrawer
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        groups={navigationGroups}
+        isActive={isActive}
+        badges={navTargets.reduce<Partial<Record<string, UiNavTarget["badge"]>>>((acc, item) => {
+          if (item.badge) {
+            acc[item.href] = item.badge;
+          }
+          return acc;
+        }, {})}
+      />
+
+      <MobileQuickActionsDrawer
+        open={mobileQuickOpen}
+        onClose={() => setMobileQuickOpen(false)}
+        groups={quickActionGroups}
+      />
+
+      <OfflineQueueIndicator />
+      <OfflineConflictDialog />
+    </>
   const [showActions, setShowActions] = useState(false);
   const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -771,5 +928,223 @@ function DefaultAppShellView({
         </div>
       )}
     </div>
+  );
+}
+
+interface QuickActionsPanelProps {
+  groups: QuickActionGroupDefinition[];
+  onDismiss?: () => void;
+  onCommandPalette: () => void;
+}
+
+function QuickActionsPanel({ groups, onDismiss, onCommandPalette }: QuickActionsPanelProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-neutral-6">
+            {t("dashboard.quick.title", "Quick actions")}
+          </h2>
+          <p className="mt-1 text-xs text-neutral-5">
+            {t(
+              "dashboard.quick.subtitle",
+              "Jump into the common workflows or open the command palette."
+            )}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onCommandPalette}
+          className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-3 transition hover:bg-white/10 hover:text-neutral-0"
+        >
+          <Command className="h-4 w-4" aria-hidden="true" />
+          {t("nav.search", "Command Palette")}
+        </button>
+      </div>
+      <div className="space-y-6">
+        {groups.map((group) => (
+          <section key={group.id} className="space-y-3">
+            <header>
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-0">
+                {group.title}
+              </h3>
+              <p className="text-[10px] text-neutral-5">{group.subtitle}</p>
+            </header>
+            <ul className="space-y-3">
+              {group.actions.map((action) => (
+                <li key={`${group.id}-${action.primary}`}>
+                  <Link
+                    href={action.href}
+                    onClick={onDismiss}
+                    className="group block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition hover:border-white/20 hover:bg-white/10"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-neutral-0 group-hover:text-white">
+                          {action.primary}
+                        </p>
+                        <p className="text-xs text-neutral-4">{action.description}</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-neutral-5">
+                          {action.secondary}
+                        </p>
+                        <p className="text-[11px] text-neutral-5">{action.secondaryDescription}</p>
+                      </div>
+                      {action.badge && (
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide",
+                            BADGE_TONE_STYLES[action.badge.tone]
+                          )}
+                        >
+                          {action.badge.label}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface MobileNavigationDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  groups: NavigationRailProps["groups"];
+  isActive: (href: string) => boolean;
+  badges: Partial<Record<string, UiNavTarget["badge"]>>;
+}
+
+function MobileNavigationDrawer({
+  open,
+  onClose,
+  groups,
+  isActive,
+  badges,
+}: MobileNavigationDrawerProps) {
+  const { t } = useTranslation();
+  return (
+    <Drawer open={open} onClose={onClose} title={t("nav.main", "Navigation")} size="full">
+      <div className="flex flex-col gap-6">
+        {groups.map((group) => (
+          <section key={group.id} className="space-y-3">
+            <header>
+              <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-neutral-4">
+                {group.title}
+              </h3>
+              {group.description && (
+                <p className="text-[11px] text-neutral-6">{group.description}</p>
+              )}
+            </header>
+            <ul className="grid gap-2">
+              {group.items.map((item) => {
+                const badge = badges[item.href];
+                const Icon = item.icon;
+                return (
+                  <li key={item.id}>
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition",
+                        isActive(item.href)
+                          ? "border-kigali/60 bg-kigali/20 text-neutral-0"
+                          : "border-white/10 bg-white/5 text-neutral-3 hover:border-white/20 hover:text-neutral-0"
+                      )}
+                    >
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                      <div className="flex-1">
+                        <p>{item.label}</p>
+                        {item.description && (
+                          <p className="text-xs text-neutral-6">{item.description}</p>
+                        )}
+                      </div>
+                      {badge && (
+                        <span
+                          className={cn(
+                            "inline-flex h-fit items-center rounded-full border px-2 py-1 text-[10px] font-bold uppercase tracking-wide",
+                            badge ? BADGE_TONE_STYLES[badge.tone] : undefined
+                          )}
+                        >
+                          {badge.label}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </Drawer>
+  );
+}
+
+interface MobileQuickActionsDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  groups: QuickActionGroupDefinition[];
+}
+
+function MobileQuickActionsDrawer({ open, onClose, groups }: MobileQuickActionsDrawerProps) {
+  const { t } = useTranslation();
+  return (
+    <Drawer
+      open={open}
+      onClose={onClose}
+      title={t("dashboard.quick.title", "Quick actions")}
+      size="full"
+    >
+      <div className="space-y-6">
+        {groups.map((group) => (
+          <section key={group.id} className="space-y-3">
+            <header className="flex items-baseline justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-0">
+                {group.title}
+              </h3>
+              <p className="text-[10px] text-neutral-5">{group.subtitle}</p>
+            </header>
+            <ul className="space-y-2">
+              {group.actions.map((action) => (
+                <li key={`${group.id}-${action.primary}`}>
+                  <Link
+                    href={action.href}
+                    onClick={onClose}
+                    className="block rounded-xl border border-white/15 bg-white/5 px-4 py-3"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-neutral-0">{action.primary}</p>
+                        <p className="text-xs text-neutral-4">{action.description}</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-neutral-5">
+                          {action.secondary}
+                        </p>
+                        <p className="text-[11px] text-neutral-5">{action.secondaryDescription}</p>
+                      </div>
+                      {action.badge && (
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-bold uppercase tracking-wide",
+                            BADGE_TONE_STYLES[action.badge.tone]
+                          )}
+                        >
+                          {action.badge.label}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </Drawer>
   );
 }
