@@ -4,13 +4,13 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { KPIStat } from "@/components/dashboard/kpi-stat";
 import { QuickAction } from "@/components/dashboard/quick-action";
 import { StatusChip } from "@/components/common/status-chip";
-import { EmptyState } from "@/components/ui/empty-state";
 import { MissedContributorsList } from "@/components/dashboard/missed-contributors-list";
 import { requireUserAndProfile } from "@/lib/auth";
 import { getDashboardSummary, EMPTY_DASHBOARD_SUMMARY } from "@/lib/dashboard";
 import { Trans } from "@/components/common/trans";
 import { TopIkiminaTable } from "@/components/dashboard/top-ikimina-table";
 import { logError } from "@/lib/observability/logger";
+import { FeedbackMessage } from "@/components/common/feedback-message";
 
 export const runtime = "nodejs";
 
@@ -81,9 +81,17 @@ export default async function DashboardPage() {
   if (!isSystemAdmin && !hasSacco) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <EmptyState
-          title="SACCO assignment required"
-          description="Contact a system administrator to link your account to a SACCO before continuing."
+        <FeedbackMessage
+          variant="error"
+          title={{
+            i18nKey: "dashboard.guard.noSacco.title",
+            fallback: "SACCO assignment required",
+          }}
+          description={{
+            i18nKey: "dashboard.guard.noSacco.description",
+            fallback:
+              "Contact a system administrator to link your account to a SACCO before continuing.",
+          }}
         />
       </div>
     );
@@ -102,34 +110,42 @@ export default async function DashboardPage() {
 
   const kpis = [
     {
-      label: "Today's Deposits",
+      labelKey: "dashboard.kpis.todayDeposits",
+      fallback: "Today's deposits",
       value: formatCurrency(summary.totals.today),
       accent: "blue" as const,
     },
     {
-      label: "Week to Date",
+      labelKey: "dashboard.kpis.weekToDate",
+      fallback: "Week to date",
       value: formatCurrency(summary.totals.week),
       accent: "yellow" as const,
     },
     {
-      label: "Month to Date",
+      labelKey: "dashboard.kpis.monthToDate",
+      fallback: "Month to date",
       value: formatCurrency(summary.totals.month),
       accent: "green" as const,
     },
     {
-      label: "Unallocated",
+      labelKey: "dashboard.kpis.unallocated",
+      fallback: "Unallocated",
       value: summary.totals.unallocated.toString(),
       accent: "neutral" as const,
     },
-  ];
+  ] as const;
 
   const lastUpdatedLabel = summary.generatedAt
     ? new Date(summary.generatedAt).toLocaleString()
     : "—";
   const headerBadge = summaryError ? (
-    <StatusChip tone="warning">Cached data</StatusChip>
+    <StatusChip tone="warning">
+      <Trans i18nKey="dashboard.status.cached" fallback="Cached data" />
+    </StatusChip>
   ) : (
-    <StatusChip tone="neutral">Staff access</StatusChip>
+    <StatusChip tone="neutral">
+      <Trans i18nKey="dashboard.status.staffAccess" fallback="Staff access" />
+    </StatusChip>
   );
 
   return (
@@ -146,8 +162,13 @@ export default async function DashboardPage() {
         badge={headerBadge}
       >
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-          {kpis.map((kpi, idx) => (
-            <KPIStat key={idx} label={kpi.label} value={kpi.value} accent={kpi.accent} />
+          {kpis.map((kpi) => (
+            <KPIStat
+              key={kpi.labelKey}
+              label={<Trans i18nKey={kpi.labelKey} fallback={kpi.fallback} />}
+              value={kpi.value}
+              accent={kpi.accent}
+            />
           ))}
         </div>
         <p className="mt-4 text-xs text-neutral-3">
@@ -170,21 +191,18 @@ export default async function DashboardPage() {
             />
           }
         >
-          <EmptyState
+          <FeedbackMessage
+            variant="empty"
             tone="offline"
-            offlineHint={
-              <Trans
-                i18nKey="dashboard.cached.offlineHint"
-                fallback="Offline changes will sync once you're back online."
-              />
-            }
-            title={<Trans i18nKey="dashboard.cached.action" fallback="Reconnect to refresh data" />}
-            description={
-              <Trans
-                i18nKey="dashboard.cached.description"
-                fallback="Check your connection and reload to sync the latest figures."
-              />
-            }
+            title={{ i18nKey: "dashboard.cached.action", fallback: "Reconnect to refresh data" }}
+            description={{
+              i18nKey: "dashboard.cached.description",
+              fallback: "Check your connection and reload to sync the latest figures.",
+            }}
+            hint={{
+              i18nKey: "dashboard.cached.offlineHint",
+              fallback: "Offline changes will sync once you're back online.",
+            }}
           />
         </GlassCard>
       ) : null}
@@ -219,10 +237,13 @@ export default async function DashboardPage() {
         {summary.missedContributors.length > 0 ? (
           <MissedContributorsList contributors={summary.missedContributors} />
         ) : (
-          <EmptyState
-            tone="quiet"
-            title="All caught up"
-            description="Every active member has a recent contribution."
+          <FeedbackMessage
+            variant="success"
+            title={{ i18nKey: "dashboard.missed.emptyTitle", fallback: "Everyone is up to date" }}
+            description={{
+              i18nKey: "dashboard.missed.emptyDescription",
+              fallback: "All members have contributed in the last month.",
+            }}
           />
         )}
       </GlassCard>
@@ -236,7 +257,15 @@ export default async function DashboardPage() {
             className="text-xs text-neutral-3"
           />
         }
-        actions={<StatusChip tone="neutral">{summary.activeIkimina} active</StatusChip>}
+        actions={
+          <StatusChip tone="neutral">
+            <Trans
+              i18nKey="dashboard.top.activeBadge"
+              fallback="{{count}} active"
+              values={{ count: summary.activeIkimina }}
+            />
+          </StatusChip>
+        }
       >
         <TopIkiminaTable data={summary.topIkimina} />
       </GlassCard>

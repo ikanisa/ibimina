@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import { MetricCard, type MetricCardProps } from "@ibimina/ui";
 
 interface KPIStatProps {
-  label: string;
+  label: ReactNode;
   value: string;
-  trend?: string;
+  trend?: ReactNode;
   accent?: MetricCardProps["accent"];
 }
 

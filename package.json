@@ -22,7 +22,7 @@
     "generate:apk": "node scripts/generate-apk.js",
     "deploy:netlify": "node scripts/netlify-deploy.js",
     "check:env": "node scripts/check-env.js",
-    "lint": "pnpm -r --parallel run lint",
+    "lint": "node scripts/check-locale-coverage.mjs && pnpm -r --parallel run lint",
     "prelint": "pnpm run check:types",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
