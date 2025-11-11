@@ -145,6 +145,14 @@ const motionEasingScale = {
   linear: "var(--motion-ease-linear)",
 } as const;
 
+const breakpointScale = {
+  sm: "var(--breakpoint-sm)",
+  md: "var(--breakpoint-md)",
+  lg: "var(--breakpoint-lg)",
+  xl: "var(--breakpoint-xl)",
+  "2xl": "var(--breakpoint-2xl)",
+} as const;
+
 const neutralCss = createCssScale("neutral", NEUTRAL_SCALE);
 const primaryCss = createCssScale("primary", PALETTE_SCALE);
 const accentCss = createCssScale("accent", PALETTE_SCALE);
@@ -201,9 +209,10 @@ export const tailwindTokens = {
   fontSize: fontSizeScale,
   transitionDuration: motionDurationScale,
   transitionTimingFunction: motionEasingScale,
+  screens: breakpointScale,
 } as const;
 
-export const themeNames = ["light", "dark"] as const;
+export const themeNames = ["light", "dark", "high-contrast"] as const;
 export type ThemeName = (typeof themeNames)[number];
 export const themeAliases = { nyungwe: "dark" } as const;
 export type ThemeAlias = keyof typeof themeAliases;
@@ -211,6 +220,7 @@ export type ThemeAlias = keyof typeof themeAliases;
 export const nextThemeValueMap = {
   light: "light",
   dark: "dark",
+  "high-contrast": "high-contrast",
   nyungwe: "dark",
 } as const;
 

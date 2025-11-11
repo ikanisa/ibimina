@@ -31,6 +31,52 @@
   --success: var(--color-success-500);
   --ring: var(--state-focus-ring);
   --focus-ring: var(--shadow-focus);
+
+  /* Typographic scale */
+  --type-weight-regular: var(--font-weight-regular);
+  --type-weight-medium: var(--font-weight-medium);
+  --type-weight-semibold: var(--font-weight-semibold);
+  --type-weight-bold: var(--font-weight-bold);
+
+  --type-heading-font: var(--font-display);
+  --type-body-font: var(--font-sans);
+
+  --type-h1-size: clamp(2.75rem, 4vw, 3.25rem);
+  --type-h1-line: 1.1;
+  --type-h1-letter: var(--font-letter-heading);
+
+  --type-h2-size: clamp(2.25rem, 3vw, 2.75rem);
+  --type-h2-line: 1.15;
+  --type-h2-letter: var(--font-letter-heading);
+
+  --type-h3-size: clamp(1.875rem, 2.4vw, 2.25rem);
+  --type-h3-line: 1.2;
+  --type-h3-letter: var(--font-letter-heading);
+
+  --type-h4-size: clamp(1.5rem, 2vw, 1.75rem);
+  --type-h4-line: 1.3;
+  --type-h4-letter: var(--font-letter-tight);
+
+  --type-h5-size: clamp(1.25rem, 1.6vw, 1.5rem);
+  --type-h5-line: 1.35;
+  --type-h5-letter: var(--font-letter-tight);
+
+  --type-h6-size: clamp(1.125rem, 1.2vw, 1.25rem);
+  --type-h6-line: 1.4;
+  --type-h6-letter: -0.005em;
+
+  --type-body-lg-size: 1.125rem;
+  --type-body-lg-line: 1.6;
+
+  --type-body-md-size: 1rem;
+  --type-body-md-line: 1.6;
+
+  --type-body-sm-size: 0.875rem;
+  --type-body-sm-line: 1.55;
+
+  --type-caption-size: 0.75rem;
+  --type-caption-line: 1.45;
+  --type-caption-letter: 0.08em;
 }
 
 [data-theme="dark"],
@@ -63,11 +109,7 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-image: radial-gradient(
-    circle at 50% 0%,
-    rgba(74, 112, 255, 0.12),
-    transparent 55%
-  );
+  background-image: var(--gradient-brand-hero);
   background-attachment: fixed;
   transition:
     background-color var(--motion-duration-300, 300ms) var(--motion-ease-standard, ease),
@@ -87,6 +129,180 @@ button {
 ::selection {
   background: var(--atlas-glow);
   color: var(--atlas-blue-dark);
+}
+
+[data-typography] {
+  font-family: var(--type-body-font);
+}
+
+h1,
+.typography-h1 {
+  font-family: var(--type-heading-font);
+  font-size: var(--type-h1-size);
+  line-height: var(--type-h1-line);
+  letter-spacing: var(--type-h1-letter);
+  font-weight: var(--type-weight-semibold);
+}
+
+h2,
+.typography-h2 {
+  font-family: var(--type-heading-font);
+  font-size: var(--type-h2-size);
+  line-height: var(--type-h2-line);
+  letter-spacing: var(--type-h2-letter);
+  font-weight: var(--type-weight-semibold);
+}
+
+h3,
+.typography-h3 {
+  font-family: var(--type-heading-font);
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-line);
+  letter-spacing: var(--type-h3-letter);
+  font-weight: var(--type-weight-semibold);
+}
+
+h4,
+.typography-h4 {
+  font-family: var(--type-heading-font);
+  font-size: var(--type-h4-size);
+  line-height: var(--type-h4-line);
+  letter-spacing: var(--type-h4-letter);
+  font-weight: var(--type-weight-semibold);
+}
+
+h5,
+.typography-h5 {
+  font-family: var(--type-heading-font);
+  font-size: var(--type-h5-size);
+  line-height: var(--type-h5-line);
+  letter-spacing: var(--type-h5-letter);
+  font-weight: var(--type-weight-medium);
+}
+
+h6,
+.typography-h6 {
+  font-family: var(--type-heading-font);
+  font-size: var(--type-h6-size);
+  line-height: var(--type-h6-line);
+  letter-spacing: var(--type-h6-letter);
+  font-weight: var(--type-weight-medium);
+}
+
+p,
+.typography-body-lg {
+  font-family: var(--type-body-font);
+  font-size: var(--type-body-lg-size);
+  line-height: var(--type-body-lg-line);
+  font-weight: var(--type-weight-regular);
+}
+
+.typography-body {
+  font-family: var(--type-body-font);
+  font-size: var(--type-body-md-size);
+  line-height: var(--type-body-md-line);
+  font-weight: var(--type-weight-regular);
+}
+
+.typography-body-sm {
+  font-family: var(--type-body-font);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+  font-weight: var(--type-weight-regular);
+}
+
+.typography-caption {
+  font-family: var(--type-body-font);
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-line);
+  letter-spacing: var(--type-caption-letter);
+  text-transform: uppercase;
+  font-weight: var(--type-weight-semibold);
+}
+
+.typography-flow {
+  display: block;
+}
+
+:is(h1, h2, h3, h4, h5, h6, p, .typography-flow) {
+  margin: 0;
+}
+
+:is(h1, h2, h3, h4, h5, h6, p, .typography-flow) + :is(p, ul, ol, dl, .typography-flow) {
+  margin-top: var(--space-3);
+}
+
+.typography-tone-default {
+  color: var(--color-foreground);
+}
+
+.typography-tone-muted {
+  color: var(--color-foreground-muted);
+}
+
+.typography-tone-subtle {
+  color: var(--color-foreground-subtle);
+}
+
+.typography-tone-inverse {
+  color: var(--color-foreground-inverse);
+}
+
+.typography-tone-success {
+  color: var(--color-success-600);
+}
+
+.typography-tone-danger {
+  color: var(--color-danger-600);
+}
+
+.typography-tone-warning {
+  color: var(--color-warning-600);
+}
+
+.typography-tone-info {
+  color: var(--color-info-600);
+}
+
+[data-gradient="hero"] {
+  background-image: var(--gradient-brand-hero);
+}
+
+[data-gradient="soft"] {
+  background-image: var(--gradient-brand-soft);
+}
+
+[data-gradient="mesh"] {
+  background-image: var(--gradient-brand-mesh);
+}
+
+[data-surface="base"] {
+  background-color: var(--color-surface);
+  color: var(--color-foreground);
+}
+
+[data-surface="subtle"] {
+  background-color: var(--color-surface-subtle);
+  color: var(--color-foreground);
+}
+
+[data-surface="contrast"] {
+  background-color: var(--color-surface-contrast);
+  color: var(--color-foreground-inverse);
+}
+
+[data-surface="elevated"] {
+  background-color: var(--color-surface);
+  color: var(--color-foreground);
+  box-shadow: var(--shadow-lg);
+}
+
+[data-surface="translucent"] {
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  border: 1px solid var(--surface-glass-border);
+  box-shadow: var(--surface-glass-shadow);
 }
 
 [data-glass] {
