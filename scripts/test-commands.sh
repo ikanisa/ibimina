@@ -80,28 +80,28 @@ cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm dev
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Test 1: Install dependencies
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile && npm install
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile && npm install
 
 # Test 2: Type check
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile && npm run typecheck
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile && npm run typecheck
 
 # Test 3: Lint
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile && npm run lint
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile && npm run lint
 
 # Test 4: Unit tests
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile && npm test
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile && npm test
 
 # Test 5: Start Metro bundler
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile && npm start
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile && npm start
 
 # Test 6: Run on Android (in new terminal)
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile && npm run android
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile && npm run android
 
 # Test 7: Run on iOS (macOS only, in new terminal)
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile && npm run ios
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile && npm run ios
 
 # Test 8: Build Android APK
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile/android && ./gradlew assembleRelease
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile/android && ./gradlew assembleRelease
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -146,7 +146,7 @@ cd /Users/jeanbosco/workspace/ibimina && supabase start
 cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin && pnpm dev
 
 # Step 3: Start Client Mobile (Terminal 2)
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile && npm start
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile && npm start
 
 # Step 4: Test SMS reconciliation
 curl -X POST http://localhost:54321/functions/v1/ingest-sms \
@@ -181,7 +181,7 @@ pnpm typecheck && pnpm lint && pnpm test:unit && pnpm build && pnpm test:e2e
 cd ../..
 
 # 3. Client Mobile
-cd apps/client-mobile
+cd apps/pwa/client-mobile
 npm install && npm run typecheck && npm test && npm run android
 cd ../..
 
@@ -223,7 +223,7 @@ cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android
 
 # Problem: Metro bundler stuck
 pkill -f "node.*metro"
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile
 rm -rf node_modules
 npm install
 npm start -- --reset-cache
@@ -238,7 +238,7 @@ cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin
 pnpm exec playwright show-report
 
 # Jest coverage
-cd /Users/jeanbosco/workspace/ibimina/apps/client-mobile
+cd /Users/jeanbosco/workspace/ibimina/apps/pwa/client-mobile
 npm test -- --coverage
 open coverage/lcov-report/index.html
 

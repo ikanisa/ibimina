@@ -55,10 +55,10 @@ cd ../..
 
 # Check 5: Client Mobile
 echo -n "Checking Client Mobile... "
-if [ -d "apps/client-mobile/node_modules" ]; then
+if [ -d "apps/pwa/client-mobile/node_modules" ]; then
   echo -e "${GREEN}✅ Dependencies OK${NC}"
 else
-  echo -e "${YELLOW}⚠️  Run 'npm install' in apps/client-mobile${NC}"
+  echo -e "${YELLOW}⚠️  Run 'npm install' in apps/pwa/client-mobile${NC}"
 fi
 
 # Check 6: Staff Android

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, CheckCircle2, FileUp, Loader2 } from "lucide-react";
@@ -13,35 +13,95 @@ import {
   type FormSummaryStatus,
 } from "@/components/ui/form";
 import { Stepper } from "@/components/ui/stepper";
+import {
+  enqueueOnboardingSubmission,
+  getOnboardingQueueStats,
+  type OnboardingQueueStats,
+} from "@/lib/offline/onboarding-queue";
+import { requestBackgroundSync } from "@/lib/offline/sync";
+import type { OnboardingOcrResult, OnboardingPayload } from "@/lib/member/onboarding";
 
-interface OcrResult {
-  name: string | null;
-  idNumber: string | null;
-  dob: string | null;
-  sex: string | null;
-  address: string | null;
-}
+type FormState = Pick<OnboardingPayload, "whatsapp_msisdn" | "momo_msisdn">;
 
-interface OnboardingPayload {
-  whatsapp_msisdn: string;
-  momo_msisdn: string;
-  ocr_json?: OcrResult | null;
-}
+type SummaryBannerState = {
+  status: FormSummaryStatus;
+  title: string;
+  description?: string;
+  items?: ReactNode[];
+  kind?: "queue";
+} | null;
+
+const EMPTY_QUEUE_STATS: OnboardingQueueStats = {
+  total: 0,
+  pending: 0,
+  syncing: 0,
+  failed: 0,
+};
 
 export function OnboardingFlow() {
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState({ whatsapp_msisdn: "", momo_msisdn: "" });
-  const [ocr, setOcr] = useState<OcrResult | null>(null);
+  const [form, setForm] = useState<FormState>({ whatsapp_msisdn: "", momo_msisdn: "" });
+  const [ocr, setOcr] = useState<OnboardingOcrResult | null>(null);
   const [documentStatus, setDocumentStatus] = useState<"idle" | "uploading">("idle");
   const [fieldErrors, setFieldErrors] = useState<{ whatsapp?: string; momo?: string }>({});
-  const [summaryBanner, setSummaryBanner] = useState<{
-    status: FormSummaryStatus;
-    title: string;
-    description?: string;
-    items?: ReactNode[];
-  } | null>(null);
+  const [summaryBanner, setSummaryBanner] = useState<SummaryBannerState>(null);
   const [isSubmitting, startSubmit] = useTransition();
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine
+  );
+  const [queueCount, setQueueCount] = useState(0);
+  const [queueBannerActive, setQueueBannerActive] = useState(false);
   const router = useRouter();
+
+  const clearQueueBanner = useCallback(() => {
+    setQueueBannerActive(false);
+    setSummaryBanner((current) => (current?.kind === "queue" ? null : current));
+  }, []);
+
+  const applyQueueBanner = useCallback(
+    (count: number, description?: string) => {
+      if (count <= 0) {
+        clearQueueBanner();
+        return;
+      }
+
+      setQueueBannerActive(true);
+      setSummaryBanner({
+        kind: "queue",
+        status: "info",
+        title: count === 1 ? "Submission queued for sync" : `${count} submissions queued for sync`,
+        description:
+          description ??
+          (isOnline
+            ? "We're syncing your queued submissions now."
+            : "We'll sync automatically once you're back online."),
+      });
+    },
+    [clearQueueBanner, isOnline]
+  );
+
+  const refreshQueueStats = useCallback(async () => {
+    try {
+      const stats = await getOnboardingQueueStats();
+      setQueueCount(stats.pending + stats.failed);
+      return stats;
+    } catch {
+      setQueueCount(0);
+      return EMPTY_QUEUE_STATS;
+    }
+  }, []);
+
+  const updateSummary = useCallback(
+    (banner: SummaryBannerState) => {
+      if (queueBannerActive) {
+        if (!banner || banner.kind !== "queue") {
+          return;
+        }
+      }
+      setSummaryBanner(banner);
+    },
+    [queueBannerActive]
+  );
 
   const stepperSteps = useMemo(
     () => [
@@ -63,6 +123,44 @@ export function OnboardingFlow() {
     ],
     [form.momo_msisdn, form.whatsapp_msisdn, ocr]
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      const stats = await refreshQueueStats();
+      if (!cancelled && stats.pending + stats.failed > 0) {
+        applyQueueBanner(stats.pending + stats.failed);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applyQueueBanner, refreshQueueStats]);
+
+  useEffect(() => {
+    if (queueBannerActive) {
+      applyQueueBanner(queueCount);
+    }
+  }, [applyQueueBanner, queueBannerActive, queueCount]);
 
   const validateContact = () => {
     const errors: { whatsapp?: string; momo?: string } = {};
@@ -86,7 +184,7 @@ export function OnboardingFlow() {
       const errors = validateContact();
       if (errors.whatsapp || errors.momo) {
         const issues = Object.values(errors).filter(Boolean) as string[];
-        setSummaryBanner({
+        updateSummary({
           status: "error",
           title: "Fix contact details",
           description: "Provide valid WhatsApp and MoMo numbers to continue.",
@@ -94,14 +192,14 @@ export function OnboardingFlow() {
         });
         return;
       }
-      setSummaryBanner(null);
+      updateSummary(null);
       setStep(1);
       return;
     }
 
     if (step === 1) {
       if (documentStatus === "uploading") {
-        setSummaryBanner({
+        updateSummary({
           status: "info",
           title: "Processing identity document",
           description: "Please wait until the ID finishes uploading.",
@@ -109,14 +207,14 @@ export function OnboardingFlow() {
         return;
       }
       if (!ocr) {
-        setSummaryBanner({
+        updateSummary({
           status: "warning",
           title: "Upload an identity document",
           description: "Capture or upload an ID so we can pre-fill the member profile.",
         });
         return;
       }
-      setSummaryBanner({
+      updateSummary({
         status: "info",
         title: "Review the extracted information",
         description: "Confirm the contact details and ID values before submitting.",
@@ -127,13 +225,38 @@ export function OnboardingFlow() {
   };
 
   const handleBack = () => {
-    setSummaryBanner(null);
+    updateSummary(null);
     setStep((index) => Math.max(0, index - 1));
   };
 
   const submit = () => {
     startSubmit(async () => {
-      setSummaryBanner({
+      const payload: OnboardingPayload = {
+        whatsapp_msisdn: form.whatsapp_msisdn,
+        momo_msisdn: form.momo_msisdn,
+        ocr_json: ocr ?? undefined,
+      };
+
+      if (!isOnline) {
+        try {
+          await enqueueOnboardingSubmission(payload);
+          const stats = await refreshQueueStats();
+          applyQueueBanner(stats.pending + stats.failed);
+          await requestBackgroundSync();
+        } catch (error) {
+          clearQueueBanner();
+          updateSummary({
+            status: "error",
+            title: "Failed to queue submission",
+            description:
+              error instanceof Error ? error.message : "Retry once connectivity is restored.",
+          });
+        }
+        return;
+      }
+
+      clearQueueBanner();
+      updateSummary({
         status: "info",
         title: "Submitting onboarding",
         description: "We are finalizing enrollment. This may take a few seconds.",
@@ -142,11 +265,11 @@ export function OnboardingFlow() {
       const response = await fetch("/api/member/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, ocr_json: ocr }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        setSummaryBanner({
+        updateSummary({
           status: "error",
           title: "Submission failed",
           description: "Retry in a few moments or contact support if the issue persists.",
@@ -154,7 +277,8 @@ export function OnboardingFlow() {
         return;
       }
 
-      setSummaryBanner({
+      setQueueBannerActive(false);
+      updateSummary({
         status: "success",
         title: "Member onboarded",
         description: "Redirecting to the member workspace…",
@@ -163,10 +287,10 @@ export function OnboardingFlow() {
     });
   };
 
-  const handleOcr = (result: OcrResult | null) => {
+  const handleOcr = (result: OnboardingOcrResult | null) => {
     setOcr(result);
     if (result) {
-      setSummaryBanner({
+      updateSummary({
         status: "success",
         title: "Identity document processed",
         description: "Review the detected fields before continuing.",
@@ -233,16 +357,19 @@ export function OnboardingFlow() {
 
   const stepContent = [contactStep, documentStep, reviewStep][step];
 
+  const queueMessage =
+    queueCount > 0
+      ? `${queueCount} offline submission${queueCount === 1 ? "" : "s"} awaiting sync`
+      : isOnline
+        ? "Offline submissions are queued automatically."
+        : "Offline mode: submissions will queue until you're back online.";
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Member onboarding"
         description="Guide new members through contact verification, identity capture, and final confirmation."
-        metadata={
-          <span className="text-xs text-neutral-3">
-            Offline submissions are queued automatically.
-          </span>
-        }
+        metadata={<span className="text-xs text-neutral-3">{queueMessage}</span>}
       />
 
       <Stepper
@@ -303,14 +430,14 @@ export function OnboardingFlow() {
 }
 
 interface DocumentUploaderProps {
-  onUploaded: (result: OcrResult | null) => void;
+  onUploaded: (result: OnboardingOcrResult | null) => void;
   onStatusChange?: (status: "idle" | "uploading") => void;
 }
 
 function DocumentUploader({ onUploaded, onStatusChange }: DocumentUploaderProps) {
   const [isUploading, startUpload] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<OcrResult | null>(null);
+  const [preview, setPreview] = useState<OnboardingOcrResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const upload = (file: File | null) => {
@@ -335,7 +462,7 @@ function DocumentUploader({ onUploaded, onStatusChange }: DocumentUploaderProps)
           throw new Error(payload.error ?? "Upload failed. Try again.");
         }
 
-        const data = (await response.json()) as { ocr: OcrResult };
+        const data = (await response.json()) as { ocr: OnboardingOcrResult };
         setPreview(data.ocr);
         onUploaded(data.ocr);
       } catch (err) {
@@ -398,7 +525,7 @@ function DocumentUploader({ onUploaded, onStatusChange }: DocumentUploaderProps)
 
 interface ReviewPanelProps {
   form: OnboardingPayload;
-  ocr: OcrResult | null;
+  ocr: OnboardingOcrResult | null;
 }
 
 function ReviewPanel({ form, ocr }: ReviewPanelProps) {
@@ -457,7 +584,7 @@ function ReviewPanel({ form, ocr }: ReviewPanelProps) {
   );
 }
 
-function Preview({ ocr }: { ocr: OcrResult | null }) {
+function Preview({ ocr }: { ocr: OnboardingOcrResult | null }) {
   if (!ocr) {
     return null;
   }

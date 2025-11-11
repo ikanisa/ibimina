@@ -1,9 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { logError } from "@/lib/observability/logger";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const onboardSchema = z.object({
+import { logError } from "@/lib/observability/logger";
+
+export interface OnboardingOcrResult {
+  name: string | null;
+  idNumber: string | null;
+  dob: string | null;
+  sex: string | null;
+  address: string | null;
+}
+
+export const onboardingPayloadSchema = z.object({
   whatsapp_msisdn: z.string().min(5, "WhatsApp number is required"),
   momo_msisdn: z.string().min(5, "MoMo number is required"),
   ocr_json: z
@@ -19,33 +26,15 @@ const onboardSchema = z.object({
   preferred_language: z.string().trim().toLowerCase().min(2).max(5).optional(),
 });
 
-export async function POST(request: NextRequest) {
-  const supabase = await createSupabaseServerClient();
-  // Member app tables are optional; use untyped client to accommodate missing local schema
+export type OnboardingPayload = z.infer<typeof onboardingPayloadSchema>;
 
-  const legacyClient = supabase as any;
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+export type OnboardingProfileResult = { success: true } | { success: false; error: string };
 
-  if (authError) {
-    logError("Failed to validate auth", authError);
-    return NextResponse.json({ error: "Auth failed" }, { status: 500 });
-  }
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const json = await request.json();
-  const payload = onboardSchema.safeParse(json);
-
-  if (!payload.success) {
-    return NextResponse.json({ error: payload.error.flatten() }, { status: 400 });
-  }
-
-  const data = payload.data;
+export async function upsertMemberOnboardingProfile(
+  legacyClient: any,
+  userId: string,
+  data: OnboardingPayload
+): Promise<OnboardingProfileResult> {
   const now = new Date().toISOString();
 
   const updatePayload = {
@@ -60,27 +49,27 @@ export async function POST(request: NextRequest) {
   const { data: existing, error: existingError } = await legacyClient
     .from("members_app_profiles")
     .select("user_id")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (existingError) {
-    logError("Failed to load existing profile", existingError);
-    return NextResponse.json({ error: "Unable to complete onboarding" }, { status: 500 });
+    logError("member.onboarding.load_failed", existingError);
+    return { success: false, error: "Unable to complete onboarding" };
   }
 
   if (existing) {
     const { error } = await legacyClient
       .from("members_app_profiles")
       .update(updatePayload)
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     if (error) {
-      logError("Failed to update profile", error);
-      return NextResponse.json({ error: "Unable to update profile" }, { status: 500 });
+      logError("member.onboarding.update_failed", error);
+      return { success: false, error: "Unable to update profile" };
     }
   } else {
     const insertPayload = {
-      user_id: user.id,
+      user_id: userId,
       whatsapp_msisdn: data.whatsapp_msisdn,
       momo_msisdn: data.momo_msisdn,
       ocr_json: data.ocr_json ?? null,
@@ -89,13 +78,14 @@ export async function POST(request: NextRequest) {
       created_at: now,
       updated_at: now,
     };
+
     const { error } = await legacyClient.from("members_app_profiles").insert(insertPayload);
 
     if (error) {
-      logError("Failed to create profile", error);
-      return NextResponse.json({ error: "Unable to create profile" }, { status: 500 });
+      logError("member.onboarding.insert_failed", error);
+      return { success: false, error: "Unable to create profile" };
     }
   }
 
-  return NextResponse.json({ ok: true });
+  return { success: true };
 }

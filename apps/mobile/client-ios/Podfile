@@ -1,0 +1,29 @@
+platform :ios, '16.0'
+
+use_frameworks!
+
+workspace 'IbiminaClient'
+project 'IbiminaClient.xcodeproj'
+
+target 'IbiminaClient' do
+  pod 'Supabase', '~> 1.0'
+  pod 'Alamofire', '~> 5.8'
+  pod 'SwiftyJSON', '~> 5.0'
+  pod 'KeychainAccess', '~> 4.2'
+
+  target 'IbiminaClientTests' do
+    inherit! :search_paths
+  end
+
+  target 'IbiminaClientUITests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+    end
+  end
+end

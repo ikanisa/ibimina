@@ -4,9 +4,15 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["node", "@playwright/test"]
+    "types": ["node", "vitest", "@playwright/test"]
   },
-  "include": ["tests/unit/**/*.ts", "tests/integration/**/*.ts", "tests/types/**/*.d.ts"],
+  "include": [
+    "tests/unit/**/*.ts",
+    "tests/integration/**/*.ts",
+    "tests/components/**/*.ts",
+    "tests/components/**/*.tsx",
+    "tests/types/**/*.d.ts"
+  ],
   "exclude": [
     "node_modules",
     ".next",
