@@ -135,7 +135,7 @@ setup_staff_android() {
 setup_client_mobile() {
     echo -e "${YELLOW}Setting up Client Mobile App...${NC}"
     
-    if [ ! -d "apps/client-mobile" ]; then
+    if [ ! -d "apps/pwa/client-mobile" ]; then
         echo "Creating React Native project..."
         cd apps
         npx create-expo-app client-mobile --template blank-typescript
@@ -200,7 +200,7 @@ main() {
     echo "4. Start development:"
     echo "   - Staff Admin PWA: pnpm --filter @ibimina/staff-admin-pwa dev"
     echo "   - Staff Admin Android: cd apps/staff-admin-android && pnpm start"
-    echo "   - Client Mobile: cd apps/client-mobile && pnpm start"
+    echo "   - Client Mobile: cd apps/pwa/client-mobile && pnpm start"
     echo ""
     echo "Documentation:"
     echo "- Implementation Plan: ./COMPREHENSIVE_SYSTEM_IMPLEMENTATION_PLAN.md"
