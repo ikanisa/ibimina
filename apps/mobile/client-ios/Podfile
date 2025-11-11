@@ -32,4 +32,12 @@ post_install do |installer|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
     end
   end
+platform :ios, '16.0'
+use_frameworks!
+
+workspace 'ClientIOS'
+project 'ClientIOS.xcodeproj'
+
+target 'ClientIOS' do
+  pod 'Supabase', :git => 'https://github.com/supabase-community/supabase-swift.git', :branch => 'main'
 end

@@ -205,3 +205,151 @@ jobs:
           name: client-android-release
           path: apps/mobile/client-android/app/build/outputs/bundle/release/*.aab
           retention-days: 90
+name: Build Native Apps
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/**"
+      - ".github/workflows/build-native-apps.yml"
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: build-native-apps-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [client, admin]
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}/android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Ensure Gradle wrapper is executable
+        run: chmod +x gradlew
+
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ matrix.app }}-${{ hashFiles(format('apps/{0}/android/**/*.gradle*', matrix.app), format('apps/{0}/android/**/gradle-wrapper.properties', matrix.app)) }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-${{ matrix.app }}-
+            ${{ runner.os }}-gradle-
+
+      - name: Build release APK
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-android-apks
+          path: |
+            app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+  ios:
+    name: iOS Client
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        run: |
+          corepack enable
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --filter "@ibimina/client..."
+
+      - name: Sync iOS platform
+        run: pnpm --filter @ibimina/client cap:sync:ios
+        env:
+          CAPACITOR_SKIP_UPDATE_NOTIFIER: "1"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Install CocoaPods
+        run: gem install cocoapods --no-document
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/client/ios/App/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods/repos
+          key: ${{ runner.os }}-pods-${{ hashFiles('apps/client/ios/App/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install CocoaPods dependencies
+        working-directory: apps/client/ios/App
+        run: pod install
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_15.4.app
+
+      - name: Build iOS archive
+        working-directory: apps/client/ios/App
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+        run: |
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $PWD/build/App.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            clean archive
+
+      - name: Package IPA
+        working-directory: apps/client/ios/App
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+        run: |
+          rm -rf build/Payload
+          mkdir -p build/Payload
+          cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
+          (cd build && zip -qry App.ipa Payload)
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-ios-ipa
+          path: apps/client/ios/App/build/App.ipa
+          if-no-files-found: error
