@@ -1,8 +1,10 @@
 import type { Config } from "tailwindcss";
+import { tailwindTokens } from "../../src/design/theme";
 
 export default {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
+    screens: tailwindTokens.screens,
     extend: {
       colors: {
         // Neutral scale (primary)

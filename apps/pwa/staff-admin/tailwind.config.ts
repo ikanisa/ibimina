@@ -4,6 +4,7 @@ import { tailwindTokens } from "../../../src/design/theme";
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./providers/**/*.{ts,tsx}"],
   theme: {
+    screens: tailwindTokens.screens,
     extend: {
       colors: tailwindTokens.colors,
       spacing: tailwindTokens.spacing,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -31,21 +31,9 @@ import { NetworkStatusIndicator } from "@/components/system/network-status-indic
 import { OfflineBanner } from "@/components/system/offline-banner";
 import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
 import { OfflineConflictDialog } from "@/components/system/offline-conflict-dialog";
+import { useFocusTrap } from "@/src/lib/a11y/useFocusTrap";
 
 const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
-
-function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
-  if (!container) return [];
-  const focusableSelectors = [
-    "a[href]",
-    "button:not([disabled])",
-    "textarea:not([disabled])",
-    "input:not([disabled])",
-    "select:not([disabled])",
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(", ");
-  return Array.from(container.querySelectorAll<HTMLElement>(focusableSelectors));
-}
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -382,70 +370,19 @@ function DefaultAppShellView({
   const [showActions, setShowActions] = useState(false);
   const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
-  const wasQuickActionsOpenRef = useRef(false);
   const { open: paletteOpen, openPalette } = useCommandPalette();
   const { t } = useTranslation();
 
-  useEffect(() => {
-    if (!showActions) {
-      if (wasQuickActionsOpenRef.current) {
-        wasQuickActionsOpenRef.current = false;
-        (quickActionsTriggerRef.current ?? quickActionsLastFocusRef.current)?.focus();
-      }
-      return;
-    }
+  const resolveInitialQuickAction = useCallback(
+    () => quickActionsRef.current?.querySelector<HTMLElement>("[data-quick-focus]") ?? null,
+    []
+  );
 
-    wasQuickActionsOpenRef.current = true;
-    quickActionsLastFocusRef.current = document.activeElement as HTMLElement | null;
-    const container = quickActionsRef.current;
-    const firstFocusable = getFocusableElements(container).at(0);
-    if (firstFocusable) {
-      queueMicrotask(() => firstFocusable.focus());
-    } else {
-      container?.focus();
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!container) return;
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setShowActions(false);
-        return;
-      }
-      if (event.key !== "Tab") {
-        return;
-      }
-
-      const focusable = getFocusableElements(container);
-      if (focusable.length === 0) {
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const activeElement = document.activeElement as HTMLElement | null;
-
-      if (event.shiftKey) {
-        if (activeElement === first || activeElement === container) {
-          event.preventDefault();
-          last.focus();
-        }
-      } else if (activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    container?.addEventListener("keydown", handleKeyDown);
-    return () => container?.removeEventListener("keydown", handleKeyDown);
-  }, [showActions]);
-
-  useEffect(() => {
-    const container = quickActionsRef.current;
-
-    // Removed unused firstQuickActionRef reference
-  }, [showActions]);
+  useFocusTrap(showActions, quickActionsRef, {
+    onEscape: () => setShowActions(false),
+    initialFocus: resolveInitialQuickAction,
+    returnFocus: () => quickActionsTriggerRef.current?.focus(),
+  });
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
