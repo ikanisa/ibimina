@@ -7,6 +7,20 @@
   gap: var(--spacing-2);
 }
 
+@media (max-width: 1199px) {
+  .sidebar {
+    width: 200px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .sidebar {
+    width: 260px;
+    padding: var(--spacing-6) var(--spacing-3);
+    gap: var(--spacing-3);
+  }
+}
+
 .navLink {
   display: flex;
   align-items: center;

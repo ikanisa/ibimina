@@ -1,6 +1,7 @@
 "use client";
 
 import { Children, Fragment, useEffect, useMemo, useRef, useState, isValidElement } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -30,6 +31,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { NetworkStatusIndicator } from "@/components/system/network-status-indicator";
 import { OfflineBanner } from "@/components/system/offline-banner";
 import { OfflineConflictDialog } from "@/components/system/offline-conflict-dialog";
+import { useFocusTrap } from "@/src/lib/a11y/useFocusTrap";
 
 const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
 
@@ -406,8 +408,6 @@ function DefaultAppShellView({
   const [showActions, setShowActions] = useState(false);
   const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
-  const wasQuickActionsOpenRef = useRef(false);
   const { open: paletteOpen, openPalette } = useCommandPalette();
   const { t } = useTranslation();
 
@@ -480,6 +480,16 @@ function DefaultAppShellView({
     container?.addEventListener("keydown", handleKeyDown);
     return () => container?.removeEventListener("keydown", handleKeyDown);
   }, [showActions]);
+  const resolveInitialQuickAction = useCallback(
+    () => quickActionsRef.current?.querySelector<HTMLElement>("[data-quick-focus]") ?? null,
+    []
+  );
+
+  useFocusTrap(showActions, quickActionsRef, {
+    onEscape: () => setShowActions(false),
+    initialFocus: resolveInitialQuickAction,
+    returnFocus: () => quickActionsTriggerRef.current?.focus(),
+  });
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
