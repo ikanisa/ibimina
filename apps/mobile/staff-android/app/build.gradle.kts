@@ -20,6 +20,18 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        
+        // Load configuration from local.properties
+        val properties = org.jetbrains.kotlin.konan.properties.Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+        }
+        
+        // BuildConfig fields from local.properties or environment variables
+        buildConfigField("String", "SUPABASE_URL", "\"${properties.getProperty("SUPABASE_URL") ?: System.getenv("SUPABASE_URL") ?: ""}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${properties.getProperty("SUPABASE_ANON_KEY") ?: System.getenv("SUPABASE_ANON_KEY") ?: ""}\"")
+        buildConfigField("String", "OPENAI_API_KEY", "\"${properties.getProperty("OPENAI_API_KEY") ?: System.getenv("OPENAI_API_KEY") ?: ""}\"")
     }
     
     buildTypes {
@@ -43,6 +55,7 @@ android {
     
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     
     composeOptions {

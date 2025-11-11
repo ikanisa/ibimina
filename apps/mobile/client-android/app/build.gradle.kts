@@ -20,6 +20,17 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        
+        // Load configuration from local.properties
+        val properties = org.jetbrains.kotlin.konan.properties.Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+        }
+        
+        // BuildConfig fields from local.properties or environment variables
+        buildConfigField("String", "SUPABASE_URL", "\"${properties.getProperty("SUPABASE_URL") ?: System.getenv("SUPABASE_URL") ?: ""}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${properties.getProperty("SUPABASE_ANON_KEY") ?: System.getenv("SUPABASE_ANON_KEY") ?: ""}\"")
     }
     
     buildTypes {
@@ -43,6 +54,7 @@ android {
     
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     
     composeOptions {
@@ -68,6 +80,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.1.2")
+    implementation("androidx.compose.material:material-icons-extended")
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.6")

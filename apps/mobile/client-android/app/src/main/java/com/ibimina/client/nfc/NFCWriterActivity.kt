@@ -5,6 +5,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -170,7 +173,7 @@ fun NFCWriterScreen(
             }
             writeStatus is NFCWriterActivity.WriteStatus.Success -> {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Filled.CheckCircle,
+                    imageVector = Icons.Filled.CheckCircle,
                     contentDescription = "Success",
                     modifier = Modifier.size(64.dp),
                     tint = MaterialTheme.colorScheme.primary
@@ -194,7 +197,7 @@ fun NFCWriterScreen(
             }
             writeStatus is NFCWriterActivity.WriteStatus.Error -> {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Filled.Error,
+                    imageVector = Icons.Filled.Error,
                     contentDescription = "Error",
                     modifier = Modifier.size(64.dp),
                     tint = MaterialTheme.colorScheme.error
