@@ -1,3 +1,9 @@
+import { AppShellHero } from "@/components/layout/app-shell";
+import {
+  WorkspaceAside,
+  WorkspaceLayout,
+  WorkspaceMain,
+} from "@/components/layout/workspace-layout";
 import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { StatusChip } from "@/components/common/status-chip";
@@ -10,6 +16,7 @@ import type { Database } from "@/lib/supabase/types";
 import { canImportStatements, canReconcilePayments, isSystemAdmin } from "@/lib/permissions";
 import { Trans } from "@/components/common/trans";
 import { logWarn } from "@/lib/observability/logger";
+import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
 
 const EXCEPTION_STATUSES = ["UNALLOCATED", "PENDING", "REJECTED"] as const;
 const AUTH_GUEST_MODE = process.env.AUTH_GUEST_MODE === "1";
@@ -178,100 +185,110 @@ function renderReconciliation({
   }));
 
   return (
-    <div className="space-y-8">
-      <GradientHeader
-        title={<Trans i18nKey="recon.title" fallback="Reconciliation" />}
-        subtitle={
-          <Trans
-            i18nKey="recon.subtitle"
-            fallback="Resolve unknown references, duplicates, and mismatched deposits to keep ledgers clean."
-            className="text-xs text-ink/70"
-          />
-        }
-        badge={<StatusChip tone="warning">{summaryCount} pending</StatusChip>}
-      />
-
-      <GlassCard
-        title={<Trans i18nKey="recon.momo.title" fallback="MoMo statement ingest" />}
-        subtitle={
-          <Trans
-            i18nKey="recon.momo.subtitle"
-            fallback="Apply validation masks, review parser feedback, and ingest clean deposits."
-            className="text-xs text-neutral-3"
-          />
-        }
-        actions={
-          profile.sacco_id ? (
-            <StatementImportWizard
-              saccoId={profile.sacco_id}
-              variant="momo"
-              canImport={allowStatementImport}
-              disabledReason="Read-only access"
-            />
-          ) : undefined
-        }
-      >
-        {profile.sacco_id ? (
-          <div className="space-y-2 text-sm text-neutral-2">
-            <p className="text-xs text-neutral-3">
-              <Trans
-                i18nKey="recon.momo.note1"
-                fallback="Drag-and-drop MTN CSV exports. The wizard normalises Kigali timestamps, phone numbers, and amounts automatically."
-              />
-            </p>
-            <p className="text-xs text-neutral-3">
-              <Trans
-                i18nKey="recon.momo.note2"
-                fallback="Parser feedback highlights duplicates, missing references, and invalid rows before anything is posted."
-              />
-            </p>
-            <p className="text-xs text-neutral-3">
-              <Trans
-                i18nKey="recon.momo.note3"
-                fallback="Only validated rows reach Supabase; duplicates and bad records are held back for manual follow-up."
-              />
-            </p>
-          </div>
-        ) : (
-          <p className="text-sm text-neutral-2">
+    <>
+      <AppShellHero>
+        <GradientHeader
+          title={<Trans i18nKey="recon.title" fallback="Reconciliation" />}
+          subtitle={
             <Trans
-              i18nKey="recon.momo.assignSacco"
-              fallback="Assign yourself to a SACCO to enable statement ingestion."
-              className="text-xs text-neutral-3"
+              i18nKey="recon.subtitle"
+              fallback="Resolve unknown references, duplicates, and mismatched deposits to keep ledgers clean."
+              className="text-xs text-ink/70"
             />
-          </p>
-        )}
-      </GlassCard>
-
-      <GlassCard
-        title={<Trans i18nKey="recon.sms.title" fallback="SMS inbox" />}
-        subtitle={
-          <Trans
-            i18nKey="recon.sms.subtitle"
-            fallback="Latest MoMo SMS messages captured by the gateway and ready for parsing."
-            className="text-xs text-neutral-3"
-          />
-        }
-      >
-        <SmsInboxPanel items={smsPanelItems} />
-      </GlassCard>
-
-      <GlassCard
-        title={<Trans i18nKey="recon.exceptions.title" fallback="Exceptions" />}
-        subtitle={
-          <Trans
-            i18nKey="recon.exceptions.subtitle"
-            fallback="Recent issues surfaced by the parser."
-            className="text-xs text-neutral-3"
-          />
-        }
-      >
-        <ReconciliationTable
-          rows={exceptions ?? []}
-          saccoId={profile.sacco_id}
-          canWrite={allowReconciliationUpdates}
+          }
+          badge={<StatusChip tone="warning">{summaryCount} pending</StatusChip>}
         />
-      </GlassCard>
-    </div>
+      </AppShellHero>
+
+      <WorkspaceLayout>
+        <WorkspaceMain className="space-y-8">
+          <GlassCard
+            title={<Trans i18nKey="recon.momo.title" fallback="MoMo statement ingest" />}
+            subtitle={
+              <Trans
+                i18nKey="recon.momo.subtitle"
+                fallback="Apply validation masks, review parser feedback, and ingest clean deposits."
+                className="text-xs text-neutral-3"
+              />
+            }
+            actions={
+              profile.sacco_id ? (
+                <StatementImportWizard
+                  saccoId={profile.sacco_id}
+                  variant="momo"
+                  canImport={allowStatementImport}
+                  disabledReason="Read-only access"
+                />
+              ) : undefined
+            }
+          >
+            {profile.sacco_id ? (
+              <div className="space-y-2 text-sm text-neutral-2">
+                <p className="text-xs text-neutral-3">
+                  <Trans
+                    i18nKey="recon.momo.note1"
+                    fallback="Drag-and-drop MTN CSV exports. The wizard normalises Kigali timestamps, phone numbers, and amounts automatically."
+                  />
+                </p>
+                <p className="text-xs text-neutral-3">
+                  <Trans
+                    i18nKey="recon.momo.note2"
+                    fallback="Parser feedback highlights duplicates, missing references, and invalid rows before anything is posted."
+                  />
+                </p>
+                <p className="text-xs text-neutral-3">
+                  <Trans
+                    i18nKey="recon.momo.note3"
+                    fallback="Only validated rows reach Supabase; duplicates and bad records are held back for manual follow-up."
+                  />
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-neutral-2">
+                <Trans
+                  i18nKey="recon.momo.assignSacco"
+                  fallback="Assign yourself to a SACCO to enable statement ingestion."
+                  className="text-xs text-neutral-3"
+                />
+              </p>
+            )}
+          </GlassCard>
+
+          <GlassCard
+            title={<Trans i18nKey="recon.sms.title" fallback="SMS inbox" />}
+            subtitle={
+              <Trans
+                i18nKey="recon.sms.subtitle"
+                fallback="Latest MoMo SMS messages captured by the gateway and ready for parsing."
+                className="text-xs text-neutral-3"
+              />
+            }
+          >
+            <SmsInboxPanel items={smsPanelItems} />
+          </GlassCard>
+
+          <GlassCard
+            title={<Trans i18nKey="recon.exceptions.title" fallback="Exceptions" />}
+            subtitle={
+              <Trans
+                i18nKey="recon.exceptions.subtitle"
+                fallback="Recent issues surfaced by the parser."
+                className="text-xs text-neutral-3"
+              />
+            }
+          >
+            <ReconciliationTable
+              rows={exceptions ?? []}
+              saccoId={profile.sacco_id}
+              canWrite={allowReconciliationUpdates}
+            />
+          </GlassCard>
+        </WorkspaceMain>
+
+        <WorkspaceAside>
+          <QueuedSyncSummary />
+        </WorkspaceAside>
+      </WorkspaceLayout>
+    </>
   );
 }
