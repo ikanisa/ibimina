@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 
-const APP_DIR = path.resolve("apps/admin/app");
-const COMPONENTS_DIR = path.resolve("apps/admin/components");
+const APP_DIR = path.resolve("apps/pwa/staff-admin/app");
+const COMPONENTS_DIR = path.resolve("apps/pwa/staff-admin/components");
 const OUTPUT_DIR = path.resolve("analysis/ui-inventory");
 
 const ROUTE_FILE_PATTERN =

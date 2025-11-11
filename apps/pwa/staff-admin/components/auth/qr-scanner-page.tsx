@@ -174,11 +174,7 @@ export function QrScannerPage() {
       const userId = deviceInfo?.deviceId || "unknown";
 
       // Sign challenge (this will trigger biometric prompt)
-      const signingResult = await DeviceAuth.signChallenge(
-        challengeJson,
-        userId,
-        challenge.origin
-      );
+      const signingResult = await DeviceAuth.signChallenge(challengeJson, userId, challenge.origin);
 
       if (!signingResult.success) {
         throw new Error("Failed to sign challenge");
@@ -326,8 +322,11 @@ export function QrScannerPage() {
 
       {isScanning && (
         <div className="relative w-full max-w-md">
-          <div id="qr-reader" className="rounded-2xl overflow-hidden border-4 border-primary-500/20" />
-          
+          <div
+            id="qr-reader"
+            className="rounded-2xl overflow-hidden border-4 border-primary-500/20"
+          />
+
           <button
             onClick={stopScanning}
             className="absolute top-4 right-4 rounded-full bg-red-500 p-2 text-white hover:bg-red-600 transition-colors"

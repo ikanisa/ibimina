@@ -1,5 +1,8 @@
 package com.ibimina.client.di
 
+import com.ibimina.client.data.repository.IbiminaRepositoryImpl
+import com.ibimina.client.domain.repository.IbiminaRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,4 +33,11 @@ object RepositoryModule {
     fun provideTransactionRepository(
         impl: TransactionRepositoryImpl
     ): TransactionRepository = impl
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class RepositoryModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindIbiminaRepository(impl: IbiminaRepositoryImpl): IbiminaRepository
 }

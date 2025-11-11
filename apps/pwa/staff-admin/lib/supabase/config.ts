@@ -98,7 +98,7 @@ export function requireSupabaseConfig(context: string): SupabaseConfig {
     });
 
     const error = new Error(
-      `Supabase environment variables are not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment (for example, apps/admin/.env.local).`
+      `Supabase environment variables are not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment (for example, apps/pwa/staff-admin/.env.local).`
     );
     error.name = "SupabaseConfigError";
     throw error;

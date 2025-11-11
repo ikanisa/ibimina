@@ -3,12 +3,12 @@ import { fileURLToPath } from "node:url";
 import { FlatCompat } from "@eslint/eslintrc";
 import reactHooks from "eslint-plugin-react-hooks";
 
-import ibiminaPlugin from "../../packages/eslint-plugin-ibimina/index.js";
-import { createEslintConfig } from "../../config/tooling/eslint/factory.mjs";
+import ibiminaPlugin from "../../../packages/eslint-plugin-ibimina/index.js";
+import { createEslintConfig } from "../../../config/tooling/eslint/factory.mjs";
 import {
   sharedReactRules,
   structuredLoggingRules,
-} from "../../config/tooling/eslint/shared-rules.mjs";
+} from "../../../config/tooling/eslint/shared-rules.mjs";
 
 const compat = new FlatCompat({
   baseDirectory: dirname(fileURLToPath(import.meta.url)),

@@ -4,7 +4,8 @@
 
 ## Problem Summary
 
-The Android build was failing due to incompatibility between Capacitor 7.x and the configured Android SDK versions and AndroidX dependencies.
+The Android build was failing due to incompatibility between Capacitor 7.x and
+the configured Android SDK versions and AndroidX dependencies.
 
 ### Key Errors Fixed:
 
@@ -114,24 +115,30 @@ The following warnings appear but don't prevent build success:
 ### 1. Update Deprecated Code (Optional - Build works fine)
 
 #### EnhancedNotificationsPlugin.kt
+
 Replace:
+
 ```kotlin
 pluginRequestPermissions(Array<String>, Int)
 handleRequestPermissionsResult(Int, Array<String>, IntArray)
 ```
 
 With Capacitor's new permission API:
+
 ```kotlin
 requestPermissionForAlias("notifications", call, "notificationsPermissionCallback")
 ```
 
 #### SmsIngestPlugin.kt
+
 Replace:
+
 ```kotlin
 ExistingWorkPolicy.REPLACE
 ```
 
 With:
+
 ```kotlin
 ExistingWorkPolicy.UPDATE  // or CANCEL_AND_REENQUEUE if you need old behavior
 ```
@@ -139,6 +146,7 @@ ExistingWorkPolicy.UPDATE  // or CANCEL_AND_REENQUEUE if you need old behavior
 ### 2. Test on Physical Devices
 
 Requirements:
+
 - **Minimum**: Android 8.0 (API 26)
 - **Target**: Android 15 (API 35)
 - **NFC**: Device with NFC hardware
@@ -147,11 +155,13 @@ Requirements:
 ### 3. Firebase Setup (For Push Notifications)
 
 Ensure `google-services.json` is present:
+
 ```bash
 ls apps/admin/android/app/google-services.json
 ```
 
 If missing:
+
 1. Go to Firebase Console
 2. Download `google-services.json`
 3. Place in `apps/admin/android/app/`
@@ -175,6 +185,7 @@ export ANDROID_KEY_PASSWORD=yourKeyPassword
 ### Build Still Fails?
 
 1. **Clean everything**:
+
    ```bash
    cd apps/admin/android
    rm -rf .gradle build app/build capacitor-*/build
@@ -182,6 +193,7 @@ export ANDROID_KEY_PASSWORD=yourKeyPassword
    ```
 
 2. **Update Capacitor** (if needed):
+
    ```bash
    cd apps/admin
    pnpm update @capacitor/android @capacitor/core
@@ -189,37 +201,40 @@ export ANDROID_KEY_PASSWORD=yourKeyPassword
    ```
 
 3. **Check Java version**:
+
    ```bash
    java -version  # Should be Java 17
    ```
 
-4. **Android SDK**:
-   Ensure Android SDK 35 is installed via Android Studio SDK Manager
+4. **Android SDK**: Ensure Android SDK 35 is installed via Android Studio SDK
+   Manager
 
 ### App Crashes on Launch?
 
 Check Logcat:
+
 ```bash
 adb logcat | grep -E "AndroidRuntime|Capacitor|Ibimina"
 ```
 
 Common issues:
+
 - Missing permissions in AndroidManifest.xml
 - Supabase credentials not configured
 - Firebase not initialized (if using push)
 
 ## Version Requirements
 
-| Component | Version | Notes |
-|-----------|---------|-------|
-| Capacitor | 7.4.4+ | Core framework |
-| Android Gradle Plugin | 8.7.3+ | Build tool |
-| Gradle | 8.11+ | Build system |
-| compileSdk | 35 | Android API level |
-| targetSdk | 35 | Target API level |
-| minSdk | 26 | Minimum supported (Android 8.0) |
-| Java | 17 | JDK version |
-| Kotlin | 1.9.24 | Language version |
+| Component             | Version | Notes                           |
+| --------------------- | ------- | ------------------------------- |
+| Capacitor             | 7.4.4+  | Core framework                  |
+| Android Gradle Plugin | 8.7.3+  | Build tool                      |
+| Gradle                | 8.11+   | Build system                    |
+| compileSdk            | 35      | Android API level               |
+| targetSdk             | 35      | Target API level                |
+| minSdk                | 26      | Minimum supported (Android 8.0) |
+| Java                  | 17      | JDK version                     |
+| Kotlin                | 1.9.24  | Language version                |
 
 ## Resources
 
@@ -231,7 +246,8 @@ Common issues:
 
 ✅ **Build is now working** with Capacitor 7 and Android API 35.
 
-The app successfully compiles to a debug APK. Next steps are to test on physical hardware and address any runtime issues that may appear.
+The app successfully compiles to a debug APK. Next steps are to test on physical
+hardware and address any runtime issues that may appear.
 
 ---
 

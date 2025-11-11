@@ -4,13 +4,13 @@ import assert from "node:assert/strict";
 import {
   computeRetryDelaySeconds,
   type NotificationJob,
-} from "../../../../supabase/functions/_shared/notifications";
+} from "../../../../../supabase/functions/_shared/notifications";
 import {
   processWhatsappJob,
   processEmailJob,
   type WhatsappJobDeps,
   type EmailJobDeps,
-} from "../../../../supabase/functions/_shared/notification-handlers";
+} from "../../../../../supabase/functions/_shared/notification-handlers";
 
 const baseJob: NotificationJob = {
   id: "job-1",

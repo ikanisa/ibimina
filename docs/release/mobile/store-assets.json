@@ -1,21 +1,21 @@
 {
   "icons": [
     {
-      "path": "../../apps/client/public/store-assets/icon-store.svg",
+      "path": "../../apps/pwa/client/public/store-assets/icon-store.svg",
       "usage": "Primary store icon"
     },
     {
-      "path": "../../apps/client/public/store-assets/splash-screen.svg",
+      "path": "../../apps/pwa/client/public/store-assets/splash-screen.svg",
       "usage": "Splash screen"
     }
   ],
   "screenshots": [
     {
-      "path": "../../apps/client/public/store-assets/screenshots/onboarding.svg",
+      "path": "../../apps/pwa/client/public/store-assets/screenshots/onboarding.svg",
       "description": "Digital onboarding"
     },
     {
-      "path": "../../apps/client/public/store-assets/screenshots/statements.svg",
+      "path": "../../apps/pwa/client/public/store-assets/screenshots/statements.svg",
       "description": "Statements filters"
     }
   ]

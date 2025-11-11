@@ -63,7 +63,7 @@ case $choice in
   2)
     echo -e "${YELLOW}▶ Running Admin PWA Tests...${NC}"
     echo ""
-    cd /Users/jeanbosco/workspace/ibimina/apps/admin
+    cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin
     
     echo "Type checking..."
     pnpm typecheck
@@ -78,7 +78,7 @@ case $choice in
     pnpm test:unit || true
     
     echo ""
-    echo -e "${GREEN}Done! Start dev server with:${NC} cd apps/admin && pnpm dev"
+    echo -e "${GREEN}Done! Start dev server with:${NC} cd apps/pwa/staff-admin && pnpm dev"
     ;;
 
   3)
@@ -104,7 +104,7 @@ case $choice in
   4)
     echo -e "${YELLOW}▶ Running Staff Android Tests...${NC}"
     echo ""
-    cd /Users/jeanbosco/workspace/ibimina/apps/admin/android
+    cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android
     
     echo "Building debug APK..."
     ./gradlew assembleDebug
@@ -125,7 +125,7 @@ case $choice in
     echo "This requires manual testing. Follow these steps:"
     echo ""
     echo "1. Start Admin PWA:"
-    echo "   cd apps/admin && pnpm dev"
+    echo "   cd apps/pwa/staff-admin && pnpm dev"
     echo ""
     echo "2. Start Client Mobile (new terminal):"
     echo "   cd apps/client-mobile && npm start"
@@ -144,7 +144,7 @@ case $choice in
       echo -e "${GREEN}✅${NC} Supabase reachable" || echo -e "${RED}❌${NC} Supabase unreachable"
     
     echo "✓ Checking Admin build..."
-    cd /Users/jeanbosco/workspace/ibimina/apps/admin
+    cd /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin
     pnpm build > /dev/null 2>&1 && \
       echo -e "${GREEN}✅${NC} Admin builds" || echo -e "${RED}❌${NC} Admin build fails"
     
@@ -153,7 +153,7 @@ case $choice in
       echo -e "${GREEN}✅${NC} Client dependencies OK" || echo -e "${RED}❌${NC} Run: cd apps/client-mobile && npm install"
     
     echo "✓ Checking Staff Android..."
-    [ -f /Users/jeanbosco/workspace/ibimina/apps/admin/android/gradlew ] && \
+    [ -f /Users/jeanbosco/workspace/ibimina/apps/pwa/staff-admin/android/gradlew ] && \
       echo -e "${GREEN}✅${NC} Android project OK" || echo -e "${RED}❌${NC} Android project missing"
     
     echo ""

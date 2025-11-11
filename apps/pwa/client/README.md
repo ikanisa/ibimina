@@ -26,7 +26,7 @@ funds handling, no SACCO core integration.
 
 Start here to understand the implementation:
 
-1. **[SUPA_APP_FEATURES.md](../../docs/SUPA_APP_FEATURES.md)** - Complete
+1. **[SUPA_APP_FEATURES.md](../../../docs/SUPA_APP_FEATURES.md)** - Complete
    feature implementation guide
 2. **[COMPLETION_SUMMARY.md](./COMPLETION_SUMMARY.md)** - What was accomplished
    in Phase 1-3

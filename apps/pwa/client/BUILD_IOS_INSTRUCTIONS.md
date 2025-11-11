@@ -2,12 +2,14 @@
 
 ## ⚠️ Important: macOS Required
 
-**iOS apps can ONLY be built on macOS** with Xcode installed. Unlike Android, which can be built on any platform, Apple requires macOS for iOS development.
+**iOS apps can ONLY be built on macOS** with Xcode installed. Unlike Android,
+which can be built on any platform, Apple requires macOS for iOS development.
 
 ## Prerequisites
 
 1. **macOS** (Version 12 Monterey or later)
-2. **Xcode 15+** - [Download from Mac App Store](https://apps.apple.com/us/app/xcode/id497799835)
+2. **Xcode 15+** -
+   [Download from Mac App Store](https://apps.apple.com/us/app/xcode/id497799835)
 3. **Xcode Command Line Tools**:
    ```bash
    xcode-select --install
@@ -16,7 +18,8 @@
    ```bash
    sudo gem install cocoapods
    ```
-5. **Apple Developer Account** (free for testing, $99/year for App Store distribution)
+5. **Apple Developer Account** (free for testing, $99/year for App Store
+   distribution)
 
 ## Initial Setup (One-Time)
 
@@ -87,7 +90,8 @@ xcodebuild -workspace App.xcworkspace \
 2. Select the **App** target in the project navigator
 3. Go to **Signing & Capabilities** tab
 4. **Team**: Select your Apple ID
-5. **Bundle Identifier**: Change to unique ID (e.g., `rw.ibimina.client.yourname`)
+5. **Bundle Identifier**: Change to unique ID (e.g.,
+   `rw.ibimina.client.yourname`)
 6. Xcode will automatically create a provisioning profile
 
 ### 2. Connect Device & Build
@@ -95,7 +99,8 @@ xcodebuild -workspace App.xcworkspace \
 1. Connect your iPhone via USB
 2. Select your device from the device dropdown
 3. Click ▶️ to build and run
-4. **First time**: On your iPhone, go to Settings → General → VPN & Device Management → Trust your developer certificate
+4. **First time**: On your iPhone, go to Settings → General → VPN & Device
+   Management → Trust your developer certificate
 
 ## Building for App Store Distribution
 
@@ -108,6 +113,7 @@ xcodebuild -workspace App.xcworkspace \
 ### 2. Configure Release Build
 
 In Xcode:
+
 1. Select **App** target → **Signing & Capabilities**
 2. Set **Team** to your paid Apple Developer account
 3. Ensure **Automatically manage signing** is checked
@@ -132,6 +138,7 @@ xcodebuild -exportArchive \
 ```
 
 **Or use Xcode GUI:**
+
 1. Product → Archive
 2. Wait for archive to complete
 3. In Organizer window → Distribute App
@@ -152,6 +159,7 @@ xcodebuild -exportArchive \
 To point the app to your production server:
 
 1. **Edit `apps/client/capacitor.config.ts`:**
+
 ```typescript
 server: {
   url: "https://app.ibimina.rw",
@@ -159,6 +167,7 @@ server: {
 ```
 
 2. **Resync:**
+
 ```bash
 npx cap sync ios
 ```
@@ -166,6 +175,7 @@ npx cap sync ios
 ### Update App Name
 
 Edit `ios/App/App/Info.plist`:
+
 ```xml
 <key>CFBundleDisplayName</key>
 <string>Ibimina</string>
@@ -179,7 +189,8 @@ Edit `ios/App/App/Info.plist`:
 
 ### Update Splash Screen
 
-Edit `ios/App/App/Assets.xcassets/Splash.imageset/` with your custom splash images.
+Edit `ios/App/App/Assets.xcassets/Splash.imageset/` with your custom splash
+images.
 
 ## App Details
 
@@ -222,13 +233,18 @@ The app requests these permissions (already configured):
 ## Troubleshooting
 
 ### "No signing certificate found"
+
 **Solution**: In Xcode → Preferences → Accounts → Add your Apple ID
 
 ### "Untrusted Developer" on device
-**Solution**: On iPhone → Settings → General → VPN & Device Management → Trust certificate
+
+**Solution**: On iPhone → Settings → General → VPN & Device Management → Trust
+certificate
 
 ### Pod install fails
-**Solution**: 
+
+**Solution**:
+
 ```bash
 cd ios/App
 pod repo update
@@ -236,14 +252,18 @@ pod install
 ```
 
 ### Build fails with "Command PhaseScriptExecution failed"
+
 **Solution**: Clean build folder (Product → Clean Build Folder) or:
+
 ```bash
 cd ios/App
 rm -rf ~/Library/Developer/Xcode/DerivedData
 ```
 
 ### "Unable to install on device"
-**Solution**: 
+
+**Solution**:
+
 1. Update iOS on device to latest version
 2. Update Xcode to latest version
 3. Check Bundle ID doesn't conflict with existing app
@@ -253,7 +273,7 @@ rm -rf ~/Library/Developer/Xcode/DerivedData
 All 16 Capacitor plugins work on iOS:
 
 - ✅ Camera
-- ✅ Push & Local Notifications  
+- ✅ Push & Local Notifications
 - ✅ Haptic Feedback (Taptic Engine)
 - ✅ Face ID / Touch ID (Biometric Authentication)
 - ✅ Geolocation (Core Location)
@@ -268,19 +288,20 @@ All 16 Capacitor plugins work on iOS:
 - ✅ App Lifecycle Events
 - ✅ Device Information
 
-**Note**: SMS reading is NOT supported on iOS due to platform restrictions. Use WhatsApp OTP instead.
+**Note**: SMS reading is NOT supported on iOS due to platform restrictions. Use
+WhatsApp OTP instead.
 
 ## Testing on Simulator vs Device
 
-| Feature | Simulator | Physical Device |
-|---------|-----------|-----------------|
-| Camera | ❌ | ✅ |
-| Push Notifications | ❌ | ✅ |
-| Face ID / Touch ID | ⚠️ (Simulated) | ✅ |
-| Location | ⚠️ (Mocked) | ✅ |
-| Haptics | ❌ | ✅ |
-| Network | ✅ | ✅ |
-| All other features | ✅ | ✅ |
+| Feature            | Simulator      | Physical Device |
+| ------------------ | -------------- | --------------- |
+| Camera             | ❌             | ✅              |
+| Push Notifications | ❌             | ✅              |
+| Face ID / Touch ID | ⚠️ (Simulated) | ✅              |
+| Location           | ⚠️ (Mocked)    | ✅              |
+| Haptics            | ❌             | ✅              |
+| Network            | ✅             | ✅              |
+| All other features | ✅             | ✅              |
 
 **Recommendation**: Always test on a physical device before release.
 
@@ -329,11 +350,15 @@ cd ios/App && pod update && cd ../..
 ## Support
 
 For build issues:
+
 - Check Xcode logs (Product → Show Build Log)
-- Check [Capacitor iOS Troubleshooting](https://capacitorjs.com/docs/ios/troubleshooting)
-- Search [Stack Overflow](https://stackoverflow.com/questions/tagged/capacitor+ios)
+- Check
+  [Capacitor iOS Troubleshooting](https://capacitorjs.com/docs/ios/troubleshooting)
+- Search
+  [Stack Overflow](https://stackoverflow.com/questions/tagged/capacitor+ios)
 
 For app functionality:
+
 - Test the Client PWA first at the server URL
 - Check Safari Web Inspector for errors
 - Verify server is accessible from mobile network

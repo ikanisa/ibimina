@@ -20,12 +20,12 @@ export function PinSetup({ onComplete, onSkip }: PinSetupProps) {
 
   const handleDigit = (digit: string) => {
     setError("");
-    
+
     if (step === "enter") {
       if (pin.length < 6) {
         const newPin = pin + digit;
         setPin(newPin);
-        
+
         if (newPin.length === 6) {
           // Auto-advance to confirm step
           setTimeout(() => {
@@ -37,7 +37,7 @@ export function PinSetup({ onComplete, onSkip }: PinSetupProps) {
       if (confirmPin.length < 6) {
         const newConfirm = confirmPin + digit;
         setConfirmPin(newConfirm);
-        
+
         if (newConfirm.length === 6) {
           // Auto-verify when complete
           setTimeout(() => {
@@ -116,9 +116,7 @@ export function PinSetup({ onComplete, onSkip }: PinSetupProps) {
                 : "border-neutral-6 bg-neutral-2"
             }`}
           >
-            {index < currentValue.length && (
-              <div className="h-3 w-3 rounded-full bg-primary-500" />
-            )}
+            {index < currentValue.length && <div className="h-3 w-3 rounded-full bg-primary-500" />}
           </div>
         ))}
       </div>
@@ -143,7 +141,7 @@ export function PinSetup({ onComplete, onSkip }: PinSetupProps) {
             {digit}
           </button>
         ))}
-        
+
         <button
           onClick={handleReset}
           disabled={isLoading}
@@ -151,7 +149,7 @@ export function PinSetup({ onComplete, onSkip }: PinSetupProps) {
         >
           Reset
         </button>
-        
+
         <button
           onClick={() => handleDigit("0")}
           disabled={isLoading}
@@ -159,7 +157,7 @@ export function PinSetup({ onComplete, onSkip }: PinSetupProps) {
         >
           0
         </button>
-        
+
         <button
           onClick={handleBackspace}
           disabled={isLoading}

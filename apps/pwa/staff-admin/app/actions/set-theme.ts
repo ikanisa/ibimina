@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { resolveTheme } from "../../../../src/design/theme";
+import { resolveTheme } from "../../../../../src/design/theme";
 
 type ThemeChoice = "light" | "dark" | "nyungwe";
 

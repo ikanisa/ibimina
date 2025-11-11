@@ -1,38 +1,9 @@
-# PWA Applications
+# Progressive Web Apps
 
-This directory contains Progressive Web Applications (PWAs) for the Ibimina platform.
+This directory contains all Ibimina PWA surfaces. Each subdirectory is a fully
+independent Next.js application wired into the pnpm workspace.
 
-## Applications
+- `staff-admin/` – the operational console used by staff and administrators.
+- `client/` – the member-facing client experience delivered as a PWA.
 
-- **staff-admin**: Staff/admin console PWA for SACCO management
-- **client**: Client-facing PWA for members and group leaders
-
-## Structure
-
-Each PWA application is a standalone Next.js application with:
-- PWA capabilities (offline-first, installable)
-- Responsive design for mobile and desktop
-- Integration with Supabase backend
-- Capacitor for native mobile builds (Android/iOS)
-
-## Development
-
-To develop a specific PWA:
-
-```bash
-# Staff admin PWA
-pnpm --filter @ibimina/staff-admin-pwa dev
-
-# Client PWA
-pnpm --filter @ibimina/client dev
-```
-
-## Building
-
-```bash
-# Build all PWAs
-pnpm --filter './apps/pwa/*' build
-
-# Build specific PWA
-pnpm --filter @ibimina/staff-admin-pwa build
-```
+Both apps share the workspace packages located in `../../packages`.

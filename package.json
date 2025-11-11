@@ -4,6 +4,7 @@
   "packageManager": "pnpm@10.19.0",
   "scripts": {
     "dev": "cd apps/admin && pnpm dev",
+    "dev": "cd apps/pwa/staff-admin && pnpm dev",
     "dev:admin": "pnpm --filter @ibimina/admin dev",
     "dev:staff": "pnpm --filter @ibimina/staff dev",
     "dev:staff-admin-pwa": "pnpm --filter @ibimina/staff-admin-pwa dev",
@@ -16,6 +17,7 @@
     "build": "pnpm build:packages && pnpm build:admin",
     "build:admin-deps": "pnpm --filter '@ibimina/config' build && pnpm --filter '@ibimina/flags' build && pnpm --filter '@ibimina/lib' build && pnpm --filter '@ibimina/ui' build",
     "build:apps": "pnpm --filter './apps/*' build",
+    "build:apps": "pnpm --filter @ibimina/admin build && pnpm --filter @ibimina/client build && pnpm --filter @ibimina/website build",
     "generate:pwa": "node scripts/generate-pwa.js",
     "generate:apk": "node scripts/generate-apk.js",
     "deploy:netlify": "node scripts/netlify-deploy.js",

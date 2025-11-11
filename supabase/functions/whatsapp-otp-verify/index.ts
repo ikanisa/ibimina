@@ -15,8 +15,8 @@ import { createServiceClient, getForwardedIp, requireEnv } from "../_shared/mod.
 import { enforceIpRateLimit, enforceRateLimit } from "../_shared/rate-limit.ts";
 import { writeAuditLog } from "../_shared/audit.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { signAuthJwt, type AuthJwtClaims } from "../../../apps/platform-api/src/lib/jwt.ts";
 import { serveWithObservability } from "../_shared/observability.ts";
-import { signAuthJwt, signJwt, type AuthJwtClaims } from "../_shared/jwt.ts";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -57,6 +57,42 @@ function normalizePhoneNumber(phone: string): string {
 }
 
 const SESSION_TTL_SEC = parseInt(Deno.env.get("OTP_SESSION_TTL_SEC") ?? "3600", 10);
+
+const encoder = new TextEncoder();
+
+export const base64UrlEncode = (input: Uint8Array): string => {
+  let binary = "";
+  input.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  const base64 = btoa(binary);
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+};
+
+export const signJwt = async (
+  payload: Record<string, unknown>,
+  secret: string,
+  expiresInSeconds: number
+): Promise<string> => {
+  const header = { alg: "HS256", typ: "JWT" };
+  const now = Math.floor(Date.now() / 1000);
+  const body = { ...payload, iat: now, exp: now + expiresInSeconds };
+
+  const headerBytes = encoder.encode(JSON.stringify(header));
+  const payloadBytes = encoder.encode(JSON.stringify(body));
+
+  const base = `${base64UrlEncode(headerBytes)}.${base64UrlEncode(payloadBytes)}`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(base));
+  const signatureSegment = base64UrlEncode(new Uint8Array(signature));
+  return `${base}.${signatureSegment}`;
+};
 
 export const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight

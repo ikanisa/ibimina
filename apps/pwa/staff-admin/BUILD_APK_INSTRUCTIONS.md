@@ -2,8 +2,10 @@
 
 ## Prerequisites
 
-1. **Java JDK 17** - [Download](https://www.oracle.com/java/technologies/downloads/#java17)
-2. **Android Studio** (optional but recommended) - [Download](https://developer.android.com/studio)
+1. **Java JDK 17** -
+   [Download](https://www.oracle.com/java/technologies/downloads/#java17)
+2. **Android Studio** (optional but recommended) -
+   [Download](https://developer.android.com/studio)
    - OR just the Android SDK Command Line Tools
 
 ## Quick Build (Command Line)
@@ -45,6 +47,7 @@ npx cap sync android
 ## Finding Your APK
 
 After building, find the APK at:
+
 ```
 apps/admin/android/app/build/outputs/apk/debug/app-debug.apk
 ```
@@ -52,6 +55,7 @@ apps/admin/android/app/build/outputs/apk/debug/app-debug.apk
 ## Configuration
 
 The app is currently configured to connect to:
+
 ```
 https://4095a3b5-fbd8-407c-bbf4-c6a12f21341e-00-2ss8fo7up7zir.kirk.replit.dev
 ```
@@ -95,17 +99,21 @@ zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk \
 ## Troubleshooting
 
 ### SDK Location Not Found
+
 Create `apps/admin/android/local.properties`:
+
 ```
 sdk.dir=/path/to/your/Android/Sdk
 ```
 
 ### Permission Denied on gradlew
+
 ```bash
 chmod +x android/gradlew
 ```
 
 ### Build Fails - Missing Dependencies
+
 ```bash
 cd android
 ./gradlew clean build --refresh-dependencies

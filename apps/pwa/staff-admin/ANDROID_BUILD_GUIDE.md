@@ -14,6 +14,7 @@
 ## Build Commands
 
 ### Development Build
+
 ```bash
 cd /Users/jeanbosco/workspace/ibimina/apps/admin
 
@@ -25,6 +26,7 @@ cd android && ./gradlew assembleDebug
 ```
 
 ### Clean Rebuild
+
 ```bash
 cd /Users/jeanbosco/workspace/ibimina/apps/admin/android
 ./gradlew clean
@@ -33,6 +35,7 @@ cd android && ./gradlew assembleDebug
 ```
 
 ### Install on Device
+
 ```bash
 # Connect device or start emulator, then:
 cd /Users/jeanbosco/workspace/ibimina/apps/admin/android
@@ -40,6 +43,7 @@ cd /Users/jeanbosco/workspace/ibimina/apps/admin/android
 ```
 
 ### Open in Android Studio
+
 ```bash
 cd /Users/jeanbosco/workspace/ibimina/apps/admin
 npx cap open android
@@ -57,6 +61,7 @@ npx cap open android
 ## Current Configuration
 
 ### Versions (variables.gradle)
+
 ```gradle
 compileSdkVersion = 34
 targetSdkVersion = 34
@@ -72,6 +77,7 @@ kotlinVersion = '1.9.24'
 ```
 
 ### Java Configuration
+
 ```gradle
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
@@ -83,6 +89,7 @@ jvmTarget = '17'
 ## Troubleshooting
 
 ### "Could not resolve dependencies"
+
 ```bash
 cd apps/admin/android
 ./gradlew clean
@@ -90,16 +97,19 @@ cd apps/admin/android
 ```
 
 ### "Duplicate class found"
+
 ```bash
 # Check dependency tree
 ./gradlew :app:dependencies --configuration debugRuntimeClasspath
 ```
 
 ### "Invalid source release: 21"
+
 - Already fixed: Using Java 17 now
 - Verify: Check `app/build.gradle` has `JavaVersion.VERSION_17`
 
 ### Capacitor sync fails
+
 ```bash
 # Use JS config instead of TS
 cd apps/admin
@@ -112,12 +122,13 @@ npx cap sync android
 ## CI/CD Integration
 
 ### GitHub Actions Example
+
 ```yaml
 - name: Set up JDK 17
   uses: actions/setup-java@v4
   with:
-    java-version: '17'
-    distribution: 'temurin'
+    java-version: "17"
+    distribution: "temurin"
 
 - name: Build Android
   run: |
@@ -125,7 +136,7 @@ npx cap sync android
     npx cap sync android
     cd android
     ./gradlew assembleDebug
-    
+
 - name: Upload APK
   uses: actions/upload-artifact@v4
   with:
@@ -141,7 +152,7 @@ npx cap sync android
 ✅ APK generated at `app/build/outputs/apk/debug/app-debug.apk`  
 ✅ No "Could not resolve" errors  
 ✅ No "Duplicate class" errors  
-✅ No "Invalid source release" errors  
+✅ No "Invalid source release" errors
 
 ---
 

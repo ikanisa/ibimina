@@ -145,6 +145,7 @@ export NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
    - Download and double-click to install
 
 4. **Configure Xcode Signing**
+
    ```bash
    open ios/App/App.xcworkspace
    ```

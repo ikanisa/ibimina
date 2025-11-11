@@ -1,8 +1,8 @@
 [build]
-  base = "apps/client"
-  command = "cd ../.. && pnpm install --frozen-lockfile && pnpm build:client"
+  base = "apps/pwa/client"
+  command = "cd ../../.. && pnpm install --frozen-lockfile && pnpm build:client"
   publish = ".next"
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../../packages/"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../../../packages/"
 
 [build.environment]
   NODE_VERSION = "20"
