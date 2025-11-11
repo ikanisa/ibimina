@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logInfo } from "@/lib/observability/logger";
 
 /**
  * Web Push Notification Unsubscribe API
@@ -86,7 +87,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      console.log(`[Push] User ${user.id} unsubscribed from topics:`, validatedData.topics);
+      logInfo("push_topic_unsubscribed", {
+        userId: user.id,
+        topics: validatedData.topics,
+      });
 
       return NextResponse.json(
         {
@@ -116,7 +120,9 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      console.log(`[Push] User ${user.id} fully unsubscribed`);
+      logInfo("push_fully_unsubscribed", {
+        userId: user.id,
+      });
 
       return NextResponse.json(
         {

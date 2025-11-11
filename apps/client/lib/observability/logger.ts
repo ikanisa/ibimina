@@ -91,12 +91,15 @@ const write = (level: LogLevel, event: string, payload: LogPayload) => {
 
   switch (level) {
     case "error":
+      // eslint-disable-next-line ibimina/structured-logging, no-console
       console.error(serialized);
       break;
     case "warn":
+      // eslint-disable-next-line ibimina/structured-logging, no-console
       console.warn(serialized);
       break;
     default:
+      // eslint-disable-next-line ibimina/structured-logging, no-console
       console.log(serialized);
   }
 };

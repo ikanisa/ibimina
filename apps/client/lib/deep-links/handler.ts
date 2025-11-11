@@ -109,9 +109,11 @@ export function registerDeepLinkHandler(handler: DeepLinkHandler): () => void {
 
   const listener = async (event: URLOpenListenerEvent) => {
     const url = event.url;
+    // eslint-disable-next-line ibimina/structured-logging
     console.log("Deep link received:", url);
 
     const route = parseDeepLink(url);
+    // eslint-disable-next-line ibimina/structured-logging
     console.log("Parsed route:", route);
 
     try {
@@ -142,6 +144,7 @@ export async function checkInitialDeepLink(handler: DeepLinkHandler): Promise<vo
   try {
     const result = await App.getLaunchUrl();
     if (result?.url) {
+      // eslint-disable-next-line ibimina/structured-logging
       console.log("App opened with deep link:", result.url);
       const route = parseDeepLink(result.url);
       await handler(route);
