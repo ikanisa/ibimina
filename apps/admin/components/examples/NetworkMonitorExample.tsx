@@ -1,243 +1,200 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import NetworkMonitor, { type NetworkStatus } from "@/lib/plugins/network-monitor";
-import { Wifi, WifiOff, Signal, Smartphone } from "lucide-react";
-import { logError, logInfo } from "@/lib/observability/logger";
+import { useEffect, useMemo, useState } from "react";
+import { Globe2, Smartphone, Wifi, WifiOff } from "lucide-react";
 
-/**
- * Example component demonstrating NetworkMonitor plugin usage
- *
- * Features:
- * - Display current network status
- * - Monitor network changes in real-time
- * - Show connection quality metrics
- * - Detect metered connections
- */
+interface BrowserNetworkStatus {
+  connected: boolean;
+  connectionType: string;
+  effectiveType: string | null;
+  downlink: number | null;
+  rtt: number | null;
+  saveData: boolean | null;
+  lastUpdated: string;
+}
+
+function readNavigatorStatus(): BrowserNetworkStatus {
+  const connection =
+    typeof navigator !== "undefined"
+      ? (navigator as Navigator & { connection?: any }).connection
+      : null;
+  const now = new Date().toISOString();
+  return {
+    connected: typeof navigator !== "undefined" ? navigator.onLine : true,
+    connectionType:
+      connection?.type ??
+      (typeof navigator !== "undefined" ? (navigator.onLine ? "online" : "offline") : "unknown"),
+    effectiveType: connection?.effectiveType ?? null,
+    downlink: typeof connection?.downlink === "number" ? connection.downlink : null,
+    rtt: typeof connection?.rtt === "number" ? connection.rtt : null,
+    saveData: typeof connection?.saveData === "boolean" ? connection.saveData : null,
+    lastUpdated: now,
+  };
+}
+
 export function NetworkMonitorExample() {
-  const [networkStatus, setNetworkStatus] = useState<NetworkStatus | null>(null);
-  const [isMonitoring, setIsMonitoring] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [statusHistory, setStatusHistory] = useState<NetworkStatus[]>([]);
+  const [status, setStatus] = useState<BrowserNetworkStatus>(() => readNavigatorStatus());
+  const [history, setHistory] = useState<BrowserNetworkStatus[]>([]);
 
   useEffect(() => {
-    getInitialStatus();
-    return () => {
-      if (isMonitoring) {
-        NetworkMonitor.stopMonitoring();
-      }
+    const update = () => {
+      setStatus((prev) => {
+        const next = readNavigatorStatus();
+        setHistory((existing) => [next, ...existing].slice(0, 5));
+        return { ...prev, ...next };
+      });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    update();
+
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+
+    const connection = (navigator as Navigator & { connection?: any }).connection;
+    const unsubscribe =
+      typeof connection?.addEventListener === "function"
+        ? (() => {
+            connection.addEventListener("change", update);
+            return () => connection.removeEventListener("change", update);
+          })()
+        : null;
+
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+      unsubscribe?.();
+    };
   }, []);
 
-  const getInitialStatus = async () => {
-    try {
-      const status = await NetworkMonitor.getStatus();
-      setNetworkStatus(status);
-    } catch (error) {
-      logError("network_monitor_get_status_failed", { error });
+  const icon = useMemo(() => {
+    if (!status.connected) {
+      return <WifiOff className="h-8 w-8 text-rose-600" aria-hidden="true" />;
     }
-  };
-
-  const startMonitoring = async () => {
-    setLoading(true);
-    try {
-      await NetworkMonitor.startMonitoring();
-
-      // Add listener for network changes
-      await NetworkMonitor.addListener("networkStatusChange", (status) => {
-        logInfo("network_status_changed", { status });
-        setNetworkStatus(status);
-        setStatusHistory((prev) => [status, ...prev].slice(0, 5)); // Keep last 5
-      });
-
-      setIsMonitoring(true);
-      alert("Network monitoring started");
-    } catch (error) {
-      console.error("Failed to start monitoring:", error);
-      alert("Error starting monitoring");
-    } finally {
-      setLoading(false);
+    if (status.connectionType === "wifi") {
+      return <Wifi className="h-8 w-8 text-emerald-600" aria-hidden="true" />;
     }
-  };
-
-  const stopMonitoring = async () => {
-    setLoading(true);
-    try {
-      await NetworkMonitor.stopMonitoring();
-      setIsMonitoring(false);
-      alert("Network monitoring stopped");
-    } catch (error) {
-      console.error("Failed to stop monitoring:", error);
-      alert("Error stopping monitoring");
-    } finally {
-      setLoading(false);
+    if (status.connectionType === "cellular") {
+      return <Smartphone className="h-8 w-8 text-sky-600" aria-hidden="true" />;
     }
-  };
+    return <Globe2 className="h-8 w-8 text-slate-500" aria-hidden="true" />;
+  }, [status.connectionType, status.connected]);
 
-  const refreshStatus = async () => {
-    setLoading(true);
-    try {
-      const status = await NetworkMonitor.getStatus();
-      setNetworkStatus(status);
-    } catch (error) {
-      console.error("Failed to refresh status:", error);
-      alert("Error refreshing status");
-    } finally {
-      setLoading(false);
+  const formatThroughput = (value: number | null) => {
+    if (value == null || Number.isNaN(value)) {
+      return "n/a";
     }
-  };
-
-  const getConnectionIcon = () => {
-    if (!networkStatus?.connected) {
-      return <WifiOff className="w-8 h-8 text-red-600" />;
+    if (value >= 1) {
+      return `${value.toFixed(1)} Mbps`;
     }
-
-    switch (networkStatus.connectionType) {
-      case "wifi":
-        return <Wifi className="w-8 h-8 text-green-600" />;
-      case "cellular":
-        return <Signal className="w-8 h-8 text-blue-600" />;
-      case "ethernet":
-        return <Smartphone className="w-8 h-8 text-purple-600" />;
-      default:
-        return <Wifi className="w-8 h-8 text-gray-600" />;
-    }
-  };
-
-  const getConnectionColor = () => {
-    if (!networkStatus?.connected) return "text-red-600";
-    switch (networkStatus.connectionType) {
-      case "wifi":
-        return "text-green-600";
-      case "cellular":
-        return "text-blue-600";
-      case "ethernet":
-        return "text-purple-600";
-      default:
-        return "text-gray-600";
-    }
-  };
-
-  const formatBandwidth = (kbps: number | undefined) => {
-    if (!kbps) return "N/A";
-    if (kbps >= 1000) {
-      return `${(kbps / 1000).toFixed(1)} Mbps`;
-    }
-    return `${kbps} Kbps`;
+    return `${(value * 1000).toFixed(0)} Kbps`;
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div className="flex items-center gap-3 mb-6">
-          {getConnectionIcon()}
-          <h2 className="text-2xl font-bold">Network Monitor Demo</h2>
+    <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+      <div className="flex items-center gap-3">
+        {icon}
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            Network telemetry
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Browser-provided connectivity signals mirror what the Android native bridge shares with
+            the staff dashboard.
+          </p>
         </div>
+      </div>
 
-        {/* Current Status */}
-        {networkStatus && (
-          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded">
-            <h3 className="font-semibold mb-3">Current Status</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Connection:</span>
-                <span className={`font-medium ${getConnectionColor()}`}>
-                  {networkStatus.connected ? "Connected" : "Disconnected"}
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-slate-200/70 p-4 dark:border-slate-700/70">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Connection
+          </p>
+          <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
+            {status.connected ? "Online" : "Offline"}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {status.connectionType ?? "unknown"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200/70 p-4 dark:border-slate-700/70">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Effective type
+          </p>
+          <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
+            {status.effectiveType ?? "n/a"}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Reported by Navigator.connection
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200/70 p-4 dark:border-slate-700/70">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Downlink
+          </p>
+          <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
+            {formatThroughput(status.downlink)}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Estimated bandwidth</p>
+        </div>
+        <div className="rounded-xl border border-slate-200/70 p-4 dark:border-slate-700/70">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Latency
+          </p>
+          <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
+            {status.rtt != null ? `${status.rtt.toFixed(0)} ms` : "n/a"}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Round-trip time</p>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300">
+        <p className="font-semibold text-slate-700 dark:text-slate-200">Data saver</p>
+        <p>{status.saveData ? "Enabled" : "Disabled or unavailable"}</p>
+        <p className="mt-2">Last updated {new Date(status.lastUpdated).toLocaleTimeString()}</p>
+      </div>
+
+      <div className="mt-6">
+        <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Recent changes</h3>
+        {history.length === 0 ? (
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            Interact with the browser (toggle offline mode) to record events.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-xs text-slate-600 dark:text-slate-300">
+            {history.map((entry, index) => (
+              <li
+                key={`${entry.lastUpdated}-${index}`}
+                className="rounded-lg border border-slate-200/70 bg-white p-3 dark:border-slate-700/70 dark:bg-slate-900/40"
+              >
+                <span className="font-semibold text-slate-700 dark:text-slate-200">
+                  {new Date(entry.lastUpdated).toLocaleTimeString()}
                 </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Type:</span>
-                <span className="font-medium capitalize">{networkStatus.connectionType}</span>
-              </div>
-              {networkStatus.isMetered !== undefined && (
-                <div className="flex justify-between">
-                  <span>Metered:</span>
-                  <span
-                    className={`font-medium ${networkStatus.isMetered ? "text-orange-600" : "text-green-600"}`}
-                  >
-                    {networkStatus.isMetered ? "Yes (Limited Data)" : "No (Unlimited)"}
-                  </span>
-                </div>
-              )}
-              {networkStatus.linkDownstreamBandwidthKbps !== undefined && (
-                <div className="flex justify-between">
-                  <span>Download Speed:</span>
-                  <span className="font-medium">
-                    {formatBandwidth(networkStatus.linkDownstreamBandwidthKbps)}
-                  </span>
-                </div>
-              )}
-              {networkStatus.linkUpstreamBandwidthKbps !== undefined && (
-                <div className="flex justify-between">
-                  <span>Upload Speed:</span>
-                  <span className="font-medium">
-                    {formatBandwidth(networkStatus.linkUpstreamBandwidthKbps)}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="space-y-3 mb-6">
-          <button
-            onClick={refreshStatus}
-            disabled={loading}
-            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
-          >
-            {loading ? "Refreshing..." : "Refresh Status"}
-          </button>
-
-          {!isMonitoring ? (
-            <button
-              onClick={startMonitoring}
-              disabled={loading}
-              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
-            >
-              Start Monitoring
-            </button>
-          ) : (
-            <button
-              onClick={stopMonitoring}
-              disabled={loading}
-              className="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 font-medium"
-            >
-              Stop Monitoring
-            </button>
-          )}
-        </div>
-
-        {/* Status History */}
-        {statusHistory.length > 0 && (
-          <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded">
-            <h3 className="font-semibold mb-3">Recent Changes</h3>
-            <div className="space-y-2">
-              {statusHistory.map((status, index) => (
-                <div key={index} className="text-sm p-2 bg-white dark:bg-gray-800 rounded">
-                  <span className="font-medium">{status.connectionType}</span>
-                  {" - "}
-                  <span className={status.connected ? "text-green-600" : "text-red-600"}>
-                    {status.connected ? "Connected" : "Disconnected"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Info */}
-        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded text-sm">
-          <p className="font-medium mb-2">💡 Features Demonstrated:</p>
-          <ul className="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-300">
-            <li>Real-time network connectivity monitoring</li>
-            <li>Connection type detection (WiFi/Cellular/Ethernet)</li>
-            <li>Bandwidth quality metrics</li>
-            <li>Metered connection detection</li>
-            <li>Network change event listeners</li>
+                {" · "}
+                {entry.connected ? `online via ${entry.connectionType}` : "offline"}
+                {entry.effectiveType ? ` (${entry.effectiveType})` : ""}
+              </li>
+            ))}
           </ul>
-        </div>
+        )}
+      </div>
+
+      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300">
+        <p className="font-semibold text-slate-700 dark:text-slate-200">
+          How the native bridge extends this
+        </p>
+        <ul className="mt-2 list-disc space-y-1 pl-5">
+          <li>
+            Android reports metered vs. unmetered SIMs so ingestion can pause on high-cost networks.
+          </li>
+          <li>
+            Connectivity events are mirrored into Supabase analytics to correlate with SMS
+            drop-offs.
+          </li>
+          <li>
+            Offline detection powers the staff console banner informing operators when their handset
+            lost service.
+          </li>
+        </ul>
       </div>
     </div>
   );

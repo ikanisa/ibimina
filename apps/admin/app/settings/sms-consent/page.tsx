@@ -1,261 +1,214 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { SmsIngest } from "@/lib/native/sms-ingest";
+import Link from "next/link";
+import { useSmsIngestStatus } from "../sms-ingestion/use-sms-ingest-status";
 
-/**
- * SMS Consent Screen
- *
- * This page displays privacy information and requests user consent for SMS access.
- * It explains:
- * - What SMS messages will be accessed (mobile money only)
- * - How the data will be used (payment allocation)
- * - Where data is stored (Supabase backend)
- * - How to opt-out (settings toggle)
- */
-export default function SmsConsentPage() {
-  const [isNative, setIsNative] = useState(false);
-  const [permissionStatus, setPermissionStatus] = useState<"prompt" | "granted" | "denied">(
-    "prompt"
-  );
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const checkAvailability = async () => {
-      const available = SmsIngest.isAvailable();
-      setIsNative(available);
-
-      if (available) {
-        // Check current permission status
-        const perms = await SmsIngest.checkPermissions();
-        setPermissionStatus(perms.state);
-
-        // Check if feature is enabled
-        const enabled = await SmsIngest.isEnabled();
-        setIsEnabled(enabled);
-      }
-    };
-
-    checkAvailability();
-  }, []);
-
-  const handleRequestPermissions = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await SmsIngest.requestPermissions();
-      setPermissionStatus(result.state);
-
-      if (result.state === "granted") {
-        // Automatically enable after granting permission
-        await SmsIngest.enable();
-        await SmsIngest.scheduleBackgroundSync(15); // 15-minute intervals
-        setIsEnabled(true);
-      } else {
-        setError("SMS permissions were denied. This feature requires SMS access to function.");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to request permissions");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleToggle = async (enabled: boolean) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      if (enabled) {
-        if (permissionStatus !== "granted") {
-          await handleRequestPermissions();
-        } else {
-          await SmsIngest.enable();
-          await SmsIngest.scheduleBackgroundSync(15);
-          setIsEnabled(true);
-        }
-      } else {
-        await SmsIngest.disable();
-        setIsEnabled(false);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to toggle SMS ingestion");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!isNative) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
-        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-            SMS Ingestion Not Available
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            This feature is only available on the native Android app. Please use the mobile app to
-            enable SMS-based payment ingestion.
-          </p>
-        </div>
-      </div>
-    );
+function formatTimestamp(value: string | null): string {
+  if (!value) {
+    return "No events recorded";
   }
 
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "No events recorded";
+  }
+
+  try {
+    const diffMs = date.getTime() - Date.now();
+    const minutes = Math.round(diffMs / 60000);
+    const hours = Math.round(diffMs / 3600000);
+    const days = Math.round(diffMs / 86400000);
+    const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+
+    if (Math.abs(minutes) < 60) {
+      return formatter.format(minutes, "minute");
+    }
+    if (Math.abs(hours) < 24) {
+      return formatter.format(hours, "hour");
+    }
+    return formatter.format(days, "day");
+  } catch {
+    return date.toLocaleString();
+  }
+}
+
+export default function SmsConsentPage() {
+  const { data, loading, error, refresh } = useSmsIngestStatus();
+  const summary = data?.summary;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-8 dark:bg-gray-900">
-      <div className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-lg dark:bg-gray-800">
-        <div className="mb-6">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
-            SMS Payment Ingestion
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Enable automatic payment processing from mobile money SMS notifications
-          </p>
+    <div className="container mx-auto max-w-4xl px-4 py-8">
+      <header className="mb-8 space-y-2">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+          Privacy & compliance
+        </p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+          SMS ingestion consent
+        </h1>
+        <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+          SMS access is granted inside the native Android staff app. Review the safeguards below,
+          then launch the app to accept or revoke permissions on the device that processes mobile
+          money notifications.
+        </p>
+      </header>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+          What we collect
+        </h2>
+        <ul className="mt-3 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+          <li className="rounded-xl border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-700/60 dark:bg-slate-900/40">
+            <p className="font-medium text-slate-800 dark:text-slate-100">
+              Mobile money receipts only
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Sender filters restrict ingestion to MTN MoMo and Airtel Money confirmations. Personal
+              SMS conversations remain untouched.
+            </p>
+          </li>
+          <li className="rounded-xl border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-700/60 dark:bg-slate-900/40">
+            <p className="font-medium text-slate-800 dark:text-slate-100">
+              Scoped transaction metadata
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Amount, reference code, and sender MSISDN are parsed to allocate payments. Numbers are
+              hashed and encrypted before they are persisted in Supabase.
+            </p>
+          </li>
+          <li className="rounded-xl border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-700/60 dark:bg-slate-900/40">
+            <p className="font-medium text-slate-800 dark:text-slate-100">
+              Operational transparency
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Every message and failure is traceable through{" "}
+              <code className="font-mono">app.sms_inbox</code> and audit logs so recon teams can
+              investigate exceptions.
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+          Grant or revoke access
+        </h2>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          Permissions are controlled by Android. Open the SACCO+ app on your staff device to manage
+          consent.
+        </p>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="ibimina://staff/sms-consent"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500"
+          >
+            Open consent flow in app
+          </Link>
+          <Link
+            href="https://staff.ibimina.rw/native"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-500 px-5 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-300 dark:text-emerald-200 dark:hover:bg-emerald-900/40"
+          >
+            Download Android build ↗
+          </Link>
         </div>
+        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+          Tip: keep the app in the "Unrestricted" battery mode on Android so background ingestion
+          continues when the screen is off.
+        </p>
+      </section>
 
-        {/* Privacy Notice */}
-        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-          <h2 className="mb-3 text-lg font-semibold text-blue-900 dark:text-blue-100">
-            📱 What we access
-          </h2>
-          <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-            <li className="flex items-start">
-              <span className="mr-2">•</span>
-              <span>
-                <strong>Mobile money SMS only:</strong> We only read messages from MTN MoMo and
-                Airtel Money (identified by sender number)
-              </span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-2">•</span>
-              <span>
-                <strong>Payment information:</strong> Amount, transaction ID, sender phone number,
-                and reference code
-              </span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-2">•</span>
-              <span>
-                <strong>No personal SMS:</strong> Your personal messages, contacts, and other SMS
-                are never accessed
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        {/* How it works */}
-        <div className="mb-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">How it works</h2>
-          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
-            <div className="flex items-start">
-              <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                1
-              </span>
-              <p>
-                <strong>Background monitoring:</strong> The app checks your SMS inbox every 15
-                minutes for new mobile money payment confirmations
-              </p>
-            </div>
-            <div className="flex items-start">
-              <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                2
-              </span>
-              <p>
-                <strong>Secure parsing:</strong> Payment details are extracted using AI and sent
-                securely to the Supabase backend over HTTPS
-              </p>
-            </div>
-            <div className="flex items-start">
-              <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                3
-              </span>
-              <p>
-                <strong>Automatic allocation:</strong> Payments are matched to members based on
-                reference codes and allocated to their accounts
-              </p>
-            </div>
-            <div className="flex items-start">
-              <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                4
-              </span>
-              <p>
-                <strong>No local storage:</strong> SMS data is not stored on your device; it's
-                immediately forwarded and processed on secure servers
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Privacy & Security */}
-        <div className="mb-6 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Privacy & Security
-          </h2>
-          <ul className="list-inside list-disc space-y-1">
-            <li>End-to-end HTTPS encryption</li>
-            <li>HMAC authentication for all API requests</li>
-            <li>Phone numbers are hashed and encrypted before storage</li>
-            <li>You can disable this feature anytime in Settings</li>
-            <li>
-              Full details in our{" "}
-              <a href="/privacy" className="text-blue-600 underline dark:text-blue-400">
-                Privacy Policy
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Error message */}
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
-            {error}
-          </div>
-        )}
-
-        {/* Status indicator */}
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-medium text-gray-900 dark:text-white">SMS Ingestion</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {isEnabled ? "Active - scanning for payments" : "Disabled"}
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+              Supabase audit trail
+            </h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              Key timestamps sourced from ingestion telemetry help confirm permissions are still
+              honoured on the paired device.
             </p>
           </div>
           <button
-            onClick={() => handleToggle(!isEnabled)}
-            disabled={isLoading}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              isEnabled ? "bg-green-600" : "bg-gray-300 dark:bg-gray-600"
-            } ${isLoading ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+            type="button"
+            disabled={loading}
+            onClick={() => void refresh()}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 dark:border-slate-600 dark:text-slate-200 dark:hover:border-slate-500"
           >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isEnabled ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
+            {loading ? "Refreshing…" : "Refresh status"}
           </button>
         </div>
 
-        {/* Action button */}
-        {permissionStatus !== "granted" && (
-          <button
-            onClick={handleRequestPermissions}
-            disabled={isLoading}
-            className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
-          >
-            {isLoading ? "Processing..." : "Grant SMS Permission"}
-          </button>
+        {error ? (
+          <p className="mt-4 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-700 dark:bg-rose-900/40 dark:text-rose-200">
+            {error}
+          </p>
+        ) : (
+          <dl className="mt-5 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+            <div className="rounded-xl border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-700/70 dark:bg-slate-900/40">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Last SMS processed
+              </dt>
+              <dd className="mt-1 text-base text-slate-800 dark:text-slate-100">
+                {summary?.lastMessageAt
+                  ? `${new Date(summary.lastMessageAt).toLocaleString()} · ${formatTimestamp(summary.lastMessageAt)}`
+                  : "No SMS processed yet"}
+              </dd>
+            </div>
+            <div className="rounded-xl border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-700/70 dark:bg-slate-900/40">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Last failure
+              </dt>
+              <dd className="mt-1 text-base text-slate-800 dark:text-slate-100">
+                {summary?.lastFailureAt
+                  ? `${new Date(summary.lastFailureAt).toLocaleString()} · ${formatTimestamp(summary.lastFailureAt)}${summary.lastFailureError ? ` · ${summary.lastFailureError}` : ""}`
+                  : "No recent failures"}
+              </dd>
+            </div>
+            <div className="rounded-xl border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-700/70 dark:bg-slate-900/40">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Ingestion signals
+              </dt>
+              <dd className="mt-1 text-base text-slate-800 dark:text-slate-100">
+                {summary
+                  ? `${summary.ingestEventsTotal.toLocaleString()} total events · last heartbeat ${formatTimestamp(summary.ingestEventsLastAt)}`
+                  : "Telemetry loading"}
+              </dd>
+            </div>
+            {data?.generatedAt && (
+              <div className="rounded-xl border border-slate-200/70 bg-slate-50/70 p-3 text-xs text-slate-500 dark:border-slate-700/70 dark:bg-slate-900/40 dark:text-slate-300">
+                Snapshot generated {new Date(data.generatedAt).toLocaleString()} ·{" "}
+                {formatTimestamp(data.generatedAt)}
+                {data.saccoId ? ` · sacco ${data.saccoId}` : ""}
+              </div>
+            )}
+          </dl>
         )}
+      </section>
 
-        {/* Footer note */}
-        <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
-          By enabling this feature, you consent to the processing of mobile money SMS as described
-          above. This feature complies with Android's SMS permission policies for internal
-          distribution.
-        </p>
-      </div>
+      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Your rights</h2>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600 dark:text-slate-300">
+          <li>
+            Disable ingestion at any time inside the Android app—Supabase stops collecting SMS
+            immediately.
+          </li>
+          <li>
+            Request a data export from operations; every ingested SMS retains the raw text for
+            auditability.
+          </li>
+          <li>
+            Escalate privacy concerns via{" "}
+            <a
+              href="mailto:security@ibimina.rw"
+              className="text-emerald-600 underline hover:text-emerald-500"
+            >
+              security@ibimina.rw
+            </a>
+            .
+          </li>
+        </ul>
+      </section>
     </div>
   );
 }

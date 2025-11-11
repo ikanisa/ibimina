@@ -1,298 +1,253 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { SmsIngest, type SmsMessage } from "@/lib/native/sms-ingest";
-import { logError } from "@/lib/observability/logger";
+import Link from "next/link";
+import { useMemo } from "react";
+import { useSmsIngestStatus } from "./use-sms-ingest-status";
 
-/**
- * SMS Ingestion Settings Page
- *
- * Allows staff to:
- * - View current status
- * - Enable/disable SMS ingestion
- * - Test SMS reading functionality
- * - View recent ingested messages
- * - Configure sync settings
- */
-export default function SmsIngestionSettingsPage() {
-  const router = useRouter();
-  const [isNative, setIsNative] = useState(false);
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [permissionStatus, setPermissionStatus] = useState<"prompt" | "granted" | "denied">(
-    "prompt"
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [testMessages, setTestMessages] = useState<SmsMessage[]>([]);
-  const [syncInterval, setSyncInterval] = useState(15);
-  const [showTest, setShowTest] = useState(false);
-
-  useEffect(() => {
-    checkStatus();
-  }, []);
-
-  const checkStatus = async () => {
-    const available = SmsIngest.isAvailable();
-    setIsNative(available);
-
-    if (available) {
-      const perms = await SmsIngest.checkPermissions();
-      setPermissionStatus(perms.state);
-
-      const enabled = await SmsIngest.isEnabled();
-      setIsEnabled(enabled);
-    }
-  };
-
-  const handleToggle = async () => {
-    if (permissionStatus !== "granted") {
-      // Redirect to consent page
-      router.push("/settings/sms-consent");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      if (isEnabled) {
-        await SmsIngest.disable();
-        setIsEnabled(false);
-      } else {
-        await SmsIngest.enable();
-        await SmsIngest.scheduleBackgroundSync(syncInterval);
-        setIsEnabled(true);
-      }
-    } catch (error) {
-      logError("sms_ingestion.toggle_failed", { error });
-      alert("Failed to toggle SMS ingestion. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleTestRead = async () => {
-    setIsLoading(true);
-    setShowTest(true);
-    try {
-      const messages = await SmsIngest.querySmsInbox({ limit: 10 });
-      setTestMessages(messages);
-    } catch (error) {
-      logError("sms_ingestion.read_failed", { error });
-      alert("Failed to read SMS. Make sure permissions are granted.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpdateInterval = async () => {
-    setIsLoading(true);
-    try {
-      await SmsIngest.scheduleBackgroundSync(syncInterval);
-      alert(`Sync interval updated to ${syncInterval} minutes`);
-    } catch (error) {
-      logError("sms_ingestion.update_interval_failed", { error });
-      alert("Failed to update sync interval. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!isNative) {
-    return (
-      <div className="container mx-auto max-w-4xl px-4 py-8">
-        <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-            SMS Ingestion Settings
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            SMS ingestion is only available on the native Android app. This feature allows automatic
-            processing of mobile money payment notifications.
-          </p>
-        </div>
-      </div>
-    );
+function formatTimestamp(value: string | null): string {
+  if (!value) {
+    return "No SMS processed yet";
   }
 
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "No SMS processed yet";
+  }
+
+  const relative = (() => {
+    try {
+      const diffMs = date.getTime() - Date.now();
+      const minutes = Math.round(diffMs / 60000);
+      const hours = Math.round(diffMs / 3600000);
+      const days = Math.round(diffMs / 86400000);
+      const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+
+      if (Math.abs(minutes) < 60) {
+        return formatter.format(minutes, "minute");
+      }
+      if (Math.abs(hours) < 24) {
+        return formatter.format(hours, "hour");
+      }
+      return formatter.format(days, "day");
+    } catch {
+      return null;
+    }
+  })();
+
+  return [date.toLocaleString(), relative].filter(Boolean).join(" · ");
+}
+
+export default function SmsIngestionSettingsPage() {
+  const { data, loading, error, refresh } = useSmsIngestStatus();
+
+  const summary = data?.summary;
+
+  const metrics = useMemo(
+    () => [
+      {
+        label: "Processed today",
+        value: summary ? summary.processedToday.toLocaleString() : "—",
+        description: "Count of SMS received since midnight",
+      },
+      {
+        label: "Pending review",
+        value: summary ? summary.pendingMessages.toLocaleString() : "—",
+        description: "SMS awaiting reconciliation",
+      },
+      {
+        label: "Failures today",
+        value: summary ? summary.failedToday.toLocaleString() : "—",
+        description: "Check recon exceptions for details",
+      },
+      {
+        label: "Total captured",
+        value: summary ? summary.totalMessages.toLocaleString() : "—",
+        description: "All SMS stored in Supabase",
+      },
+    ],
+    [summary]
+  );
+
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-6">
-        <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
-          SMS Ingestion Settings
+    <div className="container mx-auto max-w-5xl px-4 py-8">
+      <div className="mb-8 space-y-2">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
+          Staff operations
+        </p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+          SMS ingestion hand-off
         </h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          Manage automatic payment processing from mobile money SMS
+        <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+          These controls are now managed inside the Android staff app. Use the links below to
+          install the native experience and review ingestion health sourced from Supabase telemetry.
         </p>
       </div>
 
-      {/* Status Card */}
-      <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Feature Status</h2>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {isEnabled
-                ? "SMS ingestion is active and monitoring for payments"
-                : "SMS ingestion is currently disabled"}
-            </p>
-          </div>
-          <div
-            className={`rounded-full px-3 py-1 text-sm font-medium ${
-              isEnabled
-                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-            }`}
-          >
-            {isEnabled ? "Active" : "Inactive"}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
-          <div>
-            <p className="font-medium text-gray-900 dark:text-white">Enable SMS Ingestion</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {permissionStatus === "granted"
-                ? "Toggle to enable or disable automatic SMS processing"
-                : "Permissions required - click to set up"}
-            </p>
-          </div>
-          <button
-            onClick={handleToggle}
-            disabled={isLoading}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              isEnabled ? "bg-green-600" : "bg-gray-300 dark:bg-gray-600"
-            } ${isLoading ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isEnabled ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-gray-600 dark:text-gray-400">Permission Status</p>
-            <p className="font-medium text-gray-900 dark:text-white capitalize">
-              {permissionStatus}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600 dark:text-gray-400">Platform</p>
-            <p className="font-medium text-gray-900 dark:text-white">Android Native</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Sync Configuration */}
-      {permissionStatus === "granted" && (
-        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-            Sync Configuration
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            Get the SACCO+ Android app
           </h2>
-          <div className="space-y-4">
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            Install the native client on the device that receives mobile money notifications, then
+            use the deep link to jump directly into the SMS automation setup.
+          </p>
+
+          <ol className="mt-4 space-y-3 text-sm text-slate-700 dark:text-slate-200">
+            <li className="flex gap-3">
+              <span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200">
+                1
+              </span>
+              <div>
+                <p className="font-medium">Download the latest staff build</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Use the internal distribution link to install the APK on your Android handset.
+                </p>
+                <Link
+                  href="https://staff.ibimina.rw/native"
+                  className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-500 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50 dark:border-emerald-300 dark:text-emerald-200 dark:hover:bg-emerald-900/40"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open download portal ↗
+                </Link>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200">
+                2
+              </span>
+              <div>
+                <p className="font-medium">Sign in with your staff account</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  The app mirrors the web dashboard—your existing credentials and MFA policies
+                  apply.
+                </p>
+              </div>
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-200">
+                3
+              </span>
+              <div>
+                <p className="font-medium">Deep link into SMS automation</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Open this page from your Android device to hand off configuration to the native
+                  module.
+                </p>
+                <Link
+                  href="ibimina://staff/sms-ingestion"
+                  className="mt-2 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500"
+                >
+                  Launch in SACCO+ app
+                </Link>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <label
-                htmlFor="syncInterval"
-                className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Background Sync Interval: {syncInterval} minutes
-              </label>
-              <input
-                type="range"
-                id="syncInterval"
-                min="5"
-                max="60"
-                step="5"
-                value={syncInterval}
-                onChange={(e) => setSyncInterval(Number(e.target.value))}
-                className="w-full"
-              />
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                How often to check for new mobile money SMS (5-60 minutes)
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                Supabase telemetry snapshot
+              </h2>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                Reconciles live ingestion activity stored in the{" "}
+                <code className="font-mono text-xs">app.sms_inbox</code> table.
               </p>
             </div>
             <button
-              onClick={handleUpdateInterval}
-              disabled={isLoading || !isEnabled}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
+              type="button"
+              onClick={() => void refresh()}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 dark:border-slate-600 dark:text-slate-200 dark:hover:border-slate-500"
             >
-              Update Interval
+              {loading ? "Refreshing…" : "Refresh status"}
             </button>
           </div>
-        </div>
-      )}
 
-      {/* Test Section */}
-      {permissionStatus === "granted" && (
-        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-            Test SMS Reading
-          </h2>
-          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            Test the SMS reading functionality to see recent mobile money messages
-          </p>
-          <button
-            onClick={handleTestRead}
-            disabled={isLoading}
-            className="rounded-lg bg-gray-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-500 dark:hover:bg-gray-600"
-          >
-            {isLoading ? "Reading..." : "Test Read SMS"}
-          </button>
+          {error ? (
+            <p className="mt-4 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-700 dark:bg-rose-900/40 dark:text-rose-200">
+              {error}
+            </p>
+          ) : (
+            <>
+              <dl className="mt-6 grid grid-cols-2 gap-4 text-sm">
+                {metrics.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-xl border border-slate-200/70 p-4 dark:border-slate-700/70"
+                  >
+                    <dt className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      {item.label}
+                    </dt>
+                    <dd className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+                      {item.value}
+                    </dd>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {item.description}
+                    </p>
+                  </div>
+                ))}
+              </dl>
 
-          {showTest && (
-            <div className="mt-4">
-              <h3 className="mb-2 font-medium text-gray-900 dark:text-white">
-                Recent Messages ({testMessages.length})
-              </h3>
-              {testMessages.length === 0 ? (
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  No mobile money SMS found in recent messages
+              <div className="mt-6 space-y-3 rounded-xl border border-slate-200/70 bg-slate-50/70 p-4 text-xs text-slate-600 dark:border-slate-700/70 dark:bg-slate-900/40 dark:text-slate-300">
+                <p>
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    Last SMS:
+                  </span>{" "}
+                  {formatTimestamp(summary?.lastMessageAt ?? null)}
+                  {summary?.lastMessageStatus ? ` · status ${summary.lastMessageStatus}` : ""}
                 </p>
-              ) : (
-                <div className="space-y-2">
-                  {testMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-700 dark:bg-gray-900"
-                    >
-                      <div className="mb-1 flex items-center justify-between">
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {msg.address}
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {new Date(msg.timestamp).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 dark:text-gray-300">{msg.body}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                <p>
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    Last failure:
+                  </span>{" "}
+                  {summary?.lastFailureAt
+                    ? formatTimestamp(summary.lastFailureAt)
+                    : "No recent failures"}
+                  {summary?.lastFailureError ? ` · ${summary.lastFailureError}` : ""}
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    Ingest metrics:
+                  </span>{" "}
+                  {summary
+                    ? `${summary.ingestEventsTotal.toLocaleString()} total events · ${formatTimestamp(summary.ingestEventsLastAt)}`
+                    : "Loading…"}
+                </p>
+                {data?.generatedAt && (
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Snapshot generated {formatTimestamp(data.generatedAt)}
+                    {data.saccoId ? ` · filtered to sacco ${data.saccoId}` : ""}
+                  </p>
+                )}
+              </div>
+            </>
           )}
-        </div>
-      )}
-
-      {/* Privacy & Support */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-          Privacy & Support
-        </h2>
-        <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
-          <p>• SMS data is only read from mobile money providers (MTN, Airtel)</p>
-          <p>• Messages are immediately sent to secure servers and not stored locally</p>
-          <p>• Phone numbers are encrypted before storage</p>
-          <p>• You can disable this feature at any time</p>
-          <div className="mt-4 flex gap-4">
-            <a href="/privacy" className="text-blue-600 underline dark:text-blue-400">
-              Privacy Policy
-            </a>
-            <a href="/settings/sms-consent" className="text-blue-600 underline dark:text-blue-400">
-              View Full Consent Details
-            </a>
-          </div>
-        </div>
+        </section>
       </div>
+
+      <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          Operational checklist
+        </h2>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600 dark:text-slate-300">
+          <li>
+            Confirm the Android device remains unlocked daily; WorkManager will fall back to hourly
+            sync if live listeners are paused.
+          </li>
+          <li>
+            Audit reconciliation queues whenever failures spike—each failed SMS links back to the
+            originating row in Supabase.
+          </li>
+          <li>
+            Coordinate SIM swaps with operations so the device receiving mobile money SMS stays in
+            sync with the web console.
+          </li>
+        </ul>
+      </section>
     </div>
   );
 }
