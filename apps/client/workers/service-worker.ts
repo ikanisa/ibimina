@@ -55,6 +55,8 @@ const logSwEvent = (level: LogLevel, event: string, payload?: Record<string, unk
       console.warn(serialized);
       break;
     default:
+      // Service worker structured logging (JSON output)
+      // eslint-disable-next-line ibimina/structured-logging
       console.log(serialized);
   }
 };

@@ -53,6 +53,7 @@
 
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logInfo } from "@/lib/observability/logger";
 
 /**
  * Maximum file size for uploads (10MB)
@@ -378,9 +379,13 @@ export async function POST(request: Request) {
     }
 
     // Log successful operation
-    console.log(
-      `[OCR Upload] User ${user.id} uploaded ${file.name} (${file.type}, ${file.size} bytes) - Stored at ${fileName}`
-    );
+    logInfo("ocr_upload_success", {
+      userId: user.id,
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+      storedAt: fileName,
+    });
 
     // Return success response with OCR data
     return NextResponse.json(

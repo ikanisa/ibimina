@@ -68,7 +68,9 @@ export async function loadOffers(): Promise<OffersData> {
     console.error("Failed to load partner configuration", error);
   }
 
-  const enabledFeatures = Array.isArray((partnerConfig as { enabled_features?: unknown[] } | null)?.enabled_features)
+  const enabledFeatures = Array.isArray(
+    (partnerConfig as { enabled_features?: unknown[] } | null)?.enabled_features
+  )
     ? ((partnerConfig as { enabled_features?: string[] } | null)?.enabled_features ?? [])
     : [];
 

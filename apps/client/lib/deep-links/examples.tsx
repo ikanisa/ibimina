@@ -21,6 +21,7 @@ export function DeepLinkProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Handler function for deep links
     const handleDeepLink = (route: DeepLinkRoute) => {
+      // eslint-disable-next-line ibimina/structured-logging
       console.log("Handling deep link:", route);
 
       switch (route.type) {
@@ -142,6 +143,7 @@ export function PaymentDetectionProvider({ children }: { children: React.ReactNo
     const listener = MoMoNotificationListener.addListener(
       "smsReceived",
       (data: { text: string; source: string; timestamp: number }) => {
+        // eslint-disable-next-line ibimina/structured-logging
         console.log("Payment notification received:", data);
         // Show toast notification
         // Parse transaction details
@@ -208,7 +210,9 @@ export function ManualPaymentCapture() {
       // Start SMS User Consent
       const result = await requestSmsUserConsent({ sender: null });
 
+      // eslint-disable-next-line ibimina/structured-logging
       console.log("SMS received:", result.message);
+      // eslint-disable-next-line ibimina/structured-logging
       console.log("OTP extracted:", result.otp);
 
       setSmsContent(result.message);
@@ -220,8 +224,10 @@ export function ManualPaymentCapture() {
       alert("Payment captured successfully!");
     } catch (error) {
       if (error === "cancelled") {
+        // eslint-disable-next-line ibimina/structured-logging
         console.log("User cancelled SMS consent");
       } else if (error === "timeout") {
+        // eslint-disable-next-line ibimina/structured-logging
         console.log("No SMS received in 5 minutes");
         alert("No payment SMS received. Please try again.");
       } else {

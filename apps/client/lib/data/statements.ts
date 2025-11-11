@@ -1,9 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import {
-  fetchAllocations,
-  fetchReferenceTokens,
-  type Allocation,
-} from "@ibimina/data-access";
+import { fetchAllocations, fetchReferenceTokens, type Allocation } from "@ibimina/data-access";
 import type { StatementEntry } from "@/components/statements/statements-table";
 
 const STATUS_MAP: Record<Allocation["status"], StatementEntry["status"]> = {
@@ -22,7 +18,9 @@ export interface StatementsData {
 export async function loadStatements(limit = 120): Promise<StatementsData> {
   const supabase = await createSupabaseServerClient();
   const tokens = await fetchReferenceTokens(supabase);
-  const referenceTokens = tokens.map((token) => token.token).filter((value): value is string => Boolean(value));
+  const referenceTokens = tokens
+    .map((token) => token.token)
+    .filter((value): value is string => Boolean(value));
 
   if (!referenceTokens.length) {
     return { entries: [], totalConfirmed: 0, pendingCount: 0 };

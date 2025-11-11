@@ -92,7 +92,7 @@ export function UssdSheet({
     });
   };
 
-  const handleDialClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleDialClick = async (_e: React.MouseEvent<HTMLAnchorElement>) => {
     // Try to dial, but handle failure gracefully
     trackEvent("mobile_ussd_dial_attempt", {
       group: groupName,

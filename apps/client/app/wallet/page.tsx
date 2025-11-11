@@ -62,6 +62,8 @@ export default function WalletPage() {
     });
 
     // TODO: Implement redemption flow
+    // TODO(client-lint): Replace with client-side analytics/logging
+    // eslint-disable-next-line ibimina/structured-logging
     console.log("Redeem token:", token.id);
     alert(`Redeem ${token.display_name} - Redemption flow coming soon!`);
   };

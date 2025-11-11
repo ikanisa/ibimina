@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logInfo } from "@/lib/observability/logger";
 
 /**
  * Web Push Notification Subscription API
@@ -73,7 +74,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[Push] User ${user.id} subscribed to topics:`, validatedData.topics);
+    logInfo("push_subscription_created", {
+      userId: user.id,
+      topics: validatedData.topics,
+    });
 
     return NextResponse.json(
       {

@@ -4,11 +4,8 @@ import * as Sentry from "@sentry/nextjs";
 // Sentry middleware wrapper not available in this version
 // import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
-import { createSecurityMiddlewareContext, resolveEnvironment, scrubPII } from "@ibimina/lib";
+import { resolveEnvironment, scrubPII } from "@ibimina/lib";
 import { defaultLocale } from "./i18n";
-
-const isDev = process.env.NODE_ENV !== "production";
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 const PUBLIC_ROUTES = new Set([
   "/login",
@@ -55,9 +52,7 @@ function isPublicPath(pathname: string) {
     return true;
   }
 
-  return PUBLIC_PREFIXES.some((prefix) =>
-    pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
+  return PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 const middlewareImpl = (request: NextRequest) => {
@@ -104,6 +99,8 @@ const middlewareImpl = (request: NextRequest) => {
       durationMs: Date.now() - startedAt,
     } as const;
 
+    // Structured JSON logging for middleware
+    // eslint-disable-next-line ibimina/structured-logging
     console.log(JSON.stringify(scrubPII(logPayload)));
   }
 };
@@ -121,10 +118,7 @@ export const middleware = (request: NextRequest) => {
       },
     });
     // Return error response
-    return NextResponse.json(
-      { error: "Middleware error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Middleware error" }, { status: 500 });
   }
 };
 

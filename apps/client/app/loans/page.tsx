@@ -40,6 +40,8 @@ export default function LoansPage() {
 
   const handleApply = (product: LoanProduct) => {
     // TODO: Navigate to application form or open modal
+    // TODO(client-lint): Replace with client-side analytics/logging
+    // eslint-disable-next-line ibimina/structured-logging
     console.log("Apply for loan:", product.id);
     alert(`Apply for ${product.name} - Application flow coming soon!`);
   };

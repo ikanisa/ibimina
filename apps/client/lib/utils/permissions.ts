@@ -216,6 +216,8 @@ export async function getPermissionSummary(): Promise<Record<PermissionType, Per
  */
 export async function logPermissionStatus(): Promise<void> {
   const summary = await getPermissionSummary();
+  // Debug logging for permission status
+  // eslint-disable-next-line ibimina/structured-logging
   console.log("Permission Status Summary:", summary);
 }
 
