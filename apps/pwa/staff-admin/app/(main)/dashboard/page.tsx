@@ -1,4 +1,10 @@
 import type { Route } from "next";
+import { AppShellHero } from "@/components/layout/app-shell";
+import {
+  WorkspaceAside,
+  WorkspaceLayout,
+  WorkspaceMain,
+} from "@/components/layout/workspace-layout";
 import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { KPIStat } from "@/components/dashboard/kpi-stat";
@@ -11,6 +17,7 @@ import { getDashboardSummary, EMPTY_DASHBOARD_SUMMARY } from "@/lib/dashboard";
 import { Trans } from "@/components/common/trans";
 import { TopIkiminaTable } from "@/components/dashboard/top-ikimina-table";
 import { logError } from "@/lib/observability/logger";
+import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
 
 export const runtime = "nodejs";
 
@@ -133,113 +140,125 @@ export default async function DashboardPage() {
   );
 
   return (
-    <div className="space-y-8">
-      <GradientHeader
-        title={<Trans i18nKey="dashboard.title" fallback="SACCO overview" />}
-        subtitle={
-          <Trans
-            i18nKey="dashboard.subtitle"
-            fallback="Monitor deposits, member activity, and reconciliation health across your Umurenge SACCO."
-            className="text-xs text-ink/70"
-          />
-        }
-        badge={headerBadge}
-      >
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-          {kpis.map((kpi, idx) => (
-            <KPIStat key={idx} label={kpi.label} value={kpi.value} accent={kpi.accent} />
-          ))}
-        </div>
-        <p className="mt-4 text-xs text-neutral-3">
-          <Trans
-            i18nKey="dashboard.lastUpdated"
-            fallback="Last updated: {{value}}"
-            values={{ value: lastUpdatedLabel }}
-          />
-        </p>
-      </GradientHeader>
-
-      {summaryError ? (
-        <GlassCard
-          title={<Trans i18nKey="dashboard.cached.title" fallback="Working with cached data" />}
+    <>
+      <AppShellHero>
+        <GradientHeader
+          title={<Trans i18nKey="dashboard.title" fallback="SACCO overview" />}
           subtitle={
             <Trans
-              i18nKey="dashboard.cached.subtitle"
-              fallback="We couldn't reach Supabase just now. You're viewing cached metrics until the connection recovers."
-              className="text-xs text-neutral-3"
+              i18nKey="dashboard.subtitle"
+              fallback="Monitor deposits, member activity, and reconciliation health across your Umurenge SACCO."
+              className="text-xs text-ink/70"
             />
           }
+          badge={headerBadge}
         >
-          <EmptyState
-            tone="offline"
-            offlineHint={
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+            {kpis.map((kpi, idx) => (
+              <KPIStat key={idx} label={kpi.label} value={kpi.value} accent={kpi.accent} />
+            ))}
+          </div>
+          <p className="mt-4 text-xs text-neutral-3">
+            <Trans
+              i18nKey="dashboard.lastUpdated"
+              fallback="Last updated: {{value}}"
+              values={{ value: lastUpdatedLabel }}
+            />
+          </p>
+        </GradientHeader>
+      </AppShellHero>
+
+      <WorkspaceLayout>
+        <WorkspaceMain className="space-y-8">
+          {summaryError ? (
+            <GlassCard
+              title={<Trans i18nKey="dashboard.cached.title" fallback="Working with cached data" />}
+              subtitle={
+                <Trans
+                  i18nKey="dashboard.cached.subtitle"
+                  fallback="We couldn't reach Supabase just now. You're viewing cached metrics until the connection recovers."
+                  className="text-xs text-neutral-3"
+                />
+              }
+            >
+              <EmptyState
+                tone="offline"
+                offlineHint={
+                  <Trans
+                    i18nKey="dashboard.cached.offlineHint"
+                    fallback="Offline changes will sync once you're back online."
+                  />
+                }
+                title={
+                  <Trans i18nKey="dashboard.cached.action" fallback="Reconnect to refresh data" />
+                }
+                description={
+                  <Trans
+                    i18nKey="dashboard.cached.description"
+                    fallback="Check your connection and reload to sync the latest figures."
+                  />
+                }
+              />
+            </GlassCard>
+          ) : null}
+
+          <GlassCard
+            title={<Trans i18nKey="dashboard.quick.title" fallback="Quick actions" />}
+            subtitle={
               <Trans
-                i18nKey="dashboard.cached.offlineHint"
-                fallback="Offline changes will sync once you're back online."
+                i18nKey="dashboard.quick.subtitle"
+                fallback="Shave seconds off your daily workflows with the most common tasks."
+                className="text-xs text-neutral-3"
               />
             }
-            title={<Trans i18nKey="dashboard.cached.action" fallback="Reconnect to refresh data" />}
-            description={
+          >
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {quickActions.map((action, idx) => (
+                <QuickAction key={idx} {...action} />
+              ))}
+            </div>
+          </GlassCard>
+
+          <GlassCard
+            title={<Trans i18nKey="dashboard.missed.title" fallback="Missed contributors" />}
+            subtitle={
               <Trans
-                i18nKey="dashboard.cached.description"
-                fallback="Check your connection and reload to sync the latest figures."
+                i18nKey="dashboard.missed.subtitle"
+                fallback="Members without a recorded contribution in the last month."
+                className="text-xs text-neutral-3"
               />
             }
-          />
-        </GlassCard>
-      ) : null}
+          >
+            {summary.missedContributors.length > 0 ? (
+              <MissedContributorsList contributors={summary.missedContributors} />
+            ) : (
+              <EmptyState
+                tone="quiet"
+                title="All caught up"
+                description="Every active member has a recent contribution."
+              />
+            )}
+          </GlassCard>
 
-      <GlassCard
-        title={<Trans i18nKey="dashboard.quick.title" fallback="Quick actions" />}
-        subtitle={
-          <Trans
-            i18nKey="dashboard.quick.subtitle"
-            fallback="Shave seconds off your daily workflows with the most common tasks."
-            className="text-xs text-neutral-3"
-          />
-        }
-      >
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {quickActions.map((action, idx) => (
-            <QuickAction key={idx} {...action} />
-          ))}
-        </div>
-      </GlassCard>
+          <GlassCard
+            title={<Trans i18nKey="dashboard.top.title" fallback="Top Ikimina" />}
+            subtitle={
+              <Trans
+                i18nKey="dashboard.top.subtitle"
+                fallback="Most active groups by deposit volume this month."
+                className="text-xs text-neutral-3"
+              />
+            }
+            actions={<StatusChip tone="neutral">{summary.activeIkimina} active</StatusChip>}
+          >
+            <TopIkiminaTable data={summary.topIkimina} />
+          </GlassCard>
+        </WorkspaceMain>
 
-      <GlassCard
-        title={<Trans i18nKey="dashboard.missed.title" fallback="Missed contributors" />}
-        subtitle={
-          <Trans
-            i18nKey="dashboard.missed.subtitle"
-            fallback="Members without a recorded contribution in the last month."
-            className="text-xs text-neutral-3"
-          />
-        }
-      >
-        {summary.missedContributors.length > 0 ? (
-          <MissedContributorsList contributors={summary.missedContributors} />
-        ) : (
-          <EmptyState
-            tone="quiet"
-            title="All caught up"
-            description="Every active member has a recent contribution."
-          />
-        )}
-      </GlassCard>
-
-      <GlassCard
-        title={<Trans i18nKey="dashboard.top.title" fallback="Top Ikimina" />}
-        subtitle={
-          <Trans
-            i18nKey="dashboard.top.subtitle"
-            fallback="Most active groups by deposit volume this month."
-            className="text-xs text-neutral-3"
-          />
-        }
-        actions={<StatusChip tone="neutral">{summary.activeIkimina} active</StatusChip>}
-      >
-        <TopIkiminaTable data={summary.topIkimina} />
-      </GlassCard>
-    </div>
+        <WorkspaceAside>
+          <QueuedSyncSummary />
+        </WorkspaceAside>
+      </WorkspaceLayout>
+    </>
   );
 }
