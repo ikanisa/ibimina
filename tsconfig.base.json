@@ -23,15 +23,19 @@
     "paths": {
       "@ibimina/ai-agent": ["packages/ai-agent/src/index.ts"],
       "@ibimina/api": ["packages/api/src/index.ts"],
+      "@ibimina/api-contracts": ["packages/api-contracts/src/index.ts"],
       "@ibimina/config": ["packages/config/src/index.ts"],
       "@ibimina/core": ["packages/core/src/index.ts"],
       "@ibimina/data-access": ["packages/data-access/src/index.ts"],
+      "@ibimina/shared-types": ["packages/shared-types/src/index.ts"],
+      "@ibimina/supabase-schemas": ["packages/supabase-schemas/src/index.ts"],
       "@ibimina/lib": ["packages/lib/src/index.ts"],
       "@ibimina/locales": ["packages/locales/src/index.ts"],
       "@ibimina/providers": ["packages/providers/src/index.ts"],
       "@ibimina/tapmomo-proto": ["packages/tapmomo-proto/src/index.ts"],
       "@ibimina/testing": ["packages/testing/src/index.ts"],
       "@ibimina/ui": ["packages/ui/src/index.ts"],
+      "@ibimina/ui-components": ["packages/ui-components/src/index.ts"],
       "@ibimina/agent": ["packages/agent/src/index.ts"]
     }
   }
