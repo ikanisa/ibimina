@@ -1,9 +1,31 @@
 .appShell {
+  position: relative;
   min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-text);
   display: flex;
   flex-direction: column;
+}
+
+.skipLink {
+  position: absolute;
+  top: var(--spacing-3);
+  left: 50%;
+  transform: translate(-50%, -120%);
+  background: var(--color-primary);
+  color: var(--color-bg);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+  z-index: 100;
+}
+
+.skipLink:focus {
+  transform: translate(-50%, 0);
+  box-shadow: var(--shadow-md);
 }
 
 .topbar {
@@ -41,8 +63,44 @@
   padding-bottom: 80px;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 959px) {
   .bodyLayout {
+    flex-direction: column;
     padding: var(--spacing-3) var(--spacing-3) 96px;
+  }
+
+  .topbarInner {
+    padding: var(--spacing-2) var(--spacing-3);
+    gap: var(--spacing-3);
+  }
+}
+
+@media (max-width: 767px) {
+  .skipLink {
+    left: var(--spacing-3);
+    transform: translate(0, -120%);
+  }
+
+  .skipLink:focus {
+    transform: translate(0, 0);
+  }
+}
+
+@media (min-width: 1200px) {
+  .topbarInner,
+  .bodyLayout {
+    max-width: 1200px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .topbarInner,
+  .bodyLayout {
+    max-width: 1360px;
+  }
+
+  .bodyLayout {
+    gap: var(--spacing-6);
+    padding: var(--spacing-6);
   }
 }
