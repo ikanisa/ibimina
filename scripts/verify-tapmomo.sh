@@ -24,16 +24,16 @@ echo "   ✅ $NEXT_PUBLIC_SUPABASE_URL/functions/v1/tapmomo-reconcile"
 
 echo ""
 echo "3. Android APK..."
-if [ -f "apps/admin/android/app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
-    SIZE=$(du -h "apps/admin/android/app/build/outputs/apk/release/app-release-unsigned.apk" | cut -f1)
+if [ -f "apps/pwa/staff-admin/android/app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+    SIZE=$(du -h "apps/pwa/staff-admin/android/app/build/outputs/apk/release/app-release-unsigned.apk" | cut -f1)
     echo "   ✅ APK built: $SIZE"
 else
-    echo "   ⚠️  APK not found (run: cd apps/admin/android && ./gradlew assembleRelease)"
+    echo "   ⚠️  APK not found (run: cd apps/pwa/staff-admin/android && ./gradlew assembleRelease)"
 fi
 
 echo ""
 echo "4. Admin UI..."
-if [ -d "apps/admin/app/(main)/admin/(panel)/tapmomo" ]; then
+if [ -d "apps/pwa/staff-admin/app/(main)/admin/(panel)/tapmomo" ]; then
     echo "   ✅ UI screens integrated"
 else
     echo "   ❌ UI screens missing"

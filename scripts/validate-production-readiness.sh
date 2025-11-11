@@ -157,7 +157,7 @@ main() {
   
   check_file_exists "package.json" "Root package.json"
   check_file_exists "pnpm-lock.yaml" "pnpm lockfile"
-  check_file_exists "apps/admin/package.json" "Admin app package.json"
+  check_file_exists "apps/pwa/staff-admin/package.json" "Admin app package.json"
   
   if [ -f "pnpm-lock.yaml" ]; then
     if [ -d "node_modules" ]; then
@@ -168,8 +168,8 @@ main() {
   fi
   
   # Check for build output
-  if check_dir_exists "apps/admin/.next" "Next.js build output"; then
-    if check_dir_exists "apps/admin/.next/standalone" "Standalone build output"; then
+  if check_dir_exists "apps/pwa/staff-admin/.next" "Next.js build output"; then
+    if check_dir_exists "apps/pwa/staff-admin/.next/standalone" "Standalone build output"; then
       print_success "Production build artifacts present"
     else
       print_warning "Standalone build not found (run: pnpm run build)"
@@ -274,7 +274,7 @@ main() {
   check_dir_exists "infra/metrics" "Metrics infrastructure"
   check_file_exists "infra/metrics/docker-compose.yml" "Metrics docker-compose"
   
-  if [ -f "apps/admin/lib/observability/logger.ts" ]; then
+  if [ -f "apps/pwa/staff-admin/lib/observability/logger.ts" ]; then
     print_success "Logging infrastructure exists"
   else
     print_warning "Logging infrastructure not found"
@@ -283,12 +283,12 @@ main() {
   # 9. Check test infrastructure
   print_header "Test Infrastructure"
   
-  check_dir_exists "apps/admin/tests" "Test directory"
+  check_dir_exists "apps/pwa/staff-admin/tests" "Test directory"
   check_file_exists "playwright.config.ts" "Playwright configuration"
   
   # Try to count test files
-  if [ -d "apps/admin/tests" ]; then
-    TEST_COUNT=$(find apps/admin/tests -name "*.spec.ts" -o -name "*.test.ts" | wc -l)
+  if [ -d "apps/pwa/staff-admin/tests" ]; then
+    TEST_COUNT=$(find apps/pwa/staff-admin/tests -name "*.spec.ts" -o -name "*.test.ts" | wc -l)
     print_info "$TEST_COUNT test files found"
   fi
   
@@ -302,10 +302,10 @@ main() {
   # 11. Check PWA assets
   print_header "PWA Configuration"
   
-  check_file_exists "apps/admin/public/manifest.json" "PWA manifest"
-  check_file_exists "apps/admin/public/service-worker.js" "Service worker"
+  check_file_exists "apps/pwa/staff-admin/public/manifest.json" "PWA manifest"
+  check_file_exists "apps/pwa/staff-admin/public/service-worker.js" "Service worker"
   
-  if [ -d "apps/admin/public/icons" ]; then
+  if [ -d "apps/pwa/staff-admin/public/icons" ]; then
     print_success "PWA icons directory exists"
   else
     print_warning "PWA icons directory not found"

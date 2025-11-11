@@ -118,7 +118,7 @@ async function deployAll() {
     console.log("💡 Setup steps:");
     console.log("   1. Install Netlify CLI: npm install -g netlify-cli");
     console.log("   2. Login: netlify login");
-    console.log("   3. Link sites: cd apps/admin && netlify link");
+    console.log("   3. Link sites: cd apps/pwa/staff-admin && netlify link");
     console.log("   4. Set environment variables in Netlify dashboard");
     console.log("   5. Build apps: pnpm build");
     console.log("   6. Deploy: pnpm deploy:netlify\n");

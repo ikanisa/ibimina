@@ -45,7 +45,7 @@ fi
 
 # Check 4: Admin PWA
 echo -n "Checking Admin PWA... "
-cd apps/admin
+cd apps/pwa/staff-admin
 if pnpm typecheck --noEmit &>/dev/null; then
   echo -e "${GREEN}✅ Type-safe${NC}"
 else
@@ -63,7 +63,7 @@ fi
 
 # Check 6: Staff Android
 echo -n "Checking Staff Android... "
-if [ -f "apps/admin/android/gradlew" ]; then
+if [ -f "apps/pwa/staff-admin/android/gradlew" ]; then
   echo -e "${GREEN}✅ Gradle ready${NC}"
 else
   echo -e "${RED}❌ Capacitor not synced${NC}"

@@ -6,11 +6,11 @@ import { sharedReactRules, structuredLoggingRules } from "./config/tooling/eslin
 
 const baseConfig = createEslintConfig({
   ignores: [
-    "apps/admin/.next/**",
-    "apps/admin/.turbo/**",
-    "apps/admin/public/**/*",
-    "apps/client/.next/**",
-    "apps/client/public/**/*",
+    "apps/pwa/staff-admin/.next/**",
+    "apps/pwa/staff-admin/.turbo/**",
+    "apps/pwa/staff-admin/public/**/*",
+    "apps/pwa/client/.next/**",
+    "apps/pwa/client/public/**/*",
     "infra/scripts/**",
   ],
   plugins: {

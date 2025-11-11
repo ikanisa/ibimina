@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TARGET_FILE="apps/admin/lib/supabase/types.ts"
+TARGET_FILE="apps/pwa/staff-admin/lib/supabase/types.ts"
 TMP_FILE="$(mktemp)"
 trap 'rm -f "$TMP_FILE"' EXIT
 

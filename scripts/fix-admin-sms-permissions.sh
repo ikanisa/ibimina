@@ -8,7 +8,7 @@ echo "🚨 CRITICAL: Fixing Google Play Banned SMS Permissions"
 echo "=================================================="
 echo ""
 
-ADMIN_MANIFEST="apps/admin/android/app/src/main/AndroidManifest.xml"
+ADMIN_MANIFEST="apps/pwa/staff-admin/android/app/src/main/AndroidManifest.xml"
 STAFF_MANIFEST="apps/staff-mobile-android/app/src/main/AndroidManifest.xml"
 
 # Backup original files
@@ -21,7 +21,7 @@ fi
 echo "✅ Backups created"
 echo ""
 
-# Fix apps/admin/android/app/src/main/AndroidManifest.xml
+# Fix apps/pwa/staff-admin/android/app/src/main/AndroidManifest.xml
 echo "🔧 Fixing $ADMIN_MANIFEST..."
 
 # Remove SMS permissions (lines 69-70)
@@ -92,7 +92,7 @@ echo "   - Update SMS reading logic to use notifications"
 echo "   - Test with MTN/Airtel notifications"
 echo ""
 echo "3. 🧪 Test the changes:"
-echo "   cd apps/admin/android"
+echo "   cd apps/pwa/staff-admin/android"
 echo "   ./gradlew clean assembleDebug"
 echo "   aapt dump permissions app/build/outputs/apk/debug/app-debug.apk | grep SMS"
 echo "   # Should return nothing"

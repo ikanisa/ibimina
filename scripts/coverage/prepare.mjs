@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(fileURLToPath(new URL("../../", import.meta.url)));
-const WORKSPACES = ["apps/admin", "apps/platform-api", "apps/client", "packages/ui"];
+const WORKSPACES = ["apps/pwa/staff-admin", "apps/platform-api", "apps/pwa/client", "packages/ui"];
 
 async function cleanWorkspace(dir) {
   const coverageDir = path.join(dir, "coverage");

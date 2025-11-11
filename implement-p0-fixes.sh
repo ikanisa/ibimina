@@ -19,7 +19,7 @@ echo ""
 
 # PWA: Fix text contrast (A11Y-1) - Already done, just verify
 echo "[ 1/12] Verifying text contrast fixes..."
-grep -r "text-neutral-600" apps/client/app apps/client/components 2>/dev/null && echo "WARNING: Some text-neutral-600 still exist" || echo "  ✓ All text contrast fixed"
+grep -r "text-neutral-600" apps/pwa/client/app apps/pwa/client/components 2>/dev/null && echo "WARNING: Some text-neutral-600 still exist" || echo "  ✓ All text contrast fixed"
 DONE=$((DONE + 1))
 
 # PWA: Error messages (H9.1)
@@ -44,7 +44,7 @@ echo "  → Scanning for icons without aria-hidden"
 # PWA: Alt text (A11Y-21)
 echo "[ 6/12] Adding alt text to images..."
 # Scan for images
-find apps/client -name "*.tsx" -exec grep -l "<img" {} \; 2>/dev/null | head -5
+find apps/pwa/client -name "*.tsx" -exec grep -l "<img" {} \; 2>/dev/null | head -5
 echo "  → Needs manual review"
 
 # Mobile: Loading indicators (H1.5)

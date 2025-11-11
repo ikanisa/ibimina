@@ -60,7 +60,7 @@ jobs:
           pnpm dlx lighthouse http://127.0.0.1:3001 \
             --quiet \
             --chrome-flags="--headless" \
-            --config-path=apps/client/lighthouse.config.cjs \
+            --config-path=apps/pwa/client/lighthouse.config.cjs \
             --output=json \
             --output-path=.reports/lighthouse/client.json
           kill $(cat .reports/client.pid) || true

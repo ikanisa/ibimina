@@ -9,7 +9,7 @@ echo "=============================================="
 echo ""
 
 # Check if SMS permissions were fixed
-ADMIN_MANIFEST="apps/admin/android/app/src/main/AndroidManifest.xml"
+ADMIN_MANIFEST="apps/pwa/staff-admin/android/app/src/main/AndroidManifest.xml"
 
 echo "🔍 Checking for banned SMS permissions..."
 if grep -q "READ_SMS\|RECEIVE_SMS" "$ADMIN_MANIFEST"; then
@@ -65,7 +65,7 @@ echo "✅ Build environment ready"
 echo ""
 
 # Change to Android directory
-cd apps/admin/android
+cd apps/pwa/staff-admin/android
 
 echo "📦 Cleaning previous builds..."
 ./gradlew clean
