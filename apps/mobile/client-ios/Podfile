@@ -1,0 +1,9 @@
+platform :ios, '16.0'
+use_frameworks!
+
+workspace 'ClientIOS'
+project 'ClientIOS.xcodeproj'
+
+target 'ClientIOS' do
+  pod 'Supabase', :git => 'https://github.com/supabase-community/supabase-swift.git', :branch => 'main'
+end
