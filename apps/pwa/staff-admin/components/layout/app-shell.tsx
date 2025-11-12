@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Children, Fragment, useEffect, useMemo, useRef, useState, isValidElement } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Command, Menu, Plus, Settings2 } from "lucide-react";
+import { Command, ListPlus, Menu, Settings2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -31,49 +30,16 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { NavigationRail } from "@/components/layout/navigation-rail";
 import type { NavigationRailProps } from "@/components/layout/navigation-rail";
 import { Drawer } from "@/components/ui/drawer";
+import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
 
 const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
 
-import { useFocusTrap } from "@/src/lib/a11y/useFocusTrap";
-
-const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
-
-const HERO_SLOT = Symbol("AppShellHero");
-
-interface HeroComponentProps {
-  children: React.ReactNode;
+interface AppShellHeroProps {
+  children: ReactNode;
 }
 
-interface HeroComponent extends React.FC<HeroComponentProps> {
-  __slot: typeof HERO_SLOT;
-}
-
-export const AppShellHero: HeroComponent = ({ children }) => {
-  return <Fragment>{children}</Fragment>;
-};
-AppShellHero.__slot = HERO_SLOT;
-
-function isHeroElement(
-  child: React.ReactNode
-): child is React.ReactElement<HeroComponentProps> & { type: HeroComponent } {
-  return Boolean(
-    isValidElement(child) &&
-      typeof child.type === "function" &&
-      (child.type as HeroComponent).__slot === HERO_SLOT
-  );
-}
-
-function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
-  if (!container) return [];
-  const focusableSelectors = [
-    "a[href]",
-    "button:not([disabled])",
-    "textarea:not([disabled])",
-    "input:not([disabled])",
-    "select:not([disabled])",
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(", ");
-  return Array.from(container.querySelectorAll<HTMLElement>(focusableSelectors));
+export function AppShellHero({ children }: AppShellHeroProps) {
+  return <>{children}</>;
 }
 
 interface AppShellProps {
@@ -454,6 +420,17 @@ function DefaultAppShellView({
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
+  const mobileBadges = useMemo(
+    () =>
+      navTargets.reduce<Partial<Record<string, UiNavTarget["badge"]>>>((acc, item) => {
+        if (item.badge) {
+          acc[item.href] = item.badge;
+        }
+        return acc;
+      }, {}),
+    [navTargets]
+  );
+
   return (
     <>
       <div className="relative flex min-h-screen bg-[color-mix(in_srgb,#020617_92%,rgba(15,23,42,0.75))] text-neutral-2">
@@ -508,7 +485,7 @@ function DefaultAppShellView({
                   onClick={() => setMobileQuickOpen(true)}
                   className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-3 transition hover:bg-white/10 hover:text-neutral-0 lg:hidden"
                 >
-                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  <ListPlus className="h-4 w-4" aria-hidden="true" />
                   {t("dashboard.quick.title", "Quick actions")}
                 </button>
                 <LanguageSwitcher className="text-xs font-semibold" />
@@ -545,12 +522,7 @@ function DefaultAppShellView({
         onClose={() => setMobileNavOpen(false)}
         groups={navigationGroups}
         isActive={isActive}
-        badges={navTargets.reduce<Partial<Record<string, UiNavTarget["badge"]>>>((acc, item) => {
-          if (item.badge) {
-            acc[item.href] = item.badge;
-          }
-          return acc;
-        }, {})}
+        badges={mobileBadges}
       />
 
       <MobileQuickActionsDrawer
@@ -562,372 +534,6 @@ function DefaultAppShellView({
       <OfflineQueueIndicator />
       <OfflineConflictDialog />
     </>
-  const [showActions, setShowActions] = useState(false);
-  const quickActionsRef = useRef<HTMLDivElement | null>(null);
-  const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const { open: paletteOpen, openPalette } = useCommandPalette();
-  const { t } = useTranslation();
-
-  const slotPartitions = useMemo(() => {
-    const heroFragments: React.ReactNode[] = [];
-    const contentFragments: React.ReactNode[] = [];
-    Children.forEach(children, (child) => {
-      if (isHeroElement(child)) {
-        heroFragments.push(child.props.children);
-      } else if (child !== null && child !== undefined) {
-        contentFragments.push(child);
-      }
-    });
-    return {
-      hero: heroFragments.length ? heroFragments : null,
-      content: contentFragments,
-    };
-  }, [children]);
-
-  useEffect(() => {
-    if (!showActions) {
-      if (wasQuickActionsOpenRef.current) {
-        wasQuickActionsOpenRef.current = false;
-        (quickActionsTriggerRef.current ?? quickActionsLastFocusRef.current)?.focus();
-      }
-      return;
-    }
-
-    wasQuickActionsOpenRef.current = true;
-    quickActionsLastFocusRef.current = document.activeElement as HTMLElement | null;
-    const container = quickActionsRef.current;
-    const firstFocusable = getFocusableElements(container).at(0);
-    if (firstFocusable) {
-      queueMicrotask(() => firstFocusable.focus());
-    } else {
-      container?.focus();
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!container) return;
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setShowActions(false);
-        return;
-      }
-      if (event.key !== "Tab") {
-        return;
-      }
-
-      const focusable = getFocusableElements(container);
-      if (focusable.length === 0) {
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const activeElement = document.activeElement as HTMLElement | null;
-
-      if (event.shiftKey) {
-        if (activeElement === first || activeElement === container) {
-          event.preventDefault();
-          last.focus();
-        }
-      } else if (activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    container?.addEventListener("keydown", handleKeyDown);
-    return () => container?.removeEventListener("keydown", handleKeyDown);
-  }, [showActions]);
-  const resolveInitialQuickAction = useCallback(
-    () => quickActionsRef.current?.querySelector<HTMLElement>("[data-quick-focus]") ?? null,
-    []
-  );
-
-  useFocusTrap(showActions, quickActionsRef, {
-    onEscape: () => setShowActions(false),
-    initialFocus: resolveInitialQuickAction,
-    returnFocus: () => quickActionsTriggerRef.current?.focus(),
-  });
-
-  const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
-
-  const heroContent = slotPartitions.hero ?? [
-    <div key="default-hero" className="space-y-2">
-      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-neutral-8">
-        Ibimina Staff Console
-      </p>
-      <p className="text-lg font-semibold text-neutral-12">{saccoName}</p>
-    </div>,
-  ];
-
-  return (
-    <div className="relative min-h-screen bg-neutral-1 text-neutral-12">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:rounded-full focus:bg-kigali focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink"
-      >
-        Skip to content · Siga ujye ku bikorwa
-      </a>
-      <OfflineBanner />
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="hidden border-r border-neutral-6/60 bg-white/60 backdrop-blur lg:flex lg:flex-col">
-          <div className="border-b border-neutral-6/60 px-6 py-6">
-            <div className="space-y-1">
-              <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-neutral-8">
-                Umurenge SACCO
-              </p>
-              <p className="text-xl font-semibold text-neutral-12">Ibimina Staff Console</p>
-              <p className="text-sm text-neutral-10">{saccoName}</p>
-            </div>
-            <button
-              type="button"
-              onClick={openPalette}
-              className="mt-6 inline-flex items-center gap-2 rounded-lg border border-neutral-6/80 bg-white/40 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-11 transition hover:border-neutral-7 hover:bg-white/60"
-              aria-expanded={paletteOpen}
-            >
-              <ListPlus className="h-3.5 w-3.5" aria-hidden="true" />
-              {t("dashboard.quick.title", "Quick actions")}
-            </button>
-          </div>
-          <nav
-            className="flex-1 overflow-y-auto px-3 py-6"
-            aria-label={t("nav.main", "Main navigation")}
-          >
-            <ul className="space-y-1">
-              {navTargets.map(({ href, primary, icon: Icon, badge }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className={cn(
-                      "flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition",
-                      isActive(href)
-                        ? "bg-ink text-neutral-0 shadow-lg"
-                        : "text-neutral-8 hover:bg-white/80 hover:text-neutral-12"
-                    )}
-                    aria-current={isActive(href) ? "page" : undefined}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Icon className="h-4 w-4" aria-hidden="true" />
-                      {primary}
-                    </span>
-                    {badge && (
-                      <span
-                        className={cn(
-                          "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide",
-                          BADGE_TONE_STYLES[badge.tone]
-                        )}
-                        aria-label={`${badge.label} notification`}
-                      >
-                        {badge.label}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <div className="space-y-4 border-t border-neutral-6/60 px-6 py-6">
-            <NetworkStatusIndicator />
-            <LanguageSwitcher className="text-xs font-semibold" />
-            <SignOutButton className="w-full rounded-lg border border-neutral-6/70 bg-white/50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-11 transition hover:border-neutral-7 hover:bg-white/70" />
-          </div>
-        </aside>
-        <div className="flex min-h-screen flex-col">
-          <header className="sticky top-0 z-30 border-b border-neutral-6/60 bg-white/80 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-neutral-8">
-                  Umurenge SACCO
-                </p>
-                <p className="text-sm font-semibold text-neutral-12">Ibimina Staff Console</p>
-                <p className="text-xs text-neutral-10">{saccoName}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <NetworkStatusIndicator />
-                <LanguageSwitcher popover side="bottom" className="text-xs font-semibold" />
-                <SignOutButton className="rounded-lg border border-neutral-6/70 bg-white/60 px-3 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-neutral-11" />
-              </div>
-            </div>
-          </header>
-          <div className="flex-1">
-            <div className="border-b border-neutral-6/60 bg-white/70 px-4 py-6 shadow-sm backdrop-blur lg:px-10">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="space-y-4">{heroContent}</div>
-                <div className="flex flex-shrink-0 items-start justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowActions(true)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-kigali px-4 py-2 text-sm font-bold uppercase tracking-[0.2em] text-ink shadow-lg transition hover:shadow-xl"
-                    aria-expanded={showActions}
-                    aria-controls="quick-actions"
-                    ref={quickActionsTriggerRef}
-                  >
-                    <Plus className="h-4 w-4" aria-hidden="true" />
-                    {t("dashboard.quick.newPrimary", "New")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={openPalette}
-                    className="hidden items-center gap-2 rounded-lg border border-neutral-6/80 bg-white/60 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-11 transition hover:border-neutral-7 hover:bg-white/80 lg:inline-flex"
-                    aria-expanded={paletteOpen}
-                  >
-                    <ListPlus className="h-3.5 w-3.5" aria-hidden="true" />
-                    {t("dashboard.quick.title", "Quick actions")}
-                  </button>
-                </div>
-              </div>
-            </div>
-            <main id="main-content" className="px-4 py-6 lg:px-10 lg:py-10">
-              <div className="space-y-6">{slotPartitions.content}</div>
-            </main>
-          </div>
-        </div>
-      </div>
-      <OfflineQueueIndicator />
-      <OfflineConflictDialog />
-
-      <nav
-        className="fixed inset-x-0 bottom-5 z-40 mx-auto flex w-[min(420px,92%)] items-center justify-between rounded-2xl border border-white/25 bg-gradient-to-br from-ink/95 to-ink/90 px-3 py-3.5 shadow-2xl backdrop-blur-xl md:hidden"
-        aria-label={t("nav.mobile", "Mobile navigation")}
-      >
-        {navTargets.map(({ href, primary, icon: Icon, badge }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "group relative flex flex-col items-center gap-1 rounded-lg px-2.5 py-2 text-[0.7rem] font-semibold transition-all",
-              isActive(href)
-                ? "text-neutral-0"
-                : "text-neutral-2 hover:bg-white/10 hover:text-neutral-0"
-            )}
-            aria-current={isActive(href) ? "page" : undefined}
-            aria-label={primary}
-          >
-            <Icon
-              className={cn(
-                "h-5 w-5 transition-all",
-                isActive(href) && "drop-shadow-[0_0_8px_rgba(0,161,222,0.5)]"
-              )}
-              aria-hidden="true"
-            />
-            {badge && (
-              <span
-                className={cn(
-                  "absolute right-1 top-1 h-2 w-2 rounded-full ring-2 ring-ink",
-                  BADGE_DOT_STYLES[badge.tone]
-                )}
-                aria-label={`${badge.label} notification`}
-              />
-            )}
-            <span className="leading-none">{primary}</span>
-          </Link>
-        ))}
-        <button
-          type="button"
-          onClick={() => setShowActions((v) => !v)}
-          className="group absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-xl bg-kigali px-5 py-3 text-sm font-bold tracking-tight text-ink shadow-2xl transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(0,161,222,0.3)]"
-          aria-expanded={showActions}
-          aria-controls="quick-actions"
-          aria-label={t("dashboard.quick.title", "Quick actions")}
-        >
-          <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" aria-hidden="true" />
-          <span className="flex flex-col text-left leading-none">
-            <span>{t("dashboard.quick.newPrimary", "New")}</span>
-            <span className="text-[0.65rem] font-semibold text-ink/70">
-              {t("dashboard.quick.newSecondary", "New")}
-            </span>
-          </span>
-        </button>
-      </nav>
-
-      {showActions && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-md md:items-center md:justify-end md:pr-6"
-          onClick={() => setShowActions(false)}
-          role="presentation"
-        >
-          <div
-            id="quick-actions"
-            className="m-6 w-full max-w-md rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-6 text-sm text-neutral-0 shadow-2xl backdrop-blur-xl"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("dashboard.quick.title", "Quick actions")}
-            onClick={(event) => event.stopPropagation()}
-            ref={quickActionsRef}
-            tabIndex={-1}
-          >
-            <div className="mb-6 flex items-center gap-2.5 border-b border-white/10 pb-4">
-              <ListPlus className="h-5 w-5 text-rw-blue" aria-hidden="true" />
-              <h2 className="text-base font-bold uppercase tracking-wider text-neutral-0">
-                {t("dashboard.quick.title", "Quick actions")}
-              </h2>
-            </div>
-
-            <div className="space-y-6">
-              {quickActionGroups.map((group) => (
-                <section key={group.id} className="space-y-3">
-                  <header className="flex items-baseline justify-between">
-                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-0">
-                      {group.title}
-                    </h3>
-                    <p className="text-[10px] font-medium text-neutral-3">{group.subtitle}</p>
-                  </header>
-                  <ul className="space-y-2.5">
-                    {group.actions.map((action) => (
-                      <li key={`${group.id}-${action.primary}`}>
-                        <Link
-                          href={action.href}
-                          onClick={() => setShowActions(false)}
-                          className="group block rounded-xl border border-white/15 bg-gradient-to-br from-white/10 to-white/5 px-4 py-3.5 text-left transition-all hover:border-white/25 hover:from-white/15 hover:to-white/10 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-rw-blue/50 focus:ring-offset-2 focus:ring-offset-transparent"
-                          data-quick-focus
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 space-y-1">
-                              <p className="text-sm font-bold text-neutral-0 group-hover:text-white">
-                                {action.primary}
-                              </p>
-                              <p className="text-xs leading-relaxed text-neutral-2">
-                                {action.description}
-                              </p>
-                              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-3">
-                                {action.secondary}
-                              </p>
-                              <p className="text-[11px] leading-relaxed text-neutral-3">
-                                {action.secondaryDescription}
-                              </p>
-                            </div>
-                            {action.badge && (
-                              <span
-                                className={cn(
-                                  "inline-flex h-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-                                  BADGE_TONE_STYLES[action.badge.tone]
-                                )}
-                                aria-label={`${action.badge.label} notification`}
-                              >
-                                {action.badge.label}
-                              </span>
-                            )}
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowActions(false)}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-neutral-0 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-rw-blue/50"
-              data-quick-focus
-            >
-              <Settings2 className="h-4 w-4" aria-hidden="true" />
-              {t("common.close", "Close")}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 
