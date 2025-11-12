@@ -30,7 +30,8 @@ final class SupabaseService: SupabaseServiceProtocol {
      * Call this in AppDelegate
      */
     func initialize() {
-        guard let supabaseURL = URL(string: Configuration.supabaseURL),
+        guard let supabaseURLString = Configuration.supabaseURL,
+              let supabaseURL = URL(string: supabaseURLString),
               let supabaseKey = Configuration.supabaseAnonKey else {
             fatalError("Supabase configuration is missing")
         }
