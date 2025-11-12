@@ -12,6 +12,7 @@ export interface OnboardingQueueItem {
   attempts: number;
   status: OnboardingQueueStatus;
   lastError?: string | null;
+  creatorId: string;
 }
 
 interface OnboardingQueueDb extends DBSchema {
@@ -21,21 +22,34 @@ interface OnboardingQueueDb extends DBSchema {
     indexes: {
       by_status: OnboardingQueueStatus;
       by_created_at: string;
+      by_creator: string;
     };
   };
 }
 
 const DB_NAME = "ibimina-onboarding";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = "submissions";
+
+let currentCreatorId: string | null = null;
 
 async function getDb() {
   return openDB<OnboardingQueueDb>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
+    upgrade(db, oldVersion) {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
         store.createIndex("by_status", "status");
         store.createIndex("by_created_at", "createdAt");
+        store.createIndex("by_creator", "creatorId");
+        return;
+      }
+
+      const store = db.transaction.objectStore(STORE_NAME);
+      if (oldVersion < 2) {
+        if (!store.indexNames.contains("by_creator")) {
+          store.createIndex("by_creator", "creatorId");
+        }
+        store.clear();
       }
     },
   });
@@ -50,9 +64,13 @@ function generateId() {
 }
 
 async function listInternal() {
+  if (!currentCreatorId) {
+    return [];
+  }
+
   const db = await getDb();
   const tx = db.transaction(STORE_NAME, "readonly");
-  const items = await tx.store.getAll();
+  const items = await tx.store.index("by_creator").getAll(currentCreatorId);
   await tx.done;
   return items.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 }
@@ -69,6 +87,10 @@ async function updateQueueMetrics() {
 export async function enqueueOnboardingSubmission(
   payload: OnboardingPayload
 ): Promise<OnboardingQueueItem> {
+  if (!currentCreatorId) {
+    throw new Error("Cannot queue onboarding submission without an authenticated user");
+  }
+
   const db = await getDb();
   const now = new Date().toISOString();
   const record: OnboardingQueueItem = {
@@ -78,6 +100,7 @@ export async function enqueueOnboardingSubmission(
     attempts: 0,
     status: "pending",
     lastError: null,
+    creatorId: currentCreatorId,
   };
 
   const tx = db.transaction(STORE_NAME, "readwrite");
@@ -237,9 +260,25 @@ export async function syncQueuedOnboarding(): Promise<OnboardingSyncSummary> {
 }
 
 export async function clearOnboardingQueue() {
+  if (!currentCreatorId) {
+    await updateQueueMetrics();
+    return;
+  }
+
   const db = await getDb();
   const tx = db.transaction(STORE_NAME, "readwrite");
-  await tx.store.clear();
+  const keys = await tx.store.index("by_creator").getAllKeys(currentCreatorId);
+  await Promise.all(keys.map((key) => tx.store.delete(key)));
   await tx.done;
   await updateQueueMetrics();
+}
+
+export function setOnboardingQueueUser(userId: string | null | undefined) {
+  const normalized = typeof userId === "string" && userId.trim().length > 0 ? userId : null;
+  if (normalized === currentCreatorId) {
+    return;
+  }
+
+  currentCreatorId = normalized;
+  void updateQueueMetrics();
 }

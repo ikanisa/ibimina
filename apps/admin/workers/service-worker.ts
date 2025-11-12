@@ -24,7 +24,7 @@ import { registerRoute, setCatchHandler } from "workbox-routing";
 import { StaleWhileRevalidate, NetworkFirst, CacheFirst } from "workbox-strategies";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 import { ExpirationPlugin } from "workbox-expiration";
-import { syncQueuedOnboarding } from "../lib/offline/onboarding-queue";
+import { setOnboardingQueueUser, syncQueuedOnboarding } from "../lib/offline/onboarding-queue";
 
 declare let self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<PrecacheEntry>;
@@ -284,6 +284,9 @@ self.addEventListener("message", (event) => {
           });
         })()
       );
+      break;
+    case "ONBOARDING_QUEUE_SCOPE":
+      setOnboardingQueueUser(typeof data.userId === "string" ? data.userId : null);
       break;
     case "AUTH_SCOPE_UPDATE":
       authScopeHash = typeof data.hash === "string" ? data.hash : authScopeHash;
