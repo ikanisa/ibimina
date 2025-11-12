@@ -1,8 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Children, Fragment, useEffect, useMemo, useRef, useState, isValidElement } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Children,
+  Fragment,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Command, Menu, Plus, Settings2 } from "lucide-react";
@@ -31,10 +38,12 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { NavigationRail } from "@/components/layout/navigation-rail";
 import type { NavigationRailProps } from "@/components/layout/navigation-rail";
 import { Drawer } from "@/components/ui/drawer";
-
-const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
-
 import { useFocusTrap } from "@/src/lib/a11y/useFocusTrap";
+import {
+  BADGE_TONE_STYLES,
+  createQuickActionGroups,
+  type QuickActionGroupDefinition,
+} from "./quick-actions";
 
 const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
 
@@ -80,30 +89,6 @@ interface AppShellProps {
   children: React.ReactNode;
   profile: ProfileRow;
 }
-
-const BADGE_TONE_STYLES = {
-  critical: "border-red-500/40 bg-red-500/15 text-red-200",
-  info: "border-sky-500/40 bg-sky-500/15 text-sky-100",
-  success: "border-emerald-500/40 bg-emerald-500/15 text-emerald-200",
-} as const;
-
-type QuickActionBadge = { label: string; tone: keyof typeof BADGE_TONE_STYLES };
-
-type QuickActionDefinition = {
-  href: string;
-  primary: string;
-  secondary: string;
-  description: string;
-  secondaryDescription: string;
-  badge?: QuickActionBadge;
-};
-
-type QuickActionGroupDefinition = {
-  id: string;
-  title: string;
-  subtitle: string;
-  actions: QuickActionDefinition[];
-};
 
 type UiNavTarget = {
   href: string;
@@ -213,101 +198,10 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
     return badges;
   }, [profile.failed_mfa_count, profile.mfa_enabled, profile.role, t]);
 
-  const quickActionGroups = useMemo<QuickActionGroupDefinition[]>(() => {
-    const opsAlertBadge =
-      (profile.failed_mfa_count ?? 0) > 0
-        ? {
-            label: t("dashboard.quick.alerts", String(profile.failed_mfa_count ?? 0)),
-            tone: "critical" as const,
-          }
-        : undefined;
-    const securityBadge = profile.mfa_enabled
-      ? { label: t("dashboard.quick.secured", "Secured"), tone: "success" as const }
-      : { label: t("dashboard.quick.setup", "Setup"), tone: "critical" as const };
-
-    return [
-      {
-        id: "tasks",
-        title: t("dashboard.quick.group.tasks", "Tasks"),
-        subtitle: t("dashboard.quick.group.tasksSubtitle", "Core workflows"),
-        actions: [
-          {
-            href: "/ikimina" as const,
-            primary: "Create Ikimina",
-            secondary: "Tangira ikimina",
-            description: "Launch a new saving group.",
-            secondaryDescription: "Fungura itsinda rishya ry'ubwizigame.",
-          },
-          {
-            href: "/ikimina" as const,
-            primary: "Import Members",
-            secondary: "Injiza abanyamuryango",
-            description: "Bulk-upload roster to an ikimina.",
-            secondaryDescription: "Kuramo urutonde rw'abanyamuryango mu ikimina.",
-          },
-          {
-            href: "/recon" as const,
-            primary: "Import Statement",
-            secondary: "Shyiramo raporo ya MoMo",
-            description: "Drop MoMo statements for parsing.",
-            secondaryDescription: "Ohereza raporo za MoMo zisobanurwa.",
-          },
-          {
-            href: "/recon" as const,
-            primary: "Review Recon",
-            secondary: "Suzuma guhuzwa",
-            description: "Clear unassigned deposits.",
-            secondaryDescription: "Huza amafaranga ataritangirwa ibisobanuro.",
-            badge: opsAlertBadge,
-          },
-        ],
-      },
-      {
-        id: "insights",
-        title: t("dashboard.quick.group.insights", "Insights"),
-        subtitle: t("dashboard.quick.group.insightsSubtitle", "Data-driven decisions"),
-        actions: [
-          {
-            href: "/analytics" as const,
-            primary: "View Analytics",
-            secondary: "Reba isesengura",
-            description: "Track contribution trends and risk signals.",
-            secondaryDescription: "Kurikirana uko imisanzu ihagaze n'ibimenyetso byo kuburira.",
-          },
-          {
-            href: "/reports" as const,
-            primary: "Generate Report",
-            secondary: "Kora raporo",
-            description: "Export SACCO or ikimina statements.",
-            secondaryDescription: "Sohora raporo za SACCO cyangwa ikimina.",
-          },
-        ],
-      },
-      {
-        id: "operations",
-        title: t("dashboard.quick.group.operations", "Operations"),
-        subtitle: t("dashboard.quick.group.operationsSubtitle", "Stability & security"),
-        actions: [
-          {
-            href: "/ops" as const,
-            primary: "Operations Center",
-            secondary: "Ikigo cy'imikorere",
-            description: "Review incidents, notifications, and MFA health.",
-            secondaryDescription: "Reba ibibazo, ubutumwa bwateguwe, n'imiterere ya MFA.",
-            badge: opsAlertBadge,
-          },
-          {
-            href: "/profile" as const,
-            primary: "Account Security",
-            secondary: "Umutekano w'uburenganzira",
-            description: "Update password and authenticator settings.",
-            secondaryDescription: "Hindura ijambobanga n'uburyo bwa 2FA.",
-            badge: securityBadge,
-          },
-        ],
-      },
-    ];
-  }, [profile.failed_mfa_count, profile.mfa_enabled, t]);
+  const quickActionGroups = useMemo(
+    () => createQuickActionGroups(t, profile),
+    [profile.failed_mfa_count, profile.mfa_enabled, t]
+  );
 
   const navigationGroups = useMemo<NavigationRailProps["groups"]>(() => {
     const groups = getNavigationGroups();
@@ -562,6 +456,7 @@ function DefaultAppShellView({
       <OfflineQueueIndicator />
       <OfflineConflictDialog />
     </>
+  );
   const [showActions, setShowActions] = useState(false);
   const quickActionsRef = useRef<HTMLDivElement | null>(null);
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
