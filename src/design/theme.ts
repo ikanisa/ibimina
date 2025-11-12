@@ -145,12 +145,22 @@ const motionEasingScale = {
   linear: "var(--motion-ease-linear)",
 } as const;
 
+const breakpointValues = {
+  sm: 640,
+  md: 768,
+  lg: 960,
+  xl: 1200,
+  "2xl": 1440,
+} as const;
+
+const toPx = <T extends number>(value: T) => `${value}px` as const;
+
 const breakpointScale = {
-  sm: "var(--breakpoint-sm)",
-  md: "var(--breakpoint-md)",
-  lg: "var(--breakpoint-lg)",
-  xl: "var(--breakpoint-xl)",
-  "2xl": "var(--breakpoint-2xl)",
+  sm: toPx(breakpointValues.sm),
+  md: toPx(breakpointValues.md),
+  lg: toPx(breakpointValues.lg),
+  xl: toPx(breakpointValues.xl),
+  "2xl": toPx(breakpointValues["2xl"]),
 } as const;
 
 const neutralCss = createCssScale("neutral", NEUTRAL_SCALE);
