@@ -41,8 +41,16 @@ class PaymentViewModel @Inject constructor(
             _paymentsState.value = PaymentUiState.Loading
             val result = createPaymentUseCase(payment)
             result.fold(
-                onSuccess = { 
-                    // Payment created successfully
+                onSuccess = { createdPayment ->
+                    val currentPayments = when (val currentState = _paymentsState.value) {
+                        is PaymentUiState.Success -> currentState.payments
+                        else -> emptyList()
+                    }
+                    val updatedPayments = currentPayments
+                        .filterNot { it.id == createdPayment.id }
+                        .plus(createdPayment)
+                        .sortedByDescending { it.timestamp }
+                    _paymentsState.value = PaymentUiState.Success(updatedPayments)
                 },
                 onFailure = { e ->
                     _paymentsState.value = PaymentUiState.Error(e.message ?: "Failed to create payment")
