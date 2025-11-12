@@ -11,9 +11,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import com.ibimina.client.ui.theme.IbiminaClientTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * NFCReaderActivity for reading payment information from NFC tags
@@ -76,22 +80,26 @@ class NFCReaderActivity : ComponentActivity() {
         if (android.nfc.NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action ||
             android.nfc.NfcAdapter.ACTION_TAG_DISCOVERED == intent.action ||
             android.nfc.NfcAdapter.ACTION_TECH_DISCOVERED == intent.action) {
-            
-            val data = nfcManager.readNFCTag(intent)
-            if (data != null) {
-                nfcData = data
-                isScanning = false
-                
-                // Return result to calling activity
-                val resultIntent = android.content.Intent().apply {
-                    putExtra("nfc_data", data)
+
+            lifecycleScope.launch {
+                val data = withContext(Dispatchers.IO) {
+                    nfcManager.readNFCTag(intent)
                 }
-                setResult(RESULT_OK, resultIntent)
-                
-                // Auto-close after a short delay
-                window.decorView.postDelayed({
-                    finish()
-                }, 1500)
+                if (data != null) {
+                    nfcData = data
+                    isScanning = false
+
+                    // Return result to calling activity
+                    val resultIntent = android.content.Intent().apply {
+                        putExtra("nfc_data", data)
+                    }
+                    setResult(RESULT_OK, resultIntent)
+
+                    // Auto-close after a short delay
+                    window.decorView.postDelayed({
+                        finish()
+                    }, 1500)
+                }
             }
         }
     }
