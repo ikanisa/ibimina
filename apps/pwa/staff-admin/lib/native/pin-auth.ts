@@ -103,6 +103,44 @@ export function validatePinFormat(pin: string): { valid: boolean; error?: string
   return { valid: true };
 }
 
+type PinArgument = string | { pin: string };
+
+function normalizePinInput(input: PinArgument): string {
+  if (typeof input === "string") {
+    return input;
+  }
+
+  if (input && typeof input.pin === "string") {
+    return input.pin;
+  }
+
+  return "";
+}
+
+type ChangePinArgument = { oldPin: string; newPin: string };
+
+function normalizeChangePinInput(
+  oldPinOrOptions: string | ChangePinArgument,
+  maybeNewPin?: string
+): ChangePinArgument {
+  if (typeof oldPinOrOptions === "string") {
+    return {
+      oldPin: oldPinOrOptions,
+      newPin: typeof maybeNewPin === "string" ? maybeNewPin : "",
+    };
+  }
+
+  if (
+    oldPinOrOptions &&
+    typeof oldPinOrOptions.oldPin === "string" &&
+    typeof oldPinOrOptions.newPin === "string"
+  ) {
+    return oldPinOrOptions;
+  }
+
+  return { oldPin: "", newPin: "" };
+}
+
 /**
  * PIN Authentication API
  */
@@ -133,19 +171,20 @@ export const PinAuth = {
   /**
    * Set a new 6-digit PIN
    */
-  async setPin(pin: string): Promise<{ success: boolean }> {
+  async setPin(pin: PinArgument): Promise<{ success: boolean }> {
     if (!isPinAuthAvailable()) {
       throw new Error("PIN authentication is not available on this platform");
     }
 
     // Validate PIN format
-    const validation = validatePinFormat(pin);
+    const normalizedPin = normalizePinInput(pin);
+    const validation = validatePinFormat(normalizedPin);
     if (!validation.valid) {
       throw new Error(validation.error);
     }
 
     try {
-      return await PinAuthNative.setPin({ pin });
+      return await PinAuthNative.setPin({ pin: normalizedPin });
     } catch (error) {
       console.error("Failed to set PIN:", error);
       throw error;
@@ -155,19 +194,20 @@ export const PinAuth = {
   /**
    * Verify the provided PIN
    */
-  async verifyPin(pin: string): Promise<PinVerifyResult> {
+  async verifyPin(pin: PinArgument): Promise<PinVerifyResult> {
     if (!isPinAuthAvailable()) {
       throw new Error("PIN authentication is not available on this platform");
     }
 
     // Validate PIN format
-    const validation = validatePinFormat(pin);
+    const normalizedPin = normalizePinInput(pin);
+    const validation = validatePinFormat(normalizedPin);
     if (!validation.valid) {
       throw new Error(validation.error);
     }
 
     try {
-      return await PinAuthNative.verifyPin({ pin });
+      return await PinAuthNative.verifyPin({ pin: normalizedPin });
     } catch (error) {
       // Error might be due to lockout
       const lockStatus = await this.getLockStatus();
@@ -200,28 +240,37 @@ export const PinAuth = {
   /**
    * Change PIN (requires old PIN for verification)
    */
-  async changePin(oldPin: string, newPin: string): Promise<{ success: boolean }> {
+  async changePin(
+    oldPin: string | ChangePinArgument,
+    newPin?: string
+  ): Promise<{ success: boolean }> {
     if (!isPinAuthAvailable()) {
       throw new Error("PIN authentication is not available on this platform");
     }
 
+    const normalized = normalizeChangePinInput(oldPin, newPin);
+    const { oldPin: normalizedOldPin, newPin: normalizedNewPin } = normalized;
+
     // Validate both PINs
-    const oldValidation = validatePinFormat(oldPin);
+    const oldValidation = validatePinFormat(normalizedOldPin);
     if (!oldValidation.valid) {
       throw new Error(`Old PIN: ${oldValidation.error}`);
     }
 
-    const newValidation = validatePinFormat(newPin);
+    const newValidation = validatePinFormat(normalizedNewPin);
     if (!newValidation.valid) {
       throw new Error(`New PIN: ${newValidation.error}`);
     }
 
-    if (oldPin === newPin) {
+    if (normalizedOldPin === normalizedNewPin) {
       throw new Error("New PIN must be different from old PIN");
     }
 
     try {
-      return await PinAuthNative.changePin({ oldPin, newPin });
+      return await PinAuthNative.changePin({
+        oldPin: normalizedOldPin,
+        newPin: normalizedNewPin,
+      });
     } catch (error) {
       console.error("Failed to change PIN:", error);
       throw error;
