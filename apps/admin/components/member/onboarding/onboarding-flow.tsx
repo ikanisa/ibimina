@@ -16,10 +16,12 @@ import { Stepper } from "@/components/ui/stepper";
 import {
   enqueueOnboardingSubmission,
   getOnboardingQueueStats,
+  setOnboardingQueueUser,
   type OnboardingQueueStats,
 } from "@/lib/offline/onboarding-queue";
 import { requestBackgroundSync } from "@/lib/offline/sync";
 import type { OnboardingOcrResult, OnboardingPayload } from "@/lib/member/onboarding";
+import { useProfileContext } from "@/providers/profile-provider";
 
 type FormState = Pick<OnboardingPayload, "whatsapp_msisdn" | "momo_msisdn">;
 
@@ -39,6 +41,7 @@ const EMPTY_QUEUE_STATS: OnboardingQueueStats = {
 };
 
 export function OnboardingFlow() {
+  const { user } = useProfileContext();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>({ whatsapp_msisdn: "", momo_msisdn: "" });
   const [ocr, setOcr] = useState<OnboardingOcrResult | null>(null);
@@ -125,6 +128,10 @@ export function OnboardingFlow() {
   );
 
   useEffect(() => {
+    setOnboardingQueueUser(user.id);
+  }, [user.id]);
+
+  useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
@@ -144,6 +151,12 @@ export function OnboardingFlow() {
   useEffect(() => {
     let cancelled = false;
 
+    if (!user.id) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
     void (async () => {
       const stats = await refreshQueueStats();
       if (!cancelled && stats.pending + stats.failed > 0) {
@@ -154,7 +167,7 @@ export function OnboardingFlow() {
     return () => {
       cancelled = true;
     };
-  }, [applyQueueBanner, refreshQueueStats]);
+  }, [applyQueueBanner, refreshQueueStats, user.id]);
 
   useEffect(() => {
     if (queueBannerActive) {

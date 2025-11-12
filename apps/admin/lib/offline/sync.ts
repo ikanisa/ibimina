@@ -68,6 +68,20 @@ export async function requestImmediateOfflineSync(reason: string) {
   registration?.active?.postMessage({ type: "OFFLINE_QUEUE_PROCESS", reason });
 }
 
+export async function updateOnboardingQueueUser(userId: string | null | undefined) {
+  const registration = await getRegistration();
+  if (!registration) {
+    return;
+  }
+
+  if (!userId) {
+    registration.active?.postMessage({ type: "ONBOARDING_QUEUE_SCOPE", userId: null });
+    return;
+  }
+
+  registration.active?.postMessage({ type: "ONBOARDING_QUEUE_SCOPE", userId });
+}
+
 export async function updateAuthCacheScope(credential: string | null | undefined) {
   const registration = await getRegistration();
   if (!registration) {

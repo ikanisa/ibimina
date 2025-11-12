@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { resetAuthCache, updateAuthCacheScope } from "@/lib/offline/sync";
+import {
+  resetAuthCache,
+  updateAuthCacheScope,
+  updateOnboardingQueueUser,
+} from "@/lib/offline/sync";
+import { setOnboardingQueueUser } from "@/lib/offline/onboarding-queue";
 
 export function SupabaseAuthListener() {
+  const syncOnboardingScope = useCallback((userId: string | null) => {
+    setOnboardingQueueUser(userId);
+    void updateOnboardingQueueUser(userId);
+  }, []);
+
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     const {
@@ -39,9 +49,12 @@ export function SupabaseAuthListener() {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
         const credential = session?.access_token ?? session?.refresh_token ?? null;
         void updateAuthCacheScope(credential);
+        const userId = session?.user?.id ?? null;
+        syncOnboardingScope(userId);
       }
       if (event === "SIGNED_OUT") {
         void updateAuthCacheScope(null);
+        syncOnboardingScope(null);
       }
 
       // Bust high-priority caches when auth boundary changes (from main)
@@ -53,7 +66,7 @@ export function SupabaseAuthListener() {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [syncOnboardingScope]);
 
   return null;
 }

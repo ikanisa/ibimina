@@ -49,16 +49,25 @@ vi.mock("@/components/ui/stepper", () => ({
 
 const enqueueOnboardingSubmission = vi.fn();
 const getOnboardingQueueStats = vi.fn();
+const setOnboardingQueueUser = vi.fn();
 
 vi.mock("@/lib/offline/onboarding-queue", () => ({
   enqueueOnboardingSubmission: (...args: unknown[]) => enqueueOnboardingSubmission(...args),
   getOnboardingQueueStats: (...args: unknown[]) => getOnboardingQueueStats(...args),
+  setOnboardingQueueUser: (...args: unknown[]) => setOnboardingQueueUser(...args),
 }));
 
 const requestBackgroundSync = vi.fn();
 
 vi.mock("@/lib/offline/sync", () => ({
   requestBackgroundSync: (...args: unknown[]) => requestBackgroundSync(...args),
+}));
+
+vi.mock("@/providers/profile-provider", () => ({
+  useProfileContext: () => ({
+    user: { id: "user-123" },
+    profile: { id: "user-123" },
+  }),
 }));
 
 import { OnboardingFlow } from "@/components/member/onboarding/onboarding-flow";
