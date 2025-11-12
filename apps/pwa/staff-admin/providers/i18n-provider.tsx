@@ -2,8 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import enCommon from "@/locales/en/common.json";
+import enStaff from "@/locales/en/staff.json";
 import rwCommon from "@/locales/rw/common.json";
+import rwStaff from "@/locales/rw/staff.json";
 import frCommon from "@/locales/fr/common.json";
+import frStaff from "@/locales/fr/staff.json";
 import {
   DEFAULT_LOCALE,
   LOCALE_COOKIE_NAME,
@@ -13,9 +16,9 @@ import {
 import { BASE_DICTIONARIES, ENGLISH_DICTIONARY } from "@/lib/i18n/base-dictionary";
 
 const APP_DICTIONARIES: Record<SupportedLocale, Record<string, string>> = {
-  en: enCommon as Record<string, string>,
-  rw: rwCommon as Record<string, string>,
-  fr: frCommon as Record<string, string>,
+  en: { ...enCommon, ...enStaff } as Record<string, string>,
+  rw: { ...rwCommon, ...rwStaff } as Record<string, string>,
+  fr: { ...frCommon, ...frStaff } as Record<string, string>,
 };
 
 interface I18nContextValue {

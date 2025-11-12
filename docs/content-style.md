@@ -51,3 +51,25 @@ teams can align on expectations before updating strings.
 
 Refer back to this guide during copy reviews and localisation work so tone stays
 cohesive across the application.
+
+## Quick action localisation keys
+
+The dashboard quick actions now live in `locales/en/staff.json` and
+`locales/rw/staff.json` so content updates follow the normal translation review
+loop. Each action renders both a primary (current locale) and secondary (paired
+locale) label plus matching descriptions for command palette context.
+
+| Action key (`dashboard.quick.actions.*`) | English primary & description                                            | Kinyarwanda primary & description                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `createIkimina`                          | "Create Ikimina" · "Launch a new saving group."                          | "Tangira ikimina" · "Fungura itsinda rishya ry'ubwizigame."                       |
+| `importMembers`                          | "Import Members" · "Bulk-upload roster to an ikimina."                   | "Injiza abanyamuryango" · "Kuramo urutonde rw'abanyamuryango mu ikimina."         |
+| `importStatement`                        | "Import Statement" · "Drop MoMo statements for parsing."                 | "Shyiramo raporo ya MoMo" · "Ohereza raporo za MoMo zisobanurwa."                 |
+| `reviewRecon`                            | "Review Recon" · "Clear unassigned deposits."                            | "Suzuma guhuzwa" · "Huza amafaranga ataritangirwa ibisobanuro."                   |
+| `viewAnalytics`                          | "View Analytics" · "Track contribution trends and risk signals."         | "Reba isesengura" · "Kurikirana uko imisanzu ihagaze n'ibimenyetso byo kuburira." |
+| `generateReport`                         | "Generate Report" · "Export SACCO or ikimina statements."                | "Kora raporo" · "Sohora raporo za SACCO cyangwa ikimina."                         |
+| `operationsCenter`                       | "Operations Center" · "Review incidents, notifications, and MFA health." | "Ikigo cy'imikorere" · "Reba ibibazo, ubutumwa bwateguwe, n'imiterere ya MFA."    |
+| `accountSecurity`                        | "Account Security" · "Update password and authenticator settings."       | "Umutekano w'uburenganzira" · "Hindura ijambobanga n'uburyo bwa 2FA."             |
+
+When drafting edits for these actions, update both locales together and include
+the paired-language secondary copy to preserve the bilingual presentation in the
+quick-action drawers and command palette.
