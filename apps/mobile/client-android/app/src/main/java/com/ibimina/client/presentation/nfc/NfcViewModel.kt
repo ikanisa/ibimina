@@ -8,10 +8,12 @@ import androidx.lifecycle.viewModelScope
 import com.ibimina.client.data.nfc.NFCManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class NfcViewModel @Inject constructor(
@@ -48,7 +50,9 @@ class NfcViewModel @Inject constructor(
 
     fun readFromIntent(intent: Intent) {
         viewModelScope.launch {
-            val payload = nfcManager.readNFCTag(intent)
+            val payload = withContext(Dispatchers.IO) {
+                nfcManager.readNFCTag(intent)
+            }
             _uiState.value = if (payload != null) {
                 _uiState.value.copy(
                     lastReadPayload = payload,
@@ -74,7 +78,9 @@ class NfcViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            val success = nfcManager.writeNFCTag(tag, data)
+            val success = withContext(Dispatchers.IO) {
+                nfcManager.writeNFCTag(tag, data)
+            }
             _uiState.value = if (success) {
                 _uiState.value.copy(
                     lastWrittenPayload = data,
