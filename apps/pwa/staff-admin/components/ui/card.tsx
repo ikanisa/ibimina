@@ -32,7 +32,15 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
-  { surface = "base", padding = "md", interactive = false, radius = "xl", className, ...rest },
+  {
+    surface = "base",
+    padding = "md",
+    interactive = false,
+    radius = "xl",
+    className,
+    children,
+    ...rest
+  },
   ref
 ) {
   return (
@@ -49,7 +57,9 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
         className
       )}
       {...rest}
-    />
+    >
+      {children}
+    </section>
   );
 });
 
@@ -99,16 +109,20 @@ export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(function C
 export interface CardContentProps extends HTMLAttributes<HTMLDivElement> {}
 
 export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(function CardContent(
-  { className, ...rest },
+  { className, children, ...rest },
   ref
 ) {
-  return <div ref={ref} className={cn("space-y-4", className)} {...rest} />;
+  return (
+    <div ref={ref} className={cn("space-y-4", className)} {...rest}>
+      {children}
+    </div>
+  );
 });
 
 export interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {}
 
 export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(function CardFooter(
-  { className, ...rest },
+  { className, children, ...rest },
   ref
 ) {
   return (
@@ -119,7 +133,9 @@ export const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(function C
         className
       )}
       {...rest}
-    />
+    >
+      {children}
+    </footer>
   );
 });
 
