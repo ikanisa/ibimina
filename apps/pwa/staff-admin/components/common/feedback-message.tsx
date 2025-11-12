@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { Button, EmptyState, ErrorState, SuccessState } from "@ibimina/ui";
 
 import { Trans } from "@/components/common/trans";
@@ -72,14 +72,16 @@ function renderActions(actions: FeedbackAction[] | undefined) {
   );
 }
 
-function resolveButtonVariant(variant: FeedbackAction["variant"]) {
+function resolveButtonVariant(
+  variant: FeedbackAction["variant"]
+): ComponentProps<typeof Button>["variant"] {
   switch (variant) {
     case "secondary":
-      return "outline";
+      return "secondary";
     case "link":
-      return "link";
+      return "ghost";
     default:
-      return "default";
+      return "primary";
   }
 }
 
