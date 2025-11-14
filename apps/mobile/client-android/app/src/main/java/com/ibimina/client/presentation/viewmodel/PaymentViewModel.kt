@@ -38,15 +38,15 @@ class PaymentViewModel @Inject constructor(
     
     fun createPayment(payment: Payment) {
         viewModelScope.launch {
+            val previousPayments = when (val currentState = _paymentsState.value) {
+                is PaymentUiState.Success -> currentState.payments
+                else -> emptyList()
+            }
             _paymentsState.value = PaymentUiState.Loading
             val result = createPaymentUseCase(payment)
             result.fold(
                 onSuccess = { createdPayment ->
-                    val currentPayments = when (val currentState = _paymentsState.value) {
-                        is PaymentUiState.Success -> currentState.payments
-                        else -> emptyList()
-                    }
-                    val updatedPayments = currentPayments
+                    val updatedPayments = previousPayments
                         .filterNot { it.id == createdPayment.id }
                         .plus(createdPayment)
                         .sortedByDescending { it.timestamp }
