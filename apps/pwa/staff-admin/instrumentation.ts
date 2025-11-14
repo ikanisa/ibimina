@@ -1,22 +1,25 @@
-import { logInfo } from "@/lib/observability/logger";
-
 export async function register() {
+  // Skip in browser
   if (typeof window !== "undefined") {
     return;
   }
 
-  // Skip Sentry in development and also avoid importing the module
-  if (process.env.NODE_ENV === "development") {
-    logInfo("instrumentation_skipped_in_dev", {});
+  // Skip in edge runtime (middleware)
+  if (typeof EdgeRuntime !== "undefined") {
     return;
   }
 
-  // Production only
-  await import("./sentry.server.config");
+  // Skip in development
+  if (process.env.NODE_ENV === "development") {
+    console.log("Instrumentation skipped in development");
+    return;
+  }
 
-  const environment = process.env.APP_ENV || process.env.NODE_ENV || "unknown";
-  logInfo("admin.instrumentation.boot", {
-    environment,
-    timestamp: new Date().toISOString(),
-  });
+  // Production only - load Sentry
+  try {
+    await import("./sentry.server.config");
+    console.log("Instrumentation initialized");
+  } catch (error) {
+    console.error("Failed to initialize instrumentation:", error);
+  }
 }
