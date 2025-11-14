@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Lock, Check, X, AlertCircle } from "lucide-react";
 import { PinAuth } from "@/lib/native/pin-auth";
-import { useRouter } from "next/navigation";
 
 interface PinSetupProps {
   onComplete: () => void;
@@ -11,7 +10,6 @@ interface PinSetupProps {
 }
 
 export function PinSetup({ onComplete, onSkip }: PinSetupProps) {
-  const router = useRouter();
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [step, setStep] = useState<"enter" | "confirm">("enter");

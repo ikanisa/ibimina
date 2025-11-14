@@ -3,21 +3,11 @@
 import { useEffect, useState } from "react";
 import { SmsIngest } from "@/lib/native/sms-ingest";
 
-/**
- * SMS Consent Screen
- *
- * This page displays privacy information and requests user consent for SMS access.
- * It explains:
- * - What SMS messages will be accessed (mobile money only)
- * - How the data will be used (payment allocation)
- * - Where data is stored (Supabase backend)
- * - How to opt-out (settings toggle)
- */
+type PermissionState = "prompt" | "granted" | "denied";
+
 export default function SmsConsentPage() {
   const [isNative, setIsNative] = useState(false);
-  const [permissionStatus, setPermissionStatus] = useState<"prompt" | "granted" | "denied">(
-    "prompt"
-  );
+  const [permissionStatus, setPermissionStatus] = useState<PermissionState>("prompt");
   const [isEnabled, setIsEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,17 +18,15 @@ export default function SmsConsentPage() {
       setIsNative(available);
 
       if (available) {
-        // Check current permission status
         const perms = await SmsIngest.checkPermissions();
         setPermissionStatus(perms.state);
 
-        // Check if feature is enabled
         const enabled = await SmsIngest.isEnabled();
         setIsEnabled(enabled);
       }
     };
 
-    checkAvailability();
+    void checkAvailability();
   }, []);
 
   const handleRequestPermissions = async () => {
@@ -50,9 +38,8 @@ export default function SmsConsentPage() {
       setPermissionStatus(result.state);
 
       if (result.state === "granted") {
-        // Automatically enable after granting permission
         await SmsIngest.enable();
-        await SmsIngest.scheduleBackgroundSync(15); // 15-minute intervals
+        await SmsIngest.scheduleBackgroundSync(15);
         setIsEnabled(true);
       } else {
         setError("SMS permissions were denied. This feature requires SMS access to function.");
@@ -115,8 +102,6 @@ export default function SmsConsentPage() {
             Enable automatic payment processing from mobile money SMS notifications
           </p>
         </div>
-
-        {/* Privacy Notice */}
         <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
           <h2 className="mb-3 text-lg font-semibold text-blue-900 dark:text-blue-100">
             📱 What we access
@@ -146,115 +131,59 @@ export default function SmsConsentPage() {
           </ul>
         </div>
 
-        {/* How it works */}
         <div className="mb-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">How it works</h2>
           <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
-            <div className="flex items-start">
-              <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                1
-              </span>
-              <p>
-                <strong>Background monitoring:</strong> The app checks your SMS inbox every 15
-                minutes for new mobile money payment confirmations
-              </p>
-            </div>
-            <div className="flex items-start">
-              <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                2
-              </span>
-              <p>
-                <strong>Secure parsing:</strong> Payment details are extracted using AI and sent
-                securely to the Supabase backend over HTTPS
-              </p>
-            </div>
-            <div className="flex items-start">
-              <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                3
-              </span>
-              <p>
-                <strong>Automatic allocation:</strong> Payments are matched to members based on
-                reference codes and allocated to their accounts
-              </p>
-            </div>
-            <div className="flex items-start">
-              <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                4
-              </span>
-              <p>
-                <strong>No local storage:</strong> SMS data is not stored on your device; it's
-                immediately forwarded and processed on secure servers
-              </p>
-            </div>
+            {[
+              "Background monitoring every 15 minutes for new confirmations",
+              "Secure parsing and encrypted upload to Supabase",
+              "Automatic member allocation via reference codes",
+              "No local storage — SMS data is forwarded instantly",
+            ].map((item, index) => (
+              <div key={item} className="flex items-start">
+                <span className="mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                  {index + 1}
+                </span>
+                <p>{item}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Privacy & Security */}
-        <div className="mb-6 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Privacy & Security
-          </h2>
-          <ul className="list-inside list-disc space-y-1">
-            <li>End-to-end HTTPS encryption</li>
-            <li>HMAC authentication for all API requests</li>
-            <li>Phone numbers are hashed and encrypted before storage</li>
-            <li>You can disable this feature anytime in Settings</li>
-            <li>
-              Full details in our{" "}
-              <a href="/privacy" className="text-blue-600 underline dark:text-blue-400">
-                Privacy Policy
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Error message */}
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
-            {error}
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/30">
+          <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">Status</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Permissions:{" "}
+            <span className="font-semibold">
+              {permissionStatus === "prompt" ? "Not requested" : permissionStatus}
+            </span>
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            SMS ingestion:{" "}
+            <span className="font-semibold">{isEnabled ? "Enabled" : "Disabled"}</span>
+          </p>
+          {error && (
+            <p className="mt-3 rounded bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+          )}
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={handleRequestPermissions}
+              disabled={isLoading}
+              className="inline-flex flex-1 items-center justify-center rounded-full bg-kigali px-4 py-2 text-sm font-semibold text-ink transition hover:bg-kigali/90 disabled:opacity-60"
+            >
+              {isLoading ? "Requesting…" : "Request permissions"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleToggle(!isEnabled)}
+              disabled={isLoading}
+              className="inline-flex flex-1 items-center justify-center rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-400 dark:border-gray-700 dark:text-gray-200 disabled:opacity-60"
+            >
+              {isEnabled ? "Disable ingestion" : "Enable ingestion"}
+            </button>
           </div>
-        )}
-
-        {/* Status indicator */}
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
-          <div>
-            <p className="font-medium text-gray-900 dark:text-white">SMS Ingestion</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {isEnabled ? "Active - scanning for payments" : "Disabled"}
-            </p>
-          </div>
-          <button
-            onClick={() => handleToggle(!isEnabled)}
-            disabled={isLoading}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              isEnabled ? "bg-green-600" : "bg-gray-300 dark:bg-gray-600"
-            } ${isLoading ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isEnabled ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
         </div>
-
-        {/* Action button */}
-        {permissionStatus !== "granted" && (
-          <button
-            onClick={handleRequestPermissions}
-            disabled={isLoading}
-            className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
-          >
-            {isLoading ? "Processing..." : "Grant SMS Permission"}
-          </button>
-        )}
-
-        {/* Footer note */}
-        <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
-          By enabling this feature, you consent to the processing of mobile money SMS as described
-          above. This feature complies with Android's SMS permission policies for internal
-          distribution.
-        </p>
       </div>
     </div>
   );

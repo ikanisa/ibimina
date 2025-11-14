@@ -31,7 +31,6 @@ export function QrScannerPage() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string>("");
-  const [cameraId, setCameraId] = useState<string>("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
 
@@ -82,7 +81,6 @@ export function QrScannerPage() {
       // Prefer back camera
       const backCamera = cameras.find((cam) => cam.label.toLowerCase().includes("back"));
       const selectedCamera = backCamera || cameras[0];
-      setCameraId(selectedCamera.id);
 
       await scanner.start(
         selectedCamera.id,
@@ -93,7 +91,7 @@ export function QrScannerPage() {
         (decodedText) => {
           handleScanSuccess(decodedText);
         },
-        (errorMessage) => {
+        (_errorMessage) => {
           // Ignore scan errors (user is still scanning)
         }
       );
@@ -113,7 +111,7 @@ export function QrScannerPage() {
         await scannerRef.current.stop();
         scannerRef.current.clear();
       } catch (err) {
-        console.error("Error stopping scanner:", err);
+        logError("qr_scanner_stop_failed", { error: err });
       }
       scannerRef.current = null;
     }

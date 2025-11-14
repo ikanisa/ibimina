@@ -129,7 +129,7 @@ export function FormSkeleton() {
   );
 }
 
-export function GridSkeleton({ count = 6, columns = 3 }: { count?: number; columns?: number }) {
+export function GridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div
       className="grid gap-6"

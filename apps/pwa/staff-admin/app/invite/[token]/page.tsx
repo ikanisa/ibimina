@@ -2,15 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-interface InviteRow {
-  id: string;
-  token: string;
-  status: string;
-  group_id: string;
-  created_at: string | null;
-  ibimina?: { name: string | null } | null;
-}
-
 export default async function InviteDeepLinkPage({ params }: { params: { token: string } }) {
   const supabase = createSupabaseAdminClient();
   const { data: invite, error } = await supabase

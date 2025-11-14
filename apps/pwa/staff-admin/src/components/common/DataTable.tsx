@@ -351,7 +351,6 @@ export function DataTable<TData>({
     setDefaultView,
     activeViewId,
     setActiveViewId,
-    defaultViewId,
   } = useSavedViews({
     scope: viewScope,
     userId: profile?.id,

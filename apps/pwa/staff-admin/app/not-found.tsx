@@ -1,7 +1,6 @@
+"use client";
 import Link from "next/link";
 import { ArrowLeft, Compass, LifeBuoy } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { EmptyState } from "@/components/ui/empty-state";
 
 const supportEmail = "support@ibimina.rw";
 const quickLinks = [
@@ -10,11 +9,6 @@ const quickLinks = [
   { href: "/recon", label: "Reconciliation" },
   { href: "/reports", label: "Reports" },
 ];
-
-const primaryButtonClasses =
-  "inline-flex items-center justify-center gap-2 rounded-full bg-kigali px-6 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-ink shadow-glass transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kigali/80 focus-visible:ring-offset-2 focus-visible:ring-offset-ink hover:bg-kigali/90";
-const secondaryButtonClasses =
-  "inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-neutral-0 shadow-glass transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-ink hover:bg-white/20";
 
 export default function NotFound() {
   return (
@@ -31,13 +25,16 @@ export default function NotFound() {
             tried to open.
           </p>
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link href="/dashboard" className={cn(primaryButtonClasses, "w-full sm:w-auto")}>
+            <Link
+              href="/dashboard"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-kigali px-6 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-ink shadow-glass transition hover:bg-kigali/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kigali/80 focus-visible:ring-offset-2 focus-visible:ring-offset-ink sm:w-auto"
+            >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Back to dashboard
             </Link>
             <Link
               href={`mailto:${supportEmail}`}
-              className={cn(secondaryButtonClasses, "w-full sm:w-auto")}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-neutral-0 shadow-glass transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-ink sm:w-auto"
             >
               <LifeBuoy className="h-4 w-4" aria-hidden="true" />
               Contact support
@@ -67,14 +64,15 @@ export default function NotFound() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="interactive-scale focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-ink focus-visible:ring-white/40"
+                className="interactive-scale flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-neutral-0 shadow-inner transition hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-ink focus-visible:ring-white/40"
               >
-                <EmptyState
-                  title={link.label}
-                  description="Open module"
-                  className="h-full bg-white/10 text-left"
-                  icon={<Compass className="h-5 w-5" aria-hidden="true" />}
-                />
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.3em] text-neutral-2">
+                    {link.label}
+                  </p>
+                  <p className="text-xs text-neutral-3">Open module</p>
+                </div>
+                <Compass className="h-5 w-5 text-neutral-1" aria-hidden="true" />
               </Link>
             ))}
           </nav>

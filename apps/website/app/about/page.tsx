@@ -15,7 +15,7 @@ export default function AboutPage() {
             About SACCO+
           </h1>
           <p className="text-xl text-neutral-700 leading-relaxed max-w-2xl mx-auto">
-            Digital intermediation platform for Rwanda's Umurenge SACCOs
+            Digital intermediation platform for Rwanda’s Umurenge SACCOs
           </p>
         </div>
       </section>
@@ -25,7 +25,7 @@ export default function AboutPage() {
         {/* Introduction */}
         <section className="text-center max-w-3xl mx-auto">
           <p className="text-2xl text-neutral-700 leading-relaxed">
-            SACCO+ is a comprehensive digital platform designed specifically for Rwanda's Umurenge
+            SACCO+ is a comprehensive digital platform designed specifically for Rwanda’s Umurenge
             SACCOs, digitizing ibimina savings groups with zero liability.
           </p>
         </section>
@@ -39,7 +39,7 @@ export default function AboutPage() {
             <div className="flex-1">
               <h2 className="text-3xl font-bold text-neutral-900 mb-4">Our Mission</h2>
               <p className="text-lg text-neutral-700 leading-relaxed">
-                To empower Rwanda's Umurenge SACCOs with modern technology that simplifies group
+                To empower Rwanda’s Umurenge SACCOs with modern technology that simplifies group
                 savings management, improves operational efficiency, and enhances member experience
                 through USSD-first, intermediation-only solutions.
               </p>
@@ -78,7 +78,7 @@ export default function AboutPage() {
             <div className="flex-1">
               <h2 className="text-3xl font-bold text-neutral-900 mb-4">Built for Rwanda</h2>
               <p className="text-lg text-neutral-700 mb-6 leading-relaxed">
-                Understanding the unique context of Rwanda's financial sector, SACCO+ is designed
+                Understanding the unique context of Rwanda’s financial sector, SACCO+ is designed
                 with local needs in mind:
               </p>
               <ul className="space-y-3">

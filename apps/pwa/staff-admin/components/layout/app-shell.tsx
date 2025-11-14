@@ -384,7 +384,7 @@ function DefaultAppShellView({
   const quickActionsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const quickActionsLastFocusRef = useRef<HTMLElement | null>(null);
   const wasQuickActionsOpenRef = useRef(false);
-  const { open: paletteOpen, openPalette } = useCommandPalette();
+  const { open: _paletteOpen } = useCommandPalette();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -439,12 +439,6 @@ function DefaultAppShellView({
 
     container?.addEventListener("keydown", handleKeyDown);
     return () => container?.removeEventListener("keydown", handleKeyDown);
-  }, [showActions]);
-
-  useEffect(() => {
-    const container = quickActionsRef.current;
-
-    // Removed unused firstQuickActionRef reference
   }, [showActions]);
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);

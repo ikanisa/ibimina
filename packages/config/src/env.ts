@@ -68,6 +68,7 @@ function buildRawEnv(source: ProcessEnvSource) {
     ANALYZE_BUNDLE: source.ANALYZE_BUNDLE,
     AUTH_E2E_STUB: source.AUTH_E2E_STUB,
     AUTH_GUEST_MODE: source.AUTH_GUEST_MODE,
+    ALLOW_STUB_ENV: source.ALLOW_STUB_ENV,
     E2E_BACKUP_PEPPER: source.E2E_BACKUP_PEPPER,
     E2E_MFA_SESSION_SECRET: source.E2E_MFA_SESSION_SECRET,
     E2E_TRUSTED_COOKIE_SECRET: source.E2E_TRUSTED_COOKIE_SECRET,
@@ -265,8 +266,17 @@ const schema = z
 
 export type RawEnv = z.infer<typeof schema>;
 
+function shouldUseStubFallbacks(raw: ProcessEnvSource) {
+  const allowStubEnv = raw.ALLOW_STUB_ENV === "1";
+  const authStubEnabled = raw.AUTH_E2E_STUB === "1" || raw.AUTH_GUEST_MODE === "1";
+  if (allowStubEnv && !authStubEnabled) {
+    process.env.AUTH_E2E_STUB = process.env.AUTH_E2E_STUB ?? "1";
+  }
+  return allowStubEnv || authStubEnabled;
+}
+
 function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
-  if (raw.AUTH_E2E_STUB !== "1" && raw.AUTH_GUEST_MODE !== "1") {
+  if (!shouldUseStubFallbacks(raw)) {
     return raw;
   }
 

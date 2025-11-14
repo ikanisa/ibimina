@@ -1,4 +1,4 @@
-import { HSTS_HEADER, SECURITY_HEADERS } from "./constants";
+import { SECURITY_HEADERS } from "./constants";
 
 export { HSTS_HEADER, SECURITY_HEADERS } from "./constants";
 
