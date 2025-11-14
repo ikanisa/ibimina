@@ -4,6 +4,7 @@ export * from "./components/button";
 export * from "./components/card";
 export * from "./components/empty-state";
 export * from "./components/error-state";
+export * from "./components/success-state";
 export * from "./components/form";
 export * from "./components/glass-card";
 export * from "./components/gradient-header";

@@ -26,6 +26,7 @@ export { Modal } from "./modal";
 export { Drawer } from "./drawer";
 export { EmptyState } from "./empty-state";
 export { ErrorState } from "./error-state";
+export { SuccessState } from "./success-state";
 export { SectionHeader } from "./section-header";
 export { PageHeader } from "./page-header";
 

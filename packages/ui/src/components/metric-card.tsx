@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "../utils/cn";
 
 export interface MetricCardProps {
-  label: string;
+  label: ReactNode;
   value: string | number;
   trend?: ReactNode;
   accent?: "blue" | "yellow" | "green" | "neutral";

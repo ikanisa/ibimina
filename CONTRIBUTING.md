@@ -82,6 +82,25 @@ pnpm check:deploy         # Run full deployment checks
 make ready                # Alternative command for deployment checks
 ```
 
+## Content and Localization Workflow
+
+Copy updates must follow the shared voice and tone agreements captured in
+[`docs/content-style.md`](docs/content-style.md).
+
+1. **Draft strings in `locales/` first.** Add English, Kinyarwanda, and future
+   locale placeholders before wiring UI components. The automated
+   `check-locale-coverage` script (run via `pnpm lint`) will fail if keys are
+   missing.
+2. **Share updates for review.** Post a short summary of copy changes in your
+   pull request and tag product/content stakeholders for async approval. Link to
+   the relevant rows in `docs/content-style.md` when tone guidance is important.
+3. **Record approval.** Capture confirmation (Slack thread link, issue comment,
+   or reviewer note) in the PR description before merge so future contributors
+   understand the source of the wording.
+4. **Use structured feedback components.** Render empty, error, and success
+   states through the shared feedback message layer to keep icons, tone, and
+   action layouts consistent.
+
 ## Branching Strategy
 
 This project follows a two-branch model:

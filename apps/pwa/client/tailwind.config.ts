@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { tailwindTokens } from "../../../src/design/theme";
 
 /**
  * Tailwind CSS configuration for SACCO+ Client App
@@ -13,6 +14,7 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
+    screens: tailwindTokens.screens,
     extend: {
       colors: {
         // Neutral scale (primary) - WCAG AA compliant

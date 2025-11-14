@@ -8,6 +8,15 @@ import com.ibimina.client.domain.model.Group
 @Entity(tableName = "groups")
 data class GroupEntity(
     @PrimaryKey val id: String,
+    val orgId: String,
+    val countryId: String,
+    val name: String,
+    val amount: Double,
+    val frequency: String,
+    val cycle: String,
+    val memberCount: Int = 0,
+    val isActive: Boolean = true
+)
     val name: String,
     @ColumnInfo(name = "group_id") val groupId: String,
     @ColumnInfo(name = "member_code") val memberCode: String

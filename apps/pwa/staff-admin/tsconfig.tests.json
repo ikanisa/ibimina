@@ -11,6 +11,8 @@
     "tests/integration/**/*.ts",
     "tests/components/**/*.ts",
     "tests/components/**/*.tsx",
+    "tests/accessibility/**/*.ts",
+    "tests/accessibility/**/*.tsx",
     "tests/types/**/*.d.ts"
   ],
   "exclude": [

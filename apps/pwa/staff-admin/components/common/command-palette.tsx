@@ -5,6 +5,7 @@ import { Search, FileText, Users, Building, CreditCard, ArrowRight } from "lucid
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
+import { useFocusTrap } from "@/src/lib/a11y/useFocusTrap";
 
 interface SearchResult {
   id: string;
@@ -57,17 +58,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const debouncedQuery = useDebouncedValue(query, 200);
   const router = useRouter();
-  const triggerRef = useRef<HTMLElement | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Store trigger element when opening
-  useEffect(() => {
-    if (isOpen) {
-      triggerRef.current = document.activeElement as HTMLElement;
-      // Focus input after a brief delay to ensure dialog is mounted
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [isOpen]);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Search logic
   useEffect(() => {
@@ -86,14 +78,6 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     setResults(filtered);
     setSelectedIndex(0);
   }, [debouncedQuery]);
-
-  const handleClose = useCallback(() => {
-    setQuery("");
-    setSelectedIndex(0);
-    onClose();
-    // Restore focus to trigger element
-    setTimeout(() => triggerRef.current?.focus(), 50);
-  }, [onClose]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback(
@@ -114,14 +98,21 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             handleClose();
           }
           break;
-        case "Escape":
-          e.preventDefault();
-          handleClose();
-          break;
       }
     },
-    [results, selectedIndex, router, handleClose]
+    [results, selectedIndex, router]
   );
+
+  const handleClose = useCallback(() => {
+    setQuery("");
+    setSelectedIndex(0);
+    onClose();
+  }, [onClose]);
+
+  useFocusTrap(isOpen, dialogRef, {
+    onEscape: () => handleClose(),
+    initialFocus: () => inputRef.current,
+  });
 
   const handleSelectResult = useCallback(
     (result: SearchResult) => {
@@ -144,10 +135,12 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
       {/* Dialog */}
       <div
+        ref={dialogRef}
         className="fixed inset-x-4 top-[20vh] z-50 mx-auto max-w-2xl"
         role="dialog"
         aria-modal="true"
         aria-label="Search and navigate"
+        tabIndex={-1}
       >
         <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-800">
           {/* Search Input */}

@@ -68,7 +68,6 @@ function buildRawEnv(source: ProcessEnvSource) {
     ANALYZE_BUNDLE: source.ANALYZE_BUNDLE,
     AUTH_E2E_STUB: source.AUTH_E2E_STUB,
     AUTH_GUEST_MODE: source.AUTH_GUEST_MODE,
-    ALLOW_STUB_ENV: source.ALLOW_STUB_ENV,
     E2E_BACKUP_PEPPER: source.E2E_BACKUP_PEPPER,
     E2E_MFA_SESSION_SECRET: source.E2E_MFA_SESSION_SECRET,
     E2E_TRUSTED_COOKIE_SECRET: source.E2E_TRUSTED_COOKIE_SECRET,
@@ -266,17 +265,12 @@ const schema = z
 
 export type RawEnv = z.infer<typeof schema>;
 
-function shouldUseStubFallbacks(raw: ProcessEnvSource) {
-  const allowStubEnv = raw.ALLOW_STUB_ENV === "1";
-  const authStubEnabled = raw.AUTH_E2E_STUB === "1" || raw.AUTH_GUEST_MODE === "1";
-  if (allowStubEnv && !authStubEnabled) {
-    process.env.AUTH_E2E_STUB = process.env.AUTH_E2E_STUB ?? "1";
-  }
-  return allowStubEnv || authStubEnabled;
-}
-
 function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
-  if (!shouldUseStubFallbacks(raw)) {
+  const nodeEnv = raw.NODE_ENV ?? "development";
+  const isDevelopmentMode = nodeEnv === "development" || nodeEnv === "test";
+  const isStubMode = raw.AUTH_E2E_STUB === "1" || raw.AUTH_GUEST_MODE === "1";
+
+  if (!isDevelopmentMode && !isStubMode) {
     return raw;
   }
 
@@ -293,7 +287,7 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
   } as const);
 
   const withFallback = (value: string | undefined, fallback: string) => {
-    if (typeof value === "string" && value.trim().length > 0) {
+    if (typeof value === "string" && value.trim().length > 0 && value.trim() !== "-") {
       return value;
     }
     return fallback;
@@ -307,7 +301,7 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
     const value = withFallback(original, fallback);
     augmented[key] = value;
 
-    if (typeof original !== "string" || original.trim().length === 0) {
+    if (typeof original !== "string" || original.trim().length === 0 || original.trim() === "-") {
       process.env[key] = value;
     }
   };
@@ -321,9 +315,13 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
   applyWithFallback("HMAC_SHARED_SECRET");
   applyWithFallback("OPENAI_API_KEY");
 
-  const hasKmsDataKey = Boolean(raw.KMS_DATA_KEY && raw.KMS_DATA_KEY.trim().length > 0);
+  const hasKmsDataKey = Boolean(
+    raw.KMS_DATA_KEY && raw.KMS_DATA_KEY.trim().length > 0 && raw.KMS_DATA_KEY.trim() !== "-"
+  );
   const hasKmsDataKeyBase64 = Boolean(
-    raw.KMS_DATA_KEY_BASE64 && raw.KMS_DATA_KEY_BASE64.trim().length > 0
+    raw.KMS_DATA_KEY_BASE64 &&
+      raw.KMS_DATA_KEY_BASE64.trim().length > 0 &&
+      raw.KMS_DATA_KEY_BASE64.trim() !== "-"
   );
 
   if (!hasKmsDataKey && !hasKmsDataKeyBase64) {
