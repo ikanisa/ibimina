@@ -25,27 +25,37 @@ interface OnboardingQueueDb extends DBSchema {
       by_creator: string;
     };
   };
+  metadata: {
+    key: string;
+    value: string;
+  };
 }
 
 const DB_NAME = "ibimina-onboarding";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = "submissions";
+const METADATA_STORE = "metadata";
+const CURRENT_CREATOR_ID_KEY = "currentCreatorId";
 
 let currentCreatorId: string | null = null;
+let hasLoadedCreatorId = false;
 
 async function getDb() {
   return openDB<OnboardingQueueDb>(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion) {
+    upgrade(db, oldVersion, _newVersion, transaction) {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
         store.createIndex("by_status", "status");
         store.createIndex("by_created_at", "createdAt");
         store.createIndex("by_creator", "creatorId");
-        return;
       }
 
-      const store = db.transaction.objectStore(STORE_NAME);
-      if (oldVersion < 2) {
+      if (!db.objectStoreNames.contains(METADATA_STORE)) {
+        db.createObjectStore(METADATA_STORE);
+      }
+
+      if (oldVersion < 2 && db.objectStoreNames.contains(STORE_NAME)) {
+        const store = transaction.objectStore(STORE_NAME);
         if (!store.indexNames.contains("by_creator")) {
           store.createIndex("by_creator", "creatorId");
         }
@@ -63,7 +73,43 @@ function generateId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+async function ensureCreatorScopeLoaded() {
+  if (hasLoadedCreatorId) {
+    return;
+  }
+
+  const db = await getDb();
+
+  if (!db.objectStoreNames.contains(METADATA_STORE)) {
+    hasLoadedCreatorId = true;
+    currentCreatorId = null;
+    return;
+  }
+
+  const tx = db.transaction(METADATA_STORE, "readonly");
+  const stored = await tx.store.get(CURRENT_CREATOR_ID_KEY);
+  await tx.done;
+
+  currentCreatorId = typeof stored === "string" && stored.trim().length > 0 ? stored : null;
+
+  if (!currentCreatorId) {
+    const queueTx = db.transaction(STORE_NAME, "readonly");
+    const cursor = await queueTx.store.index("by_created_at").openCursor();
+    await queueTx.done;
+
+    const inferred = cursor?.value?.creatorId;
+    if (typeof inferred === "string" && inferred.trim().length > 0) {
+      currentCreatorId = inferred;
+      void persistCreatorScope(inferred);
+    }
+  }
+
+  hasLoadedCreatorId = true;
+}
+
 async function listInternal() {
+  await ensureCreatorScopeLoaded();
+
   if (!currentCreatorId) {
     return [];
   }
@@ -87,6 +133,8 @@ async function updateQueueMetrics() {
 export async function enqueueOnboardingSubmission(
   payload: OnboardingPayload
 ): Promise<OnboardingQueueItem> {
+  await ensureCreatorScopeLoaded();
+
   if (!currentCreatorId) {
     throw new Error("Cannot queue onboarding submission without an authenticated user");
   }
@@ -260,6 +308,8 @@ export async function syncQueuedOnboarding(): Promise<OnboardingSyncSummary> {
 }
 
 export async function clearOnboardingQueue() {
+  await ensureCreatorScopeLoaded();
+
   if (!currentCreatorId) {
     await updateQueueMetrics();
     return;
@@ -273,12 +323,28 @@ export async function clearOnboardingQueue() {
   await updateQueueMetrics();
 }
 
+async function persistCreatorScope(userId: string | null) {
+  const db = await getDb();
+  const tx = db.transaction(METADATA_STORE, "readwrite");
+
+  if (!userId) {
+    await tx.store.delete(CURRENT_CREATOR_ID_KEY);
+  } else {
+    await tx.store.put(userId, CURRENT_CREATOR_ID_KEY);
+  }
+
+  await tx.done;
+}
+
 export function setOnboardingQueueUser(userId: string | null | undefined) {
   const normalized = typeof userId === "string" && userId.trim().length > 0 ? userId : null;
-  if (normalized === currentCreatorId) {
+  if (hasLoadedCreatorId && normalized === currentCreatorId) {
     return;
   }
 
   currentCreatorId = normalized;
+  hasLoadedCreatorId = true;
+
+  void persistCreatorScope(normalized);
   void updateQueueMetrics();
 }
