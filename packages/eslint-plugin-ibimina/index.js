@@ -159,10 +159,6 @@ const noCrossSurfaceImports = {
         return path.join(repoRoot, importPath.slice(1));
       }
 
-      if (importPath.startsWith("apps/") || importPath.startsWith("supabase/")) {
-        return path.join(repoRoot, importPath);
-      }
-
       return null;
     };
 
