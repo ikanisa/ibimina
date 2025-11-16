@@ -101,6 +101,17 @@ const requireRetryOptions = {
 };
 
 /**
+ * Rule: no-private-imports
+ * Prevents apps from importing private/internal module paths
+ */
+const APPS_PATH_REGEX = /[\\/]apps[\\/]/;
+const PRIVATE_IMPORT_PATTERN = /(^\.{1,2}\/.*\binternal\b)|([@\w-]+\/internal\/)/;
+
+const noPrivateImports = {
+  meta: {
+    type: "problem",
+    docs: {
+      description: "Disallow importing internal/private paths from app code",
  * Rule: no-cross-surface-imports
  * Prevent imports between deployment surfaces that bypass shared packages.
  */
@@ -113,6 +124,35 @@ const noCrossSurfaceImports = {
       recommended: true,
     },
     messages: {
+      noPrivateImport:
+        "Do not import internal modules ({{path}}); use the package public API instead.",
+    },
+    schema: [],
+  },
+  create(context) {
+    const filename = context.filename || context.getFilename?.();
+    const isAppFile = typeof filename === "string" && APPS_PATH_REGEX.test(filename);
+
+    if (!isAppFile) {
+      return {};
+    }
+
+    function checkSource(node) {
+      const source = node.source?.value;
+      if (typeof source !== "string") return;
+      if (PRIVATE_IMPORT_PATTERN.test(source)) {
+        context.report({
+          node: node.source,
+          messageId: "noPrivateImport",
+          data: { path: source },
+        });
+      }
+    }
+
+    return {
+      ImportDeclaration: checkSource,
+      ExportNamedDeclaration: checkSource,
+      ExportAllDeclaration: checkSource,
       noCrossSurface:
         "Avoid importing from '{{target}}' inside '{{source}}'. Move shared code into packages/* and import it from there.",
     },
@@ -198,6 +238,7 @@ export default {
   rules: {
     "structured-logging": structuredLogging,
     "require-retry-options": requireRetryOptions,
+    "no-private-imports": noPrivateImports,
     "no-cross-surface-imports": noCrossSurfaceImports,
     "no-inline-page-literals": noInlinePageLiterals,
   },

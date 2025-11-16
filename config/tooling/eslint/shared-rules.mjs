@@ -9,4 +9,5 @@ export const sharedReactRules = {
 export const structuredLoggingRules = {
   "ibimina/structured-logging": "error",
   "ibimina/require-retry-options": ["error", { functions: ["invokeEdge"] }],
+  "ibimina/no-private-imports": "error",
 };
