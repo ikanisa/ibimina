@@ -95,9 +95,8 @@ async function ensureCreatorScopeLoaded() {
   if (!currentCreatorId) {
     const queueTx = db.transaction(STORE_NAME, "readonly");
     const cursor = await queueTx.store.index("by_created_at").openCursor();
-    await queueTx.done;
-
     const inferred = cursor?.value?.creatorId;
+    await queueTx.done;
     if (typeof inferred === "string" && inferred.trim().length > 0) {
       currentCreatorId = inferred;
       void persistCreatorScope(inferred);
