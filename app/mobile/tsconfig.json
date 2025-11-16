@@ -20,6 +20,6 @@
       "@capacitor/clipboard": ["../types/custom/capacitor-clipboard"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "types/**/*.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "types/**/*.d.ts", "tests/**/*.ts"],
   "exclude": ["node_modules"]
 }

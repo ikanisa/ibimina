@@ -14,36 +14,36 @@ export const radii = {
 export type RadiusToken = keyof typeof radii;
 
 /**
- * Systematic 8pt spacing scale.
+ * Systematic 8pt spacing scale with gentle progression.
  *
  * Usage:
  * - 0-2: Internal component padding
- * - 3-5: Component gaps
- * - 6-7: Section spacing
- * - 8-10: Page-level spacing
+ * - 3-6: Component gaps
+ * - 7-10: Section spacing
+ * - 12-16: Page-level spacing
  */
-const spacingUnit = 4;
+const spacingUnit = 8;
 
-export type SpacingStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 16;
+export type SpacingStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 10 | 12 | 14 | 16;
 
 export const spacingScale: Record<SpacingStep, number> = {
   0: 0, // 0px
-  1: 4, // 4px
-  2: 8, // 8px
-  3: 12, // 12px
-  4: 16, // 16px
-  5: 20, // 20px
-  6: 24, // 24px
-  7: 32, // 32px
-  8: 40, // 40px
-  9: 48, // 48px
-  10: 64, // 64px
+  1: 8, // 8px
+  2: 16, // 16px
+  3: 24, // 24px
+  4: 32, // 32px
+  5: 40, // 40px
+  6: 48, // 48px
+  7: 56, // 56px
+  8: 64, // 64px
+  10: 80, // 80px
   12: 96, // 96px
+  14: 112, // 112px
   16: 128, // 128px
 };
 
 /**
- * Returns spacing based on the 8px baseline grid (4px base unit).
+ * Returns spacing based on the 8px baseline grid.
  * Accepts predefined steps or arbitrary multipliers for finer control.
  */
 export function spacing(step: SpacingStep | number): number {
@@ -55,7 +55,7 @@ export function spacing(step: SpacingStep | number): number {
 }
 
 /**
- * Typography scale - systematic sizes with proper line heights.
+ * Typography scale - neutral and balanced for dashboards and forms.
  */
 export const typography = {
   fontFamily: {
@@ -63,28 +63,34 @@ export const typography = {
     mono: "JetBrains Mono, Menlo, Monaco, 'Courier New', monospace",
   },
   fontSize: {
-    xs: 12, // 0.75rem
-    sm: 14, // 0.875rem
-    base: 16, // 1rem
-    lg: 18, // 1.125rem
-    xl: 20, // 1.25rem
-    "2xl": 24, // 1.5rem
-    "3xl": 30, // 1.875rem
-    "4xl": 36, // 2.25rem
-    "5xl": 48, // 3rem
+    xs: 13, // Labels and helper text
+    sm: 15, // Secondary text
+    base: 16, // Body copy
+    lg: 18, // Emphasis text
+    xl: 22, // Section titles
+    "2xl": 28, // Page titles
+    "3xl": 34, // Hero headings
+    "4xl": 42, // Prominent numbers
+    "5xl": 54, // Display
   },
   lineHeight: {
     none: 1,
-    tight: 1.16, // Headlines
-    snug: 1.25, // Captions
-    normal: 1.5, // Body text
-    relaxed: 1.75, // Loose paragraphs
+    tight: 1.2, // Headlines
+    snug: 1.35, // Captions
+    normal: 1.55, // Body text
+    relaxed: 1.8, // Loose paragraphs
   },
   fontWeight: {
     normal: "400",
     medium: "500",
     semibold: "600",
     bold: "700",
+  },
+  letterSpacing: {
+    dense: "-0.01em",
+    tight: "-0.005em",
+    normal: "0",
+    wide: "0.01em",
   },
 } as const;
 
@@ -142,6 +148,33 @@ export const shadowPresets: Record<"sm" | "base" | "md" | "lg" | "xl", ShadowPre
 };
 
 export type ShadowPresetName = keyof typeof shadowPresets;
+
+/**
+ * Subdued gradient tokens for softly lit surfaces.
+ */
+export const gradients = {
+  skyGlass: [
+    "linear-gradient(135deg, rgba(14,165,233,0.14) 0%",
+    "rgba(59,130,246,0.12) 40%",
+    "rgba(226,232,240,0.4) 100%)",
+  ].join(", "),
+  sandMist: [
+    "linear-gradient(135deg, rgba(250,212,1,0.12) 0%",
+    "rgba(253,244,191,0.35) 55%",
+    "rgba(232,234,237,0.4) 100%)",
+  ].join(", "),
+  forestHaze: [
+    "linear-gradient(135deg, rgba(34,197,94,0.12) 0%",
+    "rgba(16,185,129,0.12) 50%",
+    "rgba(232,234,237,0.3) 100%)",
+  ].join(", "),
+  slateSheen: [
+    "linear-gradient(135deg, rgba(148,163,184,0.24) 0%",
+    "rgba(226,232,240,0.35) 100%)",
+  ].join(", "),
+} as const;
+
+export type GradientToken = keyof typeof gradients;
 
 /**
  * Animation tokens for consistent motion.

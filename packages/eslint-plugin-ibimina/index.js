@@ -1,4 +1,5 @@
 import path from "path";
+import noInlinePageLiterals from "./no-inline-page-literals.js";
 
 /**
  * Custom ESLint plugin for Ibimina-specific rules
@@ -202,6 +203,7 @@ export default {
     "structured-logging": structuredLogging,
     "require-retry-options": requireRetryOptions,
     "no-cross-surface-imports": noCrossSurfaceImports,
+    "no-inline-page-literals": noInlinePageLiterals,
   },
   configs: {},
 };

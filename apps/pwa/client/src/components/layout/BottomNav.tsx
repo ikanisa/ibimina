@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
+import type { IconType } from "react-icons";
 
 import styles from "./BottomNav.module.css";
 
@@ -10,7 +10,7 @@ type NavItem = {
   href: string;
   label: string;
   ariaLabel?: string;
-  Icon: LucideIcon;
+  Icon: IconType;
 };
 
 interface BottomNavProps {
@@ -29,12 +29,12 @@ export function BottomNav({ items }: BottomNavProps) {
             <Link
               key={href}
               href={href}
-              aria-label={ariaLabel}
+              aria-label={ariaLabel ?? label}
               aria-current={isActive ? "page" : undefined}
               className={styles.item}
               data-active={isActive}
             >
-              <Icon aria-hidden="true" size={22} />
+              <Icon aria-hidden="true" size={22} className={styles.icon} />
               <span>{label}</span>
             </Link>
           );
