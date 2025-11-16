@@ -3,7 +3,6 @@
   "private": true,
   "packageManager": "pnpm@10.19.0",
   "scripts": {
-    "dev": "cd apps/admin && pnpm dev",
     "dev": "cd apps/pwa/staff-admin && pnpm dev",
     "dev:admin": "pnpm --filter @ibimina/staff-admin-pwa dev",
     "dev:staff": "pnpm --filter @ibimina/staff dev",
@@ -16,7 +15,6 @@
     "build:client": "pnpm --filter @ibimina/client build",
     "build": "pnpm build:packages && pnpm build:admin",
     "build:admin-deps": "pnpm --filter '@ibimina/config' build && pnpm --filter '@ibimina/flags' build && pnpm --filter '@ibimina/lib' build && pnpm --filter '@ibimina/ui' build",
-    "build:apps": "pnpm --filter './apps/*' build",
     "build:apps": "pnpm --filter @ibimina/admin build && pnpm --filter @ibimina/client build && pnpm --filter @ibimina/website build",
     "generate:pwa": "node scripts/generate-pwa.js",
     "generate:apk": "node scripts/generate-apk.js",
@@ -89,6 +87,7 @@
     "husky": "^9.1.7",
     "istanbul-lib-coverage": "^3.2.2",
     "lint-staged": "^16.2.6",
+    "markdownlint-cli": "^0.45.0",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
@@ -96,11 +95,18 @@
     "typescript": "5.9.3"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+    "**/*.{js,jsx,ts,tsx,mjs,cjs}": [
       "prettier --write",
       "bash -c 'files=\"$@\"; filtered=$(echo \"$files\" | tr \" \" \"\\n\" | grep -v \"^infra/\" | tr \"\\n\" \" \"); [ -n \"$filtered\" ] && eslint --fix --max-warnings=0 $filtered || true' --"
     ],
-    "*.{json,md,yml,yaml}": [
+    "**/*.{md,mdx}": [
+      "markdownlint --fix",
+      "prettier --write"
+    ],
+    "**/*.sql": [
+      "prettier --write"
+    ],
+    "**/*.{json,yml,yaml}": [
       "prettier --write"
     ]
   }
