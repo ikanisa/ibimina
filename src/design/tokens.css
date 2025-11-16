@@ -247,21 +247,24 @@
 .theme-nyungwe {
   color-scheme: dark;
 
-  --color-canvas: #05080f;
-  --color-surface: #0d1726;
-  --color-surface-subtle: #111f32;
-  --color-surface-muted: #15273d;
+  /* Lightened backgrounds for better contrast */
+  --color-canvas: #0a1320;
+  --color-surface: #131f32;
+  --color-surface-subtle: #182640;
+  --color-surface-muted: #1d2f4d;
   --color-surface-contrast: #f8fafc;
-  --color-surface-elevated: rgba(8, 17, 31, 0.86);
+  --color-surface-elevated: rgba(18, 29, 48, 0.92);
   --color-overlay: rgba(1, 8, 20, 0.72);
 
-  --color-border: #253349;
-  --color-border-subtle: #1a263a;
-  --color-border-strong: #3a4b63;
+  /* More visible borders */
+  --color-border: #2a3b52;
+  --color-border-subtle: #223248;
+  --color-border-strong: #455a78;
 
-  --color-foreground: #f5f7fb;
-  --color-foreground-muted: #c7d1e2;
-  --color-foreground-subtle: #9aa5bd;
+  /* Increased text contrast - pure white and brighter muted colors */
+  --color-foreground: #ffffff;
+  --color-foreground-muted: #d4dae8;
+  --color-foreground-subtle: #a8b3c9;
   --color-foreground-inverse: #0d1324;
 
   --color-neutral-0: #05080f;
