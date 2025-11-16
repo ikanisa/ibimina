@@ -11,24 +11,18 @@
 ## Decision
 
 1. **Surface boundaries**
-   - `apps/admin` — staff/admin console (Next.js) with offline-ready PWA
-     packaging.
-   - `apps/client` — member-facing PWA optimized for mobile installs.
-   - `apps/mobile` — native mobile client built from shared primitives.
-   - `apps/platform-api` — background workers and platform automation.
+   - `apps/pwa/staff-admin` — staff/admin console (Next.js) with offline-ready PWA packaging.
+   - `apps/pwa/client` — member-facing PWA optimized for mobile installs.
+   - `apps/mobile` — native mobile client built from shared primitives. *(placeholder as of 2024-06)*
+   <!-- No `apps/platform-api` exists; background workers are not yet implemented as a separate surface. -->
    - `supabase` — database schema, migrations, edge functions, and tests.
-   - `packages/*` — the only sanctioned cross-surface dependency point for
-     shared UI, config, and data access.
+   - `packages/*` — the only sanctioned cross-surface dependency point for shared UI, config, and data access.
 
 2. **Deployment targets**
-   - PWAs (`apps/admin`, `apps/client`) deploy to Vercel/Cloudflare Pages using
-     the per-app build scripts.
-   - Native mobile (`apps/mobile`) ships through EAS/Capacitor pipelines to the
-     Android Play Store and Apple App Store.
-   - Platform workers (`apps/platform-api`) deploy as TypeScript worker bundles
-     invoked by the platform CLI.
-   - Supabase migrations and edge functions deploy via the Supabase CLI with CI
-     hooks when `supabase/` changes.
+   - PWAs (`apps/pwa/staff-admin`, `apps/pwa/client`) deploy to Vercel/Cloudflare Pages using the per-app build scripts.
+   - Native mobile (`apps/mobile`, placeholder) will ship through EAS/Capacitor pipelines to the Android Play Store and Apple App Store.
+   <!-- No platform workers (`apps/platform-api`) exist as of 2024-06; this will be updated when implemented. -->
+   - Supabase migrations and edge functions deploy via the Supabase CLI with CI hooks when `supabase/` changes.
 
 3. **Promotion flow**
    - Feature work lands on `work` with required lint/type/test checks per
