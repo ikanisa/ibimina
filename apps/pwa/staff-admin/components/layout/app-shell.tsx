@@ -200,7 +200,7 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
 
   const quickActionGroups = useMemo(
     () => createQuickActionGroups(t, profile),
-    [profile.failed_mfa_count, profile.mfa_enabled, t]
+    [profile, t]
   );
 
   const navigationGroups = useMemo<NavigationRailProps["groups"]>(() => {
