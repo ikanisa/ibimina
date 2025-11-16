@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  Children,
+  Fragment,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -30,6 +40,31 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { NavigationRail } from "@/components/layout/navigation-rail";
 import type { NavigationRailProps } from "@/components/layout/navigation-rail";
 import { Drawer } from "@/components/ui/drawer";
+const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
+
+const HERO_SLOT = Symbol("AppShellHero");
+
+interface HeroComponentProps {
+  children: React.ReactNode;
+}
+
+interface HeroComponent extends React.FC<HeroComponentProps> {
+  __slot: typeof HERO_SLOT;
+}
+
+export const AppShellHero: HeroComponent = ({ children }) => {
+  return <Fragment>{children}</Fragment>;
+};
+AppShellHero.__slot = HERO_SLOT;
+
+function isHeroElement(
+  child: React.ReactNode
+): child is React.ReactElement<HeroComponentProps> & { type: HeroComponent } {
+  return Boolean(
+    isValidElement(child) &&
+      typeof child.type === "function" &&
+      (child.type as HeroComponent).__slot === HERO_SLOT
+  );
 import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
 
 const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
@@ -535,12 +570,6 @@ function DefaultAppShellView({
       <OfflineConflictDialog />
     </>
   );
-}
-
-interface QuickActionsPanelProps {
-  groups: QuickActionGroupDefinition[];
-  onDismiss?: () => void;
-  onCommandPalette: () => void;
 }
 
 function QuickActionsPanel({ groups, onDismiss, onCommandPalette }: QuickActionsPanelProps) {
