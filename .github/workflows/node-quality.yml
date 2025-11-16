@@ -11,6 +11,44 @@ on:
       - reopened
 
 jobs:
+  workspace-doctor:
+    name: Workspace doctor
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      HUSKY: "0"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Derive pnpm store path
+        run: echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PNPM_STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run workspace doctor
+        run: pnpm run workspace:doctor
+
   lint:
     name: Lint (${{ matrix.label }})
     runs-on: ubuntu-latest

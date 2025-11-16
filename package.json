@@ -62,7 +62,8 @@
     "prepare": "husky",
     "prepare:deploy": "node scripts/prepare.js",
     "openapi:generate": "pnpm --filter @ibimina/api run openapi:generate",
-    "openapi:check": "pnpm --filter @ibimina/api run openapi:check"
+    "openapi:check": "pnpm --filter @ibimina/api run openapi:check",
+    "workspace:doctor": "pnpm run lint && pnpm run typecheck && pnpm run format:check && pnpm audit --prod --audit-level=high"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
