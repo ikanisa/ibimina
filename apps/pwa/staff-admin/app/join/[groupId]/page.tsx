@@ -2,14 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-interface GroupRow {
-  id: string;
-  name: string;
-  status: string;
-  org_id: string | null;
-  ibimina?: { name: string | null } | null;
-}
-
 export default async function JoinDeepLinkPage({ params }: { params: { groupId: string } }) {
   const supabase = createSupabaseAdminClient();
   const { data: group, error } = await supabase

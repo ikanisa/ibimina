@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 import { Card, CardHeader, type CardPadding } from "./card";
 
@@ -20,7 +21,11 @@ export function GlassCard({
   children,
 }: GlassCardProps) {
   return (
-    <Card surface="translucent" padding={padding} className={className}>
+    <Card
+      surface="elevated"
+      padding={padding}
+      className={cn("border border-border shadow-md", className)}
+    >
       {(title || subtitle || actions) && (
         <CardHeader title={title} description={subtitle} actions={actions} />
       )}

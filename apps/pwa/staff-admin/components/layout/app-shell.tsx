@@ -10,9 +10,11 @@ import {
   useRef,
   useState,
 } from "react";
+import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Command, Menu, Plus, Settings2 } from "lucide-react";
+import { Command, ListPlus, Menu, Settings2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ProfileRow } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -63,19 +65,16 @@ function isHeroElement(
       typeof child.type === "function" &&
       (child.type as HeroComponent).__slot === HERO_SLOT
   );
+import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
+
+const GUEST_MODE = process.env.NEXT_PUBLIC_AUTH_GUEST_MODE === "1";
+
+interface AppShellHeroProps {
+  children: ReactNode;
 }
 
-function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
-  if (!container) return [];
-  const focusableSelectors = [
-    "a[href]",
-    "button:not([disabled])",
-    "textarea:not([disabled])",
-    "input:not([disabled])",
-    "select:not([disabled])",
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(", ");
-  return Array.from(container.querySelectorAll<HTMLElement>(focusableSelectors));
+export function AppShellHero({ children }: AppShellHeroProps) {
+  return <>{children}</>;
 }
 
 interface AppShellProps {
@@ -456,6 +455,17 @@ function DefaultAppShellView({
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(`${href}/`);
 
+  const mobileBadges = useMemo(
+    () =>
+      navTargets.reduce<Partial<Record<string, UiNavTarget["badge"]>>>((acc, item) => {
+        if (item.badge) {
+          acc[item.href] = item.badge;
+        }
+        return acc;
+      }, {}),
+    [navTargets]
+  );
+
   return (
     <>
       <div className="relative flex min-h-screen bg-[color-mix(in_srgb,#020617_92%,rgba(15,23,42,0.75))] text-neutral-2">
@@ -510,7 +520,7 @@ function DefaultAppShellView({
                   onClick={() => setMobileQuickOpen(true)}
                   className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-3 transition hover:bg-white/10 hover:text-neutral-0 lg:hidden"
                 >
-                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  <ListPlus className="h-4 w-4" aria-hidden="true" />
                   {t("dashboard.quick.title", "Quick actions")}
                 </button>
                 <LanguageSwitcher className="text-xs font-semibold" />
@@ -547,12 +557,7 @@ function DefaultAppShellView({
         onClose={() => setMobileNavOpen(false)}
         groups={navigationGroups}
         isActive={isActive}
-        badges={navTargets.reduce<Partial<Record<string, UiNavTarget["badge"]>>>((acc, item) => {
-          if (item.badge) {
-            acc[item.href] = item.badge;
-          }
-          return acc;
-        }, {})}
+        badges={mobileBadges}
       />
 
       <MobileQuickActionsDrawer

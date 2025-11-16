@@ -61,7 +61,7 @@ export function CardHeader({ title, description, action, className = "" }: CardH
   );
 }
 
-export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+export type CardContentProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function CardContent({ className = "", children, ...props }: CardContentProps) {
   return (
@@ -71,7 +71,7 @@ export function CardContent({ className = "", children, ...props }: CardContentP
   );
 }
 
-export interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
+export type CardFooterProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function CardFooter({ className = "", children, ...props }: CardFooterProps) {
   return (

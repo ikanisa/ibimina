@@ -9,14 +9,15 @@ import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { KPIStat } from "@/components/dashboard/kpi-stat";
 import { QuickAction } from "@/components/dashboard/quick-action";
+import { TaskCard } from "@/components/dashboard/task-card";
 import { StatusChip } from "@/components/common/status-chip";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MissedContributorsList } from "@/components/dashboard/missed-contributors-list";
 import { requireUserAndProfile } from "@/lib/auth";
 import { getDashboardSummary, EMPTY_DASHBOARD_SUMMARY } from "@/lib/dashboard";
 import { Trans } from "@/components/common/trans";
 import { TopIkiminaTable } from "@/components/dashboard/top-ikimina-table";
 import { logError } from "@/lib/observability/logger";
-import { FeedbackMessage } from "@/components/common/feedback-message";
 import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
 
 export const runtime = "nodejs";
@@ -88,17 +89,9 @@ export default async function DashboardPage() {
   if (!isSystemAdmin && !hasSacco) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <FeedbackMessage
-          variant="error"
-          title={{
-            i18nKey: "dashboard.guard.noSacco.title",
-            fallback: "SACCO assignment required",
-          }}
-          description={{
-            i18nKey: "dashboard.guard.noSacco.description",
-            fallback:
-              "Contact a system administrator to link your account to a SACCO before continuing.",
-          }}
+        <EmptyState
+          title="SACCO assignment required"
+          description="Contact a system administrator to link your account to a SACCO before continuing."
         />
       </div>
     );
@@ -117,42 +110,34 @@ export default async function DashboardPage() {
 
   const kpis = [
     {
-      labelKey: "dashboard.kpis.todayDeposits",
-      fallback: "Today's deposits",
+      label: "Today's Deposits",
       value: formatCurrency(summary.totals.today),
       accent: "blue" as const,
     },
     {
-      labelKey: "dashboard.kpis.weekToDate",
-      fallback: "Week to date",
+      label: "Week to Date",
       value: formatCurrency(summary.totals.week),
       accent: "yellow" as const,
     },
     {
-      labelKey: "dashboard.kpis.monthToDate",
-      fallback: "Month to date",
+      label: "Month to Date",
       value: formatCurrency(summary.totals.month),
       accent: "green" as const,
     },
     {
-      labelKey: "dashboard.kpis.unallocated",
-      fallback: "Unallocated",
+      label: "Unallocated",
       value: summary.totals.unallocated.toString(),
       accent: "neutral" as const,
     },
-  ] as const;
+  ];
 
   const lastUpdatedLabel = summary.generatedAt
     ? new Date(summary.generatedAt).toLocaleString()
     : "—";
   const headerBadge = summaryError ? (
-    <StatusChip tone="warning">
-      <Trans i18nKey="dashboard.status.cached" fallback="Cached data" />
-    </StatusChip>
+    <StatusChip tone="warning">Cached data</StatusChip>
   ) : (
-    <StatusChip tone="neutral">
-      <Trans i18nKey="dashboard.status.staffAccess" fallback="Staff access" />
-    </StatusChip>
+    <StatusChip tone="neutral">Staff access</StatusChip>
   );
 
   return (
@@ -177,9 +162,19 @@ export default async function DashboardPage() {
                 value={kpi.value}
                 accent={kpi.accent}
               />
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+            {kpis.map((kpi, idx) => (
+              <div
+                key={idx}
+                style={{
+                  animation: `fadeInUp 0.3s ease-out ${idx * 0.08}s both`,
+                }}
+              >
+                <KPIStat label={kpi.label} value={kpi.value} accent={kpi.accent} />
+              </div>
             ))}
           </div>
-          <p className="mt-4 text-xs text-neutral-3">
+          <p className="mt-4 text-xs text-foreground-subtle">
             <Trans
               i18nKey="dashboard.lastUpdated"
               fallback="Last updated: {{value}}"
@@ -210,7 +205,7 @@ export default async function DashboardPage() {
       </AppShellHero>
 
       <WorkspaceLayout>
-        <WorkspaceMain className="space-y-8">
+        <WorkspaceMain className="space-y-6">
           {summaryError ? (
             <GlassCard
               title={<Trans i18nKey="dashboard.cached.title" fallback="Working with cached data" />}
@@ -218,7 +213,7 @@ export default async function DashboardPage() {
                 <Trans
                   i18nKey="dashboard.cached.subtitle"
                   fallback="We couldn't reach Supabase just now. You're viewing cached metrics until the connection recovers."
-                  className="text-xs text-neutral-3"
+                  className="text-xs text-foreground-muted"
                 />
               }
             >
@@ -306,6 +301,121 @@ export default async function DashboardPage() {
           >
             <TopIkiminaTable data={summary.topIkimina} />
           </GlassCard>
+          {/* Today's Priorities Section */}
+          {(summary.totals.unallocated > 0 || summary.missedContributors.length > 0) && (
+            <section>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">
+                <Trans i18nKey="dashboard.priorities.title" fallback="Today's Priorities" />
+              </h2>
+              <GlassCard>
+                <div className="space-y-3">
+                  {summary.totals.unallocated > 0 && (
+                    <div style={{ animation: "slideInRight 0.4s ease-out both" }}>
+                      <TaskCard
+                        title="Unallocated transactions"
+                        count={summary.totals.unallocated}
+                        href={"/recon" as Route}
+                        priority="high"
+                        icon="alert"
+                      />
+                    </div>
+                  )}
+                  {summary.missedContributors.length > 0 && (
+                    <div
+                      style={{
+                        animation: "slideInRight 0.4s ease-out 0.1s both",
+                      }}
+                    >
+                      <TaskCard
+                        title="Members without contributions"
+                        count={summary.missedContributors.length}
+                        href={"/members" as Route}
+                        priority="medium"
+                        icon="clock"
+                      />
+                    </div>
+                  )}
+                </div>
+              </GlassCard>
+            </section>
+          )}
+
+          {/* Quick Actions Section */}
+          <section>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
+              <Trans i18nKey="dashboard.quick.sectionTitle" fallback="Quick Actions" />
+            </h2>
+            <GlassCard
+              title={<Trans i18nKey="dashboard.quick.title" fallback="Quick actions" />}
+              subtitle={
+                <Trans
+                  i18nKey="dashboard.quick.subtitle"
+                  fallback="Shave seconds off your daily workflows with the most common tasks."
+                  className="text-xs text-foreground-muted"
+                />
+              }
+            >
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+                {quickActions.map((action, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      animation: `fadeInUp 0.4s ease-out ${idx * 0.1}s both`,
+                    }}
+                  >
+                    <QuickAction {...action} />
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
+          </section>
+
+          {/* Member Activity Section */}
+          <section>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
+              <Trans i18nKey="dashboard.activity.sectionTitle" fallback="Member Activity" />
+            </h2>
+            <GlassCard
+              title={<Trans i18nKey="dashboard.missed.title" fallback="Missed contributors" />}
+              subtitle={
+                <Trans
+                  i18nKey="dashboard.missed.subtitle"
+                  fallback="Members without a recorded contribution in the last month."
+                  className="text-xs text-foreground-muted"
+                />
+              }
+            >
+              {summary.missedContributors.length > 0 ? (
+                <MissedContributorsList contributors={summary.missedContributors} />
+              ) : (
+                <EmptyState
+                  tone="quiet"
+                  title="All caught up"
+                  description="Every active member has a recent contribution."
+                />
+              )}
+            </GlassCard>
+          </section>
+
+          {/* Group Performance Section */}
+          <section>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
+              <Trans i18nKey="dashboard.performance.sectionTitle" fallback="Group Performance" />
+            </h2>
+            <GlassCard
+              title={<Trans i18nKey="dashboard.top.title" fallback="Top Ikimina" />}
+              subtitle={
+                <Trans
+                  i18nKey="dashboard.top.subtitle"
+                  fallback="Most active groups by deposit volume this month."
+                  className="text-xs text-foreground-muted"
+                />
+              }
+              actions={<StatusChip tone="neutral">{summary.activeIkimina} active</StatusChip>}
+            >
+              <TopIkiminaTable data={summary.topIkimina} />
+            </GlassCard>
+          </section>
         </WorkspaceMain>
 
         <WorkspaceAside>

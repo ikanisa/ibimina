@@ -49,7 +49,7 @@ export default function ContactPage() {
             Contact Us
           </h1>
           <p className="text-xl text-neutral-700 leading-relaxed max-w-2xl mx-auto">
-            Get in touch with the SACCO+ team. We're here to help with your questions.
+            Get in touch with the SACCO+ team. We’re here to help with your questions.
           </p>
         </div>
       </section>
@@ -150,7 +150,7 @@ export default function ContactPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-neutral-900">Message Sent!</h3>
                   <p className="text-neutral-700">
-                    We've received your message and will get back to you within 24 hours.
+                    We’ve received your message and will get back to you within 24 hours.
                   </p>
                 </div>
               ) : (

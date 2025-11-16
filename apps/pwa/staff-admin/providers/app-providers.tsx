@@ -7,6 +7,7 @@ import { ConfirmProvider } from "@/providers/confirm-provider";
 import { I18nProvider } from "@/providers/i18n-provider";
 import { PwaProvider } from "@/providers/pwa-provider";
 import { OfflineQueueProvider } from "@/providers/offline-queue-provider";
+import { NetworkStatusProvider } from "@/providers/network-status-provider";
 import { SupabaseAuthListener } from "@/providers/supabase-auth-listener";
 import { DEFAULT_LOCALE, type SupportedLocale } from "@/lib/i18n/locales";
 import { Analytics } from "@/src/lib/analytics";
@@ -30,17 +31,19 @@ export function AppProviders({
       <ThemeProvider nonce={nonce} forcedTheme={forcedTheme}>
         <ToastProvider>
           <OfflineQueueProvider>
-            <ConfirmProvider>
-              <PwaProvider>
-                <MotionProvider>
-                  <AtlasAssistantProvider>
-                    <Analytics />
-                    <SupabaseAuthListener />
-                    {children}
-                  </AtlasAssistantProvider>
-                </MotionProvider>
-              </PwaProvider>
-            </ConfirmProvider>
+            <NetworkStatusProvider>
+              <ConfirmProvider>
+                <PwaProvider>
+                  <MotionProvider>
+                    <AtlasAssistantProvider>
+                      <Analytics />
+                      <SupabaseAuthListener />
+                      {children}
+                    </AtlasAssistantProvider>
+                  </MotionProvider>
+                </PwaProvider>
+              </ConfirmProvider>
+            </NetworkStatusProvider>
           </OfflineQueueProvider>
         </ToastProvider>
       </ThemeProvider>

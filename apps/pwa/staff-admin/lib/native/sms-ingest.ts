@@ -121,25 +121,37 @@ export interface QueryResult {
   count: number;
 }
 
-// Register the plugin
-const SmsIngestNative = registerPlugin<SmsIngestPlugin>("SmsIngest", {
-  web: {
-    // Provide stub implementation for web
-    checkPermissions: async () => ({ state: "denied" as const }),
-    requestPermissions: async () => ({ state: "denied" as const }),
-    isEnabled: async () => ({ enabled: false }),
-    enable: async () => {
-      throw new Error("Real-time SMS ingestion only available on Android");
-    },
-    disable: async () => ({ enabled: false }),
-    configure: async () => {
-      throw new Error("Real-time SMS ingestion only available on Android");
-    },
-    querySmsInbox: async () => ({ messages: [], count: 0 }),
-    updateLastSyncTime: async () => ({ success: false, timestamp: 0 }),
-    scheduleBackgroundSync: async () => ({ scheduled: false }),
-  },
-});
+const isServer = typeof window === "undefined";
+
+const SmsIngestNative = !isServer
+  ? registerPlugin<SmsIngestPlugin>("SmsIngest", {
+      web: {
+        checkPermissions: async () => ({ state: "denied" as const }),
+        requestPermissions: async () => ({ state: "denied" as const }),
+        isEnabled: async () => ({ enabled: false }),
+        enable: async () => {
+          throw new Error("Real-time SMS ingestion only available on Android");
+        },
+        disable: async () => ({ enabled: false }),
+        configure: async () => {
+          throw new Error("Real-time SMS ingestion only available on Android");
+        },
+        querySmsInbox: async () => ({ messages: [], count: 0 }),
+        updateLastSyncTime: async () => ({ success: false, timestamp: 0 }),
+        scheduleBackgroundSync: async () => ({ scheduled: false }),
+      },
+    })
+  : ({
+      checkPermissions: async () => ({ state: "denied" as const }),
+      requestPermissions: async () => ({ state: "denied" as const }),
+      isEnabled: async () => ({ enabled: false }),
+      enable: async () => ({ enabled: false, realtime: false }),
+      disable: async () => ({ enabled: false }),
+      configure: async () => ({ configured: false }),
+      querySmsInbox: async () => ({ messages: [], count: 0 }),
+      updateLastSyncTime: async () => ({ success: false, timestamp: 0 }),
+      scheduleBackgroundSync: async () => ({ scheduled: false }),
+    } satisfies SmsIngestPlugin);
 
 /**
  * High-level SMS Ingestion API
@@ -149,6 +161,7 @@ export const SmsIngest = {
    * Check if running on a native platform with SMS support
    */
   isAvailable(): boolean {
+    if (isServer) return false;
     return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
   },
 

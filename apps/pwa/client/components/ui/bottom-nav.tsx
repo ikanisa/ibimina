@@ -14,13 +14,20 @@
 
 "use client";
 
-import { Home, Users, CreditCard, FileText, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  IoCardOutline,
+  IoDocumentTextOutline,
+  IoHomeOutline,
+  IoPeopleOutline,
+  IoPersonOutline,
+} from "react-icons/io5";
+import type { IconType } from "react-icons";
 
 interface NavItem {
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: IconType;
   label: string;
   ariaLabel: string;
 }
@@ -28,31 +35,31 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   {
     href: "/home",
-    icon: Home,
+    icon: IoHomeOutline,
     label: "Home",
     ariaLabel: "Navigate to home page",
   },
   {
     href: "/groups",
-    icon: Users,
+    icon: IoPeopleOutline,
     label: "Groups",
     ariaLabel: "Navigate to groups page",
   },
   {
     href: "/pay",
-    icon: CreditCard,
+    icon: IoCardOutline,
     label: "Pay",
     ariaLabel: "Navigate to payment page",
   },
   {
     href: "/statements",
-    icon: FileText,
+    icon: IoDocumentTextOutline,
     label: "Statements",
     ariaLabel: "Navigate to statements page",
   },
   {
     href: "/profile",
-    icon: User,
+    icon: IoPersonOutline,
     label: "Profile",
     ariaLabel: "Navigate to profile page",
   },
@@ -81,14 +88,11 @@ export function BottomNav() {
                   ? "text-atlas-blue bg-atlas-glow font-bold"
                   : "text-neutral-700 hover:text-atlas-blue hover:bg-neutral-50")
               }
-              aria-label={ariaLabel}
               aria-current={isActive ? "page" : undefined}
             >
               <Icon
-                className={
-                  "w-6 h-6 mb-1 transition-transform duration-interactive " +
-                  (isActive ? "stroke-[2.5]" : "stroke-[2]")
-                }
+                className="w-6 h-6 mb-1 transition-transform duration-interactive"
+                size={22}
                 aria-hidden="true"
               />
               <span

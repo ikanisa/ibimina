@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { logError } from "@/lib/observability/logger";
 import { GlassCard } from "@/components/ui/glass-card";
-import { _StatusChip } from "@/components/common/status-chip";
 import { Trans } from "@/components/common/trans";
 
 interface TapMoMoPayeeCardProps {
@@ -15,17 +14,15 @@ interface TapMoMoPayeeCardProps {
     is_active: boolean;
   }>;
   nfcEnabled: boolean;
-  saccoId?: string;
 }
 
-export function TapMoMoPayeeCard({ merchants, nfcEnabled, saccoId }: TapMoMoPayeeCardProps) {
+export function TapMoMoPayeeCard({ merchants, nfcEnabled }: TapMoMoPayeeCardProps) {
   const [selectedMerchant, setSelectedMerchant] = useState(merchants[0]?.id || "");
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [_nonce, setNonce] = useState<string | null>(null);
 
   const activeMerchants = merchants.filter((m) => m.is_active);
 
@@ -63,7 +60,6 @@ export function TapMoMoPayeeCard({ merchants, nfcEnabled, saccoId }: TapMoMoPaye
 
       setIsActive(true);
       setExpiresAt(result.expiresAt);
-      setNonce(result.nonce);
 
       // Auto-deactivate after 60 seconds
       setTimeout(() => {

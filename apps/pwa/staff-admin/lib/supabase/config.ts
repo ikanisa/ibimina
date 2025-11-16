@@ -34,7 +34,7 @@ function getAppEnvironment(): string {
   return (process.env.APP_ENV ?? process.env.NODE_ENV ?? "development").toLowerCase();
 }
 
-function shouldAllowStubConfig(status: SupabaseConfigStatus): boolean {
+function shouldAllowStubConfig(): boolean {
   if (process.env.SUPABASE_ALLOW_STUB === "1") {
     return true;
   }
@@ -52,7 +52,7 @@ function shouldAllowStubConfig(status: SupabaseConfigStatus): boolean {
 
 const warnedStubContexts = new Set<string>();
 
-function warnStubFallback(context: string, status: SupabaseConfigStatus) {
+function warnStubFallback(context: string, configStatus: SupabaseConfigStatus) {
   if (warnedStubContexts.has(context)) {
     return;
   }
@@ -62,8 +62,8 @@ function warnStubFallback(context: string, status: SupabaseConfigStatus) {
       `Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to silence this warning.`,
     {
       appEnv: getAppEnvironment(),
-      hasUrl: status.hasUrl,
-      hasAnonKey: status.hasAnonKey,
+      hasUrl: configStatus.hasUrl,
+      hasAnonKey: configStatus.hasAnonKey,
     }
   );
 }
@@ -86,7 +86,7 @@ export function requireSupabaseConfig(context: string): SupabaseConfig {
   const status = readSupabaseEnv();
 
   if (!status.hasUrl || !status.hasAnonKey) {
-    if (shouldAllowStubConfig(status)) {
+    if (shouldAllowStubConfig()) {
       warnStubFallback(context, status);
       return getStubSupabaseConfig();
     }
