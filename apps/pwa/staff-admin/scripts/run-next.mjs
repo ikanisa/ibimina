@@ -41,7 +41,13 @@ const loadedEnv = loadEnvFiles([
   path.join(projectRoot, ".env.local"),
 ]);
 
-const env = { ...loadedEnv, ...process.env, PORT: String(port) };
+const env = {
+  ...loadedEnv,
+  ...process.env,
+  PORT: String(port),
+  // Explicitly set NODE_ENV based on mode
+  NODE_ENV: mode === "dev" ? "development" : "production",
+};
 const stubAllowed = env.ALLOW_STUB_ENV !== "0";
 if (stubAllowed && !env.ALLOW_STUB_ENV) {
   env.ALLOW_STUB_ENV = "1";

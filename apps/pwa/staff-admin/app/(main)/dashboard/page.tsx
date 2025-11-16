@@ -9,6 +9,7 @@ import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { KPIStat } from "@/components/dashboard/kpi-stat";
 import { QuickAction } from "@/components/dashboard/quick-action";
+import { TaskCard } from "@/components/dashboard/task-card";
 import { StatusChip } from "@/components/common/status-chip";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MissedContributorsList } from "@/components/dashboard/missed-contributors-list";
@@ -153,12 +154,19 @@ export default async function DashboardPage() {
           }
           badge={headerBadge}
         >
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
             {kpis.map((kpi, idx) => (
-              <KPIStat key={idx} label={kpi.label} value={kpi.value} accent={kpi.accent} />
+              <div
+                key={idx}
+                style={{
+                  animation: `fadeInUp 0.3s ease-out ${idx * 0.08}s both`,
+                }}
+              >
+                <KPIStat label={kpi.label} value={kpi.value} accent={kpi.accent} />
+              </div>
             ))}
           </div>
-          <p className="mt-4 text-xs text-neutral-3">
+          <p className="mt-4 text-xs text-foreground-subtle">
             <Trans
               i18nKey="dashboard.lastUpdated"
               fallback="Last updated: {{value}}"
@@ -169,7 +177,7 @@ export default async function DashboardPage() {
       </AppShellHero>
 
       <WorkspaceLayout>
-        <WorkspaceMain className="space-y-8">
+        <WorkspaceMain className="space-y-6">
           {summaryError ? (
             <GlassCard
               title={<Trans i18nKey="dashboard.cached.title" fallback="Working with cached data" />}
@@ -177,7 +185,7 @@ export default async function DashboardPage() {
                 <Trans
                   i18nKey="dashboard.cached.subtitle"
                   fallback="We couldn't reach Supabase just now. You're viewing cached metrics until the connection recovers."
-                  className="text-xs text-neutral-3"
+                  className="text-xs text-foreground-muted"
                 />
               }
             >
@@ -202,57 +210,121 @@ export default async function DashboardPage() {
             </GlassCard>
           ) : null}
 
-          <GlassCard
-            title={<Trans i18nKey="dashboard.quick.title" fallback="Quick actions" />}
-            subtitle={
-              <Trans
-                i18nKey="dashboard.quick.subtitle"
-                fallback="Shave seconds off your daily workflows with the most common tasks."
-                className="text-xs text-neutral-3"
-              />
-            }
-          >
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {quickActions.map((action, idx) => (
-                <QuickAction key={idx} {...action} />
-              ))}
-            </div>
-          </GlassCard>
+          {/* Today's Priorities Section */}
+          {(summary.totals.unallocated > 0 || summary.missedContributors.length > 0) && (
+            <section>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">
+                <Trans i18nKey="dashboard.priorities.title" fallback="Today's Priorities" />
+              </h2>
+              <GlassCard>
+                <div className="space-y-3">
+                  {summary.totals.unallocated > 0 && (
+                    <div style={{ animation: "slideInRight 0.4s ease-out both" }}>
+                      <TaskCard
+                        title="Unallocated transactions"
+                        count={summary.totals.unallocated}
+                        href={"/recon" as Route}
+                        priority="high"
+                        icon="alert"
+                      />
+                    </div>
+                  )}
+                  {summary.missedContributors.length > 0 && (
+                    <div
+                      style={{
+                        animation: "slideInRight 0.4s ease-out 0.1s both",
+                      }}
+                    >
+                      <TaskCard
+                        title="Members without contributions"
+                        count={summary.missedContributors.length}
+                        href={"/members" as Route}
+                        priority="medium"
+                        icon="clock"
+                      />
+                    </div>
+                  )}
+                </div>
+              </GlassCard>
+            </section>
+          )}
 
-          <GlassCard
-            title={<Trans i18nKey="dashboard.missed.title" fallback="Missed contributors" />}
-            subtitle={
-              <Trans
-                i18nKey="dashboard.missed.subtitle"
-                fallback="Members without a recorded contribution in the last month."
-                className="text-xs text-neutral-3"
-              />
-            }
-          >
-            {summary.missedContributors.length > 0 ? (
-              <MissedContributorsList contributors={summary.missedContributors} />
-            ) : (
-              <EmptyState
-                tone="quiet"
-                title="All caught up"
-                description="Every active member has a recent contribution."
-              />
-            )}
-          </GlassCard>
+          {/* Quick Actions Section */}
+          <section>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
+              <Trans i18nKey="dashboard.quick.sectionTitle" fallback="Quick Actions" />
+            </h2>
+            <GlassCard
+              title={<Trans i18nKey="dashboard.quick.title" fallback="Quick actions" />}
+              subtitle={
+                <Trans
+                  i18nKey="dashboard.quick.subtitle"
+                  fallback="Shave seconds off your daily workflows with the most common tasks."
+                  className="text-xs text-foreground-muted"
+                />
+              }
+            >
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+                {quickActions.map((action, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      animation: `fadeInUp 0.4s ease-out ${idx * 0.1}s both`,
+                    }}
+                  >
+                    <QuickAction {...action} />
+                  </div>
+                ))}
+              </div>
+            </GlassCard>
+          </section>
 
-          <GlassCard
-            title={<Trans i18nKey="dashboard.top.title" fallback="Top Ikimina" />}
-            subtitle={
-              <Trans
-                i18nKey="dashboard.top.subtitle"
-                fallback="Most active groups by deposit volume this month."
-                className="text-xs text-neutral-3"
-              />
-            }
-            actions={<StatusChip tone="neutral">{summary.activeIkimina} active</StatusChip>}
-          >
-            <TopIkiminaTable data={summary.topIkimina} />
-          </GlassCard>
+          {/* Member Activity Section */}
+          <section>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
+              <Trans i18nKey="dashboard.activity.sectionTitle" fallback="Member Activity" />
+            </h2>
+            <GlassCard
+              title={<Trans i18nKey="dashboard.missed.title" fallback="Missed contributors" />}
+              subtitle={
+                <Trans
+                  i18nKey="dashboard.missed.subtitle"
+                  fallback="Members without a recorded contribution in the last month."
+                  className="text-xs text-foreground-muted"
+                />
+              }
+            >
+              {summary.missedContributors.length > 0 ? (
+                <MissedContributorsList contributors={summary.missedContributors} />
+              ) : (
+                <EmptyState
+                  tone="quiet"
+                  title="All caught up"
+                  description="Every active member has a recent contribution."
+                />
+              )}
+            </GlassCard>
+          </section>
+
+          {/* Group Performance Section */}
+          <section>
+            <h2 className="mb-4 text-lg font-semibold text-foreground">
+              <Trans i18nKey="dashboard.performance.sectionTitle" fallback="Group Performance" />
+            </h2>
+            <GlassCard
+              title={<Trans i18nKey="dashboard.top.title" fallback="Top Ikimina" />}
+              subtitle={
+                <Trans
+                  i18nKey="dashboard.top.subtitle"
+                  fallback="Most active groups by deposit volume this month."
+                  className="text-xs text-foreground-muted"
+                />
+              }
+              actions={<StatusChip tone="neutral">{summary.activeIkimina} active</StatusChip>}
+            >
+              <TopIkiminaTable data={summary.topIkimina} />
+            </GlassCard>
+          </section>
         </WorkspaceMain>
 
         <WorkspaceAside>
