@@ -14,15 +14,25 @@
 
 "use client";
 
-import { Home, Users, CreditCard, FileText, User, Wallet, HandCoins, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  IoCardOutline,
+  IoCashOutline,
+  IoDocumentTextOutline,
+  IoHomeOutline,
+  IoPeopleOutline,
+  IoPersonOutline,
+  IoSparklesOutline,
+  IoWalletOutline,
+} from "react-icons/io5";
+import type { IconType } from "react-icons";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import { useMemo } from "react";
 
 interface NavItem {
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: IconType;
   label: string;
   ariaLabel: string;
   featureFlag?: string; // Optional feature flag requirement
@@ -31,52 +41,52 @@ interface NavItem {
 const ALL_NAV_ITEMS: NavItem[] = [
   {
     href: "/home",
-    icon: Home,
+    icon: IoHomeOutline,
     label: "Home",
     ariaLabel: "Navigate to home page",
   },
   {
     href: "/groups",
-    icon: Users,
+    icon: IoPeopleOutline,
     label: "Groups",
     ariaLabel: "Navigate to groups page",
   },
   {
     href: "/pay",
-    icon: CreditCard,
+    icon: IoCardOutline,
     label: "Pay",
     ariaLabel: "Navigate to payment page",
   },
   {
     href: "/loans",
-    icon: HandCoins,
+    icon: IoCashOutline,
     label: "Loans",
     ariaLabel: "Navigate to loans page",
     featureFlag: "loans-enabled",
   },
   {
     href: "/wallet",
-    icon: Wallet,
+    icon: IoWalletOutline,
     label: "Wallet",
     ariaLabel: "Navigate to wallet page",
     featureFlag: "wallet-enabled",
   },
   {
     href: "/statements",
-    icon: FileText,
+    icon: IoDocumentTextOutline,
     label: "Statements",
     ariaLabel: "Navigate to statements page",
   },
   {
     href: "/offers",
-    icon: Sparkles,
+    icon: IoSparklesOutline,
     label: "Offers",
     ariaLabel: "Navigate to offers page",
     featureFlag: "offers-enabled",
   },
   {
     href: "/profile",
-    icon: User,
+    icon: IoPersonOutline,
     label: "Profile",
     ariaLabel: "Navigate to profile page",
   },
@@ -123,17 +133,17 @@ export function BottomNav() {
                 flex flex-col items-center justify-center
                 min-w-[64px] min-h-[48px] px-3 py-2
                 rounded-lg transition-colors
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                focus:outline-none focus:ring-2 focus:ring-atlas-blue focus:ring-offset-2
                 ${
                   isActive
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    ? "text-atlas-blue bg-atlas-glow font-semibold"
+                    : "text-neutral-800 hover:text-atlas-blue hover:bg-neutral-50"
                 }
               `}
               aria-label={ariaLabel}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className="w-6 h-6 mb-1" aria-hidden="true" />
+              <Icon className="w-6 h-6 mb-1" aria-hidden="true" size={22} />
               <span className="text-xs font-medium">{label}</span>
             </Link>
           );

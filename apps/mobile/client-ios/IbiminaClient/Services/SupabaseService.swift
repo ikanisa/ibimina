@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import Supabase
 
@@ -11,17 +12,25 @@ import Supabase
  * - Transaction management
  */
 protocol SupabaseServiceProtocol {
+    var currentSession: Session? { get }
+    var memberId: String? { get }
     func fetchUserGroups(userId: String) async throws -> [Group]
     func fetchTransactions(userId: String) async throws -> [Transaction]
     func fetchAllocationByReference(reference: String) async throws -> Transaction?
     func createAllocation(allocation: AllocationRequest) async throws
+    func sendOtp(phoneNumber: String) async throws
+    func verifyOtp(phoneNumber: String, code: String) async throws
+    func signOut() async throws
 }
 
-final class SupabaseService: SupabaseServiceProtocol {
+@MainActor
+final class SupabaseService: ObservableObject, SupabaseServiceProtocol {
 
     static let shared = SupabaseService()
 
     private var client: SupabaseClient?
+    @Published private(set) var session: Session?
+    private let sessionStore = SecureSessionStore()
 
     private init() {}
     
@@ -34,11 +43,23 @@ final class SupabaseService: SupabaseServiceProtocol {
               let supabaseKey = Configuration.supabaseAnonKey else {
             fatalError("Supabase configuration is missing")
         }
-        
+
         client = SupabaseClient(
             supabaseURL: supabaseURL,
             supabaseKey: supabaseKey
         )
+
+        if let storedSession = sessionStore.load() {
+            Task {
+                try? await client?.auth.setSession(
+                    accessToken: storedSession.accessToken,
+                    refreshToken: storedSession.refreshToken
+                )
+                await MainActor.run {
+                    self.session = storedSession
+                }
+            }
+        }
     }
     
     // MARK: - Authentication
@@ -49,12 +70,14 @@ final class SupabaseService: SupabaseServiceProtocol {
     func signIn(email: String, password: String) async throws -> Session {
         return try await requireClient().auth.signIn(email: email, password: password)
     }
-    
+
     /**
      * Sign out current user
      */
     func signOut() async throws {
         try await requireClient().auth.signOut()
+        sessionStore.clear()
+        session = nil
     }
     
     /**
@@ -62,6 +85,14 @@ final class SupabaseService: SupabaseServiceProtocol {
      */
     func getCurrentSession() async throws -> Session? {
         return try await requireClient().auth.session
+    }
+
+    var currentSession: Session? {
+        session
+    }
+
+    var memberId: String? {
+        session?.user?.userMetadata["member_id"]?.stringValue ?? session?.user?.id.uuidString
     }
     
     // MARK: - Groups (Ibimina)
@@ -118,11 +149,32 @@ final class SupabaseService: SupabaseServiceProtocol {
     func createAllocation(allocation: AllocationRequest) async throws {
         let encoder = JSONEncoder()
         let data = try encoder.encode(allocation)
-        
+
         _ = try await requireClient().database
             .from("allocations")
             .insert(data)
             .execute()
+    }
+
+    func sendOtp(phoneNumber: String) async throws {
+        let payload = OTPSendRequest(phoneNumber: phoneNumber)
+        let data = try await invokeFunction(name: "whatsapp-otp-send", payload: payload)
+        let response = try JSONDecoder().decode(OTPSendResponse.self, from: data)
+        if response.success == false {
+            throw NSError(domain: "otp.send", code: -1, userInfo: [NSLocalizedDescriptionKey: response.message ?? "Failed to send code"])
+        }
+    }
+
+    func verifyOtp(phoneNumber: String, code: String) async throws {
+        let payload = OTPVerifyRequest(phoneNumber: phoneNumber, code: code)
+        let data = try await invokeFunction(name: "whatsapp-otp-verify", payload: payload)
+        let response = try JSONDecoder().decode(OTPVerifyResponse.self, from: data)
+        guard response.success, let session = response.session else {
+            throw NSError(domain: "otp.verify", code: -1, userInfo: [NSLocalizedDescriptionKey: response.message ?? "Invalid code"])
+        }
+        try await requireClient().auth.setSession(accessToken: session.accessToken, refreshToken: session.refreshToken)
+        sessionStore.save(session)
+        self.session = session
     }
 
     /**
@@ -155,6 +207,57 @@ final class SupabaseService: SupabaseServiceProtocol {
         }
         return client
     }
+
+    private func invokeFunction<T: Encodable>(name: String, payload: T) async throws -> Data {
+        guard let baseURL = URL(string: Configuration.supabaseURL),
+              let key = Configuration.supabaseAnonKey else {
+            fatalError("Supabase configuration is missing")
+        }
+
+        var request = URLRequest(url: baseURL.appendingPathComponent("functions/v1/" + name))
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+        request.addValue(key, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONEncoder().encode(payload)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unexpected error"
+            throw NSError(domain: "otp.function", code: (response as? HTTPURLResponse)?.statusCode ?? -1, userInfo: [NSLocalizedDescriptionKey: message])
+        }
+        return data
+    }
+}
+
+private struct OTPSendRequest: Encodable {
+    let phoneNumber: String
+
+    enum CodingKeys: String, CodingKey {
+        case phoneNumber = "phone_number"
+    }
+}
+
+private struct OTPSendResponse: Decodable {
+    let success: Bool
+    let message: String?
+}
+
+private struct OTPVerifyRequest: Encodable {
+    let phoneNumber: String
+    let code: String
+
+    enum CodingKeys: String, CodingKey {
+        case phoneNumber = "phone_number"
+        case code
+    }
+}
+
+private struct OTPVerifyResponse: Decodable {
+    let success: Bool
+    let message: String?
+    let session: Session?
 }
 
 // MARK: - Configuration

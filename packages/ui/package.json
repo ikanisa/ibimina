@@ -7,7 +7,8 @@
   "module": "./dist/index.js",
   "types": "./src/index.public.ts",
   "files": [
-    "dist"
+    "dist",
+    "tokens.json"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -24,6 +25,7 @@
       "default": "./src/index.public.ts"
     },
     "./index.public": "./src/index.public.ts",
+    "./tokens.json": "./tokens.json",
     "./package.json": "./package.json"
   },
   "devDependencies": {

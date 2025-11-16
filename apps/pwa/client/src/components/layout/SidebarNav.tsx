@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
+import type { IconType } from "react-icons";
 
 import styles from "./SidebarNav.module.css";
 
 type NavItem = {
   href: string;
   label: string;
-  Icon: LucideIcon;
+  Icon: IconType;
 };
 
 interface SidebarNavProps {

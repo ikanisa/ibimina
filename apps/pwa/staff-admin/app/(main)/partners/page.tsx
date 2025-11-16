@@ -1,12 +1,37 @@
 import Link from "next/link";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { listStubPartners } from "@/lib/stubs/multicountry";
 
 export default async function PartnersPage() {
-  const supa = createSupabaseAdminClient();
-  const { data: orgs, error } = await supa
-    .from("organizations")
-    .select("id, name, type, country_id, countries(name, iso2)")
-    .neq("type", "DISTRICT");
+  const useStub = process.env.AUTH_E2E_STUB === "1";
+
+  let orgs: Array<{
+    id: string;
+    name: string;
+    type: string;
+    country_id: string;
+    countries?: { name: string; iso2: string } | null;
+  }> | null = null;
+  let error: unknown = null;
+
+  if (useStub) {
+    orgs = listStubPartners().map(({ org }) => org);
+  } else {
+    const supa = createSupabaseAdminClient();
+    const response = await supa
+      .from("organizations")
+      .select("id, name, type, country_id, countries(name, iso2)")
+      .neq("type", "DISTRICT");
+    orgs = (response.data as typeof orgs) ?? null;
+    error = response.error;
+  }
+
+  const errorMessage =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message?: unknown }).message ?? "Unknown error")
+      : error
+        ? String(error)
+        : null;
 
   return (
     <div className="p-6">
@@ -17,8 +42,8 @@ export default async function PartnersPage() {
         </p>
       </div>
 
-      {error ? (
-        <div className="text-red-500">Failed to load partners: {error.message}</div>
+      {errorMessage ? (
+        <div className="text-red-500">Failed to load partners: {errorMessage}</div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
           <table className="w-full text-sm">

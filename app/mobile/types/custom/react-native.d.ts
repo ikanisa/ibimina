@@ -24,12 +24,14 @@ declare module "react-native" {
     accessibilityLabel?: string;
     accessibilityRole?: string;
     accessibilityElementsHidden?: boolean;
+    className?: string;
   }
   export interface TextProps {
     style?: TextStyle | TextStyle[];
     children?: React.ReactNode;
     numberOfLines?: number;
     accessibilityLabel?: string;
+    className?: string;
   }
   export interface TouchableOpacityProps extends ViewProps {
     onPress?: () => void;
@@ -38,6 +40,7 @@ declare module "react-native" {
   }
   export interface ScrollViewProps extends ViewProps {
     contentContainerStyle?: ViewStyle;
+    contentContainerClassName?: string;
     showsVerticalScrollIndicator?: boolean;
     keyboardShouldPersistTaps?: "always" | "never" | "handled";
   }
