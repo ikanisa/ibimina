@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 
+import { getSurfaceCopy } from "@ibimina/locales";
+
 import { fmtCurrency } from "@/utils/format";
 import { loadHomeDashboard } from "@/lib/data/home";
 import { getLocaleMessages } from "@/lib/i18n/messages";
+import { defaultLocale } from "@/i18n";
+import { resolveClientLocaleCode } from "@/lib/content/pack";
 import { BalanceCard } from "@/src/components/cards/BalanceCard";
 import { ActivityCard } from "@/src/components/cards/ActivityCard";
 import { UpcomingDeadlinesCard } from "@/src/components/cards/UpcomingDeadlinesCard";
@@ -17,9 +21,11 @@ import {
 
 import styles from "./page.module.css";
 
+const defaultSurfaceCopy = getSurfaceCopy(resolveClientLocaleCode(defaultLocale), "client");
+
 export const metadata = {
-  title: "Home | SACCO+ Client",
-  description: "Your ibimina dashboard",
+  title: defaultSurfaceCopy.home.metadata.title.long,
+  description: defaultSurfaceCopy.home.metadata.description.long,
 };
 
 type DashboardData = Awaited<ReturnType<typeof loadHomeDashboard>>;
@@ -31,16 +37,20 @@ const QUICK_ACTIONS = [
   { id: "send", label: "Send money", icon: IoCashOutline, href: "/pay?mode=transfer" },
   { id: "loan", label: "Apply loan", icon: IoStatsChartOutline, href: "/loans" },
   { id: "statement", label: "Statements", icon: IoDocumentTextOutline, href: "/statements" },
+  { id: "pay", label: "pay", icon: "💳", href: "/pay" },
+  { id: "send", label: "send", icon: "💸", href: "/pay?mode=transfer" },
+  { id: "loan", label: "loan", icon: "📊", href: "/loans" },
+  { id: "statement", label: "statement", icon: "📄", href: "/statements" },
 ];
 
-function mapActivities(allocations: DashboardAllocations) {
+function mapActivities(allocations: DashboardAllocations, fallbackLabel: string) {
   return allocations.slice(0, 5).map((allocation) => ({
     id: allocation.id,
     kind: allocation.status === "pending" ? "payment" : "deposit",
     amount: allocation.amount,
     currency: allocation.currency ?? "RWF",
     timestamp: allocation.createdAt,
-    label: allocation.groupName ?? allocation.narration ?? "Transaction",
+    label: allocation.groupName ?? allocation.narration ?? fallbackLabel,
   }));
 }
 
@@ -75,9 +85,13 @@ export default async function HomePage() {
   const localeHeader = headers().get("x-next-intl-locale");
   const messages = getLocaleMessages(localeHeader);
   const { home, locale } = messages;
+  const localeCopy = getSurfaceCopy(resolveClientLocaleCode(locale), "client");
   const dashboard = await loadHomeDashboard();
 
-  const activities = mapActivities(dashboard.recentAllocations);
+  const activities = mapActivities(
+    dashboard.recentAllocations,
+    localeCopy.home.activity.fallbackLabel.long
+  );
   const deadlines = mapDeadlines(dashboard.groups, home.cards.deadlines.cta);
   const quickActions = QUICK_ACTIONS.map((action) => {
     switch (action.id) {
@@ -149,11 +163,11 @@ export default async function HomePage() {
               >
                 <span className={styles.groupTitle}>{group.groupName}</span>
                 <div className={styles.groupMeta}>
-                  <span>Total saved</span>
+                  <span>{localeCopy.home.groups.totalSaved.short}</span>
                   <strong>{fmtCurrency(group.totalConfirmed)}</strong>
                 </div>
                 <div className={styles.groupMeta}>
-                  <span>Pending</span>
+                  <span>{localeCopy.home.groups.pending.short}</span>
                   <strong>{group.pendingCount}</strong>
                 </div>
               </Link>

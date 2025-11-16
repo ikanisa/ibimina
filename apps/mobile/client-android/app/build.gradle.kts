@@ -90,6 +90,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt:2.0.0")
     implementation("io.github.jan-tennert.supabase:gotrue-kt:2.0.0")
     implementation("io.github.jan-tennert.supabase:realtime-kt:2.0.0")
+    implementation("io.github.jan-tennert.supabase:functions-kt:2.0.0")
     implementation("io.ktor:ktor-client-android:2.3.7")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     
@@ -110,6 +111,9 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
+
+    // Session persistence
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
     
     // Testing
     testImplementation("junit:junit:4.13.2")

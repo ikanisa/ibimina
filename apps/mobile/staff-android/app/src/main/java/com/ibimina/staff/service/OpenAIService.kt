@@ -1,6 +1,8 @@
 package com.ibimina.staff.service
 
 import com.ibimina.staff.BuildConfig
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okhttp3.ResponseBody
@@ -8,8 +10,6 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.http.Body
 import retrofit2.http.POST
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class OpenAIService @Inject constructor(
@@ -18,12 +18,25 @@ class OpenAIService @Inject constructor(
 ) {
     private val api: OpenAIApi by lazy { retrofit.create(OpenAIApi::class.java) }
 
-    fun readiness(): Flow<Result<Boolean>> = flow {
-        val isSupabaseConfigured = supabaseClient.isConfigured()
-        emit(Result.success(isSupabaseConfigured && BuildConfig.OPENAI_API_KEY.isNotEmpty()))
+    fun readiness(): Flow<OpenAIReadiness> = flow {
+        val missing = mutableListOf<String>()
+        if (BuildConfig.OPENAI_API_KEY.isBlank()) {
+            missing += "OpenAI API key"
+        }
+        if (!supabaseClient.isConfigured()) {
+            missing += "Supabase"
+        }
+        if (missing.isEmpty()) {
+            emit(OpenAIReadiness(isReady = true, message = "OpenAI assistant ready"))
+        } else {
+            emit(OpenAIReadiness(isReady = false, message = "Missing configuration: ${missing.joinToString()}"))
+        }
     }
 
     suspend fun sendPrompt(prompt: String): Result<String> {
+        if (prompt.isBlank()) {
+            return Result.failure(IllegalArgumentException("Prompt cannot be empty"))
+        }
         if (BuildConfig.OPENAI_API_KEY.isBlank()) {
             return Result.failure(IllegalStateException("OpenAI API key is not configured"))
         }
@@ -32,13 +45,17 @@ class OpenAIService @Inject constructor(
             val request = mapOf(
                 "model" to "gpt-4o-mini",
                 "messages" to listOf(mapOf("role" to "user", "content" to prompt)),
-                "max_tokens" to 16
+                "max_tokens" to 256
             )
             val response = api.createChatCompletion(request)
             if (response.isSuccessful) {
-                "Response received from OpenAI placeholder"
+                response.body()?.string()?.takeIf { it.isNotBlank() }
+                    ?: "OpenAI returned an empty response"
             } else {
-                throw IllegalStateException("OpenAI call failed: ${'$'}{response.code()}")
+                val details = response.errorBody()?.string()?.takeIf { it.isNotBlank() }
+                throw IllegalStateException(
+                    "OpenAI call failed: ${response.code()} ${details.orEmpty()}".trim()
+                )
             }
         }
     }
@@ -48,3 +65,5 @@ class OpenAIService @Inject constructor(
         suspend fun createChatCompletion(@Body request: Map<String, Any>): Response<ResponseBody>
     }
 }
+
+data class OpenAIReadiness(val isReady: Boolean, val message: String)

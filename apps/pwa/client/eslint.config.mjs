@@ -23,4 +23,18 @@ const baseConfig = createEslintConfig({
   rules: { ...sharedReactRules, ...structuredLoggingRules },
 });
 
-export default [...compat.extends("next/core-web-vitals", "next/typescript"), ...baseConfig];
+const pageLiteralRules = createEslintConfig({
+  files: ["app/(tabs)/home/page.tsx"],
+  includeIgnores: false,
+  includePrettier: false,
+  plugins: { ibimina: ibiminaPlugin },
+  rules: {
+    "ibimina/no-inline-page-literals": "error",
+  },
+});
+
+export default [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...baseConfig,
+  ...pageLiteralRules,
+];

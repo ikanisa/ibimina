@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "../utils/cn";
+import { gradients } from "../theme";
 
 export interface GradientHeaderProps {
   title: ReactNode;
@@ -20,25 +21,25 @@ export function GradientHeader({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl bg-gradient-to-br from-atlas-blue to-atlas-blue-dark p-6 text-white",
+        "relative overflow-hidden rounded-2xl border border-white/40 bg-white/70 p-6 text-neutral-900 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.55)] backdrop-blur-md dark:border-neutral-700/60 dark:bg-neutral-900/60 dark:text-neutral-0",
         className
       )}
+      style={{ backgroundImage: gradients.skyGlass }}
     >
       <div className="relative z-10 space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{title}</h1>
-            {subtitle && <div className="text-sm text-white/80">{subtitle}</div>}
+            <h1 className="text-2xl font-semibold tracking-[-0.015em]">{title}</h1>
+            {subtitle && (
+              <div className="text-sm text-neutral-800/80 dark:text-neutral-100/80">{subtitle}</div>
+            )}
           </div>
           {badge}
         </div>
         {children && <div className="mt-4">{children}</div>}
       </div>
       <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
+        className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/10 to-white/0 dark:from-neutral-900/70 dark:via-neutral-900/30 dark:to-transparent"
         aria-hidden
       />
     </div>

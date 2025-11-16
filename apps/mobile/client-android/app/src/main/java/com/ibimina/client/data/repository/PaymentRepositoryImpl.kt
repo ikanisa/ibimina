@@ -44,12 +44,22 @@ class PaymentRepositoryImpl @Inject constructor(
             )
             
             val response = api.createAllocation(dto)
-            if (response.isSuccessful && response.body() != null) {
-                val createdPayment = response.body()!!.toDomain()
-                paymentDao.insertPayment(PaymentEntity.fromDomain(createdPayment))
-                Result.success(createdPayment)
+            if (response.isSuccessful) {
+                val responseBody = response.body()
+                if (responseBody != null) {
+                    val createdPayment = responseBody.toDomain()
+                    paymentDao.insertPayment(PaymentEntity.fromDomain(createdPayment))
+                    Result.success(createdPayment)
+                } else {
+                    val pendingPayment = payment.copy(status = PaymentStatus.PENDING)
+                    paymentDao.insertPayment(PaymentEntity.fromDomain(pendingPayment))
+                    Result.failure(IllegalStateException("Empty response when creating payment"))
+                }
             } else {
-                Result.success(payment) // Return local payment if server fails
+                val pendingPayment = payment.copy(status = PaymentStatus.PENDING)
+                paymentDao.insertPayment(PaymentEntity.fromDomain(pendingPayment))
+                val errorMessage = "Failed to create payment: ${response.code()} ${response.message()}"
+                Result.failure(IllegalStateException(errorMessage))
             }
         } catch (e: Exception) {
             Result.failure(e)

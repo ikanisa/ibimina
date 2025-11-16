@@ -44,6 +44,7 @@ guidelines and best practices for contributing to the project.
    ```
 
 4. Install git hooks:
+
    ```bash
    pnpm prepare
    ```
@@ -144,7 +145,7 @@ specification.
 
 ### Format
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
@@ -166,22 +167,43 @@ specification.
 - **chore**: Other changes that don't modify src or test files
 - **revert**: Revert a previous commit
 
+### Scopes
+
+Use scopes to indicate which package or area the change targets. The following
+scopes are enforced by commitlint:
+
+- `admin`
+- `client`
+- `mobile`
+- `platform-api`
+- `supabase`
+- `docs`
+
+Combine the scope with the type to clarify intent, for example
+`feat(admin): add approvals tab`.
+
 ### Examples
 
 ```bash
 # Feature
-git commit -m "feat(auth): add passkey authentication support"
+git commit -m "feat(admin): add passkey authentication support"
 
 # Bug fix
-git commit -m "fix(dashboard): resolve incorrect balance display"
+git commit -m "fix(client): resolve incorrect balance display"
 
 # Documentation
-git commit -m "docs(readme): update local setup instructions"
+git commit -m "docs(docs): update local setup instructions"
 
 # Breaking change
-git commit -m "feat(api): redesign authentication API
+git commit -m "feat(platform-api): redesign authentication API
 
 BREAKING CHANGE: authentication endpoint now requires OAuth2 token"
+
+# Scoped packages
+git commit -m "feat(admin): add approvals tab to transaction review"
+git commit -m "fix(client): resolve null reference in checkout flow"
+git commit -m "chore(platform-api): bump queue worker memory limits"
+git commit -m "docs(docs): document lint-staged and commit scopes"
 ```
 
 ### Rules
@@ -246,7 +268,7 @@ pnpm format:check
 
 ### File Organization
 
-```
+```text
 apps/
   admin/              # Main application
     app/              # Next.js app directory
@@ -283,6 +305,7 @@ packages/
    ```
 
 3. **Ensure your branch builds**:
+
    ```bash
    pnpm build
    ```
@@ -314,6 +337,7 @@ packages/
 
 1. Delete your feature branch (GitHub does this automatically)
 2. Pull the latest changes to your local `work` branch:
+
    ```bash
    git checkout work
    git pull origin work
