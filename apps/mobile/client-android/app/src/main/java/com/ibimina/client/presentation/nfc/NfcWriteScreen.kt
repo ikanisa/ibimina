@@ -18,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -27,7 +28,16 @@ fun NfcWriteScreen(viewModel: NfcViewModel) {
     val context = LocalContext.current
     val activity = context as Activity
     val state by viewModel.uiState.collectAsState()
-    var payload by remember { mutableStateOf(state.lastWrittenPayload ?: "") }
+    var payload by rememberSaveable(state.memberId) { mutableStateOf(state.lastWrittenPayload ?: state.memberId.orEmpty()) }
+
+    LaunchedEffect(state.memberId, state.lastWrittenPayload) {
+        when {
+            state.lastWrittenPayload != null && payload != state.lastWrittenPayload ->
+                payload = state.lastWrittenPayload
+            state.lastWrittenPayload == null && state.memberId != null && payload.isBlank() ->
+                payload = state.memberId
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.initialize(activity)

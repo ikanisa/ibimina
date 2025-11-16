@@ -3,9 +3,13 @@ import CoreNFC
 
 /// Main entry point for the Ibimina client experience.
 struct ContentView: View {
-    @StateObject private var viewModel = ContentViewModel()
+    @StateObject private var viewModel: ContentViewModel
     @StateObject private var nfcReader = NFCReaderManager()
     @StateObject private var nfcWriter = NFCWriterManager()
+
+    init(memberId: String, service: SupabaseServiceProtocol = SupabaseService.shared) {
+        _viewModel = StateObject(wrappedValue: ContentViewModel(userId: memberId, service: service))
+    }
 
     var body: some View {
         NavigationStack {
@@ -234,7 +238,7 @@ final class ContentViewModel: ObservableObject {
     private let service: SupabaseServiceProtocol
 
     init(
-        userId: String = "demo-member",
+        userId: String = "",
         context: PaymentContext? = nil,
         service: SupabaseServiceProtocol = SupabaseService.shared
     ) {
@@ -333,6 +337,6 @@ final class ContentViewModel: ObservableObject {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(memberId: "preview")
     }
 }
