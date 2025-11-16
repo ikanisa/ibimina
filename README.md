@@ -1,9 +1,10 @@
-# Ibimina Staff Console — Next.js App Router
+# Ibimina Monorepo — Next.js PWAs + Supabase
 
-A staff-only Progressive Web App for Umurenge SACCO ibimina operations. The UI
-foundation now matches the Rwanda-inspired liquid-glass spec: Next.js 15 App
-Router, mobile-first gradients, Framer Motion transitions, and Supabase-backed
-semantic SACCO search.
+Ibimina is a monorepo housing the staff/admin console, member-facing PWA,
+marketing site, and Supabase assets for Umurenge SACCO operations. The flagship
+surface is the staff-admin PWA (Next.js 15 App Router with typed routes,
+mobile-first gradients, Framer Motion transitions, and Supabase-backed semantic
+search), with the member PWA and website sharing the same workspace tooling.
 
 ## Quick Links
 
@@ -73,6 +74,22 @@ semantic SACCO search.
 platform designed for Rwanda's Umurenge SACCOs. The system manages group savings
 (ikimina), member accounts, mobile money payments, and reconciliation workflows.
 Built with security, observability, and offline-first capabilities in mind.
+
+### Current application inventory
+
+- **Staff-admin PWA** (`apps/pwa/staff-admin`): Next.js 15 App Router, served
+  via Node on port `3100` (see Dockerfile), and packaged for Android/iOS via
+  Capacitor. Primary target for staff operations.
+- **Member PWA** (`apps/pwa/client`): Next.js 15 App Router experience for SACCO
+  members and group leaders, also packaged with Capacitor for mobile delivery.
+- **Marketing site** (`apps/website`): Next.js static export for product
+  marketing and documentation.
+- **Supabase backend** (`supabase/`): SQL schema, tests, and Edge Functions for
+  auth, payments, and reconciliation flows.
+- **Shared packages** (`packages/*`): Config, feature flags, UI kit, data
+  access, locales, Supabase schemas, and supporting tooling for all apps.
+
+See `apps/INDEX.md` and `packages/INDEX.md` for per-surface details.
 
 ## Branching model
 
