@@ -1,17 +1,12 @@
 import React, { type ComponentProps } from "react";
-import { SafeAreaView, StyleSheet, Text } from "react-native";
+import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
   createNativeStackNavigator,
   type NativeStackScreenProps,
 } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-
-const TAB_BACKGROUND = "#020617"; // slate-950
-const TAB_ACTIVE_TINT = "#38BDF8"; // sky-400
-const TAB_INACTIVE_TINT = "#64748B"; // slate-500
-const TAB_BORDER = "rgba(148, 163, 184, 0.2)"; // slate-400 with opacity
-const HEADER_TEXT = "#E2E8F0"; // slate-200
+import { useNativeWindTheme } from "@theme/nativewind";
 
 export type TabParamList = {
   Home: undefined;
@@ -37,10 +32,21 @@ const TAB_ICON_MAP: Record<keyof TabParamList, ComponentProps<typeof Ionicons>["
 
 function createPlaceholderScreen(title: string, subtitle?: string) {
   return function PlaceholderScreen() {
+    const theme = useNativeWindTheme();
+
     return (
-      <SafeAreaView style={styles.screen}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      <SafeAreaView
+        style={[styles.screen, { backgroundColor: theme.palette.background }]}
+        className={theme.classes.background}
+      >
+        <Text style={styles.title} className={`${theme.classes.textPrimary} text-center`}>
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text style={styles.subtitle} className={`${theme.classes.textSecondary} text-center`}>
+            {subtitle}
+          </Text>
+        ) : null}
       </SafeAreaView>
     );
   };
@@ -64,15 +70,17 @@ const GroupDetailScreen = createPlaceholderScreen(
 type GroupDetailRoute = NativeStackScreenProps<RootStackParamList, "GroupDetail">["route"];
 
 function TabsNavigator() {
+  const theme = useNativeWindTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: TAB_ACTIVE_TINT,
-        tabBarInactiveTintColor: TAB_INACTIVE_TINT,
+        tabBarActiveTintColor: theme.palette.primary,
+        tabBarInactiveTintColor: theme.palette.textDefault,
         tabBarStyle: {
-          backgroundColor: TAB_BACKGROUND,
-          borderTopColor: TAB_BORDER,
+          backgroundColor: theme.palette.card,
+          borderTopColor: theme.palette.border,
           borderTopWidth: StyleSheet.hairlineWidth,
           height: 72,
           paddingBottom: 10,
@@ -82,12 +90,29 @@ function TabsNavigator() {
           fontSize: 12,
           fontWeight: "600",
         },
+        tabBarLabel: ({ focused, color }) => (
+          <Text
+            className={focused ? theme.classes.tabBar.active : theme.classes.tabBar.label}
+            accessibilityRole="text"
+            accessibilityLabel={`${route.name} tab`}
+          >
+            {route.name}
+          </Text>
+        ),
+        tabBarAccessibilityLabel: `${route.name} tab`,
         tabBarIcon: ({ color, size }) => {
           const iconName = TAB_ICON_MAP[route.name as keyof TabParamList];
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return (
+            <Ionicons
+              name={iconName}
+              size={size}
+              color={color}
+              accessibilityLabel={`${route.name} icon`}
+            />
+          );
         },
       })}
-      sceneContainerStyle={{ backgroundColor: TAB_BACKGROUND }}
+      sceneContainerStyle={{ backgroundColor: theme.palette.background }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Pay" component={PayScreen} />
@@ -98,19 +123,21 @@ function TabsNavigator() {
 }
 
 export default function RootNav() {
+  const theme = useNativeWindTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: TAB_BACKGROUND,
+          backgroundColor: theme.palette.card,
         },
-        headerTintColor: HEADER_TEXT,
+        headerTintColor: theme.palette.textOnPrimary,
         headerTitleStyle: {
           fontSize: 18,
           fontWeight: "700",
         },
         contentStyle: {
-          backgroundColor: TAB_BACKGROUND,
+          backgroundColor: theme.palette.background,
         },
       }}
     >
@@ -132,19 +159,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
-    backgroundColor: TAB_BACKGROUND,
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
-    color: HEADER_TEXT,
     marginBottom: 8,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
     lineHeight: 24,
-    color: "#CBD5F5",
     textAlign: "center",
   },
 });
