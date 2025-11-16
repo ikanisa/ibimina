@@ -140,14 +140,8 @@ final class SupabaseService: SupabaseServiceProtocol {
     }
 
     func markTapMomoPayloadExhausted(nonce: String) async throws {
-        let encoder = JSONEncoder()
-        let update = TapMomoPayloadUpdate(formatter: isoFormatter)
-        let data = try encoder.encode(update)
-
         _ = try await requireClient().database
-            .from("tapmomo_transactions")
-            .update(data)
-            .eq("nonce", value: nonce)
+            .rpc("mark_tapmomo_payload_exhausted", params: ["nonce": nonce])
             .execute()
     }
 
