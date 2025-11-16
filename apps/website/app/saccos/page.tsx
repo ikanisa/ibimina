@@ -140,7 +140,7 @@ Twizigame,Niyonshuti Jean,+250788345678,25000`}
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-neutral-900 mb-4">Data Privacy & Security</h2>
             <p className="text-lg text-neutral-700">
-              Your members' data is protected with enterprise-grade security
+              Your members’ data is protected with enterprise-grade security
             </p>
           </div>
 

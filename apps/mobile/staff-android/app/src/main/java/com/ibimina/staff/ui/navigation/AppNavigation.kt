@@ -1,57 +1,74 @@
 package com.ibimina.staff.ui.navigation
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import com.ibimina.staff.ui.ai.AiAssistantScreen
+import com.ibimina.staff.ui.qr.QrScannerScreen
+import com.ibimina.staff.ui.sms.SmsInboxScreen
 
-/**
- * AppNavigation for Ibimina Staff App
- * 
- * Main navigation component for the staff application.
- * This is a placeholder implementation that will be expanded
- * with actual navigation and screens.
- */
+private enum class StaffDestination(val title: String) {
+    Sms("MoMo Inbox"),
+    Qr("QR Scanner"),
+    Ai("AI Assistant")
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation() {
-    // Placeholder home screen
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "Ibimina Staff",
-                style = MaterialTheme.typography.headlineLarge,
-                textAlign = TextAlign.Center
+fun AppNavigation(modifier: Modifier = Modifier) {
+    var selected by rememberSaveable { mutableStateOf(StaffDestination.Sms) }
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(text = selected.title) }
             )
-            Text(
-                text = "Staff Administration Console",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = "Features:",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("• QR Code Scanning")
-                Text("• MoMo SMS Parsing")
-                Text("• OpenAI Integration")
-                Text("• Real-time Supabase Sync")
+        },
+        bottomBar = {
+            NavigationBar {
+                StaffDestination.values().forEach { destination ->
+                    NavigationBarItem(
+                        selected = destination == selected,
+                        onClick = { selected = destination },
+                        icon = {
+                            Icon(
+                                imageVector = when (destination) {
+                                    StaffDestination.Sms -> Icons.Default.Sms
+                                    StaffDestination.Qr -> Icons.Default.QrCodeScanner
+                                    StaffDestination.Ai -> Icons.Default.Chat
+                                },
+                                contentDescription = destination.title
+                            )
+                        },
+                        label = { Text(text = destination.title) }
+                    )
+                }
             }
+        }
+    ) { innerPadding ->
+        val contentModifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+        when (selected) {
+            StaffDestination.Sms -> SmsInboxScreen(modifier = contentModifier)
+            StaffDestination.Qr -> QrScannerScreen(modifier = contentModifier)
+            StaffDestination.Ai -> AiAssistantScreen(modifier = contentModifier)
         }
     }
 }

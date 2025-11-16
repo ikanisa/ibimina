@@ -68,11 +68,6 @@ export function IkiminaTable({
 
   const deferredSearch = useDeferredValue(search);
 
-  const filtersState = useMemo(
-    () => ({ search, status, type, sacco }),
-    [search, status, type, sacco]
-  );
-
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
       const matchesSearch = deferredSearch
@@ -85,27 +80,6 @@ export function IkiminaTable({
       return matchesSearch && matchesStatus && matchesType && matchesSacco;
     });
   }, [rows, deferredSearch, status, type, sacco]);
-
-  const rowsSignature = useMemo(() => {
-    if (rows.length === 0) {
-      return "empty";
-    }
-    const first = rows[0]?.id ?? rows[0]?.code ?? "none";
-    const last = rows[rows.length - 1]?.id ?? rows[rows.length - 1]?.code ?? "none";
-    return `${first}:${rows.length}:${last}`;
-  }, [rows]);
-
-  const tableRequestToken = useMemo(
-    () =>
-      [
-        rowsSignature,
-        deferredSearch.trim().toLowerCase() || "all",
-        status || "all",
-        type || "all",
-        sacco || "all",
-      ].join("|"),
-    [deferredSearch, rowsSignature, sacco, status, type]
-  );
 
   const filterChips = useMemo<FilterChipDefinition[]>(() => {
     const chips: FilterChipDefinition[] = [];
@@ -169,7 +143,7 @@ export function IkiminaTable({
         valueLabel: sacco,
         active: true,
         onClear: () => setSacco(""),
-        renderEditor: ({ close }) => (
+        renderEditor: () => (
           <div className="p-2">
             <Input
               value={sacco}

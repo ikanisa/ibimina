@@ -2,7 +2,11 @@ import { CardSkeleton } from "@ibimina/ui";
 
 export default function HomeLoading() {
   return (
-    <div className="min-h-screen bg-neutral-50 pb-20">
+    <div className="min-h-screen bg-neutral-50 pb-20" aria-busy="true" aria-live="polite">
+      <p className="sr-only" role="status">
+        Loading your home dashboard. Balances, quick actions, and recent confirmations will appear
+        shortly.
+      </p>
       {/* Header skeleton */}
       <div className="bg-gradient-to-br from-brand-blue via-brand-blue-dark to-brand-blue-darker px-4 py-10">
         <div className="max-w-screen-xl mx-auto space-y-3">

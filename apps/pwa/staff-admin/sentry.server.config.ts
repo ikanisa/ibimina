@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { logInfo } from "@/lib/observability/logger";
 
 // Skip Sentry initialization in development
 if (process.env.NODE_ENV !== "development") {
@@ -26,5 +27,5 @@ if (process.env.NODE_ENV !== "development") {
     });
   }
 } else {
-  console.log("[sentry.server.config] Skipped in development");
+  logInfo("sentry.server.skip_dev", {});
 }

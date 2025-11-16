@@ -1,6 +1,8 @@
+import noInlinePageLiterals from "./no-inline-page-literals.js";
+
 /**
  * Custom ESLint plugin for Ibimina-specific rules
- * 
+ *
  * This plugin enforces project-specific coding standards for the Ibimina project.
  */
 
@@ -23,10 +25,7 @@ const structuredLogging = {
   create(context) {
     return {
       MemberExpression(node) {
-        if (
-          node.object.name === "console" &&
-          node.property.name === "log"
-        ) {
+        if (node.object.name === "console" && node.property.name === "log") {
           context.report({
             node,
             messageId: "noConsoleLog",
@@ -75,15 +74,13 @@ const requireRetryOptions = {
       CallExpression(node) {
         // Handle both simple function calls and member expressions
         const calleeName = node.callee.type === "Identifier" ? node.callee.name : null;
-        
+
         if (calleeName && targetFunctions.includes(calleeName)) {
           // Check if retry options are provided
-          const hasRetryOptions = node.arguments.some(arg => {
+          const hasRetryOptions = node.arguments.some((arg) => {
             return (
               arg.type === "ObjectExpression" &&
-              arg.properties.some(prop => 
-                prop.key && prop.key.name === "retry"
-              )
+              arg.properties.some((prop) => prop.key && prop.key.name === "retry")
             );
           });
 
@@ -106,6 +103,7 @@ export default {
   rules: {
     "structured-logging": structuredLogging,
     "require-retry-options": requireRetryOptions,
+    "no-inline-page-literals": noInlinePageLiterals,
   },
   configs: {},
 };

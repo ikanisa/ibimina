@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Phone, Users, Shield, TrendingUp, ArrowRight, CheckCircle } from "lucide-react";
+import { Phone, Users, Shield, TrendingUp, ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
             </div>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-neutral-900 leading-tight tracking-tight">
-              Digital Ibimina for <span className="gradient-text">Rwanda's SACCOs</span>
+              Digital Ibimina for <span className="gradient-text">Rwanda’s SACCOs</span>
             </h1>
 
             <p className="text-xl md:text-2xl text-neutral-700 leading-relaxed max-w-2xl mx-auto">
@@ -127,7 +127,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold text-neutral-900 mb-3">Dial USSD to Pay</h3>
                 <p className="text-neutral-700 leading-relaxed">
-                  Member dials *182# with merchant code + reference. Funds go directly to SACCO's
+                  Member dials *182# with merchant code + reference. Funds go directly to SACCO’s
                   MoMo merchant.
                 </p>
               </div>
@@ -159,7 +159,7 @@ export default function Home() {
             </div>
             <h2 className="text-4xl font-bold mb-4">Pilot: Nyamagabe District</h2>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
-              We're launching with Nyamagabe Umurenge SACCOs. 12 weeks to production. Join us to
+              We’re launching with Nyamagabe Umurenge SACCOs. 12 weeks to production. Join us to
               digitize ibimina for your community.
             </p>
             <Link

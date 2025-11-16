@@ -1,4 +1,5 @@
 import SwiftUI
+import Supabase
 
 struct TransactionsListView: View {
     @StateObject private var viewModel: TransactionsListViewModel
@@ -133,6 +134,8 @@ private extension DateFormatter {
 
 #if DEBUG
 private struct PreviewTransactionsService: SupabaseServiceProtocol {
+    var currentSession: Session? { nil }
+    var memberId: String? { "preview" }
     func fetchUserGroups(userId: String) async throws -> [Group] { [] }
 
     func fetchTransactions(userId: String) async throws -> [Transaction] {
@@ -144,6 +147,9 @@ private struct PreviewTransactionsService: SupabaseServiceProtocol {
 
     func fetchAllocationByReference(reference: String) async throws -> Transaction? { nil }
     func createAllocation(allocation: AllocationRequest) async throws {}
+    func sendOtp(phoneNumber: String) async throws {}
+    func verifyOtp(phoneNumber: String, code: String) async throws {}
+    func signOut() async throws {}
 }
 
 struct TransactionsListView_Previews: PreviewProvider {

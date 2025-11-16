@@ -113,6 +113,8 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
     }
   }
 
+  const offlineSyncErrorCtor = OfflineSyncError;
+
   const callPaymentsEndpoint = useCallback(
     async (path: string, payload: Record<string, unknown>) => {
       const response = await fetch(path, {
@@ -218,7 +220,7 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
             lastError: message,
           });
           toast.error(`${action.summary.primary}: ${message}`);
-          if (error instanceof OfflineSyncError && error.status === 409) {
+          if (error instanceof offlineSyncErrorCtor && error.status === 409) {
             const conflict: OfflineConflictState = {
               action,
               status: error.status,
@@ -238,7 +240,7 @@ export function OfflineQueueProvider({ children }: { children: React.ReactNode }
       setProcessing(false);
       await refresh();
     }
-  }, [handlers, isOnline, lastConflict, processing, refresh, toast]);
+  }, [handlers, isOnline, lastConflict, offlineSyncErrorCtor, processing, refresh, toast]);
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
