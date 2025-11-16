@@ -2,7 +2,13 @@
 
 import { useMemo, type ReactNode } from "react";
 
-import { CreditCard, FileText, Home, User, Users } from "lucide-react";
+import {
+  IoCardOutline,
+  IoDocumentTextOutline,
+  IoHomeOutline,
+  IoPeopleOutline,
+  IoPersonCircleOutline,
+} from "react-icons/io5";
 
 import { ThemeToggle } from "@/src/components/ui/ThemeToggle";
 import { useLocaleMessages } from "@/src/hooks/useLocaleMessages";
@@ -25,16 +31,26 @@ export function AppShell({ children, mainId = "main-content" }: AppShellProps) {
 
   const navigationItems = useMemo(
     () => [
-      { href: "/home", label: navigation.home, ariaLabel: navigation.home, Icon: Home },
-      { href: "/groups", label: navigation.groups, ariaLabel: navigation.groups, Icon: Users },
-      { href: "/pay", label: navigation.pay, ariaLabel: navigation.pay, Icon: CreditCard },
+      { href: "/home", label: navigation.home, ariaLabel: navigation.home, Icon: IoHomeOutline },
+      {
+        href: "/groups",
+        label: navigation.groups,
+        ariaLabel: navigation.groups,
+        Icon: IoPeopleOutline,
+      },
+      { href: "/pay", label: navigation.pay, ariaLabel: navigation.pay, Icon: IoCardOutline },
       {
         href: "/statements",
         label: navigation.statements,
         ariaLabel: navigation.statements,
-        Icon: FileText,
+        Icon: IoDocumentTextOutline,
       },
-      { href: "/profile", label: navigation.profile, ariaLabel: navigation.profile, Icon: User },
+      {
+        href: "/profile",
+        label: navigation.profile,
+        ariaLabel: navigation.profile,
+        Icon: IoPersonCircleOutline,
+      },
     ],
     [navigation]
   );
@@ -53,13 +69,13 @@ export function AppShell({ children, mainId = "main-content" }: AppShellProps) {
           <ThemeToggle />
         </div>
       </header>
+      {isDesktop ? null : <BottomNav items={navigationItems} />}
       <div className={styles.bodyLayout}>
         {isDesktop ? <SidebarNav items={navigationItems} /> : null}
         <main className={styles.mainContent} role="main" id={mainId}>
           {children}
         </main>
       </div>
-      {isDesktop ? null : <BottomNav items={navigationItems} />}
     </div>
   );
 }

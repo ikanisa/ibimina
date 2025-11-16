@@ -32,6 +32,7 @@
 .icon {
   font-size: 1.4rem;
   margin-bottom: var(--spacing-2);
+  color: var(--atlas-blue);
 }
 
 .label {

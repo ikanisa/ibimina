@@ -23,6 +23,12 @@ interface LoadingSpinnerProps {
   fullScreen?: boolean;
 }
 
+interface PageLoadingStateProps {
+  title?: string;
+  description?: string;
+  showSkeletons?: boolean;
+}
+
 /**
  * LoadingSpinner - Simple spinner with optional message
  */
@@ -60,6 +66,44 @@ export function LoadingSpinner({
   }
 
   return <div className="py-12">{content}</div>;
+}
+
+/**
+ * PageLoadingState - Accessible page-level loading layout
+ * Provides distinct copy and skeletons to help users understand what is loading.
+ */
+export function PageLoadingState({
+  title = "Loading your dashboard",
+  description = "We’re getting your balances, groups, and recent activity ready.",
+  showSkeletons = true,
+}: PageLoadingStateProps) {
+  return (
+    <div className="min-h-screen bg-neutral-50 p-4 sm:p-6" aria-busy="true" aria-live="polite">
+      <div className="mb-6 space-y-2" role="status">
+        <p className="text-sm font-semibold text-neutral-800">{title}</p>
+        <p className="text-sm text-neutral-600">{description}</p>
+      </div>
+
+      {showSkeletons ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={`quick-action-${i}`} className="h-24 rounded-xl" />
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-48" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <CardSkeleton key={`card-${i}`} />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 /**
