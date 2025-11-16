@@ -100,7 +100,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           break;
       }
     },
-    [results, selectedIndex, router]
+    [handleClose, results, router, selectedIndex]
   );
 
   const handleClose = useCallback(() => {

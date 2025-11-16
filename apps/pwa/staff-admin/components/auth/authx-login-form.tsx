@@ -15,6 +15,8 @@ import {
 } from "@/lib/auth/client";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useTranslation } from "@/providers/i18n-provider";
+import { AuthNotice } from "@/components/auth/auth-notice";
+import { MFACodeInput } from "@/components/auth/mfa-code-input";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 
 const otpPattern = /[^0-9]/g;
@@ -298,6 +300,7 @@ export function AuthxLoginForm({
   const [selectedFactor, setSelectedFactor] = useState<AuthxFactor | null>(null);
   const [otpExpiresAt, setOtpExpiresAt] = useState<string | null>(null);
   const [trustDevice, setTrustDevice] = useState(true);
+  const [isHydrating, setIsHydrating] = useState(mode === "mfa-only");
 
   const errorRef = useRef<HTMLParagraphElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -547,12 +550,14 @@ export function AuthxLoginForm({
       try {
         const summary = await listAuthxFactors();
         if (!cancelled) {
+          setIsHydrating(false);
           transitionToMfa(summary);
         }
       } catch (cause) {
         if (!cancelled) {
           console.error(`[${config.logPrefix}] standalone MFA factors failed`, cause);
           setError(t(config.errors.general.key, config.errors.general.fallback));
+          setIsHydrating(false);
         }
       }
     };
@@ -675,6 +680,10 @@ export function AuthxLoginForm({
         return;
       }
 
+      if (factorIsOtp) {
+        return;
+      }
+
       if (!factorRequiresCode) {
         setError(t(config.errors.missing.key, config.errors.missing.fallback));
         return;
@@ -744,6 +753,45 @@ export function AuthxLoginForm({
     }
   }, [config, resetAll, router]);
 
+  const handleOtpVerify = useCallback(
+    async (token: string): Promise<{ success: boolean; error?: string }> => {
+      if (!selectedFactor) {
+        return {
+          success: false,
+          error: t(config.errors.missing.key, config.errors.missing.fallback),
+        };
+      }
+
+      const verification = await verifyAuthxFactor({
+        factor: selectedFactor,
+        token,
+        trustDevice,
+      });
+
+      if (verification.status === "error") {
+        return {
+          success: false,
+          error:
+            verification.message ||
+            t(config.errors.verifyFailed.key, config.errors.verifyFailed.fallback),
+        };
+      }
+
+      await completeLogin();
+      return { success: true };
+    },
+    [
+      completeLogin,
+      config.errors.missing.fallback,
+      config.errors.missing.key,
+      config.errors.verifyFailed.fallback,
+      config.errors.verifyFailed.key,
+      selectedFactor,
+      t,
+      trustDevice,
+    ]
+  );
+
   const secondsLabel = useMemo(() => {
     if (!secondsRemaining || secondsRemaining <= 0) {
       return t("auth.mfa.expiresSoon", "Code expiring soon");
@@ -772,22 +820,13 @@ export function AuthxLoginForm({
         </header>
       ) : null}
 
-      {message && (
-        <p className="rounded-md bg-success/10 px-3 py-2 text-sm text-success" role="status">
-          {message}
-        </p>
-      )}
+      {message ? <AuthNotice tone="success" title={message} /> : null}
 
-      {error && (
-        <p
-          ref={errorRef}
-          role="alert"
-          tabIndex={-1}
-          className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
-        >
-          {error}
-        </p>
-      )}
+      {error ? (
+        <div ref={errorRef} tabIndex={-1}>
+          <AuthNotice tone="error" title={error} />
+        </div>
+      ) : null}
 
       {step === "credentials" ? (
         <form className="flex flex-col gap-4" onSubmit={handleCredentialsSubmit}>
@@ -831,6 +870,17 @@ export function AuthxLoginForm({
         </form>
       ) : (
         <form className="flex flex-col gap-4" onSubmit={handleMfaSubmit}>
+          {isHydrating ? (
+            <AuthNotice
+              tone="loading"
+              title={t("auth.mfa.loading", "Loading verification methods…")}
+              description={t(
+                "auth.mfa.loadingDescription",
+                "We are preparing your saved MFA options."
+              )}
+            />
+          ) : null}
+
           {availableFactors.length > 1 && (
             <label className="flex flex-col gap-2 text-sm font-medium" htmlFor={config.ids.factor}>
               {t(config.selectMethod.key, config.selectMethod.fallback)}
@@ -861,32 +911,39 @@ export function AuthxLoginForm({
             </label>
           )}
 
-          {factorRequiresCode && (
+          {selectedFactor && factorIsOtp ? (
+            <div className="space-y-3">
+              <AuthNotice
+                tone="muted"
+                title={secondsRemaining && secondsRemaining > 0 ? secondsLabel : factorLabel}
+                description={message ?? t(config.prompts.totp.key, config.prompts.totp.fallback)}
+              />
+              <MFACodeInput
+                label={factorLabel}
+                description={t(config.prompts.totp.key, config.prompts.totp.fallback)}
+                onVerify={handleOtpVerify}
+                onSuccess={() =>
+                  setMessage(t(config.success.message.key, config.success.message.fallback))
+                }
+              />
+            </div>
+          ) : null}
+
+          {factorRequiresCode && !factorIsOtp && (
             <label className="flex flex-col gap-2 text-sm font-medium" htmlFor={config.ids.code}>
-              {factorIsOtp
-                ? secondsRemaining && secondsRemaining > 0
-                  ? secondsLabel
-                  : factorLabel
-                : factorLabel}
+              {factorLabel}
               <input
                 id={config.ids.code}
                 ref={codeInputRef}
                 type="text"
-                inputMode={factorIsOtp ? "numeric" : "text"}
-                pattern={factorIsOtp ? "[0-9]*" : undefined}
-                autoComplete={factorIsOtp ? "one-time-code" : "off"}
+                inputMode="text"
+                autoComplete="off"
                 required
                 disabled={formPending}
                 value={code}
-                onChange={(event) =>
-                  setCode(
-                    factorIsOtp ? event.target.value.replace(otpPattern, "") : event.target.value
-                  )
-                }
-                maxLength={factorIsOtp ? 6 : 32}
-                className={`rounded border border-input bg-background px-3 py-2 ${
-                  factorIsOtp ? "text-center text-lg tracking-[6px]" : "text-sm"
-                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
+                onChange={(event) => setCode(event.target.value)}
+                maxLength={32}
+                className="rounded border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
           )}
@@ -933,26 +990,26 @@ export function AuthxLoginForm({
             </button>
           </div>
 
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={
-              formPending ||
-              (selectedFactor === "passkey"
-                ? false
-                : factorRequiresCode && factorIsOtp
-                  ? code.replace(otpPattern, "").length !== 6
+          {selectedFactor === "passkey" || (factorRequiresCode && !factorIsOtp) ? (
+            <button
+              type="submit"
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={
+                formPending ||
+                (selectedFactor === "passkey"
+                  ? false
                   : factorRequiresCode && !factorIsOtp
                     ? code.trim().length === 0
                     : false)
-            }
-          >
-            {formPending
-              ? t("auth.mfa.verifying", "Verifying…")
-              : selectedFactor === "passkey"
-                ? t(config.passkeyCta.key, config.passkeyCta.fallback)
-                : t("auth.mfa.verify", "Verify & continue")}
-          </button>
+              }
+            >
+              {formPending
+                ? t("auth.mfa.verifying", "Verifying…")
+                : selectedFactor === "passkey"
+                  ? t(config.passkeyCta.key, config.passkeyCta.fallback)
+                  : t("auth.mfa.verify", "Verify & continue")}
+            </button>
+          ) : null}
         </form>
       )}
 
