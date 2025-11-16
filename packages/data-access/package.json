@@ -12,10 +12,14 @@
   "exports": {
     ".": {
       "types": "./src/index.public.ts",
-      "import": "./src/index.public.ts",
-      "require": "./src/index.public.ts"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
     },
-    "./index.public": "./src/index.public.ts",
+    "./index.public": {
+      "types": "./src/index.public.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
