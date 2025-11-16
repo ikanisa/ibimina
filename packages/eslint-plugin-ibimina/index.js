@@ -145,7 +145,7 @@ const noCrossSurfaceImports = {
     }));
 
     const isPackageImport = (value) =>
-      value.startsWith("@ibimina/") || value.startsWith("packages/");
+      value.startsWith("@ibimina/");
 
     const findSurfaceForPath = (filePath) =>
       surfaceRoots.find((surface) => filePath.startsWith(surface.path));
