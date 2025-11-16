@@ -23,6 +23,12 @@ const baseConfig = createEslintConfig({
   rules: {
     ...sharedReactRules,
     ...structuredLoggingRules,
+    "ibimina/no-cross-surface-imports": [
+      "error",
+      {
+        surfaces: ["apps/admin", "apps/client", "apps/mobile", "apps/platform-api", "supabase"],
+      },
+    ],
     // Disable type-aware rules at root level since we don't have parserOptions.project
     // Each app can re-enable these in their own config if needed
     "@typescript-eslint/no-floating-promises": "off",

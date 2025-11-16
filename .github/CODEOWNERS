@@ -3,7 +3,12 @@
 
 *                       @ikanisa/platform-eng @ikanisa/security-compliance
 app/                    @ikanisa/frontend @ikanisa/platform-eng
+apps/admin/             @ikanisa/frontend @ikanisa/platform-eng
+apps/client/            @ikanisa/frontend @ikanisa/platform-eng
+apps/mobile/            @ikanisa/frontend @ikanisa/platform-eng
+apps/platform-api/      @ikanisa/devops @ikanisa/platform-eng
 packages/               @ikanisa/frontend @ikanisa/platform-eng
+packages/*              @ikanisa/frontend @ikanisa/platform-eng
 supabase/               @ikanisa/devops @ikanisa/platform-eng
 infra/                  @ikanisa/devops @ikanisa/platform-eng
 docs/go-live/           @ikanisa/devops @ikanisa/product-ops
