@@ -80,7 +80,9 @@
     <string>$(SUPABASE_URL)</string>
     <key>SUPABASE_ANON_KEY</key>
     <string>$(SUPABASE_ANON_KEY)</string>
-    
+    <key>NFC_HMAC_SECRET</key>
+    <string>ZGV2LXNlY3JldC1ieXRlcw==</string>
+
     <!-- App Transport Security -->
     <key>NSAppTransportSecurity</key>
     <dict>

@@ -7,6 +7,9 @@ final class MockSupabaseService: SupabaseServiceProtocol {
     var fetchAllocationResult: Result<Transaction?, Error> = .success(nil)
     private(set) var createAllocationCallCount = 0
     private(set) var lastAllocationRequest: AllocationRequest?
+    private(set) var registerPayloadCallCount = 0
+    private(set) var markExhaustedCallCount = 0
+    private(set) var lastNonce: String?
 
     func fetchUserGroups(userId: String) async throws -> [Group] {
         try groupsResult.get()
@@ -26,5 +29,14 @@ final class MockSupabaseService: SupabaseServiceProtocol {
         if case let .failure(error) = fetchAllocationResult {
             throw error
         }
+    }
+
+    func registerTapMomoPayload(_ payload: PaymentData) async throws {
+        registerPayloadCallCount += 1
+    }
+
+    func markTapMomoPayloadExhausted(nonce: String) async throws {
+        markExhaustedCallCount += 1
+        lastNonce = nonce
     }
 }

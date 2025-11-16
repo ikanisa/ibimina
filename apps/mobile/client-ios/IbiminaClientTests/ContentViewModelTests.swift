@@ -11,6 +11,7 @@ final class ContentViewModelTests: XCTestCase {
 
         XCTAssertFalse(payload.isEmpty)
         XCTAssertEqual(mock.createAllocationCallCount, 1)
+        XCTAssertEqual(mock.registerPayloadCallCount, 1)
         XCTAssertNotNil(viewModel.paymentData)
     }
 
@@ -28,7 +29,7 @@ final class ContentViewModelTests: XCTestCase {
         mock.fetchAllocationResult = .success(transaction)
 
         let viewModel = ContentViewModel(service: mock)
-        let payment = PaymentData.sample(amount: 5000, network: "MTN", merchantId: "org-demo")
+        let payment = try PaymentData.signed(amount: 5000, network: "MTN", merchantId: "org-demo")
         guard let payload = NFCTagHandler.formatPaymentData(payment) else {
             return XCTFail("Failed to encode payment")
         }
@@ -38,5 +39,7 @@ final class ContentViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.paymentData, payment)
         XCTAssertEqual(viewModel.latestAllocation, transaction)
         XCTAssertNil(viewModel.errorMessage)
+        XCTAssertEqual(mock.markExhaustedCallCount, 1)
+        XCTAssertEqual(mock.lastNonce, payment.nonce)
     }
 }

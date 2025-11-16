@@ -1,8 +1,13 @@
 package com.ibimina.client.security
 
 import android.util.Base64
+import com.ibimina.client.domain.model.NFCPayload
+import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
+import java.util.Locale
+import java.util.UUID
 import javax.crypto.Mac
+import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
 /**
@@ -14,19 +19,14 @@ import javax.crypto.spec.SecretKeySpec
  * - TTL (time-to-live) for expiration
  */
 object PayloadSigner {
-    
+
     private const val HMAC_ALGORITHM = "HmacSHA256"
-    private const val DEFAULT_TTL_MS = 60000L // 60 seconds
+    private const val DEFAULT_TTL_SECONDS = 60L
     
     /**
      * Generate a cryptographically secure nonce
      */
-    fun generateNonce(): String {
-        val random = SecureRandom()
-        val bytes = ByteArray(16)
-        random.nextBytes(bytes)
-        return Base64.encodeToString(bytes, Base64.NO_WRAP)
-    }
+    fun generateNonce(): String = UUID.randomUUID().toString()
     
     /**
      * Calculate HMAC signature for payload
@@ -35,12 +35,11 @@ object PayloadSigner {
      * @param secretKey The shared secret key
      * @return Base64-encoded signature
      */
-    fun sign(payload: String, secretKey: String): String {
+    fun sign(payload: String, secretOverride: ByteArray? = null): String {
         try {
             val mac = Mac.getInstance(HMAC_ALGORITHM)
-            val secretKeySpec = SecretKeySpec(secretKey.toByteArray(), HMAC_ALGORITHM)
-            mac.init(secretKeySpec)
-            val signatureBytes = mac.doFinal(payload.toByteArray())
+            mac.init(resolveSecret(secretOverride))
+            val signatureBytes = mac.doFinal(payload.toByteArray(StandardCharsets.UTF_8))
             return Base64.encodeToString(signatureBytes, Base64.NO_WRAP)
         } catch (e: Exception) {
             throw SecurityException("Failed to sign payload", e)
@@ -55,9 +54,9 @@ object PayloadSigner {
      * @param secretKey The shared secret key
      * @return true if signature is valid
      */
-    fun verify(payload: String, signature: String, secretKey: String): Boolean {
+    fun verify(payload: String, signature: String, secretOverride: ByteArray? = null): Boolean {
         return try {
-            val expectedSignature = sign(payload, secretKey)
+            val expectedSignature = sign(payload, secretOverride)
             // Use constant-time comparison to prevent timing attacks
             constantTimeEquals(signature, expectedSignature)
         } catch (e: Exception) {
@@ -71,8 +70,9 @@ object PayloadSigner {
      * @param ttlMs Time-to-live in milliseconds
      * @return Unix timestamp (milliseconds) when payload expires
      */
-    fun calculateExpiry(ttlMs: Long = DEFAULT_TTL_MS): Long {
-        return System.currentTimeMillis() + ttlMs
+    fun calculateExpiry(ttlSeconds: Long = DEFAULT_TTL_SECONDS): Long {
+        val issuedAt = System.currentTimeMillis() / 1000
+        return issuedAt + ttlSeconds
     }
     
     /**
@@ -108,29 +108,30 @@ object PayloadSigner {
         network: String,
         amount: Double,
         reference: String?,
-        secretKey: String,
-        ttlMs: Long = DEFAULT_TTL_MS
-    ): Map<String, String> {
-        val timestamp = System.currentTimeMillis()
-        val expiresAt = calculateExpiry(ttlMs)
+        ttlSeconds: Long = DEFAULT_TTL_SECONDS,
+        secretOverride: ByteArray? = null
+    ): NFCPayload {
+        val issuedAt = System.currentTimeMillis() / 1000
         val nonce = generateNonce()
-        
-        // Create payload string without signature
-        val payloadData = "$merchantId|$network|$amount|${reference ?: ""}|$timestamp|$nonce|$expiresAt"
-        
-        // Sign the payload
-        val signature = sign(payloadData, secretKey)
-        
-        return mapOf(
-            "version" to "1.0",
-            "merchantId" to merchantId,
-            "network" to network,
-            "amount" to amount.toString(),
-            "reference" to (reference ?: ""),
-            "timestamp" to timestamp.toString(),
-            "nonce" to nonce,
-            "expiresAt" to expiresAt.toString(),
-            "signature" to signature
+        val payloadData = canonicalString(
+            merchantId = merchantId,
+            network = network,
+            amount = amount,
+            reference = reference,
+            timestamp = issuedAt,
+            nonce = nonce,
+            ttlSeconds = ttlSeconds
+        )
+        val signature = sign(payloadData, secretOverride)
+        return NFCPayload(
+            amount = amount,
+            network = network,
+            merchantId = merchantId,
+            reference = reference,
+            hmacSignature = signature,
+            nonce = nonce,
+            timestamp = issuedAt,
+            ttl = ttlSeconds
         )
     }
     
@@ -139,36 +140,54 @@ object PayloadSigner {
      * 
      * Returns ValidationResult with details
      */
-    fun validateSignedPayload(
-        payloadMap: Map<String, String>,
-        secretKey: String
-    ): ValidationResult {
-        try {
-            val merchantId = payloadMap["merchantId"] ?: return ValidationResult(false, "Missing merchantId")
-            val network = payloadMap["network"] ?: return ValidationResult(false, "Missing network")
-            val amount = payloadMap["amount"] ?: return ValidationResult(false, "Missing amount")
-            val reference = payloadMap["reference"] ?: ""
-            val timestamp = payloadMap["timestamp"]?.toLongOrNull() ?: return ValidationResult(false, "Invalid timestamp")
-            val nonce = payloadMap["nonce"] ?: return ValidationResult(false, "Missing nonce")
-            val expiresAt = payloadMap["expiresAt"]?.toLongOrNull() ?: return ValidationResult(false, "Invalid expiresAt")
-            val signature = payloadMap["signature"] ?: return ValidationResult(false, "Missing signature")
-            
-            // Check expiration
-            if (isExpired(expiresAt)) {
+    fun validateSignedPayload(payload: NFCPayload, secretOverride: ByteArray? = null): ValidationResult {
+        return try {
+            if (payload.isExpired()) {
                 return ValidationResult(false, "Payload expired")
             }
-            
-            // Reconstruct payload for verification
-            val payloadData = "$merchantId|$network|$amount|$reference|$timestamp|$nonce|$expiresAt"
-            
-            // Verify signature
-            if (!verify(payloadData, signature, secretKey)) {
+            val payloadData = canonicalString(
+                merchantId = payload.merchantId,
+                network = payload.network,
+                amount = payload.amount,
+                reference = payload.reference,
+                timestamp = payload.timestamp,
+                nonce = payload.nonce,
+                ttlSeconds = payload.ttl
+            )
+            if (!verify(payloadData, payload.hmacSignature, secretOverride)) {
                 return ValidationResult(false, "Invalid signature")
             }
-            
-            return ValidationResult(true, "Valid")
+            ValidationResult(true, "Valid")
         } catch (e: Exception) {
-            return ValidationResult(false, "Validation error: ${e.message}")
+            ValidationResult(false, "Validation error: ${e.message}")
+        }
+    }
+
+    private fun canonicalString(
+        merchantId: String,
+        network: String,
+        amount: Double,
+        reference: String?,
+        timestamp: Long,
+        nonce: String,
+        ttlSeconds: Long
+    ): String {
+        return listOf(
+            merchantId,
+            network,
+            String.format(Locale.US, "%.2f", amount),
+            reference ?: "",
+            timestamp.toString(),
+            nonce,
+            ttlSeconds.toString()
+        ).joinToString("|")
+    }
+
+    private fun resolveSecret(secretOverride: ByteArray?): SecretKey {
+        return if (secretOverride != null) {
+            SecretKeySpec(secretOverride, HMAC_ALGORITHM)
+        } else {
+            NfcSecretManager.getSecretKey()
         }
     }
     

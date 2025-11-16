@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreNFC
+import Foundation
 
 /// Main entry point for the Ibimina client experience.
 struct ContentView: View {
@@ -17,11 +18,11 @@ struct ContentView: View {
                         .padding(.horizontal, 24)
 
                     if let writerStatus = viewModel.writerStatus {
-                        statusBanner(text: writerStatus, color: .green)
+                        statusBanner(text: writerStatus, color: .green, identifier: "info-banner")
                     }
 
                     if let error = viewModel.errorMessage {
-                        statusBanner(text: error, color: .red)
+                        statusBanner(text: error, color: .red, identifier: "error-banner")
                     }
 
                     if !viewModel.lastScanPayload.isEmpty {
@@ -176,7 +177,7 @@ struct ContentView: View {
         }
     }
 
-    private func statusBanner(text: String, color: Color) -> some View {
+    private func statusBanner(text: String, color: Color, identifier: String? = nil) -> some View {
         Text(text)
             .font(.footnote)
             .foregroundColor(color == .red ? .white : .black)
@@ -185,6 +186,7 @@ struct ContentView: View {
             .background(color.opacity(color == .red ? 0.8 : 0.2))
             .cornerRadius(12)
             .padding(.horizontal, 24)
+            .accessibilityIdentifier(identifier ?? "status-banner")
     }
 
     // MARK: - NFC Triggers
@@ -246,6 +248,12 @@ final class ContentViewModel: ObservableObject {
             memberId: userId,
             sourceNetwork: "MTN"
         )
+
+        if let mockIndex = ProcessInfo.processInfo.arguments.firstIndex(of: "-mockNfcPayload"),
+           ProcessInfo.processInfo.arguments.count > mockIndex + 1 {
+            let payload = ProcessInfo.processInfo.arguments[mockIndex + 1]
+            Task { await handleReaderPayload(payload) }
+        }
     }
 
     func resetMessages() {
@@ -269,6 +277,17 @@ final class ContentViewModel: ObservableObject {
 
         paymentData = payment
 
+        guard let signature = payment.signature else {
+            errorMessage = "Payload missing signature"
+            return
+        }
+
+        let canonical = NFCTagHandler.canonicalString(for: payment)
+        guard NFCTagHandler.verifyHMAC(data: canonical, signature: signature) else {
+            errorMessage = "Signature mismatch"
+            return
+        }
+
         if NFCTagHandler.isPaymentExpired(payment) {
             errorMessage = "Payment request expired (over 2 minutes old)"
             return
@@ -276,6 +295,7 @@ final class ContentViewModel: ObservableObject {
 
         do {
             latestAllocation = try await service.fetchAllocationByReference(reference: payment.reference)
+            try await service.markTapMomoPayloadExhausted(nonce: payment.nonce)
             errorMessage = nil
         } catch {
             errorMessage = "Failed to verify payment: \(error.localizedDescription)"
@@ -287,7 +307,7 @@ final class ContentViewModel: ObservableObject {
     }
 
     func prepareWriterPayload() async throws -> String {
-        let payment = PaymentData.sample(network: context.sourceNetwork, merchantId: context.orgId)
+        let payment = try PaymentData.signed(network: context.sourceNetwork, merchantId: context.orgId)
         paymentData = payment
 
         guard let payload = NFCTagHandler.formatPaymentData(payment) else {
@@ -297,6 +317,7 @@ final class ContentViewModel: ObservableObject {
         do {
             try await service.createAllocation(allocation: payment.allocationRequest(context: context))
             latestAllocation = try await service.fetchAllocationByReference(reference: payment.reference)
+            try await service.registerTapMomoPayload(payment)
         } catch {
             throw WriterError.allocationFailed(error)
         }

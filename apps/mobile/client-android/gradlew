@@ -12,6 +12,11 @@ DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
 APP_NAME="Gradle"
 APP_BASE_NAME=${0##*/}
 
+# Resolve the directory containing this script to build absolute paths for
+# the wrapper JAR and other assets. Without this, invoking the wrapper from
+# arbitrary working directories fails because APP_HOME remains empty.
+APP_HOME=$( cd "${APP_HOME:-$(dirname "$0")}" >/dev/null 2>&1 && pwd -P )
+
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD=maximum
 

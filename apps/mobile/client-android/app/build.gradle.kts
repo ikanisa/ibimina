@@ -30,8 +30,21 @@ android {
         }
         
         // BuildConfig fields from local.properties or environment variables
-        buildConfigField("String", "SUPABASE_URL", "\"${properties.getProperty("SUPABASE_URL") ?: System.getenv("SUPABASE_URL") ?: ""}\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${properties.getProperty("SUPABASE_ANON_KEY") ?: System.getenv("SUPABASE_ANON_KEY") ?: ""}\"")
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            "\"${properties.getProperty("SUPABASE_URL") ?: System.getenv("SUPABASE_URL") ?: ""}\""
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_ANON_KEY",
+            "\"${properties.getProperty("SUPABASE_ANON_KEY") ?: System.getenv("SUPABASE_ANON_KEY") ?: ""}\""
+        )
+        buildConfigField(
+            "String",
+            "NFC_HMAC_SECRET",
+            "\"${properties.getProperty("NFC_HMAC_SECRET") ?: System.getenv("NFC_HMAC_SECRET") ?: "ZGV2LXNlY3JldC1ieXRlcw=="}\""
+        )
     }
     
     buildTypes {

@@ -12,6 +12,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.ibimina.client.data.nfc.NFCManager
+import com.ibimina.client.domain.model.NFCPayload
+import com.ibimina.client.security.PayloadSigner
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,7 +38,8 @@ class NfcScreensTest {
             return true
         }
 
-        override fun readNFCTag(intent: Intent): String? = "member-123"
+        override fun readNFCTag(intent: Intent): String? =
+            samplePayload().toJson()
 
         override fun isNfcAvailable(): Boolean = true
 
@@ -45,28 +48,28 @@ class NfcScreensTest {
 
     @Test
     fun nfcScanScreenShowsSuccessMessage() {
-        val viewModel = NfcViewModel(fakeManager)
+        val viewModel = NfcViewModel(fakeManager, null)
         composeRule.setContent {
             NfcScanScreen(viewModel = viewModel)
         }
         composeRule.runOnIdle {
             viewModel.readFromIntent(Intent())
         }
-        composeRule.onNodeWithText("Last read payload: member-123").assertIsDisplayed()
+        composeRule.onNodeWithText("Signature verified").assertIsDisplayed()
     }
 
     @Test
     fun nfcWriteScreenShowsSuccessMessage() {
-        val viewModel = NfcViewModel(fakeManager)
+        val viewModel = NfcViewModel(fakeManager, null)
         composeRule.setContent {
             NfcWriteScreen(viewModel = viewModel)
         }
         composeRule.runOnIdle {
             viewModel.onNewTag(createMockTag())
         }
-        composeRule.onNodeWithText("Payload").performTextReplacement("payment-success")
+        composeRule.onNodeWithText("Payload").performTextReplacement(samplePayload().toJson())
         composeRule.onNodeWithText("Write to tag").performClick()
-        composeRule.onNodeWithText("Last written payload: payment-success").assertIsDisplayed()
+        composeRule.onNodeWithText("Successfully wrote to tag").assertIsDisplayed()
     }
 
     private fun createMockTag(): Tag {
@@ -82,3 +85,11 @@ class NfcScreensTest {
         return createMockTagMethod.invoke(null, byteArrayOf(0x04, 0x00), techList, techExtras) as Tag
     }
 }
+    private fun samplePayload(): NFCPayload =
+        PayloadSigner.createSignedPayload(
+            merchantId = "demo",
+            network = "MTN",
+            amount = 1000.0,
+            reference = "REF123"
+        )
+

@@ -15,6 +15,8 @@ protocol SupabaseServiceProtocol {
     func fetchTransactions(userId: String) async throws -> [Transaction]
     func fetchAllocationByReference(reference: String) async throws -> Transaction?
     func createAllocation(allocation: AllocationRequest) async throws
+    func registerTapMomoPayload(_ payload: PaymentData) async throws
+    func markTapMomoPayloadExhausted(nonce: String) async throws
 }
 
 final class SupabaseService: SupabaseServiceProtocol {
@@ -22,6 +24,7 @@ final class SupabaseService: SupabaseServiceProtocol {
     static let shared = SupabaseService()
 
     private var client: SupabaseClient?
+    private let isoFormatter = ISO8601DateFormatter()
 
     private init() {}
     
@@ -118,10 +121,33 @@ final class SupabaseService: SupabaseServiceProtocol {
     func createAllocation(allocation: AllocationRequest) async throws {
         let encoder = JSONEncoder()
         let data = try encoder.encode(allocation)
-        
+
         _ = try await requireClient().database
             .from("allocations")
             .insert(data)
+            .execute()
+    }
+
+    func registerTapMomoPayload(_ payload: PaymentData) async throws {
+        let encoder = JSONEncoder()
+        let record = TapMomoPayloadRecord(payment: payload, formatter: isoFormatter)
+        let data = try encoder.encode(record)
+
+        _ = try await requireClient().database
+            .from("tapmomo_transactions")
+            .insert(data)
+            .execute()
+    }
+
+    func markTapMomoPayloadExhausted(nonce: String) async throws {
+        let encoder = JSONEncoder()
+        let update = TapMomoPayloadUpdate(formatter: isoFormatter)
+        let data = try encoder.encode(update)
+
+        _ = try await requireClient().database
+            .from("tapmomo_transactions")
+            .update(data)
+            .eq("nonce", value: nonce)
             .execute()
     }
 
@@ -240,5 +266,60 @@ struct AllocationRequest: Codable {
         case amount
         case rawRef = "raw_ref"
         case source
+    }
+}
+
+private struct TapMomoPayloadRecord: Codable {
+    enum CodingKeys: String, CodingKey {
+        case merchantId = "merchant_id"
+        case network
+        case amount
+        case currency
+        case ref
+        case status
+        case nonce
+        case ttlSeconds = "ttl_seconds"
+        case expiresAt = "expires_at"
+        case payloadSignature = "payload_signature"
+    }
+
+    let merchantId: String
+    let network: String
+    let amount: Double
+    let currency: String
+    let ref: String
+    let status: String
+    let nonce: String
+    let ttlSeconds: Int
+    let expiresAt: String
+    let payloadSignature: String
+
+    init(payment: PaymentData, formatter: ISO8601DateFormatter) {
+        merchantId = payment.merchantId
+        network = payment.network
+        amount = payment.amount
+        currency = "RWF"
+        ref = payment.reference
+        status = "initiated"
+        nonce = payment.nonce
+        ttlSeconds = payment.ttlSeconds
+        expiresAt = formatter.string(from: Date(timeIntervalSince1970: payment.expiresAt))
+        payloadSignature = payment.signature ?? ""
+    }
+}
+
+private struct TapMomoPayloadUpdate: Codable {
+    enum CodingKeys: String, CodingKey {
+        case status
+        case isExhausted = "is_exhausted"
+        case exhaustedAt = "exhausted_at"
+    }
+
+    let status = "pending"
+    let isExhausted = true
+    let exhaustedAt: String
+
+    init(formatter: ISO8601DateFormatter) {
+        exhaustedAt = formatter.string(from: Date())
     }
 }

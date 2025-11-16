@@ -71,10 +71,9 @@ class NFCManagerTest {
             timestamp = 1234567890,
             ttl = 60
         )
-        
+
         val json = payload.toJson()
-        assertTrue(json.contains("\"amount\": 5000.0"))
-        assertTrue(json.contains("\"network\": \"MTN\""))
-        assertTrue(json.contains("\"merchantId\": \"MERCHANT123\""))
+        val decoded = NFCPayload.fromJson(json)
+        assertEquals(payload, decoded)
     }
 }

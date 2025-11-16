@@ -16,10 +16,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         // Override point for customization after application launch.
-        
+
+        NFCTagHandler.NFCSecretStore.ensureDefaultSecret()
         // Initialize Supabase
         SupabaseService.shared.initialize()
-        
+
         return true
     }
 
