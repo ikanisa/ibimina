@@ -24,14 +24,16 @@ export default function ErrorBoundary({ error, reset }: ErrorProps) {
         <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
           <AlertTriangle className="h-8 w-8 text-red-500" aria-hidden />
         </div>
-        <h2 className="mb-3 text-xl font-semibold text-neutral-900">Something went wrong</h2>
+        <h2 className="mb-3 text-xl font-semibold text-neutral-900">Sorry, we hit a snag</h2>
+        <p className="mx-auto mb-2 max-w-md text-sm leading-relaxed text-neutral-700">
+          We couldn’t finish loading this page. Your information is still safe.
+        </p>
         <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-neutral-700">
-          We ran into an unexpected error while loading this screen. You can retry the action or
-          head back to your SACCO+ dashboard.
+          Please try again, or go back to your dashboard to continue where things were working.
         </p>
         {error.digest && (
           <p className="mb-6 rounded-lg bg-neutral-100 px-3 py-2 font-mono text-xs text-neutral-700">
-            Error ID: {error.digest}
+            Support code: {error.digest}
           </p>
         )}
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">

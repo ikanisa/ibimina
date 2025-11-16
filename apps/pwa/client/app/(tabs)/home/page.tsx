@@ -8,6 +8,12 @@ import { BalanceCard } from "@/src/components/cards/BalanceCard";
 import { ActivityCard } from "@/src/components/cards/ActivityCard";
 import { UpcomingDeadlinesCard } from "@/src/components/cards/UpcomingDeadlinesCard";
 import { QuickActionsRow } from "@/src/components/ui/QuickActionsRow";
+import {
+  IoCardOutline,
+  IoCashOutline,
+  IoDocumentTextOutline,
+  IoStatsChartOutline,
+} from "react-icons/io5";
 
 import styles from "./page.module.css";
 
@@ -21,10 +27,10 @@ type DashboardAllocations = DashboardData["recentAllocations"];
 type DashboardGroups = DashboardData["groups"];
 
 const QUICK_ACTIONS = [
-  { id: "pay", label: "Pay dues", icon: "💳", href: "/pay" },
-  { id: "send", label: "Send money", icon: "💸", href: "/pay?mode=transfer" },
-  { id: "loan", label: "Apply loan", icon: "📊", href: "/loans" },
-  { id: "statement", label: "Statements", icon: "📄", href: "/statements" },
+  { id: "pay", label: "Pay dues", icon: IoCardOutline, href: "/pay" },
+  { id: "send", label: "Send money", icon: IoCashOutline, href: "/pay?mode=transfer" },
+  { id: "loan", label: "Apply loan", icon: IoStatsChartOutline, href: "/loans" },
+  { id: "statement", label: "Statements", icon: IoDocumentTextOutline, href: "/statements" },
 ];
 
 function mapActivities(allocations: DashboardAllocations) {
