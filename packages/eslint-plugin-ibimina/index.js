@@ -130,7 +130,7 @@ const noCrossSurfaceImports = {
     ],
   },
   create(context) {
-    const repoRoot = process.cwd();
+    const repoRoot = context.getCwd ? context.getCwd() : process.cwd();
     const surfaceRoots = (
       context.options[0]?.surfaces || [
         "apps/admin",
