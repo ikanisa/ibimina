@@ -78,7 +78,10 @@ export function VirtualTable<T>({
   if (loading) {
     return (
       <div
-        className={cn("rounded-xl border border-neutral-200 dark:border-neutral-700", className)}
+        className={cn(
+          "rounded-xl border border-neutral-200/80 bg-white/70 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.55)] backdrop-blur-md dark:border-neutral-700/70 dark:bg-neutral-900/70",
+          className
+        )}
       >
         <VirtualTableSkeleton columns={columns} rowCount={10} rowHeight={rowHeight} />
       </div>
@@ -89,7 +92,7 @@ export function VirtualTable<T>({
     return (
       <div
         className={cn(
-          "rounded-xl border border-neutral-200 bg-white p-12 text-center dark:border-neutral-700 dark:bg-neutral-800",
+          "rounded-xl border border-neutral-200/80 bg-white/70 p-12 text-center shadow-[0_18px_48px_-32px_rgba(15,23,42,0.55)] backdrop-blur-md dark:border-neutral-700/70 dark:bg-neutral-900/70",
           className
         )}
       >
@@ -101,14 +104,14 @@ export function VirtualTable<T>({
   return (
     <div
       className={cn(
-        "rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-800",
+        "rounded-xl border border-neutral-200/80 bg-white/70 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.55)] backdrop-blur-md dark:border-neutral-700/70 dark:bg-neutral-900/70",
         className
       )}
     >
       {/* Header */}
       <div
         className={cn(
-          "sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900",
+          "sticky top-0 z-10 border-b border-neutral-200/80 bg-white/70 backdrop-blur-md dark:border-neutral-700/70 dark:bg-neutral-900/80",
           headerClassName
         )}
       >
@@ -117,7 +120,7 @@ export function VirtualTable<T>({
             <div
               key={column.key}
               className={cn(
-                "flex-shrink-0 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-700 dark:text-neutral-300",
+                "flex-shrink-0 px-4 py-3 text-[13px] font-semibold uppercase tracking-[0.2em] text-neutral-700 dark:text-neutral-200",
                 column.align === "center" && "text-center",
                 column.align === "right" && "text-right"
               )}
@@ -153,8 +156,9 @@ export function VirtualTable<T>({
                   key={rowKey}
                   onClick={() => onRowClick?.(item, actualIndex)}
                   className={cn(
-                    "flex border-b border-neutral-100 transition-colors dark:border-neutral-800",
-                    onRowClick && "cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/50",
+                    "flex border-b border-neutral-100/70 transition-colors dark:border-neutral-800/70",
+                    onRowClick &&
+                      "cursor-pointer hover:bg-white/80 hover:backdrop-blur-[2px] dark:hover:bg-neutral-800/70",
                     rowClassNameValue
                   )}
                   style={{ height: rowHeight }}
