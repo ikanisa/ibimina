@@ -1,3 +1,4 @@
+import path from "path";
 import noInlinePageLiterals from "./no-inline-page-literals.js";
 
 /**
@@ -99,10 +100,105 @@ const requireRetryOptions = {
   },
 };
 
+/**
+ * Rule: no-cross-surface-imports
+ * Prevent imports between deployment surfaces that bypass shared packages.
+ */
+const noCrossSurfaceImports = {
+  meta: {
+    type: "problem",
+    docs: {
+      description: "Disallow imports across app surfaces unless routed through packages/*",
+      category: "Best Practices",
+      recommended: true,
+    },
+    messages: {
+      noCrossSurface:
+        "Avoid importing from '{{target}}' inside '{{source}}'. Move shared code into packages/* and import it from there.",
+    },
+    schema: [
+      {
+        type: "object",
+        properties: {
+          surfaces: {
+            type: "array",
+            items: { type: "string" },
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  create(context) {
+    const repoRoot = context.getCwd ? context.getCwd() : process.cwd();
+    const surfaceRoots = (
+      context.options[0]?.surfaces || [
+        "apps/admin",
+        "apps/client",
+        "apps/mobile",
+        "apps/platform-api",
+        "supabase",
+      ]
+    ).map((surface) => ({
+      name: surface,
+      path: path.join(repoRoot, surface),
+    }));
+
+    const isPackageImport = (value) =>
+      value.startsWith("@ibimina/");
+
+    const findSurfaceForPath = (filePath) =>
+      surfaceRoots.find((surface) => filePath.startsWith(surface.path));
+
+    const resolveImportPath = (importPath, fileDir) => {
+      if (importPath.startsWith(".")) {
+        return path.resolve(fileDir, importPath);
+      }
+
+      if (importPath.startsWith("/")) {
+        return path.join(repoRoot, importPath.slice(1));
+      }
+
+      return null;
+    };
+
+    return {
+      ImportDeclaration(node) {
+        const filename = context.getFilename();
+        if (!path.isAbsolute(filename)) return;
+
+        const importerSurface = findSurfaceForPath(filename);
+        if (!importerSurface) return;
+
+        const importValue = node.source.value;
+        if (typeof importValue !== "string" || isPackageImport(importValue)) return;
+
+        const resolvedPath = resolveImportPath(importValue, path.dirname(filename));
+        if (!resolvedPath) return;
+
+        const targetSurface = findSurfaceForPath(resolvedPath);
+        if (!targetSurface) return;
+
+        if (targetSurface.name !== importerSurface.name) {
+          context.report({
+            node,
+            messageId: "noCrossSurface",
+            data: {
+              target: targetSurface.name,
+              source: importerSurface.name,
+            },
+          });
+        }
+      },
+    };
+  },
+};
+
 export default {
   rules: {
     "structured-logging": structuredLogging,
     "require-retry-options": requireRetryOptions,
+    "no-cross-surface-imports": noCrossSurfaceImports,
     "no-inline-page-literals": noInlinePageLiterals,
   },
   configs: {},
