@@ -1,5 +1,4 @@
 import XCTest
-@testable import IbiminaClient
 
 final class IbiminaClientUITests: XCTestCase {
     func testLaunchShowsPrimaryActions() throws {
