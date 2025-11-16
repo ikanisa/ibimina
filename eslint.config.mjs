@@ -26,7 +26,7 @@ const baseConfig = createEslintConfig({
     "ibimina/no-cross-surface-imports": [
       "error",
       {
-        surfaces: ["apps/admin", "apps/client", "apps/mobile", "apps/platform-api", "supabase"],
+        surfaces: ["apps/pwa/staff-admin", "apps/pwa/client", "apps/mobile", "apps/website", "supabase"],
       },
     ],
     // Disable type-aware rules at root level since we don't have parserOptions.project
