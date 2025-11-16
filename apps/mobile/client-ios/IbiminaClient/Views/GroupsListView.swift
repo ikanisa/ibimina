@@ -1,4 +1,5 @@
 import SwiftUI
+import Supabase
 
 struct GroupsListView: View {
     @StateObject private var viewModel: GroupsListViewModel
@@ -88,6 +89,8 @@ final class GroupsListViewModel: ObservableObject {
 
 #if DEBUG
 private struct PreviewSupabaseService: SupabaseServiceProtocol {
+    var currentSession: Session? { nil }
+    var memberId: String? { "preview" }
     func fetchUserGroups(userId: String) async throws -> [Group] {
         [
             Group(id: "1", name: "Village Savings", groupId: "grp-1", memberCode: "M-001"),
@@ -98,6 +101,9 @@ private struct PreviewSupabaseService: SupabaseServiceProtocol {
     func fetchTransactions(userId: String) async throws -> [Transaction] { [] }
     func fetchAllocationByReference(reference: String) async throws -> Transaction? { nil }
     func createAllocation(allocation: AllocationRequest) async throws {}
+    func sendOtp(phoneNumber: String) async throws {}
+    func verifyOtp(phoneNumber: String, code: String) async throws {}
+    func signOut() async throws {}
 }
 
 struct GroupsListView_Previews: PreviewProvider {
