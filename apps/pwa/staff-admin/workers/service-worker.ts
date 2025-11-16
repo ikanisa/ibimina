@@ -32,6 +32,7 @@ declare let self: ServiceWorkerGlobalScope & {
 
 const BUILD_ID = process.env.NEXT_PUBLIC_BUILD_ID ?? "dev-build";
 const OFFLINE_URL = "/offline";
+const OFFLINE_PAGES = [OFFLINE_URL, "/offline/help", "/offline/snapshots"];
 const BG_SYNC_TAG = "ibimina-offline-sync";
 
 let lastQueueCount = 0;
@@ -63,10 +64,13 @@ clientsClaim();
 
 // Precache critical app shell resources
 // The workbox plugin injects the manifest at build time via __WB_MANIFEST
-precacheAndRoute([...(self.__WB_MANIFEST ?? []), { url: OFFLINE_URL, revision: BUILD_ID }], {
-  // Ignore common tracking parameters that don't affect content
-  ignoreURLParametersMatching: [/^utm_/, /^fbclid$/],
-});
+precacheAndRoute(
+  [...(self.__WB_MANIFEST ?? []), ...OFFLINE_PAGES.map((url) => ({ url, revision: BUILD_ID }))],
+  {
+    // Ignore common tracking parameters that don't affect content
+    ignoreURLParametersMatching: [/^utm_/, /^fbclid$/],
+  }
+);
 
 // Remove outdated caches from previous versions
 cleanupOutdatedCaches();
