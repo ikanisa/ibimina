@@ -63,3 +63,23 @@
 - [ ] Monitor Supabase logs and Vercel/Cloudflare dashboards for error spikes.
 - [ ] Update `CHANGELOG.md` with release highlights and increment versions in
       affected packages.
+
+## 6. Migration & Rollback Readiness
+
+- [ ] Confirm Supabase env vars are present in CI and runtime environments:
+      `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+      `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_JWT_SECRET`.
+- [ ] Deploy updated RLS policies to staging and production using
+      `pnpm --filter @ibimina/admin run supabase:deploy` and verify audit logs
+      show the new policy version.
+- [ ] Document any new secrets or config changes in 1Password and share with the
+      on-call channel.
+- [ ] Rollback plan: redeploy the previous release tag with
+      `pnpm turbo run deploy --filter @ibimina/client --filter @ibimina/admin --tag <last-good-tag>`
+      and restore the prior Supabase migration version via
+      `supabase migration up --version <previous>`.
+- [ ] Smoke-test script after deploy or rollback:
+  - `pnpm --filter @ibimina/client run test:e2e -- --grep "login|invite|QR"`
+  - `pnpm --filter @ibimina/client run test:unit`
+  - Hit `/qr-preview`, `/share?title=Group%20Invite`, and `/login` in the PWA to
+    validate auth, invite redirect, and QR rendering.
