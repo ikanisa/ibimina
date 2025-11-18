@@ -19,6 +19,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { QrLoginPanel } from "./qr-login-panel";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -430,6 +431,10 @@ export default function LoginPage() {
           </div>
         </div>
       )}
+
+      <div className="mt-8">
+        <QrLoginPanel />
+      </div>
 
       {/* Help text */}
       <footer className="pt-4 text-center">
