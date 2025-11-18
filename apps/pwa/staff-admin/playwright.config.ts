@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
+const isRemote = process.env.PLAYWRIGHT_REMOTE === "1";
+const baseURL =
+  process.env.PLAYWRIGHT_REMOTE_BASE_URL ??
+  process.env.PLAYWRIGHT_BASE_URL ??
+  "http://127.0.0.1:3100";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -22,31 +26,33 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: [
-      `AUTH_E2E_STUB=1`,
-      `ADMIN_USE_STANDALONE_START=1`,
-      `NEXT_PUBLIC_E2E=1`,
-      `E2E_USE_DEV=${process.env.E2E_USE_DEV ?? "1"}`,
-      `NEXT_PUBLIC_SUPABASE_URL=${process.env.PLAYWRIGHT_SUPABASE_URL ?? "http://127.0.0.1:54321"}`,
-      `NEXT_PUBLIC_SUPABASE_ANON_KEY=${process.env.PLAYWRIGHT_SUPABASE_ANON_KEY ?? "stub-anon-key"}`,
-      `MFA_SESSION_SECRET=${process.env.E2E_MFA_SESSION_SECRET ?? "stub-session-secret"}`,
-      `TRUSTED_COOKIE_SECRET=${process.env.E2E_TRUSTED_COOKIE_SECRET ?? "stub-trusted-secret"}`,
-      `BACKUP_PEPPER=${process.env.E2E_BACKUP_PEPPER ?? "playwright-pepper"}`,
-      `E2E_BACKUP_PEPPER=${process.env.E2E_BACKUP_PEPPER ?? "playwright-pepper"}`,
-      `RATE_LIMIT_SECRET=${process.env.E2E_RATE_LIMIT_SECRET ?? "playwright-rate-limit"}`,
-      `KMS_DATA_KEY=${process.env.E2E_KMS_DATA_KEY ?? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="}`,
-      `SUPABASE_SERVICE_ROLE_KEY=${process.env.PLAYWRIGHT_SUPABASE_SERVICE_ROLE_KEY ?? "stub-service-role-key"}`,
-      `HMAC_SHARED_SECRET=${process.env.PLAYWRIGHT_HMAC_SHARED_SECRET ?? "stub-hmac-secret"}`,
-      `OPENAI_API_KEY=${process.env.PLAYWRIGHT_OPENAI_API_KEY ?? "stub-openai-key"}`,
-      `HOSTNAME=${process.env.PLAYWRIGHT_HOST ?? "127.0.0.1"}`,
-      `PORT=${process.env.PLAYWRIGHT_PORT ?? "3100"}`,
-      "pnpm",
-      "run",
-      "start:e2e",
-    ].join(" "),
-    url: "http://127.0.0.1:3100",
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-  },
+  webServer: isRemote
+    ? undefined
+    : {
+        command: [
+          `AUTH_E2E_STUB=1`,
+          `ADMIN_USE_STANDALONE_START=1`,
+          `NEXT_PUBLIC_E2E=1`,
+          `E2E_USE_DEV=${process.env.E2E_USE_DEV ?? "1"}`,
+          `NEXT_PUBLIC_SUPABASE_URL=${process.env.PLAYWRIGHT_SUPABASE_URL ?? "http://127.0.0.1:54321"}`,
+          `NEXT_PUBLIC_SUPABASE_ANON_KEY=${process.env.PLAYWRIGHT_SUPABASE_ANON_KEY ?? "stub-anon-key"}`,
+          `MFA_SESSION_SECRET=${process.env.E2E_MFA_SESSION_SECRET ?? "stub-session-secret"}`,
+          `TRUSTED_COOKIE_SECRET=${process.env.E2E_TRUSTED_COOKIE_SECRET ?? "stub-trusted-secret"}`,
+          `BACKUP_PEPPER=${process.env.E2E_BACKUP_PEPPER ?? "playwright-pepper"}`,
+          `E2E_BACKUP_PEPPER=${process.env.E2E_BACKUP_PEPPER ?? "playwright-pepper"}`,
+          `RATE_LIMIT_SECRET=${process.env.E2E_RATE_LIMIT_SECRET ?? "playwright-rate-limit"}`,
+          `KMS_DATA_KEY=${process.env.E2E_KMS_DATA_KEY ?? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="}`,
+          `SUPABASE_SERVICE_ROLE_KEY=${process.env.PLAYWRIGHT_SUPABASE_SERVICE_ROLE_KEY ?? "stub-service-role-key"}`,
+          `HMAC_SHARED_SECRET=${process.env.PLAYWRIGHT_HMAC_SHARED_SECRET ?? "stub-hmac-secret"}`,
+          `OPENAI_API_KEY=${process.env.PLAYWRIGHT_OPENAI_API_KEY ?? "stub-openai-key"}`,
+          `HOSTNAME=${process.env.PLAYWRIGHT_HOST ?? "127.0.0.1"}`,
+          `PORT=${process.env.PLAYWRIGHT_PORT ?? "3100"}`,
+          "pnpm",
+          "run",
+          "start:e2e",
+        ].join(" "),
+        url: "http://127.0.0.1:3100",
+        reuseExistingServer: !process.env.CI,
+        timeout: 180_000,
+      },
 });
