@@ -330,22 +330,13 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies AppPageConfig<"/staff">;
 }
 
-// Validate ../../app/admin/countries/[id]/page.tsx
 {
-  const handler = {} as typeof import("../../app/admin/countries/[id]/page.js");
-  handler satisfies AppPageConfig<"/admin/countries/[id]">;
 }
 
-// Validate ../../app/admin/countries/new/page.tsx
 {
-  const handler = {} as typeof import("../../app/admin/countries/new/page.js");
-  handler satisfies AppPageConfig<"/admin/countries/new">;
 }
 
-// Validate ../../app/admin/countries/page.tsx
 {
-  const handler = {} as typeof import("../../app/admin/countries/page.js");
-  handler satisfies AppPageConfig<"/admin/countries">;
 }
 
 // Validate ../../app/admin/invites/page.tsx
@@ -360,40 +351,22 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies AppPageConfig<"/admin">;
 }
 
-// Validate ../../app/admin/partners/[orgId]/page.tsx
 {
-  const handler = {} as typeof import("../../app/admin/partners/[orgId]/page.js");
-  handler satisfies AppPageConfig<"/admin/partners/[orgId]">;
 }
 
-// Validate ../../app/admin/partners/new/page.tsx
 {
-  const handler = {} as typeof import("../../app/admin/partners/new/page.js");
-  handler satisfies AppPageConfig<"/admin/partners/new">;
 }
 
-// Validate ../../app/admin/partners/page.tsx
 {
-  const handler = {} as typeof import("../../app/admin/partners/page.js");
-  handler satisfies AppPageConfig<"/admin/partners">;
 }
 
-// Validate ../../app/admin/telcos/[id]/page.tsx
 {
-  const handler = {} as typeof import("../../app/admin/telcos/[id]/page.js");
-  handler satisfies AppPageConfig<"/admin/telcos/[id]">;
 }
 
-// Validate ../../app/admin/telcos/new/page.tsx
 {
-  const handler = {} as typeof import("../../app/admin/telcos/new/page.js");
-  handler satisfies AppPageConfig<"/admin/telcos/new">;
 }
 
-// Validate ../../app/admin/telcos/page.tsx
 {
-  const handler = {} as typeof import("../../app/admin/telcos/page.js");
-  handler satisfies AppPageConfig<"/admin/telcos">;
 }
 
 // Validate ../../app/invite/[token]/page.tsx

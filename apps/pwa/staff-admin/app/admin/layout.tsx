@@ -10,17 +10,21 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-surface text-ink">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10">
-        <header className="flex flex-col gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink/60">Governance</p>
-            <h1 className="text-3xl font-semibold text-ink">Platform configuration</h1>
-            <p className="text-sm text-ink/70">Manage multi-country rollout and staff access.</p>
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      <div className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:py-12">
+        <header className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Admin</p>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold leading-tight">Platform settings</h1>
+            <p className="text-sm text-gray-600">
+              Manage staff access and the essential controls needed to keep Ibimina running.
+            </p>
           </div>
           <AdminNav />
         </header>
-        <main className="rounded-3xl border border-ink/10 bg-white p-6 shadow-sm">{children}</main>
+        <main className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

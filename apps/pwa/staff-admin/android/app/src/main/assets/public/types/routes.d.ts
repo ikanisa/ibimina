@@ -6,9 +6,6 @@ type AppRoutes =
   | "/admin"
   | "/admin/approvals"
   | "/admin/audit"
-  | "/admin/countries"
-  | "/admin/countries/[id]"
-  | "/admin/countries/new"
   | "/admin/feature-flags"
   | "/admin/groups"
   | "/admin/health"
@@ -18,18 +15,12 @@ type AppRoutes =
   | "/admin/notifications"
   | "/admin/ocr"
   | "/admin/overview"
-  | "/admin/partners"
-  | "/admin/partners/[orgId]"
-  | "/admin/partners/new"
   | "/admin/payments"
   | "/admin/reconciliation"
   | "/admin/reports"
   | "/admin/saccos"
   | "/admin/settings"
   | "/admin/staff"
-  | "/admin/telcos"
-  | "/admin/telcos/[id]"
-  | "/admin/telcos/new"
   | "/analytics"
   | "/countries"
   | "/countries/[id]"
@@ -159,9 +150,6 @@ interface ParamMap {
   "/admin": {};
   "/admin/approvals": {};
   "/admin/audit": {};
-  "/admin/countries": {};
-  "/admin/countries/[id]": { id: string };
-  "/admin/countries/new": {};
   "/admin/feature-flags": {};
   "/admin/groups": {};
   "/admin/health": {};
@@ -171,18 +159,12 @@ interface ParamMap {
   "/admin/notifications": {};
   "/admin/ocr": {};
   "/admin/overview": {};
-  "/admin/partners": {};
-  "/admin/partners/[orgId]": { orgId: string };
-  "/admin/partners/new": {};
   "/admin/payments": {};
   "/admin/reconciliation": {};
   "/admin/reports": {};
   "/admin/saccos": {};
   "/admin/settings": {};
   "/admin/staff": {};
-  "/admin/telcos": {};
-  "/admin/telcos/[id]": { id: string };
-  "/admin/telcos/new": {};
   "/analytics": {};
   "/api/activity/recent": {};
   "/api/admin/audit/export": {};

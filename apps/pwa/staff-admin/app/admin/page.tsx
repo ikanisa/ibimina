@@ -1,54 +1,41 @@
+import Link from "next/link";
+
 export default function AdminGovernanceIndex() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <article className="rounded-2xl border border-ink/10 bg-ink/5 p-6">
-        <h2 className="text-lg font-semibold text-ink">Countries</h2>
-        <p className="mt-2 text-sm text-ink/70">
-          Maintain the list of operating countries and their regulatory status.
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-gray-900">Keep admin work focused</h2>
+        <p className="text-sm text-gray-600">
+          The admin console now highlights the most essential tasks so it stays simple to navigate
+          and easy to maintain.
         </p>
-        <a
-          className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-600"
-          href="/admin/countries"
-        >
-          Manage countries →
-        </a>
-      </article>
-      <article className="rounded-2xl border border-ink/10 bg-ink/5 p-6">
-        <h2 className="text-lg font-semibold text-ink">Telco providers</h2>
-        <p className="mt-2 text-sm text-ink/70">
-          Configure mobile money providers, merchant codes, and reference formats.
-        </p>
-        <a
-          className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-600"
-          href="/admin/telcos"
-        >
-          Configure telcos →
-        </a>
-      </article>
-      <article className="rounded-2xl border border-ink/10 bg-ink/5 p-6">
-        <h2 className="text-lg font-semibold text-ink">Partner configuration</h2>
-        <p className="mt-2 text-sm text-ink/70">
-          Set feature flags and merchant metadata for SACCO partners.
-        </p>
-        <a
-          className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-600"
-          href="/admin/partners"
-        >
-          Partner settings →
-        </a>
-      </article>
-      <article className="rounded-2xl border border-ink/10 bg-ink/5 p-6">
-        <h2 className="text-lg font-semibold text-ink">Staff invites</h2>
-        <p className="mt-2 text-sm text-ink/70">
-          Send or revoke invitations for SACCO staff accounts.
-        </p>
-        <a
-          className="mt-4 inline-flex items-center text-sm font-semibold text-emerald-600"
-          href="/admin/invites"
-        >
-          Manage invites →
-        </a>
-      </article>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <article className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <h3 className="text-base font-semibold text-gray-900">Staff invites</h3>
+          <p className="text-sm text-gray-600">
+            Send invitations for SACCO team members and track their status in one place.
+          </p>
+          <Link
+            className="inline-flex items-center text-sm font-semibold text-gray-900 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+            href="/admin/invites"
+          >
+            Go to invites
+          </Link>
+        </article>
+
+        <article className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <h3 className="text-base font-semibold text-gray-900">Governance at a glance</h3>
+          <p className="text-sm text-gray-600">
+            Keep ownership clear and audit-ready. Future configuration modules will return here once
+            they are required.
+          </p>
+          <span className="inline-flex items-center text-sm font-medium text-gray-600">
+            Core controls are active; optional modules were removed.
+          </span>
+        </article>
+      </div>
     </div>
   );
 }

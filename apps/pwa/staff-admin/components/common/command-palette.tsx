@@ -79,6 +79,12 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     setSelectedIndex(0);
   }, [debouncedQuery]);
 
+  const handleClose = useCallback(() => {
+    setQuery("");
+    setSelectedIndex(0);
+    onClose();
+  }, [onClose]);
+
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -100,14 +106,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           break;
       }
     },
-    [results, selectedIndex, router]
+    [results, selectedIndex, router, handleClose]
   );
-
-  const handleClose = useCallback(() => {
-    setQuery("");
-    setSelectedIndex(0);
-    onClose();
-  }, [onClose]);
 
   useFocusTrap(isOpen, dialogRef, {
     onEscape: () => handleClose(),

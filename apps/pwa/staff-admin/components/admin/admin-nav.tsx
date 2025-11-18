@@ -5,9 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/admin/countries", label: "Countries" },
-  { href: "/admin/telcos", label: "Telco providers" },
-  { href: "/admin/partners", label: "Partner config" },
+  { href: "/admin", label: "Overview" },
   { href: "/admin/invites", label: "Staff invites" },
 ];
 
@@ -17,17 +15,15 @@ export function AdminNav() {
   return (
     <nav className="flex flex-wrap gap-2" aria-label="Admin navigation">
       {NAV_ITEMS.map((item) => {
-        const isActive = pathname?.startsWith(item.href);
+        const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
         return (
           <Link
             key={item.href}
             href={item.href}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-              isActive
-                ? "border-emerald-400 bg-emerald-100 text-emerald-900"
-                : "border-ink/10 bg-white text-ink/70 hover:border-ink/20 hover:text-ink"
+              "rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900",
+              isActive ? "bg-gray-900 text-white border-gray-900" : "hover:bg-gray-100"
             )}
           >
             {item.label}
