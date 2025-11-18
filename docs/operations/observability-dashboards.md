@@ -85,6 +85,24 @@ Alertmanager fans out notifications as follows:
 - Critical alerts fan out to Slack **and** PagerDuty (`PAGERDUTY_ROUTING_KEY`).
   The payload links back to this document for context.
 
+### Auth & admin monitoring
+
+- Import `infra/metrics/dashboards/supabase-health.json` to watch queue gauges
+  and overlay auth-specific panels for MFA delivery and login flow health. Add a
+  stat panel for
+  `increase(ibimina_system_metric_total{event="mfa_email_sent"}[15m])` vs.
+  `increase(...{event="mfa_email_failure"}[15m])` to spot degraded OTP delivery.
+- Enable the new Prometheus alerts in `infra/metrics/rules/ibimina.rules.yml`:
+  - `SupabaseMfaFailureRate` (warning if failures >5% for 10 min) to catch
+    Resend/SMTP issues early.
+  - `SupabaseMfaSendStall` (critical if zero sends for 30 min) to flag frozen
+    auth flows.
+  - `AdminAppHealthDown` (critical if the metrics-exporter is unreachable for
+    5 min) as a proxy for admin route outages; pair with the staff app
+    `/api/healthz` check in external uptime monitors.
+- Route these alerts to the same Slack/PagerDuty channels as edge-function
+  alerts so the on-call rotation is paged for login or staff-console failures.
+
 ## On-call escalation path
 
 1. **Slack acknowledgement (Primary)**
