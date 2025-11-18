@@ -1,6 +1,7 @@
 package com.ibimina.client.data.repository
 
 import com.ibimina.client.data.local.dao.GroupDao
+import com.ibimina.client.data.local.entity.GroupEntity
 import com.ibimina.client.domain.model.Group
 import com.ibimina.client.domain.model.GroupMember
 import com.ibimina.client.domain.repository.GroupRepository
@@ -16,7 +17,7 @@ class GroupRepositoryImpl @Inject constructor(
     
     override suspend fun getGroups(): Result<List<Group>> {
         return try {
-            val groups = groupDao.getAll().map { it.toDomain() }
+            val groups = groupDao.getAll().map(GroupEntity::toDomain)
             Result.success(groups)
         } catch (e: Exception) {
             Result.failure(e)
@@ -34,7 +35,7 @@ class GroupRepositoryImpl @Inject constructor(
     
     override fun observeGroups(): Flow<List<Group>> {
         return groupDao.observeAll().map { entities ->
-            entities.map { it.toDomain() }
+            entities.map(GroupEntity::toDomain)
         }
     }
     
@@ -48,15 +49,3 @@ class GroupRepositoryImpl @Inject constructor(
         return Result.success(Unit)
     }
 }
-
-private fun com.ibimina.client.data.local.entity.GroupEntity.toDomain() = Group(
-    id = id,
-    orgId = orgId,
-    countryId = countryId,
-    name = name,
-    amount = amount,
-    frequency = frequency,
-    cycle = cycle,
-    memberCount = memberCount,
-    isActive = isActive
-)

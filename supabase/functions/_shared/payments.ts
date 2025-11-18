@@ -9,16 +9,36 @@ export type ReferenceResolution = {
   status: "PENDING" | "UNALLOCATED" | "POSTED";
 };
 
+const normalizeReference = (value?: string | null): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  const cleaned = value
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9.]/g, "")
+    .replace(/\.+/g, ".")
+    .replace(/^\.+|\.+$/g, "");
+
+  if (!cleaned) {
+    return null;
+  }
+
+  return cleaned;
+};
+
 export const resolveReference = async (
   supabase: AnyClient,
   reference: string | undefined | null,
   fallbackSaccoId: string | null
 ): Promise<ReferenceResolution> => {
-  if (!reference) {
+  const normalizedReference = normalizeReference(reference);
+  if (!normalizedReference) {
     return { saccoId: fallbackSaccoId, ikiminaId: null, memberId: null, status: "PENDING" };
   }
 
-  const parts = reference.split(".");
+  const parts = normalizedReference.split(".").filter(Boolean);
   if (parts.length < 3) {
     return { saccoId: fallbackSaccoId, ikiminaId: null, memberId: null, status: "UNALLOCATED" };
   }

@@ -14,6 +14,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun TransactionHistoryScreen(viewModel: TransactionHistoryViewModel) {
@@ -45,9 +48,15 @@ fun TransactionHistoryScreen(viewModel: TransactionHistoryViewModel) {
                                     style = MaterialTheme.typography.bodySmall
                                 )
                                 Text(
-                                    text = "Status: ${transaction.status} - ${transaction.createdAt}",
+                                    text = "Status: ${transaction.status.name.lowercase().replaceFirstChar { it.titlecase(Locale.getDefault()) }}",
                                     style = MaterialTheme.typography.bodySmall
                                 )
+                                if (transaction.createdAt.isNotEmpty()) {
+                                    Text(
+                                        text = "Recorded: ${formatTimestamp(transaction.createdAt)}",
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
                             }
                         }
                     }
@@ -55,4 +64,14 @@ fun TransactionHistoryScreen(viewModel: TransactionHistoryViewModel) {
             }
         }
     }
+}
+
+private fun formatTimestamp(value: String): String {
+    return runCatching {
+        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val formatter = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
+        formatter.format(parser.parse(value) ?: return value)
+    }.getOrDefault(value)
 }

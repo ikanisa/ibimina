@@ -1,9 +1,8 @@
 package com.ibimina.client.data.repository
 
 import com.ibimina.client.data.local.dao.TransactionDao
+import com.ibimina.client.data.local.entity.TransactionEntity
 import com.ibimina.client.domain.model.Transaction
-import com.ibimina.client.domain.model.TransactionStatus
-import com.ibimina.client.domain.model.TransactionSource
 import com.ibimina.client.domain.repository.TransactionRepository
 import io.github.jan.supabase.SupabaseClient
 import kotlinx.coroutines.flow.Flow
@@ -17,7 +16,7 @@ class TransactionRepositoryImpl @Inject constructor(
     
     override suspend fun getTransactionsByGroup(groupId: String): Result<List<Transaction>> {
         return try {
-            val transactions = transactionDao.getByGroup(groupId).map { it.toDomain() }
+            val transactions = transactionDao.getByGroup(groupId).map(TransactionEntity::toDomain)
             Result.success(transactions)
         } catch (e: Exception) {
             Result.failure(e)
@@ -31,7 +30,7 @@ class TransactionRepositoryImpl @Inject constructor(
     
     override fun observeTransactions(groupId: String): Flow<List<Transaction>> {
         return transactionDao.observeByGroup(groupId).map { entities ->
-            entities.map { it.toDomain() }
+            entities.map(TransactionEntity::toDomain)
         }
     }
     
@@ -54,15 +53,3 @@ class TransactionRepositoryImpl @Inject constructor(
         }
     }
 }
-
-private fun com.ibimina.client.data.local.entity.TransactionEntity.toDomain() = Transaction(
-    id = id,
-    groupId = groupId,
-    memberId = memberId,
-    amount = amount,
-    reference = reference,
-    status = TransactionStatus.valueOf(status),
-    source = TransactionSource.valueOf(source),
-    timestamp = timestamp,
-    createdAt = createdAt
-)

@@ -1,6 +1,7 @@
 package com.ibimina.client.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -9,10 +10,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GroupDao {
-    @Query("SELECT * FROM groups WHERE isActive = 1")
+    @Query("SELECT * FROM groups WHERE is_active = 1")
     fun observeAll(): Flow<List<GroupEntity>>
-    
-    @Query("SELECT * FROM groups WHERE isActive = 1")
+
+    @Query("SELECT * FROM groups WHERE is_active = 1")
     suspend fun getAll(): List<GroupEntity>
     
     @Query("SELECT * FROM groups WHERE id = :id")

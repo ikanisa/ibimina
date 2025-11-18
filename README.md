@@ -555,3 +555,14 @@ you’re ready to release to your local or on-prem infrastructure.
 - Ensure `META_WHATSAPP_APP_SECRET`, `META_WHATSAPP_VERIFY_TOKEN`,
   `WHATSAPP_ALERT_WEBHOOK`, and Supabase credentials are present in your Vercel
   project if webhook validation fails.
+
+## QA Evidence
+
+- `apps/mobile/client-android`: `./gradlew test` _(fails: Gradle wrapper JAR
+  missing in repo snapshot)_
+- `apps/mobile/staff-android`: `./gradlew test` _(blocked: wrapper bootstrap +
+  dependency download exceeded session budget; aborted after several minutes)_
+
+> **Manual device coverage:** Physical Android/iOS devices are not available in
+> this environment, so offline and poor-network exploratory runs could not be
+> executed. Test plans have been updated to reflect the gap.

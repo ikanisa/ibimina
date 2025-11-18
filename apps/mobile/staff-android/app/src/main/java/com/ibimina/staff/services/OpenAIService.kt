@@ -6,6 +6,7 @@ import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
+import com.ibimina.staff.BuildConfig
 import javax.inject.Inject
 import javax.inject.Singleton
 

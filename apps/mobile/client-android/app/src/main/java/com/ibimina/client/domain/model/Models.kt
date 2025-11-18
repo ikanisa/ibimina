@@ -5,13 +5,15 @@ package com.ibimina.client.domain.model
  */
 data class Group(
     val id: String,
-    val orgId: String,
-    val countryId: String,
+    val orgId: String = "",
+    val countryId: String = "",
     val name: String,
-    val amount: Double,
-    val frequency: String,
-    val cycle: String,
+    val amount: Double = 0.0,
+    val frequency: String = "",
+    val cycle: String = "",
     val memberCount: Int = 0,
+    val groupId: String = "",
+    val memberCode: String = "",
     val isActive: Boolean = true
 )
 
@@ -40,14 +42,14 @@ enum class MemberStatus {
  */
 data class Transaction(
     val id: String,
-    val groupId: String,
-    val memberId: String,
+    val groupId: String? = null,
+    val memberId: String? = null,
     val amount: Double,
     val reference: String,
-    val status: TransactionStatus,
-    val source: TransactionSource,
-    val timestamp: Long,
-    val createdAt: Long
+    val status: TransactionStatus = TransactionStatus.PENDING,
+    val source: TransactionSource = TransactionSource.MANUAL,
+    val timestamp: Long = 0L,
+    val createdAt: String = ""
 )
 
 enum class TransactionStatus {
