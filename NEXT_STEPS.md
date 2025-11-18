@@ -15,11 +15,12 @@
 **Tasks**:
 
 1. **Refine Color Palette** (1 hour)
+
    ```typescript
    // apps/client-mobile/src/theme/colors.ts
    // Current: Basic colors
    // Target: Revolut-inspired minimalist palette
-   
+
    - Use neutral grays for backgrounds
    - Accent color for CTAs (keep existing blue)
    - Success/error states with subtle colors
@@ -27,10 +28,11 @@
    ```
 
 2. **Standardize Spacing** (1 hour)
+
    ```typescript
    // apps/client-mobile/src/theme/spacing.ts
    // Ensure consistent padding/margins across all screens
-   
+
    - Header spacing: 16px
    - Card spacing: 12px
    - List item spacing: 8px
@@ -38,22 +40,24 @@
    ```
 
 3. **Add Loading States** (2 hours)
+
    ```typescript
    // Add skeleton screens for:
    - HomeScreen (loading balance)
    - AccountsScreen (loading transactions)
    - LoansScreen (loading loans)
    - GroupsScreen (loading groups)
-   
+
    // Use react-native-skeleton-placeholder
    pnpm add react-native-skeleton-placeholder
    ```
 
 4. **Smooth Animations** (2 hours)
+
    ```typescript
    // Already have react-native-reanimated installed
    // Add subtle transitions:
-   
+
    - Screen transitions (fade in/out)
    - List item animations (slide in)
    - Button press feedback (scale)
@@ -61,23 +65,25 @@
    ```
 
 5. **Empty States** (1 hour)
+
    ```typescript
    // Add illustrations for:
    - No transactions
    - No loans
    - No groups
    - No notifications
-   
+
    // Use react-native-svg for simple illustrations
    ```
 
 6. **Error Handling** (1 hour)
+
    ```typescript
    // Improve error messages:
    - Network errors → "Check your connection"
    - Auth errors → "Please sign in again"
    - Payment errors → "Payment failed, try again"
-   
+
    // Add retry buttons
    ```
 
@@ -86,6 +92,7 @@
 ## 📱 WEEK 1: Testing & Fixes
 
 ### Day 1-2: Internal Testing
+
 - [ ] Test all user flows end-to-end
 - [ ] Test on multiple Android devices
 - [ ] Test on iOS (iPhone 12+)
@@ -93,12 +100,14 @@
 - [ ] Test poor network conditions
 
 ### Day 3-4: Fix Critical Bugs
+
 - [ ] Fix any crashes
 - [ ] Fix data loading issues
 - [ ] Fix navigation issues
 - [ ] Fix payment flow issues
 
 ### Day 5: Build Production APKs
+
 ```bash
 # Client Mobile
 cd apps/client-mobile
@@ -115,13 +124,16 @@ pnpm run android:build
 ## 📋 WEEK 2: User Acceptance Testing (UAT)
 
 ### Prepare UAT Environment
+
 1. **Deploy to staging**:
+
    ```bash
    # Already deployed to Supabase production
    # No changes needed
    ```
 
 2. **Create test accounts**:
+
    ```sql
    -- Run in Supabase SQL Editor
    INSERT INTO users (phone, role, status)
@@ -141,39 +153,104 @@ pnpm run android:build
 ### UAT Schedule
 
 **Day 1-2: Staff Testing**
+
 - [ ] 5 staff members test Admin PWA
 - [ ] 3 staff members test Staff Android
 - [ ] Document issues in GitHub Issues
 - [ ] Prioritize fixes
 
 **Day 3-4: Client Testing**
+
 - [ ] 10 clients test mobile app
 - [ ] Test real WhatsApp OTP
 - [ ] Test real mobile money (small amounts)
 - [ ] Collect feedback
 
 **Day 5: Bug Bash**
+
 - [ ] Fix P0 bugs (blockers)
 - [ ] Fix P1 bugs (critical)
 - [ ] Document P2 bugs (nice-to-have)
 
 ---
 
+## 🚀 Additional Suggested Initiatives
+
+The requests for deeper WhatsApp OTP coverage, richer in-app experiences, and
+reusable widgets touch every layer of the stack. The following backlog items
+expand the roadmap so the team can plan and staff the work deliberately.
+
+### 1. WhatsApp OTP Authentication
+
+| Focus                | Tasks                                                                                                                                                                                                                                                                                                                                                  | Owners                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| Backend              | • Extend Supabase functions to mint WhatsApp OTP challenges and persist a short-lived nonce + TTL per phone number.<br>• Add rate limiting (per-user + per-IP) and audit logging tables for OTP requests.<br>• Provide a fallback SMS OTP path behind a feature flag.                                                                                  | Supabase + Platform team |
+| Infrastructure       | • Register the official WhatsApp Business API (or Twilio/360dialog partner) and store credentials in Vault/Secrets Manager.<br>• Implement a webhook receiver (`infra/otp-whatsapp-proxy`) to validate status callbacks and mark OTPs as delivered/consumed.<br>• Update CI secrets/bootstrap scripts so local devs can use a sandbox business number. | DevOps                   |
+| Mobile (Android/iOS) | • Add a unified AuthLanding screen that lets users pick WhatsApp OTP vs SMS fallback.<br>• Build a WhatsApp intent deep link handler that detects the OTP message and auto-fills the input component when the user returns to the app.<br>• Surface retry timers, resend logic, and localized error strings.                                           | Mobile squads            |
+
+### 2. In-App Experience Enhancements
+
+1. **Guided Onboarding Carousel** — Create a composable/SwiftUI carousel
+   explaining TapMoMo, savings groups, and NFC cards; gate the dashboard until
+   users finish onboarding or skip.
+2. **Real-Time Activity Timeline** — Add a vertically scrolling feed combining
+   group payments, approvals, and NFC card writes with avatars and contextual
+   CTAs (e.g., “Approve loan”).
+3. **Embedded Support Chat** — Wrap the existing Zendesk/Intercom SDK (or
+   Supabase Edge Functions for custom chat) inside a bottom sheet accessible
+   from every screen.
+4. **Contextual Education Widgets** — Drop tooltips or cards in the savings,
+   loans, and allocations screens that summarize next steps (“Fund your wallet”,
+   “Invite members”).
+5. **Haptic + Motion Polish** — Use platform-specific APIs
+   (`HapticFeedbackType.LongPress`, `UIImpactFeedbackGenerator`) and spring
+   animations to reinforce key actions like successful OTP verification or NFC
+   taps.
+
+### 3. Widget & Component Library
+
+| Component                | Description                                                                                                        | Integration Targets                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| **OTP Entry Widget**     | A platform-consistent 6-digit segmented input with auto-advance, paste detection, and error shake animation.       | Auth flows in staff + client apps                |
+| **Status Chips**         | Pills indicating transaction state (Pending, Sent via WhatsApp, Completed, Failed) with accessible color contrast. | Lists, timelines, detail screens                 |
+| **Payment Summary Card** | Reusable card summarizing payer, amount, NFC status, and verification icon.                                        | Dashboard, TapMoMo history, staff reconciliation |
+| **Support Shortcut FAB** | Floating action button that expands into quick actions (Call, WhatsApp, Email).                                    | Client Android/iOS, Admin PWA                    |
+| **Empty State Stack**    | Illustration + title + CTA button combo with themable assets; accepts optional `Lottie` animation on mobile.       | Any feature lacking data                         |
+
+### 4. Suggested Phasing
+
+1. **Phase A (1 sprint)** — Stand up the WhatsApp Business integration, Supabase
+   OTP tables, and a CLI smoke test for OTP issuance/verification.
+2. **Phase B (1 sprint)** — Ship the cross-platform OTP entry widget plus
+   onboarding carousel, and wire WhatsApp OTP into both client mobile apps with
+   analytics.
+3. **Phase C (1-2 sprints)** — Layer on the activity timeline, contextual
+   education widgets, and support FAB, then run A/B tests to measure conversion.
+4. **Phase D (continuous)** — Maintain the widget library, add
+   Storybook/Showkase galleries, and document usage in
+   `docs/ui-component-library.md`.
+
+These additions keep the roadmap aligned with stakeholder asks while providing
+enough detail for engineers, designers, and DevOps to size and schedule the
+work.
+
 ## 🏪 WEEK 3: App Store Submissions
 
 ### Google Play Store (Staff & Client Android)
 
 **Preparation** (Day 1-2):
+
 1. **Create signed APKs**:
+
    ```bash
    # Generate keystore
    keytool -genkey -v -keystore ibimina.keystore \
      -alias ibimina -keyalg RSA -keysize 2048 -validity 10000
-   
+
    # Sign APKs
    cd apps/client-mobile/android
    ./gradlew assembleRelease
-   
+
    cd apps/staff-mobile-android/android
    ./gradlew assembleRelease
    ```
@@ -191,6 +268,7 @@ pnpm run android:build
    - [ ] Add payment merchant account (for paid features)
 
 **Submission** (Day 3):
+
 - [ ] Upload Client Mobile APK
 - [ ] Upload Staff Mobile APK
 - [ ] Submit for review
@@ -199,6 +277,7 @@ pnpm run android:build
 ### Apple App Store (Client iOS) - Optional
 
 **Requirements**:
+
 - [ ] Apple Developer account ($99/year)
 - [ ] Mac with Xcode
 - [ ] App Store screenshots (multiple device sizes)
@@ -238,11 +317,13 @@ pnpm run android:build
 ### Training Schedule
 
 **Week 3**:
+
 - Day 1-2: Create training materials
 - Day 3-4: Record videos
 - Day 5: Review and refine
 
 **Week 4**:
+
 - Day 1: Train-the-trainer (2 hours)
 - Day 2-3: Staff training sessions (4 hours each)
 - Day 4: Q&A and hands-on practice
@@ -255,6 +336,7 @@ pnpm run android:build
 ### Pre-Launch Checklist (Day Before)
 
 **Technical**:
+
 - [ ] All services running (Supabase, Admin PWA)
 - [ ] Apps approved on Play Store
 - [ ] SSL certificates valid
@@ -263,6 +345,7 @@ pnpm run android:build
 - [ ] Load testing complete
 
 **Operational**:
+
 - [ ] Staff trained and certified
 - [ ] Support team ready (email, phone, WhatsApp)
 - [ ] Escalation procedures defined
@@ -270,6 +353,7 @@ pnpm run android:build
 - [ ] Incident response plan
 
 **Communication**:
+
 - [ ] Announcement email prepared
 - [ ] Social media posts ready
 - [ ] Press release (optional)
@@ -279,18 +363,21 @@ pnpm run android:build
 ### Launch Day Activities
 
 **Morning** (9:00 AM):
+
 - [ ] Final system check
 - [ ] Enable production mode
 - [ ] Send announcement email
 - [ ] Post on social media
 
 **Afternoon** (2:00 PM):
+
 - [ ] Monitor error logs
 - [ ] Check user registrations
 - [ ] Respond to support tickets
 - [ ] Track key metrics
 
 **Evening** (6:00 PM):
+
 - [ ] Daily summary report
 - [ ] Plan for Day 2
 - [ ] Celebrate! 🎉
@@ -302,6 +389,7 @@ pnpm run android:build
 ### Daily Monitoring
 
 **Metrics to Track**:
+
 - Active users (daily/weekly/monthly)
 - Transaction volume
 - Error rate
@@ -310,6 +398,7 @@ pnpm run android:build
 - User feedback
 
 **Daily Standups** (15 min):
+
 - What's working well?
 - What issues came up?
 - What needs fixing today?
@@ -331,18 +420,21 @@ pnpm run android:build
 ### Weekly Tasks
 
 **Monday**:
+
 - [ ] Review error logs
 - [ ] Check uptime (should be 99.9%+)
 - [ ] Review support tickets
 - [ ] Plan week's tasks
 
 **Tuesday-Thursday**:
+
 - [ ] Fix bugs
 - [ ] Implement small features
 - [ ] Improve documentation
 - [ ] Respond to feedback
 
 **Friday**:
+
 - [ ] Deploy updates (if any)
 - [ ] Weekly report
 - [ ] Plan next week
@@ -401,22 +493,26 @@ pnpm run android:build
 ## 🎯 Success Metrics (6 Months)
 
 **User Growth**:
+
 - 1,000+ active users
 - 100+ SACCOs onboarded
 - 10,000+ transactions/month
 
 **Financial**:
+
 - Break-even or profitable
 - <$500/month operating costs
 - Revenue from transaction fees
 
 **Quality**:
+
 - 99.9% uptime
 - <0.1% error rate
 - 95%+ user satisfaction
 - 4.5+ star rating (app stores)
 
 **Impact**:
+
 - 50%+ reduction in cash transactions
 - 30%+ faster loan approvals
 - 80%+ payment reconciliation automation
@@ -428,24 +524,28 @@ pnpm run android:build
 ### Required Roles
 
 **Development** (0.5 FTE):
+
 - Maintain codebase
 - Fix bugs
 - Implement features
 - Deploy updates
 
 **Support** (1 FTE):
+
 - Respond to tickets
 - User onboarding
 - Training
 - Documentation
 
 **Operations** (0.5 FTE):
+
 - Monitor systems
 - Database backups
 - Security updates
 - Incident response
 
 **Product** (0.5 FTE):
+
 - Gather feedback
 - Prioritize features
 - Roadmap planning
@@ -458,15 +558,18 @@ pnpm run android:build
 ## 📞 Support Contacts
 
 **Technical Issues**:
+
 - Email: tech@ibimina.rw
 - GitHub Issues: https://github.com/ikanisa/ibimina/issues
 - Emergency: +250 XXX XXX XXX
 
 **Business Inquiries**:
+
 - Email: info@ibimina.rw
 - Phone: +250 XXX XXX XXX
 
 **User Support**:
+
 - Email: support@ibimina.rw
 - WhatsApp: +250 XXX XXX XXX
 - In-app chat (coming soon)
@@ -476,25 +579,30 @@ pnpm run android:build
 ## ✅ Quick Checklist Summary
 
 **Immediate** (This Week):
+
 - [ ] Polish Client Mobile UI (5-10 hours)
 - [ ] Internal testing
 - [ ] Fix critical bugs
 
 **Week 1**:
+
 - [ ] User acceptance testing
 - [ ] Build production APKs
 - [ ] Create app store listings
 
 **Week 2**:
+
 - [ ] Submit to Google Play
 - [ ] Create training materials
 - [ ] Train staff
 
 **Week 3**:
+
 - [ ] Final preparations
 - [ ] LAUNCH!
 
 **Ongoing**:
+
 - [ ] Monitor daily
 - [ ] Fix bugs
 - [ ] Gather feedback
@@ -503,6 +611,7 @@ pnpm run android:build
 ---
 
 **Priority Order**:
+
 1. 🔴 Client Mobile UI polish (CRITICAL)
 2. 🟡 UAT and bug fixes (HIGH)
 3. 🟢 App store submissions (MEDIUM)
@@ -515,5 +624,5 @@ pnpm run android:build
 
 ---
 
-*Last Updated: 2025-11-04*  
-*Next Review: 2025-11-11*
+_Last Updated: 2025-11-04_  
+_Next Review: 2025-11-11_
