@@ -7,17 +7,7 @@
  * feature gates stay in sync across environments.
  */
 
-export type FeatureFlagName =
-  | "directory"
-  | "ticketing"
-  | "nfcReferenceCards"
-  | "memberVouchers"
-  | "memberLoans"
-  | "pwaFallback"
-  | "commandPalette"
-  | "atlasAssistant"
-  | "offlineBanner"
-  | "migratedWorkflows";
+export type FeatureFlagName = "pwaFallback" | "atlasAssistant" | "offlineBanner";
 
 export interface PilotDistrict {
   /** UUID for the pilot district organization. */
@@ -128,44 +118,6 @@ const pilotTenantIdentifierSet = new Set(
 
 const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFlag>> =
   Object.freeze({
-    directory: {
-      key: "directory",
-      description:
-        "Enable staff directory search and pilot deflection experiments for Nyamagabe tenants.",
-      pilotTenants: PILOT_TENANT_IDS,
-      defaultValue: false,
-      rollout: "pilot",
-    },
-    ticketing: {
-      key: "ticketing",
-      description:
-        "Enable lightweight ticket capture so support can triage escalations without leaving SACCO+.",
-      pilotTenants: PILOT_TENANT_IDS,
-      defaultValue: false,
-      rollout: "pilot",
-    },
-    nfcReferenceCards: {
-      key: "nfcReferenceCards",
-      description: "Issue NFC reference cards and secure provisioning tokens for teller devices.",
-      pilotTenants: PILOT_TENANT_IDS,
-      defaultValue: false,
-      rollout: "pilot",
-    },
-    memberVouchers: {
-      key: "memberVouchers",
-      description: "Enable digital voucher issuance for savings groups and merchant redemption.",
-      pilotTenants: PILOT_TENANT_IDS,
-      defaultValue: false,
-      rollout: "pilot",
-    },
-    memberLoans: {
-      key: "memberLoans",
-      description:
-        "Enable lightweight loan application capture and fulfilment tracking for members.",
-      pilotTenants: PILOT_TENANT_IDS,
-      defaultValue: false,
-      rollout: "pilot",
-    },
     pwaFallback: {
       key: "pwaFallback",
       description:
@@ -173,14 +125,6 @@ const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFl
       pilotTenants: PILOT_TENANT_IDS,
       defaultValue: true,
       rollout: "graduated",
-    },
-    commandPalette: {
-      key: "commandPalette",
-      description:
-        "Enable the Atlas command palette for keyboard-driven navigation and quick actions.",
-      pilotTenants: STAFF_BETA_TENANT_IDS,
-      defaultValue: false,
-      rollout: "pilot",
     },
     atlasAssistant: {
       key: "atlasAssistant",
@@ -194,14 +138,6 @@ const FEATURE_FLAG_DEFINITIONS: Readonly<Record<FeatureFlagName, TenantFeatureFl
       key: "offlineBanner",
       description:
         "Show the resilient offline banner and queue controls during connectivity disruptions.",
-      pilotTenants: STAFF_BETA_TENANT_IDS,
-      defaultValue: false,
-      rollout: "pilot",
-    },
-    migratedWorkflows: {
-      key: "migratedWorkflows",
-      description:
-        "Route staff beta tenants to the migrated analytics, reports, and ops flows in Atlas UI.",
       pilotTenants: STAFF_BETA_TENANT_IDS,
       defaultValue: false,
       rollout: "pilot",
@@ -281,15 +217,8 @@ export function isFeatureEnabledForTenant(
 
 export function getTenantFeatureFlags(tenantId: string | null | undefined): TenantFeatureFlags {
   return Object.freeze({
-    directory: isFeatureEnabledForTenant("directory", tenantId),
-    ticketing: isFeatureEnabledForTenant("ticketing", tenantId),
-    nfcReferenceCards: isFeatureEnabledForTenant("nfcReferenceCards", tenantId),
-    memberVouchers: isFeatureEnabledForTenant("memberVouchers", tenantId),
-    memberLoans: isFeatureEnabledForTenant("memberLoans", tenantId),
     pwaFallback: isFeatureEnabledForTenant("pwaFallback", tenantId),
-    commandPalette: isFeatureEnabledForTenant("commandPalette", tenantId),
     atlasAssistant: isFeatureEnabledForTenant("atlasAssistant", tenantId),
     offlineBanner: isFeatureEnabledForTenant("offlineBanner", tenantId),
-    migratedWorkflows: isFeatureEnabledForTenant("migratedWorkflows", tenantId),
   });
 }
