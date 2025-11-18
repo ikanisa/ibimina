@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Mail, Phone, MapPin, Send, Clock, CheckCircle } from "lucide-react";
-import { Input, Textarea } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
+import { Button, Input } from "@ibimina/ui";
+import { Textarea } from "@/components/ui/Input";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
