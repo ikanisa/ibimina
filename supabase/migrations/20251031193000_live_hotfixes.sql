@@ -26,9 +26,7 @@ BEGIN
     EXECUTE $view$
       CREATE OR REPLACE VIEW public.users
         (id,email,role,sacco_id,status,pw_reset_required,last_login_at,suspended_at,
-         suspended_by,notes,created_at,updated_at,mfa_enabled,mfa_enrolled_at,
-         mfa_passkey_enrolled,mfa_methods,mfa_backup_hashes,failed_mfa_count,
-         last_mfa_success_at,last_mfa_step,mfa_secret_enc)
+         suspended_by,notes,created_at,updated_at)
       WITH (security_barrier = true) AS
       SELECT
         p.user_id AS id,
@@ -42,16 +40,7 @@ BEGIN
         p.suspended_by,
         p.notes,
         au.created_at,
-        au.updated_at,
-        COALESCE((au.raw_user_meta_data ->> 'mfa_enabled')::boolean,false) AS mfa_enabled,
-        (au.raw_user_meta_data ->> 'mfa_enrolled_at')::timestamptz         AS mfa_enrolled_at,
-        COALESCE((au.raw_user_meta_data ->> 'mfa_passkey_enrolled')::boolean,false) AS mfa_passkey_enrolled,
-        COALESCE( au.raw_user_meta_data -> 'mfa_methods', '[]'::jsonb)     AS mfa_methods,
-        COALESCE( au.raw_user_meta_data -> 'mfa_backup_hashes','[]'::jsonb)AS mfa_backup_hashes,
-        COALESCE((au.raw_user_meta_data ->> 'failed_mfa_count')::int,0)    AS failed_mfa_count,
-        (au.raw_user_meta_data ->> 'last_mfa_success_at')::timestamptz     AS last_mfa_success_at,
-        (au.raw_user_meta_data ->> 'last_mfa_step')::int                   AS last_mfa_step,
-        (au.raw_user_meta_data ->> 'mfa_secret_enc')                       AS mfa_secret_enc
+        au.updated_at
       FROM app.user_profiles p
       JOIN auth.users au ON au.id = p.user_id;
     $view$;
@@ -59,9 +48,7 @@ BEGIN
     EXECUTE $view$
       CREATE VIEW public.users
         (id,email,role,sacco_id,status,pw_reset_required,last_login_at,suspended_at,
-         suspended_by,notes,created_at,updated_at,mfa_enabled,mfa_enrolled_at,
-         mfa_passkey_enrolled,mfa_methods,mfa_backup_hashes,failed_mfa_count,
-         last_mfa_success_at,last_mfa_step,mfa_secret_enc)
+         suspended_by,notes,created_at,updated_at)
       WITH (security_barrier = true) AS
       SELECT
         p.user_id AS id,
@@ -75,16 +62,7 @@ BEGIN
         p.suspended_by,
         p.notes,
         au.created_at,
-        au.updated_at,
-        COALESCE((au.raw_user_meta_data ->> 'mfa_enabled')::boolean,false) AS mfa_enabled,
-        (au.raw_user_meta_data ->> 'mfa_enrolled_at')::timestamptz         AS mfa_enrolled_at,
-        COALESCE((au.raw_user_meta_data ->> 'mfa_passkey_enrolled')::boolean,false) AS mfa_passkey_enrolled,
-        COALESCE( au.raw_user_meta_data -> 'mfa_methods', '[]'::jsonb)     AS mfa_methods,
-        COALESCE( au.raw_user_meta_data -> 'mfa_backup_hashes','[]'::jsonb)AS mfa_backup_hashes,
-        COALESCE((au.raw_user_meta_data ->> 'failed_mfa_count')::int,0)    AS failed_mfa_count,
-        (au.raw_user_meta_data ->> 'last_mfa_success_at')::timestamptz     AS last_mfa_success_at,
-        (au.raw_user_meta_data ->> 'last_mfa_step')::int                   AS last_mfa_step,
-        (au.raw_user_meta_data ->> 'mfa_secret_enc')                       AS mfa_secret_enc
+        au.updated_at
       FROM app.user_profiles p
       JOIN auth.users au ON au.id = p.user_id;
     $view$;

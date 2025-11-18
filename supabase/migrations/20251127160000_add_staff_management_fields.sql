@@ -44,16 +44,7 @@ SELECT
   p.suspended_by,
   p.notes,
   auth_users.created_at,
-  auth_users.updated_at,
-  COALESCE((auth_users.raw_user_meta_data ->> 'mfa_enabled')::boolean, false) AS mfa_enabled,
-  (auth_users.raw_user_meta_data ->> 'mfa_enrolled_at')::timestamptz AS mfa_enrolled_at,
-  COALESCE((auth_users.raw_user_meta_data ->> 'mfa_passkey_enrolled')::boolean, false) AS mfa_passkey_enrolled,
-  COALESCE((auth_users.raw_user_meta_data -> 'mfa_methods')::jsonb, '[]'::jsonb) AS mfa_methods,
-  COALESCE((auth_users.raw_user_meta_data -> 'mfa_backup_hashes')::jsonb, '[]'::jsonb) AS mfa_backup_hashes,
-  COALESCE((auth_users.raw_user_meta_data ->> 'failed_mfa_count')::int, 0) AS failed_mfa_count,
-  (auth_users.raw_user_meta_data ->> 'last_mfa_success_at')::timestamptz AS last_mfa_success_at,
-  (auth_users.raw_user_meta_data ->> 'last_mfa_step')::int AS last_mfa_step,
-  (auth_users.raw_user_meta_data ->> 'mfa_secret_enc') AS mfa_secret_enc
+  auth_users.updated_at
 FROM app.user_profiles p
 JOIN auth.users auth_users ON auth_users.id = p.user_id;
 

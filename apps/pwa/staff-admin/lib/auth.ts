@@ -43,15 +43,6 @@ function createMockContext(): AuthContext {
     sacco_id: "stub-sacco",
     created_at: now,
     updated_at: now,
-    mfa_enabled: false,
-    mfa_enrolled_at: null,
-    mfa_passkey_enrolled: false,
-    mfa_methods: [],
-    mfa_backup_hashes: [],
-    mfa_secret_enc: null,
-    failed_mfa_count: 0,
-    last_mfa_success_at: now,
-    last_mfa_step: null,
     sacco: saccoDetails,
   } as ProfileRow;
 

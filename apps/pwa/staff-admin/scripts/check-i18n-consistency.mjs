@@ -79,13 +79,8 @@ const expectations = [
     rw: "Icyizere gito",
     fr: "Faible confiance",
   },
-  // MFA / Auth
-  {
-    key: "profile.mfa.title",
-    en: "Two-factor authentication",
-    rw: "Umutekano wa 2FA",
-    fr: "Authentification à deux facteurs",
-  },
+  // Account basics
+  { key: "profile.account.title", en: "Account", rw: "Account", fr: "Compte" },
   {
     key: "auth.challenge.backupCode",
     en: "Backup code",

@@ -88,7 +88,6 @@ export default async function OperationsPage() {
 
   const notificationDelta = computeDelta(snapshot.trends.notifications);
   const reconciliationDelta = computeDelta(snapshot.trends.reconciliation);
-  const mfaDelta = computeDelta(snapshot.trends.mfaSuccesses);
 
   return (
     <div className="space-y-8">
@@ -236,155 +235,94 @@ export default async function OperationsPage() {
         </GlassCard>
 
         <GlassCard
-          title={<Trans i18nKey="ops.mfa.title" fallback="MFA posture" />}
+          title={<Trans i18nKey="ops.incidents.title" fallback="Recent incidents" />}
           subtitle={
             <Trans
-              i18nKey="ops.mfa.subtitle"
-              fallback="Verify that staff are actively authenticating and no factors are stale."
+              i18nKey="ops.incidents.subtitle"
+              fallback="Latest audit events that may require operational response."
               className="text-xs text-neutral-3"
             />
           }
         >
-          <dl className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                <Trans i18nKey="ops.mfa.enabled" fallback="Enabled" />
-              </dt>
-              <dd className="mt-1 text-2xl font-semibold text-neutral-0">
-                {numberFormatter.format(snapshot.mfa.enabled)}
-              </dd>
+          {snapshot.incidents.length === 0 ? (
+            <p className="text-sm text-neutral-2">
+              <Trans
+                i18nKey="ops.incidents.empty"
+                fallback="No incidents recorded in the last 24 hours."
+              />
+            </p>
+          ) : (
+            <div className="overflow-hidden rounded-2xl border border-white/10">
+              <table className="min-w-full divide-y divide-white/10 text-left text-sm text-neutral-0">
+                <thead className="bg-white/5 text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                  <tr>
+                    <th className="px-4 py-3">
+                      <Trans i18nKey="ops.incidents.action" fallback="Action" />
+                    </th>
+                    <th className="px-4 py-3">
+                      <Trans i18nKey="ops.incidents.entity" fallback="Entity" />
+                    </th>
+                    <th className="px-4 py-3">
+                      <Trans i18nKey="ops.incidents.when" fallback="When" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10 bg-white/5 text-xs">
+                  {snapshot.incidents.map((incident) => (
+                    <Fragment key={incident.id}>
+                      <tr>
+                        <td className="px-4 py-3 font-medium text-neutral-0">{incident.action}</td>
+                        <td className="px-4 py-3 text-neutral-2">
+                          {incident.entity}:{incident.entityId}
+                        </td>
+                        <td className="px-4 py-3 text-neutral-2">
+                          {formatRelativeTime(incident.occurredAt)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan={3} className="px-0">
+                          <details className="group border-t border-white/5 bg-white/[0.04]">
+                            <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3 text-xs uppercase tracking-[0.3em] text-neutral-2 transition hover:text-neutral-0">
+                              <span>
+                                <Trans
+                                  i18nKey="ops.incidents.details"
+                                  fallback="Incident details"
+                                />
+                              </span>
+                              <span className="text-[11px] tracking-normal text-neutral-3">
+                                {formatAbsoluteTime(incident.occurredAt)}
+                              </span>
+                            </summary>
+                            <div className="space-y-3 px-4 pb-4 text-xs text-neutral-1">
+                              <div>
+                                <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
+                                  <Trans i18nKey="ops.incidents.diffLabel" fallback="Raw diff" />
+                                </p>
+                                {incident.diff ? (
+                                  <pre className="mt-2 max-h-64 overflow-auto rounded-2xl border border-white/10 bg-ink/60 p-4 text-[11px] leading-relaxed text-neutral-1">
+                                    {JSON.stringify(incident.diff, null, 2)}
+                                  </pre>
+                                ) : (
+                                  <p className="mt-2 text-neutral-2">
+                                    <Trans
+                                      i18nKey="ops.incidents.noDiff"
+                                      fallback="No diff captured for this event."
+                                    />
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </details>
+                        </td>
+                      </tr>
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div>
-              <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                <Trans i18nKey="ops.mfa.stale" fallback="Stale" />
-              </dt>
-              <dd className="mt-1 text-sm text-neutral-0">
-                {numberFormatter.format(snapshot.mfa.stale)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                <Trans i18nKey="ops.mfa.last" fallback="Last success" />
-              </dt>
-              <dd className="mt-1 text-sm text-neutral-0">
-                {formatRelativeTime(snapshot.mfa.lastSuccessSample)}
-              </dd>
-            </div>
-          </dl>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-                <Trans i18nKey="ops.trend.mfaHeading" fallback="14d MFA successes" />
-              </p>
-              <p className="text-sm text-neutral-0">
-                {mfaDelta === 0 ? (
-                  <Trans i18nKey="ops.trend.flat" fallback="No change" />
-                ) : (
-                  <>
-                    <span className={mfaDelta >= 0 ? "text-emerald-300" : "text-amber-300"}>
-                      {mfaDelta > 0 ? "+" : "−"}
-                      {numberFormatter.format(Math.abs(mfaDelta))}
-                    </span>{" "}
-                    <Trans i18nKey="ops.trend.vsStart" fallback="vs start" />
-                  </>
-                )}
-              </p>
-            </div>
-            <Sparkline
-              series={snapshot.trends.mfaSuccesses}
-              tone="cyan"
-              ariaLabel="MFA successes recorded across the last 14 days"
-              className="h-16 w-full sm:w-44"
-            />
-          </div>
+          )}
         </GlassCard>
       </div>
-
-      <GlassCard
-        title={<Trans i18nKey="ops.incidents.title" fallback="Recent incidents" />}
-        subtitle={
-          <Trans
-            i18nKey="ops.incidents.subtitle"
-            fallback="Latest audit events that may require operational response."
-            className="text-xs text-neutral-3"
-          />
-        }
-      >
-        {snapshot.incidents.length === 0 ? (
-          <p className="text-sm text-neutral-2">
-            <Trans
-              i18nKey="ops.incidents.empty"
-              fallback="No incidents recorded in the last 24 hours."
-            />
-          </p>
-        ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/10">
-            <table className="min-w-full divide-y divide-white/10 text-left text-sm text-neutral-0">
-              <thead className="bg-white/5 text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-                <tr>
-                  <th className="px-4 py-3">
-                    <Trans i18nKey="ops.incidents.action" fallback="Action" />
-                  </th>
-                  <th className="px-4 py-3">
-                    <Trans i18nKey="ops.incidents.entity" fallback="Entity" />
-                  </th>
-                  <th className="px-4 py-3">
-                    <Trans i18nKey="ops.incidents.when" fallback="When" />
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10 bg-white/5 text-xs">
-                {snapshot.incidents.map((incident) => (
-                  <Fragment key={incident.id}>
-                    <tr>
-                      <td className="px-4 py-3 font-medium text-neutral-0">{incident.action}</td>
-                      <td className="px-4 py-3 text-neutral-2">
-                        {incident.entity}:{incident.entityId}
-                      </td>
-                      <td className="px-4 py-3 text-neutral-2">
-                        {formatRelativeTime(incident.occurredAt)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={3} className="px-0">
-                        <details className="group border-t border-white/5 bg-white/[0.04]">
-                          <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3 text-xs uppercase tracking-[0.3em] text-neutral-2 transition hover:text-neutral-0">
-                            <span>
-                              <Trans i18nKey="ops.incidents.details" fallback="Incident details" />
-                            </span>
-                            <span className="text-[11px] tracking-normal text-neutral-3">
-                              {formatAbsoluteTime(incident.occurredAt)}
-                            </span>
-                          </summary>
-                          <div className="space-y-3 px-4 pb-4 text-xs text-neutral-1">
-                            <div>
-                              <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-                                <Trans i18nKey="ops.incidents.diffLabel" fallback="Raw diff" />
-                              </p>
-                              {incident.diff ? (
-                                <pre className="mt-2 max-h-64 overflow-auto rounded-2xl border border-white/10 bg-ink/60 p-4 text-[11px] leading-relaxed text-neutral-1">
-                                  {JSON.stringify(incident.diff, null, 2)}
-                                </pre>
-                              ) : (
-                                <p className="mt-2 text-neutral-2">
-                                  <Trans
-                                    i18nKey="ops.incidents.noDiff"
-                                    fallback="No diff captured for this event."
-                                  />
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </details>
-                      </td>
-                    </tr>
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </GlassCard>
     </div>
   );
 }

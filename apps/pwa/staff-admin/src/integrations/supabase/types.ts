@@ -388,39 +388,6 @@ export type Database = {
           },
         ];
       };
-      mfa_email_codes: {
-        Row: {
-          attempt_count: number;
-          code_hash: string;
-          consumed_at: string | null;
-          created_at: string;
-          expires_at: string;
-          id: string;
-          salt: string;
-          user_id: string;
-        };
-        Insert: {
-          attempt_count?: number;
-          code_hash: string;
-          consumed_at?: string | null;
-          created_at?: string;
-          expires_at: string;
-          id?: string;
-          salt: string;
-          user_id: string;
-        };
-        Update: {
-          attempt_count?: number;
-          code_hash?: string;
-          consumed_at?: string | null;
-          created_at?: string;
-          expires_at?: string;
-          id?: string;
-          salt?: string;
-          user_id?: string;
-        };
-        Relationships: [];
-      };
       momo_codes: {
         Row: {
           account_name: string | null;
@@ -1119,35 +1086,6 @@ export type Database = {
         };
         Relationships: [];
       };
-      mfa_recovery_codes: {
-        Row: {
-          codes: string[];
-          created_at: string;
-          updated_at: string;
-          user_id: string;
-        };
-        Insert: {
-          codes?: string[];
-          created_at?: string;
-          updated_at?: string;
-          user_id: string;
-        };
-        Update: {
-          codes?: string[];
-          created_at?: string;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "mfa_recovery_codes_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: true;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       notification_queue: {
         Row: {
           attempts: number;
@@ -1393,16 +1331,7 @@ export type Database = {
         Row: {
           created_at: string | null;
           email: string;
-          failed_mfa_count: number;
           id: string;
-          last_mfa_step: number | null;
-          last_mfa_success_at: string | null;
-          mfa_backup_hashes: string[];
-          mfa_enabled: boolean;
-          mfa_enrolled_at: string | null;
-          mfa_methods: string[];
-          mfa_passkey_enrolled: boolean;
-          mfa_secret_enc: string | null;
           role: Database["public"]["Enums"]["app_role"];
           sacco_id: string | null;
           updated_at: string | null;
@@ -1410,16 +1339,7 @@ export type Database = {
         Insert: {
           created_at?: string | null;
           email: string;
-          failed_mfa_count?: number;
           id: string;
-          last_mfa_step?: number | null;
-          last_mfa_success_at?: string | null;
-          mfa_backup_hashes?: string[];
-          mfa_enabled?: boolean;
-          mfa_enrolled_at?: string | null;
-          mfa_methods?: string[];
-          mfa_passkey_enrolled?: boolean;
-          mfa_secret_enc?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
           sacco_id?: string | null;
           updated_at?: string | null;
@@ -1427,16 +1347,7 @@ export type Database = {
         Update: {
           created_at?: string | null;
           email?: string;
-          failed_mfa_count?: number;
           id?: string;
-          last_mfa_step?: number | null;
-          last_mfa_success_at?: string | null;
-          mfa_backup_hashes?: string[];
-          mfa_enabled?: boolean;
-          mfa_enrolled_at?: string | null;
-          mfa_methods?: string[];
-          mfa_passkey_enrolled?: boolean;
-          mfa_secret_enc?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
           sacco_id?: string | null;
           updated_at?: string | null;

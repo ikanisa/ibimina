@@ -53,7 +53,6 @@ type AppRoutes =
   | "/member/pay"
   | "/member/profile"
   | "/member/saccos"
-  | "/mfa"
   | "/offline"
   | "/ops"
   | "/partners"
@@ -72,7 +71,6 @@ type AppRoutes =
 type AppRouteHandlerRoutes =
   | "/api/activity/recent"
   | "/api/admin/audit/export"
-  | "/api/admin/mfa/reset"
   | "/api/admin/payments/assign"
   | "/api/admin/payments/update-status"
   | "/api/admin/saccos/[saccoId]/branding"
@@ -83,9 +81,6 @@ type AppRouteHandlerRoutes =
   | "/api/admin/staff/memberships"
   | "/api/admin/staff/reset-password"
   | "/api/admin/staff/suspend"
-  | "/api/authx/challenge/initiate"
-  | "/api/authx/challenge/verify"
-  | "/api/authx/factors/list"
   | "/api/cache/revalidate"
   | "/api/chat"
   | "/api/device-auth/challenge"
@@ -94,7 +89,6 @@ type AppRouteHandlerRoutes =
   | "/api/device-auth/verify"
   | "/api/device-auth/verify-status"
   | "/api/e2e/automation-health"
-  | "/api/e2e/factors/verify"
   | "/api/e2e/session"
   | "/api/feature-flags"
   | "/api/groups"
@@ -114,23 +108,6 @@ type AppRouteHandlerRoutes =
   | "/api/member/saccos/add"
   | "/api/member/saccos/search"
   | "/api/memberships/sync"
-  | "/api/mfa/channels"
-  | "/api/mfa/confirm"
-  | "/api/mfa/diagnostics"
-  | "/api/mfa/email"
-  | "/api/mfa/email/request"
-  | "/api/mfa/email/verify"
-  | "/api/mfa/enroll"
-  | "/api/mfa/initiate"
-  | "/api/mfa/passkeys/[credentialId]"
-  | "/api/mfa/passkeys/auth"
-  | "/api/mfa/passkeys/auth/options"
-  | "/api/mfa/passkeys/register"
-  | "/api/mfa/passkeys/register/options"
-  | "/api/mfa/profile"
-  | "/api/mfa/reset/[userId]"
-  | "/api/mfa/status"
-  | "/api/mfa/trusted-devices/[deviceId]"
   | "/api/ocr/upload"
   | "/api/onboard"
   | "/api/orgs/search"
@@ -186,7 +163,6 @@ interface ParamMap {
   "/analytics": {};
   "/api/activity/recent": {};
   "/api/admin/audit/export": {};
-  "/api/admin/mfa/reset": {};
   "/api/admin/payments/assign": {};
   "/api/admin/payments/update-status": {};
   "/api/admin/saccos/[saccoId]/branding": { saccoId: string };
@@ -197,9 +173,6 @@ interface ParamMap {
   "/api/admin/staff/memberships": {};
   "/api/admin/staff/reset-password": {};
   "/api/admin/staff/suspend": {};
-  "/api/authx/challenge/initiate": {};
-  "/api/authx/challenge/verify": {};
-  "/api/authx/factors/list": {};
   "/api/cache/revalidate": {};
   "/api/chat": {};
   "/api/device-auth/challenge": {};
@@ -208,7 +181,6 @@ interface ParamMap {
   "/api/device-auth/verify": {};
   "/api/device-auth/verify-status": {};
   "/api/e2e/automation-health": {};
-  "/api/e2e/factors/verify": {};
   "/api/e2e/session": {};
   "/api/feature-flags": {};
   "/api/groups": {};
@@ -228,23 +200,6 @@ interface ParamMap {
   "/api/member/saccos/add": {};
   "/api/member/saccos/search": {};
   "/api/memberships/sync": {};
-  "/api/mfa/channels": {};
-  "/api/mfa/confirm": {};
-  "/api/mfa/diagnostics": {};
-  "/api/mfa/email": {};
-  "/api/mfa/email/request": {};
-  "/api/mfa/email/verify": {};
-  "/api/mfa/enroll": {};
-  "/api/mfa/initiate": {};
-  "/api/mfa/passkeys/[credentialId]": { credentialId: string };
-  "/api/mfa/passkeys/auth": {};
-  "/api/mfa/passkeys/auth/options": {};
-  "/api/mfa/passkeys/register": {};
-  "/api/mfa/passkeys/register/options": {};
-  "/api/mfa/profile": {};
-  "/api/mfa/reset/[userId]": { userId: string };
-  "/api/mfa/status": {};
-  "/api/mfa/trusted-devices/[deviceId]": { deviceId: string };
   "/api/ocr/upload": {};
   "/api/onboard": {};
   "/api/orgs/search": {};
@@ -278,7 +233,6 @@ interface ParamMap {
   "/member/pay": {};
   "/member/profile": {};
   "/member/saccos": {};
-  "/mfa": {};
   "/offline": {};
   "/ops": {};
   "/partners": {};

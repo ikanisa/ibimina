@@ -66,16 +66,7 @@ select
   coalesce(p.role, 'SACCO_STAFF')::public.app_role as role,
   p.sacco_id,
   auth_users.created_at,
-  auth_users.updated_at,
-  coalesce((auth_users.raw_user_meta_data ->> 'mfa_enabled')::boolean, false) as mfa_enabled,
-  (auth_users.raw_user_meta_data ->> 'mfa_enrolled_at')::timestamptz as mfa_enrolled_at,
-  coalesce((auth_users.raw_user_meta_data ->> 'mfa_passkey_enrolled')::boolean, false) as mfa_passkey_enrolled,
-  coalesce((auth_users.raw_user_meta_data -> 'mfa_methods')::jsonb, '[]'::jsonb) as mfa_methods,
-  coalesce((auth_users.raw_user_meta_data -> 'mfa_backup_hashes')::jsonb, '[]'::jsonb) as mfa_backup_hashes,
-  coalesce((auth_users.raw_user_meta_data ->> 'failed_mfa_count')::int, 0) as failed_mfa_count,
-  (auth_users.raw_user_meta_data ->> 'last_mfa_success_at')::timestamptz as last_mfa_success_at,
-  (auth_users.raw_user_meta_data ->> 'last_mfa_step')::int as last_mfa_step,
-  (auth_users.raw_user_meta_data ->> 'mfa_secret_enc') as mfa_secret_enc
+  auth_users.updated_at
 from app.user_profiles p
 join auth.users auth_users on auth_users.id = p.user_id;
 

@@ -102,12 +102,6 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies AppPageConfig<"/login">;
 }
 
-// Validate ../../app/(auth)/mfa/page.tsx
-{
-  const handler = {} as typeof import("../../app/(auth)/mfa/page.js");
-  handler satisfies AppPageConfig<"/mfa">;
-}
-
 // Validate ../../app/(main)/admin/(panel)/approvals/page.tsx
 {
   const handler = {} as typeof import("../../app/(main)/admin/(panel)/approvals/page.js");
@@ -498,12 +492,6 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   handler satisfies RouteHandlerConfig<"/api/admin/audit/export">;
 }
 
-// Validate ../../app/api/admin/mfa/reset/route.ts
-{
-  const handler = {} as typeof import("../../app/api/admin/mfa/reset/route.js");
-  handler satisfies RouteHandlerConfig<"/api/admin/mfa/reset">;
-}
-
 // Validate ../../app/api/admin/payments/assign/route.ts
 {
   const handler = {} as typeof import("../../app/api/admin/payments/assign/route.js");
@@ -562,24 +550,6 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   const handler = {} as typeof import("../../app/api/admin/staff/suspend/route.js");
   handler satisfies RouteHandlerConfig<"/api/admin/staff/suspend">;
-}
-
-// Validate ../../app/api/authx/challenge/initiate/route.ts
-{
-  const handler = {} as typeof import("../../app/api/authx/challenge/initiate/route.js");
-  handler satisfies RouteHandlerConfig<"/api/authx/challenge/initiate">;
-}
-
-// Validate ../../app/api/authx/challenge/verify/route.ts
-{
-  const handler = {} as typeof import("../../app/api/authx/challenge/verify/route.js");
-  handler satisfies RouteHandlerConfig<"/api/authx/challenge/verify">;
-}
-
-// Validate ../../app/api/authx/factors/list/route.ts
-{
-  const handler = {} as typeof import("../../app/api/authx/factors/list/route.js");
-  handler satisfies RouteHandlerConfig<"/api/authx/factors/list">;
 }
 
 // Validate ../../app/api/cache/revalidate/route.ts
@@ -748,108 +718,6 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   const handler = {} as typeof import("../../app/api/memberships/sync/route.js");
   handler satisfies RouteHandlerConfig<"/api/memberships/sync">;
-}
-
-// Validate ../../app/api/mfa/channels/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/channels/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/channels">;
-}
-
-// Validate ../../app/api/mfa/confirm/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/confirm/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/confirm">;
-}
-
-// Validate ../../app/api/mfa/diagnostics/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/diagnostics/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/diagnostics">;
-}
-
-// Validate ../../app/api/mfa/email/request/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/email/request/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/email/request">;
-}
-
-// Validate ../../app/api/mfa/email/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/email/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/email">;
-}
-
-// Validate ../../app/api/mfa/email/verify/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/email/verify/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/email/verify">;
-}
-
-// Validate ../../app/api/mfa/enroll/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/enroll/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/enroll">;
-}
-
-// Validate ../../app/api/mfa/initiate/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/initiate/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/initiate">;
-}
-
-// Validate ../../app/api/mfa/passkeys/[credentialId]/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/passkeys/[credentialId]/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/passkeys/[credentialId]">;
-}
-
-// Validate ../../app/api/mfa/passkeys/auth/options/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/passkeys/auth/options/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/passkeys/auth/options">;
-}
-
-// Validate ../../app/api/mfa/passkeys/auth/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/passkeys/auth/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/passkeys/auth">;
-}
-
-// Validate ../../app/api/mfa/passkeys/register/options/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/passkeys/register/options/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/passkeys/register/options">;
-}
-
-// Validate ../../app/api/mfa/passkeys/register/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/passkeys/register/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/passkeys/register">;
-}
-
-// Validate ../../app/api/mfa/profile/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/profile/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/profile">;
-}
-
-// Validate ../../app/api/mfa/reset/[userId]/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/reset/[userId]/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/reset/[userId]">;
-}
-
-// Validate ../../app/api/mfa/status/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/status/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/status">;
-}
-
-// Validate ../../app/api/mfa/trusted-devices/[deviceId]/route.ts
-{
-  const handler = {} as typeof import("../../app/api/mfa/trusted-devices/[deviceId]/route.js");
-  handler satisfies RouteHandlerConfig<"/api/mfa/trusted-devices/[deviceId]">;
 }
 
 // Validate ../../app/api/ocr/upload/route.ts

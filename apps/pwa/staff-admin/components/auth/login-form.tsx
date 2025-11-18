@@ -1,7 +1,14 @@
 "use client";
 
-import { AuthxLoginForm } from "./authx-login-form";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export function LoginForm() {
-  return <AuthxLoginForm variant="member" />;
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/dashboard");
+  }, [router]);
+
+  return null;
 }

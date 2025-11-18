@@ -11,7 +11,10 @@ type ProfileSacco = Pick<
   "id" | "name" | "district" | "province" | "sector_code" | "category"
 >;
 
-export type ProfileRow = Omit<UserRow, "mfa_secret_enc"> & {
+export type ProfileRow = Pick<
+  UserRow,
+  "id" | "email" | "role" | "sacco_id" | "created_at" | "updated_at"
+> & {
   sacco?: ProfileSacco | null;
 };
 
@@ -34,24 +37,7 @@ export async function fetchUserAndProfile(): Promise<AuthContext | null> {
 
   const { data: profile, error: profileError } = await supabase
     .from("users")
-    .select(
-      [
-        "id",
-        "email",
-        "role",
-        "sacco_id",
-        "created_at",
-        "updated_at",
-        "mfa_enabled",
-        "mfa_enrolled_at",
-        "mfa_passkey_enrolled",
-        "mfa_methods",
-        "mfa_backup_hashes",
-        "failed_mfa_count",
-        "last_mfa_success_at",
-        "last_mfa_step",
-      ].join(", ")
-    )
+    .select(["id", "email", "role", "sacco_id", "created_at", "updated_at"].join(", "))
     .eq("id", user.id)
     .maybeSingle<UserRow>();
 
@@ -66,24 +52,7 @@ export async function fetchUserAndProfile(): Promise<AuthContext | null> {
     const service = supabaseSrv();
     const { data: fallback, error: fallbackError } = await service
       .from("users")
-      .select(
-        [
-          "id",
-          "email",
-          "role",
-          "sacco_id",
-          "created_at",
-          "updated_at",
-          "mfa_enabled",
-          "mfa_enrolled_at",
-          "mfa_passkey_enrolled",
-          "mfa_methods",
-          "mfa_backup_hashes",
-          "failed_mfa_count",
-          "last_mfa_success_at",
-          "last_mfa_step",
-        ].join(", ")
-      )
+      .select(["id", "email", "role", "sacco_id", "created_at", "updated_at"].join(", "))
       .eq("id", user.id)
       .maybeSingle<UserRow>();
 

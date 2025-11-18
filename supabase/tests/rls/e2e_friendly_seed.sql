@@ -11,12 +11,9 @@ begin
       ('public', 'ibimina'),
       ('public', 'members'),
       ('public', 'payments'),
-      ('public', 'trusted_devices'),
       ('public', 'recon_exceptions'),
       ('ops', 'rate_limits'),
-      ('ops', 'idempotency'),
-      ('authx', 'otp_issues'),
-      ('authx', 'user_mfa')
+      ('ops', 'idempotency')
     ) as targets(schema_name, table_name)
   loop
     if exists (

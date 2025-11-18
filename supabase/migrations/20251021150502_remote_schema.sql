@@ -97,38 +97,11 @@ end;
 $function$
 ;
 
-
-create table "app"."mfa_codes" (
-    "id" uuid not null default extensions.uuid_generate_v4(),
-    "user_id" uuid not null,
-    "code" text not null,
-    "expires_at" timestamp with time zone not null,
-    "created_at" timestamp with time zone not null default now(),
-    "consumed" boolean not null default false
-);
-
-
-alter table "app"."mfa_codes" enable row level security;
-
-alter table "app"."mfa_email_codes" enable row level security;
-
 drop view if exists "public"."saccos";
 
 alter table "app"."saccos" drop column "search_slug";
 
 alter table "app"."saccos" add column "search_slug" text generated always as (TRIM(BOTH '-'::text FROM lower(regexp_replace(COALESCE(name, ''::text), '[^a-z0-9]+'::text, '-'::text, 'g'::text)))) stored;
-
-CREATE INDEX idx_mfa_codes_code ON app.mfa_codes USING btree (code);
-
-CREATE INDEX idx_mfa_codes_user_id ON app.mfa_codes USING btree (user_id);
-
-CREATE UNIQUE INDEX mfa_codes_pkey ON app.mfa_codes USING btree (id);
-
-alter table "app"."mfa_codes" add constraint "mfa_codes_pkey" PRIMARY KEY using index "mfa_codes_pkey";
-
-alter table "app"."mfa_codes" add constraint "mfa_codes_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE not valid;
-
-alter table "app"."mfa_codes" validate constraint "mfa_codes_user_id_fkey";
 
 set check_function_bodies = off;
 
@@ -261,39 +234,6 @@ begin
 end;
 $function$
 ;
-
-create policy "mfa_codes_insert_own"
-on "app"."mfa_codes"
-as permissive
-for insert
-to public
-with check ((auth.uid() = user_id));
-
-
-create policy "mfa_codes_select_own"
-on "app"."mfa_codes"
-as permissive
-for select
-to public
-using (((auth.uid() = user_id) OR (auth.role() = 'service_role'::text)));
-
-
-create policy "mfa_codes_update_service_role"
-on "app"."mfa_codes"
-as permissive
-for update
-to public
-using ((auth.role() = 'service_role'::text));
-
-
-create policy "mfa_email_codes_self_manage"
-on "app"."mfa_email_codes"
-as permissive
-for all
-to public
-using (((auth.uid() = user_id) OR app.is_admin()))
-with check (((auth.uid() = user_id) OR app.is_admin()));
-
 
 
 set check_function_bodies = off;
@@ -964,17 +904,6 @@ AS $function$
   )
   from public.payments p
   where p.ikimina_id = gid and p.status = 'completed';
-$function$
-;
-
-CREATE OR REPLACE FUNCTION public.touch_mfa_recovery_codes()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-begin
-  new.updated_at = now();
-  return new;
-end;
 $function$
 ;
 

@@ -1,7 +1,14 @@
 "use client";
 
-import { AuthxLoginForm } from "./authx-login-form";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AdminLoginForm() {
-  return <AuthxLoginForm variant="admin" />;
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/admin/overview");
+  }, [router]);
+
+  return null;
 }

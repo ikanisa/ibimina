@@ -163,34 +163,14 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
 
   const navBadges = useMemo(() => {
     const badges: Record<string, { label: string; tone: keyof typeof BADGE_TONE_STYLES }> = {};
-    if ((profile.failed_mfa_count ?? 0) > 0) {
-      badges["/ops"] = {
-        label: t("nav.badges.alerts", String(profile.failed_mfa_count ?? 0)),
-        tone: "critical",
-      };
-    }
-    badges["/profile"] = profile.mfa_enabled
-      ? { label: t("nav.badges.secured", "Secured"), tone: "success" }
-      : { label: t("nav.badges.action", "Action"), tone: "critical" };
     badges["/admin"] =
       profile.role === "SYSTEM_ADMIN"
         ? { label: t("nav.badges.superUser", "Admin"), tone: "info" }
         : { label: t("nav.badges.limited", "Limited"), tone: "critical" };
     return badges;
-  }, [profile.failed_mfa_count, profile.mfa_enabled, profile.role, t]);
+  }, [profile.role, t]);
 
   const quickActionGroups = useMemo<QuickActionGroupDefinition[]>(() => {
-    const opsAlertBadge =
-      (profile.failed_mfa_count ?? 0) > 0
-        ? {
-            label: t("dashboard.quick.alerts", String(profile.failed_mfa_count ?? 0)),
-            tone: "critical" as const,
-          }
-        : undefined;
-    const securityBadge = profile.mfa_enabled
-      ? { label: t("dashboard.quick.secured", "Secured"), tone: "success" as const }
-      : { label: t("dashboard.quick.setup", "Setup"), tone: "critical" as const };
-
     return [
       {
         id: "tasks",
@@ -224,7 +204,6 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
             secondary: "Suzuma guhuzwa",
             description: "Clear unassigned deposits.",
             secondaryDescription: "Huza amafaranga ataritangirwa ibisobanuro.",
-            badge: opsAlertBadge,
           },
         ],
       },
@@ -252,28 +231,26 @@ function DefaultAppShell({ children, profile }: AppShellProps) {
       {
         id: "operations",
         title: t("dashboard.quick.group.operations", "Operations"),
-        subtitle: t("dashboard.quick.group.operationsSubtitle", "Stability & security"),
+        subtitle: t("dashboard.quick.group.operationsSubtitle", "Stability"),
         actions: [
           {
             href: "/ops" as const,
             primary: "Operations Center",
             secondary: "Ikigo cy'imikorere",
-            description: "Review incidents, notifications, and MFA health.",
-            secondaryDescription: "Reba ibibazo, ubutumwa bwateguwe, n'imiterere ya MFA.",
-            badge: opsAlertBadge,
+            description: "Review incidents, notifications, and backlog signals.",
+            secondaryDescription: "Reba ibibazo, ubutumwa bwateguwe, n'ibimenyetso by'umusubirizo.",
           },
           {
             href: "/profile" as const,
             primary: "Account Security",
             secondary: "Umutekano w'uburenganzira",
-            description: "Update password and authenticator settings.",
-            secondaryDescription: "Hindura ijambobanga n'uburyo bwa 2FA.",
-            badge: securityBadge,
+            description: "Review your account basics and session status.",
+            secondaryDescription: "Reba ibisobanuro by'uruhushya rwawe n'uko wiyandikishije.",
           },
         ],
       },
     ];
-  }, [profile.failed_mfa_count, profile.mfa_enabled, t]);
+  }, [t]);
 
   const navigationGroups = useMemo<NavigationRailProps["groups"]>(() => {
     const groups = getNavigationGroups();

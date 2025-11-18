@@ -11,7 +11,6 @@ PROJECT_REF=${SUPABASE_PROJECT_REF:-}
 
 # List of edge functions to deploy
 FUNCTIONS=(
-  admin-reset-mfa
   analytics-forecast
   bootstrap-admin
   export-report

@@ -29,9 +29,6 @@ verify_jwt = true
 [functions.reports-export]
 verify_jwt = true
 
-[functions.admin-reset-mfa]
-verify_jwt = true
-
 [functions.invite-user]
 verify_jwt = true
 
@@ -55,9 +52,6 @@ verify_jwt = true
 
 [functions.metrics-anomaly-detector]
 verify_jwt = true
-
-[functions.generate-mfa-code]
-verify_jwt = false
 
 [functions.debug-auth-users]
 verify_jwt = false

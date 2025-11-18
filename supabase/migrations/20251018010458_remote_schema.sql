@@ -621,48 +621,6 @@ revoke truncate on table "public"."members_app_profiles" from "service_role";
 
 revoke update on table "public"."members_app_profiles" from "service_role";
 
-revoke delete on table "public"."mfa_recovery_codes" from "anon";
-
-revoke insert on table "public"."mfa_recovery_codes" from "anon";
-
-revoke references on table "public"."mfa_recovery_codes" from "anon";
-
-revoke select on table "public"."mfa_recovery_codes" from "anon";
-
-revoke trigger on table "public"."mfa_recovery_codes" from "anon";
-
-revoke truncate on table "public"."mfa_recovery_codes" from "anon";
-
-revoke update on table "public"."mfa_recovery_codes" from "anon";
-
-revoke delete on table "public"."mfa_recovery_codes" from "authenticated";
-
-revoke insert on table "public"."mfa_recovery_codes" from "authenticated";
-
-revoke references on table "public"."mfa_recovery_codes" from "authenticated";
-
-revoke select on table "public"."mfa_recovery_codes" from "authenticated";
-
-revoke trigger on table "public"."mfa_recovery_codes" from "authenticated";
-
-revoke truncate on table "public"."mfa_recovery_codes" from "authenticated";
-
-revoke update on table "public"."mfa_recovery_codes" from "authenticated";
-
-revoke delete on table "public"."mfa_recovery_codes" from "service_role";
-
-revoke insert on table "public"."mfa_recovery_codes" from "service_role";
-
-revoke references on table "public"."mfa_recovery_codes" from "service_role";
-
-revoke select on table "public"."mfa_recovery_codes" from "service_role";
-
-revoke trigger on table "public"."mfa_recovery_codes" from "service_role";
-
-revoke truncate on table "public"."mfa_recovery_codes" from "service_role";
-
-revoke update on table "public"."mfa_recovery_codes" from "service_role";
-
 revoke delete on table "public"."notification_queue" from "anon";
 
 revoke insert on table "public"."notification_queue" from "anon";
@@ -1614,17 +1572,6 @@ BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$function$
-;
-
-CREATE OR REPLACE FUNCTION public.touch_mfa_recovery_codes()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-begin
-  new.updated_at = now();
-  return new;
-end;
 $function$
 ;
 
