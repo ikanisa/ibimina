@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server";
-import { supabaseSrv } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET() {
-  const srv = supabaseSrv();
+  const supabase = await createSupabaseServerClient();
 
-  const legacyClient = srv as any;
   const {
-    data: { user },
-    error: authError,
-  } = await srv.auth.getUser();
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
 
-  if (authError || !user) {
+  if (sessionError || !session?.user) {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
-  const { data, error } = await legacyClient
+  const { data, error } = await supabase
     .from("join_requests")
     .select("id, group_id, sacco_id, status, created_at, note")
-    .eq("user_id", user.id)
+    .eq("user_id", session.user.id)
     .order("created_at", { ascending: false })
     .limit(10);
 
