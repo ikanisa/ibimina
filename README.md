@@ -24,6 +24,8 @@ semantic SACCO search.
   reference with timings
 - [**docs/ADMIN_APPS_GUIDE.md**](docs/ADMIN_APPS_GUIDE.md) - Guide to choosing
   the correct admin/staff app
+- [**AUTHENTICATION_README.md**](AUTHENTICATION_README.md) - Supabase email + QR
+  authentication quickstart
 - [**docs/MIGRATION_APPLICATION_GUIDE.md**](docs/MIGRATION_APPLICATION_GUIDE.md) -
   How to apply database migrations
 - [**docs/PROJECT_STRUCTURE.md**](docs/PROJECT_STRUCTURE.md) - Project structure
@@ -74,6 +76,18 @@ platform designed for Rwanda's Umurenge SACCOs. The system manages group savings
 (ikimina), member accounts, mobile money payments, and reconciliation workflows.
 Built with security, observability, and offline-first capabilities in mind.
 
+### Authentication at a glance
+
+- **Email-first**: staff authenticate with Supabase email/password managed in
+  Auth.
+- **Admin invites**: system admins add teammates via the
+  `invite-user`/`admin-invite-staff` flow, which issues a temporary password and
+  requires a reset on first login.
+- **QR continuation**: signed-in mobile devices can approve browser sessions via
+  the `auth-qr-*` functions (generate → verify → poll).
+- See [AUTHENTICATION_README.md](AUTHENTICATION_README.md) for the complete
+  setup and operator runbook.
+
 ## Branching model
 
 - `main` is the deployment-ready default branch and now tracks the latest
@@ -111,7 +125,7 @@ Built with security, observability, and offline-first capabilities in mind.
 
 ### Key Features
 
-- Multi-factor authentication (TOTP, Passkeys/WebAuthn, Email OTP)
+- Supabase-backed email authentication with admin invites + QR hand-off
 - End-to-end encryption for PII (AES-256-GCM)
 - Offline-first capabilities with service workers
 - Bilingual interface (English, Kinyarwanda, French)
@@ -140,6 +154,26 @@ detailed guidelines.
 
 ## Getting Started
 
+### Quickstart (auth-ready)
+
+```bash
+# 1) Install dependencies
+nvm use 20
+npm install -g pnpm@10.19.0
+pnpm install
+
+# 2) Copy envs and fill Supabase + auth secrets
+cp .env.example .env
+
+# 3) Apply schema + deploy auth helpers
+supabase db reset
+cd supabase && supabase functions deploy invite-user auth-qr-generate auth-qr-verify auth-qr-poll admin-reset-mfa
+
+# 4) Run the staff console
+cd ..
+pnpm --filter @ibimina/staff-admin-pwa dev
+```
+
 ### 1. Install dependencies
 
 ```bash
@@ -164,19 +198,22 @@ cp .env.example .env
 be filled in before running the app. Update `.env` with the following
 **required** values (matching the placeholders shipped in `.env.example`):
 
-| Variable                        | Purpose                        | How to obtain                            |
-| ------------------------------- | ------------------------------ | ---------------------------------------- |
-| `APP_ENV`                       | Runtime environment label      | Use `development` locally                |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL           | From your Supabase project settings      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key                | From your Supabase project API settings  |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Service role key (server-only) | From your Supabase project API settings  |
-| `KMS_DATA_KEY_BASE64`           | 32-byte base64 encryption key  | Generate with: `openssl rand -base64 32` |
-| `BACKUP_PEPPER`                 | Salt for backup codes          | Generate with: `openssl rand -hex 32`    |
-| `MFA_SESSION_SECRET`            | MFA session signing key        | Generate with: `openssl rand -hex 32`    |
-| `TRUSTED_COOKIE_SECRET`         | Trusted device cookie key      | Generate with: `openssl rand -hex 32`    |
-| `HMAC_SHARED_SECRET`            | HMAC for edge function auth    | Generate with: `openssl rand -hex 32`    |
-| `MFA_EMAIL_FROM`                | From address for MFA email     | Use a verified sender (Resend/SMTP)      |
-| `MFA_EMAIL_LOCALE`              | Default MFA locale             | Typically `en`, `rw`, or `fr`            |
+| Variable                         | Purpose                        | How to obtain                            |
+| -------------------------------- | ------------------------------ | ---------------------------------------- |
+| `APP_ENV`                        | Runtime environment label      | Use `development` locally                |
+| `NEXT_PUBLIC_SUPABASE_URL`       | Supabase project URL           | From your Supabase project settings      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Public anon key                | From your Supabase project API settings  |
+| `SUPABASE_URL`                   | Service URL for edge functions | From your Supabase project settings      |
+| `SUPABASE_SERVICE_ROLE_KEY`      | Service role key (server-only) | From your Supabase project API settings  |
+| `KMS_DATA_KEY_BASE64`            | 32-byte base64 encryption key  | Generate with: `openssl rand -base64 32` |
+| `BACKUP_PEPPER`                  | Salt for backup codes          | Generate with: `openssl rand -hex 32`    |
+| `MFA_SESSION_SECRET`             | MFA session signing key        | Generate with: `openssl rand -hex 32`    |
+| `TRUSTED_COOKIE_SECRET`          | Trusted device cookie key      | Generate with: `openssl rand -hex 32`    |
+| `HMAC_SHARED_SECRET`             | HMAC for edge function auth    | Generate with: `openssl rand -hex 32`    |
+| `MFA_EMAIL_FROM`                 | From address for MFA email     | Use a verified sender (Resend/SMTP)      |
+| `MFA_EMAIL_LOCALE`               | Default MFA locale             | Typically `en`, `rw`, or `fr`            |
+| `EMAIL_WEBHOOK_URL` _(optional)_ | Custom invite email webhook    | Point at your transactional mailer       |
+| `EMAIL_WEBHOOK_KEY` _(optional)_ | Bearer token for webhook auth  | Set alongside the webhook URL            |
 
 Use the quick commands below to mint secrets that match the placeholder formats
 in `.env.example`:
@@ -224,11 +261,8 @@ supabase db reset
 ### 5. Run the development server
 
 ```bash
-# Start Next.js dev server (default port 3100)
-pnpm dev
-
-# Or start a specific app
-pnpm --filter @ibimina/admin dev
+# Start the staff console (default port 3100)
+pnpm --filter @ibimina/staff-admin-pwa dev
 ```
 
 The admin console will be available at `http://localhost:3100`.
@@ -245,10 +279,11 @@ Ensure your CI/CD targets read the same secrets defined in `.env.example`.
 
 - Set **Production**, **Preview**, and **Development** environment variables to
   include all required keys: `APP_ENV`, `NEXT_PUBLIC_SUPABASE_URL`,
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
   `KMS_DATA_KEY_BASE64`, `BACKUP_PEPPER`, `MFA_SESSION_SECRET`,
   `TRUSTED_COOKIE_SECRET`, `HMAC_SHARED_SECRET`, `MFA_EMAIL_FROM`, and
-  `MFA_EMAIL_LOCALE`.
+  `MFA_EMAIL_LOCALE`. Add `EMAIL_WEBHOOK_URL`/`EMAIL_WEBHOOK_KEY` if you send
+  custom invite emails.
 - Mirror any optional integrations you rely on (Resend, OpenAI, Web Push) using
   the same names and values found in `.env`.
 - Use `vercel env pull` to refresh local `.env` files after updating the secret
@@ -277,8 +312,9 @@ has an up-to-date reference.
 
 - `APP_ENV` controls high-level behaviour such as CSP allowances and log
   metadata. Defaults to `development` locally.
-- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
-  `SUPABASE_SERVICE_ROLE_KEY` are required for Supabase clients.
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_URL`,
+  and `SUPABASE_SERVICE_ROLE_KEY` are required for Supabase clients and edge
+  functions.
 - `GIT_COMMIT_SHA` is optional and feeds `/api/healthz` plus build diagnostics
   when CI exports it.
 
