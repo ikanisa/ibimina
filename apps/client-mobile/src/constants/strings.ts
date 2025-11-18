@@ -1,0 +1,52 @@
+export const STRINGS = {
+  common: {
+    retry: "Retry",
+    loading: "Loading content",
+    tryAgain: "Something went wrong. Please try again.",
+    pullToRefresh: "Pull to refresh",
+  },
+  home: {
+    title: "Home",
+    greeting: "Welcome back",
+    highlightSubtitle: "Total balance",
+    shortcutsTitle: "Quick actions",
+    groupsTitle: "Groups",
+    groupsDescription: "Latest contribution dates",
+    emptyTitle: "No activity yet",
+    emptyDescription: "Your contributions and payouts will appear here once groups start moving.",
+    skeletonLabel: "Loading home dashboard",
+    errorTitle: "Unable to load dashboard",
+    retryCta: "Reload dashboard",
+  },
+  accounts: {
+    title: "Accounts",
+    subheader: "Recent transactions",
+    emptyTitle: "No transactions",
+    emptyDescription: "Payments and transfers will be listed here once you start moving money.",
+    skeletonLabel: "Loading accounts",
+    errorTitle: "We could not refresh your accounts.",
+    retryCta: "Refresh accounts",
+  },
+  loans: {
+    title: "Loans",
+    description: "Track applications and status",
+    emptyTitle: "No active loans",
+    emptyDescription: "When you request a loan, we will keep you posted right here.",
+    skeletonLabel: "Loading loans",
+    errorTitle: "Unable to load loan status",
+    retryCta: "Reload loans",
+    startCta: "Start loan application",
+  },
+  groups: {
+    title: "Groups",
+    description: "Manage your ibimina",
+    emptyTitle: "No groups yet",
+    emptyDescription: "Join a savings group or create one to track contributions.",
+    skeletonLabel: "Loading groups",
+    errorTitle: "Groups failed to load",
+    retryCta: "Reload groups",
+    createCta: "Create group",
+  },
+};
+
+export type AppStrings = typeof STRINGS;
