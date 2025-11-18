@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import type { Database } from "@/lib/supabase/types";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   SaccoSearchCombobox,
   type SaccoSearchResult,
@@ -22,7 +21,6 @@ const ROLES: Array<Database["public"]["Enums"]["app_role"]> = [
 ];
 
 export function InviteUserForm() {
-  const supabase = getSupabaseBrowserClient();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Database["public"]["Enums"]["app_role"]>("SACCO_STAFF");
@@ -71,29 +69,22 @@ export function InviteUserForm() {
               ? null
               : "SACCO";
       const orgId = orgType === "SACCO" ? (sacco?.id ?? null) : (org?.id ?? null);
-      const { data, error } = await supabase.functions.invoke("invite-user", {
-        body: {
-          email,
-          role,
-          org_type: orgType,
-          org_id: orgId,
-          // Back-compat for older function versions
-          saccoId: orgType === "SACCO" ? orgId : null,
-        },
+
+      const response = await fetch("/api/admin/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, role, org_type: orgType, org_id: orgId }),
       });
 
-      if (error) {
-        console.error(error);
-        const msg = error.message ?? t("admin.invite.fail", "Invite failed");
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        const msg = payload?.error ?? t("admin.invite.fail", "Invite failed");
         setError(msg);
         notifyError(msg);
         return;
       }
 
-      const msg = data?.temporaryPassword
-        ? t("admin.invite.sentWithTemp", "Invitation sent. Temporary password: ") +
-          data.temporaryPassword
-        : t("admin.invite.sent", "Invitation sent successfully");
+      const msg = t("admin.invite.sent", "Invitation sent successfully");
       setMessage(msg);
       notifySuccess(t("admin.invite.notice", "Invitation sent to staff"));
       setEmail("");
