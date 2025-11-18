@@ -1,6 +1,5 @@
 #!/bin/bash
 # Build Release APK/AAB for Ibimina Admin/Staff App
-# REQUIRES: SMS permissions fix FIRST (run fix-admin-sms-permissions.sh)
 
 set -e
 
@@ -17,10 +16,7 @@ if grep -q "READ_SMS\|RECEIVE_SMS" "$ADMIN_MANIFEST"; then
     echo ""
     echo "Google Play will REJECT this app with these permissions."
     echo ""
-    echo "Run this first:"
-    echo "  ./scripts/fix-admin-sms-permissions.sh"
-    echo ""
-    echo "Then re-run this build script."
+    echo "Remove the SMS permissions from the Android manifest before building."
     exit 1
 else
     echo "✅ No banned SMS permissions (Google Play compliant)"
