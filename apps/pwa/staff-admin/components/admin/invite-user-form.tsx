@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import type { Database } from "@/lib/supabase/types";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   SaccoSearchCombobox,
   type SaccoSearchResult,
@@ -22,7 +21,6 @@ const ROLES: Array<Database["public"]["Enums"]["app_role"]> = [
 ];
 
 export function InviteUserForm() {
-  const supabase = getSupabaseBrowserClient();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Database["public"]["Enums"]["app_role"]>("SACCO_STAFF");
@@ -30,6 +28,11 @@ export function InviteUserForm() {
   const [org, setOrg] = useState<OrgSearchResult | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [inviteMeta, setInviteMeta] = useState<{
+    method?: string;
+    status?: string;
+    error?: string | null;
+  } | null>(null);
   const [pending, startTransition] = useTransition();
   const { success, error: toastError } = useToast();
 
@@ -40,6 +43,7 @@ export function InviteUserForm() {
     event.preventDefault();
     setMessage(null);
     setError(null);
+    setInviteMeta(null);
 
     // For non-admin roles, require an organization selection
     if (role !== "SYSTEM_ADMIN") {
@@ -71,30 +75,49 @@ export function InviteUserForm() {
               ? null
               : "SACCO";
       const orgId = orgType === "SACCO" ? (sacco?.id ?? null) : (org?.id ?? null);
-      const { data, error } = await supabase.functions.invoke("invite-user", {
-        body: {
+
+      const response = await fetch("/api/admin/staff/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           email,
           role,
+          sacco_id: orgType === "SACCO" ? orgId : null,
           org_type: orgType,
           org_id: orgId,
-          // Back-compat for older function versions
-          saccoId: orgType === "SACCO" ? orgId : null,
-        },
+        }),
       });
 
-      if (error) {
-        console.error(error);
-        const msg = error.message ?? t("admin.invite.fail", "Invite failed");
+      const payload = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        temporary_password?: string;
+        invite_error?: string | null;
+        invite_method?: string;
+      };
+
+      if (!response.ok || payload.error) {
+        const msg = payload.error ?? t("admin.invite.fail", "Invite failed");
         setError(msg);
         notifyError(msg);
+        setInviteMeta({
+          method: payload.invite_method,
+          status: "error",
+          error: payload.invite_error ?? payload.error,
+        });
         return;
       }
 
-      const msg = data?.temporaryPassword
+      const msg = payload.temporary_password
         ? t("admin.invite.sentWithTemp", "Invitation sent. Temporary password: ") +
-          data.temporaryPassword
+          payload.temporary_password
         : t("admin.invite.sent", "Invitation sent successfully");
       setMessage(msg);
+      setInviteMeta({
+        method: payload.invite_method,
+        status: payload.invite_error ? "error" : "sent",
+        error: payload.invite_error ?? null,
+      });
       notifySuccess(t("admin.invite.notice", "Invitation sent to staff"));
       setEmail("");
       setRole("SACCO_STAFF");
@@ -164,6 +187,18 @@ export function InviteUserForm() {
       {error && <p className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>}
       {message && (
         <p className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{message}</p>
+      )}
+      {inviteMeta && (
+        <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-neutral-0">
+          <p className="font-semibold uppercase tracking-[0.3em] text-neutral-2">Delivery</p>
+          <p className="mt-1 text-sm">
+            Status: <span className="font-semibold">{inviteMeta.status ?? "unknown"}</span>
+          </p>
+          <p className="text-sm">Method: {inviteMeta.method ?? "n/a"}</p>
+          {inviteMeta.error && (
+            <p className="mt-1 text-sm text-red-300">Error: {inviteMeta.error}</p>
+          )}
+        </div>
       )}
 
       <button

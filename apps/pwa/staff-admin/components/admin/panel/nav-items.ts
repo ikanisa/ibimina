@@ -28,6 +28,7 @@ export const ADMIN_NAV_LINKS: ReadonlyArray<AdminNavLink> = [
   { href: "/admin/settings", label: "Settings & Policies", icon: "settings" },
   { href: "/admin/audit", label: "Audit & Logs", icon: "audit" },
   { href: "/admin/feature-flags", label: "Feature Flags & Experiments", icon: "feature-flags" },
+  { href: "/admin/invites", label: "User Invites", icon: "approvals" },
 ];
 
 // Grouped navigation for better UX
@@ -53,6 +54,7 @@ export const ADMIN_NAV_GROUPS: ReadonlyArray<AdminNavGroup> = [
       { href: "/admin/payments", label: "Payments & Settlement", icon: "payments" },
       { href: "/admin/ocr", label: "OCR Review", icon: "ocr" },
       { href: "/admin/loans", label: "Loans pipeline", icon: "loans" },
+      { href: "/admin/invites", label: "User Invites", icon: "approvals" },
     ],
   },
   {
