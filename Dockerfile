@@ -11,12 +11,14 @@ ARG NEXT_PUBLIC_SENTRY_DSN
 ARG SENTRY_TRACES_SAMPLE_RATE
 ARG SENTRY_PROFILES_SAMPLE_RATE
 
+# Workspace dependencies
 FROM node:20-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 RUN corepack enable \
   && pnpm fetch
 
+# Build only the staff-admin PWA
 FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 ENV NODE_ENV=production
@@ -48,16 +50,9 @@ COPY --from=deps /root/.local/share/pnpm /root/.local/share/pnpm
 COPY . .
 RUN corepack enable \
   && pnpm install --frozen-lockfile --offline \
-  && pnpm run build
+  && pnpm --filter @ibimina/staff-admin-pwa build
 
-FROM node:20-bookworm-slim AS prod-deps
-WORKDIR /app
-ENV NODE_ENV=production
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
-COPY --from=deps /root/.local/share/pnpm /root/.local/share/pnpm
-RUN corepack enable \
-  && pnpm install --frozen-lockfile --prod --offline
-
+# Runtime: Next standalone output
 FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
@@ -88,11 +83,10 @@ ENV NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
 ENV SENTRY_TRACES_SAMPLE_RATE=${SENTRY_TRACES_SAMPLE_RATE}
 ENV SENTRY_PROFILES_SAMPLE_RATE=${SENTRY_PROFILES_SAMPLE_RATE}
 EXPOSE 3100
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY next.config.ts ./next.config.ts
-COPY service-worker.js ./service-worker.js
-RUN corepack enable
-CMD ["pnpm", "run", "start"]
+
+# Copy the app's standalone server and assets
+COPY --from=builder /app/apps/pwa/staff-admin/.next/standalone ./
+COPY --from=builder /app/apps/pwa/staff-admin/.next/static ./.next/static
+COPY --from=builder /app/apps/pwa/staff-admin/public ./public
+
+CMD ["node", "server.js"]

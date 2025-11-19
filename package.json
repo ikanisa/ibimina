@@ -47,7 +47,7 @@
     "perf:budget": "pnpm --filter @ibimina/admin perf:budget",
     "lint:supabase": "cd supabase/functions && deno lint",
     "typecheck:supabase": "cd supabase/functions && deno check **/*.ts",
-    "build:staff-android": "cd apps/staff-admin-android && pnpm android --mode=release",
+    "build:staff-android": "cd apps/pwa/staff-admin && npx cap sync android && cd android && ./gradlew assembleRelease",
     "build:client-android": "cd apps/mobile/client-android && ./gradlew assembleDebug",
     "build:client-android:release": "cd apps/mobile/client-android && ./gradlew assembleRelease",
     "test:client-android": "cd apps/mobile/client-android && ./gradlew test",

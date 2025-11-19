@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logError } from "@/lib/observability/logger";
-import { supabaseSrv } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserAndProfile } from "@/lib/auth";
 
 /**
  * List user's registered devices
@@ -9,15 +10,10 @@ import { supabaseSrv } from "@/lib/supabase/server";
  */
 export async function GET(_req: NextRequest) {
   try {
-    const supabase = supabaseSrv();
+    const supabase = await createSupabaseServerClient();
+    const auth = await getUserAndProfile();
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!auth) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
@@ -27,7 +23,7 @@ export async function GET(_req: NextRequest) {
       .select(
         "id, device_id, device_label, key_algorithm, device_info, integrity_status, created_at, last_used_at, revoked_at"
       )
-      .eq("user_id", user.id)
+      .eq("user_id", auth.user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -52,15 +48,10 @@ export async function GET(_req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
-    const supabase = supabaseSrv();
+    const supabase = await createSupabaseServerClient();
+    const auth = await getUserAndProfile();
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!auth) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
@@ -82,7 +73,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Verify ownership
-    if (device.user_id !== user.id) {
+    if (device.user_id !== auth.user.id) {
       return NextResponse.json({ error: "Unauthorized to revoke this device" }, { status: 403 });
     }
 
@@ -96,7 +87,7 @@ export async function DELETE(req: NextRequest) {
       .from("device_auth_keys")
       .update({
         revoked_at: new Date().toISOString(),
-        revoked_by: user.id,
+        revoked_by: auth.user.id,
         revocation_reason: "User-initiated revocation",
       })
       .eq("id", deviceId);
@@ -109,11 +100,11 @@ export async function DELETE(req: NextRequest) {
     // Log audit event
     await (supabase as any).from("device_auth_audit").insert({
       event_type: "DEVICE_REVOKED",
-      user_id: user.id,
+      user_id: auth.user.id,
       device_key_id: device.id,
       success: true,
       metadata: {
-        revoked_by: user.id,
+        revoked_by: auth.user.id,
         reason: "User-initiated revocation",
         device_label: device.device_label,
       },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseSrv } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserAndProfile } from "@/lib/auth";
 import { logError, logInfo } from "@/lib/observability/logger";
 
 /**
@@ -25,15 +26,10 @@ import { logError, logInfo } from "@/lib/observability/logger";
  */
 export async function POST(req: NextRequest) {
   try {
-    const supabase = supabaseSrv();
+    const supabase = await createSupabaseServerClient();
+    const auth = await getUserAndProfile();
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!auth) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
@@ -80,7 +76,7 @@ export async function POST(req: NextRequest) {
     const { data: existingDevice } = await (supabase as any)
       .from("device_auth_keys")
       .select("id, device_label, revoked_at")
-      .eq("user_id", user.id)
+      .eq("user_id", auth.user.id)
       .eq("device_id", device_id)
       .single();
 
@@ -103,7 +99,7 @@ export async function POST(req: NextRequest) {
     const { data: deviceKey, error: insertError } = await (supabase as any)
       .from("device_auth_keys")
       .insert({
-        user_id: user.id,
+        user_id: auth.user.id,
         device_id,
         device_label: device_label || `Device ${device_id.slice(0, 8)}`,
         public_key,
@@ -128,7 +124,7 @@ export async function POST(req: NextRequest) {
     // Log audit event
     await (supabase as any).from("device_auth_audit").insert({
       event_type: "DEVICE_ENROLLED",
-      user_id: user.id,
+      user_id: auth.user.id,
       device_key_id: deviceKey.id,
       success: true,
       metadata: {
@@ -144,7 +140,7 @@ export async function POST(req: NextRequest) {
         event_type: integrityStatus?.meets_device_integrity
           ? "INTEGRITY_CHECK_PASSED"
           : "INTEGRITY_CHECK_FAILED",
-        user_id: user.id,
+        user_id: auth.user.id,
         device_key_id: deviceKey.id,
         success: integrityStatus?.meets_device_integrity || false,
         metadata: {

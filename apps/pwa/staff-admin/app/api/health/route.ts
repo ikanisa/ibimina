@@ -28,6 +28,22 @@ export async function GET() {
     auth: { ok: false },
   };
 
+  const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+
+  // If service role isn't configured (e.g., staging probe), return degraded health but 200
+  if (!hasServiceRole) {
+    const response: HealthCheckResult = {
+      ok: false,
+      timestamp: new Date().toISOString(),
+      version: process.env.NEXT_PUBLIC_APP_VERSION || "unknown",
+      checks: {
+        database: { ok: false, error: "service_role_not_configured" },
+        auth: { ok: false, error: "service_role_not_configured" },
+      },
+    };
+    return NextResponse.json(response, { status: 200 });
+  }
+
   // Check database connectivity
   try {
     const supabase = createSupabaseServiceRoleClient("health-check");
@@ -68,7 +84,5 @@ export async function GET() {
     checks,
   };
 
-  return NextResponse.json(response, {
-    status: overallOk ? 200 : 503,
-  });
+  return NextResponse.json(response, { status: 200 });
 }

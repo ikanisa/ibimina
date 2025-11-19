@@ -154,22 +154,9 @@ export default async function DashboardPage() {
           }
           badge={headerBadge}
         >
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-            {kpis.map((kpi) => (
-              <KPIStat
-                key={kpi.labelKey}
-                label={<Trans i18nKey={kpi.labelKey} fallback={kpi.fallback} />}
-                value={kpi.value}
-                accent={kpi.accent}
-              />
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
             {kpis.map((kpi, idx) => (
-              <div
-                key={idx}
-                style={{
-                  animation: `fadeInUp 0.3s ease-out ${idx * 0.08}s both`,
-                }}
-              >
+              <div key={idx} style={{ animation: `fadeInUp 0.3s ease-out ${idx * 0.08}s both` }}>
                 <KPIStat label={kpi.label} value={kpi.value} accent={kpi.accent} />
               </div>
             ))}

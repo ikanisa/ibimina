@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseSrv } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserAndProfile } from "@/lib/auth";
 import { JoinRequestReq } from "@/lib/validators";
 
 export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
-  const srv = supabaseSrv();
+  const supabase = await createSupabaseServerClient();
 
-  const client = srv as any;
-  const {
-    data: { user },
-    error: authError,
-  } = await srv.auth.getUser();
+  const client = supabase as any;
+  const auth = await getUserAndProfile();
 
-  if (authError || !user) {
+  if (!auth) {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
@@ -38,7 +36,7 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
   }
 
   const { error } = await client.from("join_requests").insert({
-    user_id: user.id,
+    user_id: auth.user.id,
     sacco_id: group.sacco_id,
     group_id: gid,
     note: parsed.data.note ?? null,

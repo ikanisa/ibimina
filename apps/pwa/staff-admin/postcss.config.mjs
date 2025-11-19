@@ -1,11 +1,10 @@
-import tailwind from "@tailwindcss/postcss";
-
-const config = {
-  plugins: [tailwind],
+/**
+ * Standard PostCSS config for TailwindCSS
+ * Use built-in plugin names to avoid requiring @tailwindcss/postcss explicitly.
+ */
+export default {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},
   },
 };
-
-export default config;

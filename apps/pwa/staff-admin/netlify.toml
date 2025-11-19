@@ -1,6 +1,7 @@
 [build]
   base = "apps/pwa/staff-admin"
   command = "cd ../../.. && pnpm install --frozen-lockfile && pnpm build:admin"
+  # @netlify/plugin-nextjs manages the publish directory for SSR
   publish = ".next"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../../../packages/"
 
@@ -24,7 +25,8 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
 [[headers]]
-  for = "/sw.js"
+  # Align with next-pwa service worker path
+  for = "/service-worker.js"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
     Service-Worker-Allowed = "/"
@@ -34,8 +36,4 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# SPA fallback for client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Remove SPA fallback — SSR is handled by @netlify/plugin-nextjs

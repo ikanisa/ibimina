@@ -2,21 +2,19 @@ import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { supabaseSrv } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserAndProfile } from "@/lib/auth";
 import { OCRUploadReq } from "@/lib/validators";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const srv = supabaseSrv();
+  const supabase = await createSupabaseServerClient();
 
-  const db = srv as any;
-  const {
-    data: { user },
-    error: authError,
-  } = await srv.auth.getUser();
+  const db = supabase as any;
+  const auth = await getUserAndProfile();
 
-  if (authError || !user) {
+  if (!auth) {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
@@ -40,9 +38,9 @@ export async function POST(req: NextRequest) {
 
   const arrayBuffer = await file.arrayBuffer();
   const bytes = new Uint8Array(arrayBuffer);
-  const path = `ids/${user.id}/${Date.now()}_${file.name}`;
+  const path = `ids/${auth.user.id}/${Date.now()}_${file.name}`;
 
-  const { data: uploaded, error: uploadError } = await srv.storage
+  const { data: uploaded, error: uploadError } = await supabase.storage
     .from("private")
     .upload(path, bytes, {
       contentType: file.type || "image/jpeg",
@@ -131,7 +129,7 @@ export async function POST(req: NextRequest) {
       id_files: { front_url: uploaded?.path ?? path },
       ocr_json,
     })
-    .eq("user_id", user.id);
+    .eq("user_id", auth.user.id);
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });

@@ -5,6 +5,9 @@
 
 const withPWA = require("next-pwa")({
   dest: "public",
+  // Ensure our custom TS worker is compiled and emitted at this path
+  sw: "service-worker.js",
+  swSrc: "workers/service-worker.ts",
   register: true,
   skipWaiting: true,
   reloadOnOnline: true,

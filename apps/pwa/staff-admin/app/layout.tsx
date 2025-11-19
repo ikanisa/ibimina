@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   applicationName: "Ibimina Staff Console",
   description: "Staff-only platform for Umurenge SACCO Ibimina operations.",
   keywords: ["SACCO", "Ibimina", "PWA", "Finance", "Rwanda"],
-  manifest: "/manifest.json",
+  // Use Next metadata manifest output
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon" },

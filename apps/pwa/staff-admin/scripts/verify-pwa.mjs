@@ -37,39 +37,14 @@ function logSummary() {
   }
 }
 
-async function checkManifest() {
-  const manifestRaw = await readFile("public/manifest.json", "utf8");
-  const manifest = JSON.parse(manifestRaw);
-  const requiredSizes = new Set(["192x192", "512x512"]);
-  const icons = manifest.icons || [];
-  for (const icon of icons) {
-    if (icon?.sizes) {
-      icon.sizes
-        .split(/\s+/)
-        .filter(Boolean)
-        .forEach((size) => requiredSizes.delete(size));
-    }
-  }
-  if (requiredSizes.size > 0) {
-    throw new Error(`Manifest is missing PNG icons for: ${Array.from(requiredSizes).join(", ")}`);
-  }
-  if (manifest.theme_color !== "#0b1020") {
-    throw new Error("Manifest theme_color is not #0b1020");
-  }
-}
-
 async function checkLayoutHead() {
   const layout = await readFile("app/layout.tsx", "utf8");
-  if (!layout.includes('manifest: "/manifest.json"')) {
-    throw new Error("Root layout is not advertising /manifest.json");
+  if (!layout.includes('manifest: "/manifest.webmanifest"')) {
+    throw new Error("Root layout is not advertising /manifest.webmanifest");
   }
   if (!layout.includes('themeColor: "#0b1020"')) {
     throw new Error("Root layout themeColor is not set to #0b1020");
   }
-}
-
-async function checkServiceWorker() {
-  await access("service-worker.js");
 }
 
 async function runCommand(command, args, opts = {}) {
@@ -91,7 +66,8 @@ async function runServerHealthcheck() {
   const port = 3100;
   const nextBin =
     process.platform === "win32" ? "node_modules/.bin/next.cmd" : "node_modules/.bin/next";
-  const server = spawn(nextBin, ["start", "-p", String(port), "-H", "127.0.0.1"], {
+  // Bind to all interfaces for environments where 127.0.0.1 binding is restricted
+  const server = spawn(nextBin, ["start", "-p", String(port), "-H", "0.0.0.0"], {
     env: { ...process.env },
     stdio: "inherit",
   });
@@ -101,7 +77,7 @@ async function runServerHealthcheck() {
     controller.abort();
   }, 45000);
 
-  const url = `http://127.0.0.1:${port}/api/healthz`;
+  const url = `http://127.0.0.1:${port}/api/health`;
   let success = false;
   let exitCode = null;
   let exitSignal = null;
@@ -136,24 +112,54 @@ async function runServerHealthcheck() {
   if (!success) {
     if (exitCode !== null) {
       console.warn(
-        `⚠️  Could not verify /api/healthz locally (exit code ${exitCode}${exitSignal ? `, signal ${exitSignal}` : ""}). Double-check env vars and rerun.`
+        `⚠️  Could not verify /api/health locally (exit code ${exitCode}${exitSignal ? `, signal ${exitSignal}` : ""}). Double-check env vars and rerun.`
       );
       return;
     }
-    throw new Error("Failed to confirm /api/healthz within 45s");
+    throw new Error("Failed to confirm /api/health within 45s");
+  }
+
+  // Post-build/live checks
+  // 1) Verify manifest served by Next metadata route
+  const manifestUrl = `http://127.0.0.1:${port}/manifest.webmanifest`;
+  const manifestRes = await fetch(manifestUrl).catch(() => null);
+  if (!manifestRes || !manifestRes.ok) {
+    throw new Error(`Manifest not served at ${manifestUrl}`);
+  }
+  const manifest = await manifestRes.json().catch(() => ({}));
+  const requiredSizes = new Set(["192x192", "512x512"]);
+  const icons = manifest.icons || [];
+  for (const icon of icons) {
+    if (icon?.sizes) {
+      String(icon.sizes)
+        .split(/\s+/)
+        .filter(Boolean)
+        .forEach((size) => requiredSizes.delete(size));
+    }
+  }
+  if (requiredSizes.size > 0) {
+    throw new Error(`Manifest is missing PNG icons for: ${Array.from(requiredSizes).join(", ")}`);
+  }
+  if (manifest.theme_color !== "#0b1020") {
+    throw new Error("Manifest theme_color is not #0b1020");
+  }
+
+  // 2) Verify service worker is emitted and reachable
+  const swUrl = `http://127.0.0.1:${port}/service-worker.js`;
+  const swRes = await fetch(swUrl, { method: "HEAD" }).catch(() => null);
+  if (!swRes || !swRes.ok) {
+    throw new Error(`service-worker.js not reachable at ${swUrl}`);
   }
 }
 
 async function main() {
-  await step("manifest contains 192px & 512px PNG icons", checkManifest);
   await step("root layout advertises manifest & theme color", checkLayoutHead);
-  await step("service-worker.js present", checkServiceWorker);
   if (skipBuild) {
     recordSkip("npm run build");
   } else {
     await step("npm run build", runBuild);
   }
-  await step("start server and probe /api/health", runServerHealthcheck);
+  await step("start server, probe /api/health, manifest, and service worker", runServerHealthcheck);
   logSummary();
   const failed = results.filter((item) => !item.ok);
   if (failed.length > 0) {

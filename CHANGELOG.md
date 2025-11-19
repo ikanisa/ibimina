@@ -21,9 +21,21 @@ in YYYY-MM-DD.
 - Updated go-live release collateral to include Atlas admin rollout validation
   steps and evidence capture requirements.
 
+### Fixed
+
+- [P1] Corrected authentication in several Next.js API routes to use a
+  cookie-bound Supabase client instead of the service-role client. This fixes
+  persistent 401s for authenticated users and restores telemetry/hooks that
+  depend on these endpoints. Affected routes under
+  `apps/pwa/staff-admin/app/api/` include: `activity/recent`, `groups`,
+  `groups/[id]/members`, `groups/[id]/summary`, `groups/[id]/join-request`,
+  `memberships/sync`, `onboard`, `invite/accept`, `saccos/add`, `saccos/search`,
+  `pay/ussd-params`, and `ocr/upload`. Device-auth endpoints that read the
+  current user now also use the request-bound client.
+
 ## [1.0.0] - 2025-12-05
 
-### Added
+### Added (v1.0.0)
 
 - Finalised architecture docs (`ARCHITECTURE.md`, `docs/REPORT.md`) covering
   Vercel ↔ Supabase topology, RLS validation, and operational runbooks.
@@ -52,7 +64,7 @@ See details: docs/releases/2025-11-01-pr00-refactor-plan.md
 
 ## [0.1.3] - 2025-10-16
 
-### Added
+### Added (v0.1.3)
 
 - Normalised SACCO search slugs via helper-trigger pipeline with reproducible
   migrations (`20251020134500_fix_search_slug.sql`,
@@ -88,7 +100,7 @@ See details: docs/releases/2025-11-01-pr00-refactor-plan.md
 
 ## [0.1.2] - 2025-10-10
 
-### Added
+### Added (v0.1.2)
 
 - Hardened CI: TypeScript typecheck, cached Next.js build, i18n key parity,
   glossary consistency check (`.github/workflows/ci.yml`).
@@ -97,18 +109,18 @@ See details: docs/releases/2025-11-01-pr00-refactor-plan.md
 - Added PR template and README updates improving contributor onboarding
   (`.github/pull_request_template.md`).
 
-### References
+### References (v0.1.2)
 
 - PRs: [#p1-pwa-ux](pr/p1-pwa-ux/README.md),
   [#p2-performance](pr/p2-performance/README.md)
 
 ## [0.1.1] - 2025-10-10
 
-### Added
+### Added (v0.1.1)
 
 - Migrated UI to `t()`/`Trans`, expanded dictionaries, and polished
   Recon/Profile/Ikimina strings (`feature-tapmomo/TESTING_GUIDE.md`).
 
-### References
+### References (v0.1.1)
 
 - PR: [#auth-p1-mfa](pr/auth-p1-mfa/README.md)

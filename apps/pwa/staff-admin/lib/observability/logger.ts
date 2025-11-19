@@ -170,6 +170,10 @@ function write(level: LogLevel, event: string, payload: LogPayload) {
 }
 
 function getLogDrainConfig(): LogDrainConfig | null {
+  // Never forward logs from the browser; keep drain server-side only.
+  if (typeof window !== "undefined") {
+    return null;
+  }
   const endpoint = process.env.LOG_DRAIN_URL ?? "";
   if (!endpoint) {
     return null;

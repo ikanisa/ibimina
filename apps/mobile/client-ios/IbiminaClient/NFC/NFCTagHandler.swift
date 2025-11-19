@@ -1,5 +1,6 @@
 import CoreNFC
 import Foundation
+import CryptoKit
 
 /**
  * NFCTagHandler provides utility functions for working with NFC tags
@@ -71,12 +72,12 @@ class NFCTagHandler {
     }
     
     /**
-     * Calculate HMAC signature for payment data
+     * Calculate HMAC-SHA256 signature for payment data
      */
     static func calculateHMAC(data: String, secret: String) -> String {
-        // In production, implement proper HMAC-SHA256
-        // For now, return a placeholder
-        return "hmac_placeholder"
+        let key = SymmetricKey(data: Data(secret.utf8))
+        let signature = HMAC<SHA256>.authenticationCode(for: Data(data.utf8), using: key)
+        return Data(signature).base64EncodedString()
     }
     
     /**
@@ -84,7 +85,13 @@ class NFCTagHandler {
      */
     static func verifyHMAC(data: String, signature: String, secret: String) -> Bool {
         let calculatedHMAC = calculateHMAC(data: data, secret: secret)
-        return calculatedHMAC == signature
+        // Constant-time comparison
+        guard calculatedHMAC.count == signature.count else { return false }
+        var result: UInt8 = 0
+        for (a, b) in zip(calculatedHMAC.utf8, signature.utf8) {
+            result |= a ^ b
+        }
+        return result == 0
     }
     
     /**

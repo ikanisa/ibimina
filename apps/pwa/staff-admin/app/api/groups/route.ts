@@ -1,23 +1,21 @@
 import { NextResponse } from "next/server";
-import { supabaseSrv } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserAndProfile } from "@/lib/auth";
 
 export async function GET() {
-  const srv = supabaseSrv();
+  const supabase = await createSupabaseServerClient();
 
-  const client = srv as any;
-  const {
-    data: { user },
-    error: authError,
-  } = await srv.auth.getUser();
+  const client = supabase as any;
+  const auth = await getUserAndProfile();
 
-  if (authError || !user) {
+  if (!auth) {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
   const { data: mySaccos, error: mySaccosError } = await client
     .from("user_saccos")
     .select("sacco_id")
-    .eq("user_id", user.id);
+    .eq("user_id", auth.user.id);
 
   if (mySaccosError) {
     return NextResponse.json({ error: mySaccosError.message }, { status: 500 });
