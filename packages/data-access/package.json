@@ -5,13 +5,18 @@
   "type": "module",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "types": "./src/index.public.ts",
   "files": [
     "dist"
   ],
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
+      "types": "./src/index.public.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./index.public": {
+      "types": "./src/index.public.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     },

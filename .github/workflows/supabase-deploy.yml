@@ -12,6 +12,39 @@ on:
       - "supabase/migrations/**"
 
 jobs:
+  predeploy-supabase-tests:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.19.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: Run Supabase test suite
+        run: supabase test db
+
+      - name: Run admin RLS regression tests
+        run: pnpm --filter @ibimina/admin run test:rls:docker
+
   # Dry-run migration checks for PRs
   migration-check:
     if: github.event_name == 'pull_request'
@@ -72,6 +105,18 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
+      - name: Capture schema drift
+        id: schema-drift
+        run: |
+          set +e
+          DIFF_OUTPUT=$(supabase db diff --linked --schema public 2>&1)
+          echo "$DIFF_OUTPUT"
+          echo "diff<<'EOF'" >> $GITHUB_OUTPUT
+          echo "$DIFF_OUTPUT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
       - name: Apply migrations to staging
         run: |
           echo "Applying migrations to staging environment..."
@@ -84,6 +129,21 @@ jobs:
         env:
           SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_STAGING_PROJECT_REF }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Comment schema drift on PR
+        uses: actions/github-script@v7
+        env:
+          DIFF_OUTPUT: ${{ steps.schema-drift.outputs.diff }}
+        with:
+          script: |
+            const output = process.env.DIFF_OUTPUT || 'No diff output available.';
+            const body = `#### Supabase schema drift check\n\n\`\`\`\n${output}\n\`\`\`\n`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
 
       - name: Comment on PR
         uses: actions/github-script@v7
@@ -109,6 +169,7 @@ jobs:
   # Staging validation on main pushes prior to production deploy
   staging-verify:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: predeploy-supabase-tests
     runs-on: ubuntu-latest
     environment: staging
     permissions:

@@ -1,78 +1,122 @@
 import React, { type ComponentProps } from "react";
-import { SafeAreaView, StyleSheet, Text } from "react-native";
+import { SafeAreaView, ScrollView, StyleSheet, Text, useColorScheme, View } from "react-native";
+import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
-  createNativeStackNavigator,
-  type NativeStackScreenProps,
-} from "@react-navigation/native-stack";
+  createBottomTabNavigator,
+  type BottomTabNavigationOptions,
+} from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
-const TAB_BACKGROUND = "#020617"; // slate-950
-const TAB_ACTIVE_TINT = "#38BDF8"; // sky-400
-const TAB_INACTIVE_TINT = "#64748B"; // slate-500
-const TAB_BORDER = "rgba(148, 163, 184, 0.2)"; // slate-400 with opacity
-const HEADER_TEXT = "#E2E8F0"; // slate-200
+import { getMinimalTheme } from "../styles/tokens";
+import { useNativeWindTheme } from "@theme/nativewind";
 
 export type TabParamList = {
-  Home: undefined;
-  Pay: undefined;
-  Statements: undefined;
+  Overview: undefined;
   Profile: undefined;
 };
 
-export type RootStackParamList = {
-  Tabs: undefined;
-  GroupDetail: { groupId: string; name?: string };
-};
-
 const Tab = createBottomTabNavigator<TabParamList>();
-const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const TAB_ICON_MAP: Record<keyof TabParamList, ComponentProps<typeof Ionicons>["name"]> = {
-  Home: "home",
-  Pay: "card",
-  Statements: "document-text",
-  Profile: "person-circle",
+  Overview: "home-outline",
+  Profile: "person-circle-outline",
 };
 
 function createPlaceholderScreen(title: string, subtitle?: string) {
   return function PlaceholderScreen() {
+    const colorScheme = useColorScheme();
+    const theme = getMinimalTheme(colorScheme === "dark" ? "dark" : "light");
+
     return (
-      <SafeAreaView style={styles.screen}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      <SafeAreaView style={[styles.screen, { backgroundColor: theme.colors.background }]}>
+        <ScrollView
+          contentContainerStyle={[styles.screenContent, { padding: theme.spacing.xl }]}
+          accessibilityRole="summary"
+          accessibilityLabel={`${title} screen`}
+        >
+          <View style={styles.textStack}>
+            <Text style={[styles.title, { color: theme.colors.text }]} accessibilityRole="header">
+              {title}
+            </Text>
+            {subtitle ? (
+              <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{subtitle}</Text>
+            ) : null}
+          </View>
+        </ScrollView>
+    const theme = useNativeWindTheme();
+
+    return (
+      <SafeAreaView
+        style={[styles.screen, { backgroundColor: theme.palette.background }]}
+        className={theme.classes.background}
+      >
+        <Text style={styles.title} className={`${theme.classes.textPrimary} text-center`}>
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text style={styles.subtitle} className={`${theme.classes.textSecondary} text-center`}>
+            {subtitle}
+          </Text>
+        ) : null}
       </SafeAreaView>
     );
   };
 }
 
-const HomeScreen = createPlaceholderScreen("Home", "Monitor balances, contributions, and news.");
-const PayScreen = createPlaceholderScreen("Pay", "Send payments or contributions in a tap.");
-const StatementsScreen = createPlaceholderScreen(
-  "Statements",
-  "Review your transaction history and exports."
+const OverviewScreen = createPlaceholderScreen(
+  "Overview",
+  "Stay on top of balances, goals, and group activity."
 );
 const ProfileScreen = createPlaceholderScreen(
   "Profile",
-  "Manage your personal details and settings."
+  "Manage your personal details, preferences, and security."
 );
-const GroupDetailScreen = createPlaceholderScreen(
-  "Group Detail",
-  "Inspect group activity, members, and savings."
-);
-
-type GroupDetailRoute = NativeStackScreenProps<RootStackParamList, "GroupDetail">["route"];
 
 function TabsNavigator() {
+  const colorScheme = useColorScheme();
+  const theme = getMinimalTheme(colorScheme === "dark" ? "dark" : "light");
+
+  const tabOptions: BottomTabNavigationOptions = ({ route }) => ({
+    headerShown: false,
+    tabBarActiveTintColor: theme.colors.primary,
+    tabBarInactiveTintColor: theme.colors.textMuted,
+    tabBarLabelStyle: {
+      fontSize: 12,
+      fontWeight: "600",
+    },
+    tabBarAccessibilityLabel: `${route.name} tab`,
+    tabBarIcon: ({ color, size }) => {
+      const iconName = TAB_ICON_MAP[route.name as keyof TabParamList];
+      return <Ionicons name={iconName} size={size} color={color} />;
+    },
+    tabBarStyle: {
+      backgroundColor: theme.colors.surface,
+      borderTopColor: theme.colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      height: 72,
+      paddingBottom: theme.spacing.md,
+      paddingTop: theme.spacing.sm,
+    },
+    sceneContainerStyle: {
+      backgroundColor: theme.colors.background,
+    },
+  });
+
+  return (
+    <Tab.Navigator screenOptions={tabOptions} backBehavior="history">
+      <Tab.Screen name="Overview" component={OverviewScreen} />
+  const theme = useNativeWindTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: TAB_ACTIVE_TINT,
-        tabBarInactiveTintColor: TAB_INACTIVE_TINT,
+        tabBarActiveTintColor: theme.palette.primary,
+        tabBarInactiveTintColor: theme.palette.textDefault,
         tabBarStyle: {
-          backgroundColor: TAB_BACKGROUND,
-          borderTopColor: TAB_BORDER,
+          backgroundColor: theme.palette.card,
+          borderTopColor: theme.palette.border,
           borderTopWidth: StyleSheet.hairlineWidth,
           height: 72,
           paddingBottom: 10,
@@ -82,12 +126,29 @@ function TabsNavigator() {
           fontSize: 12,
           fontWeight: "600",
         },
+        tabBarLabel: ({ focused, color }) => (
+          <Text
+            className={focused ? theme.classes.tabBar.active : theme.classes.tabBar.label}
+            accessibilityRole="text"
+            accessibilityLabel={`${route.name} tab`}
+          >
+            {route.name}
+          </Text>
+        ),
+        tabBarAccessibilityLabel: `${route.name} tab`,
         tabBarIcon: ({ color, size }) => {
           const iconName = TAB_ICON_MAP[route.name as keyof TabParamList];
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return (
+            <Ionicons
+              name={iconName}
+              size={size}
+              color={color}
+              accessibilityLabel={`${route.name} icon`}
+            />
+          );
         },
       })}
-      sceneContainerStyle={{ backgroundColor: TAB_BACKGROUND }}
+      sceneContainerStyle={{ backgroundColor: theme.palette.background }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Pay" component={PayScreen} />
@@ -98,19 +159,22 @@ function TabsNavigator() {
 }
 
 export default function RootNav() {
+  return <TabsNavigator />;
+  const theme = useNativeWindTheme();
+
   return (
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: TAB_BACKGROUND,
+          backgroundColor: theme.palette.card,
         },
-        headerTintColor: HEADER_TEXT,
+        headerTintColor: theme.palette.textOnPrimary,
         headerTitleStyle: {
           fontSize: 18,
           fontWeight: "700",
         },
         contentStyle: {
-          backgroundColor: TAB_BACKGROUND,
+          backgroundColor: theme.palette.background,
         },
       }}
     >
@@ -129,22 +193,27 @@ export default function RootNav() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  screenContent: {
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  textStack: {
+    maxWidth: 520,
+    alignItems: "center",
     paddingHorizontal: 24,
-    backgroundColor: TAB_BACKGROUND,
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
-    color: HEADER_TEXT,
     marginBottom: 8,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
     lineHeight: 24,
-    color: "#CBD5F5",
     textAlign: "center",
+    marginTop: 8,
   },
 });

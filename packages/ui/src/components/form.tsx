@@ -67,35 +67,48 @@ export function FormField({
     typeof children === "function" ? children({ id: inputId, describedBy }) : children;
 
   return (
-    <div className={cn("space-y-2", className)}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div
+      className={cn(
+        "space-y-3 rounded-xl border border-neutral-200/80 bg-white/60 p-4 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.55)] backdrop-blur-sm dark:border-neutral-700/70 dark:bg-neutral-900/60",
+        className
+      )}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <label
           htmlFor={typeof inputId === "string" ? inputId : undefined}
-          className="text-xs font-semibold uppercase tracking-[0.35em] text-neutral-2"
+          className="text-[13px] font-semibold uppercase tracking-[0.18em] text-neutral-700 dark:text-neutral-200"
         >
           {label}
-          {required ? <span className="ml-2 text-[11px] text-rose-200">*</span> : null}
+          {required ? <span className="ml-2 text-[11px] text-rose-400">*</span> : null}
           {!required && optionalLabel ? (
-            <span className="ml-2 text-[11px] text-neutral-3">{optionalLabel}</span>
+            <span className="ml-2 text-[11px] text-neutral-500 dark:text-neutral-400">
+              {optionalLabel}
+            </span>
           ) : null}
         </label>
         {actions ? (
-          <div className="text-xs uppercase tracking-[0.3em] text-neutral-3">{actions}</div>
+          <div className="text-xs uppercase tracking-[0.12em] text-neutral-500 dark:text-neutral-400">
+            {actions}
+          </div>
         ) : null}
       </div>
 
       {description ? (
-        <p id={helperId} className="text-xs text-neutral-3">
+        <p id={helperId} className="text-sm leading-snug text-neutral-600 dark:text-neutral-300">
           {description}
         </p>
       ) : null}
 
       <div aria-describedby={describedBy}>{control}</div>
 
-      {hint ? <p className="text-[11px] text-neutral-3">{hint}</p> : null}
+      {hint ? <p className="text-xs text-neutral-500 dark:text-neutral-400">{hint}</p> : null}
 
       {error ? (
-        <p id={errorId} role="alert" className="flex items-start gap-2 text-xs text-red-200">
+        <p
+          id={errorId}
+          role="alert"
+          className="flex items-start gap-2 text-sm text-rose-600 dark:text-rose-200"
+        >
           <AlertCircle className="mt-0.5 h-4 w-4 flex-none" aria-hidden />
           <span>{error}</span>
         </p>
@@ -111,24 +124,28 @@ const SUMMARY_STYLES: Record<
   { container: string; icon: ReactNode; accent: string }
 > = {
   error: {
-    container: "border-red-500/40 bg-red-500/10 text-red-100",
+    container:
+      "border border-rose-200/70 bg-gradient-to-br from-rose-50/90 via-white/60 to-white/40 text-rose-900 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.45)] backdrop-blur-md dark:border-rose-200/30 dark:from-rose-400/20 dark:via-neutral-900/70 dark:to-neutral-900/40 dark:text-rose-100",
     icon: <ShieldAlert className="h-5 w-5" aria-hidden />,
-    accent: "text-red-200",
+    accent: "text-rose-500 dark:text-rose-100",
   },
   warning: {
-    container: "border-amber-500/40 bg-amber-500/10 text-amber-50",
+    container:
+      "border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white/60 to-white/40 text-amber-900 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.45)] backdrop-blur-md dark:border-amber-200/30 dark:from-amber-300/15 dark:via-neutral-900/70 dark:to-neutral-900/40 dark:text-amber-50",
     icon: <AlertCircle className="h-5 w-5" aria-hidden />,
-    accent: "text-amber-100",
+    accent: "text-amber-600 dark:text-amber-100",
   },
   info: {
-    container: "border-sky-500/40 bg-sky-500/10 text-sky-50",
+    container:
+      "border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white/60 to-white/40 text-sky-900 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.45)] backdrop-blur-md dark:border-sky-200/30 dark:from-sky-300/15 dark:via-neutral-900/70 dark:to-neutral-900/40 dark:text-sky-50",
     icon: <Info className="h-5 w-5" aria-hidden />,
-    accent: "text-sky-100",
+    accent: "text-sky-700 dark:text-sky-100",
   },
   success: {
-    container: "border-emerald-500/40 bg-emerald-500/10 text-emerald-50",
+    container:
+      "border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 via-white/60 to-white/40 text-emerald-900 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.45)] backdrop-blur-md dark:border-emerald-200/30 dark:from-emerald-300/15 dark:via-neutral-900/70 dark:to-neutral-900/40 dark:text-emerald-50",
     icon: <CheckCircle2 className="h-5 w-5" aria-hidden />,
-    accent: "text-emerald-100",
+    accent: "text-emerald-700 dark:text-emerald-100",
   },
 };
 
