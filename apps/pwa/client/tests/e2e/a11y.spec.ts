@@ -1,33 +1,7 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-declare global {
-  interface Window {
-    axe?: {
-      run: (
-        context?: unknown,
-        options?: {
-          runOnly?: {
-            type: "tag";
-            values: string[];
-          };
-        }
-      ) => Promise<{
-        violations: Array<{
-          id: string;
-          description: string;
-          impact?: string;
-          helpUrl?: string;
-          nodes: Array<{
-            html: string;
-            target: string[];
-          }>;
-        }>;
-      }>;
-    };
-  }
-}
-
-const ROUTES_TO_TEST = ["/", "/home", "/statements", "/pay"] as const;
+const ROUTES_TO_TEST = ["/", "/home", "/statements", "/pay", "/groups", "/profile"] as const;
 
 ROUTES_TO_TEST.forEach((route) => {
   test.describe(`accessibility audit for ${route}`, () => {
@@ -36,20 +10,7 @@ ROUTES_TO_TEST.forEach((route) => {
       await page.waitForLoadState("networkidle");
       await page.waitForTimeout(500);
 
-      await page.addScriptTag({ url: "https://cdn.jsdelivr.net/npm/axe-core@4.10.0/axe.min.js" });
-
-      const results = await page.evaluate(async () => {
-        if (!window.axe) {
-          throw new Error("axe-core failed to load");
-        }
-
-        return window.axe.run(document, {
-          runOnly: {
-            type: "tag",
-            values: ["wcag2a", "wcag2aa"],
-          },
-        });
-      });
+      const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
 
       const violationSummary = results.violations
         .map((violation) => {

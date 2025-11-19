@@ -41,7 +41,7 @@ export function SignOutButton({ className, variant = "default" }: SignOutButtonP
         console.error("auth.signOut.sync_failed", syncError);
       }
 
-      router.replace("/login");
+      router.replace("/");
       router.refresh();
     } catch (unknownError) {
       console.error("auth.signOut.unknown", unknownError);

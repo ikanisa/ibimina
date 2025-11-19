@@ -28,12 +28,12 @@ export type {
 
 // Inputs
 export { Button } from "./button";
-export type { ButtonProps, ButtonVariant, ButtonSize } from "./button";
+export type { ButtonProps } from "@ibimina/ui";
 export { Input } from "./input";
 export type { InputProps } from "./input";
 
 // Surfaces
-export { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "./card";
+export { Card, CardHeader, CardContent, CardFooter } from "./card";
 export type { CardProps, CardSurface, CardPadding } from "./card";
 export { GlassCard } from "./glass-card";
 

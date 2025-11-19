@@ -4,7 +4,6 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ibimina.client.data.OpenAIService
-import com.ibimina.client.data.SupabaseClient
 import com.ibimina.client.service.CameraQrScannerService
 import com.ibimina.client.service.DefaultMomoSmsService
 import com.ibimina.client.service.MomoSmsService
@@ -21,10 +20,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
-    @Provides
-    @Singleton
-    fun provideSupabaseClient(): SupabaseClient = SupabaseClient()
 
     @Provides
     @Singleton

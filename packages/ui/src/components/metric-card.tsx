@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { gradients } from "../theme";
 import { cn } from "../utils/cn";
 
 export interface MetricCardProps {
@@ -14,28 +15,28 @@ const accentMap: Record<
   { border: string; bg: string; text: string; trend: string }
 > = {
   blue: {
-    border: "border-atlas-blue/20 dark:border-atlas-blue/30",
-    bg: "bg-gradient-to-br from-atlas-blue/10 to-transparent dark:from-atlas-blue/15",
-    text: "text-atlas-blue dark:text-atlas-blue-light",
-    trend: "text-atlas-blue-dark dark:text-atlas-blue",
+    border: "border-sky-400/30 dark:border-sky-300/30",
+    bg: gradients.skyGlass,
+    text: "text-sky-900 dark:text-sky-100",
+    trend: "text-sky-700 dark:text-sky-200",
   },
   yellow: {
-    border: "border-amber-500/20 dark:border-amber-400/30",
-    bg: "bg-gradient-to-br from-amber-500/10 to-transparent dark:from-amber-400/15",
-    text: "text-amber-600 dark:text-amber-400",
-    trend: "text-amber-700 dark:text-amber-300",
+    border: "border-amber-200/60 dark:border-amber-100/30",
+    bg: gradients.sandMist,
+    text: "text-amber-800 dark:text-amber-100",
+    trend: "text-amber-700 dark:text-amber-200",
   },
   green: {
-    border: "border-emerald-500/20 dark:border-emerald-400/30",
-    bg: "bg-gradient-to-br from-emerald-500/10 to-transparent dark:from-emerald-400/15",
-    text: "text-emerald-600 dark:text-emerald-400",
-    trend: "text-emerald-700 dark:text-emerald-300",
+    border: "border-emerald-200/60 dark:border-emerald-200/40",
+    bg: gradients.forestHaze,
+    text: "text-emerald-800 dark:text-emerald-100",
+    trend: "text-emerald-700 dark:text-emerald-200",
   },
   neutral: {
-    border: "border-neutral-200 dark:border-neutral-700",
-    bg: "bg-gradient-to-br from-neutral-100/80 to-transparent dark:from-neutral-800/50",
-    text: "text-neutral-600 dark:text-neutral-400",
-    trend: "text-neutral-700 dark:text-neutral-300",
+    border: "border-neutral-200/80 dark:border-neutral-700",
+    bg: gradients.slateSheen,
+    text: "text-neutral-700 dark:text-neutral-200",
+    trend: "text-neutral-600 dark:text-neutral-300",
   },
 };
 
@@ -50,16 +51,15 @@ export function MetricCard({
   return (
     <article
       className={cn(
-        "rounded-2xl border bg-white p-5 shadow-atlas transition-all duration-interactive hover:-translate-y-1 hover:shadow-lg dark:bg-neutral-900",
+        "relative overflow-hidden rounded-2xl border bg-white/80 p-5 shadow-[0_18px_48px_-32px_rgba(15,23,42,0.55)] backdrop-blur-md transition-all duration-interactive hover:-translate-y-1 hover:shadow-lg dark:bg-neutral-900/70",
         theme.border,
-        "relative overflow-hidden",
         className
       )}
     >
-      <div className={cn("absolute inset-0", theme.bg)} aria-hidden />
+      <div className="absolute inset-0" style={{ backgroundImage: theme.bg }} aria-hidden />
       <div className="relative space-y-2">
-        <p className={cn("text-xs font-semibold uppercase tracking-wider", theme.text)}>{label}</p>
-        <p className="text-3xl font-bold text-neutral-900 dark:text-neutral-0">{value}</p>
+        <p className={cn("text-xs font-medium uppercase tracking-[0.15em]", theme.text)}>{label}</p>
+        <p className="text-3xl font-semibold text-neutral-900 dark:text-neutral-0">{value}</p>
         {trend && <div className={cn("text-sm font-medium", theme.trend)}>{trend}</div>}
       </div>
     </article>

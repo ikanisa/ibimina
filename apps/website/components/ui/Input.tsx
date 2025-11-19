@@ -1,90 +1,12 @@
-import React from "react";
-import { AlertCircle } from "lucide-react";
+import type { TextareaHTMLAttributes } from "react";
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
-  helperText?: string;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
-}
+import { Input } from "@ibimina/ui";
+import type { InputProps } from "@ibimina/ui";
 
-export function Input({
-  label,
-  error,
-  helperText,
-  leftIcon,
-  rightIcon,
-  className = "",
-  id,
-  ...props
-}: InputProps) {
-  const inputId = id || `input-${label?.toLowerCase().replace(/\s+/g, "-")}`;
-  const errorId = `${inputId}-error`;
-  const helperId = `${inputId}-helper`;
+export { Input };
+export type { InputProps };
 
-  return (
-    <div className="w-full">
-      {label && (
-        <label htmlFor={inputId} className="block text-sm font-semibold text-neutral-900 mb-2">
-          {label}
-          {props.required && <span className="text-error-500 ml-1">*</span>}
-        </label>
-      )}
-
-      <div className="relative">
-        {leftIcon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
-            {leftIcon}
-          </div>
-        )}
-
-        <input
-          id={inputId}
-          aria-invalid={error ? "true" : "false"}
-          aria-describedby={error ? errorId : helperText ? helperId : undefined}
-          className={`
-            w-full px-4 py-2.5 border rounded-lg bg-white text-neutral-900 
-            placeholder-neutral-400 transition-all duration-200
-            ${error ? "border-error-500 focus:ring-error-500/20" : "border-neutral-300 focus:border-brand-blue focus:ring-brand-blue/20"}
-            ${leftIcon ? "pl-10" : ""}
-            ${rightIcon ? "pr-10" : ""}
-            focus:outline-none focus:ring-2
-            disabled:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60
-            ${className}
-          `}
-          {...props}
-        />
-
-        {rightIcon && !error && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500">
-            {rightIcon}
-          </div>
-        )}
-
-        {error && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-error-500">
-            <AlertCircle size={20} aria-hidden="true" />
-          </div>
-        )}
-      </div>
-
-      {error && (
-        <p id={errorId} className="mt-2 text-sm text-error-600 flex items-start gap-1" role="alert">
-          {error}
-        </p>
-      )}
-
-      {!error && helperText && (
-        <p id={helperId} className="mt-2 text-sm text-neutral-600">
-          {helperText}
-        </p>
-      )}
-    </div>
-  );
-}
-
-export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -96,6 +18,7 @@ export function Textarea({
   helperText,
   className = "",
   id,
+  required,
   ...props
 }: TextareaProps) {
   const textareaId = id || `textarea-${label?.toLowerCase().replace(/\s+/g, "-")}`;
@@ -105,9 +28,9 @@ export function Textarea({
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={textareaId} className="block text-sm font-semibold text-neutral-900 mb-2">
+        <label htmlFor={textareaId} className="mb-2 block text-sm font-semibold text-neutral-900">
           {label}
-          {props.required && <span className="text-error-500 ml-1">*</span>}
+          {required && <span className="ml-1 text-error-500">*</span>}
         </label>
       )}
 
@@ -116,19 +39,19 @@ export function Textarea({
         aria-invalid={error ? "true" : "false"}
         aria-describedby={error ? errorId : helperText ? helperId : undefined}
         className={`
-          w-full px-4 py-2.5 border rounded-lg bg-white text-neutral-900 
-          placeholder-neutral-400 transition-all duration-200 resize-none
+          w-full resize-none rounded-lg border bg-white px-4 py-2.5 text-neutral-900
+          placeholder-neutral-400 transition-all duration-200
           ${error ? "border-error-500 focus:ring-error-500/20" : "border-neutral-300 focus:border-brand-blue focus:ring-brand-blue/20"}
           focus:outline-none focus:ring-2
-          disabled:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60
+          disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:opacity-60
           ${className}
         `}
+        required={required}
         {...props}
       />
 
       {error && (
-        <p id={errorId} className="mt-2 text-sm text-error-600 flex items-start gap-1" role="alert">
-          <AlertCircle size={16} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <p id={errorId} className="mt-2 flex items-start gap-1 text-sm text-error-600" role="alert">
           {error}
         </p>
       )}

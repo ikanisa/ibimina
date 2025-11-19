@@ -4,10 +4,10 @@ import * as Sentry from "@sentry/nextjs";
 // Sentry middleware wrapper not available in this version
 // import { withSentryMiddleware } from "@sentry/nextjs/middleware";
 
-import { resolveEnvironment, scrubPII } from "@ibimina/lib";
+import { resolveEnvironment, scrubPII, createSecurityMiddlewareContext } from "@ibimina/lib";
 import { defaultLocale } from "./i18n";
 
-const PUBLIC_ROUTES = new Set([
+export const PUBLIC_ROUTES = new Set([
   "/login",
   "/welcome",
   "/onboard",
@@ -17,7 +17,7 @@ const PUBLIC_ROUTES = new Set([
   "/terms",
 ]);
 
-const PUBLIC_PREFIXES = [
+export const PUBLIC_PREFIXES = [
   "/api",
   "/_next",
   "/icons",
@@ -31,7 +31,7 @@ const PUBLIC_PREFIXES = [
   "/share-target",
 ];
 
-function hasSupabaseSessionCookie(request: NextRequest) {
+export function hasSupabaseSessionCookie(request: NextRequest) {
   const cookies = request.cookies.getAll();
   return cookies.some(({ name, value }) => {
     if (!value) {
@@ -47,7 +47,7 @@ function hasSupabaseSessionCookie(request: NextRequest) {
   });
 }
 
-function isPublicPath(pathname: string) {
+export function isPublicPath(pathname: string) {
   if (PUBLIC_ROUTES.has(pathname)) {
     return true;
   }
@@ -58,12 +58,13 @@ function isPublicPath(pathname: string) {
 const middlewareImpl = (request: NextRequest) => {
   const startedAt = Date.now();
   const environment = resolveEnvironment();
-  const nonce = createNonce();
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-csp-nonce", nonce);
-
-  // Set default locale in request headers for next-intl
-  requestHeaders.set("x-next-intl-locale", defaultLocale);
+  const securityContext = createSecurityMiddlewareContext({
+    requestHeaders: request.headers,
+    defaultLocale,
+    isDev: environment === "development",
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  });
+  const requestHeaders = securityContext.requestHeaders;
 
   const pathname = request.nextUrl.pathname;
   if (!hasSupabaseSessionCookie(request) && !isPublicPath(pathname)) {

@@ -1,7 +1,19 @@
+import type { IconType } from "react-icons";
+import {
+  IoCardOutline,
+  IoDocumentTextOutline,
+  IoHomeOutline,
+  IoPeopleOutline,
+  IoPersonOutline,
+  IoSparklesOutline,
+  IoStatsChartOutline,
+  IoSwapHorizontalOutline,
+} from "react-icons/io5";
+
 export type OmniboxSuggestion = {
   id: string;
   label: string;
-  icon: string;
+  icon: IconType;
   type: "navigation" | "account" | "group" | "member" | "action";
   href: string;
   keywords?: string[];
@@ -11,7 +23,7 @@ const STATIC_SUGGESTIONS: OmniboxSuggestion[] = [
   {
     id: "nav-home",
     label: "Home dashboard",
-    icon: "🏠",
+    icon: IoHomeOutline,
     type: "navigation",
     href: "/home",
     keywords: ["dashboard", "overview", "ahabanza"],
@@ -19,7 +31,7 @@ const STATIC_SUGGESTIONS: OmniboxSuggestion[] = [
   {
     id: "nav-groups",
     label: "Savings groups",
-    icon: "👥",
+    icon: IoPeopleOutline,
     type: "navigation",
     href: "/groups",
     keywords: ["amatsinda", "groups", "ikimina"],
@@ -27,7 +39,7 @@ const STATIC_SUGGESTIONS: OmniboxSuggestion[] = [
   {
     id: "nav-pay",
     label: "Pay contributions",
-    icon: "💳",
+    icon: IoCardOutline,
     type: "action",
     href: "/pay",
     keywords: ["kwishyura", "payment", "dues"],
@@ -35,7 +47,7 @@ const STATIC_SUGGESTIONS: OmniboxSuggestion[] = [
   {
     id: "nav-statements",
     label: "Statements",
-    icon: "📄",
+    icon: IoDocumentTextOutline,
     type: "navigation",
     href: "/statements",
     keywords: ["records", "history", "statement"],
@@ -43,7 +55,7 @@ const STATIC_SUGGESTIONS: OmniboxSuggestion[] = [
   {
     id: "nav-profile",
     label: "Profile & settings",
-    icon: "👤",
+    icon: IoPersonOutline,
     type: "navigation",
     href: "/profile",
     keywords: ["settings", "account", "user"],
@@ -51,7 +63,7 @@ const STATIC_SUGGESTIONS: OmniboxSuggestion[] = [
   {
     id: "nav-offers",
     label: "Offers",
-    icon: "✨",
+    icon: IoSparklesOutline,
     type: "navigation",
     href: "/offers",
     keywords: ["promotions", "deal"],
@@ -59,7 +71,7 @@ const STATIC_SUGGESTIONS: OmniboxSuggestion[] = [
   {
     id: "action-apply-loan",
     label: "Apply for a loan",
-    icon: "📊",
+    icon: IoStatsChartOutline,
     type: "action",
     href: "/loans",
     keywords: ["loan", "credit", "inguzanyo"],
@@ -67,7 +79,7 @@ const STATIC_SUGGESTIONS: OmniboxSuggestion[] = [
   {
     id: "action-send-money",
     label: "Send money",
-    icon: "💸",
+    icon: IoSwapHorizontalOutline,
     type: "action",
     href: "/pay",
     keywords: ["transfer", "money", "ohereza"],

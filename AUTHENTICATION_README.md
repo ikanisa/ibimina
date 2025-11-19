@@ -50,6 +50,75 @@ source of truth when configuring auth or onboarding staff.
 
 3. **Schema** — apply the latest migrations so `auth_qr_sessions`,
    `staff_devices`, and `users` are present:
+# Authentication Features - Quick Start
+
+This guide helps you get started with the new authentication features
+implemented for SACCO+.
+
+## Overview
+
+Authentication code is concentrated in the PWAs and Supabase Edge Functions. The
+current state in the repo is:
+
+- **Staff-admin PWA (`apps/pwa/staff-admin`)**: All login, biometric device
+  login, and MFA routes are temporarily stubbed to redirect to the dashboard,
+  but the underlying factor engine still supports TOTP, backup codes, email
+  links, WhatsApp OTP, and passkeys for future restoration.
+- **Member PWA (`apps/pwa/client`)**: WhatsApp OTP sign-in is active and wired
+  to Supabase Edge Functions for sending and verifying codes.
+
+## Quick Links
+
+- 📖 [Complete Authentication Guide](./docs/AUTHENTICATION_GUIDE.md)
+- 📝 [Implementation Summary](./AUTHENTICATION_IMPLEMENTATION_SUMMARY.md)
+- 🔧 [Troubleshooting](#troubleshooting)
+
+## Current auth map and removal targets
+
+- **Staff-admin routes (disabled)**: The login, device-login, and MFA pages
+  under `apps/pwa/staff-admin/app/(auth)` immediately redirect to the dashboard
+  while preserving the prior UI in comments, marking them as candidates for
+  cleanup if the flows stay
+  retired. 【F:apps/pwa/staff-admin/app/(auth)/login/page.tsx†L1-L62】【F:apps/pwa/staff-admin/app/(auth)/device-login/page.tsx†L1-L26】【F:apps/pwa/staff-admin/app/(auth)/mfa/page.tsx†L1-L30】
+- **Staff-admin factor engine (active code path, unused UI)**: MFA factor
+  support for TOTP, backup codes, email, WhatsApp OTP, and passkeys lives under
+  `apps/pwa/staff-admin/src/auth/factors`, ready for
+  re-enablement. 【F:apps/pwa/staff-admin/src/auth/factors/index.ts†L1-L161】
+- **Staff-admin device auth APIs (active)**: QR/device-authentication endpoints
+  remain exposed under `app/api/device-auth/*` for mobile-signature login even
+  though the UI is
+  disabled. 【F:apps/pwa/staff-admin/app/api/device-auth/challenge/route.ts†L1-L93】
+- **Member PWA login (active)**: WhatsApp OTP send/verify flow is live in
+  `apps/pwa/client/app/(auth)/login/page.tsx`, integrating with Supabase Edge
+  Functions for session
+  creation. 【F:apps/pwa/client/app/(auth)/login/page.tsx†L1-L195】
+
+## For Developers
+
+### Prerequisites
+
+```bash
+# Required environment variables
+META_WHATSAPP_ACCESS_TOKEN=your_access_token
+META_WHATSAPP_PHONE_NUMBER_ID=your_phone_id
+```
+
+### Setup
+
+1. **Run the migration**:
+
+   ```bash
+   supabase db push
+   ```
+
+2. **Deploy edge functions**:
+
+   ```bash
+   supabase functions deploy whatsapp-otp-send
+   supabase functions deploy whatsapp-otp-verify
+   ```
+
+3. **Test OTP flow**:
 
    ```bash
    supabase db reset

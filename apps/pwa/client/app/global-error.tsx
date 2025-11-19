@@ -21,14 +21,17 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
             <AlertTriangle className="h-8 w-8 text-red-500" aria-hidden />
           </div>
-          <h1 className="mb-3 text-xl font-semibold">Application error</h1>
+          <h1 className="mb-3 text-xl font-semibold">We couldn’t load this page</h1>
+          <p className="mx-auto mb-2 max-w-md text-sm leading-relaxed text-neutral-700">
+            Something interrupted SACCO+. Your data is safe and nothing was submitted.
+          </p>
           <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-neutral-700">
-            An unexpected error occurred while loading SACCO+. Refresh the page to try again. If
-            this continues, contact support with the error ID below.
+            Refresh to try again. If this keeps happening, share the code below with support so we
+            can get you unstuck.
           </p>
           {error.digest && (
             <p className="mb-6 rounded-lg bg-neutral-100 px-3 py-2 font-mono text-xs text-neutral-700">
-              Error ID: {error.digest}
+              Support code: {error.digest}
             </p>
           )}
           <button

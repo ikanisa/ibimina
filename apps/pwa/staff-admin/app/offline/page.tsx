@@ -63,7 +63,28 @@ export default function OfflineFallback() {
         >
           Go to reconciliation queue
         </Link>
+        <Link
+          href="/offline/help"
+          className="rounded-2xl border border-white/10 bg-transparent px-5 py-3 text-neutral-0 transition hover:border-white/25 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-nyungwe"
+        >
+          Open cached help center
+        </Link>
+        <Link
+          href="/offline/snapshots"
+          className="rounded-2xl border border-white/10 bg-transparent px-5 py-3 text-neutral-0 transition hover:border-white/25 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-nyungwe"
+        >
+          View last-known data snapshots
+        </Link>
       </nav>
+
+      <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-neutral-50">
+        <h2 className="mb-2 text-base font-semibold">Stay productive offline</h2>
+        <p className="text-sm text-neutral-200">
+          The help center and your most recently cached data snapshots are stored for offline
+          access. Open them above to review guidance and previously loaded reconciliation details
+          while you wait to reconnect.
+        </p>
+      </div>
 
       <p className="text-xs text-neutral-400">
         Need help? Call SACCO+ support or email{" "}
