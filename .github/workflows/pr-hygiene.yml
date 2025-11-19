@@ -1,0 +1,324 @@
+name: PR Hygiene & Conflict Detection
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  check-conflicts:
+    name: Check for merge conflicts
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Fetch main branch
+        run: |
+          git fetch origin main:main
+          
+      - name: Check for conflicts
+        id: conflict_check
+        run: |
+          # Try to merge main into PR branch using merge-tree
+          BASE=$(git merge-base HEAD origin/main)
+          
+          # Perform a three-way merge and check for conflicts
+          if git merge-tree $BASE HEAD origin/main | grep -q "^+<<<<<<< "; then
+            echo "has_conflicts=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Merge conflicts detected"
+            
+            # Get list of conflicted files
+            git merge-tree $BASE HEAD origin/main | \
+              awk '/^+<<<<<<< /,/^+>>>>>>> / {print FILENAME}' | sort -u > /tmp/conflicts.txt || \
+              echo "Unable to list conflicted files" > /tmp/conflicts.txt
+            
+            echo "conflicted_files<<EOF" >> $GITHUB_OUTPUT
+            cat /tmp/conflicts.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "has_conflicts=false" >> $GITHUB_OUTPUT
+            echo "✅ No conflicts detected"
+          fi
+          
+      - name: Comment on PR if conflicts found
+        if: steps.conflict_check.outputs.has_conflicts == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conflictedFiles = `${{ steps.conflict_check.outputs.conflicted_files }}`;
+            const body = `## ⚠️ Merge Conflicts Detected
+            
+            This PR has merge conflicts with the \`main\` branch that need to be resolved.
+            
+            ### Conflicted Files
+            ${conflictedFiles.split('\n').map(f => `- \`${f}\``).join('\n')}
+            
+            ### How to Resolve
+            
+            **Option 1: Rebase (Recommended)**
+            \`\`\`bash
+            git fetch origin main
+            git rebase origin/main
+            # Resolve conflicts in your editor
+            git add .
+            git rebase --continue
+            git push --force-with-lease
+            \`\`\`
+            
+            **Option 2: Merge**
+            \`\`\`bash
+            git fetch origin main
+            git merge origin/main
+            # Resolve conflicts in your editor
+            git add .
+            git commit
+            git push
+            \`\`\`
+            
+            **Option 3: Use GitHub UI**
+            1. Click "Resolve conflicts" button below
+            2. Edit files in the web editor
+            3. Mark as resolved
+            4. Commit changes
+            
+            ### Need Help?
+            - See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed instructions
+            - Ask in the PR comments if you need assistance
+            - Consider breaking this PR into smaller chunks
+            
+            ---
+            *This check runs automatically. The PR will be blocked until conflicts are resolved.*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+            
+      - name: Add conflict label
+        if: steps.conflict_check.outputs.has_conflicts == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['conflicts', 'needs-rebase']
+            });
+            
+      - name: Remove conflict label if resolved
+        if: steps.conflict_check.outputs.has_conflicts == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'conflicts'
+              });
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: 'needs-rebase'
+              });
+            } catch (error) {
+              // Labels might not exist, ignore
+            }
+            
+      - name: Block merge if conflicts exist
+        if: steps.conflict_check.outputs.has_conflicts == 'true'
+        run: |
+          echo "❌ Cannot merge: conflicts detected"
+          exit 1
+
+  check-staleness:
+    name: Check if PR is stale
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Check commits behind main
+        id: staleness_check
+        run: |
+          git fetch origin main:main
+          BEHIND=$(git rev-list --count HEAD..origin/main)
+          echo "commits_behind=$BEHIND" >> $GITHUB_OUTPUT
+          echo "📊 This PR is $BEHIND commits behind main"
+          
+      - name: Comment if significantly behind
+        if: steps.staleness_check.outputs.commits_behind > 20
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const behind = '${{ steps.staleness_check.outputs.commits_behind }}';
+            const body = `## 📊 PR Staleness Notice
+            
+            This PR is **${behind} commits** behind the \`main\` branch.
+            
+            ### Recommendations
+            
+            - **If behind by 20-50 commits**: Consider rebasing soon to avoid conflicts
+            - **If behind by 50+ commits**: Rebase as soon as possible or conflicts are likely
+            - **If behind by 100+ commits**: Consider recreating the PR from latest main
+            
+            ### To Update This PR
+            
+            \`\`\`bash
+            git fetch origin main
+            git rebase origin/main
+            git push --force-with-lease
+            \`\`\`
+            
+            Or click the "Update branch" button in GitHub's PR interface.
+            
+            ---
+            *This check runs daily to help prevent merge conflicts.*`;
+            
+            // Check if we've already commented recently
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const recentStaleComment = comments.data.find(
+              c => c.body.includes('PR Staleness Notice') && 
+                   Date.now() - new Date(c.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
+            );
+            
+            if (!recentStaleComment) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+            
+      - name: Add stale label
+        if: steps.staleness_check.outputs.commits_behind > 50
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['stale', 'needs-rebase']
+            });
+
+  daily-audit:
+    name: Daily PR audit
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Audit all open PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            
+            console.log(`📊 Auditing ${pullRequests.length} open PRs`);
+            
+            let conflictedCount = 0;
+            let staleCount = 0;
+            let healthyCount = 0;
+            
+            for (const pr of pullRequests) {
+              // Check if PR has conflicts
+              const { data: prDetail } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              });
+              
+              if (prDetail.mergeable_state === 'dirty') {
+                conflictedCount++;
+                console.log(`⚠️  PR #${pr.number}: Has conflicts`);
+              } else if (prDetail.mergeable_state === 'behind') {
+                staleCount++;
+                console.log(`📊 PR #${pr.number}: Behind main`);
+              } else {
+                healthyCount++;
+                console.log(`✅ PR #${pr.number}: Healthy`);
+              }
+            }
+            
+            // Create summary issue if there are problems
+            if (conflictedCount > 5 || staleCount > 10) {
+              const body = `## 🚨 PR Health Alert - ${new Date().toISOString().split('T')[0]}
+              
+              Daily audit detected issues with open PRs:
+              
+              - ⚠️  **${conflictedCount} PRs** have merge conflicts
+              - 📊 **${staleCount} PRs** are behind main
+              - ✅ **${healthyCount} PRs** are healthy
+              
+              ### Action Required
+              
+              ${conflictedCount > 5 ? `**CRITICAL**: ${conflictedCount} PRs have conflicts. Consider:
+              - Closing stale PRs that can't be easily fixed
+              - Creating tracking issues for important work
+              - Recreating PRs from latest main
+              
+              See [PR_CLEANUP_QUICKSTART.md](PR_CLEANUP_QUICKSTART.md) for guidance.
+              ` : ''}
+              
+              ${staleCount > 10 ? `**WARNING**: ${staleCount} PRs are behind main. Authors should rebase soon.` : ''}
+              
+              ### Recommendations
+              
+              1. Review the conflicted PRs and determine if they should be closed
+              2. Notify PR authors to rebase stale PRs
+              3. Consider implementing stricter branch protection rules
+              
+              ---
+              *This alert is generated automatically when PR health degrades.*`;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🚨 PR Health Alert: ${conflictedCount} conflicts, ${staleCount} stale`,
+                body: body,
+                labels: ['alert', 'pr-health']
+              });
+            }
