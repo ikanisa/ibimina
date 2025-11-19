@@ -5,6 +5,7 @@ import { useColorScheme } from "react-native";
 
 import { getNativeWindTheme, type ThemeDefinition } from "./app/mobile/src/theme/nativewind";
 import RootNav from "./src/nav/RootNav";
+import { getMinimalTheme } from "./src/styles/tokens";
 
 export default function App() {
   const colorScheme = useColorScheme();
@@ -16,11 +17,17 @@ export default function App() {
   const theme: Theme = React.useMemo(() => {
     const isDark = colorScheme === "dark";
     const baseTheme = isDark ? DarkTheme : DefaultTheme;
+    const minimalTheme = getMinimalTheme(isDark ? "dark" : "light");
 
     return {
       ...baseTheme,
       colors: {
         ...baseTheme.colors,
+        background: minimalTheme.colors.background,
+        card: minimalTheme.colors.surface,
+        border: minimalTheme.colors.border,
+        primary: minimalTheme.colors.primary,
+        text: isDark ? minimalTheme.colors.text : minimalTheme.colors.textMuted,
         background: themeDefinition.palette.background,
         card: themeDefinition.palette.card,
         border: themeDefinition.palette.border,

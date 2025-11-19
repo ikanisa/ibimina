@@ -1,37 +1,49 @@
 import React, { type ComponentProps } from "react";
+import { SafeAreaView, ScrollView, StyleSheet, Text, useColorScheme, View } from "react-native";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
-  createNativeStackNavigator,
-  type NativeStackScreenProps,
-} from "@react-navigation/native-stack";
+  createBottomTabNavigator,
+  type BottomTabNavigationOptions,
+} from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+
+import { getMinimalTheme } from "../styles/tokens";
 import { useNativeWindTheme } from "@theme/nativewind";
 
 export type TabParamList = {
-  Home: undefined;
-  Pay: undefined;
-  Statements: undefined;
+  Overview: undefined;
   Profile: undefined;
 };
 
-export type RootStackParamList = {
-  Tabs: undefined;
-  GroupDetail: { groupId: string; name?: string };
-};
-
 const Tab = createBottomTabNavigator<TabParamList>();
-const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const TAB_ICON_MAP: Record<keyof TabParamList, ComponentProps<typeof Ionicons>["name"]> = {
-  Home: "home",
-  Pay: "card",
-  Statements: "document-text",
-  Profile: "person-circle",
+  Overview: "home-outline",
+  Profile: "person-circle-outline",
 };
 
 function createPlaceholderScreen(title: string, subtitle?: string) {
   return function PlaceholderScreen() {
+    const colorScheme = useColorScheme();
+    const theme = getMinimalTheme(colorScheme === "dark" ? "dark" : "light");
+
+    return (
+      <SafeAreaView style={[styles.screen, { backgroundColor: theme.colors.background }]}>
+        <ScrollView
+          contentContainerStyle={[styles.screenContent, { padding: theme.spacing.xl }]}
+          accessibilityRole="summary"
+          accessibilityLabel={`${title} screen`}
+        >
+          <View style={styles.textStack}>
+            <Text style={[styles.title, { color: theme.colors.text }]} accessibilityRole="header">
+              {title}
+            </Text>
+            {subtitle ? (
+              <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{subtitle}</Text>
+            ) : null}
+          </View>
+        </ScrollView>
     const theme = useNativeWindTheme();
 
     return (
@@ -52,24 +64,48 @@ function createPlaceholderScreen(title: string, subtitle?: string) {
   };
 }
 
-const HomeScreen = createPlaceholderScreen("Home", "Monitor balances, contributions, and news.");
-const PayScreen = createPlaceholderScreen("Pay", "Send payments or contributions in a tap.");
-const StatementsScreen = createPlaceholderScreen(
-  "Statements",
-  "Review your transaction history and exports."
+const OverviewScreen = createPlaceholderScreen(
+  "Overview",
+  "Stay on top of balances, goals, and group activity."
 );
 const ProfileScreen = createPlaceholderScreen(
   "Profile",
-  "Manage your personal details and settings."
+  "Manage your personal details, preferences, and security."
 );
-const GroupDetailScreen = createPlaceholderScreen(
-  "Group Detail",
-  "Inspect group activity, members, and savings."
-);
-
-type GroupDetailRoute = NativeStackScreenProps<RootStackParamList, "GroupDetail">["route"];
 
 function TabsNavigator() {
+  const colorScheme = useColorScheme();
+  const theme = getMinimalTheme(colorScheme === "dark" ? "dark" : "light");
+
+  const tabOptions: BottomTabNavigationOptions = ({ route }) => ({
+    headerShown: false,
+    tabBarActiveTintColor: theme.colors.primary,
+    tabBarInactiveTintColor: theme.colors.textMuted,
+    tabBarLabelStyle: {
+      fontSize: 12,
+      fontWeight: "600",
+    },
+    tabBarAccessibilityLabel: `${route.name} tab`,
+    tabBarIcon: ({ color, size }) => {
+      const iconName = TAB_ICON_MAP[route.name as keyof TabParamList];
+      return <Ionicons name={iconName} size={size} color={color} />;
+    },
+    tabBarStyle: {
+      backgroundColor: theme.colors.surface,
+      borderTopColor: theme.colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      height: 72,
+      paddingBottom: theme.spacing.md,
+      paddingTop: theme.spacing.sm,
+    },
+    sceneContainerStyle: {
+      backgroundColor: theme.colors.background,
+    },
+  });
+
+  return (
+    <Tab.Navigator screenOptions={tabOptions} backBehavior="history">
+      <Tab.Screen name="Overview" component={OverviewScreen} />
   const theme = useNativeWindTheme();
 
   return (
@@ -123,6 +159,7 @@ function TabsNavigator() {
 }
 
 export default function RootNav() {
+  return <TabsNavigator />;
   const theme = useNativeWindTheme();
 
   return (
@@ -156,8 +193,15 @@ export default function RootNav() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  screenContent: {
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  textStack: {
+    maxWidth: 520,
+    alignItems: "center",
     paddingHorizontal: 24,
   },
   title: {
@@ -170,5 +214,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     textAlign: "center",
+    marginTop: 8,
   },
 });
