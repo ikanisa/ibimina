@@ -5,6 +5,15 @@
   "type": "module",
   "description": "Custom ESLint plugin for Ibimina project-specific rules",
   "main": "index.js",
+  "exports": {
+    ".": {
+      "import": "./index.public.ts",
+      "require": "./index.public.ts",
+      "default": "./index.public.ts"
+    },
+    "./index.public": "./index.public.ts",
+    "./package.json": "./package.json"
+  },
   "author": "Ibimina Team",
   "license": "UNLICENSED"
 }

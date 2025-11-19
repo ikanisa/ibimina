@@ -10,7 +10,9 @@ import {
   View,
 } from "react-native";
 import { ImpactStyle } from "@capacitor/haptics";
-import { colors, radius, spacing, shadow } from "@theme/tokens";
+import { Ionicons } from "@expo/vector-icons";
+import { radius, spacing, shadow } from "@theme/tokens";
+import { useNativeWindTheme } from "@theme/nativewind";
 import { IconBadge } from "@components/IconBadge";
 import { StatusChip } from "@components/StatusChip";
 import { copyToClipboard, triggerHaptic } from "@utils/native";
@@ -29,7 +31,7 @@ const CONTACT_DETAILS: ContactDetail[] = [
     id: "phone",
     label: "Phone",
     value: "+250 788 123 456",
-    icon: "📞",
+    icon: "call",
     actionLabel: "Call",
     url: "tel:+250788123456",
   },
@@ -37,7 +39,7 @@ const CONTACT_DETAILS: ContactDetail[] = [
     id: "email",
     label: "Email",
     value: "support@ibimina.rw",
-    icon: "✉️",
+    icon: "mail",
     actionLabel: "Email",
     url: "mailto:support@ibimina.rw",
   },
@@ -45,7 +47,7 @@ const CONTACT_DETAILS: ContactDetail[] = [
     id: "whatsapp",
     label: "WhatsApp",
     value: "+250 722 555 222",
-    icon: "💬",
+    icon: "logo-whatsapp",
     actionLabel: "Chat",
     url: "https://wa.me/250722555222",
   },
@@ -86,21 +88,30 @@ const LEGAL_LINKS = [
 ];
 
 function LanguageChip({ label, primary }: { label: string; primary?: boolean }) {
+  const theme = useNativeWindTheme();
   const containerStyle = primary
-    ? [styles.languageChip, styles.languageChipActive]
-    : [styles.languageChip];
+    ? [styles.languageChip, styles.languageChipActive, { backgroundColor: theme.palette.primary }]
+    : [styles.languageChip, { borderColor: theme.palette.border }];
   const labelStyle = primary
     ? [styles.languageLabel, styles.languageLabelActive]
     : [styles.languageLabel];
 
   return (
-    <View style={containerStyle}>
-      <Text style={labelStyle}>{label}</Text>
+    <View
+      style={containerStyle}
+      className={primary ? `${theme.classes.surfaceTinted}` : theme.classes.surfaceMuted}
+      accessibilityLabel={`${label} language ${primary ? "selected" : "available"}`}
+    >
+      <Text style={labelStyle} className={primary ? "text-white" : theme.classes.textPrimary}>
+        {label}
+      </Text>
     </View>
   );
 }
 
 export function ProfileScreen() {
+  const theme = useNativeWindTheme();
+
   const handleOpenUrl = useCallback(async (url: string) => {
     const supported = await Linking.canOpenURL(url).catch(() => false);
     if (supported) {
@@ -122,59 +133,91 @@ export function ProfileScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.palette.background }]}
+      className={theme.classes.background}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        contentContainerClassName="gap-5"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Your Profile</Text>
-            <Text style={styles.subtitle}>Manage your contact details and preferences.</Text>
+            <Text style={styles.title} className={theme.classes.textPrimary}>
+              Your Profile
+            </Text>
+            <Text style={styles.subtitle} className={theme.classes.textSecondary}>
+              Manage your contact details and preferences.
+            </Text>
           </View>
           <StatusChip label="Verified Member" tone="success" />
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Contact information</Text>
+        <View
+          style={[styles.card, { borderColor: theme.palette.border }]}
+          className={`${theme.classes.surface} ${theme.classes.border} ${theme.classes.cardShadow}`}
+        >
+          <Text style={styles.cardTitle} className={theme.classes.textPrimary}>
+            Contact information
+          </Text>
           {CONTACT_DETAILS.map((detail) => (
             <View key={detail.id} style={styles.contactRow}>
-              <IconBadge symbol={detail.icon} />
+              <IconBadge icon={detail.icon} label={detail.label} />
               <View style={styles.contactBody}>
-                <Text style={styles.contactLabel}>{detail.label}</Text>
-                <Text style={styles.contactValue}>{detail.value}</Text>
+                <Text style={styles.contactLabel} className={theme.classes.textMuted}>
+                  {detail.label}
+                </Text>
+                <Text style={styles.contactValue} className={theme.classes.textPrimary}>
+                  {detail.value}
+                </Text>
               </View>
               <View style={styles.contactActions}>
                 <TouchableOpacity
-                  style={styles.primaryAction}
+                  style={[styles.primaryAction, { backgroundColor: theme.palette.primary }]}
                   onPress={() => handleOpenUrl(detail.url)}
                   accessibilityLabel={`${detail.actionLabel} ${detail.label}`}
                 >
                   <Text style={styles.primaryActionLabel}>{detail.actionLabel}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.secondaryAction}
+                  style={[styles.secondaryAction, { backgroundColor: theme.palette.card }]}
                   onPress={() => handleCopy(detail.label, detail.value)}
                   accessibilityLabel={`Copy ${detail.label}`}
                 >
-                  <Text style={styles.secondaryActionLabel}>Copy</Text>
+                  <Text style={styles.secondaryActionLabel} className={theme.classes.accent}>
+                    Copy
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
           ))}
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Preferred languages</Text>
+        <View
+          style={[styles.card, { borderColor: theme.palette.border }]}
+          className={`${theme.classes.surface} ${theme.classes.border} ${theme.classes.cardShadow}`}
+        >
+          <Text style={styles.cardTitle} className={theme.classes.textPrimary}>
+            Preferred languages
+          </Text>
           <View style={styles.languageRow}>
             {LANGUAGES.map((language) => (
               <LanguageChip key={language.id} label={language.label} primary={language.primary} />
             ))}
           </View>
-          <Text style={styles.languageHint}>
+          <Text style={styles.languageHint} className={theme.classes.textMuted}>
             Switching languages syncs across all your Ibimina devices.
           </Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Support</Text>
+        <View
+          style={[styles.card, { borderColor: theme.palette.border }]}
+          className={`${theme.classes.surface} ${theme.classes.border} ${theme.classes.cardShadow}`}
+        >
+          <Text style={styles.cardTitle} className={theme.classes.textPrimary}>
+            Support
+          </Text>
           {SUPPORT_ACTIONS.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -183,16 +226,25 @@ export function ProfileScreen() {
               accessibilityLabel={item.title}
             >
               <View style={styles.listRowBody}>
-                <Text style={styles.listRowTitle}>{item.title}</Text>
-                <Text style={styles.listRowDescription}>{item.description}</Text>
+                <Text style={styles.listRowTitle} className={theme.classes.textPrimary}>
+                  {item.title}
+                </Text>
+                <Text style={styles.listRowDescription} className={theme.classes.textSecondary}>
+                  {item.description}
+                </Text>
               </View>
-              <Text style={styles.listRowChevron}>›</Text>
+              <Ionicons name="chevron-forward" size={18} color={theme.palette.textDefault} />
             </TouchableOpacity>
           ))}
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Legal</Text>
+        <View
+          style={[styles.card, { borderColor: theme.palette.border }]}
+          className={`${theme.classes.surface} ${theme.classes.border} ${theme.classes.cardShadow}`}
+        >
+          <Text style={styles.cardTitle} className={theme.classes.textPrimary}>
+            Legal
+          </Text>
           {LEGAL_LINKS.map((link) => (
             <TouchableOpacity
               key={link.id}
@@ -201,10 +253,14 @@ export function ProfileScreen() {
               accessibilityLabel={link.title}
             >
               <View style={styles.listRowBody}>
-                <Text style={styles.listRowTitle}>{link.title}</Text>
-                <Text style={styles.listRowDescription}>Updated December 2024</Text>
+                <Text style={styles.listRowTitle} className={theme.classes.textPrimary}>
+                  {link.title}
+                </Text>
+                <Text style={styles.listRowDescription} className={theme.classes.textSecondary}>
+                  Updated December 2024
+                </Text>
               </View>
-              <Text style={styles.listRowChevron}>›</Text>
+              <Ionicons name="chevron-forward" size={18} color={theme.palette.textDefault} />
             </TouchableOpacity>
           ))}
         </View>
@@ -216,7 +272,6 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     paddingVertical: spacing.xl,
@@ -231,26 +286,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700",
-    color: colors.textPrimary,
   },
   subtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
     marginTop: spacing.xs,
   },
   card: {
-    backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     gap: spacing.md,
     ...shadow.card,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: colors.textPrimary,
   },
   contactRow: {
     flexDirection: "row",
@@ -263,14 +313,12 @@ const styles = StyleSheet.create({
   },
   contactLabel: {
     fontSize: 13,
-    color: colors.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.3,
   },
   contactValue: {
     fontSize: 16,
     fontWeight: "600",
-    color: colors.textPrimary,
   },
   contactActions: {
     flexDirection: "row",
@@ -279,7 +327,6 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   primaryAction: {
-    backgroundColor: colors.primary,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     borderRadius: radius.sm,
@@ -290,13 +337,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   secondaryAction: {
-    backgroundColor: colors.surfaceMuted,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     borderRadius: radius.sm,
   },
   secondaryActionLabel: {
-    color: colors.primary,
     fontSize: 13,
     fontWeight: "600",
   },
@@ -307,27 +352,20 @@ const styles = StyleSheet.create({
   },
   languageChip: {
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
     borderRadius: radius.sm,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
   },
   languageChipActive: {
-    backgroundColor: colors.primary,
     borderColor: "transparent",
   },
   languageLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: colors.textPrimary,
   },
-  languageLabelActive: {
-    color: "#FFFFFF",
-  },
+  languageLabelActive: {},
   languageHint: {
     fontSize: 13,
-    color: colors.textMuted,
   },
   listRow: {
     flexDirection: "row",
@@ -335,7 +373,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   listRowBody: {
     flex: 1,
@@ -345,14 +382,11 @@ const styles = StyleSheet.create({
   listRowTitle: {
     fontSize: 15,
     fontWeight: "600",
-    color: colors.textPrimary,
   },
   listRowDescription: {
     fontSize: 13,
-    color: colors.textSecondary,
   },
   listRowChevron: {
     fontSize: 24,
-    color: colors.textMuted,
   },
 });

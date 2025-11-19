@@ -29,9 +29,14 @@ Test data for development and testing:
 - 1 District: Gasabo
 - 2 SACCOs: Alpha, Beta (children of Gasabo)
 - 1 MFI: Capital (child of Gasabo)
-- 3 Groups: 2 in Alpha, 1 in Beta
-- 8 Members: 5 in Alpha, 3 in Beta
-- 7 Test users with different roles
+- 3 Ikimina: 2 in Alpha, 1 in Beta (app schema)
+- 3 Digital groups + 8 digital group members (public schema) for Atlas
+  experiences
+- 8 Members: 5 in Alpha, 3 in Beta (app schema)
+- TapMoMo merchants + 3 sample transactions to validate mobile money flows
+- 3 loan products + 3 loan applications (approved, declined, under review
+  states)
+- 11 Test users (platform staff, client members, merchant operator)
 
 Test credentials (password: `password123`):
 
@@ -42,6 +47,10 @@ Test credentials (password: `password123`):
 - `seed.sacco.beta.manager@test.ibimina.rw` (SACCO_MANAGER - Beta only)
 - `seed.mfi.manager@test.ibimina.rw` (MFI_MANAGER)
 - `seed.mfi.staff@test.ibimina.rw` (MFI_STAFF)
+- `seed.client.alpha.one@test.ibimina.rw` (MEMBER - Alpha groups)
+- `seed.client.alpha.two@test.ibimina.rw` (MEMBER - Alpha groups)
+- `seed.client.beta.one@test.ibimina.rw` (MEMBER - Beta groups)
+- `seed.merchant.tapmomo@test.ibimina.rw` (MERCHANT - TapMoMo owner)
 
 ### Tests: `tests/rls/multitenancy_isolation.test.sql`
 

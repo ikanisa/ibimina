@@ -1,15 +1,36 @@
 import Link from "next/link";
 import { logError } from "@/lib/observability/logger";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { listStubCountries } from "@/lib/stubs/multicountry";
 import type { CountryRow } from "@/lib/types/multicountry";
 
 export default async function CountriesPage() {
-  const supa = createSupabaseAdminClient();
-  const { data, error } = await supa.from("countries").select("id, iso2, iso3, name, is_active");
+  const useStub = process.env.AUTH_E2E_STUB === "1";
+
+  let data: CountryRow[] | null = null;
+  let error: unknown = null;
+
+  if (useStub) {
+    data = listStubCountries().map((entry) => entry.country);
+  } else {
+    const supa = createSupabaseAdminClient();
+    const { data: supaData, error: supaError } = await supa
+      .from("countries")
+      .select("id, iso2, iso3, name, is_active");
+    data = (supaData as CountryRow[] | null) ?? null;
+    error = supaError;
+  }
 
   if (error) {
     logError("Failed to load countries:", error);
   }
+
+  const errorMessage =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message?: unknown }).message ?? "Unknown error")
+      : error
+        ? String(error)
+        : null;
 
   return (
     <div className="p-6">
@@ -23,8 +44,8 @@ export default async function CountriesPage() {
         </Link>
       </div>
 
-      {error ? (
-        <div className="text-red-500">Failed to load countries: {error.message}</div>
+      {errorMessage ? (
+        <div className="text-red-500">Failed to load countries: {errorMessage}</div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
           <table className="w-full text-sm">

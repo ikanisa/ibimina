@@ -21,9 +21,11 @@ const DeviceAuth = Capacitor.registerPlugin<DeviceAuthPlugin>("DeviceAuth");
  */
 export class DeviceAuthManager {
   private apiBaseUrl: string;
+  private plugin: DeviceAuthPlugin;
 
-  constructor(apiBaseUrl: string = "") {
+  constructor(apiBaseUrl: string = "", plugin: DeviceAuthPlugin = DeviceAuth) {
     this.apiBaseUrl = apiBaseUrl || (typeof window !== "undefined" ? window.location.origin : "");
+    this.plugin = plugin;
   }
 
   /**
@@ -42,7 +44,7 @@ export class DeviceAuthManager {
     }
 
     try {
-      const result = await DeviceAuth.hasKeyPair();
+      const result = await this.plugin.hasKeyPair();
       return result.hasKeyPair;
     } catch (error) {
       console.error("Failed to check enrollment:", error);
@@ -62,7 +64,7 @@ export class DeviceAuthManager {
     }
 
     try {
-      return await DeviceAuth.checkBiometricAvailable();
+      return await this.plugin.checkBiometricAvailable();
     } catch (error) {
       console.error("Failed to check biometric availability:", error);
       return {
@@ -102,7 +104,7 @@ export class DeviceAuthManager {
       }
 
       // Generate keypair
-      const keyPairResult = await DeviceAuth.generateKeyPair({
+      const keyPairResult = await this.plugin.generateKeyPair({
         requireBiometric: true,
         requireStrongBox: true,
       });
@@ -115,7 +117,7 @@ export class DeviceAuthManager {
       }
 
       // Get device info
-      const deviceInfo = await DeviceAuth.getDeviceInfo();
+      const deviceInfo = await this.plugin.getDeviceInfo();
 
       // TODO: Get Play Integrity token
       const integrityToken = undefined;
@@ -208,7 +210,7 @@ export class DeviceAuthManager {
       }
 
       // Sign challenge (will trigger biometric prompt)
-      const result = await DeviceAuth.signChallenge({
+      const result = await this.plugin.signChallenge({
         challengeJson: JSON.stringify(challenge),
         userId,
       });
@@ -374,7 +376,7 @@ export class DeviceAuthManager {
     }
 
     try {
-      await DeviceAuth.deleteKeyPair();
+      await this.plugin.deleteKeyPair();
       return { success: true };
     } catch (error) {
       console.error("Failed to delete keypair:", error);
@@ -399,7 +401,7 @@ export class DeviceAuthManager {
     }
 
     try {
-      return await DeviceAuth.getDeviceInfo();
+      return await this.plugin.getDeviceInfo();
     } catch (error) {
       console.error("Failed to get device info:", error);
       return null;

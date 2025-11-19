@@ -1,6 +1,7 @@
 import React from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { colors, radius, spacing, shadow } from "@theme/tokens";
+import { radius, spacing, shadow } from "@theme/tokens";
+import { useNativeWindTheme } from "@theme/nativewind";
 import { StatusChip } from "@components/StatusChip";
 
 const STATEMENTS = [
@@ -34,53 +35,95 @@ const STATEMENTS = [
 ];
 
 export function StatementsScreen() {
+  const theme = useNativeWindTheme();
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Statements</Text>
-          <Text style={styles.subtitle}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.palette.background }]}
+      className={theme.classes.background}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        contentContainerClassName="gap-5"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header} className="gap-2">
+          <Text style={styles.title} className={theme.classes.textPrimary}>
+            Statements
+          </Text>
+          <Text style={styles.subtitle} className={theme.classes.textSecondary}>
             Download monthly statements to reconcile your group contributions.
           </Text>
         </View>
 
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>January Snapshot</Text>
-          <Text style={styles.summaryValue}>RWF 540,000</Text>
-          <Text style={styles.summaryMeta}>42 contributions across 3 groups</Text>
+        <View
+          style={[styles.summaryCard, { borderColor: theme.palette.primary }]}
+          className={`${theme.classes.surfaceTinted} ${theme.classes.cardShadow}`}
+        >
+          <Text style={styles.summaryTitle} className={theme.classes.textMuted}>
+            January Snapshot
+          </Text>
+          <Text style={styles.summaryValue} className={theme.classes.accent}>
+            RWF 540,000
+          </Text>
+          <Text style={styles.summaryMeta} className={theme.classes.textSecondary}>
+            42 contributions across 3 groups
+          </Text>
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent statements</Text>
-          <Text style={styles.sectionHint}>Auto-generated after each month end</Text>
+          <Text style={styles.sectionTitle} className={theme.classes.textPrimary}>
+            Recent statements
+          </Text>
+          <Text style={styles.sectionHint} className={theme.classes.textMuted}>
+            Auto-generated after each month end
+          </Text>
         </View>
 
         {STATEMENTS.map((statement) => (
-          <View key={statement.id} style={styles.statementCard}>
+          <View
+            key={statement.id}
+            style={[styles.statementCard, { borderColor: theme.palette.border }]}
+            className={`${theme.classes.surface} ${theme.classes.border} ${theme.classes.cardShadow}`}
+          >
             <View style={styles.statementHeader}>
               <View>
-                <Text style={styles.statementTitle}>{statement.period}</Text>
-                <Text style={styles.statementMeta}>Generated {statement.generatedOn}</Text>
+                <Text style={styles.statementTitle} className={theme.classes.textPrimary}>
+                  {statement.period}
+                </Text>
+                <Text style={styles.statementMeta} className={theme.classes.textMuted}>
+                  Generated {statement.generatedOn}
+                </Text>
               </View>
               <StatusChip label={statement.status} tone={statement.statusTone} />
             </View>
 
             <View style={styles.statementBody}>
               <View>
-                <Text style={styles.bodyLabel}>Total contributions</Text>
-                <Text style={styles.bodyValue}>RWF {statement.total.toLocaleString()}</Text>
+                <Text style={styles.bodyLabel} className={theme.classes.textMuted}>
+                  Total contributions
+                </Text>
+                <Text style={styles.bodyValue} className={theme.classes.textPrimary}>
+                  RWF {statement.total.toLocaleString()}
+                </Text>
               </View>
               <View>
-                <Text style={styles.bodyLabel}>Transactions</Text>
-                <Text style={styles.bodyValue}>{statement.contributions}</Text>
+                <Text style={styles.bodyLabel} className={theme.classes.textMuted}>
+                  Transactions
+                </Text>
+                <Text style={styles.bodyValue} className={theme.classes.textPrimary}>
+                  {statement.contributions}
+                </Text>
               </View>
             </View>
 
             <TouchableOpacity
-              style={styles.downloadButton}
+              style={[styles.downloadButton, { backgroundColor: theme.palette.card }]}
               accessibilityLabel={`Download ${statement.period} statement`}
             >
-              <Text style={styles.downloadLabel}>Download PDF</Text>
+              <Text style={styles.downloadLabel} className={theme.classes.accent}>
+                Download PDF
+              </Text>
             </TouchableOpacity>
           </View>
         ))}
@@ -92,7 +135,6 @@ export function StatementsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     paddingVertical: spacing.xl,
@@ -105,39 +147,32 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700",
-    color: colors.textPrimary,
   },
   subtitle: {
     fontSize: 15,
     lineHeight: 22,
-    color: colors.textSecondary,
   },
   summaryCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.85)",
     borderRadius: radius.lg,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: "rgba(0, 102, 255, 0.18)",
-    shadowColor: colors.primary,
+    shadowColor: "#38BDF8",
     shadowOpacity: 0.15,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
   },
   summaryTitle: {
     fontSize: 13,
-    color: colors.textMuted,
     textTransform: "uppercase" as const,
     letterSpacing: 0.3,
   },
   summaryValue: {
     fontSize: 32,
     fontWeight: "800",
-    color: colors.primaryDark,
     marginTop: spacing.sm,
   },
   summaryMeta: {
     fontSize: 14,
-    color: colors.textSecondary,
     marginTop: spacing.xs,
   },
   sectionHeader: {
@@ -146,18 +181,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: colors.textPrimary,
   },
   sectionHint: {
     fontSize: 13,
-    color: colors.textMuted,
   },
   statementCard: {
-    backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     gap: spacing.md,
     ...shadow.card,
   },
@@ -169,11 +200,9 @@ const styles = StyleSheet.create({
   statementTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: colors.textPrimary,
   },
   statementMeta: {
     fontSize: 13,
-    color: colors.textMuted,
     marginTop: spacing.xs / 2,
   },
   statementBody: {
@@ -182,17 +211,14 @@ const styles = StyleSheet.create({
   },
   bodyLabel: {
     fontSize: 12,
-    color: colors.textMuted,
     textTransform: "uppercase" as const,
   },
   bodyValue: {
     fontSize: 16,
     fontWeight: "700",
-    color: colors.textPrimary,
     marginTop: spacing.xs / 2,
   },
   downloadButton: {
-    backgroundColor: colors.surfaceMuted,
     borderRadius: radius.sm,
     paddingVertical: spacing.sm,
     alignItems: "center",
@@ -200,6 +226,5 @@ const styles = StyleSheet.create({
   downloadLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: colors.primary,
   },
 });

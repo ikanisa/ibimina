@@ -1,3 +1,55 @@
+# Authentication Quickstart (Supabase Email + Admin Invites + QR)
+
+This repo now ships a single, Supabase-native flow for staff authentication:
+
+- **Email sign-in** backed by Supabase Auth.
+- **Admin invites** that mint a temporary password and force a reset on first
+  login.
+- **QR hand-off** between browser and mobile, powered by the `auth-qr-*` edge
+  functions.
+
+The WhatsApp OTP and legacy MFA stacks have been retired; use this guide as the
+source of truth when configuring auth or onboarding staff.
+
+## What ships in this flow
+
+- **Invite + bootstrap** — `supabase/functions/invite-user` creates a user,
+  assigns a role, marks it as password-reset-required, and optionally sends a
+  custom welcome email via `EMAIL_WEBHOOK_URL`.
+- **First login** — Staff sign in with the temporary password, then Supabase
+  forces a reset before granting a long-lived session.
+- **QR authentication** — Web sessions can be approved from a signed-in mobile
+  device by scanning a QR payload generated via `auth-qr-generate` and verified
+  through `auth-qr-verify`; the browser polls `auth-qr-poll` for completion.
+- **Recover + reset** — Admins can reset factors with
+  `supabase/functions/admin-reset-mfa` if a device is lost.
+
+## Prerequisites
+
+1. **Secrets** — set the required environment variables (values mirror
+   `.env.example`):
+
+   | Variable                         | Purpose                                                           |
+   | -------------------------------- | ----------------------------------------------------------------- |
+   | `APP_ENV`                        | Runtime label (`development`, `staging`, `production`).           |
+   | `NEXT_PUBLIC_SUPABASE_URL`       | Supabase project URL used by clients.                             |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Browser anon key for RLS-aware calls.                             |
+   | `SUPABASE_SERVICE_ROLE_KEY`      | Service role key for edge functions and admin invites.            |
+   | `KMS_DATA_KEY_BASE64`            | 32-byte base64 key for encrypting secrets.                        |
+   | `BACKUP_PEPPER`                  | Shared pepper for backup/OTP hashing.                             |
+   | `MFA_SESSION_SECRET`             | Signs MFA cookies for QR + email sessions.                        |
+   | `TRUSTED_COOKIE_SECRET`          | Signs trusted device cookies.                                     |
+   | `HMAC_SHARED_SECRET`             | HMAC for webhook and function calls.                              |
+   | `MFA_EMAIL_FROM`                 | From address for Supabase email reset/alerts.                     |
+   | `EMAIL_WEBHOOK_URL` _(optional)_ | Custom mail webhook for invite emails.                            |
+   | `EMAIL_WEBHOOK_KEY` _(optional)_ | Bearer token for the mail webhook.                                |
+   | `STAFF_APP_URL` _(optional)_     | Public URL used in invite links (e.g. https://staff.example.com). |
+
+2. **Supabase CLI** — install and log in so you can deploy functions and seed
+   tables: `supabase login`.
+
+3. **Schema** — apply the latest migrations so `auth_qr_sessions`,
+   `staff_devices`, and `users` are present:
 # Authentication Features - Quick Start
 
 This guide helps you get started with the new authentication features
@@ -5,16 +57,41 @@ implemented for SACCO+.
 
 ## Overview
 
-Two distinct authentication flows:
+Authentication code is concentrated in the PWAs and Supabase Edge Functions. The
+current state in the repo is:
 
-1. **Staff Authentication** - Email/password with web-only password management
-2. **Client Authentication** - WhatsApp OTP with optional biometric login
+- **Staff-admin PWA (`apps/pwa/staff-admin`)**: All login, biometric device
+  login, and MFA routes are temporarily stubbed to redirect to the dashboard,
+  but the underlying factor engine still supports TOTP, backup codes, email
+  links, WhatsApp OTP, and passkeys for future restoration.
+- **Member PWA (`apps/pwa/client`)**: WhatsApp OTP sign-in is active and wired
+  to Supabase Edge Functions for sending and verifying codes.
 
 ## Quick Links
 
 - 📖 [Complete Authentication Guide](./docs/AUTHENTICATION_GUIDE.md)
 - 📝 [Implementation Summary](./AUTHENTICATION_IMPLEMENTATION_SUMMARY.md)
 - 🔧 [Troubleshooting](#troubleshooting)
+
+## Current auth map and removal targets
+
+- **Staff-admin routes (disabled)**: The login, device-login, and MFA pages
+  under `apps/pwa/staff-admin/app/(auth)` immediately redirect to the dashboard
+  while preserving the prior UI in comments, marking them as candidates for
+  cleanup if the flows stay
+  retired. 【F:apps/pwa/staff-admin/app/(auth)/login/page.tsx†L1-L62】【F:apps/pwa/staff-admin/app/(auth)/device-login/page.tsx†L1-L26】【F:apps/pwa/staff-admin/app/(auth)/mfa/page.tsx†L1-L30】
+- **Staff-admin factor engine (active code path, unused UI)**: MFA factor
+  support for TOTP, backup codes, email, WhatsApp OTP, and passkeys lives under
+  `apps/pwa/staff-admin/src/auth/factors`, ready for
+  re-enablement. 【F:apps/pwa/staff-admin/src/auth/factors/index.ts†L1-L161】
+- **Staff-admin device auth APIs (active)**: QR/device-authentication endpoints
+  remain exposed under `app/api/device-auth/*` for mobile-signature login even
+  though the UI is
+  disabled. 【F:apps/pwa/staff-admin/app/api/device-auth/challenge/route.ts†L1-L93】
+- **Member PWA login (active)**: WhatsApp OTP send/verify flow is live in
+  `apps/pwa/client/app/(auth)/login/page.tsx`, integrating with Supabase Edge
+  Functions for session
+  creation. 【F:apps/pwa/client/app/(auth)/login/page.tsx†L1-L195】
 
 ## For Developers
 
@@ -44,250 +121,49 @@ META_WHATSAPP_PHONE_NUMBER_ID=your_phone_id
 3. **Test OTP flow**:
 
    ```bash
-   # Send OTP
-   curl -X POST https://project.supabase.co/functions/v1/whatsapp-otp-send \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer YOUR_ANON_KEY" \
-     -d '{"phone_number": "+250781234567"}'
-
-   # Verify OTP
-   curl -X POST https://project.supabase.co/functions/v1/whatsapp-otp-verify \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer YOUR_ANON_KEY" \
-     -d '{"phone_number": "+250781234567", "code": "123456"}'
+   supabase db reset
    ```
 
-### Integration Examples
+## Bootstrapping the first admin
 
-#### Client App - WhatsApp Login
+```bash
+# Deploy invite + QR functions (needed for onboarding and device pairing)
+cd supabase
+supabase functions deploy invite-user auth-qr-generate auth-qr-verify auth-qr-poll admin-reset-mfa
 
-```typescript
-import { createClient } from "@/lib/supabase/client";
-
-// Step 1: Send OTP
-const supabase = createClient();
-const { data } = await supabase.functions.invoke("whatsapp-otp-send", {
-  body: { phone_number: "+250781234567" },
-});
-
-// Step 2: Verify OTP
-const { data: session } = await supabase.functions.invoke(
-  "whatsapp-otp-verify",
-  {
-    body: { phone_number: "+250781234567", code: "123456" },
-  }
-);
-
-// Step 3: Set session
-await supabase.auth.setSession({
-  access_token: session.session.access_token,
-  refresh_token: session.session.refresh_token,
-});
+# Create the first SYSTEM_ADMIN user from your terminal
+supabase functions invoke invite-user \
+  --headers "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+  --env-file ../.env \
+  --body '{"email":"ops@example.com","role":"SYSTEM_ADMIN"}'
 ```
 
-#### Staff App - Password Change
+Check the function response for the temporary password. If `EMAIL_WEBHOOK_URL`
+was set, the invite email will also be dispatched with a link to the staff app.
 
-```typescript
-import { PasswordChange } from "@/components/profile/password-change";
+## Day-to-day flows
 
-// In your profile page
-<PasswordChange
-  onSuccess={() => {
-    toast.success("Password updated successfully");
-  }}
-/>
-```
-
-#### Biometric Enrollment
-
-```typescript
-import { BiometricEnrollmentPrompt } from "@/components/auth/biometric-enrollment-prompt";
-
-// After successful login
-if (!profile.biometric_enabled) {
-  showModal(
-    <BiometricEnrollmentPrompt
-      userId={userId}
-      onComplete={(enrolled) => {
-        if (enrolled) {
-          toast.success("Biometric login enabled");
-        }
-      }}
-    />
-  );
-}
-```
-
-#### Permission Checking
-
-```typescript
-const { data: hasPermission } = await supabase.rpc("has_permission", {
-  _user_id: userId,
-  _permission: "MAKE_PAYMENTS",
-});
-
-if (hasPermission) {
-  // Show payment feature
-} else {
-  // Show request permission button
-}
-```
-
-## For Users
-
-### Client App (Members)
-
-1. **First Time Login**:
-   - Enter your WhatsApp number
-   - Receive 6-digit code via WhatsApp
-   - Enter code (expires in 5 minutes)
-   - Account created automatically
-
-2. **Enable Biometric** (Optional):
-   - After login, you'll see a prompt
-   - Tap "Enable Biometric Login"
-   - Use fingerprint/face for future logins
-
-3. **Permissions**:
-   - Default permissions granted automatically
-   - Request additional permissions from staff
-   - Check permission status in settings
-
-### Staff App
-
-1. **Login**:
-   - Use email and password provided by admin
-   - Complete MFA if enabled
-
-2. **Change Password**:
-   - Go to Profile → Change Password
-   - Only works on web browser (not mobile)
-   - Enter current and new password
-
-3. **Why Password Change Restricted?**:
-   - Enhanced security
-   - Prevents unauthorized changes from lost/stolen devices
-   - Requires verified web session
-
-## Security Features
-
-### WhatsApp OTP
-
-- ✅ 6-digit cryptographically secure code
-- ✅ Bcrypt hashed storage
-- ✅ 5-minute expiry
-- ✅ Max 3 verification attempts
-- ✅ Rate limiting (3 sends/hour, 10 verifies/hour)
-- ✅ Audit logging
-
-### Password Management
-
-- ✅ Web-only changes (blocked on mobile)
-- ✅ Current password verification required
-- ✅ Minimum 8 character requirement
-- ✅ Cannot reuse current password
-- ✅ Audit logging
-
-### Biometric Authentication
-
-- ✅ Device-bound cryptographic keys
-- ✅ Biometric verification required each use
-- ✅ Biometric data never leaves device
-- ✅ Optional (can be disabled anytime)
-- ✅ Multiple device support
-
-### Permissions
-
-- ✅ Granular access control
-- ✅ Default permissions auto-granted
-- ✅ Row-Level Security (RLS)
-- ✅ Expiry support
-- ✅ Audit trail
+- **Staff sign-in** — navigate to `/auth/login`, enter email + temporary
+  password, and set a new password when prompted. Subsequent logins use the new
+  password (Supabase-hosted email reset works via the same sender).
+- **Issue invites from the UI** — the staff console uses the
+  `admin-invite-staff` flow wired to `invite-user`; roles and org assignment are
+  enforced from
+  `apps/pwa/staff-admin/components/admin/staff/add-staff-drawer.tsx`.
+- **QR sign-in** —
+  1. Browser calls `auth-qr-generate` and renders the base64 payload as a QR.
+  2. Mobile app scans and posts to `auth-qr-verify` with its JWT + device id.
+  3. Browser polls `auth-qr-poll` until the session is marked `verified`.
+- **Lost device / factor reset** — call `admin-reset-mfa` from the staff console
+  or via Supabase CLI to revoke trusted devices and require MFA re-enrolment.
 
 ## Troubleshooting
 
-### OTP Not Received
-
-1. Check phone number format (must be Rwanda number)
-2. Verify WhatsApp Business API credentials
-3. Check rate limiting (max 3 per hour)
-4. Review audit logs for send failures
-
-### Password Change Blocked
-
-1. Ensure you're using web browser (not mobile)
-2. Check platform detection in browser
-3. Try different web browser
-4. Contact admin if issues persist
-
-### Biometric Enrollment Failed
-
-1. Check device has biometric hardware
-2. Ensure biometrics enrolled in system settings
-3. Grant biometric permission to app
-4. Try re-enrolling
-
-### Permission Denied
-
-1. Check if permission granted: `has_permission(user_id, permission)`
-2. Verify permission not expired
-3. Request permission from staff if needed
-
-## Files Changed
-
-- `supabase/migrations/20251201000000_add_whatsapp_otp_auth.sql` - Database
-  schema
-- `supabase/functions/whatsapp-otp-send/index.ts` - Send OTP edge function
-- `supabase/functions/whatsapp-otp-verify/index.ts` - Verify OTP edge function
-- `apps/client/app/(auth)/login/page.tsx` - Client login page
-- `apps/admin/lib/platform.ts` - Platform detection utilities
-- `apps/admin/app/api/staff/change-password/route.ts` - Password change API
-- `apps/admin/components/profile/password-change.tsx` - Password change UI
-- `apps/client/components/auth/biometric-enrollment-prompt.tsx` - Biometric
-  prompt
-- `docs/AUTHENTICATION_GUIDE.md` - Comprehensive documentation
-- `supabase/functions/_tests/otp-utils.test.ts` - Unit tests
-
-## Testing
-
-Run tests:
-
-```bash
-# Deno tests for edge functions
-cd supabase/functions
-deno test _tests/otp-utils.test.ts
-
-# Check migration
-supabase db reset
-supabase db push
-```
-
-## Support
-
-- Documentation: See [AUTHENTICATION_GUIDE.md](./docs/AUTHENTICATION_GUIDE.md)
-- Implementation Details: See
-  [AUTHENTICATION_IMPLEMENTATION_SUMMARY.md](./AUTHENTICATION_IMPLEMENTATION_SUMMARY.md)
-- Issues: Create GitHub issue with `authentication` label
-
-## Statistics
-
-- **Total Files**: 10 files created/modified
-- **Lines of Code**: ~6,500 production code
-- **Documentation**: ~30,000 words
-- **Test Coverage**: Unit tests for core utilities
-- **Security**: 15+ security features implemented
-
-## Next Steps
-
-1. Integration testing in staging environment
-2. E2E tests with Playwright
-3. Performance testing for OTP delivery
-4. Security audit
-5. User acceptance testing
-6. Production deployment
-
----
-
-**Version**: 1.0.0  
-**Last Updated**: 2025-12-01  
-**Author**: SACCO+ Development Team
+- **Invite email missing** — confirm `EMAIL_WEBHOOK_URL`/`EMAIL_WEBHOOK_KEY` are
+  set; if not, Supabase will fall back to `inviteUserByEmail` so check the
+  project Auth > Templates screen.
+- **QR session never completes** — make sure `auth_qr_sessions` is migrated and
+  that the mobile client passes a valid bearer token to `auth-qr-verify`.
+- **Password reset loop** — remove the `pw_reset_required` flag in
+  `auth.users.user_metadata` if a user already set a new password but still sees
+  the reset wall.
