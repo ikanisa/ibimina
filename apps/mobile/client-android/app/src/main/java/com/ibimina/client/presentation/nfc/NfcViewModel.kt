@@ -5,6 +5,7 @@ import android.content.Intent
 import android.nfc.Tag
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ibimina.client.data.auth.AuthRepository
 import com.ibimina.client.data.nfc.NFCManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -15,11 +16,20 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class NfcViewModel @Inject constructor(
-    private val nfcManager: NFCManager
+    private val nfcManager: NFCManager,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NfcUiState())
     val uiState: StateFlow<NfcUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            authRepository.memberIdFlow.collect { memberId ->
+                _uiState.value = _uiState.value.copy(memberId = memberId)
+            }
+        }
+    }
 
     fun initialize(activity: Activity) {
         nfcManager.initialize(activity)

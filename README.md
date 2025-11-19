@@ -53,6 +53,205 @@ auth, database, and real-time features.
 | `MFA_EMAIL_FROM` / `MFA_EMAIL_LOCALE` | Sender and locale for MFA email delivery.               |
 
 Generate secrets locally with:
+# Ibimina Monorepo — Next.js PWAs + Supabase
+
+Ibimina is a monorepo housing the staff/admin console, member-facing PWA,
+marketing site, and Supabase assets for Umurenge SACCO operations. The flagship
+surface is the staff-admin PWA (Next.js 15 App Router with typed routes,
+mobile-first gradients, Framer Motion transitions, and Supabase-backed semantic
+search), with the member PWA and website sharing the same workspace tooling.
+
+## Quick Links
+
+- [**CONTRIBUTING.md**](CONTRIBUTING.md) - Guidelines for contributing to the
+  project
+- [**docs/dev/getting-started.md**](docs/dev/getting-started.md) - Consolidated
+  developer onboarding checklist
+- [**DEVELOPMENT.md**](DEVELOPMENT.md) - Detailed development setup and workflow
+  guide
+- [**docs/**](docs/) - Additional documentation on architecture, deployment, and
+  operations
+
+### Essential Documentation
+
+- [**docs/GROUND_RULES.md**](docs/GROUND_RULES.md) - Mandatory standards and
+  best practices
+- [**docs/QUICK_REFERENCE.md**](docs/QUICK_REFERENCE.md) - Quick command
+  reference with timings
+- [**docs/ADMIN_APPS_GUIDE.md**](docs/ADMIN_APPS_GUIDE.md) - Guide to choosing
+  the correct admin/staff app
+- [**docs/MIGRATION_APPLICATION_GUIDE.md**](docs/MIGRATION_APPLICATION_GUIDE.md) -
+  How to apply database migrations
+- [**docs/PROJECT_STRUCTURE.md**](docs/PROJECT_STRUCTURE.md) - Project structure
+  and dependency graph
+- [**docs/TROUBLESHOOTING.md**](docs/TROUBLESHOOTING.md) - Common issues and
+  solutions
+- [**KNOWN_ISSUES.md**](KNOWN_ISSUES.md) - Current known issues and their
+  resolutions
+- [**PRE_EXISTING_BUILD_ISSUES.md**](PRE_EXISTING_BUILD_ISSUES.md) - Known build
+  issues requiring separate PRs
+- [**docs/CI_WORKFLOWS.md**](docs/CI_WORKFLOWS.md) - CI/CD workflows and
+  troubleshooting
+- [**docs/DB_GUIDE.md**](docs/DB_GUIDE.md) - Database procedures and migration
+  guide
+- [**docs/SUPABASE_LOCAL_DEVELOPMENT.md**](docs/SUPABASE_LOCAL_DEVELOPMENT.md) -
+  Supabase CLI setup and local development guide
+- [**docs/SCHEMA_VERIFICATION.md**](docs/SCHEMA_VERIFICATION.md) - Schema drift
+  detection and verification system
+- [**docs/ENV_VARIABLES.md**](docs/ENV_VARIABLES.md) - Complete environment
+  variables reference
+- [**packages/README.md**](packages/README.md) - Shared packages documentation
+
+### Deployment Documentation
+
+### Go-Live & Release
+
+- [**Go-Live documentation hub**](docs/go-live/README.md) - Central index for
+  audit collateral
+- [**Release checklist**](docs/go-live/release-checklist.md) - Step-by-step
+  launch procedure
+- [**Release artifacts inventory**](docs/go-live/artifacts-inventory.md) -
+  Evidence catalog for audits
+- [**CI workflows overview**](docs/CI_WORKFLOWS.md) - Required status checks and
+  troubleshooting
+
+- [**docs/CLOUDFLARE_DEPLOYMENT.md**](docs/CLOUDFLARE_DEPLOYMENT.md) -
+  Comprehensive guide for deploying to Cloudflare Pages
+- [**CLOUDFLARE_DEPLOYMENT_CHECKLIST.md**](CLOUDFLARE_DEPLOYMENT_CHECKLIST.md) -
+  Step-by-step deployment checklist
+- [**.env.cloudflare.template**](.env.cloudflare.template) - Environment
+  variables template for Cloudflare
+- [**DEPLOYMENT_GUIDE.md**](DEPLOYMENT_GUIDE.md) - General deployment guide
+
+## Overview
+
+**Ibimina** (Kinyarwanda for "groups") is a comprehensive SACCO management
+platform designed for Rwanda's Umurenge SACCOs. The system manages group savings
+(ikimina), member accounts, mobile money payments, and reconciliation workflows.
+Built with security, observability, and offline-first capabilities in mind.
+
+### Current application inventory
+
+- **Staff-admin PWA** (`apps/pwa/staff-admin`): Next.js 15 App Router, served
+  via Node on port `3100` (see Dockerfile), and packaged for Android/iOS via
+  Capacitor. Primary target for staff operations.
+- **Member PWA** (`apps/pwa/client`): Next.js 15 App Router experience for SACCO
+  members and group leaders, also packaged with Capacitor for mobile delivery.
+- **Marketing site** (`apps/website`): Next.js static export for product
+  marketing and documentation.
+- **Supabase backend** (`supabase/`): SQL schema, tests, and Edge Functions for
+  auth, payments, and reconciliation flows.
+- **Shared packages** (`packages/*`): Config, feature flags, UI kit, data
+  access, locales, Supabase schemas, and supporting tooling for all apps.
+
+See `apps/INDEX.md` and `packages/INDEX.md` for per-surface details.
+
+## Branching model
+
+- `main` is the deployment-ready default branch and now tracks the latest
+  reviewed `work` refactor.
+- `work` remains the integration branch for active feature development; open
+  pull requests should continue to target `work` until they are ready to be
+  promoted.
+- After validation, merge `work` into `main` (fast-forward preferred) so
+  production containers and local staging environments stay aligned with the
+  most recent authenticated flows.
+
+## Tech stack
+
+### Frontend
+
+- **Next.js 15** (App Router with typed routes)
+- **TypeScript 5.9** for type safety
+- **Tailwind CSS** with custom design tokens (`styles/tokens.css`)
+- **Framer Motion** for page transitions and animations
+- **PWA** (Progressive Web App) with manifest & service worker
+
+### Backend
+
+- **Supabase** for authentication, database, and Edge Functions
+  - PostgreSQL with Row-Level Security (RLS)
+  - Real-time subscriptions
+  - Edge Functions (Deno runtime)
+- **@supabase/ssr** for SSR-compatible auth
+
+### Infrastructure
+
+- **Prometheus + Grafana** for observability (in `infra/metrics/`)
+- **Docker** for containerized deployments
+- **pg_cron** for scheduled database jobs
+
+### Key Features
+
+- Multi-factor authentication (TOTP, Passkeys/WebAuthn, Email OTP)
+- End-to-end encryption for PII (AES-256-GCM)
+- Offline-first capabilities with service workers
+- Bilingual interface (English, Kinyarwanda, French)
+- Semantic SACCO search with trigram matching
+
+## Prerequisites
+
+Before setting up the project, ensure you have:
+
+- **Node.js** v20.x or higher (specified in `.nvmrc`)
+- **pnpm** v10.19.0 (specified in `package.json`)
+- **Supabase CLI** (for local database development)
+- **Docker** (optional, for running local Supabase and metrics stack)
+
+## Development Tooling
+
+- **Package Manager**: pnpm 10.19.0 (monorepo workspace)
+- **Code Quality**: ESLint + Prettier (auto-format on commit)
+- **Commit Convention**: Conventional Commits with commitlint
+- **Git Hooks**: husky + lint-staged for pre-commit checks
+- **Dependency Management**: Renovate bot for automated updates
+- **Testing**: Playwright (E2E), tsx (unit tests), Supabase RLS tests
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPMENT.md) for
+detailed guidelines.
+
+## Getting Started
+
+### 1. Install dependencies
+
+```bash
+# Use the correct Node version
+nvm use 20
+
+# Install pnpm if not already installed
+npm install -g pnpm@10.19.0
+
+# Install project dependencies
+pnpm install
+```
+
+### 2. Copy and configure environment variables
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+```
+
+`.env.example` groups the mandatory secrets at the top so you can see what must
+be filled in before running the app. Update `.env` with the following
+**required** values (matching the placeholders shipped in `.env.example`):
+
+| Variable                        | Purpose                        | How to obtain                            |
+| ------------------------------- | ------------------------------ | ---------------------------------------- |
+| `APP_ENV`                       | Runtime environment label      | Use `development` locally                |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL           | From your Supabase project settings      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key                | From your Supabase project API settings  |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Service role key (server-only) | From your Supabase project API settings  |
+| `KMS_DATA_KEY_BASE64`           | 32-byte base64 encryption key  | Generate with: `openssl rand -base64 32` |
+| `BACKUP_PEPPER`                 | Salt for backup codes          | Generate with: `openssl rand -hex 32`    |
+| `MFA_SESSION_SECRET`            | MFA session signing key        | Generate with: `openssl rand -hex 32`    |
+| `TRUSTED_COOKIE_SECRET`         | Trusted device cookie key      | Generate with: `openssl rand -hex 32`    |
+| `HMAC_SHARED_SECRET`            | HMAC for edge function auth    | Generate with: `openssl rand -hex 32`    |
+| `MFA_EMAIL_FROM`                | From address for MFA email     | Use a verified sender (Resend/SMTP)      |
+| `MFA_EMAIL_LOCALE`              | Default MFA locale             | Typically `en`, `rw`, or `fr`            |
+
+Use the quick commands below to mint secrets that match the placeholder formats
+in `.env.example`:
 
 ```bash
 openssl rand -base64 32 # KMS_DATA_KEY_BASE64
