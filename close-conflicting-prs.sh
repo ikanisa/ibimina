@@ -170,13 +170,14 @@ for pr_number in "${!PRS[@]}"; do
     else
         echo "Closing PR #${pr_number}: ${pr_title}"
         
-        # Close the PR with comment
-        if gh pr close "$pr_number" --repo "$REPO" --comment "$CLOSE_MESSAGE" 2>/dev/null; then
+        # Add comment first, then close the PR
+        if gh pr comment "$pr_number" --repo "$REPO" --body "$CLOSE_MESSAGE" 2>/dev/null && \
+           gh pr close "$pr_number" --repo "$REPO" 2>/dev/null; then
             print_success "Closed PR #${pr_number}"
             ((CLOSED_COUNT++))
             
-            # Try to delete branch (may fail if branch doesn't exist or is protected)
-            gh api "repos/${REPO}/git/refs/pulls/${pr_number}/head" -X DELETE 2>/dev/null || true
+            # Note: Branch deletion is handled by GitHub's PR settings
+            # If you want to delete branches, use: gh pr close --delete-branch
         else
             print_error "Failed to close PR #${pr_number}"
             ((FAILED_COUNT++))

@@ -27,14 +27,18 @@ jobs:
       - name: Check for conflicts
         id: conflict_check
         run: |
-          # Try to merge main into PR branch
-          if git merge-tree $(git merge-base HEAD origin/main) HEAD origin/main | grep -q "<<<<<"; then
+          # Try to merge main into PR branch using merge-tree
+          BASE=$(git merge-base HEAD origin/main)
+          
+          # Perform a three-way merge and check for conflicts
+          if git merge-tree $BASE HEAD origin/main | grep -q "^+<<<<<<< "; then
             echo "has_conflicts=true" >> $GITHUB_OUTPUT
             echo "⚠️ Merge conflicts detected"
             
             # Get list of conflicted files
-            git merge-tree $(git merge-base HEAD origin/main) HEAD origin/main | \
-              grep -A 3 "<<<<<" | grep "^+++ " | sed 's/^+++ //' | sort -u > /tmp/conflicts.txt
+            git merge-tree $BASE HEAD origin/main | \
+              awk '/^+<<<<<<< /,/^+>>>>>>> / {print FILENAME}' | sort -u > /tmp/conflicts.txt || \
+              echo "Unable to list conflicted files" > /tmp/conflicts.txt
             
             echo "conflicted_files<<EOF" >> $GITHUB_OUTPUT
             cat /tmp/conflicts.txt >> $GITHUB_OUTPUT
@@ -197,7 +201,7 @@ jobs:
             
             const recentStaleComment = comments.data.find(
               c => c.body.includes('PR Staleness Notice') && 
-                   Date.now() - new Date(c.created_at) < 7 * 24 * 60 * 60 * 1000
+                   Date.now() - new Date(c.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
             );
             
             if (!recentStaleComment) {
