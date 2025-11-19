@@ -4,6 +4,8 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.ibimina.client.data.OpenAIService
+import com.ibimina.client.data.SupabaseClient
+import com.ibimina.client.data.remote.api.QrAuthApi
 import com.ibimina.client.service.CameraQrScannerService
 import com.ibimina.client.service.DefaultMomoSmsService
 import com.ibimina.client.service.MomoSmsService
@@ -42,6 +44,13 @@ object AppModule {
         okHttpClient: OkHttpClient,
         gson: Gson
     ): OpenAIService = OpenAIService(okHttpClient, gson)
+
+    @Provides
+    @Singleton
+    fun provideQrAuthApi(
+        okHttpClient: OkHttpClient,
+        gson: Gson
+    ): QrAuthApi = QrAuthApi(okHttpClient, gson)
 
     @Provides
     @Singleton

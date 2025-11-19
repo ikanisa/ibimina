@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ibimina.client.ui.viewmodel.QrScannerViewModel
+import com.ibimina.client.ui.viewmodel.QrApprovalStatus
 
 @Composable
 fun QrScannerRoute(
@@ -33,15 +35,23 @@ fun QrScannerRoute(
     val lifecycleOwner = LocalLifecycleOwner.current
     val controller = remember { viewModel.createController() }
     val scannedCode by viewModel.scannedCode.collectAsStateWithLifecycle()
+    val approvalStatus by viewModel.approvalStatus.collectAsStateWithLifecycle()
+    val approvalMessage by viewModel.approvalMessage.collectAsStateWithLifecycle()
 
     DisposableEffect(lifecycleOwner) {
         viewModel.startScanning(controller, lifecycleOwner)
         onDispose { viewModel.stopScanning(controller) }
     }
 
+    LaunchedEffect(scannedCode) {
+        viewModel.handleScannedToken(scannedCode)
+    }
+
     QrScannerScreen(
         controller = controller,
         scannedCode = scannedCode,
+        approvalStatus = approvalStatus,
+        approvalMessage = approvalMessage,
         modifier = modifier
     )
 }
@@ -50,6 +60,8 @@ fun QrScannerRoute(
 fun QrScannerScreen(
     controller: LifecycleCameraController,
     scannedCode: String?,
+    approvalStatus: QrApprovalStatus,
+    approvalMessage: String?,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -81,5 +93,16 @@ fun QrScannerScreen(
             text = scannedCode?.let { "Latest code: $it" } ?: "No QR code detected yet",
             style = MaterialTheme.typography.bodyLarge
         )
+        approvalMessage?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = when (approvalStatus) {
+                    QrApprovalStatus.Success -> MaterialTheme.colorScheme.primary
+                    QrApprovalStatus.Error -> MaterialTheme.colorScheme.error
+                    else -> MaterialTheme.colorScheme.onSurface
+                }
+            )
+        }
     }
 }
