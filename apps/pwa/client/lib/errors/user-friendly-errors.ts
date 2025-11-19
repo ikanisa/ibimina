@@ -162,9 +162,9 @@ export function getUserFriendlyError(error: unknown): ErrorMessage {
 
   // Default fallback
   return {
-    title: "Unexpected Error",
+    title: "We hit a snag",
     message:
-      "Something unexpected happened. Please try again or contact support if this continues.",
+      "Something interrupted the app. Try again in a moment, or reach out to support if it keeps happening.",
     action: "retry",
     actionLabel: "Try Again",
   };

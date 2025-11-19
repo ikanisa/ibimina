@@ -25,10 +25,6 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSupabaseClient(): SupabaseClient = SupabaseClient()
-
-    @Provides
-    @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC

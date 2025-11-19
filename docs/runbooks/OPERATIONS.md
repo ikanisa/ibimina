@@ -52,6 +52,43 @@ pipelines.【F:apps/admin/lib/observability/logger.ts†L1-L170】【F:supabase/
    - Spot check Supabase jobs (`supabase db list branches`,
      `supabase functions list`).
 
+## 3a. Cutover windows & auth domain changes
+
+1. **Schedule the window** — align with the deployment checklist and publish a
+   Slack reminder 24 h in advance with start/end times, owners, and back-out
+   criteria. Reduce DNS TTL on the auth and app domains to 60 s at least 1 h
+   before switching.
+2. **Prepare configs** — pre-stage `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_APP_URL`, and the Supabase project reference for the new auth
+   domain in the environment store. Keep the previous values handy for rollback.
+3. **Drain user sessions** — rotate `TRUSTED_COOKIE_SECRET` and invalidate
+   Supabase refresh tokens (`auth.admin.deleteRefreshTokens`) just before the
+   switch to force clients to re-authenticate against the new domain.
+4. **Purge caches** — clear Cloudflare/Page caches for staff.ibimina.rw and
+   app.ibimina.rw, delete stale service workers via
+   `pnpm run release -- --force`, and reset any CDN rules pinning the old auth
+   host.
+5. **Flip traffic** — update DNS records to the new auth domain, redeploy the
+   staff app with the new SUPABASE URL, and verify `/api/healthz` plus a login
+   round-trip before calling the window complete.
+
+## 3b. Rollback & support paths
+
+- **Fast rollback**: restore DNS to the previous auth domain, redeploy the last
+  known-good build (tagged release), and re-run `supabase functions deploy` for
+  `metrics-exporter` so dashboards recover quickly.
+- **Database safety**: if a migration introduced auth breakage, run
+  `supabase migration revert --env prod` to back out the latest step, then lock
+  deployments until the fix is validated in staging.
+- **Support contacts**:
+  - Supabase support: raise a priority ticket via the dashboard and include the
+    project ref plus failing Edge function IDs.
+  - Cloudflare: open a P1 chat for DNS or caching regressions that block auth
+    callback redirects.
+  - Internal escalation: page the on-call engineer (PagerDuty) and the product
+    owner for customer comms; log impact and ETA in
+    `docs/operations/incidents.md`.
+
 ## 4. Observability & Alerting
 
 - **Structured logs**: `apps/admin/lib/observability/logger.ts` forwards every

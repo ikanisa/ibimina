@@ -1,15 +1,30 @@
 import React from "react";
-import { Text, View, StyleSheet } from "react-native";
-import { colors, radius, spacing } from "@theme/tokens";
+import { StyleSheet, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { radius, spacing } from "@theme/tokens";
+import { useNativeWindTheme } from "@theme/nativewind";
 
 interface IconBadgeProps {
-  symbol: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  label?: string;
 }
 
-export function IconBadge({ symbol }: IconBadgeProps) {
+export function IconBadge({ icon, label }: IconBadgeProps) {
+  const theme = useNativeWindTheme();
+
   return (
-    <View style={styles.container} accessibilityElementsHidden accessibilityLabel={symbol}>
-      <Text style={styles.symbol}>{symbol}</Text>
+    <View
+      style={styles.container}
+      className={`${theme.classes.surfaceTinted} ${theme.classes.border}`}
+      accessibilityRole="image"
+      accessibilityLabel={label ?? icon}
+    >
+      <Ionicons
+        name={icon}
+        size={20}
+        color={theme.palette.primaryAlt}
+        accessibilityElementsHidden
+      />
     </View>
   );
 }
@@ -19,12 +34,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radius.lg,
-    backgroundColor: colors.surfaceTinted,
     alignItems: "center",
     justifyContent: "center",
     marginRight: spacing.md,
-  },
-  symbol: {
-    fontSize: 18,
   },
 });

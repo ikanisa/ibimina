@@ -9,5 +9,6 @@ data class NfcUiState(
     val lastWrittenPayload: String? = null,
     val pendingTag: Tag? = null,
     val errorMessage: String? = null,
-    val infoMessage: String? = null
+    val infoMessage: String? = null,
+    val memberId: String? = null
 )

@@ -2,11 +2,13 @@
 
 ## Migration Status: ✅ SUCCESSFUL
 
-Your Ibimina SACCO+ platform has been successfully migrated to Replit and is now running!
+Your Ibimina SACCO+ platform has been successfully migrated to Replit and is now
+running!
 
 ## 🌐 Access Your Application
 
 **Admin Application (Staff Portal)**
+
 - **URL**: Available in the webview panel (top right)
 - **Port**: 5000
 - **Status**: ✅ Running
@@ -15,6 +17,7 @@ Your Ibimina SACCO+ platform has been successfully migrated to Replit and is now
 ## ✅ What's Been Set Up
 
 ### 1. Environment Configuration
+
 - ✅ PostgreSQL database created and configured
 - ✅ All required API keys and secrets configured:
   - Supabase credentials (URL, anon key, service role key)
@@ -23,18 +26,24 @@ Your Ibimina SACCO+ platform has been successfully migrated to Replit and is now
 - ✅ Development environment variables set up
 
 ### 2. Database
+
 - ✅ PostgreSQL 16.9 database provisioned
-- ✅ 89 database migrations executed (with expected warnings for Supabase-specific features)
+- ✅ 89 database migrations executed (with expected warnings for
+  Supabase-specific features)
 - ✅ Core tables created: saccos, members, transactions, payments, loans, etc.
-- ⚠️  **Note**: Some migrations reference Supabase Auth schema which doesn't exist in standard PostgreSQL. This is normal - authentication will work through your Supabase project.
+- ⚠️ **Note**: Some migrations reference Supabase Auth schema which doesn't
+  exist in standard PostgreSQL. This is normal - authentication will work
+  through your Supabase project.
 
 ### 3. Application Setup
+
 - ✅ All dependencies installed (pnpm workspaces)
 - ✅ Admin app running on port 5000
 - ✅ Next.js 16 with Turbopack enabled
 - ✅ Workflow configured and running
 
 ### 4. Deployment
+
 - ✅ Deployment configuration created for Replit's autoscale platform
 - ✅ Build and run commands configured
 - ✅ Ready for production deployment
@@ -75,6 +84,7 @@ ibimina/
    - Add a new user with admin privileges
 
 3. **Optional: Run Client App**
+
    ```bash
    # In the shell, run:
    cd apps/client && npx next dev -p 5001 -H 0.0.0.0
@@ -114,6 +124,7 @@ When ready to deploy to production:
 The repository contains two Android apps built with Capacitor:
 
 #### Admin App (Staff Mobile)
+
 ```bash
 cd apps/admin
 npm run cap:sync          # Sync web assets to native
@@ -124,6 +135,7 @@ npm run android:build:release  # Build release APK (requires signing)
 **APK Location**: `apps/admin/android/app/build/outputs/apk/`
 
 #### Client App (Member Mobile)
+
 ```bash
 cd apps/client
 npm run cap:sync
@@ -134,11 +146,13 @@ npm run android:build:release
 **APK Location**: `apps/client/android/app/build/outputs/apk/`
 
 ### Requirements for Building
+
 - Java JDK 11 or higher
 - Android SDK (API level 33+)
 - Gradle 8.0+
 
 **Note**: Building Android apps in Replit has limitations. For best results:
+
 1. Download the code from Replit
 2. Build on a local machine with Android Studio
 3. Or use CI/CD (GitHub Actions) to build APKs automatically
@@ -146,6 +160,7 @@ npm run android:build:release
 ## 🔒 Security & Secrets
 
 All sensitive credentials are stored securely in Replit Secrets:
+
 - ✅ `NEXT_PUBLIC_SUPABASE_URL`
 - ✅ `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - ✅ `SUPABASE_SERVICE_ROLE_KEY`
@@ -163,7 +178,7 @@ Comprehensive docs are available in the `docs/` folder:
 
 - **`docs/PROJECT_STRUCTURE.md`** - Architecture overview
 - **`docs/ENV_VARIABLES.md`** - All environment variables explained
-- **`docs/AUTHENTICATION_GUIDE.md`** - Auth & MFA setup
+- **`AUTHENTICATION_README.md`** - Supabase email + QR auth setup
 - **`docs/DB_GUIDE.md`** - Database procedures
 - **`docs/DEPLOYMENT_TODO.md`** - Production checklist
 - **`docs/ANDROID_IMPLEMENTATION_GUIDE.md`** - Mobile app setup
@@ -171,6 +186,7 @@ Comprehensive docs are available in the `docs/` folder:
 ## 🛠️ Development Commands
 
 ### Monorepo Commands (from root)
+
 ```bash
 pnpm dev                  # Start admin app
 pnpm build                # Build all apps & packages
@@ -180,6 +196,7 @@ pnpm typecheck            # TypeScript type checking
 ```
 
 ### Admin App Commands
+
 ```bash
 cd apps/admin
 pnpm dev                  # Start dev server (port 5000)
@@ -190,6 +207,7 @@ pnpm test:e2e             # End-to-end tests with Playwright
 ```
 
 ### Database Commands
+
 ```bash
 # Connect to Replit database
 psql $DATABASE_URL
@@ -204,6 +222,7 @@ psql $DATABASE_URL -c "\dt"
 ## ⚙️ Configured Workflows
 
 **admin-app** ✅ Running
+
 - **Command**: `cd apps/admin && npx next dev -p 5000 -H 0.0.0.0`
 - **Port**: 5000
 - **Type**: Webview
@@ -212,17 +231,20 @@ psql $DATABASE_URL -c "\dt"
 ## 🐛 Troubleshooting
 
 ### App Not Loading?
+
 1. Check workflow status in the left panel
 2. View logs by clicking on the workflow
 3. Restart the workflow if needed
 
 ### Database Connection Issues?
+
 ```bash
 # Test database connection
 psql $DATABASE_URL -c "SELECT version();"
 ```
 
 ### Build Errors?
+
 ```bash
 # Clear cache and rebuild
 rm -rf node_modules apps/*/node_modules
@@ -230,6 +252,7 @@ pnpm install
 ```
 
 ### Missing Dependencies?
+
 ```bash
 # Install all dependencies
 pnpm install
@@ -279,26 +302,33 @@ Before going live:
 
 ## 📝 Notes
 
-1. **Database**: Current setup uses Replit's PostgreSQL for development. For production, use your Supabase database.
+1. **Database**: Current setup uses Replit's PostgreSQL for development. For
+   production, use your Supabase database.
 
-2. **Authentication**: The app expects Supabase Auth. Some database migrations reference `auth.users` table which doesn't exist in plain PostgreSQL - this is normal and expected.
+2. **Authentication**: The app expects Supabase Auth. Some database migrations
+   reference `auth.users` table which doesn't exist in plain PostgreSQL - this
+   is normal and expected.
 
-3. **Supabase Features**: Features like Edge Functions, Realtime, and Storage are configured to work with your Supabase project (not Replit's database).
+3. **Supabase Features**: Features like Edge Functions, Realtime, and Storage
+   are configured to work with your Supabase project (not Replit's database).
 
-4. **pnpm**: The project uses pnpm for package management. Always use `pnpm` commands, not `npm` or `yarn`.
+4. **pnpm**: The project uses pnpm for package management. Always use `pnpm`
+   commands, not `npm` or `yarn`.
 
-5. **Ports**: 
+5. **Ports**:
    - 5000: Admin app (configured)
    - 5001: Client app (available)
    - 5002: Website (available)
 
-6. **Android Apps**: Building APKs requires Android SDK. Download the project and build locally or use CI/CD.
+6. **Android Apps**: Building APKs requires Android SDK. Download the project
+   and build locally or use CI/CD.
 
 ---
 
 ## 🎉 Success!
 
-Your Ibimina SACCO+ platform is now fully operational on Replit. The admin application is running and ready for you to test and customize!
+Your Ibimina SACCO+ platform is now fully operational on Replit. The admin
+application is running and ready for you to test and customize!
 
 **Last Updated**: October 31, 2025  
 **Migration By**: Replit Agent  

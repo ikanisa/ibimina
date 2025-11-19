@@ -6,17 +6,21 @@
 
 // Export types
 export type { LocaleCode, CountryContentPack, TranslationMessages } from "./types/index";
+export type { SurfaceCopy, CopyVariant } from "./surface-copy";
 
 // Export locale content packs
 export { rwRWContentPack, rwRWMessages } from "./locales/rw-RW";
 export { enRWContentPack, enRWMessages } from "./locales/en-RW";
 export { frSNContentPack, frSNMessages } from "./locales/fr-SN";
+export { frRWContentPack, frRWMessages } from "./locales/fr-RW";
+export { getSurfaceCopy, getSurfaceCopyVariant } from "./surface-copy";
 
 // Locale registry
 import type { LocaleCode, CountryContentPack, TranslationMessages } from "./types/index";
 import { rwRWContentPack, rwRWMessages } from "./locales/rw-RW";
 import { enRWContentPack, enRWMessages } from "./locales/en-RW";
 import { frSNContentPack, frSNMessages } from "./locales/fr-SN";
+import { frRWContentPack, frRWMessages } from "./locales/fr-RW";
 
 const DEFAULT_FALLBACK_LOCALE: LocaleCode = "en-RW";
 
@@ -26,6 +30,7 @@ const DEFAULT_FALLBACK_LOCALE: LocaleCode = "en-RW";
 export const contentPacks: Record<string, CountryContentPack> = {
   "rw-RW": rwRWContentPack,
   "en-RW": enRWContentPack,
+  "fr-RW": frRWContentPack,
   "fr-SN": frSNContentPack,
 };
 
@@ -35,6 +40,7 @@ export const contentPacks: Record<string, CountryContentPack> = {
 export const messages: Record<string, TranslationMessages> = {
   "rw-RW": rwRWMessages,
   "en-RW": enRWMessages,
+  "fr-RW": frRWMessages,
   "fr-SN": frSNMessages,
 };
 

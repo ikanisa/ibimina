@@ -40,3 +40,49 @@ groups:
           description: |
             At least one Playwright failure was reported in the last 30 minutes.
             Review the CI dashboard and trace artifacts to triage the regression.
+
+  - name: auth-and-admin-alerts
+    rules:
+      - alert: SupabaseMfaFailureRate
+        expr: |
+          increase(ibimina_system_metric_total{event="mfa_email_failure"}[10m])
+          /
+          clamp_min(increase(ibimina_system_metric_total{event="mfa_email_sent"}[10m]), 1)
+          > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          service: auth
+        annotations:
+          summary: "Supabase MFA email failure rate above 5%"
+          description: |
+            MFA delivery failures exceeded 5% of total sends for 10 minutes.
+            Check Resend status, SMTP credentials, and Supabase function logs for
+            mfa-email. Revert to backup OTP transport if needed.
+
+      - alert: SupabaseMfaSendStall
+        expr: rate(ibimina_system_metric_total{event="mfa_email_sent"}[30m]) == 0
+        for: 30m
+        labels:
+          severity: critical
+          service: auth
+        annotations:
+          summary: "Supabase MFA emails not sending"
+          description: |
+            No MFA emails have been sent in the past 30 minutes. Confirm the
+            mfa-email function is deployed and its cron/trigger is reachable, then
+            retry a login to validate recovery.
+
+      - alert: AdminAppHealthDown
+        expr: ibimina_health_up == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: admin
+        annotations:
+          summary: "Admin metrics/exporter offline"
+          description: |
+            The metrics-exporter endpoint is unreachable. This usually indicates
+            the admin Supabase functions or network ingress are down. Check
+            Supabase health, redeploy metrics-exporter, and verify the staff app
+            /api/healthz endpoint.
