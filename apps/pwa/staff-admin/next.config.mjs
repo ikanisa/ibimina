@@ -22,13 +22,21 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // TypeScript configuration
+  // TypeScript configuration - only ignore in local dev, not in CI
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: process.env.CI !== "true",
   },
-  // ESLint configuration - ignore during builds
+  // ESLint configuration - only ignore in local dev, not in CI
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: process.env.CI !== "true",
+  },
+  // Experimental optimizations for package imports
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@headlessui/react",
+      "framer-motion",
+    ],
   },
   // Webpack fallbacks for node: protocol and edge runtime
   webpack: (config, { isServer, webpack }) => {
