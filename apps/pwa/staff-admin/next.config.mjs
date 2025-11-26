@@ -22,13 +22,23 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // TypeScript configuration
+  // TypeScript configuration - conditionally ignore based on CI environment
+  // When CI="true" is set in Netlify, type checking will be enforced
+  // TODO: Fix database schema type errors before enabling CI="true" in netlify.toml
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: process.env.CI !== "true",
   },
-  // ESLint configuration - ignore during builds
+  // ESLint configuration - conditionally ignore based on CI environment
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: process.env.CI !== "true",
+  },
+  // Experimental optimizations for package imports
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "@headlessui/react",
+      "framer-motion",
+    ],
   },
   // Webpack fallbacks for node: protocol and edge runtime
   webpack: (config, { isServer, webpack }) => {
