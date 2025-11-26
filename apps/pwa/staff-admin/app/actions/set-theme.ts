@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { resolveTheme } from "../../../../../src/design/theme";
 
-type ThemeChoice = "light" | "dark" | "nyungwe";
+type ThemeChoice = "light" | "dark" | "high-contrast" | "nyungwe";
 
 export async function setTheme(theme: ThemeChoice) {
   const cookieStore = await cookies();
