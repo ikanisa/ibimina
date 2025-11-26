@@ -64,5 +64,8 @@ export async function POST(request: Request) {
     }
   } catch {}
 
-  return NextResponse.json({ ok: true, temporary_password: temporaryPassword });
+  return NextResponse.json({ 
+    ok: true, 
+    password_sent: Boolean(url && email) 
+  });
 }

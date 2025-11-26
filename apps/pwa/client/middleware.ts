@@ -74,11 +74,10 @@ const middlewareImpl = (request: NextRequest) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  let response: NextResponse;
   const { requestId } = securityContext;
 
   try {
-    response = NextResponse.next({
+    const response = NextResponse.next({
       request: { headers: securityContext.requestHeaders },
     });
 
