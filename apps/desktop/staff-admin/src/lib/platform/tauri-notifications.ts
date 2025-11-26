@@ -37,7 +37,7 @@ export class TauriNotifications implements NotificationAdapter {
     return `notif-${Date.now()}`;
   }
 
-  async cancel(id: string): Promise<void> {
+  async cancel(_id: string): Promise<void> {
     // Tauri doesn't support canceling individual notifications
     console.warn('Canceling individual notifications not supported on Tauri');
   }

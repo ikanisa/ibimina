@@ -10,7 +10,7 @@ import { TauriPrint } from './tauri-print';
 import { TauriHardware } from './tauri-hardware';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-shell';
-import { platform, version, type as osType } from '@tauri-apps/plugin-os';
+import { platform, version } from '@tauri-apps/plugin-os';
 
 export class TauriAdapter implements PlatformAdapter {
   public info: PlatformInfo;

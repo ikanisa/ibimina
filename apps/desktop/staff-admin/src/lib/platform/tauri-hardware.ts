@@ -1,5 +1,4 @@
 import type { HardwareAdapter } from '@ibimina/admin-core/adapters';
-import { invoke } from '@tauri-apps/api/core';
 
 export class TauriHardware implements HardwareAdapter {
   scanner = {
@@ -14,7 +13,7 @@ export class TauriHardware implements HardwareAdapter {
       console.warn('Scanner not yet implemented');
     },
 
-    onScan: (callback: (result: any) => void): (() => void) => {
+    onScan: (_callback: (result: any) => void): (() => void) => {
       // Set up scan event listener
       return () => {
         // Cleanup
@@ -35,7 +34,7 @@ export class TauriHardware implements HardwareAdapter {
       throw new Error('NFC not supported on desktop');
     },
 
-    onRead: (callback: (data: any) => void): (() => void) => {
+    onRead: (_callback: (data: any) => void): (() => void) => {
       return () => {};
     },
   };
@@ -45,7 +44,7 @@ export class TauriHardware implements HardwareAdapter {
 
     isEnrolled: async (): Promise<boolean> => false,
 
-    authenticate: async (reason: string): Promise<boolean> => {
+    authenticate: async (_reason: string): Promise<boolean> => {
       throw new Error('Biometrics not supported on desktop');
     },
   };

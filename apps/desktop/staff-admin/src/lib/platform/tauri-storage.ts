@@ -3,34 +3,40 @@ import { Store } from '@tauri-apps/plugin-store';
 import { invoke } from '@tauri-apps/api/core';
 
 export class TauriStorage implements StorageAdapter {
-  private store: Store;
+  private storePromise: Promise<Store>;
 
   constructor() {
-    this.store = new Store('ibimina-store.json');
+    // Store.load() is async in Tauri v2
+    this.storePromise = Store.load('ibimina-store.json');
   }
 
   async get<T>(key: string): Promise<T | null> {
-    const value = await this.store.get<T>(key);
+    const store = await this.storePromise;
+    const value = await store.get<T>(key);
     return value ?? null;
   }
 
   async set<T>(key: string, value: T): Promise<void> {
-    await this.store.set(key, value);
-    await this.store.save();
+    const store = await this.storePromise;
+    await store.set(key, value);
+    await store.save();
   }
 
   async remove(key: string): Promise<void> {
-    await this.store.delete(key);
-    await this.store.save();
+    const store = await this.storePromise;
+    await store.delete(key);
+    await store.save();
   }
 
   async clear(): Promise<void> {
-    await this.store.clear();
-    await this.store.save();
+    const store = await this.storePromise;
+    await store.clear();
+    await store.save();
   }
 
   async keys(): Promise<string[]> {
-    return await this.store.keys();
+    const store = await this.storePromise;
+    return await store.keys();
   }
 
   secure = {

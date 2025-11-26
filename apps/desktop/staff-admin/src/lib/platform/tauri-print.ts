@@ -11,7 +11,7 @@ export class TauriPrint implements PrintAdapter {
     return true; // Desktop always supports printing
   }
 
-  async printHtml(html: string, options?: PrintOptions): Promise<void> {
+  async printHtml(html: string, _options?: PrintOptions): Promise<void> {
     // For HTML printing, we can use the browser's print API
     // or invoke a custom Tauri command for native printing
     const printWindow = window.open('', '_blank');
@@ -43,7 +43,7 @@ export class TauriPrint implements PrintAdapter {
     }
   }
 
-  async setDefaultPrinter(printerId: string): Promise<void> {
+  async setDefaultPrinter(_printerId: string): Promise<void> {
     // This would need to be implemented as a Tauri command
     console.warn('Setting default printer not yet implemented');
   }
