@@ -1,0 +1,23 @@
+# Icon Placeholder
+
+Place your application icons in this directory:
+
+- `32x32.png` - 32x32 pixel PNG icon
+- `128x128.png` - 128x128 pixel PNG icon
+- `icon.icns` - macOS icon bundle
+- `icon.ico` - Windows icon file
+- `icon.png` - Default PNG icon for system tray
+
+You can generate these icons from a single source image using tools like:
+- `@tauri-apps/cli` icon command
+- Online icon generators
+- Image editing software (Photoshop, GIMP, etc.)
+
+## Generating Icons
+
+```bash
+# Using Tauri CLI
+pnpm tauri icon path/to/source-icon.png
+```
+
+This will automatically generate all required icon formats and place them in this directory.

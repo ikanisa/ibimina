@@ -21,6 +21,7 @@
     ],
     "baseUrl": ".",
     "paths": {
+      "@ibimina/admin-core": ["packages/admin-core/src/index.ts"],
       "@ibimina/ai-agent": ["packages/ai-agent/src/index.ts"],
       "@ibimina/api": ["packages/api/src/index.ts"],
       "@ibimina/api-contracts": ["packages/api-contracts/src/index.ts"],
