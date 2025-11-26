@@ -29,7 +29,7 @@ export function StaffBottomNav() {
     >
       <ul className="mx-auto flex max-w-xl items-center justify-between px-2 py-2 safe-area-inset-bottom">
         {STAFF_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname?.startsWith(`${href}/`);
+          const active = pathname === href || (href !== "/dashboard" && pathname?.startsWith(`${href}/`));
           return (
             <li key={href}>
               <Link

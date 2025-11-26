@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, useCallback, type ReactNode } from "react";
 import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +32,7 @@ export function PullToRefresh({
   const [startY, setStartY] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleTouchStart = (e: TouchEvent) => {
+  const handleTouchStart = useCallback((e: TouchEvent) => {
     if (disabled || isRefreshing) return;
     
     const container = containerRef.current;
@@ -42,9 +42,9 @@ export function PullToRefresh({
     if (container.scrollTop === 0) {
       setStartY(e.touches[0].clientY);
     }
-  };
+  }, [disabled, isRefreshing]);
 
-  const handleTouchMove = (e: TouchEvent) => {
+  const handleTouchMove = useCallback((e: TouchEvent) => {
     if (disabled || isRefreshing || startY === 0) return;
 
     const container = containerRef.current;
@@ -54,7 +54,7 @@ export function PullToRefresh({
     const distance = currentY - startY;
 
     if (distance > 0) {
-      // Prevent default scrolling behavior
+      // Prevent default scrolling behavior only when pulling
       e.preventDefault();
       
       // Apply resistance curve
@@ -62,9 +62,9 @@ export function PullToRefresh({
       const pull = Math.min(distance * resistance, maxPull);
       setPullDistance(pull);
     }
-  };
+  }, [disabled, isRefreshing, startY, maxPull]);
 
-  const handleTouchEnd = async () => {
+  const handleTouchEnd = useCallback(async () => {
     if (disabled || isRefreshing) return;
 
     if (pullDistance >= threshold) {
@@ -80,22 +80,23 @@ export function PullToRefresh({
 
     setStartY(0);
     setPullDistance(0);
-  };
+  }, [disabled, isRefreshing, pullDistance, threshold, onRefresh]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    container.addEventListener("touchstart", handleTouchStart, { passive: false });
+    // Only use passive: false for touchmove to allow preventDefault
+    container.addEventListener("touchstart", handleTouchStart, { passive: true });
     container.addEventListener("touchmove", handleTouchMove, { passive: false });
-    container.addEventListener("touchend", handleTouchEnd);
+    container.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
       container.removeEventListener("touchstart", handleTouchStart);
       container.removeEventListener("touchmove", handleTouchMove);
       container.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [startY, pullDistance, isRefreshing, disabled, threshold, maxPull]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const triggerProgress = Math.min(pullDistance / threshold, 1);
   const shouldTrigger = pullDistance >= threshold;

@@ -52,7 +52,8 @@ export default function MainLayoutError({ error, reset }: ErrorProps) {
             <p className="font-mono text-xs text-neutral-3 mb-1">Error ID: {error.digest}</p>
             {process.env.NODE_ENV === 'development' && error.message && (
               <p className="font-mono text-xs text-neutral-4 mt-2 text-left overflow-auto max-h-32">
-                {error.message}
+                {/* Sanitize error message to avoid exposing sensitive details */}
+                {error.message.replace(/\/[\w/.-]+/g, '[path]')}
               </p>
             )}
           </div>

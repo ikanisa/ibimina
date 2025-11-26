@@ -747,7 +747,7 @@ button {
 }
 
 .interactive-glow:hover {
-  box-shadow: 0 0 20px rgba(74, 112, 255, 0.4);
+  box-shadow: 0 0 20px var(--color-primary-500);
 }
 
 .interactive-bounce {
