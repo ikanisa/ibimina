@@ -22,11 +22,13 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // TypeScript configuration - only ignore in local dev, not in CI
+  // TypeScript configuration - conditionally ignore based on CI environment
+  // When CI="true" is set in Netlify, type checking will be enforced
+  // TODO: Fix database schema type errors before enabling CI="true" in netlify.toml
   typescript: {
     ignoreBuildErrors: process.env.CI !== "true",
   },
-  // ESLint configuration - only ignore in local dev, not in CI
+  // ESLint configuration - conditionally ignore based on CI environment
   eslint: {
     ignoreDuringBuilds: process.env.CI !== "true",
   },
