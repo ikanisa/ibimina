@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+target
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Tauri
+src-tauri/target
+src-tauri/Cargo.lock
