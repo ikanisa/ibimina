@@ -1,7 +1,7 @@
 "use client";
 
 import { Trans } from "@/components/common/trans";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { X } from "lucide-react";
 import { ManualMatchDialog } from "./ManualMatchDialog";
 import { useState } from "react";
 import type { MomoSmsInbox } from "../types";
@@ -36,7 +36,7 @@ export function MomoSmsDetail({ sms, onClose }: MomoSmsDetailProps) {
               onClick={onClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <XMarkIcon className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 

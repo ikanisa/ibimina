@@ -2,7 +2,7 @@
 
 import { Trans } from "@/components/common/trans";
 import { GlassCard } from "@/components/ui/glass-card";
-import { ArrowTrendingUpIcon, CheckCircleIcon, ClockIcon } from "@heroicons/react/24/outline";
+import { TrendingUp, CheckCircle, Clock } from "lucide-react";
 
 interface MomoInboxStatsProps {
   totalReceived: number;
@@ -29,7 +29,7 @@ export function MomoInboxStats({
             <p className="text-3xl font-bold mt-1">{totalReceived}</p>
           </div>
           <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-            <ArrowTrendingUpIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
       </GlassCard>
@@ -47,7 +47,7 @@ export function MomoInboxStats({
             <p className="text-xs text-gray-500 mt-1">{matchRate}% match rate</p>
           </div>
           <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-            <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
+            <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
           </div>
         </div>
       </GlassCard>
@@ -64,7 +64,7 @@ export function MomoInboxStats({
             </p>
           </div>
           <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-            <ClockIcon className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
           </div>
         </div>
       </GlassCard>

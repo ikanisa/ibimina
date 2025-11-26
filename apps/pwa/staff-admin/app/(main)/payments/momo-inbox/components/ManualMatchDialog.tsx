@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Trans } from "@/components/common/trans";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { X } from "lucide-react";
 import type { MomoSmsInbox } from "../types";
 
 type MomoSmsRow = MomoSmsInbox;
@@ -68,7 +68,7 @@ export function ManualMatchDialog({ sms, onClose, onMatch }: ManualMatchDialogPr
               onClick={onClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <XMarkIcon className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
