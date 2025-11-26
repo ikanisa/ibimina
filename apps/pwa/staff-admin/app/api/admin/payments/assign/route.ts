@@ -41,6 +41,10 @@ import { z } from "zod";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
 import { canReconcilePayments, isSystemAdmin } from "@/lib/permissions";
+import { sanitizeError } from "@/lib/errors";
+import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { CONSTANTS } from "@/lib/constants";
+import { getExtendedClient } from "@/lib/supabase/typed-client";
 
 const payloadSchema = z.object({
   ids: z.array(z.string().uuid()).min(1),
@@ -50,6 +54,14 @@ const payloadSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // Rate limiting: 10 requests per minute for payment assignment
+  const clientIP = await getClientIP();
+  const rateLimitResponse = await checkRateLimit(
+    `admin:assign-payment:${clientIP}`,
+    CONSTANTS.RATE_LIMIT.STRICT
+  );
+  if (rateLimitResponse) return rateLimitResponse;
+
   const auth = await requireUserAndProfile();
   if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -75,66 +87,77 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "ikiminaId is required" }, { status: 400 });
   }
 
-  const userProfile = auth.profile;
-  const supabase = createSupabaseServiceRoleClient("admin/payments/assign");
+  try {
+    const userProfile = auth.profile;
+    const supabase = createSupabaseServiceRoleClient("admin/payments/assign");
+    const extendedClient = getExtendedClient(supabase);
 
-  // Determine SACCO scope for authorization
-  const saccoScope = saccoId ?? userProfile.sacco_id ?? null;
-  if (!isSystemAdmin(userProfile)) {
-    if (!saccoScope || !canReconcilePayments(userProfile, saccoScope)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Determine SACCO scope for authorization
+    const saccoScope = saccoId ?? userProfile.sacco_id ?? null;
+    if (!isSystemAdmin(userProfile)) {
+      if (!saccoScope || !canReconcilePayments(userProfile, saccoScope)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
-  }
 
-  // Verify ikimina exists and user has access to its SACCO
-  const { data: ikiminaRow, error: ikiminaError } = await supabase
-    .schema("app")
-    .from("ikimina")
-    .select("id, sacco_id")
-    .eq("id", ikiminaId)
-    .maybeSingle();
+    // Verify ikimina exists and user has access to its SACCO
+    const { data: ikiminaRow, error: ikiminaError } = await extendedClient
+      .schema("app")
+      .from("ikimina")
+      .select("id, sacco_id")
+      .eq("id", ikiminaId)
+      .maybeSingle();
 
-  if (ikiminaError || !ikiminaRow) {
-    return NextResponse.json(
-      { error: ikiminaError?.message ?? "Ikimina not found" },
-      { status: 404 }
-    );
-  }
-
-  if (!isSystemAdmin(userProfile) && ikiminaRow.sacco_id !== userProfile.sacco_id) {
-    return NextResponse.json({ error: "Ikimina belongs to a different SACCO" }, { status: 403 });
-  }
-
-  // Build update payload - assign ikimina and optionally member
-  const updatePayload: Record<string, unknown> = { ikimina_id: ikiminaId };
-  if (memberId !== undefined) {
-    updatePayload.member_id = memberId;
-  }
-
-  // Update payments with SACCO scope enforcement
-  let query = supabase
-    .schema("app")
-    .from("payments")
-    .update(updatePayload)
-    .in("id", ids)
-    .select("id");
-
-  if (!isSystemAdmin(userProfile)) {
-    if (!userProfile.sacco_id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (ikiminaError || !ikiminaRow) {
+      const sanitized = sanitizeError(ikiminaError);
+      return NextResponse.json(
+        { error: sanitized.message, code: sanitized.code },
+        { status: 404 }
+      );
     }
-    query = query.eq("sacco_id", userProfile.sacco_id);
-  } else if (saccoId) {
-    query = query.eq("sacco_id", saccoId);
-  }
 
-  const { data, error } = await query;
-  if (error) {
+    if (!isSystemAdmin(userProfile) && ikiminaRow.sacco_id !== userProfile.sacco_id) {
+      return NextResponse.json({ error: "Ikimina belongs to a different SACCO" }, { status: 403 });
+    }
+
+    // Build update payload - assign ikimina and optionally member
+    const updatePayload: Record<string, unknown> = { ikimina_id: ikiminaId };
+    if (memberId !== undefined) {
+      updatePayload.member_id = memberId;
+    }
+
+    // Update payments with SACCO scope enforcement
+    let query = extendedClient
+      .schema("app")
+      .from("payments")
+      .update(updatePayload)
+      .in("id", ids)
+      .select("id");
+
+    if (!isSystemAdmin(userProfile)) {
+      if (!userProfile.sacco_id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      query = query.eq("sacco_id", userProfile.sacco_id);
+    } else if (saccoId) {
+      query = query.eq("sacco_id", saccoId);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      const sanitized = sanitizeError(error);
+      return NextResponse.json(
+        { error: sanitized.message, code: sanitized.code },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ updated: data?.length ?? 0 });
+  } catch (error) {
+    const sanitized = sanitizeError(error);
     return NextResponse.json(
-      { error: error.message ?? "Failed to assign payments" },
+      { error: sanitized.message, code: sanitized.code },
       { status: 500 }
     );
   }
-
-  return NextResponse.json({ updated: data?.length ?? 0 });
 }

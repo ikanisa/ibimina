@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { guardAdminAction } from "@/lib/admin/guard";
 import { supabaseSrv } from "@/lib/supabase/server";
+import { getExtendedClient } from "@/lib/supabase/typed-client";
+import { sanitizeError } from "@/lib/errors";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,16 +15,32 @@ export async function GET(request: Request) {
   );
   if (guard.denied) return guard.result;
 
-  const supabase = supabaseSrv();
+  try {
+    const supabase = supabaseSrv();
+    const extendedClient = getExtendedClient(supabase);
 
-  const { data, error } = await (supabase as any)
-    .schema("app")
-    .from("org_memberships")
-    .select("org_id, role, created_at, organizations(name, type)")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-  if (error) return NextResponse.json({ error: error.message ?? "Failed" }, { status: 500 });
-  return NextResponse.json({ memberships: data ?? [] });
+    const { data, error } = await extendedClient
+      .schema("app")
+      .from("org_memberships")
+      .select("org_id, role, created_at, organizations(name, type)")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+      
+    if (error) {
+      const sanitized = sanitizeError(error);
+      return NextResponse.json(
+        { error: sanitized.message, code: sanitized.code },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ memberships: data ?? [] });
+  } catch (error) {
+    const sanitized = sanitizeError(error);
+    return NextResponse.json(
+      { error: sanitized.message, code: sanitized.code },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -44,14 +62,30 @@ export async function POST(request: Request) {
   );
   if (guard.denied) return guard.result;
 
-  const supabase = supabaseSrv();
+  try {
+    const supabase = supabaseSrv();
+    const extendedClient = getExtendedClient(supabase);
 
-  const { error } = await (supabase as any)
-    .schema("app")
-    .from("org_memberships")
-    .upsert({ user_id: userId, org_id: orgId, role }, { onConflict: "user_id,org_id" });
-  if (error) return NextResponse.json({ error: error.message ?? "Failed" }, { status: 500 });
-  return NextResponse.json({ ok: true });
+    const { error } = await extendedClient
+      .schema("app")
+      .from("org_memberships")
+      .upsert({ user_id: userId, org_id: orgId, role }, { onConflict: "user_id,org_id" });
+      
+    if (error) {
+      const sanitized = sanitizeError(error);
+      return NextResponse.json(
+        { error: sanitized.message, code: sanitized.code },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const sanitized = sanitizeError(error);
+    return NextResponse.json(
+      { error: sanitized.message, code: sanitized.code },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(request: Request) {
@@ -67,14 +101,30 @@ export async function DELETE(request: Request) {
   );
   if (guard.denied) return guard.result;
 
-  const supabase = supabaseSrv();
+  try {
+    const supabase = supabaseSrv();
+    const extendedClient = getExtendedClient(supabase);
 
-  const { error } = await (supabase as any)
-    .schema("app")
-    .from("org_memberships")
-    .delete()
-    .eq("user_id", userId)
-    .eq("org_id", orgId);
-  if (error) return NextResponse.json({ error: error.message ?? "Failed" }, { status: 500 });
-  return NextResponse.json({ ok: true });
+    const { error } = await extendedClient
+      .schema("app")
+      .from("org_memberships")
+      .delete()
+      .eq("user_id", userId)
+      .eq("org_id", orgId);
+      
+    if (error) {
+      const sanitized = sanitizeError(error);
+      return NextResponse.json(
+        { error: sanitized.message, code: sanitized.code },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const sanitized = sanitizeError(error);
+    return NextResponse.json(
+      { error: sanitized.message, code: sanitized.code },
+      { status: 500 }
+    );
+  }
 }

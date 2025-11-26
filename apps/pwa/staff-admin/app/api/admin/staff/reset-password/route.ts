@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
-import crypto from "node:crypto";
 import { guardAdminAction } from "@/lib/admin/guard";
 import { supabaseSrv } from "@/lib/supabase/server";
+import { getSupabaseAuthAdmin } from "@/lib/supabase/typed-client";
+import { generateSecurePassword } from "@/lib/crypto";
+import { sanitizeError } from "@/lib/errors";
+import { CONSTANTS } from "@/lib/constants";
 
 export async function POST(request: Request) {
   const { user_id: userId, email } = (await request.json().catch(() => ({}))) as {
@@ -25,21 +28,51 @@ export async function POST(request: Request) {
 
   if (guard.denied) return guard.result;
 
-  const supabase = supabaseSrv();
-  const temporaryPassword = crypto
-    .randomBytes(12)
-    .toString("base64")
-    .replace(/[^a-zA-Z0-9]/g, "")
-    .slice(0, 16);
+  try {
+    const supabase = supabaseSrv();
+    const temporaryPassword = generateSecurePassword(CONSTANTS.PASSWORD.DEFAULT_LENGTH);
 
-  const admin = (supabase as any).auth.admin;
-  const { error: updateError } = await admin.updateUserById(userId, {
-    password: temporaryPassword,
-    user_metadata: { pw_reset_required: true },
-  });
-  if (updateError) {
+    const admin = getSupabaseAuthAdmin(supabase);
+    const { error: updateError } = await admin.updateUserById(userId, {
+      password: temporaryPassword,
+      user_metadata: { pw_reset_required: true },
+    });
+    
+    if (updateError) {
+      const sanitized = sanitizeError(updateError);
+      return NextResponse.json(
+        { error: sanitized.message, code: sanitized.code },
+        { status: 500 }
+      );
+    }
+
+    // Optional: email webhook
+    try {
+      const url = process.env.EMAIL_WEBHOOK_URL;
+      const key = process.env.EMAIL_WEBHOOK_KEY;
+      if (url && email) {
+        await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(key ? { Authorization: `Bearer ${key}` } : {}),
+          },
+          body: JSON.stringify({
+            to: email,
+            subject: "Your temporary password",
+            html: `<p>Temporary password: <b>${temporaryPassword}</b></p><p>Set a new password at first login.</p>`,
+          }),
+        }).catch(() => void 0);
+      }
+    } catch {
+      // Email failure shouldn't block password reset
+    }
+
+    return NextResponse.json({ ok: true, temporary_password: temporaryPassword });
+  } catch (error) {
+    const sanitized = sanitizeError(error);
     return NextResponse.json(
-      { error: updateError.message ?? "Failed to reset password" },
+      { error: sanitized.message, code: sanitized.code },
       { status: 500 }
     );
   }

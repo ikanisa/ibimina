@@ -40,6 +40,9 @@ import { logError } from "@/lib/observability/logger";
 import { logAudit } from "@/lib/audit";
 import { guardAdminAction } from "@/lib/admin/guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { sanitizeError } from "@/lib/errors";
+import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { CONSTANTS } from "@/lib/constants";
 
 type ResetPayload = {
   userId?: string;
@@ -48,6 +51,14 @@ type ResetPayload = {
 };
 
 export async function POST(request: NextRequest) {
+  // Rate limiting: 5 requests per 5 minutes for MFA reset (sensitive operation)
+  const clientIP = await getClientIP();
+  const rateLimitResponse = await checkRateLimit(
+    `admin:mfa-reset:${clientIP}`,
+    CONSTANTS.RATE_LIMIT.AUTH
+  );
+  if (rateLimitResponse) return rateLimitResponse;
+
   // Guard: Only SYSTEM_ADMIN can reset MFA
   const guard = await guardAdminAction(
     {
@@ -63,75 +74,92 @@ export async function POST(request: NextRequest) {
     return guard.result;
   }
 
-  const { supabase, user } = guard.context;
-  const body = (await request.json().catch(() => null)) as ResetPayload | null;
-  if (!body || (!body.userId && !body.email) || !body.reason) {
-    return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
+  try {
+    const { supabase, user } = guard.context;
+    const body = (await request.json().catch(() => null)) as ResetPayload | null;
+    if (!body || (!body.userId && !body.email) || !body.reason) {
+      return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
+    }
+
+    // Locate target user by id or email
+    type TargetRow = {
+      id: string;
+      email: string | null;
+      mfa_enabled: boolean | null;
+      mfa_secret_enc: string | null;
+    };
+
+    const query = supabase.from("users").select("id, email, mfa_enabled, mfa_secret_enc").limit(1);
+
+    const { data: foundById } = body.userId ? await query.eq("id", body.userId) : { data: null };
+
+    const { data: foundByEmail } =
+      !foundById?.[0] && body.email
+        ? await supabase
+            .from("users")
+            .select("id, email, mfa_enabled, mfa_secret_enc")
+            .eq("email", body.email)
+            .limit(1)
+        : { data: null };
+
+    const target = ((foundById ?? foundByEmail)?.[0] as TargetRow | undefined) ?? null;
+    if (!target) {
+      return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+    }
+
+    // Reset all MFA settings to defaults
+    // This clears TOTP secrets, backup codes, and enrollment timestamps
+    const updatePayload = {
+      mfa_enabled: false,
+      mfa_secret_enc: null,
+      mfa_enrolled_at: null,
+      mfa_backup_hashes: [],
+      mfa_methods: [CONSTANTS.MFA_METHODS.EMAIL], // Email OTP remains available
+      failed_mfa_count: 0,
+      last_mfa_step: null,
+      last_mfa_success_at: null,
+    };
+
+    const { error: updateError } = await supabase
+      .from("users")
+      .update(updatePayload)
+      .eq("id", target.id);
+
+    if (updateError) {
+      logError("admin mfa reset: update failed", updateError);
+      const sanitized = sanitizeError(updateError);
+      return NextResponse.json(
+        { error: sanitized.message, code: sanitized.code },
+        { status: 500 }
+      );
+    }
+
+    // Clear all trusted devices to force fresh authentication
+    const trustedDelete = await supabase.from("trusted_devices").delete().eq("user_id", target.id);
+    if (trustedDelete.error) {
+      logError("admin mfa reset: trusted devices delete failed", trustedDelete.error);
+      const sanitized = sanitizeError(trustedDelete.error);
+      return NextResponse.json(
+        { error: sanitized.message, code: sanitized.code },
+        { status: 500 }
+      );
+    }
+
+    // Create immutable audit log entry for compliance tracking
+    await logAudit({
+      action: "MFA_RESET",
+      entity: "USER",
+      entityId: target.id,
+      diff: { reason: body.reason, actor: user.id },
+    });
+
+    return NextResponse.json({ success: true, userId: target.id });
+  } catch (error) {
+    logError("admin mfa reset: unexpected error", error);
+    const sanitized = sanitizeError(error);
+    return NextResponse.json(
+      { error: sanitized.message, code: sanitized.code },
+      { status: 500 }
+    );
   }
-
-  // Locate target user by id or email
-  type TargetRow = {
-    id: string;
-    email: string | null;
-    mfa_enabled: boolean | null;
-    mfa_secret_enc: string | null;
-  };
-
-  const query = supabase.from("users").select("id, email, mfa_enabled, mfa_secret_enc").limit(1);
-
-  const { data: foundById } = body.userId ? await query.eq("id", body.userId) : { data: null };
-
-  const { data: foundByEmail } =
-    !foundById?.[0] && body.email
-      ? await supabase
-          .from("users")
-          .select("id, email, mfa_enabled, mfa_secret_enc")
-          .eq("email", body.email)
-          .limit(1)
-      : { data: null };
-
-  const target = ((foundById ?? foundByEmail)?.[0] as TargetRow | undefined) ?? null;
-  if (!target) {
-    return NextResponse.json({ error: "user_not_found" }, { status: 404 });
-  }
-
-  // Reset all MFA settings to defaults
-  // This clears TOTP secrets, backup codes, and enrollment timestamps
-  const updatePayload = {
-    mfa_enabled: false,
-    mfa_secret_enc: null,
-    mfa_enrolled_at: null,
-    mfa_backup_hashes: [],
-    mfa_methods: ["EMAIL"], // Email OTP remains available
-    failed_mfa_count: 0,
-    last_mfa_step: null,
-    last_mfa_success_at: null,
-  };
-
-  const { error: updateError } = await (supabase as any)
-    .from("users")
-    .update(updatePayload)
-    .eq("id", target.id);
-
-  if (updateError) {
-    logError("admin mfa reset: update failed", updateError);
-    return NextResponse.json({ error: "update_failed" }, { status: 500 });
-  }
-
-  // Clear all trusted devices to force fresh authentication
-  const trustedDelete = await supabase.from("trusted_devices").delete().eq("user_id", target.id);
-  if (trustedDelete.error) {
-    logError("admin mfa reset: trusted devices delete failed", trustedDelete.error);
-    return NextResponse.json({ error: "trusted_cleanup_failed" }, { status: 500 });
-  }
-
-  // Create immutable audit log entry for compliance tracking
-  await logAudit({
-    action: "MFA_RESET",
-    entity: "USER",
-    entityId: target.id,
-    diff: { reason: body.reason, actor: user.id },
-  });
-
-  return NextResponse.json({ success: true, userId: target.id });
 }

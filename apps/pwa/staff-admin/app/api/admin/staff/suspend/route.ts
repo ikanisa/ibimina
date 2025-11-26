@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { guardAdminAction } from "@/lib/admin/guard";
 import { supabaseSrv } from "@/lib/supabase/server";
+import { sanitizeError } from "@/lib/errors";
 
 export async function PATCH(request: Request) {
   const { user_id: userId, suspended } = (await request.json().catch(() => ({}))) as {
@@ -23,11 +24,23 @@ export async function PATCH(request: Request) {
   );
   if (guard.denied) return guard.result;
 
-  const supabase = supabaseSrv();
+  try {
+    const supabase = supabaseSrv();
 
-  const { error } = await (supabase as any).from("users").update({ suspended }).eq("id", userId);
-  if (error) {
-    return NextResponse.json({ error: error.message ?? "Failed to update" }, { status: 500 });
+    const { error } = await supabase.from("users").update({ suspended }).eq("id", userId);
+    if (error) {
+      const sanitized = sanitizeError(error);
+      return NextResponse.json(
+        { error: sanitized.message, code: sanitized.code },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ ok: true, suspended });
+  } catch (error) {
+    const sanitized = sanitizeError(error);
+    return NextResponse.json(
+      { error: sanitized.message, code: sanitized.code },
+      { status: 500 }
+    );
   }
-  return NextResponse.json({ ok: true, suspended });
 }
