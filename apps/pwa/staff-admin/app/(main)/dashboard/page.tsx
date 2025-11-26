@@ -19,6 +19,7 @@ import { Trans } from "@/components/common/trans";
 import { TopIkiminaTable } from "@/components/dashboard/top-ikimina-table";
 import { logError } from "@/lib/observability/logger";
 import { QueuedSyncSummary } from "@/components/system/queued-sync-summary";
+import { FeedbackMessage } from "@/components/common/feedback-message";
 
 export const runtime = "nodejs";
 
