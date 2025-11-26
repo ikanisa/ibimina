@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logError, logInfo } from "@/lib/observability/logger";
-import { AppError } from "./errors";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
