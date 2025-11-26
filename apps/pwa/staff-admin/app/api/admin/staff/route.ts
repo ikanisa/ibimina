@@ -58,11 +58,12 @@ export async function GET(request: Request) {
 
   let scopedUserIds: string[] | null = null;
   if (orgType) {
-    let membershipQuery: any = supabase
+    let membershipQuery = supabase
       .schema("app")
       .from("org_memberships")
-      .select("user_id, org_id, organizations(type)");
-    membershipQuery = membershipQuery.eq("organizations.type", orgType);
+      .select("user_id, org_id, organizations(type)")
+      .eq("organizations.type", orgType);
+    
     if (orgId) {
       membershipQuery = membershipQuery.eq("org_id", orgId);
     }
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
     scopedUserIds = ids;
   }
 
-  let query: any = supabase
+  let query = supabase
     .from("users")
     .select("id, email, role, sacco_id, created_at, suspended, saccos: saccos(name)");
 
