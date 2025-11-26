@@ -521,6 +521,17 @@ export const designTokens = {
     typography: typographyTokens,
     motion: motionTokens,
   },
+  "high-contrast": {
+    // High-contrast uses dark theme with enhanced contrast
+    // TODO: Create dedicated high-contrast color palette
+    colors: colorsDark,
+    state: stateDark,
+    spacing: spacingScale,
+    radii: radiiScale,
+    shadows: shadowsDark,
+    typography: typographyTokens,
+    motion: motionTokens,
+  },
 } as const satisfies Record<ThemeName, unknown>;
 
 export type ThemeDefinition = (typeof designTokens)[ThemeName];
