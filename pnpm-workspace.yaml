@@ -1,6 +1,7 @@
 packages:
   - apps/pwa/*
   - apps/mobile/*
+  - apps/desktop/*
   - apps/website
   - packages/*
 

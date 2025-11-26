@@ -2,7 +2,7 @@
  * Type-safe TypeScript bindings for Tauri Rust commands
  */
 
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 
 // ============================================================================
@@ -203,17 +203,11 @@ export function isTauri(): boolean {
 export async function getPlatform(): Promise<'windows' | 'macos' | 'linux' | 'unknown'> {
   if (!isTauri()) return 'unknown';
   
-  const { platform } = await import('@tauri-apps/api/os');
-  const platformName = await platform();
+  const { platform } = await import('@tauri-apps/plugin-os');
+  const platformType = await platform();
   
-  switch (platformName) {
-    case 'win32':
-      return 'windows';
-    case 'darwin':
-      return 'macos';
-    case 'linux':
-      return 'linux';
-    default:
-      return 'unknown';
-  }
+  if (platformType === 'windows') return 'windows';
+  if (platformType === 'macos') return 'macos';
+  if (platformType === 'linux') return 'linux';
+  return 'unknown';
 }

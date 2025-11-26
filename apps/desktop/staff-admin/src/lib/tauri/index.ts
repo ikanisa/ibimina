@@ -8,6 +8,6 @@
 export * from './commands';
 
 // Re-export commonly used Tauri APIs
-export { invoke } from '@tauri-apps/api/tauri';
+export { invoke } from '@tauri-apps/api/core';
 export { listen, emit } from '@tauri-apps/api/event';
-export { appWindow } from '@tauri-apps/api/window';
+export { getCurrentWindow } from '@tauri-apps/api/window';
