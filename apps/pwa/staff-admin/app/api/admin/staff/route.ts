@@ -95,6 +95,46 @@ export async function GET(request: Request) {
       }
       scopedUserIds = ids;
     }
+  const supabase = supabaseSrv();
+
+  let scopedUserIds: string[] | null = null;
+  if (orgType) {
+    let membershipQuery = supabase
+      .schema("app")
+      .from("org_memberships")
+      .select("user_id, org_id, organizations(type)")
+      .eq("organizations.type", orgType);
+    
+    if (orgId) {
+      membershipQuery = membershipQuery.eq("org_id", orgId);
+    }
+    const membershipResult = await membershipQuery;
+    if (membershipResult.error && !isMissingRelationError(membershipResult.error)) {
+      return NextResponse.json({ error: "Failed to load memberships" }, { status: 500 });
+    }
+    const rows = (membershipResult.data ?? []) as Array<{ user_id: string | null }>;
+    const ids = Array.from(
+      new Set(
+        rows
+          .map((row) => row.user_id)
+          .filter((value): value is string => typeof value === "string" && value.length > 0)
+      )
+    );
+    if (ids.length === 0) {
+      return NextResponse.json({ users: [] });
+    }
+    scopedUserIds = ids;
+  }
+
+  let query = supabase
+    .from("users")
+    .select("id, email, role, sacco_id, created_at, suspended, saccos: saccos(name)");
+
+  if (role) query = query.eq("role", role);
+  if (saccoId) query = query.eq("sacco_id", saccoId);
+  if (status === "active") query = query.eq("suspended", false);
+  if (status === "suspended") query = query.eq("suspended", true);
+  if (scopedUserIds) query = query.in("id", scopedUserIds);
 
     let query = supabase
       .from("users")

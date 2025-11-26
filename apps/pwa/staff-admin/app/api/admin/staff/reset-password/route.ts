@@ -76,4 +76,29 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+
+  // Optional: email webhook
+  try {
+    const url = process.env.EMAIL_WEBHOOK_URL;
+    const key = process.env.EMAIL_WEBHOOK_KEY;
+    if (url && email) {
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(key ? { Authorization: `Bearer ${key}` } : {}),
+        },
+        body: JSON.stringify({
+          to: email,
+          subject: "Your temporary password",
+          html: `<p>Temporary password: <b>${temporaryPassword}</b></p><p>Set a new password at first login.</p>`,
+        }),
+      }).catch(() => void 0);
+    }
+  } catch {}
+
+  return NextResponse.json({ 
+    ok: true, 
+    password_sent: Boolean(url && email) 
+  });
 }
