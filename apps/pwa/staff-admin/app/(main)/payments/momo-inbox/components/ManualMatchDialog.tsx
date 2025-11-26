@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Trans } from "@/components/common/trans";
-import type { Database } from "@/lib/supabase/types";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import type { MomoSmsInbox } from "../types";
 
-type MomoSmsRow = Database["app"]["Tables"]["momo_sms_inbox"]["Row"];
+type MomoSmsRow = MomoSmsInbox;
 
 interface ManualMatchDialogProps {
   sms: MomoSmsRow;

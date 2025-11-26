@@ -8,12 +8,12 @@ import { GradientHeader } from "@/components/ui/gradient-header";
 import { GlassCard } from "@/components/ui/glass-card";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
 import { Trans } from "@/components/common/trans";
 import { MomoInboxTable } from "./components/MomoInboxTable";
 import { MomoInboxStats } from "./components/MomoInboxStats";
+import type { MomoSmsInbox } from "./types";
 
-type MomoSmsRow = Database["app"]["Tables"]["momo_sms_inbox"]["Row"];
+type MomoSmsRow = MomoSmsInbox;
 
 const GUEST_MODE = process.env.AUTH_GUEST_MODE === "1";
 

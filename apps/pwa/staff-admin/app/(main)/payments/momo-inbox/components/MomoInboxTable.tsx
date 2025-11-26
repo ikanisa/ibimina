@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { Trans } from "@/components/common/trans";
 import { StatusChip } from "@/components/common/status-chip";
-import type { Database } from "@/lib/supabase/types";
 import { MomoSmsDetail } from "./MomoSmsDetail";
 import { formatDistanceToNow } from "date-fns";
+import type { MomoSmsInbox } from "../types";
 
-type MomoSmsRow = Database["app"]["Tables"]["momo_sms_inbox"]["Row"];
+type MomoSmsRow = MomoSmsInbox;
 
 interface MomoInboxTableProps {
   messages: MomoSmsRow[];

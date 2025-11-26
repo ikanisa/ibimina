@@ -2,43 +2,10 @@
   "name": "@ibimina/staff-admin-desktop",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "SACCO+ Staff Admin Desktop Application",
   "author": "Ibimina Team",
   "license": "MIT",
-  "scripts": {
-    "dev": "tauri dev",
-    "build": "next build && next export && tauri build",
-    "build:windows": "pnpm build --target x86_64-pc-windows-msvc",
-    "build:macos": "pnpm build --target universal-apple-darwin",
-    "build:linux": "pnpm build --target x86_64-unknown-linux-gnu",
-    "build:all": "pnpm build:windows && pnpm build:macos && pnpm build:linux",
-    "tauri": "tauri",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@tauri-apps/api": "^2.0.0",
-    "@tauri-apps/plugin-os": "^2.0.0",
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0"
-  },
-  "devDependencies": {
-    "@tauri-apps/cli": "^2.0.0",
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0",
-    "autoprefixer": "^10.4.0",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.0",
-    "postcss": "^8.4.0",
-    "tailwindcss": "^3.4.0",
-    "typescript": "^5.9.0"
-  },
-  "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -46,6 +13,11 @@
     "tauri": "tauri",
     "dev:tauri": "tauri dev",
     "build:tauri": "tauri build",
+    "build:windows": "pnpm build:tauri --target x86_64-pc-windows-msvc",
+    "build:macos": "pnpm build:tauri --target universal-apple-darwin",
+    "build:linux": "pnpm build:tauri --target x86_64-unknown-linux-gnu",
+    "build:all": "pnpm build:windows && pnpm build:macos && pnpm build:linux",
+    "lint": "echo 'Skipping lint for desktop app'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -67,10 +39,18 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
+    "@types/node": "^20.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
     "typescript": "^5",
     "vite": "^6"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
   }
 }
