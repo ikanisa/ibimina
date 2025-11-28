@@ -1,7 +1,5 @@
-'use client';
-
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface GeminiQuota {
   used: number;
@@ -15,141 +13,107 @@ interface AIState {
   voiceCommandsEnabled: boolean;
   analyticsEnabled: boolean;
   accessibilityEnabled: boolean;
-  geminiQuota: GeminiQuota;
-  isLoading: boolean;
+  geminiQuota: GeminiQuota | null;
+  loading: boolean;
 }
 
 interface AIContextType {
   state: AIState;
   refreshQuota: () => Promise<void>;
-  enableFeature: (feature: keyof Omit<AIState, 'geminiQuota' | 'isLoading'>) => Promise<void>;
-  disableFeature: (feature: keyof Omit<AIState, 'geminiQuota' | 'isLoading'>) => Promise<void>;
-  checkFeatureAvailability: (feature: string) => boolean;
+  enableFeature: (feature: keyof Omit<AIState, "geminiQuota" | "loading">) => Promise<void>;
+  disableFeature: (feature: keyof Omit<AIState, "geminiQuota" | "loading">) => Promise<void>;
 }
 
 const AIContext = createContext<AIContextType | null>(null);
 
-const DEFAULT_STATE: AIState = {
-  documentsEnabled: false,
-  fraudDetectionEnabled: false,
-  voiceCommandsEnabled: false,
-  analyticsEnabled: false,
-  accessibilityEnabled: true,
-  geminiQuota: {
-    used: 0,
-    limit: 100,
-    resetAt: new Date(Date.now() + 3600000),
-  },
-  isLoading: false,
-};
-
 export function AIProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AIState>(DEFAULT_STATE);
+  const [state, setState] = useState<AIState>({
+    documentsEnabled: false,
+    fraudDetectionEnabled: false,
+    voiceCommandsEnabled: false,
+    analyticsEnabled: false,
+    accessibilityEnabled: true,
+    geminiQuota: null,
+    loading: true,
+  });
+
   const supabase = createClient();
 
   useEffect(() => {
-    loadAIState();
+    loadFeatureFlags();
+    refreshQuota();
   }, []);
 
-  const loadAIState = async () => {
-    setState(prev => ({ ...prev, isLoading: true }));
-
+  async function loadFeatureFlags() {
     try {
-      const { data: flags } = await supabase
-        .from('global_feature_flags')
-        .select('key, enabled')
-        .in('key', [
-          'ai_document_scanning',
-          'ai_fraud_detection',
-          'voice_commands',
-          'realtime_analytics',
-          'accessibility_enhanced',
+      const { data } = await supabase
+        .from("global_feature_flags")
+        .select("key, enabled")
+        .in("key", [
+          "ai_document_scanning",
+          "ai_fraud_detection",
+          "voice_commands",
+          "realtime_analytics",
+          "accessibility_enhanced",
         ]);
 
-      if (flags) {
-        const flagMap = Object.fromEntries(flags.map(f => [f.key, f.enabled]));
-
-        setState(prev => ({
+      if (data) {
+        setState((prev) => ({
           ...prev,
-          documentsEnabled: flagMap.ai_document_scanning ?? false,
-          fraudDetectionEnabled: flagMap.ai_fraud_detection ?? false,
-          voiceCommandsEnabled: flagMap.voice_commands ?? false,
-          analyticsEnabled: flagMap.realtime_analytics ?? false,
-          accessibilityEnabled: flagMap.accessibility_enhanced ?? true,
+          documentsEnabled: data.find((f) => f.key === "ai_document_scanning")?.enabled || false,
+          fraudDetectionEnabled: data.find((f) => f.key === "ai_fraud_detection")?.enabled || false,
+          voiceCommandsEnabled: data.find((f) => f.key === "voice_commands")?.enabled || false,
+          analyticsEnabled: data.find((f) => f.key === "realtime_analytics")?.enabled || false,
+          accessibilityEnabled:
+            data.find((f) => f.key === "accessibility_enhanced")?.enabled || true,
+          loading: false,
         }));
       }
-
-      await refreshQuota();
     } catch (error) {
-      console.error('Failed to load AI state:', error);
-    } finally {
-      setState(prev => ({ ...prev, isLoading: false }));
+      console.error("Failed to load feature flags:", error);
+      setState((prev) => ({ ...prev, loading: false }));
     }
-  };
+  }
 
-  const refreshQuota = useCallback(async () => {
+  async function refreshQuota() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: rateLimitData } = await supabase
-        .from('api_rate_limits')
-        .select('request_count, window_start')
-        .eq('user_id', user.id)
-        .eq('endpoint', 'gemini-proxy')
+      const { data } = await supabase
+        .from("api_rate_limits")
+        .select("request_count, window_start")
+        .eq("user_id", user.id)
+        .eq("endpoint", "gemini-proxy")
         .single();
 
-      if (rateLimitData) {
-        const windowStart = new Date(rateLimitData.window_start);
-        const now = new Date();
-        const hoursDiff = (now.getTime() - windowStart.getTime()) / (1000 * 60 * 60);
-
-        setState(prev => ({
+      if (data) {
+        setState((prev) => ({
           ...prev,
           geminiQuota: {
-            used: hoursDiff < 1 ? rateLimitData.request_count : 0,
+            used: data.request_count,
             limit: 100,
-            resetAt: hoursDiff < 1 
-              ? new Date(windowStart.getTime() + 3600000)
-              : new Date(now.getTime() + 3600000),
+            resetAt: new Date(new Date(data.window_start).getTime() + 3600000),
           },
         }));
       }
     } catch (error) {
-      console.error('Failed to refresh quota:', error);
+      console.error("Failed to refresh quota:", error);
     }
-  }, [supabase]);
+  }
 
-  const enableFeature = async (feature: keyof Omit<AIState, 'geminiQuota' | 'isLoading'>) => {
-    setState(prev => ({ ...prev, [feature]: true }));
-  };
+  async function enableFeature(feature: keyof Omit<AIState, "geminiQuota" | "loading">) {
+    setState((prev) => ({ ...prev, [feature]: true }));
+  }
 
-  const disableFeature = async (feature: keyof Omit<AIState, 'geminiQuota' | 'isLoading'>) => {
-    setState(prev => ({ ...prev, [feature]: false }));
-  };
-
-  const checkFeatureAvailability = (feature: string): boolean => {
-    const featureMap: Record<string, boolean> = {
-      documents: state.documentsEnabled,
-      fraud: state.fraudDetectionEnabled,
-      voice: state.voiceCommandsEnabled,
-      analytics: state.analyticsEnabled,
-      accessibility: state.accessibilityEnabled,
-    };
-
-    return featureMap[feature] ?? false;
-  };
+  async function disableFeature(feature: keyof Omit<AIState, "geminiQuota" | "loading">) {
+    setState((prev) => ({ ...prev, [feature]: false }));
+  }
 
   return (
-    <AIContext.Provider
-      value={{
-        state,
-        refreshQuota,
-        enableFeature,
-        disableFeature,
-        checkFeatureAvailability,
-      }}
-    >
+    <AIContext.Provider value={{ state, refreshQuota, enableFeature, disableFeature }}>
       {children}
     </AIContext.Provider>
   );
@@ -158,12 +122,7 @@ export function AIProvider({ children }: { children: React.ReactNode }) {
 export function useAI() {
   const context = useContext(AIContext);
   if (!context) {
-    throw new Error('useAI must be used within AIProvider');
+    throw new Error("useAI must be used within AIProvider");
   }
   return context;
-}
-
-export function useAIFeature(feature: string) {
-  const { checkFeatureAvailability } = useAI();
-  return checkFeatureAvailability(feature);
 }
