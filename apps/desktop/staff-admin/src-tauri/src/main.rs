@@ -4,7 +4,7 @@
 mod commands;
 mod tray;
 
-use commands::{auth, crypto, hardware, print, updates};
+use commands::{ai, auth, crypto, hardware, print, updates};
 use tauri::Manager;
 use tokio::sync::oneshot;
 
@@ -58,6 +58,15 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::default().build())
         .plugin(tauri_plugin_os::init())
         .invoke_handler(tauri::generate_handler![
+            // AI commands
+            ai::get_accessibility_settings,
+            ai::save_accessibility_settings,
+            ai::get_voice_command_history,
+            ai::save_voice_command,
+            ai::get_document_scan_cache,
+            ai::save_document_scan_cache,
+            ai::clear_document_cache,
+            ai::clear_voice_history,
             // Auth commands
             auth::get_secure_credentials,
             auth::set_secure_credentials,

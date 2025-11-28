@@ -14,6 +14,9 @@
     "dev:tauri": "tauri dev",
     "build:tauri": "tauri build",
     "build:windows": "pnpm build:tauri --target x86_64-pc-windows-msvc",
+    "build:macos": "pnpm build:tauri --target universal-apple-darwin",
+    "build:linux": "pnpm build:tauri --target x86_64-unknown-linux-gnu",
+    "build:all": "pnpm build:windows && pnpm build:macos && pnpm build:linux",
     "lint": "echo 'Skipping lint for desktop app'",
     "typecheck": "tsc --noEmit"
   },

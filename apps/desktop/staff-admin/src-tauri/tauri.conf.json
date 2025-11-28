@@ -38,13 +38,24 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["msi", "nsis"],
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"],
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "publisher": "Ibimina Team",
     "copyright": "Copyright © 2024 Ibimina Team",
     "category": "Finance",
     "shortDescription": "SACCO+ Staff Admin",
-    "longDescription": "Desktop application for SACCO+ staff administration"
+    "longDescription": "Desktop application for SACCO+ staff administration",
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    }
   },
   "plugins": {
     "updater": {
