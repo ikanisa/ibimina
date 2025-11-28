@@ -1,5 +1,7 @@
+import { withDesktopTokens } from '../../../src/design/tailwind-desktop';
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+const baseConfig = {
   content: [
     './src/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
@@ -11,3 +13,5 @@ module.exports = {
   plugins: [],
   darkMode: 'class',
 };
+
+export default withDesktopTokens(baseConfig);

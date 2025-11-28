@@ -30,12 +30,19 @@
     "@tauri-apps/plugin-dialog": "^2",
     "@tauri-apps/plugin-fs": "^2",
     "@tauri-apps/plugin-notification": "^2",
+    "@tauri-apps/plugin-os": "^2",
     "@tauri-apps/plugin-shell": "^2",
     "@tauri-apps/plugin-store": "^2",
     "@tauri-apps/plugin-updater": "^2",
-    "@tauri-apps/plugin-os": "^2",
+    "@types/dompurify": "^3.2.0",
+    "cmdk": "^1.1.1",
+    "dompurify": "^3.3.0",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.555.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-error-boundary": "^6.0.0",
+    "react-resizable-panels": "^3.0.6"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

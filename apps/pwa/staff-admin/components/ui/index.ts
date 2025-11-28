@@ -40,3 +40,10 @@ export { GlassCard } from "./glass-card";
 // Status
 export { Badge } from "./badge";
 export type { BadgeProps, BadgeVariant, BadgeSize } from "./badge";
+
+// Content
+export { Markdown } from "./markdown";
+
+// Error Handling
+export { ErrorBoundary, AIErrorBoundary } from "./error-boundary";
+export type { FallbackProps } from "./error-boundary";
