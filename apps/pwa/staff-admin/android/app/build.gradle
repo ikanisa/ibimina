@@ -6,7 +6,13 @@ def envVersionCode = System.getenv("ANDROID_VERSION_CODE")
 def envVersionName = System.getenv("ANDROID_VERSION_NAME")
 def resolvedVersionCode = envVersionCode ?: project.findProperty("VERSION_CODE")
 def versionCodeValue = resolvedVersionCode ? resolvedVersionCode.toInteger() : 102
-def versionNameValue = envVersionName ?: project.findProperty("VERSION_NAME") ?: "0.1.2"
+
+def versions = new Properties()
+if (rootProject.file("version.properties").canRead()) {
+    versions.load(new FileInputStream(rootProject.file("version.properties")))
+}
+def versionNameValue = envVersionName ?: versions['VERSION_NAME']
+
 def capacitorServerUrl = System.getenv("CAPACITOR_SERVER_URL") ?: project.findProperty("CAPACITOR_SERVER_URL")
 
 def releaseSigningConfigured = false
@@ -55,7 +61,8 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             if (releaseSigningConfigured) {
                 signingConfig signingConfigs.release
@@ -110,16 +117,16 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    
+
     // Capacitor core libraries - managed directly, no BOM in Capacitor 7
     implementation project(':capacitor-android')
     implementation project(':capacitor-cordova-android-plugins')
-    
+
     // AndroidX dependencies with explicit versions for compatibility
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
-    
+
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
 
@@ -145,7 +152,4 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
-
-dependencies {
-  implementation "androidx.core:core-splashscreen:1.0.1"
-}
+apply plugin: 'com.google.gms.google-services'

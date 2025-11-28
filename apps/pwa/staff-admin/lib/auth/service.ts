@@ -3,6 +3,7 @@ import { logError } from "@/lib/observability/logger";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient, supabaseSrv } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { MFA_SESSION_COOKIE, readCookieToken, verifyMfaSessionToken } from "@/lib/mfa/session";
 
 type UserRow = Database["public"]["Tables"]["users"]["Row"];
 
@@ -18,6 +19,7 @@ export type ProfileRow = Omit<UserRow, "mfa_secret_enc"> & {
 export interface AuthContext {
   user: User;
   profile: ProfileRow;
+  mfaVerified: boolean;
 }
 
 export async function fetchUserAndProfile(): Promise<AuthContext | null> {
@@ -101,9 +103,24 @@ export async function fetchUserAndProfile(): Promise<AuthContext | null> {
 
   const saccoDetails: ProfileRow["sacco"] = null;
 
+  // Check MFA status
+  let mfaVerified = false;
+  if (resolvedProfile.mfa_enabled) {
+    const token = await readCookieToken(MFA_SESSION_COOKIE);
+    if (token) {
+      const payload = verifyMfaSessionToken(token);
+      if (payload && payload.userId === user.id) {
+        mfaVerified = true;
+      }
+    }
+  } else {
+    mfaVerified = true;
+  }
+
   return {
     user,
     profile: { ...resolvedProfile, sacco: saccoDetails } as ProfileRow,
+    mfaVerified: resolvedProfile.mfa_enabled ? mfaVerified : true,
   };
 }
 
@@ -112,6 +129,11 @@ export async function requireUserAndProfile(): Promise<AuthContext> {
   if (!context) {
     redirect("/login");
   }
+
+  if (context.profile.mfa_enabled && !context.mfaVerified) {
+    redirect("/mfa-challenge");
+  }
+
   return context;
 }
 

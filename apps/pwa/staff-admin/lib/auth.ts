@@ -9,6 +9,12 @@ export type { AuthContext, ProfileRow } from "@/lib/auth/service";
 // E2E testing stub authentication cookie name
 const STUB_COOKIE_NAME = "stub-auth";
 const AUTH_GUEST_MODE = process.env.AUTH_GUEST_MODE === "1";
+const isProduction = process.env.NODE_ENV === "production";
+
+// Validate guest mode is never enabled in production
+if (AUTH_GUEST_MODE && isProduction) {
+  throw new Error("AUTH_GUEST_MODE cannot be enabled in production");
+}
 
 function createMockContext(): AuthContext {
   const now = new Date().toISOString();
@@ -55,7 +61,7 @@ function createMockContext(): AuthContext {
     sacco: saccoDetails,
   } as ProfileRow;
 
-  return { user: stubUser, profile: stubProfile };
+  return { user: stubUser, profile: stubProfile, mfaVerified: true };
 }
 
 const memoizedGuestContext: AuthContext = createMockContext();
