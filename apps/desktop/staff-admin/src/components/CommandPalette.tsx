@@ -1,24 +1,18 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Command } from 'cmdk';
-import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
   User, 
   Users, 
   FileText, 
   Settings, 
-  HelpCircle,
   ArrowRight,
   Sparkles,
   Calculator,
-  Calendar,
   CreditCard,
   TrendingUp,
-  AlertTriangle,
   CheckCircle,
-  Clock,
-  Zap,
 } from 'lucide-react';
 
 interface CommandPaletteProps {

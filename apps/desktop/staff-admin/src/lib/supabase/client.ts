@@ -10,8 +10,9 @@ import {
   deleteSecureCredentials,
 } from "@/lib/tauri/commands";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Vite uses import.meta.env instead of process.env
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder';
 
 /**
  * Custom storage adapter that uses Tauri's secure credential storage

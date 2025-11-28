@@ -1,14 +1,9 @@
-import React from 'react';
-import { useDesktopTokens } from '../../../../../../src/design/use-desktop-tokens';
-
 interface WindowControlProps {
   color: 'red' | 'yellow' | 'green';
   action: 'close' | 'minimize' | 'maximize';
 }
 
 function WindowControl({ color, action }: WindowControlProps) {
-  const tokens = useDesktopTokens('light');
-  
   const colors = {
     red: '#ff5f57',
     yellow: '#febc2e',

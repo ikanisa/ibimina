@@ -1,28 +1,24 @@
-"use client";
-
 /**
  * MFA Challenge page for desktop app
  */
 
 import { useState, FormEvent, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { AlertCircle, Loader2, Shield, ArrowLeft } from "lucide-react";
 
-export default function MFAChallengePagePage() {
+export function MFAChallengePage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { user, profile, signOut } = useAuth();
-  const router = useRouter();
+  const { user, profile, signOut, navigateTo } = useAuth();
 
   useEffect(() => {
     // Redirect if not logged in or MFA not required
     if (!user || !profile?.mfa_enabled) {
-      router.push("/login");
+      navigateTo("/login");
     }
-  }, [user, profile, router]);
+  }, [user, profile, navigateTo]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,12 +35,12 @@ export default function MFAChallengePagePage() {
 
       if (data?.verified) {
         // MFA verified, redirect to dashboard
-        router.push("/dashboard");
+        navigateTo("/dashboard");
       } else {
         setError("Invalid verification code. Please try again.");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to verify code. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to verify code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -134,7 +130,7 @@ export default function MFAChallengePagePage() {
 
           {/* Footer */}
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            <p>Can't access your authenticator app?</p>
+            <p>Can&apos;t access your authenticator app?</p>
             <p className="mt-1">Contact your system administrator for help.</p>
           </div>
         </div>

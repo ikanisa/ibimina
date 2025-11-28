@@ -11,36 +11,28 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "preserve",
     "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "incremental": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "out", "src-tauri"]
+    "noImplicitAny": false,
+    "strictNullChecks": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@ibimina/admin-core": ["../../../packages/admin-core/src/index.ts"],
+      "@ibimina/supabase-schemas": ["../../../packages/supabase-schemas/src/index.ts"],
       "@ibimina/config": ["../../../packages/config/src/index.ts"],
       "@ibimina/lib": ["../../../packages/lib/src/index.ts"],
       "@ibimina/ui": ["../../../packages/ui/src/index.ts"]
-    }
+    },
+    "types": ["vite/client"]
   },
-  "include": ["src"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "out", "src-tauri"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

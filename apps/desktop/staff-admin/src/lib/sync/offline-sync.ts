@@ -1,7 +1,7 @@
-import { Store } from '@tauri-apps/plugin-store';
+import { load, type Store } from '@tauri-apps/plugin-store';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 interface SyncQueueItem {
   id: string;
@@ -27,7 +27,7 @@ interface ConflictResolution {
 }
 
 export class OfflineSyncEngine {
-  private store: Store;
+  private store: Store | null = null;
   private syncQueue: SyncQueueItem[] = [];
   private isOnline: boolean = navigator.onLine;
   private syncInProgress: boolean = false;
@@ -35,14 +35,27 @@ export class OfflineSyncEngine {
   private abortController: AbortController | null = null;
   private maxQueueSize = 1000;
   private maxDeadLetterSize = 100;
+  private initialized: Promise<void>;
 
   constructor(
     private supabaseUrl: string,
     private supabaseKey: string
   ) {
-    this.store = new Store('offline-data.json');
+    this.initialized = this.init();
+  }
+  
+  private async init(): Promise<void> {
+    this.store = await load('offline-data.json', { defaults: {} });
     this.setupConnectivityListeners();
-    this.loadSyncQueue();
+    await this.loadSyncQueue();
+  }
+  
+  private async ensureInitialized(): Promise<Store> {
+    await this.initialized;
+    if (!this.store) {
+      throw new Error('Store not initialized');
+    }
+    return this.store;
   }
 
   private async setupConnectivityListeners(): Promise<void> {
@@ -67,7 +80,8 @@ export class OfflineSyncEngine {
 
   private async loadSyncQueue(): Promise<void> {
     try {
-      const queue = await this.store.get<SyncQueueItem[]>('sync-queue');
+      const store = await this.ensureInitialized();
+      const queue = await store.get<SyncQueueItem[]>('sync-queue');
       this.syncQueue = queue || [];
       
       // Clean up old queue items (older than 7 days)
@@ -88,8 +102,9 @@ export class OfflineSyncEngine {
         this.syncQueue = this.syncQueue.slice(0, this.maxQueueSize);
       }
       
-      await this.store.set('sync-queue', this.syncQueue);
-      await this.store.save();
+      const store = await this.ensureInitialized();
+      await store.set('sync-queue', this.syncQueue);
+      await store.save();
     } catch (error) {
       console.error('Failed to save sync queue:', error);
     }
@@ -175,8 +190,9 @@ export class OfflineSyncEngine {
     await this.saveSyncQueue();
 
     // Update last sync timestamp
-    await this.store.set('last-sync-timestamp', Date.now());
-    await this.store.save();
+    const store = await this.ensureInitialized();
+    await store.set('last-sync-timestamp', Date.now());
+    await store.save();
 
     this.syncInProgress = false;
     this.abortController = null;
@@ -190,25 +206,27 @@ export class OfflineSyncEngine {
   }
 
   private async syncItem(
-    supabase: ReturnType<typeof createClient>,
+    supabase: SupabaseClient,
     item: SyncQueueItem
   ): Promise<boolean> {
     let conflictResolved = false;
 
     switch (item.operation) {
-      case 'INSERT':
+      case 'INSERT': {
         const { error: insertError } = await supabase
           .from(item.table)
-          .insert(item.data);
+          .insert(item.data as Record<string, unknown>);
         if (insertError) throw insertError;
         break;
+      }
 
       case 'UPDATE': {
         // Implement optimistic locking
+        const itemId = item.data.id as string;
         const { data: current, error: fetchError } = await supabase
           .from(item.table)
           .select('version, updated_at')
-          .eq('id', item.data.id)
+          .eq('id', itemId)
           .single();
         
         if (fetchError && fetchError.code !== 'PGRST116') {
@@ -216,8 +234,9 @@ export class OfflineSyncEngine {
         }
 
         // Conflict detection
-        if (current && current.version > (item.version || 0)) {
-          const resolution = await this.resolveConflict(item, current);
+        const currentVersion = (current as { version?: number } | null)?.version;
+        if (current && currentVersion !== undefined && currentVersion > (item.version || 0)) {
+          const resolution = await this.resolveConflict(item, current as Record<string, unknown>);
           
           if (resolution.strategy === 'server-wins') {
             // Discard local changes
@@ -239,19 +258,21 @@ export class OfflineSyncEngine {
         const { error: updateError } = await supabase
           .from(item.table)
           .update(updateData)
-          .eq('id', item.data.id);
+          .eq('id', itemId);
         
         if (updateError) throw updateError;
         break;
       }
 
-      case 'DELETE':
+      case 'DELETE': {
+        const itemId = item.data.id as string;
         const { error: deleteError } = await supabase
           .from(item.table)
           .delete()
-          .eq('id', item.data.id);
+          .eq('id', itemId);
         if (deleteError) throw deleteError;
         break;
+      }
     }
 
     return conflictResolved;
@@ -290,7 +311,8 @@ export class OfflineSyncEngine {
     const itemsArray = Array.isArray(items) ? items : [items];
     
     try {
-      const deadLetter = await this.store.get<SyncQueueItem[]>('dead-letter') || [];
+      const store = await this.ensureInitialized();
+      const deadLetter = await store.get<SyncQueueItem[]>('dead-letter') || [];
       
       const errorMessage = error instanceof Error ? error.message : 
                           typeof error === 'string' ? error : 'Unknown error';
@@ -309,8 +331,8 @@ export class OfflineSyncEngine {
       // Enforce dead letter size limit
       const trimmed = deadLetter.slice(-this.maxDeadLetterSize);
       
-      await this.store.set('dead-letter', trimmed);
-      await this.store.save();
+      await store.set('dead-letter', trimmed);
+      await store.save();
 
       this.emit('sync-failed', { items: itemsArray, error: errorMessage });
     } catch (storeError) {
@@ -328,7 +350,8 @@ export class OfflineSyncEngine {
 
   // Get current sync state
   async getSyncState(): Promise<SyncState> {
-    const lastSync = await this.store.get<number>('last-sync-timestamp') || 0;
+    const store = await this.ensureInitialized();
+    const lastSync = await store.get<number>('last-sync-timestamp') || 0;
     return {
       lastSyncTimestamp: lastSync,
       pendingChanges: this.syncQueue.length,
@@ -339,33 +362,35 @@ export class OfflineSyncEngine {
 
   // Cache data locally with encryption
   async cacheData(key: string, data: unknown): Promise<void> {
+    const store = await this.ensureInitialized();
     try {
       // Encrypt sensitive data before storing
       const encrypted = await invoke<string>('encrypt_data', { 
         data: JSON.stringify(data) 
       });
       
-      await this.store.set(`cache:${key}`, {
+      await store.set(`cache:${key}`, {
         data: encrypted,
         timestamp: Date.now(),
         encrypted: true,
       });
-      await this.store.save();
+      await store.save();
     } catch (error) {
       // Fallback to unencrypted storage if encryption fails
       console.warn('Encryption failed, storing unencrypted:', error);
-      await this.store.set(`cache:${key}`, {
+      await store.set(`cache:${key}`, {
         data,
         timestamp: Date.now(),
         encrypted: false,
       });
-      await this.store.save();
+      await store.save();
     }
   }
 
   // Get cached data with decryption
   async getCachedData<T>(key: string): Promise<{ data: T; timestamp: number } | null> {
-    const cached = await this.store.get<{ 
+    const store = await this.ensureInitialized();
+    const cached = await store.get<{ 
       data: unknown; 
       timestamp: number; 
       encrypted?: boolean 
@@ -396,19 +421,21 @@ export class OfflineSyncEngine {
 
   // Clear all cached data
   async clearCache(): Promise<void> {
-    const keys = await this.store.keys();
+    const store = await this.ensureInitialized();
+    const keys = await store.keys();
     const cacheKeys = keys.filter(k => k.startsWith('cache:'));
     
     for (const key of cacheKeys) {
-      await this.store.delete(key);
+      await store.delete(key);
     }
     
-    await this.store.save();
+    await store.save();
   }
 
   // Get dead letter queue for manual review
   async getDeadLetterQueue(): Promise<SyncQueueItem[]> {
-    return await this.store.get<SyncQueueItem[]>('dead-letter') || [];
+    const store = await this.ensureInitialized();
+    return await store.get<SyncQueueItem[]>('dead-letter') || [];
   }
 
   // Retry items from dead letter queue
@@ -435,7 +462,8 @@ export class OfflineSyncEngine {
       item => !itemsToRetry.some(retry => retry.id === item.id)
     );
     
-    await this.store.set('dead-letter', remaining);
+    const store = await this.ensureInitialized();
+    await store.set('dead-letter', remaining);
     await this.saveSyncQueue();
   }
 
@@ -456,7 +484,8 @@ export class OfflineSyncEngine {
   async dispose(): Promise<void> {
     this.abortController?.abort();
     this.listeners.clear();
-    await this.store.save();
+    const store = await this.ensureInitialized();
+    await store.save();
   }
 }
 

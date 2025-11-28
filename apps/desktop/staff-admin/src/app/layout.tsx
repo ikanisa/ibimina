@@ -1,22 +1,14 @@
-import type { Metadata } from "next";
 import "./globals.css";
-import { UpdateNotification } from "@/components/desktop";
 import { AuthProvider } from "@/lib/auth";
 
-export const metadata: Metadata = {
-  title: "SACCO+ Staff Admin",
-  description: "Desktop application for SACCO+ staff administration",
-};
+interface LayoutProps {
+  children: React.ReactNode;
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export function Layout({ children }: LayoutProps) {
   return (
-    <html lang="en">
-      <body>
-        <AuthProvider>
-          {children}
-          <UpdateNotification />
-        </AuthProvider>
-      </body>
-    </html>
+    <AuthProvider>
+      {children}
+    </AuthProvider>
   );
 }

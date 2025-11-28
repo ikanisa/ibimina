@@ -1,4 +1,6 @@
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
+use std::io::Write;
 use tauri::{Emitter, WebviewWindow};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -127,8 +129,6 @@ pub async fn download_update(
         .map_err(|e| format!("Failed to create file: {}", e))?;
 
     let mut stream = response.bytes_stream();
-    use futures::StreamExt;
-    use std::io::Write;
 
     while let Some(chunk) = stream.next().await {
         let chunk = chunk.map_err(|e| format!("Download error: {}", e))?;
@@ -161,7 +161,7 @@ pub async fn install_update(installer_path: String) -> Result<(), String> {
     {
         // Launch MSI installer
         std::process::Command::new("msiexec")
-            .args(&["/i", &installer_path, "/qn", "/norestart"])
+            .args(["/i", &installer_path, "/qn", "/norestart"])
             .spawn()
             .map_err(|e| format!("Failed to launch installer: {}", e))?;
     }
@@ -170,7 +170,7 @@ pub async fn install_update(installer_path: String) -> Result<(), String> {
     {
         // Mount DMG and copy app
         std::process::Command::new("hdiutil")
-            .args(&["attach", &installer_path])
+            .args(["attach", &installer_path])
             .spawn()
             .map_err(|e| format!("Failed to mount DMG: {}", e))?;
     }
@@ -179,7 +179,7 @@ pub async fn install_update(installer_path: String) -> Result<(), String> {
     {
         // Make AppImage executable and run
         std::process::Command::new("chmod")
-            .args(&["+x", &installer_path])
+            .args(["+x", &installer_path])
             .output()
             .map_err(|e| format!("Failed to make executable: {}", e))?;
 
@@ -196,31 +196,4 @@ pub async fn install_update(installer_path: String) -> Result<(), String> {
 #[tauri::command]
 pub fn get_current_version(app_handle: tauri::AppHandle) -> String {
     app_handle.package_info().version.to_string()
-}
-
-// Add futures for stream handling
-use futures;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UpdateInfo {
-    pub version: String,
-    pub release_notes: String,
-    pub release_date: String,
-    pub mandatory: bool,
-}
-
-/// Check for application updates
-#[tauri::command]
-pub async fn check_for_updates() -> Result<Option<UpdateInfo>, String> {
-    // TODO: Implement update checking
-    // Use Tauri updater plugin
-    Err("Not implemented".to_string())
-}
-
-/// Install available update
-#[tauri::command]
-pub async fn install_update() -> Result<(), String> {
-    // TODO: Implement update installation
-    // Use Tauri updater plugin
-    Err("Not implemented".to_string())
 }
