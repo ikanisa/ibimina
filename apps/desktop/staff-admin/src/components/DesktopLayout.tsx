@@ -12,7 +12,7 @@ import { StatusBar } from './StatusBar';
 import { AIAssistantPanel } from './AIAssistantPanel';
 import { NotificationCenter } from './NotificationCenter';
 import { TitleBar } from './TitleBar';
-import { useHotkeys } from '@/hooks/use-hotkeys';
+import { useHotkeys } from '@/hooks/use-hotkeys-simple';
 
 interface DesktopLayoutProps {
   children: React.ReactNode;

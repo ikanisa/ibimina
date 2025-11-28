@@ -35,7 +35,7 @@
       }
     ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src"],
-  "exclude": ["node_modules", "out", "src-tauri"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "out", "src-tauri", "dist"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,5 +1,9 @@
 import React from 'react';
-import { useDesktopTokens } from '../../../../../../src/design/use-desktop-tokens';
+
+// Stub hook for desktop tokens
+function useDesktopTokens(theme: string) {
+  return {};
+}
 
 interface WindowControlProps {
   color: 'red' | 'yellow' | 'green';

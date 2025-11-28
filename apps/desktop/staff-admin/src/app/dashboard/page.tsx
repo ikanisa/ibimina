@@ -1,10 +1,8 @@
-"use client";
-
 /**
  * Dashboard home page
  */
 
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { Users, DollarSign, TrendingUp, Activity } from "lucide-react";
 
 export default function DashboardPage() {

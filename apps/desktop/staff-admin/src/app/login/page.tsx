@@ -1,11 +1,9 @@
-"use client";
-
 /**
  * Login page for desktop app
  */
 
 import { useState, FormEvent } from "react";
-import { useAuth } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { AlertCircle, Loader2, Lock, Mail } from "lucide-react";
 
 export default function LoginPage() {
