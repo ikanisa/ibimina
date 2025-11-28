@@ -4,3 +4,4 @@
 
 export { VoiceButton } from './VoiceButton';
 export { VoiceTranscript } from './VoiceTranscript';
+export { VoiceSettings } from './VoiceSettings';
