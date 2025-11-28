@@ -856,6 +856,9 @@ importers:
       expo-linear-gradient:
         specifier: ^15.0.7
         version: 15.0.7(expo@54.0.25(@babel/core@7.28.5)(@modelcontextprotocol/sdk@1.23.0(zod@3.25.76))(react-native@0.76.9(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@19.2.7)(react@19.1.0))(react@19.1.0))(react-native@0.76.9(@babel/core@7.28.5)(@babel/preset-env@7.28.5(@babel/core@7.28.5))(@types/react@19.2.7)(react@19.1.0))(react@19.1.0)
+      framer-motion:
+        specifier: ^11.0.0
+        version: 11.18.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       lucide-react:
         specifier: 0.545.0
         version: 0.545.0(react@19.1.0)
