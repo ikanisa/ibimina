@@ -23,6 +23,29 @@ export * from "./components/drawer";
 export * from "./components/sparkline";
 export * from "./components/sticky-action-bar";
 
+// Layout Primitives
+export * from "./components/layout";
+
+// Data Card
+export * from "./components/DataCard";
+
+// Animated Page
+export * from "./components/AnimatedPage";
+
+// Navigation
+export * from "./components/navigation";
+
+// AI-Enhanced Components
+export * from "./components/SmartInput";
+export * from "./components/QuickActions";
+export * from "./components/FloatingAssistant";
+
+// Loading States
+export * from "./components/LoadingState";
+
+// Accessibility
+export * from "./components/SkipLinks";
+
 // Theme and tokens
 export * from "./theme";
 
@@ -31,6 +54,12 @@ export * from "./utils/cn";
 export * from "./utils/blur-placeholder";
 export * from "./utils/accessibility";
 export * from "./utils/bundle-optimization";
+
+// Animation Utilities
+export * from "./lib/animations";
+
+// Hooks
+export * from "./hooks";
 
 // Accessibility
 export * from "./components/accessibility/AccessibleActionButton";
