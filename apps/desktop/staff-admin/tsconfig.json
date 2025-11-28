@@ -11,7 +11,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "preserve",
     "jsx": "react-jsx",
     "strict": true,
     "noUnusedLocals": true,
@@ -21,8 +20,14 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@ibimina/admin-core": ["../../../packages/admin-core/src/index.ts"],
+      "@ibimina/config": ["../../../packages/config/src/index.ts"],
+      "@ibimina/lib": ["../../../packages/lib/src/index.ts"],
+      "@ibimina/ui": ["../../../packages/ui/src/index.ts"],
+      "@ibimina/supabase-schemas": ["../../../packages/supabase-schemas/src/index.ts"]
     },
     "plugins": [
       {
@@ -30,17 +35,7 @@
       }
     ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "out", "src-tauri"]
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@ibimina/admin-core": ["../../../packages/admin-core/src/index.ts"],
-      "@ibimina/config": ["../../../packages/config/src/index.ts"],
-      "@ibimina/lib": ["../../../packages/lib/src/index.ts"],
-      "@ibimina/ui": ["../../../packages/ui/src/index.ts"]
-    }
-  },
-  "include": ["src"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src"],
+  "exclude": ["node_modules", "out", "src-tauri"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

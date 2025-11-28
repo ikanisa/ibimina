@@ -5,25 +5,17 @@
   "identifier": "rw.ibimina.staff-admin",
   "build": {
     "beforeDevCommand": "pnpm dev",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "http://localhost:5173",
     "beforeBuildCommand": "pnpm build",
-    "frontendDist": "../out"
-  "productName": "Ibimina Staff Admin",
-  "identifier": "rw.ibimina.staff-admin",
-  "version": "0.1.0",
-  "build": {
-    "beforeBuildCommand": "pnpm run build",
-    "beforeDevCommand": "pnpm run dev",
-    "frontendDist": "../dist",
-    "devUrl": "http://localhost:5173"
+    "frontendDist": "../dist"
   },
   "app": {
     "windows": [
       {
         "title": "SACCO+ Staff Admin",
-        "width": 1200,
+        "width": 1280,
         "height": 800,
-        "minWidth": 800,
+        "minWidth": 1024,
         "minHeight": 600,
         "center": true,
         "fullscreen": false,
@@ -42,45 +34,17 @@
       "iconPath": "icons/icon.png",
       "iconAsTemplate": true,
       "menuOnLeftClick": false
-        "title": "Ibimina Staff Admin",
-        "width": 1280,
-        "height": 800,
-        "minWidth": 1024,
-        "minHeight": 600,
-        "resizable": true,
-        "fullscreen": false
-      }
-    ],
-    "trayIcon": {
-      "iconPath": "icons/icon.png",
-      "iconAsTemplate": true
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ],
+    "targets": ["msi", "nsis"],
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"],
     "publisher": "Ibimina Team",
     "copyright": "Copyright © 2024 Ibimina Team",
     "category": "Finance",
     "shortDescription": "SACCO+ Staff Admin",
-    "longDescription": "Desktop application for SACCO+ staff administration",
-    "linux": {
-      "deb": {
-        "depends": []
-      }
-    }
-  },
-  "plugins": {}
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
+    "longDescription": "Desktop application for SACCO+ staff administration"
   },
   "plugins": {
     "updater": {
