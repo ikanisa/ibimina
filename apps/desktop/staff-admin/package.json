@@ -24,6 +24,7 @@
     "@ibimina/admin-core": "workspace:*",
     "@ibimina/config": "workspace:*",
     "@ibimina/lib": "workspace:*",
+    "@ibimina/supabase-schemas": "workspace:*",
     "@ibimina/ui": "workspace:*",
     "@supabase/supabase-js": "^2.74.0",
     "@tauri-apps/api": "^2",

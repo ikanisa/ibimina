@@ -189,7 +189,7 @@ fn check_touch_id() -> Result<bool, String> {
 
 /// Trigger biometric authentication
 #[tauri::command]
-pub async fn authenticate_biometrics(_reason: String) -> Result<bool, String> {
+pub async fn authenticate_biometrics(reason: String) -> Result<bool, String> {
     #[cfg(target_os = "windows")]
     {
         authenticate_windows_hello(reason)
@@ -202,6 +202,7 @@ pub async fn authenticate_biometrics(_reason: String) -> Result<bool, String> {
 
     #[cfg(target_os = "linux")]
     {
+        let _ = reason; // Suppress unused warning
         Err("Biometric authentication not supported on Linux".to_string())
     }
 }
@@ -218,23 +219,4 @@ fn authenticate_touch_id(_reason: String) -> Result<bool, String> {
     // Simplified implementation
     // In production, use LocalAuthentication framework via objc bindings
     Ok(true)
-}
-
-// Add chrono for timestamps
-use chrono;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ScanResult {
-    pub scan_type: String,
-    pub format: String,
-    pub data: String,
-    pub timestamp: String,
-}
-
-/// Start barcode/QR code scanning
-#[tauri::command]
-pub async fn start_barcode_scan() -> Result<ScanResult, String> {
-    // TODO: Implement barcode scanning
-    // Use platform-specific camera/scanner APIs or USB scanner support
-    Err("Not implemented".to_string())
 }

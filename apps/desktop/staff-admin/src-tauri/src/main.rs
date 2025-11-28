@@ -5,7 +5,7 @@ mod commands;
 mod tray;
 
 use commands::{auth, crypto, hardware, print, updates};
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use tokio::sync::oneshot;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

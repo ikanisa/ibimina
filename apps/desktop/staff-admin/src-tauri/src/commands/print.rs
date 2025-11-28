@@ -1,31 +1,22 @@
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PrinterInfo {
     pub name: String,
     pub is_default: bool,
     pub status: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ReceiptData {
     pub title: String,
     pub items: Vec<ReceiptItem>,
     pub total: String,
     pub footer: String,
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ReceiptData {
-    pub header: String,
-    pub items: Vec<ReceiptItem>,
-    pub subtotal: f64,
-    pub tax: Option<f64>,
-    pub total: f64,
-    pub footer: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ReceiptItem {
     pub label: String,
     pub value: String,
@@ -53,7 +44,7 @@ pub async fn get_printers() -> Result<Vec<PrinterInfo>, String> {
 #[cfg(target_os = "windows")]
 fn get_printers_windows() -> Result<Vec<PrinterInfo>, String> {
     let output = Command::new("wmic")
-        .args(&["printer", "get", "name,default,status", "/format:csv"])
+        .args(["printer", "get", "name,default,status", "/format:csv"])
         .output()
         .map_err(|e| format!("Failed to execute wmic: {}", e))?;
 
@@ -86,7 +77,7 @@ fn get_printers_windows() -> Result<Vec<PrinterInfo>, String> {
 #[cfg(target_os = "macos")]
 fn get_printers_macos() -> Result<Vec<PrinterInfo>, String> {
     let output = Command::new("lpstat")
-        .args(&["-p", "-d"])
+        .args(["-p", "-d"])
         .output()
         .map_err(|e| format!("Failed to execute lpstat: {}", e))?;
 
@@ -129,7 +120,7 @@ fn get_printers_macos() -> Result<Vec<PrinterInfo>, String> {
 #[cfg(target_os = "linux")]
 fn get_printers_linux() -> Result<Vec<PrinterInfo>, String> {
     let output = Command::new("lpstat")
-        .args(&["-p", "-d"])
+        .args(["-p", "-d"])
         .output()
         .map_err(|e| format!("Failed to execute lpstat: {}", e))?;
 
@@ -186,7 +177,7 @@ pub async fn print_html(
     {
         // Use Microsoft Edge to print on Windows
         Command::new("msedge")
-            .args(&[
+            .args([
                 "--headless",
                 "--print-to-pdf-no-header",
                 &format!("--print-to-pdf={}", file_path.with_extension("pdf").display()),
@@ -199,7 +190,7 @@ pub async fn print_html(
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     {
         Command::new("lp")
-            .args(&["-d", &printer_name, &file_path.display().to_string()])
+            .args(["-d", &printer_name, &file_path.display().to_string()])
             .output()
             .map_err(|e| format!("Failed to print: {}", e))?;
     }
@@ -284,7 +275,7 @@ pub async fn print_receipt(
             .map_err(|e| format!("Failed to write receipt: {}", e))?;
 
         Command::new("lp")
-            .args(&["-d", &printer_name, "-o", "raw", &temp_file.display().to_string()])
+            .args(["-d", &printer_name, "-o", "raw", &temp_file.display().to_string()])
             .output()
             .map_err(|e| format!("Failed to print receipt: {}", e))?;
 
@@ -292,32 +283,4 @@ pub async fn print_receipt(
     }
 
     Ok(())
-    pub description: String,
-    pub quantity: i32,
-    pub amount: f64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PrinterInfo {
-    pub id: String,
-    pub name: String,
-    pub is_default: bool,
-    pub status: String,
-    pub printer_type: String,
-}
-
-/// Print a receipt using the default or specified printer
-#[tauri::command]
-pub async fn print_receipt(data: ReceiptData) -> Result<(), String> {
-    // TODO: Implement receipt printing
-    // Use platform-specific printing APIs
-    Err("Not implemented".to_string())
-}
-
-/// Get list of available printers
-#[tauri::command]
-pub async fn get_printers() -> Result<Vec<PrinterInfo>, String> {
-    // TODO: Implement printer enumeration
-    // Use platform-specific printer APIs
-    Err("Not implemented".to_string())
 }

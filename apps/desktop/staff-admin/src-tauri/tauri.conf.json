@@ -8,14 +8,6 @@
     "devUrl": "http://localhost:3000",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../out"
-  "productName": "Ibimina Staff Admin",
-  "identifier": "rw.ibimina.staff-admin",
-  "version": "0.1.0",
-  "build": {
-    "beforeBuildCommand": "pnpm run build",
-    "beforeDevCommand": "pnpm run dev",
-    "frontendDist": "../dist",
-    "devUrl": "http://localhost:5173"
   },
   "app": {
     "windows": [
@@ -42,18 +34,6 @@
       "iconPath": "icons/icon.png",
       "iconAsTemplate": true,
       "menuOnLeftClick": false
-        "title": "Ibimina Staff Admin",
-        "width": 1280,
-        "height": 800,
-        "minWidth": 1024,
-        "minHeight": 600,
-        "resizable": true,
-        "fullscreen": false
-      }
-    ],
-    "trayIcon": {
-      "iconPath": "icons/icon.png",
-      "iconAsTemplate": true
     }
   },
   "bundle": {
@@ -75,12 +55,15 @@
       "deb": {
         "depends": []
       }
+    },
+    "windows": {
+      "wix": {
+        "language": "en-US"
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "10.15"
     }
-  },
-  "plugins": {}
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ]
   },
   "plugins": {
     "updater": {
