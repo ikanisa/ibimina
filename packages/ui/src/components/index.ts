@@ -55,3 +55,26 @@ export type { PWAInstallPromptProps, PWAUpdateBannerProps } from "./pwa-install"
 
 // Accessibility Components
 export * from "./accessibility/AccessibleActionButton";
+
+// Main component exports
+export { DataCard } from "./DataCard";
+export type {
+  DataCardProps,
+  DataCardHeaderProps,
+  DataCardValueProps,
+  DataCardDescriptionProps,
+  DataCardFooterProps,
+} from "./DataCard";
+
+export { SmartInput } from "./SmartInput";
+export type { SmartInputProps } from "./SmartInput";
+
+export { FloatingAssistant } from "./FloatingAssistant";
+export type { FloatingAssistantProps } from "./FloatingAssistant";
+
+export { QuickActionsButton } from "./QuickActionsButton";
+export type { QuickActionsButtonProps, QuickActionItem } from "./QuickActionsButton";
+
+export { SkipLinks } from "./SkipLinks";
+export { AnimatedPage } from "./AnimatedPage";
+export type { AnimatedPageProps } from "./AnimatedPage";
