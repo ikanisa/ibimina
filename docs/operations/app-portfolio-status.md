@@ -2,29 +2,29 @@
 
 ## Summary
 
-Following the major repository refactoring, the Ibimina platform now consists
-of only Staff Admin applications. All other applications (client, mobile,
-website, platform-api, sacco-plus-client, android-auth) have been removed
-as part of the streamlined focus on SACCO staff operations.
+Following the major repository refactoring, the Ibimina platform now consists of
+only Staff Admin applications. All other applications (client, mobile, website,
+platform-api, sacco-plus-client, android-auth) have been removed as part of the
+streamlined focus on SACCO staff operations.
 
 ## Current Active Applications
 
-| Application              | Package                        | Status    |
-| ------------------------ | ------------------------------ | --------- |
-| Staff Admin PWA          | `@ibimina/staff-admin-pwa`     | ✅ Active |
-| Staff Admin Desktop      | `@ibimina/staff-admin-desktop` | ✅ Active |
+| Application         | Package                        | Status    |
+| ------------------- | ------------------------------ | --------- |
+| Staff Admin PWA     | `@ibimina/staff-admin-pwa`     | ✅ Active |
+| Staff Admin Desktop | `@ibimina/staff-admin-desktop` | ✅ Active |
 
 ## Current Active Packages
 
-| Package                  | Status    |
-| ------------------------ | --------- |
-| `@ibimina/admin-core`    | ✅ Active |
-| `@ibimina/config`        | ✅ Active |
-| `@ibimina/flags`         | ✅ Active |
-| `@ibimina/lib`           | ✅ Active |
-| `@ibimina/locales`       | ✅ Active |
+| Package                     | Status    |
+| --------------------------- | --------- |
+| `@ibimina/admin-core`       | ✅ Active |
+| `@ibimina/config`           | ✅ Active |
+| `@ibimina/flags`            | ✅ Active |
+| `@ibimina/lib`              | ✅ Active |
+| `@ibimina/locales`          | ✅ Active |
 | `@ibimina/supabase-schemas` | ✅ Active |
-| `@ibimina/ui`            | ✅ Active |
+| `@ibimina/ui`               | ✅ Active |
 
 ## Removed Applications
 

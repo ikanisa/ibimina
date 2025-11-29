@@ -6,15 +6,15 @@ This document clarifies the staff/admin applications in the monorepo.
 
 There are **two** staff/admin applications in the repository:
 
-| App                  | Location                     | Tech            | Port | Status            | Purpose                                  |
-| -------------------- | ---------------------------- | --------------- | ---- | ----------------- | ---------------------------------------- |
-| **Staff Admin PWA**  | `apps/pwa/staff-admin/`      | Next.js 15      | 3100 | ✅ **PRODUCTION** | Main staff console for SACCO management  |
-| Staff Admin Desktop  | `apps/desktop/staff-admin/`  | Tauri + React   | N/A  | ✅ **PRODUCTION** | Offline-capable desktop application      |
+| App                 | Location                    | Tech          | Port | Status            | Purpose                                 |
+| ------------------- | --------------------------- | ------------- | ---- | ----------------- | --------------------------------------- |
+| **Staff Admin PWA** | `apps/pwa/staff-admin/`     | Next.js 15    | 3100 | ✅ **PRODUCTION** | Main staff console for SACCO management |
+| Staff Admin Desktop | `apps/desktop/staff-admin/` | Tauri + React | N/A  | ✅ **PRODUCTION** | Offline-capable desktop application     |
 
 ## For Development: Use Staff Admin PWA
 
-The **`apps/pwa/staff-admin/`** app is the **main production staff console**. This is what
-you should use for:
+The **`apps/pwa/staff-admin/`** app is the **main production staff console**.
+This is what you should use for:
 
 - Production deployments
 - Development work

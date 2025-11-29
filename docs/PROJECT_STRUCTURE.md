@@ -77,7 +77,7 @@ Shared packages provide consistent primitives across surfaces:
 | Package                     | Purpose                                      |
 | --------------------------- | -------------------------------------------- |
 | `@ibimina/admin-core`       | Admin core business logic                    |
-| `@ibimina/config`           | Runtime configuration, environment schema   |
+| `@ibimina/config`           | Runtime configuration, environment schema    |
 | `@ibimina/flags`            | Feature flag management                      |
 | `@ibimina/lib`              | Shared utilities (HMAC, encryption, logging) |
 | `@ibimina/locales`          | i18n catalogs (EN/Kinyarwanda/French)        |
