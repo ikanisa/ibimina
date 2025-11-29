@@ -1,9 +1,13 @@
 packages:
-  - apps/pwa/*
-  - apps/mobile/*
-  - apps/desktop/*
-  - apps/website
-  - packages/*
+  - 'apps/pwa/staff-admin'
+  - 'apps/desktop/staff-admin'
+  - 'packages/admin-core'
+  - 'packages/config'
+  - 'packages/flags'
+  - 'packages/lib'
+  - 'packages/locales'
+  - 'packages/supabase-schemas'
+  - 'packages/ui'
 
 ignoredBuiltDependencies:
   - "@tailwindcss/oxide"

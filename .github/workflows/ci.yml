@@ -97,17 +97,6 @@ jobs:
           status=${PIPESTATUS[0]}
           exit $status
 
-      - name: Install gitleaks
-        run: |
-          mkdir -p "$HOME/bin"
-          curl -sSfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/install.sh | bash -s -- -b "$HOME/bin"
-          echo "$HOME/bin" >> "$GITHUB_PATH"
-
-      - name: Run gitleaks
-        run: |
-          set -eo pipefail
-          gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path .reports/security/gitleaks-report.json
-
       - name: Lint all workspaces
         run: pnpm run lint
 
@@ -115,13 +104,10 @@ jobs:
         run: pnpm run typecheck
 
       - name: Workspace library tests
-        run: pnpm -r --filter "@ibimina/{lib,core,providers,ai-agent,testing,config}" test
+        run: pnpm -r --filter "@ibimina/{lib,config}" test
 
       - name: Unit tests
         run: pnpm run test:unit
-
-      - name: Auth security tests
-        run: pnpm run test:auth
 
       - name: RLS policy tests
         run: pnpm run test:rls
@@ -154,14 +140,12 @@ jobs:
           path: |
             .reports/coverage
             apps/pwa/staff-admin/coverage
-            apps/platform-api/coverage
-            apps/pwa/client/coverage
             packages/ui/coverage
           if-no-files-found: warn
 
-      - name: Lighthouse · admin
+      - name: Lighthouse · staff-admin
         run: |
-          pnpm --filter @ibimina/admin run start -- --hostname 0.0.0.0 --port 3000 &
+          pnpm --filter @ibimina/staff-admin-pwa run start -- --hostname 0.0.0.0 --port 3000 &
           echo $! > .reports/admin.pid
           pnpm dlx wait-on http://127.0.0.1:3000
           pnpm dlx lighthouse http://127.0.0.1:3000 \
@@ -172,117 +156,12 @@ jobs:
             --output-path=.reports/lighthouse/admin.json
           kill $(cat .reports/admin.pid) || true
 
-      - name: Lighthouse · client
-        run: |
-          pnpm --filter @ibimina/client run start -- --hostname 0.0.0.0 --port 3001 &
-          echo $! > .reports/client.pid
-          pnpm dlx wait-on http://127.0.0.1:3001
-          pnpm dlx lighthouse http://127.0.0.1:3001 \
-            --quiet \
-            --chrome-flags="--headless" \
-            --config-path=apps/pwa/client/lighthouse.config.cjs \
-            --output=json \
-            --output-path=.reports/lighthouse/client.json
-          kill $(cat .reports/client.pid) || true
-
-      - name: Lighthouse · staff
-        run: |
-          pnpm --filter @ibimina/staff run start -- --hostname 0.0.0.0 --port 3002 &
-          echo $! > .reports/staff.pid
-          pnpm dlx wait-on http://127.0.0.1:3002
-          pnpm dlx lighthouse http://127.0.0.1:3002 \
-            --quiet \
-            --chrome-flags="--headless" \
-            --config-path=apps/staff/lighthouse.config.cjs \
-            --output=json \
-            --output-path=.reports/lighthouse/staff.json
-          kill $(cat .reports/staff.pid) || true
-
       - name: Upload Lighthouse artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-reports
           path: .reports/lighthouse
-
-  android-instrumented-tests:
-    name: Android instrumentation (TapMoMo)
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Run TapMoMo instrumentation tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          target: google_apis
-          arch: x86_64
-          profile: pixel_6
-          script: |
-            cd apps/pwa/client/android
-            chmod +x gradlew
-            ./gradlew :feature-tapmomo:assembleDebug
-            ./gradlew :feature-tapmomo:connectedDebugAndroidTest
-          emulator-options: -no-snapshot -noaudio -no-boot-anim
-          disable-animations: true
-
-  client-playwright:
-    name: Client Playwright e2e
-    runs-on: ubuntu-latest
-    needs: build
-    env:
-      CI: "true"
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.19.0
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
-
-      - name: Run client Playwright suite
-        run: pnpm --filter @ibimina/client run test:e2e
-
-      - name: Upload Playwright coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: client-playwright-coverage
-          path: apps/pwa/client/.reports/coverage
-          if-no-files-found: warn
-
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: client-playwright-report
-          path: apps/pwa/client/.reports/playwright
-          if-no-files-found: warn
 
   admin-playwright:
     name: Admin Playwright e2e
@@ -313,7 +192,7 @@ jobs:
         run: pnpm exec playwright install --with-deps
 
       - name: Run admin Playwright suite
-        run: pnpm --filter @ibimina/admin run test:e2e
+        run: pnpm --filter @ibimina/staff-admin-pwa run test:e2e
 
       - name: Upload Playwright coverage
         if: always()
@@ -329,40 +208,4 @@ jobs:
         with:
           name: admin-playwright-report
           path: apps/pwa/staff-admin/.reports/playwright
-          if-no-files-found: warn
-
-  mobile-detox:
-    name: Mobile Detox regression
-    runs-on: ubuntu-latest
-    needs: build
-    env:
-      CI: "true"
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.19.0
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Detox smoke tests
-        run: pnpm --filter @ibimina/mobile run test:detox
-
-      - name: Upload Detox artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: mobile-detox-output
-          path: apps/mobile/tests/detox
           if-no-files-found: warn

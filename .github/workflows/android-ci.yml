@@ -5,9 +5,10 @@ on:
     branches: [main, work]
     paths:
       - "apps/pwa/staff-admin/**"
-      - "apps/pwa/client/**"
-      - "apps/*/android/**"
       - ".github/workflows/android-ci.yml"
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,7 +16,7 @@ concurrency:
 
 jobs:
   lint-and-test:
-    name: Lint & Test Android Apps
+    name: Lint & Test Staff Admin Android App
     runs-on: ubuntu-latest
     env:
       CI: "true"
@@ -29,9 +30,6 @@ jobs:
       HMAC_SHARED_SECRET: "placeholder-hmac-shared-secret-32"
       OPENAI_API_KEY: "placeholder-openai-api-key"
       KMS_DATA_KEY_BASE64: "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ=="
-    strategy:
-      matrix:
-        app: [admin, client]
 
     steps:
       - name: Checkout repository
@@ -67,16 +65,16 @@ jobs:
       - name: Build shared workspaces
         run: pnpm run build:packages
 
-      - name: Build ${{ matrix.app }} web application
-        working-directory: apps/${{ matrix.app }}
+      - name: Build staff-admin web application
+        working-directory: apps/pwa/staff-admin
         run: pnpm run build
 
       - name: Sync Capacitor assets
-        working-directory: apps/${{ matrix.app }}
+        working-directory: apps/pwa/staff-admin
         run: npx cap sync android
 
       - name: Lint Kotlin code (ktlint)
-        working-directory: apps/${{ matrix.app }}/android
+        working-directory: apps/pwa/staff-admin/android
         run: |
           if [ -f "gradlew" ]; then
             chmod +x gradlew
@@ -84,18 +82,18 @@ jobs:
           fi
 
       - name: Run Android Lint
-        working-directory: apps/${{ matrix.app }}/android
+        working-directory: apps/pwa/staff-admin/android
         run: |
           chmod +x gradlew
           ./gradlew lintDebug
 
       - name: Run unit tests
-        working-directory: apps/${{ matrix.app }}/android
+        working-directory: apps/pwa/staff-admin/android
         run: |
           ./gradlew testDebugUnitTest
 
       - name: Build debug APK
-        working-directory: apps/${{ matrix.app }}/android
+        working-directory: apps/pwa/staff-admin/android
         run: |
           ./gradlew assembleDebug
 
@@ -103,23 +101,23 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.app }}-lint-report
-          path: apps/${{ matrix.app }}/android/app/build/reports/lint-results-debug.html
+          name: staff-admin-lint-report
+          path: apps/pwa/staff-admin/android/app/build/reports/lint-results-debug.html
           retention-days: 7
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.app }}-test-results
-          path: apps/${{ matrix.app }}/android/app/build/test-results/testDebugUnitTest/
+          name: staff-admin-test-results
+          path: apps/pwa/staff-admin/android/app/build/test-results/testDebugUnitTest/
           retention-days: 7
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.app }}-debug-apk
-          path: apps/${{ matrix.app }}/android/app/build/outputs/apk/debug/*.apk
+          name: staff-admin-debug-apk
+          path: apps/pwa/staff-admin/android/app/build/outputs/apk/debug/*.apk
           retention-days: 7
 
   instrumentation-tests:
@@ -140,7 +138,6 @@ jobs:
       KMS_DATA_KEY_BASE64: "c3R1Yi1rbXMtZGF0YS1rZXktMzItYnl0ZXMtISEhIQ=="
     strategy:
       matrix:
-        app: [admin]
         api-level: [29, 33]
 
     steps:
@@ -174,12 +171,12 @@ jobs:
       - name: Build shared workspaces
         run: pnpm run build:packages
 
-      - name: Build ${{ matrix.app }} web application
-        working-directory: apps/${{ matrix.app }}
+      - name: Build staff-admin web application
+        working-directory: apps/pwa/staff-admin
         run: pnpm run build
 
       - name: Sync Capacitor assets
-        working-directory: apps/${{ matrix.app }}
+        working-directory: apps/pwa/staff-admin
         run: npx cap sync android
 
       - name: AVD cache
@@ -211,7 +208,7 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            cd apps/${{ matrix.app }}/android
+            cd apps/pwa/staff-admin/android
             chmod +x gradlew
             ./gradlew connectedDebugAndroidTest
 
@@ -219,8 +216,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.app }}-instrumentation-results-api${{ matrix.api-level }}
-          path: apps/${{ matrix.app }}/android/app/build/reports/androidTests/connected/
+          name: staff-admin-instrumentation-results-api${{ matrix.api-level }}
+          path: apps/pwa/staff-admin/android/app/build/reports/androidTests/connected/
           retention-days: 7
 
   check-status:
