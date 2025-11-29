@@ -51,20 +51,12 @@ supabase/.temp
 test-results/
 
 # Android keystore (never commit)
-/apps/client/android/app/*.keystore
-/apps/client/android/app/*.jks
-/apps/client/android/keystore.properties
-/apps/client/credentials/*.json
+/apps/pwa/staff-admin/android/app/*.keystore
+/apps/pwa/staff-admin/android/app/*.jks
+/apps/pwa/staff-admin/android/keystore.properties
 
-# Fastlane build output
-/apps/client/fastlane/report.xml
-/apps/client/fastlane/Preview.html
-
-# Vercel local artifacts (Cloudflare adapter output)
-apps/admin/.vercel/
-apps/client/.vercel/
-apps/staff-admin-pwa/.vercel/
-apps/website/.vercel/
+# Vercel local artifacts
+apps/pwa/staff-admin/.vercel/
 
 # APK distribution directory
 /dist/

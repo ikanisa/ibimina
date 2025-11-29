@@ -172,37 +172,37 @@ specification.
 Use scopes to indicate which package or area the change targets. The following
 scopes are enforced by commitlint:
 
-- `admin`
-- `client`
-- `mobile`
-- `platform-api`
-- `supabase`
-- `docs`
+- `staff-admin` - Staff Admin PWA and Desktop apps
+- `supabase` - Database, migrations, edge functions
+- `docs` - Documentation
+- `ui` - Shared UI package
+- `lib` - Shared utilities
+- `config` - Configuration package
 
 Combine the scope with the type to clarify intent, for example
-`feat(admin): add approvals tab`.
+`feat(staff-admin): add approvals tab`.
 
 ### Examples
 
 ```bash
 # Feature
-git commit -m "feat(admin): add passkey authentication support"
+git commit -m "feat(staff-admin): add passkey authentication support"
 
 # Bug fix
-git commit -m "fix(client): resolve incorrect balance display"
+git commit -m "fix(staff-admin): resolve incorrect balance display"
 
 # Documentation
 git commit -m "docs(docs): update local setup instructions"
 
 # Breaking change
-git commit -m "feat(platform-api): redesign authentication API
+git commit -m "feat(supabase): redesign authentication API
 
 BREAKING CHANGE: authentication endpoint now requires OAuth2 token"
 
 # Scoped packages
-git commit -m "feat(admin): add approvals tab to transaction review"
-git commit -m "fix(client): resolve null reference in checkout flow"
-git commit -m "chore(platform-api): bump queue worker memory limits"
+git commit -m "feat(staff-admin): add approvals tab to transaction review"
+git commit -m "fix(ui): resolve button styling issue"
+git commit -m "chore(lib): update utility functions"
 git commit -m "docs(docs): document lint-staged and commit scopes"
 ```
 
@@ -270,17 +270,23 @@ pnpm format:check
 
 ```text
 apps/
-  admin/              # Main application
-    app/              # Next.js app directory
-    components/       # React components
-    lib/              # Utility functions and helpers
-    providers/        # React context providers
-    tests/            # Test files
+  pwa/
+    staff-admin/        # Staff Admin PWA (Next.js 15)
+      app/              # Next.js app directory
+      components/       # React components
+      lib/              # Utility functions and helpers
+      providers/        # React context providers
+      tests/            # Test files
+  desktop/
+    staff-admin/        # Staff Admin Desktop (Tauri)
 packages/
-  config/             # Configuration utilities
-  core/               # Core business logic
-  testing/            # Testing utilities
-  ui/                 # Shared UI components
+  admin-core/           # Admin core business logic
+  config/               # Configuration utilities
+  flags/                # Feature flags
+  lib/                  # Shared utilities
+  locales/              # i18n translations
+  supabase-schemas/     # Database type definitions
+  ui/                   # Shared UI components
 ```
 
 ## Pull Request Process
