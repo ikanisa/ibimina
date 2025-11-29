@@ -129,13 +129,17 @@ ibimina/
 ├── .github/              # GitHub workflows and configurations
 ├── .husky/               # Git hooks
 ├── apps/
-│   ├── admin/            # Main admin application (Next.js)
-│   ├── client/           # Client-facing application
-│   └── platform-api/     # Backend API services
+│   ├── pwa/
+│   │   └── staff-admin/  # Staff Admin PWA (Next.js 15)
+│   └── desktop/
+│       └── staff-admin/  # Staff Admin Desktop (Tauri)
 ├── packages/
+│   ├── admin-core/       # Admin core business logic
 │   ├── config/           # Shared configuration utilities
-│   ├── core/             # Core business logic
-│   ├── testing/          # Testing utilities
+│   ├── flags/            # Feature flags
+│   ├── lib/              # Shared utilities
+│   ├── locales/          # i18n translations
+│   ├── supabase-schemas/ # Database type definitions
 │   └── ui/               # Shared UI components
 ├── supabase/
 │   ├── functions/        # Edge functions
@@ -154,16 +158,19 @@ ibimina/
 
 ### Key Directories
 
-- **apps/admin**: Main staff console (Next.js App Router)
+- **apps/pwa/staff-admin**: Staff console (Next.js App Router)
   - `app/`: Next.js app directory with routes
   - `components/`: React components
   - `lib/`: Utilities and helpers
   - `providers/`: Context providers
   - `tests/`: Test files
 
+- **apps/desktop/staff-admin**: Desktop app (Tauri + Vite + React)
+  - Desktop version with native integration
+
 - **packages/**: Shared code across applications
   - Organized as separate npm packages
-  - Imported using workspace protocol (e.g., `@ibimina/core`)
+  - Imported using workspace protocol (e.g., `@ibimina/lib`)
 
 - **supabase/**: Backend infrastructure
   - Database schema, migrations, and Edge Functions
