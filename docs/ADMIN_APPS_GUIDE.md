@@ -1,23 +1,19 @@
-# Admin/Staff Apps Guide
+# Staff Admin Apps Guide
 
-This document clarifies the different admin/staff applications in the monorepo
-and when to use each.
+This document clarifies the staff/admin applications in the monorepo.
 
 ## Overview
 
-There are **three** staff/admin applications in the repository:
+There are **two** staff/admin applications in the repository:
 
-| App             | Location                | Tech         | Port                | Status            | Purpose                                 |
-| --------------- | ----------------------- | ------------ | ------------------- | ----------------- | --------------------------------------- |
-| **Admin PWA**   | `apps/admin/`           | Next.js 15   | 3100                | ✅ **PRODUCTION** | Main staff console for SACCO management |
-| Staff App       | `apps/staff/`           | Next.js 16   | 5300                | 🟡 Alternative    | Secondary staff interface               |
-| Staff Admin PWA | `apps/staff-admin-pwa/` | Vite + React | 5173 (configurable) | 🔵 Prototype      | Vite-based alternative/prototype        |
+| App                  | Location                     | Tech            | Port | Status            | Purpose                                  |
+| -------------------- | ---------------------------- | --------------- | ---- | ----------------- | ---------------------------------------- |
+| **Staff Admin PWA**  | `apps/pwa/staff-admin/`      | Next.js 15      | 3100 | ✅ **PRODUCTION** | Main staff console for SACCO management  |
+| Staff Admin Desktop  | `apps/desktop/staff-admin/`  | Tauri + React   | N/A  | ✅ **PRODUCTION** | Offline-capable desktop application      |
 
-## Which App Should I Use?
+## For Development: Use Staff Admin PWA
 
-### For Production: Use `apps/admin/` ✅
-
-The **`apps/admin/`** app is the **main production staff console**. This is what
+The **`apps/pwa/staff-admin/`** app is the **main production staff console**. This is what
 you should use for:
 
 - Production deployments
@@ -32,15 +28,12 @@ you should use for:
 pnpm dev
 
 # Or explicitly
-pnpm dev:admin
-
-# Or from the app directory
-cd apps/admin && pnpm dev
+pnpm --filter @ibimina/staff-admin-pwa dev
 ```
 
 **Access at:** http://localhost:3100
 
-### Features of `apps/admin/`:
+### Features of Staff Admin PWA:
 
 - ✅ Next.js 15 with App Router
 - ✅ Full Supabase integration
@@ -48,110 +41,64 @@ cd apps/admin && pnpm dev
 - ✅ SMS reconciliation
 - ✅ Device authentication with passkeys
 - ✅ PWA with offline support
-- ✅ Android mobile app via Capacitor
-- ✅ Comprehensive test suite
+- ✅ Android build via Capacitor
 
-### Other Apps
+## For Desktop: Use Staff Admin Desktop
 
-#### `apps/staff/` - Alternative Staff App
+The **`apps/desktop/staff-admin/`** app is a **Tauri-based desktop application**
+for offline-capable workflows.
 
-- Next.js 16 based staff interface
-- Runs on port 5300
-- May be for specific use cases or under development
-- **Start:** `pnpm dev:staff`
-
-#### `apps/staff-admin-pwa/` - Vite Prototype
-
-- Vite + React 18 + Material UI
-- **Default dev port:** 5173 (configurable via `vite.config.ts`)
-- Appears to be a prototype or alternative implementation
-- **Start:** `pnpm dev:staff-admin-pwa`
-
-⚠️ **Port Coordination:** `apps/admin/` now uses port 3100 by default. Ensure
-`apps/staff-admin-pwa/` runs on a different port (its Vite default is 5173) or
-override via `PORT=xxxx pnpm dev:staff-admin-pwa` when needed.
-
-## Port Configuration Summary
-
-| Command                    | App                     | Port                |
-| -------------------------- | ----------------------- | ------------------- |
-| `pnpm dev`                 | `apps/admin/`           | 3100                |
-| `pnpm dev:admin`           | `apps/admin/`           | 3100                |
-| `pnpm dev:staff`           | `apps/staff/`           | 5300                |
-| `pnpm dev:staff-admin-pwa` | `apps/staff-admin-pwa/` | 5173 (configurable) |
-
-## Development Workflow
-
-### Standard Development
+**Start it with:**
 
 ```bash
-# Clone and install
-git clone <repository-url>
-cd ibimina
-pnpm install --frozen-lockfile
-
-# Start main admin app (production)
-pnpm dev
-
-# Visit http://localhost:3100
+pnpm dev:desktop
 ```
 
-### Testing Staff Admin PWA
+### Features of Staff Admin Desktop:
+
+- ✅ Native desktop application (Windows, macOS, Linux)
+- ✅ Offline-first architecture
+- ✅ Native file system access
+- ✅ Secure local storage
+
+## Quick Reference
 
 ```bash
-# Make sure apps/admin is NOT running on the same port
-# (staff-admin-pwa uses the Vite port in vite.config.ts)
+# Start Staff Admin PWA
+pnpm dev                                    # Port 3100
 
-# Start Vite-based app
-pnpm dev:staff-admin-pwa
+# Start Staff Admin Desktop
+pnpm dev:desktop                            # Native window
 
-# Visit the port defined in apps/staff-admin-pwa/vite.config.ts (default http://localhost:5173)
+# Build Staff Admin PWA
+pnpm build:admin
+
+# Build Staff Admin Desktop
+pnpm build:desktop
 ```
 
-### Testing Alternative Staff App
+## Shared Packages
 
-```bash
-# Can run alongside apps/admin (different port)
-pnpm dev:staff
+Both apps depend on shared packages:
 
-# Visit http://localhost:5300
-```
-
-## Recommendations
-
-### Short Term
-
-1. **Use `apps/admin/` for all production work** ✅
-2. Avoid running `apps/staff-admin-pwa/` unless specifically testing it
-3. Document the purpose/status of `apps/staff/` if unclear
-
-### Long Term Considerations
-
-1. **Consolidate or Archive:** Consider whether `apps/staff-admin-pwa/` should
-   be:
-   - Merged into `apps/admin/` if it has unique features
-   - Archived/removed if it's an old prototype
-   - Changed to a different port (e.g., 3001) to avoid conflicts
-
-2. **Clarify `apps/staff/`:** Document the specific use case for this app or
-   consolidate with `apps/admin/`
-
-3. **Single Source of Truth:** Having multiple admin apps can lead to:
-   - Confusion about which to use
-   - Duplicate maintenance effort
-   - Inconsistent features across apps
+- `@ibimina/ui` - Shared React components
+- `@ibimina/lib` - Shared utilities
+- `@ibimina/config` - Environment configuration
+- `@ibimina/flags` - Feature flags
+- `@ibimina/locales` - i18n translations
+- `@ibimina/supabase-schemas` - Database types
+- `@ibimina/admin-core` - Admin core business logic
 
 ## Related Documentation
 
 - [Development Guide](../DEVELOPMENT.md)
-- [Quick Start](../QUICK-START.md)
-- [Apps Setup Guide](../APPS_SETUP_GUIDE.md)
-- [Android Build Guide](../apps/admin/ANDROID_BUILD_GUIDE.md)
+- [README](../README.md)
+- [Architecture](../ARCHITECTURE.md)
 
 ## Questions?
 
-If you're unsure which app to use, **default to `apps/admin/`** - it's the
-production application with full feature parity.
+If you're unsure which app to use for development, **default to Staff Admin PWA
+(`apps/pwa/staff-admin/`)** - it's the primary production application.
 
-For specific questions about app architecture or consolidation plans, please
-refer to the project maintainers or architectural decision records (ADRs).
+For desktop workflows requiring offline capabilities, use the Staff Admin
+Desktop (`apps/desktop/staff-admin/`).

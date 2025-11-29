@@ -1,34 +1,64 @@
-# App Portfolio Status — December 2024 Review
+# App Portfolio Status — November 2025 Update
 
 ## Summary
 
-Stakeholder feedback confirms that only the Admin, Client, Mobile, Platform API,
-and Website applications remain on the active roadmap. The Expo prototype in
-`apps/sacco-plus-client` and the Kotlin authentication shell in
-`apps/android-auth` are no longer required for current deployments.
+Following the major repository refactoring, the Ibimina platform now consists
+of only Staff Admin applications. All other applications (client, mobile,
+website, platform-api, sacco-plus-client, android-auth) have been removed
+as part of the streamlined focus on SACCO staff operations.
 
-- `apps/sacco-plus-client` served as the initial SACCO+ prototype. The active
-  mobile rollout now ships from `apps/mobile`, so the prototype can be archived
-  after final asset export.
-- `apps/android-auth` was superseded by the production-ready Capacitor bundle in
-  `apps/admin` (`capacitor` folder). All device-auth milestones tracked in
-  `STAFF_ANDROID_APP_COMPLETE.md` have moved to the unified mobile codebase.
+## Current Active Applications
 
-## Next Actions
+| Application              | Package                        | Status    |
+| ------------------------ | ------------------------------ | --------- |
+| Staff Admin PWA          | `@ibimina/staff-admin-pwa`     | ✅ Active |
+| Staff Admin Desktop      | `@ibimina/staff-admin-desktop` | ✅ Active |
 
-1. **Archive repositories:** Move both app directories into an `archived/`
-   workspace once delivery sign-off is completed. Update `pnpm-workspace.yaml`
-   to exclude archived packages and reduce install time.
-2. **Retain documentation:** Keep `STAFF_ANDROID_APP_COMPLETE.md` and
-   `apps/sacco-plus-client/README.md` for historical context, but annotate that
-   the implementations are frozen.
-3. **Communicate change:** Notify the mobile and operations squads during the
-   weekly release stand-up so any local clones can drop the archived apps.
-4. **Monitor CI footprint:** After archival, validate that `pnpm install` and
-   Expo caches shrink accordingly.
+## Current Active Packages
+
+| Package                  | Status    |
+| ------------------------ | --------- |
+| `@ibimina/admin-core`    | ✅ Active |
+| `@ibimina/config`        | ✅ Active |
+| `@ibimina/flags`         | ✅ Active |
+| `@ibimina/lib`           | ✅ Active |
+| `@ibimina/locales`       | ✅ Active |
+| `@ibimina/supabase-schemas` | ✅ Active |
+| `@ibimina/ui`            | ✅ Active |
+
+## Removed Applications
+
+The following applications were removed during the November 2025 refactoring:
+
+- `apps/admin` - Merged into `apps/pwa/staff-admin`
+- `apps/client` - Member-facing PWA (archived)
+- `apps/mobile` - Expo mobile app (archived)
+- `apps/website` - Marketing website (archived)
+- `apps/platform-api` - Background workers (archived)
+- `apps/sacco-plus-client` - Prototype app (archived)
+- `apps/android-auth` - Kotlin auth shell (archived)
+
+## Removed Packages
+
+The following packages were removed:
+
+- `@ibimina/api-contracts`
+- `@ibimina/data-access`
+- `@ibimina/eslint-plugin-ibimina`
+- `@ibimina/shared-types`
+- `@ibimina/tapmomo-proto`
+- `@ibimina/ui-components`
+- `@ibimina/providers`
+- `@ibimina/testing`
+- `@ibimina/ai-agent`
+
+## Maintenance Notes
+
+- All documentation has been updated to reflect the current structure
+- CI/CD workflows now only build and deploy Staff Admin applications
+- The Supabase backend continues to serve the Staff Admin applications
 
 ## Owner
 
-- Product: ✉️ Pauline I., Director of Member Experience
-- Engineering: ✉️ David N., Mobile Platform Lead
-- Timeline: Archive windows scheduled for the first sprint of Q1 FY2025.
+- Engineering: Development Team
+- Last Updated: November 2025

@@ -1,5 +1,15 @@
 # Native Mobile Apps - Complete Implementation Guide
 
+> **⚠️ DEPRECATED**: This document describes native mobile applications that
+> have been removed from the repository as part of the November 2025 refactoring.
+> The Ibimina platform now focuses on Staff Admin applications:
+> - Staff Admin PWA (`apps/pwa/staff-admin`)
+> - Staff Admin Desktop (`apps/desktop/staff-admin`)
+>
+> This document is retained for historical reference only.
+
+---
+
 This document provides a comprehensive guide to the native mobile applications in the Ibimina repository.
 
 ## Overview

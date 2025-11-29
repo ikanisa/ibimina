@@ -1,13 +1,14 @@
-# SACCO+ Application - Release Documentation
+# SACCO+ Staff Admin Applications - Release Documentation
 
 ## Overview
 
 SACCO+ is a comprehensive digital platform designed for Umurenge SACCO
-operations in Rwanda. The platform consists of multiple applications:
+operations in Rwanda. The platform consists of Staff Admin applications:
 
-- **Admin Application**: Management and administrative interface
-- **Client Application**: Member-facing Progressive Web App (PWA)
-- **Platform API**: Backend services and business logic
+- **Staff Admin PWA**: Progressive Web App for staff management and
+  administrative interface
+- **Staff Admin Desktop**: Tauri-based desktop application for offline-capable
+  workflows
 
 ## Latest Release
 
@@ -69,26 +70,27 @@ additional features to ensure production readiness.
 
 ### Environment Variables
 
-Create a `.env.local` file in each application directory based on the
+Create a `.env.local` file in the staff-admin directory based on the
 `.env.example` files:
 
-#### Client Application (`apps/client/.env.local`)
+#### Staff Admin PWA (`apps/pwa/staff-admin/.env.local`)
 
 ```bash
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Web Push Notifications
-# Generate keys using: npx web-push generate-vapid-keys
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=your-vapid-public-key
-VAPID_PRIVATE_KEY=your-vapid-private-key
-VAPID_SUBJECT=mailto:your-email@example.com
+# Security Keys
+BACKUP_PEPPER=your-backup-pepper-32-bytes
+MFA_SESSION_SECRET=your-mfa-session-secret
+TRUSTED_COOKIE_SECRET=your-trusted-cookie-secret
+HMAC_SHARED_SECRET=your-hmac-shared-secret
+KMS_DATA_KEY_BASE64=your-kms-data-key
 
 # Feature Flags
 NEXT_PUBLIC_FEATURE_FLAG_WEB_PUSH=true
 NEXT_PUBLIC_FEATURE_FLAG_BETA_FEATURES=false
-NEXT_PUBLIC_FEATURE_FLAG_NEW_UI=false
 ```
 
 ### Installation
@@ -113,14 +115,11 @@ pnpm run build
 ### Development
 
 ```bash
-# Start development server (admin app)
+# Start Staff Admin PWA development server
 pnpm run dev
 
-# Start client app development server
-pnpm --filter @ibimina/client dev
-
-# Start platform API development server
-pnpm --filter @ibimina/platform-api dev
+# Start Staff Admin Desktop development server
+pnpm run dev:desktop
 ```
 
 ### Production Build
@@ -129,10 +128,8 @@ pnpm --filter @ibimina/platform-api dev
 # Build all packages and applications
 pnpm run build
 
-# Start production servers
-pnpm --filter @ibimina/admin start
-pnpm --filter @ibimina/client start
-pnpm --filter @ibimina/platform-api start
+# Start production server
+pnpm --filter @ibimina/staff-admin-pwa start
 ```
 
 ### Deployment Checklist
@@ -210,7 +207,7 @@ The application uses a custom service worker for:
 - Push notifications
 - Resource optimization
 
-Configuration is in `apps/client/workers/service-worker.ts`.
+Configuration is in `apps/pwa/staff-admin/workers/service-worker.ts`.
 
 ## Monitoring and Observability
 

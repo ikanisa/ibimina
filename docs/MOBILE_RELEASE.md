@@ -1,5 +1,19 @@
 # Mobile Release Playbook
 
+> **⚠️ DEPRECATED**: This document describes the mobile release process for
+> applications that have been removed from the repository as part of the
+> November 2025 refactoring. The Ibimina platform now focuses on Staff Admin
+> applications:
+> - Staff Admin PWA (`apps/pwa/staff-admin`)
+> - Staff Admin Desktop (`apps/desktop/staff-admin`)
+>
+> For Staff Admin Android build instructions, see the GitHub Actions workflow
+> `.github/workflows/android-build.yml` and `.github/workflows/build-android-staff-apk.yml`.
+>
+> This document is retained for historical reference only.
+
+---
+
 This guide documents how to produce signed Android and iOS builds after enabling the new
 notification listener, SMS consent, and universal link integrations.
 

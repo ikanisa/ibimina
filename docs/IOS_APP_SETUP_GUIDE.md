@@ -1,5 +1,15 @@
 # iOS App Setup Guide - Ibimina Client
 
+> **⚠️ DEPRECATED**: This document describes the iOS client app that has been
+> removed from the repository as part of the November 2025 refactoring. The
+> Ibimina platform now focuses on Staff Admin applications:
+> - Staff Admin PWA (`apps/pwa/staff-admin`)
+> - Staff Admin Desktop (`apps/desktop/staff-admin`)
+>
+> This document is retained for historical reference only.
+
+---
+
 This guide walks you through setting up and building the Ibimina Client iOS app using Capacitor.
 
 ## Overview

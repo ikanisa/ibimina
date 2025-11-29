@@ -1,5 +1,15 @@
 # SACCO+ Member App Implementation Guide
 
+> **⚠️ DEPRECATED**: This document describes the member-facing PWA that
+> has been removed from the repository as part of the November 2025 refactoring.
+> The Ibimina platform now focuses on Staff Admin applications:
+> - Staff Admin PWA (`apps/pwa/staff-admin`)
+> - Staff Admin Desktop (`apps/desktop/staff-admin`)
+>
+> This document is retained for historical reference only.
+
+---
+
 This document translates the high-level product brief into a phased delivery
 plan for the SACCO+ member-facing progressive web application (PWA). The guide
 covers architecture, feature scope, sequencing, and validation to ensure a

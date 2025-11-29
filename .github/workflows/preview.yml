@@ -54,16 +54,16 @@ jobs:
       - name: Run Lighthouse suite
         run: |
           mkdir -p .reports/lighthouse
-          pnpm --filter @ibimina/client run start -- --hostname 0.0.0.0 --port 3001 &
-          echo $! > .reports/client.pid
-          pnpm dlx wait-on http://127.0.0.1:3001
-          pnpm dlx lighthouse http://127.0.0.1:3001 \
+          pnpm --filter @ibimina/staff-admin-pwa run start -- --hostname 0.0.0.0 --port 3100 &
+          echo $! > .reports/staff-admin.pid
+          pnpm dlx wait-on http://127.0.0.1:3100
+          pnpm dlx lighthouse http://127.0.0.1:3100 \
             --quiet \
             --chrome-flags="--headless" \
-            --config-path=apps/pwa/client/lighthouse.config.cjs \
+            --config-path=apps/pwa/staff-admin/lighthouse.config.cjs \
             --output=json \
-            --output-path=.reports/lighthouse/client.json
-          kill $(cat .reports/client.pid) || true
+            --output-path=.reports/lighthouse/staff-admin.json
+          kill $(cat .reports/staff-admin.pid) || true
 
       - name: Upload Lighthouse report
         if: always()
