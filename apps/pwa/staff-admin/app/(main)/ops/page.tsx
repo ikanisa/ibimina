@@ -88,7 +88,6 @@ export default async function OperationsPage() {
 
   const notificationDelta = computeDelta(snapshot.trends.notifications);
   const reconciliationDelta = computeDelta(snapshot.trends.reconciliation);
-  const mfaDelta = computeDelta(snapshot.trends.mfaSuccesses);
 
   return (
     <div className="space-y-8">
@@ -230,70 +229,6 @@ export default async function OperationsPage() {
               series={snapshot.trends.reconciliation}
               tone="amber"
               ariaLabel="Reconciliation backlog entries captured over the last 12 hours"
-              className="h-16 w-full sm:w-44"
-            />
-          </div>
-        </GlassCard>
-
-        <GlassCard
-          title={<Trans i18nKey="ops.mfa.title" fallback="MFA posture" />}
-          subtitle={
-            <Trans
-              i18nKey="ops.mfa.subtitle"
-              fallback="Verify that staff are actively authenticating and no factors are stale."
-              className="text-xs text-neutral-3"
-            />
-          }
-        >
-          <dl className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                <Trans i18nKey="ops.mfa.enabled" fallback="Enabled" />
-              </dt>
-              <dd className="mt-1 text-2xl font-semibold text-neutral-0">
-                {numberFormatter.format(snapshot.mfa.enabled)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                <Trans i18nKey="ops.mfa.stale" fallback="Stale" />
-              </dt>
-              <dd className="mt-1 text-sm text-neutral-0">
-                {numberFormatter.format(snapshot.mfa.stale)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase tracking-[0.3em] text-neutral-2">
-                <Trans i18nKey="ops.mfa.last" fallback="Last success" />
-              </dt>
-              <dd className="mt-1 text-sm text-neutral-0">
-                {formatRelativeTime(snapshot.mfa.lastSuccessSample)}
-              </dd>
-            </div>
-          </dl>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-2">
-                <Trans i18nKey="ops.trend.mfaHeading" fallback="14d MFA successes" />
-              </p>
-              <p className="text-sm text-neutral-0">
-                {mfaDelta === 0 ? (
-                  <Trans i18nKey="ops.trend.flat" fallback="No change" />
-                ) : (
-                  <>
-                    <span className={mfaDelta >= 0 ? "text-emerald-300" : "text-amber-300"}>
-                      {mfaDelta > 0 ? "+" : "−"}
-                      {numberFormatter.format(Math.abs(mfaDelta))}
-                    </span>{" "}
-                    <Trans i18nKey="ops.trend.vsStart" fallback="vs start" />
-                  </>
-                )}
-              </p>
-            </div>
-            <Sparkline
-              series={snapshot.trends.mfaSuccesses}
-              tone="cyan"
-              ariaLabel="MFA successes recorded across the last 14 days"
               className="h-16 w-full sm:w-44"
             />
           </div>
