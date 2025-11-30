@@ -8,10 +8,6 @@ import rwCommon from "@/locales/rw/common.json";
 import rwStaff from "@/locales/rw/staff.json";
 import type { SupportedLocale } from "@/lib/i18n/locales";
 
-type MinimalProfile = {
-  id: string;
-};
-
 const TEST_DICTIONARIES: Record<SupportedLocale, Record<string, string>> = {
   en: { ...enCommon, ...enStaff } as Record<string, string>,
   rw: { ...rwCommon, ...rwStaff } as Record<string, string>,
@@ -25,15 +21,11 @@ function translateFor(locale: SupportedLocale) {
 
 function QuickActionsSnapshot({
   locale,
-  profile,
 }: {
   locale: SupportedLocale;
-  profile: MinimalProfile;
 }) {
   const t = translateFor(locale);
-  const groups = createQuickActionGroups(t, {
-    id: profile.id,
-  });
+  const groups = createQuickActionGroups(t);
 
   return (
     <div>
@@ -59,10 +51,8 @@ function QuickActionsSnapshot({
 }
 
 describe("AppShell quick action localisation", () => {
-  const profile: MinimalProfile = { id: "test-user-id" };
-
   function renderSnapshot(locale: SupportedLocale) {
-    const { container } = render(<QuickActionsSnapshot locale={locale} profile={profile} />);
+    const { container } = render(<QuickActionsSnapshot locale={locale} />);
     return container.innerHTML;
   }
 

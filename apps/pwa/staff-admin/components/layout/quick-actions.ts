@@ -1,5 +1,3 @@
-import type { ProfileRow } from "@/lib/auth";
-
 export const BADGE_TONE_STYLES = {
   critical: "border-red-500/40 bg-red-500/15 text-red-200",
   info: "border-sky-500/40 bg-sky-500/15 text-sky-100",
@@ -158,10 +156,8 @@ function translateQuickAction(
 }
 
 export function createQuickActionGroups(
-  t: Translator,
-  _profile?: Pick<ProfileRow, "id">
+  t: Translator
 ): QuickActionGroupDefinition[] {
-
   return QUICK_ACTION_GROUP_ORDER.map((groupId) => {
     const meta = QUICK_ACTION_GROUP_META[groupId];
     const actions = meta.actions.map((actionKey) => {

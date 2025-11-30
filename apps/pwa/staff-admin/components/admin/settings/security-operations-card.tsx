@@ -2,11 +2,7 @@
 
 import { useTranslation } from "@/providers/i18n-provider";
 
-interface SecurityOperationsCardProps {
-  canReset?: boolean;
-}
-
-export function SecurityOperationsCard(_props: SecurityOperationsCardProps) {
+export function SecurityOperationsCard() {
   const { t } = useTranslation();
 
   return (

@@ -2,7 +2,7 @@
 -- This migration removes all MFA-related tables, columns, and functions
 -- to simplify authentication to Supabase native email/password only
 
--- Drop MFA-related tables
+-- Drop MFA-related tables (CASCADE will handle associated triggers)
 DROP TABLE IF EXISTS public.trusted_devices CASCADE;
 DROP TABLE IF EXISTS public.webauthn_credentials CASCADE;
 DROP TABLE IF EXISTS public.mfa_recovery_codes CASCADE;
@@ -23,6 +23,3 @@ ALTER TABLE public.users
 
 -- Drop MFA-related functions if they exist
 DROP FUNCTION IF EXISTS public.touch_mfa_recovery_codes() CASCADE;
-
--- Drop any MFA-related triggers (already handled by CASCADE above, but explicit for clarity)
-DROP TRIGGER IF EXISTS trg_mfa_recovery_codes_touch ON public.mfa_recovery_codes;

@@ -116,7 +116,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
           />
         }
       >
-        <SecurityOperationsCard canReset={profile.role === "SYSTEM_ADMIN"} />
+        <SecurityOperationsCard />
       </GlassCard>
     </div>
   );
