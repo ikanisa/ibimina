@@ -6,8 +6,8 @@ export const sharedReactRules = {
   "react-hooks/set-state-in-effect": "off",
 };
 
-export const structuredLoggingRules = {
-  "ibimina/structured-logging": "error",
-  "ibimina/require-retry-options": ["error", { functions: ["invokeEdge"] }],
-  "ibimina/no-private-imports": "error",
-};
+// Note: The ibimina eslint plugin was removed during the repository refactoring.
+// If custom linting rules are needed in the future, consider:
+// 1. Creating a new eslint plugin in packages/
+// 2. Using existing eslint rules from the ecosystem
+export const structuredLoggingRules = {};
