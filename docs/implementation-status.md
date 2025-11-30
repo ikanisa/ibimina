@@ -92,10 +92,10 @@
   SACCO scoping through repeatable RLS fixtures and
   tests.【F:middleware.ts†L1-L48】【F:lib/security/headers.ts†L1-L84】【F:app/api/authx/challenge/verify/route.ts†L1-L207】【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L120】
 - **P1 – PWA & Mobile UX Polish (completed):** Staff-facing screens expose the
-  install prompt provider, mobile segmented MFA chooser, and virtualized ikimina
+  install prompt provider and virtualized ikimina
   directory with sticky actions and skeleton states to keep the app responsive
   on small
-  devices.【F:providers/pwa-provider.tsx†L1-L97】【F:components/pwa/install-prompt.tsx†L1-L74】【F:app/(auth)/mfa/page.tsx†L1-L211】【F:components/ikimina/member-directory-card.tsx†L1-L198】【F:app/(main)/dashboard/loading.tsx†L1-L29】
+  devices.【F:providers/pwa-provider.tsx†L1-L97】【F:components/pwa/install-prompt.tsx†L1-L74】【F:components/ikimina/member-directory-card.tsx†L1-L198】【F:app/(main)/dashboard/loading.tsx†L1-L29】
 - **P2 – Performance & Caching (completed):** Shared cache helpers wrap Supabase
   aggregations with tagged `unstable_cache` calls so dashboard, ikimina, and
   SACCO updates reuse hydrated data while invalidations target the correct
@@ -118,8 +118,8 @@
    scheduled exports with audit-friendly Supabase subscriptions while SACCO
    branding and SMS template tooling round out launch
    communications.【F:components/reports/report-subscriptions-card.tsx†L1-L236】【F:app/(main)/reports/actions.ts†L1-L164】【F:components/admin/sms-template-panel.tsx†L1-L214】
-5. **Phase 5 – Security profile, MFA, and outreach automation (completed)**:
-   Delivered the security adoption dashboard with MFA risk insights, extended
+5. **Phase 5 – Security profile and outreach automation (completed)**:
+   Delivered the security adoption dashboard, extended
    the admin workspace with outreach tooling, and wired analytics across the
    executive and operations
-   surfaces.【F:app/(main)/admin/page.tsx†L237-L309】【F:components/admin/mfa-insights-card.tsx†L1-L199】【F:lib/mfa/insights.ts†L1-L192】
+   surfaces.【F:app/(main)/admin/page.tsx†L237-L309】

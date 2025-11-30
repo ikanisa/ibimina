@@ -46,12 +46,10 @@ up git hooks. Running `make bootstrap` ensures the generated Supabase types in
    cp supabase/.env.example supabase/.env.local
    ```
 
-2. Populate Supabase credentials, encryption keys, MFA secrets, and optional
+2. Populate Supabase credentials and optional
    integration tokens as documented in the environment reference. This includes:
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
-   - `KMS_DATA_KEY` or `KMS_DATA_KEY_BASE64`
-   - `BACKUP_PEPPER`, `MFA_SESSION_SECRET`, `TRUSTED_COOKIE_SECRET`
    - Provider-specific keys (Resend, Twilio, OpenAI) as needed
 
 3. Mirror the required keys into Supabase secrets for Edge Functions

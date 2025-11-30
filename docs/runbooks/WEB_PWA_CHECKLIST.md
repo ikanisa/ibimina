@@ -26,7 +26,7 @@ quality gates.
 
 ## 2. Staff Console (apps/admin)
 
-- [ ] Verify MFA + trusted device flows work while offline → reconnecting should
+- [ ] Verify authentication + trusted device flows work while offline → reconnecting should
       replay queued actions when the service worker flushes requests.
 - [ ] Confirm push shortcuts (Dashboard, Groups, Reports) launch the correct
       routes after install.【F:apps/admin/app/manifest.ts†L12-L34】

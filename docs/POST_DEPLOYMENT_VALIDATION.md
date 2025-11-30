@@ -75,12 +75,6 @@
   - No console errors
   - Redirects appropriately
 
-- [ ] MFA challenge works
-  - TOTP/authenticator code accepted
-  - Email OTP (if enabled) sends and validates
-  - Passkey works (if enrolled)
-  - Backup codes work
-
 - [ ] Session persists across page reload
   - Login successful
   - Refresh page
@@ -303,10 +297,6 @@ Expected headers:
   - Cookies have HttpOnly flag
   - Cookies have SameSite attribute
 
-- [ ] MFA enforced (if required)
-  - Admin users cannot bypass MFA
-  - Regular users prompted appropriately
-
 ### 13. Data Protection
 
 - [ ] PII encrypted at rest
@@ -440,10 +430,10 @@ Date: \***\*\_\_\_\_\*\***
 
 **Solution**:
 
-1. Verify MFA secrets set correctly
-2. Check MFA_RP_ID matches domain
-3. Check Supabase credentials
-4. Clear browser cache/cookies
+1. Check Supabase credentials
+2. Clear browser cache/cookies
+3. Verify database connectivity
+4. Check RLS policies
 
 ### Issue: PWA not installing
 

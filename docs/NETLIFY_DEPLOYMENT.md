@@ -43,13 +43,6 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Security Keys (generate with openssl)
-BACKUP_PEPPER=$(openssl rand -hex 32)
-MFA_SESSION_SECRET=$(openssl rand -hex 32)
-TRUSTED_COOKIE_SECRET=$(openssl rand -hex 32)
-HMAC_SHARED_SECRET=$(openssl rand -hex 32)
-KMS_DATA_KEY_BASE64=$(openssl rand -base64 32)
-
 # Optional but Recommended
 OPENAI_API_KEY=sk-...
 SENTRY_DSN=https://...
@@ -67,17 +60,8 @@ the platform itself. The CLI keeps everything scoped correctly:
 openssl rand -base64 32 | pbcopy   # copies 32-byte secret to clipboard
 
 # Production values (visible to Builds + Functions)
-netlify env:set BACKUP_PEPPER "<32+ byte random>"        --context production --scope builds functions --secret
-netlify env:set MFA_SESSION_SECRET "<32+ byte random>"    --context production --scope builds functions --secret
-netlify env:set TRUSTED_COOKIE_SECRET "<32+ byte random>" --context production --scope builds functions --secret
-netlify env:set HMAC_SHARED_SECRET "<32+ byte random>"    --context production --scope builds functions --secret
 netlify env:set OPENAI_API_KEY "sk-..."                   --context production --scope builds functions --secret
 
-# Optional: limited secrets for previews / branch deploys
-netlify env:set BACKUP_PEPPER "<preview random>"          --context deploy-preview branch-deploy --scope builds functions --secret
-netlify env:set MFA_SESSION_SECRET "<preview random>"     --context deploy-preview branch-deploy --scope builds functions --secret
-netlify env:set TRUSTED_COOKIE_SECRET "<preview random>"  --context deploy-preview branch-deploy --scope builds functions --secret
-netlify env:set HMAC_SHARED_SECRET "<preview random>"     --context deploy-preview branch-deploy --scope builds functions --secret
 # Skip OPENAI_API_KEY or use a low-privileged key for previews
 ```
 
@@ -186,12 +170,7 @@ NETLIFY_CLIENT_SITE_ID      # Client site ID from Netlify
 NEXT_PUBLIC_SUPABASE_URL    # Supabase project URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY  # Supabase anon key
 SUPABASE_SERVICE_ROLE_KEY   # Supabase service role key
-BACKUP_PEPPER               # Generated with openssl rand -hex 32
-MFA_SESSION_SECRET          # Generated with openssl rand -hex 32
-TRUSTED_COOKIE_SECRET       # Generated with openssl rand -hex 32
 OPENAI_API_KEY              # OpenAI API key
-HMAC_SHARED_SECRET          # Generated with openssl rand -hex 32
-KMS_DATA_KEY_BASE64         # Generated with openssl rand -base64 32
 ```
 
 ## Deployment Methods

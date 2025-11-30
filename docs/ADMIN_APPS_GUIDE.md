@@ -39,7 +39,7 @@ pnpm --filter @ibimina/staff-admin-pwa dev
 - ✅ Full Supabase integration
 - ✅ TapMoMo NFC payment system
 - ✅ SMS reconciliation
-- ✅ Device authentication with passkeys
+- ✅ Device authentication
 - ✅ PWA with offline support
 - ✅ Android build via Capacitor
 

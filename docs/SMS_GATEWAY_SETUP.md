@@ -67,9 +67,6 @@ Edit `.env` with your configuration:
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_FUNCTION_URL=https://your-project.supabase.co/functions/v1/sms-inbox
 
-# Security (MUST match Edge Function HMAC_SHARED_SECRET)
-HMAC_SHARED_SECRET=your-secret-here
-
 # GSM Modem
 GSM_SIM_PIN=1234  # Optional, if SIM requires PIN
 MODEM_PORT=/dev/ttyUSB0

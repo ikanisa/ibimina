@@ -111,7 +111,7 @@ apps/admin/android/app/src/main/java/rw/ibimina/staff/plugins/
 
 ---
 
-### 3. Web-to-Mobile 2FA Authentication ✅ COMPLETE
+### 3. Web-to-Mobile Authentication ✅ COMPLETE
 
 **Status**: Already Implemented (from previous work)  
 **Type**: QR Code + Device Authentication
@@ -242,16 +242,13 @@ apps/admin/android/app/build/outputs/apk/release/app-release.apk
 ### Authentication Layers:
 
 1. **Email/Password** - Primary login
-2. **MFA** - TOTP or passkeys
-3. **Device Auth** - QR + biometric
-4. **Session Management** - JWT with refresh tokens
-5. **RLS** - Row-Level Security on all tables
+2. **Device Auth** - QR + biometric
+3. **Session Management** - JWT with refresh tokens
+4. **RLS** - Row-Level Security on all tables
 
 ### Data Protection:
 
-- HMAC-SHA256 for payment signatures
 - Nonce replay protection (10-minute cache)
-- Encrypted API keys (KMS)
 - Biometric-protected device keys
 - Secure SMS storage with OpenAI parsing
 
@@ -443,7 +440,7 @@ systems:
 
 1. ✅ **TapMoMo NFC Payments** - Contactless mobile money without API
 2. ✅ **SMS Reconciliation** - AI-powered payment notification parsing
-3. ✅ **Web-to-Mobile 2FA** - QR code + biometric authentication
+3. ✅ **Web-to-Mobile Authentication** - QR code + biometric authentication
 4. ✅ **Staff Mobile App** - Complete Android admin application
 
 All components are **tested, documented, and ready for deployment**. Follow the

@@ -523,7 +523,7 @@ const secret = process.env.HMAC_SECRET; // Direct access!
 
 ```typescript
 import { env } from "@ibimina/config";
-const secret = env.HMAC_SHARED_SECRET;
+const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
 ```
 
 ### 4. Cross-App Imports

@@ -330,14 +330,6 @@ Enhanced validation script checks for:
 NEXT_PUBLIC_SUPABASE_URL=           # Supabase project URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=      # Public anon key
 SUPABASE_SERVICE_ROLE_KEY=          # Service role key
-KMS_DATA_KEY_BASE64=                # 32-byte encryption key
-BACKUP_PEPPER=                      # Backup code salt
-MFA_SESSION_SECRET=                 # MFA session signing
-TRUSTED_COOKIE_SECRET=              # Trusted device cookies
-HMAC_SHARED_SECRET=                 # Edge function auth
-MFA_RP_ID=                          # Passkey relying party ID
-MFA_ORIGIN=                         # Passkey origin
-MFA_EMAIL_FROM=                     # MFA email sender
 ```
 
 **Client App**:
@@ -357,7 +349,6 @@ GOOGLE_VISION_API_KEY=              # OCR fallback (optional)
 ```bash
 SUPABASE_URL=                       # Same as admin (without NEXT_PUBLIC_)
 SUPABASE_SERVICE_ROLE_KEY=          # Same as admin
-HMAC_SHARED_SECRET=                 # Same as admin
 MOMO_POLL_INTERVAL_MS=30000         # Polling frequency
 GSM_HEARTBEAT_TIMEOUT_MS=8000       # Health check timeout
 ```

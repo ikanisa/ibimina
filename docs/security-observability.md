@@ -38,27 +38,6 @@
 - CloudWatch log group and Terraform-managed S3 bucket centralise edge function
   output and report archives.
 
-## Multi-factor Authentication (TOTP)
-
-- Enrollment happens via Profile → Security; the server issues an otpauth URI,
-  encrypted secret, and validates two consecutive codes before persisting.
-- Secrets are stored with AES-GCM (`KMS_DATA_KEY`), backup codes are PBKDF2
-  hashed with a pepper (`BACKUP_PEPPER`), and never displayed again after
-  enrollment.
-- Verification supports ±30s drift, caches the last successful timestep to
-  prevent replay, and throttles attempts through `consume_rate_limit`.
-- Trusted-device cookies (signed by `TRUSTED_COOKIE_SECRET`) bind to the user
-  agent and /24 IP prefix, and can be revoked from the security page; they
-  refresh the MFA session cookie automatically.
-- Audit events: `MFA_ENROLLMENT_STARTED`, `MFA_ENROLLED`, `MFA_FAILED`,
-  `MFA_SUCCESS`, `MFA_BACKUP_SUCCESS`, `MFA_EMAIL_CODE_SENT`,
-  `MFA_EMAIL_VERIFIED`, `MFA_EMAIL_FAILED`, `MFA_PASSKEY_ENROLLMENT_STARTED`,
-  `MFA_PASSKEY_ENROLLED`, `MFA_PASSKEY_SUCCESS`, `MFA_PASSKEY_FAILED`,
-  `MFA_PASSKEY_DELETED`, `MFA_DISABLED`, `MFA_RESET`,
-  `MFA_TRUSTED_DEVICE_REVOKE`.
-- Admins can reset MFA via the new break-glass API, which clears secrets, backup
-  hashes, trusted devices, and records the action in `audit_logs`.
-
 ### Local Prometheus/Grafana stack
 
 1. Serve the metrics exporter locally:
@@ -67,9 +46,7 @@
    ```
    The endpoint exposes Prometheus-compatible text at
    `http://localhost:54321/functions/v1/metrics-exporter`; include `x-timestamp`
-   (UTC ISO) and
-   `x-signature = HMAC_SHA256(HMAC_SHARED_SECRET, <ts>GET:/functions/v1/metrics-exporter)`
-   headers when scraping.
+   (UTC ISO) headers when scraping.
 2. Bootstrap Prometheus + Grafana (ships with scrape/dashboards pre-wired):
 
    ```

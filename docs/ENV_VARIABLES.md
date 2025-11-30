@@ -115,16 +115,6 @@ These variables are **never exposed** to the browser.
 
 ### Optional Security Variables
 
-#### `HMAC_SHARED_SECRET`
-
-- **Type**: String (32-byte hex)
-- **Required**: No (recommended for webhook verification)
-- **Security**: Sensitive
-- **Description**: Shared secret for webhook signature verification
-- **Generation**: `openssl rand -hex 32`
-- **Usage**: Verify incoming webhook signatures
-- **Sharing**: Share with webhook providers
-
 #### `RATE_LIMIT_SECRET`
 
 - **Type**: String (32-byte hex)
@@ -133,7 +123,6 @@ These variables are **never exposed** to the browser.
 - **Description**: Secret for rate limit token generation
 - **Generation**: `openssl rand -hex 32`
 - **Usage**: Generate rate limit bypass tokens
-- **Default**: Falls back to `HMAC_SHARED_SECRET`
 
 #### `REPORT_SIGNING_KEY`
 
@@ -427,12 +416,8 @@ supabase secrets set VAR_NAME=value --env-file .env.production
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `HMAC_SHARED_SECRET`
-- `KMS_DATA_KEY_BASE64`
 - `OPENAI_API_KEY` (if AI features used)
 - `RESEND_API_KEY` (if email used)
-- `MFA_EMAIL_FROM`
-- `MFA_EMAIL_LOCALE`
 
 ### Edge Function Configuration
 
@@ -497,7 +482,6 @@ CI checks for:
 | Secret                | Frequency | Impact                        |
 | --------------------- | --------- | ----------------------------- |
 | Service Role Key      | Annually  | Update config, redeploy       |
-| HMAC Shared Secret    | Quarterly | Update webhook providers      |
 | API Keys              | Annually  | Update in provider dashboards |
 
 ### Rotation Procedure
