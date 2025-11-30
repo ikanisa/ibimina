@@ -311,45 +311,6 @@ async function queueNotificationInternal({
   return { status: "success", message: "Notification queued" };
 }
 
-async function queueMfaReminderInternal({
-  userId,
-  email,
-}: {
-  userId: string;
-  email: string;
-}): Promise<AdminActionResult> {
-  const guard = await guardAdminAction<AdminActionResult>(
-    {
-      action: "admin_queue_mfa_reminder",
-      reason: "Only system administrators can send reminders.",
-      logEvent: "admin_queue_mfa_reminder_denied",
-      metadata: { targetUserId: userId },
-    },
-    (error) => ({ status: "error", message: error.message })
-  );
-
-  if (guard.denied) {
-    return guard.result;
-  }
-
-  const { supabase, user } = guard.context;
-
-  const { error } = await (supabase as any).from("notification_queue").insert({
-    event: "MFA_REMINDER",
-    channel: "EMAIL",
-    payload: { userId, email, queuedBy: user.id },
-    scheduled_for: new Date().toISOString(),
-  });
-
-  if (error) {
-    logError("admin_queue_mfa_reminder_failed", { targetUserId: userId, error });
-    return { status: "error", message: error.message ?? "Failed to queue reminder" };
-  }
-
-  logInfo("admin_queue_mfa_reminder_success", { targetUserId: userId });
-  return { status: "success", message: "Reminder queued" };
-}
-
 async function createSmsTemplateInternal({
   saccoId,
   name,
@@ -645,93 +606,9 @@ async function removeSaccoInternal({ id }: { id: string }): Promise<AdminActionR
   return { status: "success", message: "SACCO deleted" };
 }
 
-async function resetMfaForAllEnabledInternal({
-  reason = "bulk_reset",
-}: {
-  reason?: string;
-}): Promise<AdminActionResult & { count: number }> {
-  const guard = await guardAdminAction<AdminActionResult & { count: number }>(
-    {
-      action: "admin_mfa_bulk_reset",
-      reason: "Only system administrators can reset 2FA in bulk.",
-      logEvent: "admin_mfa_bulk_reset_denied",
-      fallbackResult: { count: 0 },
-      clientFactory: () => supabaseSrv(),
-    },
-    (error) => ({
-      status: "error",
-      message: error.message,
-      count: Number((error.extras as { count?: unknown } | undefined)?.count ?? 0),
-    })
-  );
-
-  if (guard.denied) {
-    return guard.result;
-  }
-
-  const { supabase, user } = guard.context;
-  const { data: rows, error: selectError } = await supabase
-    .from("users")
-    .select("id")
-    .eq("mfa_enabled", true);
-
-  if (selectError) {
-    logError("admin_mfa_bulk_reset_select_failed", { error: selectError });
-    return {
-      status: "error",
-      message: selectError.message ?? "Failed to enumerate users",
-      count: 0,
-    };
-  }
-
-  const ids = (rows ?? []).map((r) => (r as { id: string }).id);
-  if (ids.length === 0) {
-    logInfo("admin_mfa_bulk_reset_noop", { reason });
-    return { status: "success", message: "No users with 2FA enabled", count: 0 };
-  }
-
-  // Reset MFA flags for all matching users
-
-  const { error: updateError } = await (supabase as any)
-    .from("users")
-    .update({
-      mfa_enabled: false,
-      mfa_secret_enc: null,
-      mfa_backup_hashes: [],
-      mfa_enrolled_at: null,
-      last_mfa_step: null,
-      last_mfa_success_at: null,
-      failed_mfa_count: 0,
-    })
-    .in("id", ids);
-
-  if (updateError) {
-    logError("admin_mfa_bulk_reset_update_failed", { error: updateError });
-    return { status: "error", message: updateError.message ?? "Failed to reset 2FA", count: 0 };
-  }
-
-  // Clear trusted devices
-  await supabase.from("trusted_devices").delete().in("user_id", ids);
-
-  await logAudit({
-    action: "MFA_RESET_BULK",
-    entity: "USER",
-    entityId: "BULK",
-    diff: { actor: user.id, count: ids.length, reason },
-  });
-
-  await revalidatePath("/admin");
-  logInfo("admin_mfa_bulk_reset_success", { count: ids.length, reason });
-  return { status: "success", message: "2FA reset for all enabled users", count: ids.length };
-}
-
 export const queueNotification = instrumentServerAction(
   "admin.queueNotification",
   queueNotificationInternal
-);
-export const queueMfaReminder = instrumentServerAction(
-  "admin.queueMfaReminder",
-  queueMfaReminderInternal
 );
 export const createSmsTemplate = instrumentServerAction(
   "admin.createSmsTemplate",
@@ -915,10 +792,6 @@ export const deleteSmsTemplate = instrumentServerAction(
 );
 export const upsertSacco = instrumentServerAction("admin.upsertSacco", upsertSaccoInternal);
 export const removeSacco = instrumentServerAction("admin.removeSacco", removeSaccoInternal);
-export const resetMfaForAllEnabled = instrumentServerAction(
-  "admin.resetMfaForAllEnabled",
-  resetMfaForAllEnabledInternal
-);
 export const updateTenantSettings = instrumentServerAction(
   "admin.updateTenantSettings",
   updateTenantSettingsInternal

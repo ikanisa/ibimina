@@ -5,7 +5,6 @@ import { NotificationQueueTable } from "@/components/admin/notification-queue-ta
 import { OperationalTelemetry } from "@/components/admin/operational-telemetry";
 import { AuditLogTable, type AuditLogEntry } from "@/components/admin/audit-log-table";
 import { FeatureFlagsCard } from "@/components/admin/feature-flags-card";
-import { MfaInsightsCard } from "@/components/admin/mfa-insights-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireUserAndProfile } from "@/lib/auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabaseServer";
@@ -15,7 +14,6 @@ import {
   resolveTenantScopeSearchParams,
   type TenantScopeSearchParamsInput,
 } from "@/lib/admin/scope";
-import { getMfaInsights } from "@/lib/mfa/insights";
 import { Trans } from "@/components/common/trans";
 import type { SupabaseClient, PostgrestError } from "@supabase/supabase-js";
 import { logError } from "@/lib/observability/logger";
@@ -242,12 +240,10 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
   }> = [];
   let notificationRows: NotificationRow[] = [];
   let auditEntries: AuditLogEntry[] = [];
-  let mfaInsights: Awaited<ReturnType<typeof getMfaInsights>> | null = null;
   let overviewError: unknown = null;
 
   try {
     const metricsPromise = loadMetrics(scope);
-    const mfaInsightsPromise = scope.includeAll ? getMfaInsights() : Promise.resolve(null);
 
     let notificationQuery = supabase
       .from("notification_queue")
@@ -274,8 +270,8 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
       auditQuery = auditQuery.eq("sacco_id", scope.saccoId);
     }
 
-    const [notificationResponse, telemetryResponse, auditResponse, mfaInsightsResult] =
-      await Promise.all([notificationQuery, telemetryQuery, auditQuery, mfaInsightsPromise]);
+    const [notificationResponse, telemetryResponse, auditResponse] =
+      await Promise.all([notificationQuery, telemetryQuery, auditQuery]);
 
     if (notificationResponse.error && !isMissingRelationError(notificationResponse.error)) {
       const err = notificationResponse.error as PostgrestError;
@@ -296,7 +292,6 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
     }
 
     metrics = await metricsPromise;
-    mfaInsights = mfaInsightsResult;
 
     telemetryMetrics = ((telemetryResponse.data ?? []) as TelemetryRow[]).map((row) => ({
       event: row.event,
@@ -447,7 +442,6 @@ export default async function OverviewPage({ searchParams }: OverviewPageProps) 
           <AuditLogTable rows={auditEntries} />
         </GlassCard>
         <div className="space-y-8">
-          {scope.includeAll && mfaInsights ? <MfaInsightsCard insights={mfaInsights} /> : null}
           <FeatureFlagsCard />
         </div>
       </div>
