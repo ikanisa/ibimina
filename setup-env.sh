@@ -15,11 +15,8 @@ else
     
     # Generate secrets
     echo "🔐 Generating security secrets..."
-    sed -i.bak "s/stub-kms-data-key-base64/$(openssl rand -base64 32 | tr -d '\n')/" .env
-    sed -i.bak "s/hex-64-character-backup-pepper/$(openssl rand -hex 32)/" .env
-    sed -i.bak "s/hex-64-character-mfa-secret/$(openssl rand -hex 32)/" .env
-    sed -i.bak "s/hex-64-character-trusted-secret/$(openssl rand -hex 32)/" .env
     sed -i.bak "s/hex-64-character-hmac-secret/$(openssl rand -hex 32)/" .env
+    sed -i.bak "s/hex-64-character-rate-secret/$(openssl rand -hex 32)/" .env
     rm .env.bak
     
     echo "✅ .env created with auto-generated secrets"

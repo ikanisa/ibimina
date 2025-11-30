@@ -113,58 +113,17 @@ These variables are **never exposed** to the browser.
 - **Warning**: Never use in client code!
 - **Validation**: Checked by prebuild hooks
 
-#### `KMS_DATA_KEY` or `KMS_DATA_KEY_BASE64`
-
-- **Type**: String (32-byte hex or base64)
-- **Required**: Yes
-- **Security**: CRITICAL
-- **Description**: Master encryption key for data encryption
-- **Generation**: `openssl rand -base64 32`
-- **Usage**: Encrypt sensitive data at rest
-- **Rotation**: Quarterly (requires re-encryption)
-- **Storage**: Secure secret manager in production
-
-#### `BACKUP_PEPPER`
-
-- **Type**: String (32-byte hex)
-- **Required**: Yes
-- **Security**: CRITICAL
-- **Description**: Pepper for backup encryption and password hashing
-- **Generation**: `openssl rand -hex 32`
-- **Usage**: Add randomness to hashing
-- **Default fallback**: Used by other peppers if not set
-
-#### `MFA_SESSION_SECRET`
-
-- **Type**: String (32-byte hex)
-- **Required**: Yes
-- **Security**: CRITICAL
-- **Description**: Secret for signing MFA session cookies
-- **Generation**: `openssl rand -hex 32`
-- **Usage**: Sign/verify MFA session tokens
-- **Rotation**: Quarterly (invalidates sessions)
-
-#### `TRUSTED_COOKIE_SECRET`
-
-- **Type**: String (32-byte hex)
-- **Required**: Yes
-- **Security**: CRITICAL
-- **Description**: Secret for trusted device cookies
-- **Generation**: `openssl rand -hex 32`
-- **Usage**: Sign/verify trusted device tokens
-- **Rotation**: Quarterly (requires re-trust)
+### Optional Security Variables
 
 #### `HMAC_SHARED_SECRET`
 
 - **Type**: String (32-byte hex)
-- **Required**: Yes
-- **Security**: CRITICAL
+- **Required**: No (recommended for webhook verification)
+- **Security**: Sensitive
 - **Description**: Shared secret for webhook signature verification
 - **Generation**: `openssl rand -hex 32`
 - **Usage**: Verify incoming webhook signatures
 - **Sharing**: Share with webhook providers
-
-### Optional Security Variables
 
 #### `RATE_LIMIT_SECRET`
 
@@ -174,17 +133,7 @@ These variables are **never exposed** to the browser.
 - **Description**: Secret for rate limit token generation
 - **Generation**: `openssl rand -hex 32`
 - **Usage**: Generate rate limit bypass tokens
-- **Default**: Falls back to `BACKUP_PEPPER`
-
-#### `EMAIL_OTP_PEPPER`
-
-- **Type**: String (32-byte hex)
-- **Required**: No
-- **Security**: Sensitive
-- **Description**: Pepper for email OTP hashing
-- **Generation**: `openssl rand -hex 32`
-- **Usage**: Hash email OTP codes
-- **Default**: Falls back to `BACKUP_PEPPER`
+- **Default**: Falls back to `HMAC_SHARED_SECRET`
 
 #### `REPORT_SIGNING_KEY`
 
@@ -246,78 +195,6 @@ These variables are **never exposed** to the browser.
 - **Description**: Base URL for Supabase Edge Functions
 - **Example**: `https://abcdefghijklmnop.supabase.co/functions/v1`
 - **Usage**: Edge function smoke tests
-
-### MFA Configuration
-
-#### `MFA_RP_ID`
-
-- **Type**: String (Domain)
-- **Required**: No (inferred)
-- **Security**: Configuration
-- **Description**: Passkey relying party ID (domain)
-- **Example**: `ibimina.rw`
-- **Usage**: WebAuthn/passkey registration
-- **Default**: Inferred from URL
-
-#### `MFA_ORIGIN`
-
-- **Type**: String (URL)
-- **Required**: No (inferred)
-- **Security**: Configuration
-- **Description**: Passkey origin URL
-- **Example**: `https://app.ibimina.rw`
-- **Usage**: WebAuthn/passkey validation
-- **Default**: Inferred from URL
-
-#### `MFA_RP_NAME`
-
-- **Type**: String
-- **Required**: Yes
-- **Security**: Configuration
-- **Description**: Display name for passkey prompts
-- **Example**: `SACCO+`
-- **Usage**: Shown in browser passkey dialogs
-- **Default**: `SACCO+`
-
-#### `MFA_EMAIL_LOCALE`
-
-- **Type**: String (Locale code)
-- **Required**: Yes
-- **Security**: Configuration
-- **Description**: Locale for MFA emails
-- **Example**: `en`, `rw`
-- **Usage**: Email template localization
-- **Default**: `en`
-
-#### `MFA_EMAIL_FROM`
-
-- **Type**: String (Email)
-- **Required**: Yes
-- **Security**: Configuration
-- **Description**: From address for MFA emails
-- **Example**: `security@ibimina.rw`
-- **Usage**: MFA email sender
-- **Default**: `security@example.com`
-
-#### `MFA_SESSION_TTL_SECONDS`
-
-- **Type**: Number (Seconds)
-- **Required**: No
-- **Security**: Configuration
-- **Description**: MFA session timeout
-- **Example**: `43200` (12 hours)
-- **Usage**: MFA session expiration
-- **Default**: `43200`
-
-#### `TRUSTED_DEVICE_TTL_SECONDS`
-
-- **Type**: Number (Seconds)
-- **Required**: No
-- **Security**: Configuration
-- **Description**: Trusted device token lifetime
-- **Example**: `2592000` (30 days)
-- **Usage**: Trusted device expiration
-- **Default**: `2592000`
 
 ### Email Configuration
 
@@ -620,9 +497,6 @@ CI checks for:
 | Secret                | Frequency | Impact                        |
 | --------------------- | --------- | ----------------------------- |
 | Service Role Key      | Annually  | Update config, redeploy       |
-| KMS Data Key          | Quarterly | Re-encrypt data               |
-| MFA Session Secret    | Quarterly | Invalidates MFA sessions      |
-| Trusted Cookie Secret | Quarterly | Users must re-trust devices   |
 | HMAC Shared Secret    | Quarterly | Update webhook providers      |
 | API Keys              | Annually  | Update in provider dashboards |
 
