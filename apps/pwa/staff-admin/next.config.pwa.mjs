@@ -3,7 +3,9 @@
  * This file configures next-pwa with Workbox for advanced caching strategies
  */
 
-const withPWA = require("next-pwa")({
+import nextPWA from "next-pwa";
+
+const withPWA = nextPWA({
   dest: "public",
   // Ensure our custom TS worker is compiled and emitted at this path
   sw: "service-worker.js",
@@ -161,4 +163,4 @@ const withPWA = require("next-pwa")({
   },
 });
 
-module.exports = withPWA;
+export default withPWA;

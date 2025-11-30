@@ -16,7 +16,6 @@ try {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "standalone",
   // Ensure output tracing resolves from the monorepo root
   outputFileTracingRoot: path.join(__dirname, "../../.."),
   images: {
