@@ -10,7 +10,7 @@ Ibimina SACCO+ platform as it enters sustained operations.
   helpers for authenticated requests.
 - **Backend**: Supabase Postgres with RLS-enforced schemas, Edge Functions for
   telecom integrations, and scheduled jobs via `pg_cron`.
-- **Orchestration**: Vercel for web workloads, Supabase managed services for
+- **Orchestration**: Netlify for web workloads, Supabase managed services for
   data/auth, Expo EAS for mobile distribution, and GitHub Actions orchestrating
   build/test/deploy pipelines.
 
@@ -25,7 +25,7 @@ graph TD
   end
 
   subgraph Platform
-    V[Vercel Edge]
+    V[Netlify Edge]
     S[Supabase Postgres]
     F[Supabase Edge Functions]
     Q[pg_cron Schedulers]
@@ -57,7 +57,7 @@ graph TD
   proving denial/allow cases for SACCO scope, reconciliation exceptions,
   payments, and device trust tables.
 - **Continuous verification**: GitHub Actions job `ci.yml` gates merges on the
-  RLS suite; Vercel preview deployments run the same script via
+  RLS suite; Netlify preview deployments run the same script via
   `apps/admin/scripts/test-rls-docker.sh` against ephemeral Supabase branches.
 
 ## Operational Runbooks
@@ -66,7 +66,7 @@ graph TD
 | ------------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
 | Incident response   | `docs/runbooks/SECURITY.md`                                  | Containment, rotation, postmortem workflow           |
 | Supabase operations | `docs/operations-runbook.md`, `docs/supabase-cicd.md`        | Branch DB seeding, migration promotion, drift checks |
-| Deployments         | `docs/go-live/deployment-runbook.md`, `GO_LIVE_CHECKLIST.md` | Vercel/Supabase promotion steps, rollback drills     |
+| Deployments         | `docs/go-live/deployment-runbook.md`, `GO_LIVE_CHECKLIST.md` | Netlify/Supabase promotion steps, rollback drills    |
 | Observability       | `docs/operations-runbook.md`                                 | Log drain configuration, dashboard health checks     |
 | Mobile distribution | `docs/MOBILE_RELEASE.md`                                     | Expo EAS channels, store submission prep             |
 
@@ -74,7 +74,7 @@ graph TD
 
 1. **Supabase-first backend**: Selected to preserve RLS semantics, reduce
    operational burden, and keep integration with telecom edge functions.
-2. **Vercel deployments**: Consolidated to a single pipeline with environment
+2. **Netlify deployments**: Consolidated to a single pipeline with environment
    matrices (production, staging, preview) to simplify cache invalidation,
    secret management, and Workbox SW lifecycle.
 3. **RLS proofs in CI**: Adopted SQL-based harness over JS mocks to guarantee
