@@ -37,16 +37,16 @@ production architecture.
 sequenceDiagram
   participant Dev
   participant GitHub
-  participant Vercel
+  participant Netlify
   participant Supabase
 
   Dev->>GitHub: PR → CI (lint, test, RLS)
-  GitHub->>Vercel: Preview build with env secrets
+  GitHub->>Netlify: Preview build with env secrets
   GitHub->>Supabase: Branch DB seeded via CLI
   Dev->>Supabase: `supabase db remote commit`
-  Dev->>Vercel: Promote preview → staging → production
-  Supabase-->>Vercel: Realtime + auth tokens
-  Vercel-->>Users: Cached responses / SSR
+  Dev->>Netlify: Promote preview → staging → production
+  Supabase-->>Netlify: Realtime + auth tokens
+  Netlify-->>Users: Cached responses / SSR
 ```
 
 ## Data Flows

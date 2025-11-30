@@ -17,7 +17,7 @@ runbooks.
 
 - RLS policies defined across `app.*`, `identity.*`, and `operations.*` schemas;
   validated via `pnpm --filter @ibimina/testing run test:rls`.
-- Encryption in transit via HTTPS-only Vercel domains and Supabase managed TLS;
+- Encryption in transit via HTTPS-only Netlify domains and Supabase managed TLS;
   sensitive at-rest values encrypted with KMS-provisioned keys.
 - Regular backups scheduled through Supabase with manual snapshot captured per
   release (see `GO_LIVE_CHECKLIST.md`).
@@ -27,7 +27,7 @@ runbooks.
 - Environment variables captured per-lane in `docs/ENVIRONMENT.md`.
 - Secrets rotated per cadence defined in `docs/runbooks/SECURITY.md` and logged
   in the security ledger (`docs/security/rotations-*.md`).
-- Vercel deployments use protected environment variables; Supabase secrets synced
+- Netlify deployments use protected environment variables; Supabase secrets synced
   via `supabase secrets set --env-file`.
 
 ## Monitoring & Response
