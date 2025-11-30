@@ -13,10 +13,9 @@ else
     echo "❌ .env file missing - creating from template..."
     cp .env.example .env
     
-    # Generate secrets
-    echo "🔐 Generating security secrets..."
+    # Generate optional secrets
+    echo "🔐 Generating optional security secrets..."
     sed -i.bak "s/hex-64-character-hmac-secret/$(openssl rand -hex 32)/" .env
-    sed -i.bak "s/hex-64-character-rate-secret/$(openssl rand -hex 32)/" .env
     rm .env.bak
     
     echo "✅ .env created with auto-generated secrets"
