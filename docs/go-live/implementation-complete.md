@@ -43,7 +43,7 @@ testing foundation
 | ------------------------- | ----------- | ----------------------------------------- |
 | **Platform API Workers**  | ✅ Complete | momo-poller, gsm-heartbeat validated      |
 | **Client OCR**            | ✅ Complete | Supabase Storage + OCR service integrated |
-| **Auth**                  | ✅ Complete | MFA, passkeys, TOTP already working       |
+| **Auth**                  | ✅ Complete | Supabase Auth working                     |
 | **API Routes**            | ✅ Complete | All routes functional with Supabase       |
 | **Mock Data Replacement** | ✅ Complete | All integrated with real database         |
 | **Mobile Testing**        | 🔄 Week 2   | Guide created, ready to execute           |
@@ -458,7 +458,7 @@ GSM_HEARTBEAT_TIMEOUT_MS=8000       # Health check timeout
 - **API Implementation**: All functional and tested
 - **Database Integration**: Complete with RLS
 - **Worker Validation**: Automated and verified
-- **Authentication**: Production-ready MFA
+- **Authentication**: Production-ready with Supabase Auth
 
 ### Medium Risk ⚠️
 

@@ -28,7 +28,7 @@ days.
 
 | Area                     | Strengths                                                                                                                                                                                                                        | Evidence                                                                   |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| **Security**             | Multi-factor authentication (TOTP, passkeys, email OTP) and trusted device flows share hardened helpers with replay protection and throttling. Strict CSP with nonce propagation and defense-in-depth headers guard every route. | `app/api/mfa/initiate/route.ts`, `lib/authx/verify.ts`, middleware, layout |
+| **Security**             | Supabase Auth with trusted device flows and hardened helpers with replay protection and throttling. Strict CSP with nonce propagation and defense-in-depth headers guard every route. | `lib/authx/verify.ts`, middleware, layout |
 | **Testing**              | 103 unit tests, integration suites for authentication, RLS SQL regression harness, and Playwright smoke flows run on every PR.                                                                                                   | CI workflows, `scripts/test-rls.sh`, Supabase SQL test suites              |
 | **Infrastructure & Ops** | Supabase migrations, background jobs, and observability stack (Prometheus + Grafana) ship with runbooks. Docker health checks and automated environment validation fail closed when secrets are missing.                         | `deployment-runbook.md`, `supabase/config.toml`                            |
 | **Product Experience**   | Offline queue, install banners, and caching strategy deliver resilient PWA behaviour while preserving accessibility focus management.                                                                                            | Service worker, offline queue provider, UI shell                           |
@@ -59,7 +59,7 @@ days.
 
 | Gate                              | Status         | Notes                                                                                               |
 | --------------------------------- | -------------- | --------------------------------------------------------------------------------------------------- |
-| Security controls (MFA, RLS, CSP) | ✅ Complete    | Validated during audit and CI                                                                       |
+| Security controls (RLS, CSP)      | ✅ Complete    | Validated during audit and CI                                                                       |
 | Automated quality gates           | ✅ Complete    | `ci.yml`, `pre-merge-quality.yml`, and `node-quality.yml` run on protected branches                 |
 | Runbooks and checklists           | ✅ Complete    | See [production checklist](production-checklist.md) and [deployment runbook](deployment-runbook.md) |
 | Observability & Alerts            | ✅ Complete    | Prometheus/Grafana dashboards with Supabase metrics                                                 |
