@@ -29,8 +29,8 @@ DOMAIN_XXX
 - `AUTH_101` - Access forbidden
 - `AUTH_102` - Invalid credentials
 - `AUTH_103` - Token expired
-- `AUTH_104` - MFA required
-- `AUTH_105` - MFA invalid
+- `AUTH_104` - Authentication required
+- `AUTH_105` - Authentication invalid
 - `AUTH_106` - User not found
 - `AUTH_107` - Account locked
 

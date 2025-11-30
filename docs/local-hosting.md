@@ -21,9 +21,6 @@ provisioned and reachable from the machine.
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (and `SUPABASE_JWT_SECRET` if you validate
      Supabase JWTs)
-   - `BACKUP_PEPPER`, `MFA_SESSION_SECRET`, `TRUSTED_COOKIE_SECRET`,
-     `HMAC_SHARED_SECRET`
-   - `KMS_DATA_KEY` **or** `KMS_DATA_KEY_BASE64`
    - `OPENAI_API_KEY`
    - Any integration secrets (SMTP, Twilio, log drain, etc.)
 3. Set optional runtime metadata as needed:
@@ -33,8 +30,8 @@ provisioned and reachable from the machine.
 - `APP_REGION=<location>` for regional diagnostics
 - `PORT=3100` (or another port) to override the listener
 
-4. Mirror shared secrets in Supabase via `supabase/.env.example` (HMAC key, KMS
-   data key, Resend API key, etc.).
+4. Mirror shared secrets in Supabase via `supabase/.env.example` (Resend API key,
+   etc.).
 
 ## 3. Install & Build
 
@@ -95,8 +92,6 @@ make tunnel-down
 ## 5. Supabase Notes
 
 - Keep Supabase migrations up to date (`supabase db push` or CI pipeline).
-- Edge Functions require the same `HMAC_SHARED_SECRET`/`KMS_DATA_KEY_BASE64` as
-  the web app.
 - Configure Resend/Twilio credentials and WhatsApp sender numbers directly in
   Supabase secrets when those channels are active.
 - For local testing without external dependencies, you may stub Twilio/SMTP env

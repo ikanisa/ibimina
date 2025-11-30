@@ -12,8 +12,6 @@
 | Secret                              | Owner Squad   | Rotation Cadence | Storage                              |
 | ----------------------------------- | ------------- | ---------------- | ------------------------------------ |
 | `SUPABASE_SERVICE_ROLE_KEY`         | Platform      | Quarterly        | 1Password → Netlify/Supabase secrets |
-| `TRUSTED_COOKIE_SECRET`             | Security      | Monthly          | 1Password → Netlify env vars         |
-| `MFA_SESSION_SECRET`                | Security      | Monthly          | 1Password → Netlify env vars         |
 | `LOG_DRAIN_TOKEN` / `LOG_DRAIN_URL` | SRE           | Quarterly        | Grafana → Netlify env vars           |
 | `SENTRY_DSN` / `POSTHOG_API_KEY`    | Observability | Quarterly        | 1Password → Netlify env vars         |
 | `EAS_ACCESS_TOKEN`                  | Mobile        | Quarterly        | 1Password → Expo secrets             |

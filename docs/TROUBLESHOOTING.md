@@ -13,7 +13,7 @@ project.
 | Cannot find module '@ibimina/...' | [Build Issues](#build-issues)                   | Build shared packages first |
 | RLS policy error                  | [Database Issues](#database-issues)             | Check RLS policies          |
 | Type errors                       | [TypeScript Issues](#typescript-issues)         | Run `pnpm typecheck`        |
-| Login fails                       | [Authentication Issues](#authentication-issues) | Check MFA config            |
+| Login fails                       | [Database Issues](#database-issues)             | Check Supabase credentials  |
 | Build hangs                       | [Performance Issues](#performance-issues)       | Clear cache                 |
 | Tests fail                        | [Testing Issues](#testing-issues)               | Check test database         |
 
@@ -160,122 +160,6 @@ rm -rf apps/*/tsconfig.tsbuildinfo
 ```bash
 pnpm run build --verbose
 ```
-
-## 🔒 Authentication Issues
-
-### Issue: Login Fails
-
-#### Symptoms
-
-- "Invalid credentials" error
-- Redirect loop after login
-- MFA code doesn't work
-
-#### Solutions
-
-**1. Check MFA configuration**
-
-```bash
-# Verify MFA environment variables
-echo $MFA_RP_ID
-echo $MFA_ORIGIN
-echo $MFA_SESSION_SECRET
-```
-
-Must match domain:
-
-- `MFA_RP_ID`: Just domain (e.g., `ibimina.rw`)
-- `MFA_ORIGIN`: Full URL (e.g., `https://app.ibimina.rw`)
-
-**2. Check Supabase connection**
-
-```bash
-# Test Supabase connection
-curl "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/" \
-  -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY"
-```
-
-**3. Verify user exists**
-
-```sql
--- In Supabase SQL Editor
-SELECT id, email, email_confirmed_at
-FROM auth.users
-WHERE email = 'user@example.com';
-```
-
-**4. Check RLS policies**
-
-```bash
-pnpm run test:rls
-```
-
-### Issue: Passkey Registration Fails
-
-#### Symptoms
-
-- "Passkey not supported" error
-- Registration modal doesn't appear
-- Browser doesn't prompt for passkey
-
-#### Solutions
-
-**1. Verify HTTPS** Passkeys require HTTPS (except localhost):
-
-```bash
-# Check URL
-echo $MFA_ORIGIN
-# Must be https:// or http://localhost
-```
-
-**2. Check RP ID matches domain**
-
-```bash
-# RP ID should be domain without protocol
-echo $MFA_RP_ID
-# Should be: ibimina.rw (not app.ibimina.rw if subdomain)
-```
-
-**3. Test browser support**
-
-```javascript
-// In browser console
-if (window.PublicKeyCredential) {
-  console.log("Passkeys supported");
-} else {
-  console.log("Passkeys not supported");
-}
-```
-
-### Issue: Session Expires Immediately
-
-#### Symptoms
-
-- User logged out immediately after login
-- Session invalid errors
-
-#### Solutions
-
-**1. Check session secret**
-
-```bash
-# Verify MFA_SESSION_SECRET is set and valid
-echo $MFA_SESSION_SECRET | wc -c
-# Should be 64+ characters
-```
-
-**2. Check TTL settings**
-
-```bash
-echo $MFA_SESSION_TTL_SECONDS
-# Default: 43200 (12 hours)
-```
-
-**3. Verify cookie settings**
-
-- Check browser allows cookies
-- Check Secure flag matches HTTPS
-- Check SameSite settings
 
 ## 🗄️ Database Issues
 

@@ -30,16 +30,12 @@ scheduled jobs provisioned by
 | `app.financial_institutions`  | Registry of SACCOs, microfinance, insurers | `name`, `kind`, `district`, `sacco_id`, `metadata`                                                                         |
 | `app.momo_codes`              | District-level MoMo merchant codes         | `provider`, `district`, `code`, `account_name`, `description`                                                              |
 | `app.devices_trusted`         | Trusted device fingerprints                | `user_id`, `device_hash`, `device_label`, `expires_at`, `metadata`                                                         |
-| `app.mfa_email_codes`         | Time-boxed email OTPs (hashed)             | `user_id`, `code_hash`, `salt`, `expires_at`, `consumed_at`, `attempt_count`                                               |
-| `public.webauthn_credentials` | Passkey (WebAuthn) registrations           | `user_id`, `credential_id`, `credential_public_key`, `sign_count`, `transports`, `device_type`, `friendly_name`            |
-| `public.mfa_recovery_codes`   | Backup codes (hashed)                      | `user_id`, `codes[]`, `updated_at`                                                                                         |
 | `ops.rate_limits`             | Minute buckets for rate limiting           | `bucket_key` (`ip:...`, `user:...`), `route`, `window_started`, `count`                                                    |
 | `ops.idempotency`             | Per-user idempotency ledger                | `user_id`, `key`, `request_hash`, `response`, `expires_at`                                                                 |
 
 _\*Encrypted & masked columns_ – `msisdn_encrypted`, `msisdn_masked`,
-`msisdn_hash`, `national_id_encrypted`, `national_id_masked`, `national_id_hash`
-use the AES-256-GCM data key exposed via `KMS_DATA_KEY_BASE64`. Never store
-plaintext PII outside the encrypted columns.
+`msisdn_hash`, `national_id_encrypted`, `national_id_masked`, `national_id_hash`.
+Never store plaintext PII outside the encrypted columns.
 
 ## Helper functions
 
@@ -109,14 +105,10 @@ entries without duplicating.
 
 | Secret                                                 | Usage                                                                                                                                  |
 | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `KMS_DATA_KEY_BASE64`                                  | AES-256-GCM key for encrypting PII columns (members, payments, sms inbox).                                                             |
-| `HMAC_SHARED_SECRET`                                   | Shared secret for timestamped HMAC on `/sms/inbox`, `/ingest-sms`, `/parse-sms`, `/scheduled-reconciliation`, and `/metrics-exporter`. |
 | `OPENAI_API_KEY`                                       | AI fallback in `/sms/ai-parse`.                                                                                                        |
 | `SUPABASE_SERVICE_ROLE_KEY`                            | Internal Edge Function Supabase client.                                                                                                |
-| `REPORT_SIGNING_KEY`                                   | Optional HMAC signature on CSV exports.                                                                                                |
-| `BACKUP_PEPPER` / `EMAIL_OTP_PEPPER`                   | Salt for backup/email MFA codes.                                                                                                       |
-| `MFA_SESSION_SECRET`, `TRUSTED_COOKIE_SECRET`          | MFA challenge + trusted-device cookie signing.                                                                                         |
-| `RESEND_API_KEY`, `MFA_EMAIL_FROM`, `MFA_EMAIL_LOCALE` | Email OTP dispatch via `mfa-email` function.                                                                                           |
+| `REPORT_SIGNING_KEY`                                   | Optional signature on CSV exports.                                                                                                     |
+| `RESEND_API_KEY`                                       | Email dispatch.                                                                                                                        |
 
 Keep secrets in Supabase via `supabase secrets set`; never commit them to the
 repo.

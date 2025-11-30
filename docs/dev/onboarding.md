@@ -17,12 +17,10 @@ This installs the pinned pnpm release, installs workspace dependencies, hydrates
 
 ## 2) Fill in required env values (3 minutes)
 
-- Edit `.env` / `.env.local` with real Supabase credentials and cryptographic
-  secrets. Minimum required keys:
+- Edit `.env` / `.env.local` with real Supabase credentials. Minimum required
+  keys:
   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `SUPABASE_SERVICE_ROLE_KEY`, `KMS_DATA_KEY_BASE64`
-  - `BACKUP_PEPPER`, `MFA_SESSION_SECRET`, `TRUSTED_COOKIE_SECRET`,
-    `HMAC_SHARED_SECRET`
+  - `SUPABASE_SERVICE_ROLE_KEY`
 - Mirror the shared secrets into `supabase/.env.local` for Edge Functions.
 - Re-run `pnpm run check:env` until it reports all required values are present.
 
@@ -34,7 +32,7 @@ This installs the pinned pnpm release, installs workspace dependencies, hydrates
 pnpm --filter @ibimina/staff-admin-pwa dev
 ```
 
-- Visit http://localhost:3100 to verify MFA/login flows.
+- Visit http://localhost:3100 to verify login flows.
 
 ## 4) Launch the member/client PWA (1 minute)
 

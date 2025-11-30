@@ -144,7 +144,6 @@ Functions are deployed via `apps/admin/scripts/supabase-go-live.sh`:
 
 **Deployed Functions**:
 
-- admin-reset-mfa
 - analytics-forecast
 - bootstrap-admin
 - export-report

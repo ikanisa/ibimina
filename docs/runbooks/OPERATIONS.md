@@ -61,7 +61,7 @@ pipelines.【F:apps/admin/lib/observability/logger.ts†L1-L170】【F:supabase/
 2. **Prepare configs** — pre-stage `NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_APP_URL`, and the Supabase project reference for the new auth
    domain in the environment store. Keep the previous values handy for rollback.
-3. **Drain user sessions** — rotate `TRUSTED_COOKIE_SECRET` and invalidate
+3. **Drain user sessions** — invalidate
    Supabase refresh tokens (`auth.admin.deleteRefreshTokens`) just before the
    switch to force clients to re-authenticate against the new domain.
 4. **Purge caches** — clear Cloudflare/Page caches for staff.ibimina.rw and

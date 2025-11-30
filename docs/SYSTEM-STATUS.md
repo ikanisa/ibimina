@@ -41,7 +41,7 @@ ibimina/ (monorepo)
   - ✅ Transaction approval workflow
   - ✅ SMS reconciliation integration
   - ✅ TapMoMo NFC payment integration
-  - ✅ 2FA with passkeys
+  - ✅ Supabase Auth integration
   - ✅ Offline PWA capabilities
   - ✅ Role-based access control
   - ✅ Audit logs
@@ -94,7 +94,7 @@ ibimina/ (monorepo)
 - **Edge Function:** `sms-reconcile` deployed
 - **Database:** Tables: `sms_logs`, `reconciliation_queue`
 
-### 5. Web-to-Mobile 2FA
+### 5. Web-to-Mobile Authentication
 
 - **Status:** ✅ Production Ready
 - **Flow:**
@@ -165,7 +165,7 @@ ibimina/ (monorepo)
   - Notifications: notifications, user_push_tokens
   - Reconciliation: sms_logs, reconciliation_queue
   - NFC: tapmomo_merchants, tapmomo_transactions
-  - Auth: mfa_factors, auth_challenges
+  - Auth: auth_challenges
 - **RLS Policies:** ✅ All policies applied & tested
 - **Indexes:** ✅ Optimized for performance
 
@@ -176,7 +176,7 @@ ibimina/ (monorepo)
   1. `whatsapp-otp` - Send WhatsApp OTP codes
   2. `sms-reconcile` - Parse & match payment SMS with OpenAI
   3. `tapmomo-reconcile` - Update NFC payment status
-  4. `auth-qr-challenge` - Generate/verify web-to-mobile 2FA
+  4. `auth-qr-challenge` - Generate/verify web-to-mobile auth
   5. `loan-scoring` - AI-powered creditworthiness
   6. `payment-webhook` - Handle MoMo API callbacks
   7. `notification-dispatcher` - Send push notifications
@@ -195,9 +195,7 @@ ibimina/ (monorepo)
 - ✅ JWT access tokens (15min)
 - ✅ Refresh tokens (7 days, HTTP-only)
 - ✅ WhatsApp OTP for client mobile
-- ✅ Passkey/WebAuthn for staff (FIDO2)
 - ✅ Biometric (Face ID / Fingerprint)
-- ✅ MFA required for sensitive actions
 - ✅ Session management & device tracking
 
 ### Data Protection
@@ -298,7 +296,7 @@ ibimina/ (monorepo)
 - ✅ Payment workflows
 - ✅ NFC handshake & USSD
 - ✅ SMS reconciliation
-- ✅ Web-to-mobile 2FA
+- ✅ Web-to-mobile auth
 - ✅ Offline sync & conflict resolution
 
 ### E2E Tests (Playwright)
@@ -398,7 +396,7 @@ xcodebuild -exportArchive -archivePath build/IbiminaClient.xcarchive -exportPath
 - [ ] ✅ Edge Functions deployed & tested
 - [ ] ✅ SMS reconciliation tested with real MoMo SMS
 - [ ] ✅ TapMoMo NFC tested on 3+ device pairs
-- [ ] ✅ Web-to-mobile 2FA tested
+- [ ] ✅ Web-to-mobile auth tested
 - [ ] 🔄 Client mobile loan flow tested
 - [ ] 🔄 Client mobile group contributions tested
 - [ ] 🔄 Push notifications working end-to-end

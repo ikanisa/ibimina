@@ -7,7 +7,7 @@ surfaces.
 ## 1. System Overview
 
 - **Staff Console (Next.js 16, PWA)** — `apps/admin` delivers the authenticated
-  operations console. Routes under `app/(auth)` gate MFA, while `app/(main)`
+  operations console. Routes under `app/(auth)` gate login, while `app/(main)`
   contains dashboards, reconciliation, and SACCO administration
   flows.【F:apps/admin/app/(auth)/login/page.tsx†L1-L160】【F:apps/admin/app/(main)/dashboard/page.tsx†L1-L120】
 - **Member PWA (Next.js 15)** — `apps/client` exposes onboarding, group
@@ -27,7 +27,7 @@ surfaces.
 ## 2. Data Flow
 
 1. **Authentication**: Both the staff console and client PWA use Supabase auth.
-   The staff app layers passkeys/TOTP/backup codes on top of Supabase sessions,
+   The staff app uses authentication with Supabase sessions,
    enforced by middleware and API routes under `app/api/authx` and
    `app/api/device-auth`.【F:apps/admin/app/api/authx/challenge/initiate/route.ts†L1-L160】【F:apps/admin/app/api/device-auth/challenge/route.ts†L1-L120】
 2. **Core Data Access**: Shared packages (`@ibimina/config`,

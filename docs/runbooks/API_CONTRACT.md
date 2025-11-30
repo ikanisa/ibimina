@@ -4,13 +4,13 @@ This runbook documents the key HTTP endpoints exposed by the staff console
 (`apps/admin/app/api/*`). All routes return JSON payloads and require Supabase
 session cookies unless explicitly marked public.
 
-## 1. Authentication & MFA
+## 1. Authentication
 
 | Route                           | Method | Description                                                                                               | Auth                                | Handler                                                                                                                 |
 | ------------------------------- | ------ | --------------------------------------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `/api/authx/challenge/initiate` | POST   | Start an MFA factor (passkey, TOTP, email, WhatsApp). Returns challenge payload for the requested factor. | Supabase session cookie             | `apps/admin/app/api/authx/challenge/initiate/route.ts`【F:apps/admin/app/api/authx/challenge/initiate/route.ts†L1-L40】 |
-| `/api/authx/challenge/verify`   | POST   | Verify MFA token, enforce rate limits, and issue trusted device cookies.                                  | Supabase session + verified profile | `apps/admin/app/api/authx/challenge/verify/route.ts`【F:apps/admin/app/api/authx/challenge/verify/route.ts†L1-L160】    |
-| `/api/authx/factors/list`       | GET    | List enrolled MFA factors for the current user.                                                           | Supabase session                    | `apps/admin/app/api/authx/factors/list/route.ts`【F:apps/admin/app/api/authx/factors/list/route.ts†L1-L18】             |
+| `/api/authx/challenge/initiate` | POST   | Start an authentication challenge. Returns challenge payload for the requested factor. | Supabase session cookie             | `apps/admin/app/api/authx/challenge/initiate/route.ts`【F:apps/admin/app/api/authx/challenge/initiate/route.ts†L1-L40】 |
+| `/api/authx/challenge/verify`   | POST   | Verify authentication token, enforce rate limits, and issue trusted device cookies.                                  | Supabase session + verified profile | `apps/admin/app/api/authx/challenge/verify/route.ts`【F:apps/admin/app/api/authx/challenge/verify/route.ts†L1-L160】    |
+| `/api/authx/factors/list`       | GET    | List enrolled authentication factors for the current user.                                                           | Supabase session                    | `apps/admin/app/api/authx/factors/list/route.ts`【F:apps/admin/app/api/authx/factors/list/route.ts†L1-L18】             |
 
 ## 2. Device Authentication
 

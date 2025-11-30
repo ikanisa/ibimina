@@ -429,7 +429,7 @@ Set up monitoring for:
    - User notification
 
 3. **Account Recovery**
-   - Alternative authentication method (passkeys, admin reset)
+   - Alternative authentication method (admin reset)
    - Re-enrollment required
 
 ## Testing

@@ -48,8 +48,6 @@ function enforces SACCO scope before writing with the elevated client.
   service role internally.
 - `/recon/exceptions` GET filters by `payment.sacco_id`, so staff only see
   exceptions for their SACCO; admins get the full dataset.
-- `/admin/reset-mfa` is restricted to `SYSTEM_ADMIN` via JWT + profile check
-  before any MFA data is mutated.
 
 Keep this file updated whenever policies change to ensure auditors can trace
 authorisation paths quickly.

@@ -21,8 +21,8 @@
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | Supabase Edge Functions | `ingest-sms`, `parse-sms`, `scheduled-reconciliation`, `metrics-exporter`, `momo-statement-poller`, `gsm-heartbeat` |
 | Ingestion Pipelines     | Cloudflare Workers invoking Supabase, Supabase queues (`sms_inbox`, `notification_queue`), MoMo poller scheduler    |
-| Authentication          | AuthX flows, MFA enrollment/verification, Supabase Row Level Security guards                                        |
-| Observability & Secrets | HMAC rotation, log drains, secret storage in Vercel/Cloudflare                                                      |
+| Authentication          | AuthX flows, Supabase Row Level Security guards                                        |
+| Observability & Secrets | Log drains, secret storage in Vercel/Cloudflare                                                      |
 | Infrastructure          | Cloudflare Pages/Workers routing, Vercel edge middleware, Terraform state                                           |
 
 ## Deliverables

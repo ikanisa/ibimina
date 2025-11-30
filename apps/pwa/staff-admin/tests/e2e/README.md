@@ -25,7 +25,6 @@ This test suite validates the complete member onboarding and approval workflow:
 
 ### Authentication & Security
 
-- `auth.mfa.spec.ts` - MFA verification flows
 - `smoke.spec.ts` - Basic page rendering and authentication
 
 ### Accessibility & PWA

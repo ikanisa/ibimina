@@ -243,7 +243,6 @@ Deploy database migrations and edge functions to Supabase.
 
 - `OPENAI_API_KEY`
 - `RESEND_API_KEY`
-- `HMAC_SHARED_SECRET`
 - All other edge function secrets
 
 ### Success Criteria

@@ -54,7 +54,7 @@ Execution time: ~4.9 seconds
 
 **Test Coverage Areas**:
 
-- ✅ Authentication & MFA (22 tests)
+- ✅ Authentication (22 tests)
 - ✅ Authorization & Tenant Scope (7 tests)
 - ✅ Rate Limiting (8 tests)
 - ✅ Observability & Logging (10 tests)
@@ -68,9 +68,8 @@ Execution time: ~4.9 seconds
 
 - Proper error handling validation
 - Rate limiting edge cases covered
-- MFA flow security verified
+- Auth flow security verified
 - Cache invalidation tested
-- Backup code consumption validated
 
 ---
 
@@ -86,7 +85,6 @@ Result: 150 errors
 
 - app/(main)/countries/page.tsx - Supabase types incompatible with API usage
 - app/api/device-auth/devices/route.ts - Handler arguments fail inference
-- components/passkeys/passkey-enroll.tsx - Missing client-side biometric types
 - lib/idempotency.ts - Table definitions missing from generated schema
 - lib/device-auth/client.ts - createClient import mismatch across environments
 - lib/sessions/index.ts - Nullable fields not narrowed before use
@@ -157,22 +155,17 @@ bundles.
 
 **Implemented Security Controls**:
 
-- ✅ Multi-factor authentication (TOTP, Passkeys/WebAuthn, Email OTP, WhatsApp
-  OTP)
+- ✅ Supabase Auth integration
 - ✅ Rate limiting on all authentication endpoints
-- ✅ Replay protection with HMAC signatures
-- ✅ Backup codes with secure hashing (bcrypt)
 - ✅ Session management with 12-hour timeout
-- ✅ Trusted device tokens with 30-day expiry
 - ✅ Password requirements (12+ characters)
 - ✅ Account lockout after failed attempts
 
 **Test Coverage**: 22 authentication tests passing, including:
 
-- MFA factor verification
-- Backup code consumption
+- Factor verification
 - Rate limit enforcement
-- Replay guard validation
+- Session validation
 
 #### Database Security: ✅ **EXCELLENT**
 
@@ -189,7 +182,7 @@ bundles.
 - saccos, members, payments
 - reconciliation_exceptions, trusted_devices
 - sacco_staff, districts, audit_logs
-- feature_flags, mfa_factors, mfa_backup_codes
+- feature_flags
 
 **Migrations**: 89 migration files in sequential order
 
@@ -645,17 +638,17 @@ LOW   │ NEW-001  │ SEC-001  │          │          │
 
 From audit-issues.yaml:
 
-- ✅ SEC-001: AuthX MFA rate limiting → RESOLVED
+- ✅ SEC-001: AuthX rate limiting → RESOLVED
 - ✅ SEC-002: WhatsApp OTP throttling → RESOLVED
 - ✅ SEC-003: Edge function authentication → RESOLVED
-- ✅ REL-004: Dual MFA stack inconsistency → RESOLVED
+- ✅ REL-004: Dual auth stack inconsistency → RESOLVED
 - ✅ PWA-005: Offline data fallbacks → RESOLVED
 - ✅ A11Y-006: Focus trap in quick actions → RESOLVED
 - ✅ PERF-007: Dashboard aggregation → RESOLVED
 - ✅ PERF-008: Analytics cache invalidation → RESOLVED
 - ✅ DATA-009: RLS test coverage → RESOLVED
 - ✅ OPS-010: Observability coverage → RESOLVED
-- ✅ QA-011: MFA factor test coverage → RESOLVED
+- ✅ QA-011: Auth factor test coverage → RESOLVED
 
 **Total Issues Resolved**: 11/11 from previous audit (100%) ✅
 
@@ -841,7 +834,7 @@ pnpm test:unit
 
 ```
 Admin App: 65/65 tests passing (3.8s)
-- Authentication & MFA: 15 tests
+- Authentication: 15 tests
 - Authorization: 4 tests
 - Rate Limiting: 8 tests
 - Observability: 4 tests

@@ -21,8 +21,7 @@ teams can trace every gate that was validated.
 - **Platforms Reviewed**: Next.js 15 staff console, Supabase PostgreSQL (89
   migrations, RLS policies), 34 Edge Functions, observability stack (Prometheus,
   Grafana).
-- **Security Surfaces**: Authentication (MFA, passkeys, trusted devices),
-  authorization, encryption at rest/in flight, secrets management, content
+- **Security Surfaces**: Authentication, authorization, encryption at rest/in flight, secrets management, content
   security policies.
 - **Quality Signals**: 103 unit tests, integration coverage, Playwright smoke
   tests, RLS SQL harness, linting/type-checking, bundle governance.
@@ -39,10 +38,10 @@ drift.
 ## System Strengths
 
 1. **Layered Security Controls**  
-   Trusted device and MFA flows share hardened helpers with nonce replay
-   protection, hashed rate-limit keys, and salting for OTP storage, blocking
+   Trusted device flows share hardened helpers with nonce replay
+   protection, hashed rate-limit keys, blocking
    brute-force attempts across both legacy and AuthX APIs
-   (`lib/authx/verify.ts`, `app/api/mfa/initiate/route.ts`). Middleware injects
+   (`lib/authx/verify.ts`). Middleware injects
    deterministic request IDs and strict CSP nonces, ensuring observability and
    safe inline script execution across App Router layouts (`middleware.ts`,
    `app/layout.tsx`).
@@ -132,7 +131,7 @@ drift.
 | P2       | Operations  | 🟢 Completed | CI verifies log drain delivery with synthetic events, routing alerts when forwarding fails. |
 | P2       | Data        | 🟢 Completed | RLS regression coverage now spans payments, reconciliation exceptions, and ops tables.      |
 | P2       | Performance | 🟢 Completed | Materialised Supabase views refresh via cron and trigger cache revalidation webhooks.       |
-| P3       | QA          | 🟢 Completed | MFA factors ship with unit + Playwright coverage for totp, backup, and replay guards.       |
+| P3       | QA          | 🟢 Completed | Auth factors ship with unit + Playwright coverage for replay guards.       |
 
 Remaining planned items are documented in
 [gaps & recommendations](gaps-and-recommendations.md) with owners and timelines.

@@ -6,15 +6,13 @@ endpoints, auth, and rate limits.
 
 | Function           | Route               | Method(s)     | Auth                                                                                          | Rate limit            |
 | ------------------ | ------------------- | ------------- | --------------------------------------------------------------------------------------------- | --------------------- |
-| `sms-inbox`        | `/sms/inbox`        | `POST`        | HMAC headers `x-signature` + `x-timestamp` (`HMAC_SHA256(secret, ts + method + path + body)`) | 60 req/min/IP         |
-| `ingest-sms`       | `/ingest-sms`       | `POST`        | HMAC headers `x-signature` + `x-timestamp`                                                    | 60 req/min/project    |
-| `metrics-exporter` | `/metrics-exporter` | `GET`         | HMAC headers `x-signature` + `x-timestamp` (60s skew)                                         | 12 req/min/source     |
+| `sms-inbox`        | `/sms/inbox`        | `POST`        | Webhook signature headers `x-signature` + `x-timestamp`                                       | 60 req/min/IP         |
+| `ingest-sms`       | `/ingest-sms`       | `POST`        | Webhook signature headers `x-signature` + `x-timestamp`                                       | 60 req/min/project    |
+| `metrics-exporter` | `/metrics-exporter` | `GET`         | Signature headers `x-signature` + `x-timestamp` (60s skew)                                    | 12 req/min/source     |
 | `sms-ai-parse`     | `/sms/ai-parse`     | `POST`        | Staff/system-admin JWT or service-role key                                                    | 20 req/min/user       |
 | `payments-apply`   | `/payments/apply`   | `POST`        | Staff/system-admin JWT (`x-idempotency-key` required)                                         | 20 req/min/user       |
 | `recon-exceptions` | `/recon/exceptions` | `GET`, `POST` | Staff/system-admin JWT                                                                        | 40 mutations/min/user |
 | `reports-export`   | `/reports/export`   | `GET`         | Staff/system-admin JWT                                                                        | Default project limit |
-| `admin-reset-mfa`  | `/admin/reset-mfa`  | `POST`        | System-admin JWT                                                                              | 10 req/min/user       |
-| `mfa-email`        | `/mfa-email`        | `POST`        | Service-role (invoked server-side)                                                            | 120 req/min/project   |
 
 ## Payloads
 
@@ -43,7 +41,7 @@ Or JSON:
 ```
 
 Signatures use the formula
-`HMAC_SHA256(HMAC_SHARED_SECRET, <timestamp><method>:<path><raw body>)`. The
+`SHA256(<timestamp><method>:<path><raw body>)`. The
 `<path>` must include the `/functions/v1` prefix when invoking via the Supabase
 edge runtime. Reject requests where `x-timestamp` is older than five minutes to
 prevent replay.
@@ -179,42 +177,6 @@ Query parameters:
 
 Returns a CSV stream with `x-report-signature` header when `REPORT_SIGNING_KEY`
 is configured.
-
-### `/admin/reset-mfa`
-
-System-admin only.
-
-```json
-POST /admin/reset-mfa
-{
-  "userId": "<uuid>",
-  "reason": "Lost authenticator device on field assignment"
-}
-```
-
-Resets trusted devices, revokes all MFA factors, marks
-`auth.users.mfa_enabled = false`, enqueues a notification, and logs an
-`MFA_RESET` audit entry.
-
-### `/mfa-email`
-
-Internal function invoked from Next.js API handlers. Payload:
-
-```json
-POST /mfa-email
-{
-  "email": "staff@sacco.rw",
-  "code": "123456",
-  "ttlMinutes": 10,
-  "expiresAt": "2025-10-20T12:34:56Z",
-  "locale": "en"
-}
-```
-
-Requires `RESEND_API_KEY` and `MFA_EMAIL_FROM` secrets. On success it returns
-`{ "success": true }` and increments the `mfa_email_sent` metric; failures
-increment `mfa_email_failure` and bubble `send_failed`, `invalid_payload`, or
-`internal_error`.
 
 ## Common behaviour
 

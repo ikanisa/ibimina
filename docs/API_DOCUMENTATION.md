@@ -26,8 +26,8 @@ The Ibimina platform uses a multi-layered API architecture:
 - **Framework**: Next.js 15 (App Router)
 - **Runtime**: Node.js 20+ (API routes), Deno (Edge Functions)
 - **Database**: PostgreSQL 15 via Supabase
-- **Authentication**: Supabase Auth with custom MFA layer
-- **Security**: Row-Level Security (RLS), JWT tokens, HMAC verification
+- **Authentication**: Supabase Auth
+- **Security**: Row-Level Security (RLS), JWT tokens
 
 ## Authentication
 
@@ -445,22 +445,6 @@ Update payment status.
 }
 ```
 
-### MFA Management
-
-#### POST /api/admin/mfa/reset
-
-Reset MFA for a user (admin emergency access).
-
-**Authentication**: Required (Admin role)
-
-**Request Body**:
-```json
-{
-  "user_id": "uuid",
-  "reason": "User lost device"
-}
-```
-
 ### Audit & Reporting
 
 #### POST /api/admin/audit/export
@@ -807,9 +791,8 @@ function verifyHmac(payload: string, signature: string, secret: string): boolean
 
 Sensitive data is encrypted at rest:
 
-- **PII**: Encrypted with KMS_DATA_KEY_BASE64
-- **Passwords**: Hashed with bcrypt + pepper
-- **MFA secrets**: Encrypted in database
+- **PII**: Encrypted before storage
+- **Passwords**: Hashed with bcrypt
 
 ### Row-Level Security (RLS)
 

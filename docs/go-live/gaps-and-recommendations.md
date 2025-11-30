@@ -1275,7 +1275,7 @@ All documentation is text-based. No video tutorials for onboarding or training s
 Create video tutorial series:
 
 1. **Quick Start** (5 min) - Installation and setup
-2. **Authentication** (10 min) - Login, MFA, passkeys
+2. **Authentication** (10 min) - Login and session management
 3. **Member Management** (15 min) - Adding, editing, searching members
 4. **Payment Processing** (15 min) - Recording payments, reconciliation
 5. **Dashboard and Reports** (10 min) - Understanding metrics
@@ -1401,19 +1401,18 @@ test.describe('Critical User Journeys', () => {
     await expect(page.locator('text=offline')).toBeVisible();
   });
 
-  test('should enforce MFA for sensitive operations', async ({ page }) => {
+  test('should enforce authentication for sensitive operations', async ({ page }) => {
     // Navigate to settings
     await page.goto('/settings');
 
     // Try to change security settings
     await page.click('text=Security Settings');
 
-    // Should prompt for MFA
-    await expect(page.locator('text=Enter your authentication code')).toBeVisible();
+    // Should require authentication
+    await expect(page.locator('text=Please authenticate')).toBeVisible();
 
-    // Enter TOTP code (test env has fixed code)
-    await page.fill('[name="code"]', '123456');
-    await page.click('button:has-text("Verify")');
+    // Verify session
+    await page.click('button:has-text("Continue")');
 
     // Should grant access
     await expect(page).toHaveURL(/\/settings\/security/);

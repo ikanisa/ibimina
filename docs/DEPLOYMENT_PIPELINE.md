@@ -359,7 +359,6 @@ jobs:
 
    # Set function secrets
    supabase secrets set OPENAI_API_KEY=your-key
-   supabase secrets set HMAC_SHARED_SECRET=your-secret
    ```
 
 ### Cloudflare CDN

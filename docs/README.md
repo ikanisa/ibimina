@@ -81,13 +81,6 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Security Keys
-BACKUP_PEPPER=your-backup-pepper-32-bytes
-MFA_SESSION_SECRET=your-mfa-session-secret
-TRUSTED_COOKIE_SECRET=your-trusted-cookie-secret
-HMAC_SHARED_SECRET=your-hmac-shared-secret
-KMS_DATA_KEY_BASE64=your-kms-data-key
-
 # Feature Flags
 NEXT_PUBLIC_FEATURE_FLAG_WEB_PUSH=true
 NEXT_PUBLIC_FEATURE_FLAG_BETA_FEATURES=false

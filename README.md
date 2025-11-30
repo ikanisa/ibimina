@@ -6,7 +6,7 @@ repository contains the Staff/Admin applications built on Next.js 15 and Tauri.
 ## Applications
 
 - **Staff Admin PWA** (`apps/pwa/staff-admin`): Next.js 15 PWA for staff
-  operations, onboarding, reconciliation, and reporting with device-aware MFA.
+  operations, onboarding, reconciliation, and reporting.
 - **Staff Admin Desktop** (`apps/desktop/staff-admin`): Tauri + Vite + React
   desktop application for offline-capable staff workflows.
 
@@ -71,7 +71,6 @@ The staff console will be available at `http://localhost:3100`.
 
 | Variable                        | Purpose                              |
 | ------------------------------- | ------------------------------------ |
-| `HMAC_SHARED_SECRET`            | Hex secret for webhook verification  |
 | `OPENAI_API_KEY`                | OpenAI API key for AI features       |
 
 ## Development Commands

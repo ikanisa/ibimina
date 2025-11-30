@@ -59,13 +59,6 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
-# Encryption (generate: openssl rand -base64 32)
-KMS_DATA_KEY=xxx
-BACKUP_PEPPER=xxx
-MFA_SESSION_SECRET=xxx
-TRUSTED_COOKIE_SECRET=xxx
-HMAC_SHARED_SECRET=xxx
-
 # Environment
 NODE_ENV=production
 ```
@@ -75,8 +68,6 @@ NODE_ENV=production
 ```bash
 # Admin App
 NEXT_PUBLIC_APP_URL=https://staff.ibimina.rw
-MFA_RP_ID=staff.ibimina.rw
-MFA_RP_NAME="Ibimina Staff Console"
 
 # Client App
 NEXT_PUBLIC_APP_URL=https://app.ibimina.rw

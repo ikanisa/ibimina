@@ -8,7 +8,7 @@
 2. **Staff Mobile Android** - `apps/staff-mobile` - React Native + Capacitor  
 3. **TapMoMo NFC Payments** - Android HCE + iOS Reader + USSD
 4. **SMS Reconciliation** - OpenAI GPT-4 parsing of MoMo SMS
-5. **Web-to-Mobile 2FA** - QR code authentication
+5. **Web-to-Mobile Authentication** - QR code authentication
 6. **Client Web App** - `apps/client` - Next.js 15
 7. **Supabase Backend** - 35 tables, 12 Edge Functions
 
@@ -37,7 +37,7 @@
 ## 🎯 Key Features
 
 ### Authentication & Security
-- **Staff:** Passkeys/WebAuthn (FIDO2) + QR-based mobile auth
+- **Staff:** Supabase Auth + WebAuthn
 - **Clients:** WhatsApp OTP (configured in Meta)
 - **All:** Biometric (Face ID/Fingerprint)
 - **Backend:** JWT + RLS + Encrypted at rest
@@ -137,13 +137,6 @@ WHATSAPP_API_TOKEN=<from Meta dashboard>
 
 # OpenAI (for SMS parsing)
 OPENAI_API_KEY=sk-...
-
-# Secrets (generate with openssl rand -hex 32)
-BACKUP_PEPPER=<hex>
-MFA_SESSION_SECRET=<hex>
-TRUSTED_COOKIE_SECRET=<hex>
-HMAC_SHARED_SECRET=<hex>
-KMS_DATA_KEY_BASE64=<base64>
 ```
 
 ---

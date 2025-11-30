@@ -140,7 +140,7 @@ hardening, disaster recovery, and operational procedures.
 - Comprehensive 25-section security checklist:
   - Secrets management (rotation, storage)
   - Encryption (field-level, at-rest, in-transit)
-  - Authentication & authorization (MFA, password policies)
+  - Authentication & authorization (password policies)
   - Row Level Security (RLS policies)
   - Network security (HTTPS, TLS, firewalls)
   - Security headers (CSP, HSTS, etc.)

@@ -53,9 +53,8 @@
   PDF/CSV exports per SACCO with localized delivery windows, Supabase-backed
   subscriptions, and audit trails exposed in the Reports
   workspace.【F:components/reports/report-subscriptions-card.tsx†L1-L236】【F:app/(main)/reports/actions.ts†L1-L164】【F:supabase/migrations/20251016090000_add_report_subscriptions.sql†L1-L64】
-- **Account security & MFA management**: The profile workspace now lets staff
-  reset passwords and manage TOTP enrolment with bilingual UI, Supabase MFA
-  APIs, and toast-driven
+- **Account security management**: The profile workspace now lets staff
+  reset passwords with bilingual UI and toast-driven
   feedback.【F:app/(main)/profile/page.tsx†L1-L6】【F:app/(main)/profile/profile-client.tsx†L1-L340】
 - **Ikimina policy editor**: Settings tabs and the dedicated settings route
   provide forms for updating contribution policies, enforcement rules, and
@@ -67,7 +66,7 @@
   wiring.【F:app/(main)/admin/page.tsx†L1-L168】【F:components/admin/user-access-table.tsx†L1-L107】【F:components/admin/sacco-branding-card.tsx†L1-L184】【F:components/admin/sms-template-panel.tsx†L1-L347】【F:app/(main)/admin/actions.ts†L1-L110】【F:supabase/migrations/20251009140500_admin_enhancements.sql†L1-L26】
 - **Offline queue, telemetry, and incident surfacing**: An IndexedDB-backed
   queue captures reconciliation actions while the operations center and admin
-  telemetry cards expose notification throughput, MFA health, and audit
+  telemetry cards expose notification throughput, and audit
   incidents for rapid
   follow-up.【F:lib/offline/queue.ts†L1-L120】【F:components/system/offline-queue-indicator.tsx†L1-L199】【F:lib/operations/dashboard.ts†L1-L220】【F:app/(main)/ops/page.tsx†L1-L220】【F:components/admin/operational-telemetry.tsx†L1-L126】
 - **Executive analytics & outreach automation**: Leadership dashboards summarise
@@ -88,14 +87,14 @@
 
 - **P0 – Security & Reliability Hardening (completed):** Request pipelines now
   enforce nonce-aware CSP and HSTS headers through the shared middleware, ship
-  structured MFA verification responses with replay protection, and exercise
+  structured verification responses with replay protection, and exercise
   SACCO scoping through repeatable RLS fixtures and
   tests.【F:middleware.ts†L1-L48】【F:lib/security/headers.ts†L1-L84】【F:app/api/authx/challenge/verify/route.ts†L1-L207】【F:supabase/tests/rls/sacco_staff_access.test.sql†L1-L120】
 - **P1 – PWA & Mobile UX Polish (completed):** Staff-facing screens expose the
-  install prompt provider, mobile segmented MFA chooser, and virtualized ikimina
+  install prompt provider and virtualized ikimina
   directory with sticky actions and skeleton states to keep the app responsive
   on small
-  devices.【F:providers/pwa-provider.tsx†L1-L97】【F:components/pwa/install-prompt.tsx†L1-L74】【F:app/(auth)/mfa/page.tsx†L1-L211】【F:components/ikimina/member-directory-card.tsx†L1-L198】【F:app/(main)/dashboard/loading.tsx†L1-L29】
+  devices.【F:providers/pwa-provider.tsx†L1-L97】【F:components/pwa/install-prompt.tsx†L1-L74】【F:components/ikimina/member-directory-card.tsx†L1-L198】【F:app/(main)/dashboard/loading.tsx†L1-L29】
 - **P2 – Performance & Caching (completed):** Shared cache helpers wrap Supabase
   aggregations with tagged `unstable_cache` calls so dashboard, ikimina, and
   SACCO updates reuse hydrated data while invalidations target the correct
@@ -118,8 +117,8 @@
    scheduled exports with audit-friendly Supabase subscriptions while SACCO
    branding and SMS template tooling round out launch
    communications.【F:components/reports/report-subscriptions-card.tsx†L1-L236】【F:app/(main)/reports/actions.ts†L1-L164】【F:components/admin/sms-template-panel.tsx†L1-L214】
-5. **Phase 5 – Security profile, MFA, and outreach automation (completed)**:
-   Delivered the security adoption dashboard with MFA risk insights, extended
+5. **Phase 5 – Security profile and outreach automation (completed)**:
+   Delivered the security adoption dashboard, extended
    the admin workspace with outreach tooling, and wired analytics across the
    executive and operations
-   surfaces.【F:app/(main)/admin/page.tsx†L237-L309】【F:components/admin/mfa-insights-card.tsx†L1-L199】【F:lib/mfa/insights.ts†L1-L192】
+   surfaces.【F:app/(main)/admin/page.tsx†L237-L309】

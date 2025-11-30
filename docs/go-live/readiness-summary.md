@@ -117,7 +117,7 @@ added.
 | Supabase Database | ✅ Ready | RLS policies in place       |
 | Edge Functions    | ✅ Ready | 20+ functions deployed      |
 | Storage           | ✅ Ready | Buckets configured with RLS |
-| Auth              | ✅ Ready | MFA, passkeys, TOTP working |
+| Auth              | ✅ Ready | Supabase Auth working       |
 
 ### API Routes Status
 
@@ -136,9 +136,6 @@ added.
 - Row Level Security (RLS) on all tables
 - Authentication required for all protected routes
 - Secure file upload with user isolation
-- HMAC signature verification for edge functions
-- MFA with multiple factors (TOTP, passkeys, email)
-- Encryption for sensitive data (KMS_DATA_KEY)
 - Audit logging
 
 ### 🔄 Partially Implemented
@@ -234,14 +231,6 @@ added.
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-KMS_DATA_KEY_BASE64=
-BACKUP_PEPPER=
-MFA_SESSION_SECRET=
-TRUSTED_COOKIE_SECRET=
-HMAC_SHARED_SECRET=
-MFA_RP_ID=
-MFA_ORIGIN=
-MFA_EMAIL_FROM=
 ```
 
 ### Client App
@@ -261,7 +250,6 @@ GOOGLE_VISION_API_KEY=    # For OCR (fallback)
 ```bash
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
-HMAC_SHARED_SECRET=
 MOMO_POLL_INTERVAL_MS=30000
 GSM_HEARTBEAT_TIMEOUT_MS=8000
 ```
