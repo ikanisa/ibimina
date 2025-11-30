@@ -61,3 +61,6 @@ apps/pwa/staff-admin/.vercel/
 # APK distribution directory
 /dist/
 .env.local
+
+# Local Netlify folder
+.netlify

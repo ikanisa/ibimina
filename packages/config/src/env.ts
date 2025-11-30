@@ -146,20 +146,11 @@ const schema = z
       .string({ required_error: "SUPABASE_SERVICE_ROLE_KEY is required" })
       .trim()
       .min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
-    BACKUP_PEPPER: z
-      .string({ required_error: "BACKUP_PEPPER is required" })
-      .trim()
-      .min(1, "BACKUP_PEPPER is required"),
+    BACKUP_PEPPER: optionalString,
     RATE_LIMIT_SECRET: optionalString,
     EMAIL_OTP_PEPPER: optionalString,
-    MFA_SESSION_SECRET: z
-      .string({ required_error: "MFA_SESSION_SECRET is required" })
-      .trim()
-      .min(1, "MFA_SESSION_SECRET is required"),
-    TRUSTED_COOKIE_SECRET: z
-      .string({ required_error: "TRUSTED_COOKIE_SECRET is required" })
-      .trim()
-      .min(1, "TRUSTED_COOKIE_SECRET is required"),
+    MFA_SESSION_SECRET: optionalString,
+    TRUSTED_COOKIE_SECRET: optionalString,
     MFA_SESSION_TTL_SECONDS: positiveNumberString,
     TRUSTED_DEVICE_TTL_SECONDS: positiveNumberString,
     MFA_RP_ID: optionalString,
@@ -185,10 +176,7 @@ const schema = z
     LOG_DRAIN_ALERT_TOKEN: optionalString,
     LOG_DRAIN_ALERT_COOLDOWN_MS: positiveNumberString,
     LOG_DRAIN_SILENT: optionalString,
-    HMAC_SHARED_SECRET: z
-      .string({ required_error: "HMAC_SHARED_SECRET is required" })
-      .trim()
-      .min(1, "HMAC_SHARED_SECRET is required"),
+    HMAC_SHARED_SECRET: optionalString,
     KMS_DATA_KEY: optionalString,
     KMS_DATA_KEY_BASE64: optionalString,
     META_WHATSAPP_ACCESS_TOKEN: optionalString,
@@ -224,30 +212,6 @@ const schema = z
     AI_AGENT_REDIS_URL: optionalString,
   })
   .superRefine((values, ctx) => {
-    const kmsCandidates = [values.KMS_DATA_KEY, values.KMS_DATA_KEY_BASE64].filter(
-      (candidate): candidate is string => Boolean(candidate && candidate.trim().length > 0)
-    );
-
-    if (kmsCandidates.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Provide KMS_DATA_KEY or KMS_DATA_KEY_BASE64 (32-byte base64 string)",
-        path: ["KMS_DATA_KEY"],
-      });
-    } else {
-      for (const candidate of kmsCandidates) {
-        const decoded = Buffer.from(candidate, "base64");
-        if (decoded.length !== 32) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "KMS data key must decode to 32 bytes",
-            path: ["KMS_DATA_KEY"],
-          });
-          break;
-        }
-      }
-    }
-
     const requiresOpenAiKey = isProductionLikeContext({
       appEnv: values.APP_ENV,
       nodeEnv: values.NODE_ENV,
