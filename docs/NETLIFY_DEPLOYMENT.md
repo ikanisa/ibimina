@@ -1,16 +1,14 @@
 # Netlify Deployment Guide
 
-This guide covers deploying the Ibimina monorepo to Netlify as an alternative to
-Cloudflare Pages.
+This guide covers deploying the Ibimina monorepo to Netlify.
 
 ## Overview
 
-The Ibimina monorepo contains two main applications:
+The Ibimina monorepo contains the Staff Admin PWA application:
 
-- **Admin App** (`apps/admin`) - Staff administration console
-- **Client App** (`apps/client`) - Member-facing application
+- **Staff Admin PWA** (`apps/pwa/staff-admin`) - Staff administration console
 
-Both apps are configured for deployment to Netlify with full PWA support.
+The app is configured for deployment to Netlify with full PWA support.
 
 ## Prerequisites
 
@@ -462,24 +460,6 @@ This generates Android APK files for both apps (if Capacitor is configured).
 - **Repository Issues**: https://github.com/ikanisa/ibimina/issues
 - **Ibimina Documentation**: See `docs/` directory
 
-## Comparison: Netlify vs Cloudflare
-
-The repository supports both Netlify and Cloudflare Pages. Here's a comparison:
-
-| Feature               | Netlify         | Cloudflare Pages |
-| --------------------- | --------------- | ---------------- |
-| Build minutes/month   | 300 (free tier) | Unlimited        |
-| Concurrent builds     | 1 (free tier)   | 5                |
-| Edge locations        | Global          | Global (275+)    |
-| Custom domains        | Unlimited       | Unlimited        |
-| Deploy previews       | Yes             | Yes              |
-| Environment variables | Yes             | Yes              |
-| Functions             | Yes (paid)      | Yes (free)       |
-
-**Current setup**: Repository is primarily configured for Cloudflare (see
-`.github/workflows/deploy-*-cloudflare.yml`). Netlify is available as an
-alternative deployment option.
-
 ## Next Steps
 
 1. ✅ Complete local setup
@@ -493,4 +473,4 @@ alternative deployment option.
 
 ---
 
-**Last Updated**: 2025-11-07 **Maintainer**: Ibimina Development Team
+**Last Updated**: 2025-11-30 **Maintainer**: Ibimina Development Team

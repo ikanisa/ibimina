@@ -3,7 +3,7 @@ const service = process.env.SENTRY_SERVICE ?? "unknown";
 const isProductionBuild =
   (process.env.NODE_ENV ?? "").toLowerCase() === "production" ||
   (process.env.APP_ENV ?? "").toLowerCase() === "production" ||
-  (process.env.VERCEL_ENV ?? "").toLowerCase() === "production";
+  (process.env.CONTEXT ?? "").toLowerCase() === "production";
 
 if (!isProductionBuild) {
   console.log(`[verify-sentry-config] Skipping check for ${service} (non-production build).`);

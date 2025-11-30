@@ -1,9 +1,9 @@
 SHELL := /bin/bash
 
-.PHONY: deps install bootstrap quickstart dev build start admin lint typecheck test test-unit test-e2e test-rls format release deploy-vercel preview-vercel caddy-up caddy-bg caddy-down tunnel-up tunnel-bg tunnel-down next-bg next-down local-up local-down local-status ready ship
+.PHONY: deps install bootstrap quickstart dev build start admin lint typecheck test test-unit test-e2e test-rls format release deploy-netlify preview-netlify next-bg next-down local-up local-down local-status ready ship
 
 deps:
-./apps/pwa/staff-admin/scripts/mac/install_caddy_cloudflared.sh
+	pnpm install --frozen-lockfile
 
 install:
 	pnpm install --frozen-lockfile
@@ -54,31 +54,13 @@ pnpm run format
 release:
 	pnpm run release
 
-preview-vercel:
-	pnpm run preview:vercel
+preview-netlify:
+	pnpm run deploy:netlify
 
-deploy-vercel:
-	pnpm run deploy:vercel
+deploy-netlify:
+	pnpm run deploy:netlify --prod
 
 ship: release
-
-caddy-up:
-./apps/pwa/staff-admin/scripts/mac/caddy_up.sh
-
-caddy-bg:
-./apps/pwa/staff-admin/scripts/mac/caddy_bg.sh
-
-caddy-down:
-./apps/pwa/staff-admin/scripts/mac/caddy_down.sh
-
-tunnel-up:
-./apps/pwa/staff-admin/scripts/mac/tunnel_up.sh
-
-tunnel-bg:
-./apps/pwa/staff-admin/scripts/mac/tunnel_bg.sh
-
-tunnel-down:
-./apps/pwa/staff-admin/scripts/mac/tunnel_down.sh
 
 next-bg:
 ./apps/pwa/staff-admin/scripts/mac/next_bg.sh
@@ -88,10 +70,8 @@ next-down:
 
 local-up:
 	$(MAKE) next-bg
-	$(MAKE) caddy-bg
 
 local-down:
-	-$(MAKE) caddy-down
 	-$(MAKE) next-down
 
 local-status:
