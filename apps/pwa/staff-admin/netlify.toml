@@ -1,6 +1,6 @@
 [build]
   base = "apps/pwa/staff-admin"
-  command = "cd ../../.. && pnpm install --frozen-lockfile && pnpm build:admin"
+  command = "cd ../../.. && pnpm install --frozen-lockfile && pnpm --filter @ibimina/staff-admin-pwa build"
   # @netlify/plugin-nextjs manages the publish directory for SSR
   publish = ".next"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../../../packages/"
@@ -8,6 +8,7 @@
 [build.environment]
   NODE_VERSION = "20"
   NEXT_TELEMETRY_DISABLED = "1"
+  NODE_OPTIONS = "--max-old-space-size=4096"
   # TODO: Enable CI="true" after fixing TypeScript errors to enforce strict type checking
   # CI = "true"
 
