@@ -1,6 +1,5 @@
 import reactHooks from "eslint-plugin-react-hooks";
 
-import ibiminaPlugin from "../../../packages/eslint-plugin-ibimina/index.js";
 import { createEslintConfig } from "../../../config/tooling/eslint/factory.mjs";
 import {
   sharedReactRules,
@@ -30,7 +29,6 @@ const adminConfig = createEslintConfig({
   },
   plugins: {
     "react-hooks": reactHooks,
-    ibimina: ibiminaPlugin,
   },
   rules: {
     ...sharedReactRules,
@@ -40,18 +38,7 @@ const adminConfig = createEslintConfig({
     "@typescript-eslint/no-floating-promises": "off",
     "@typescript-eslint/no-misused-promises": "off",
     "@typescript-eslint/no-unused-vars": "off", // Conflicting with context.getScope
-    "ibimina/structured-logging": "error",
   },
 });
 
-// Allow console.* in scripts and tests
-const scriptsTestsOverrides = createEslintConfig({
-  files: ["scripts/**/*.{js,mjs,ts}", "tests/**/*.{ts,tsx}"],
-  includeIgnores: false,
-  includePrettier: false,
-  rules: {
-    "ibimina/structured-logging": "off",
-  },
-});
-
-export default [...adminConfig, ...scriptsTestsOverrides];
+export default adminConfig;

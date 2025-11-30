@@ -150,15 +150,15 @@ function write(level: LogLevel, event: string, payload: LogPayload) {
 
   switch (level) {
     case "warn":
-      // eslint-disable-next-line ibimina/structured-logging, no-console
+      // eslint-disable-next-line no-console
       console.warn(serialized);
       break;
     case "error":
-      // eslint-disable-next-line ibimina/structured-logging, no-console
+      // eslint-disable-next-line no-console
       console.error(serialized);
       break;
     default:
-      // eslint-disable-next-line ibimina/structured-logging, no-console
+      // eslint-disable-next-line no-console
       console.log(serialized);
   }
   const config = getLogDrainConfig();
