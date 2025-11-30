@@ -256,7 +256,7 @@ pnpm test:unit tests/unit/device-auth/signature.test.ts
 - [ ] Configure monitoring and alerting
 - [ ] Test on multiple Android devices and versions
 - [ ] Verify StrongBox availability on target devices
-- [ ] Set up backup authentication method (passkeys, email)
+- [ ] Set up backup authentication method (email)
 - [ ] Configure rate limiting and abuse detection
 - [ ] Document incident response procedures
 - [ ] Train support team on device revocation
@@ -378,7 +378,7 @@ StrongBox.
 2. **Multiple devices** - Allow 2-3 devices per user for redundancy
 3. **Regular audits** - Review authentication logs weekly
 4. **Automatic revocation** - Revoke devices inactive for 90 days
-5. **Backup method** - Require passkey or admin contact for recovery
+5. **Backup method** - Require admin contact for recovery
 
 ## 11. Resources
 

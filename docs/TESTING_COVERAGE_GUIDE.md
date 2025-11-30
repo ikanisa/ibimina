@@ -135,14 +135,12 @@ describe('POST /api/groups', () => {
 
 **Location**: `apps/admin/tests/auth/*.test.ts`
 
-**Purpose**: Validate authentication flows, session management, and MFA
+**Purpose**: Validate authentication flows and session management
 
 **Coverage**:
 - WhatsApp OTP generation and verification
-- Passkey registration and authentication
 - Session cookie security
 - Device trust mechanisms
-- MFA enforcement
 
 **Example**:
 ```typescript

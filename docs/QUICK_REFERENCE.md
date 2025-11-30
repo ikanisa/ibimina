@@ -34,8 +34,7 @@ pnpm run check:deploy     # or `make ready`
 
 1. **Security First**: Review [SECURITY_HARDENING.md](SECURITY_HARDENING.md)
    - Generate all secrets
-   - Configure encryption
-   - Set up MFA
+   - Configure authentication
    - Enable audit logging
 
 2. **Infrastructure**: Check
@@ -161,18 +160,6 @@ PORT=3100  # Default port, can be overridden
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-# Security (generate with: openssl rand -base64 32 or openssl rand -hex 32)
-KMS_DATA_KEY_BASE64=32-byte-base64-key
-BACKUP_PEPPER=32-byte-hex
-MFA_SESSION_SECRET=32-byte-hex
-TRUSTED_COOKIE_SECRET=32-byte-hex
-HMAC_SHARED_SECRET=32-byte-hex
-
-# MFA Configuration
-MFA_RP_ID=your-domain.com
-MFA_ORIGIN=https://your-domain.com
-MFA_RP_NAME=SACCO+
 ```
 
 ### Optional but Recommended
@@ -190,7 +177,6 @@ LOG_DRAIN_TOKEN=your-token
 
 # Email
 RESEND_API_KEY=your-resend-key
-MFA_EMAIL_FROM=security@your-domain.com
 ```
 
 ## ✅ Critical Security Checklist
@@ -199,7 +185,6 @@ Before going live, verify:
 
 - [ ] All secrets rotated from defaults
 - [ ] HTTPS enforced
-- [ ] MFA enabled for admins
 - [ ] RLS policies tested: `pnpm run test:rls`
 - [ ] Security headers configured
 - [ ] Rate limiting active
@@ -329,7 +314,7 @@ Monitor these metrics post-deployment:
 | ---------------- | -------------------- | -------------------------------------------- |
 | 502/503 errors   | App not running      | Restart application                          |
 | Slow responses   | Database queries     | Check connection pool, query performance     |
-| Login fails      | MFA misconfiguration | Verify MFA_RP_ID matches domain              |
+| Login fails      | Auth misconfiguration| Verify Supabase credentials                  |
 | PWA not working  | HTTPS issue          | Verify SSL certificate, check service worker |
 | Data not showing | RLS policies         | Run `pnpm run test:rls`, check policies      |
 | High memory      | Memory leak          | Restart app, investigate with profiler       |
@@ -374,16 +359,9 @@ Use this as your minimal path to production:
 # 1. Validate
 pnpm run validate:production
 
-# 2. Generate secrets
-openssl rand -base64 32  # KMS_DATA_KEY_BASE64
-openssl rand -hex 32     # BACKUP_PEPPER
-openssl rand -hex 32     # MFA_SESSION_SECRET
-openssl rand -hex 32     # TRUSTED_COOKIE_SECRET
-openssl rand -hex 32     # HMAC_SHARED_SECRET
+# 2. Set environment variables in .env.production
 
-# 3. Set environment variables in .env.production
-
-# 4. Supabase setup
+# 3. Supabase setup
 supabase link --project-ref $SUPABASE_PROJECT_REF
 supabase migration up --linked --include-all
 supabase secrets set --env-file supabase/.env.production

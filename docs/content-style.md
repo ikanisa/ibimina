@@ -67,8 +67,8 @@ locale) label plus matching descriptions for command palette context.
 | `reviewRecon`                            | "Review Recon" · "Clear unassigned deposits."                            | "Suzuma guhuzwa" · "Huza amafaranga ataritangirwa ibisobanuro."                   |
 | `viewAnalytics`                          | "View Analytics" · "Track contribution trends and risk signals."         | "Reba isesengura" · "Kurikirana uko imisanzu ihagaze n'ibimenyetso byo kuburira." |
 | `generateReport`                         | "Generate Report" · "Export SACCO or ikimina statements."                | "Kora raporo" · "Sohora raporo za SACCO cyangwa ikimina."                         |
-| `operationsCenter`                       | "Operations Center" · "Review incidents, notifications, and MFA health." | "Ikigo cy'imikorere" · "Reba ibibazo, ubutumwa bwateguwe, n'imiterere ya MFA."    |
-| `accountSecurity`                        | "Account Security" · "Update password and authenticator settings."       | "Umutekano w'uburenganzira" · "Hindura ijambobanga n'uburyo bwa 2FA."             |
+| `operationsCenter`                       | "Operations Center" · "Review incidents and notifications."              | "Ikigo cy'imikorere" · "Reba ibibazo, ubutumwa bwateguwe."                        |
+| `accountSecurity`                        | "Account Security" · "Update password and security settings."            | "Umutekano w'uburenganzira" · "Hindura ijambobanga n'igenamiterere ry'umutekano." |
 
 When drafting edits for these actions, update both locales together and include
 the paired-language secondary copy to preserve the bilingual presentation in the

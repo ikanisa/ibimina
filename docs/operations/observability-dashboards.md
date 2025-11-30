@@ -30,9 +30,9 @@ File: `infra/metrics/dashboards/edge-functions.json`
 
 - **Metrics exporter health** stat shows `ibimina_health_up`; it should be `1`.
 - **Throughput (5 min)** graphs the increase of key function counters
-  (`sms_ingested`, `sms_reprocessed`, `payment_action`, `mfa_email_sent`). Use
+  (`sms_ingested`, `sms_reprocessed`, `payment_action`, ). Use
   it to confirm deploys and retries are flowing.
-- **Failure counts (30 min)** surfaces error events such as `mfa_email_failure`,
+- **Failure counts (30 min)** surfaces error events such as 
   `sms_reprocess_failed`, and `momo_poll_failure`. Spikes should trigger alert
   investigation.
 - **SMS gateway availability** tracks `ibimina_sms_gateway_up` and correlates
@@ -88,15 +88,11 @@ Alertmanager fans out notifications as follows:
 ### Auth & admin monitoring
 
 - Import `infra/metrics/dashboards/supabase-health.json` to watch queue gauges
-  and overlay auth-specific panels for MFA delivery and login flow health. Add a
-  stat panel for
-  `increase(ibimina_system_metric_total{event="mfa_email_sent"}[15m])` vs.
-  `increase(...{event="mfa_email_failure"}[15m])` to spot degraded OTP delivery.
+  and overlay auth-specific panels for login flow health.
 - Enable the new Prometheus alerts in `infra/metrics/rules/ibimina.rules.yml`:
   - `SupabaseMfaFailureRate` (warning if failures >5% for 10 min) to catch
     Resend/SMTP issues early.
-  - `SupabaseMfaSendStall` (critical if zero sends for 30 min) to flag frozen
-    auth flows.
+    login failures.
   - `AdminAppHealthDown` (critical if the metrics-exporter is unreachable for
     5 min) as a proxy for admin route outages; pair with the staff app
     `/api/healthz` check in external uptime monitors.

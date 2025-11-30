@@ -18,7 +18,7 @@ during password verification.【F:components/auth/login-form.tsx†L22-L107】
 ## Impact
 
 - All staff and admin sign-ins failed, preventing access to operational tooling.
-- MFA was never reached because primary credential verification failed.
+- Authentication failed at the primary credential verification stage.
 - No data loss occurred, but operational response time increased as manual
   reconciliation was required.
 

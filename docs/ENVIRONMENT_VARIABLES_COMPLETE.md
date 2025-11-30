@@ -464,23 +464,16 @@ Edge Functions, and infrastructure.
 # 1. Copy template
 cp .env.example .env
 
-# 2. Generate secrets
-export BACKUP_PEPPER=$(openssl rand -hex 32)
-export MFA_SESSION_SECRET=$(openssl rand -hex 32)
-export TRUSTED_COOKIE_SECRET=$(openssl rand -hex 32)
-export HMAC_SHARED_SECRET=$(openssl rand -hex 32)
-export KMS_DATA_KEY_BASE64=$(openssl rand -base64 32)
-
-# 3. Set Supabase (from local Docker or hosted project)
+# 2. Set Supabase (from local Docker or hosted project)
 export NEXT_PUBLIC_SUPABASE_URL=https://localhost:54321
 export NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 export SUPABASE_URL=https://localhost:54321
 export SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# 4. Optional: OpenAI (for AI agent)
+# 3. Optional: OpenAI (for AI agent)
 export OPENAI_API_KEY=sk-your-key
 
-# 5. Save to .env file
+# 4. Save to .env file
 ```
 
 ### Staging/Production
@@ -497,7 +490,7 @@ export OPENAI_API_KEY=sk-your-key
 
 ```bash
 # Check which variables are set
-env | grep -E "SUPABASE|MFA|BACKUP|HMAC|KMS" | cut -d= -f1
+env | grep -E "SUPABASE" | cut -d= -f1
 
 # Verify no service-role key in client bundles (CI check)
 grep -r "SUPABASE_SERVICE_ROLE" apps/*/public apps/*/.next/static packages/*/dist || echo "✅ Clean"
@@ -514,16 +507,6 @@ pnpm --filter @ibimina/admin run test:supabase-connection
 
 **Cause**: Database schema changed but types.ts not regenerated  
 **Fix**: `pnpm gen:types`
-
-### "MFA verification failed"
-
-**Cause**: MFA secrets don't match between environments  
-**Fix**: Ensure MFA_SESSION_SECRET is consistent and not rotated mid-session
-
-### "HMAC signature invalid"
-
-**Cause**: HMAC_SHARED_SECRET mismatch between app and telco partner  
-**Fix**: Coordinate secret rotation with partner
 
 ### "Build fails with missing env var"
 

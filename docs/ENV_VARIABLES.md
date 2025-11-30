@@ -59,9 +59,9 @@ users**.
 - **Type**: String (URL)
 - **Required**: No (defaults to inferred value)
 - **Security**: Public
-- **Description**: Canonical site URL for redirects and passkeys
+- **Description**: Canonical site URL for redirects
 - **Example**: `https://app.ibimina.rw`
-- **Usage**: Passkey relying party, OAuth redirects
+- **Usage**: OAuth redirects
 - **Default**: Inferred from request headers
 
 #### `NEXT_PUBLIC_E2E`
@@ -440,7 +440,6 @@ These variables are used in E2E testing:
 - `PLAYWRIGHT_SUPABASE_ANON_KEY`: Test anon key
 - `PLAYWRIGHT_SUPABASE_SERVICE_ROLE_KEY`: Test service key
 - `PLAYWRIGHT_OPENAI_API_KEY`: Test OpenAI key (stub)
-- `PLAYWRIGHT_HMAC_SHARED_SECRET`: Test HMAC secret (stub)
 
 ### RLS Tests
 

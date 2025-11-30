@@ -8,7 +8,7 @@ suspected to be compromised.
 
 | Secret Category    | Examples                                                    | Rotation Policy                                                                   |
 | ------------------ | ----------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Crypto material    | `FIELD_ENCRYPTION_KEY`, MFA/session keys                    | Rotated automatically every 90 days by the AWS Lambda rotation handler.           |
+| Crypto material    | `FIELD_ENCRYPTION_KEY`, session keys                        | Rotated automatically every 90 days by the AWS Lambda rotation handler.           |
 | Third-party tokens | OpenAI API key, log drain tokens, Supabase service role key | Reviewed quarterly. Rotate immediately if provider mandates or after an incident. |
 | Operational tokens | Cloudflare API token, VAPID keys                            | Rotate every 180 days or when staff with access changes.                          |
 
