@@ -50,7 +50,7 @@ building blocks so product changes stay aligned across platforms.
 - **Package**: `@ibimina/staff-admin-pwa`
 - **Framework**: Next.js 15 App Router with Node runtime (PWA enabled)
 - **Primary capabilities**:
-  - Auth & MFA flows including passkeys, TOTP, and trusted devices
+  - Auth flows including trusted devices and session management
   - SACCO operations dashboards, reconciliation, Ikimina management, and
     reporting
   - Installable PWA with custom manifest, service worker, and offline fallback

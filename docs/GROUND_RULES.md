@@ -95,7 +95,7 @@ import { verifyWebhookSignature } from "@ibimina/lib/security";
 const isValid = await verifyWebhookSignature(
   request.body,
   request.headers.get("x-webhook-signature"),
-  process.env.HMAC_SHARED_SECRET
+  process.env.WEBHOOK_SECRET
 );
 
 if (!isValid) {
@@ -164,10 +164,6 @@ All secrets must be:
 # Generate 32-byte secrets
 openssl rand -hex 32     # For hex encoded keys
 ```
-
-**Optional Secrets**:
-
-- `HMAC_SHARED_SECRET`: Webhook signature verification
 
 **Validation**:
 

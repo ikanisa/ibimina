@@ -27,21 +27,12 @@ deployment. Complete all items in order before going live.
 - [ ] Production secrets generated with cryptographically secure methods:
   ```bash
   # Generate required secrets
-  openssl rand -base64 32  # KMS_DATA_KEY_BASE64
-  openssl rand -hex 32     # BACKUP_PEPPER
-  openssl rand -hex 32     # MFA_SESSION_SECRET
-  openssl rand -hex 32     # TRUSTED_COOKIE_SECRET
-  openssl rand -hex 32     # HMAC_SHARED_SECRET
   openssl rand -hex 32     # ANALYTICS_CACHE_TOKEN
   ```
 - [ ] Supabase project configured with production credentials
 - [ ] `APP_ENV=production` set
 - [ ] `NODE_ENV=production` set
 - [ ] Domain names and SSL certificates configured
-- [ ] MFA configuration verified:
-  - [ ] `MFA_RP_ID` matches production domain
-  - [ ] `MFA_ORIGIN` matches production URL
-  - [ ] `MFA_RP_NAME` set appropriately
 - [ ] Email configuration verified (SMTP or Resend)
 - [ ] Optional services configured (OpenAI, Twilio, log drain)
 
@@ -67,9 +58,6 @@ deployment. Complete all items in order before going live.
 - [ ] Edge function secrets validated:
   - [ ] `SUPABASE_SERVICE_ROLE_KEY`
   - [ ] `OPENAI_API_KEY`
-  - [ ] `HMAC_SHARED_SECRET`
-  - [ ] `KMS_DATA_KEY_BASE64`
-  - [ ] `BACKUP_PEPPER`
   - [ ] All other required secrets
 - [ ] Cron jobs scheduled:
   - [ ] `scheduled-reconciliation` (hourly: `0 * * * *`)
@@ -191,15 +179,9 @@ deployment. Complete all items in order before going live.
 
 ### 12. Authentication & Authorization 🔐
 
-- [ ] MFA enforced for all admin users
 - [ ] Password policies enforced (minimum length, complexity)
 - [ ] Session timeout configured appropriately
 - [ ] Account lockout policy configured
-- [ ] Trusted device management tested
-- [ ] Backup codes functionality verified
-- [ ] Passkey/WebAuthn support tested
-- [ ] Email OTP fallback tested
-- [ ] MFA break-glass procedure documented
 
 ### 13. Data Protection 🛡️
 
@@ -265,7 +247,7 @@ deployment. Complete all items in order before going live.
 ### 18. Post-Deployment Validation ✓
 
 - [ ] Smoke tests executed:
-  - [ ] Login flow (credentials + MFA)
+  - [ ] Login flow
   - [ ] Dashboard loads correctly
   - [ ] Ikimina list displays
   - [ ] Member search works
@@ -407,18 +389,8 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 
-# Security Secrets (generate with openssl)
-KMS_DATA_KEY_BASE64=
-BACKUP_PEPPER=
-MFA_SESSION_SECRET=
-TRUSTED_COOKIE_SECRET=
-HMAC_SHARED_SECRET=
+# Analytics
 ANALYTICS_CACHE_TOKEN=
-
-# MFA Configuration
-MFA_RP_ID=your-domain.com
-MFA_ORIGIN=https://your-domain.com
-MFA_RP_NAME=SACCO+
 
 # Optional Services
 OPENAI_API_KEY=
@@ -467,7 +439,7 @@ curl https://your-project.supabase.co/functions/v1/metrics-exporter \
 | App won't start            | Health check fails         | Check environment variables, logs         |
 | High memory usage          | Gradual increase over time | Restart app, investigate memory leak      |
 | Database connection errors | Intermittent failures      | Check connection pool settings            |
-| MFA not working            | Users can't log in         | Verify MFA secrets, check domain settings |
+| Auth not working           | Users can't log in         | Verify Supabase credentials               |
 | Service worker issues      | PWA features broken        | Clear cache, verify HTTPS                 |
 | Slow response times        | >3s response               | Check database queries, connection pool   |
 

@@ -59,11 +59,10 @@
 
 ┌─────────────────── SECURITY POSTURE ────────────────────────┐
 │                                                               │
-│  Multi-Factor Authentication:                                │
-│    ✅ TOTP  ✅ WebAuthn  ✅ Email  ✅ WhatsApp               │
+│  Authentication:                                              │
+│    ✅ Supabase Auth                                           │
 │                                                               │
 │  Data Protection:                                            │
-│    ✅ Field Encryption (AES-256-GCM)                         │
 │    ✅ Row-Level Security (8 test suites)                     │
 │    ✅ Database Encryption at Rest                            │
 │                                                               │

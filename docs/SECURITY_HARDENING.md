@@ -28,19 +28,10 @@ grep -E "\.env|secrets|\.pem|\.key" .gitignore
 
 ### 2. Encryption ✅
 
-- [ ] KMS_DATA_KEY_BASE64 generated with cryptographic randomness
-  ```bash
-  openssl rand -base64 32
-  ```
-- [ ] BACKUP_PEPPER unique and cryptographically secure
-  ```bash
-  openssl rand -hex 32
-  ```
 - [ ] Field-level encryption active for PII:
   - [ ] MSISDN (phone numbers)
   - [ ] National ID numbers
   - [ ] Other sensitive personal data
-- [ ] Encryption keys stored securely (AWS KMS, Azure Key Vault, or similar)
 - [ ] Database encrypted at rest (Supabase default)
 - [ ] Backups encrypted
 - [ ] TLS 1.2+ enforced for all connections
@@ -59,28 +50,19 @@ SELECT msisdn_hash, national_id_hash FROM members LIMIT 5;
 
 ### 3. Authentication & Authorization 🔐
 
-- [ ] MFA enforced for all admin users
-- [ ] MFA encouraged/required for staff users
 - [ ] Password minimum length: 12 characters
 - [ ] Password complexity requirements enabled
 - [ ] Account lockout after 5 failed login attempts
-- [ ] Session timeout: 12 hours maximum (MFA_SESSION_TTL_SECONDS)
-- [ ] Trusted device tokens expire after 30 days (TRUSTED_DEVICE_TTL_SECONDS)
-- [ ] Break-glass MFA reset procedure documented and tested
+- [ ] Session timeout: 12 hours maximum
+- [ ] Trusted device tokens expire after 30 days
 - [ ] Service accounts follow principle of least privilege
 - [ ] No shared accounts (each user has unique credentials)
 
 **Verify**:
 
 ```bash
-# Check MFA configuration
-echo $MFA_SESSION_SECRET | wc -c  # Should be 64 (32 bytes hex = 64 chars)
-echo $MFA_SESSION_TTL_SECONDS  # Should be 43200 (12 hours)
-echo $TRUSTED_DEVICE_TTL_SECONDS  # Should be 2592000 (30 days)
-
-# Verify MFA RP configuration matches domain
-echo $MFA_RP_ID  # Should be your-domain.com
-echo $MFA_ORIGIN  # Should be https://your-domain.com
+# Check session configuration
+echo $SESSION_TTL_SECONDS  # Should be 43200 (12 hours)
 ```
 
 ### 4. Row Level Security (RLS) 🛡️
@@ -386,7 +368,7 @@ psql $DATABASE_URL -c "SHOW ssl;"
 - [ ] CORS configured restrictively (specific origins, not `*`)
 - [ ] API versioning in place
 - [ ] GraphQL introspection disabled in production (if using GraphQL)
-- [ ] Sensitive operations require additional authentication (e.g., MFA)
+- [ ] Sensitive operations require additional authentication
 
 **Verify**:
 
@@ -424,10 +406,6 @@ curl https://your-domain.com/api/protected-endpoint
 # Check webhook signature validation exists
 grep -r "x-signature" apps/admin/
 # Should find signature verification code
-
-# Verify HMAC secret is set
-echo $HMAC_SHARED_SECRET | wc -c
-# Should be 64 characters (32 bytes hex)
 ```
 
 ## Production Environment Hardening
@@ -617,9 +595,7 @@ pnpm audit --audit-level=high
 
 echo ""
 echo "4. Verifying environment variables..."
-[ -z "$KMS_DATA_KEY_BASE64" ] && echo "❌ KMS_DATA_KEY_BASE64 not set" || echo "✓ KMS_DATA_KEY_BASE64 set"
-[ -z "$MFA_SESSION_SECRET" ] && echo "❌ MFA_SESSION_SECRET not set" || echo "✓ MFA_SESSION_SECRET set"
-[ -z "$HMAC_SHARED_SECRET" ] && echo "❌ HMAC_SHARED_SECRET not set" || echo "✓ HMAC_SHARED_SECRET set"
+[ -z "$SUPABASE_SERVICE_ROLE_KEY" ] && echo "❌ SUPABASE_SERVICE_ROLE_KEY not set" || echo "✓ SUPABASE_SERVICE_ROLE_KEY set"
 
 echo ""
 echo "5. Checking RLS tests..."

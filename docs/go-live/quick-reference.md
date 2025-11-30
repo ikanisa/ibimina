@@ -41,9 +41,8 @@
 - No hardcoded credentials
 - Excellent CSP (nonce-based, strict-dynamic)
 - Complete security headers (HSTS, X-Frame-Options, etc.)
-- Comprehensive MFA (TOTP, Passkeys, Email, WhatsApp, backups)
+- Supabase Auth integration
 - 8 RLS test suites (comprehensive coverage)
-- Field-level encryption (AES-256-GCM)
 - 100% type safety (48,189 LoC)
 - 103 unit tests (100% pass rate)
 - Safe migrations (28 sequential, idempotent)

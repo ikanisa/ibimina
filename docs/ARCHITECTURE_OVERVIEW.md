@@ -125,8 +125,7 @@ This document provides a comprehensive overview of the Ibimina SACCO Management 
   - SMS ingestion and allocation
   - Reports and analytics
   - Staff user management
-  - Multi-factor authentication (MFA)
-- **Security**: Passkey authentication, device trust, session management
+- **Security**: Supabase Auth, device trust, session management
 
 ### 2. API Layer
 
@@ -292,13 +291,7 @@ Staff → Trigger Reconciliation → POST /reconcile (Edge Function)
 │  ├─ Token rotation on refresh                               │
 │  └─ Session TTL: 30 days                                    │
 │                                                               │
-│  Layer 3: Multi-Factor Authentication (Staff)               │
-│  ├─ Passkeys (WebAuthn)                                     │
-│  ├─ TOTP (Time-based OTP)                                   │
-│  ├─ Backup codes (recovery)                                 │
-│  └─ Device trust (cookie-based)                             │
-│                                                               │
-│  Layer 4: Authorization                                     │
+│  Layer 3: Authorization                                     │
 │  ├─ Row-Level Security (RLS) policies                       │
 │  ├─ Role-based access control (RBAC)                        │
 │  └─ Organization-scoped access                              │
@@ -310,7 +303,6 @@ Staff → Trigger Reconciliation → POST /reconcile (Edge Function)
 
 #### Encryption at Rest
 - **Database**: All Supabase data encrypted with AES-256
-- **PII Fields**: Additional encryption with `KMS_DATA_KEY_BASE64`
 - **Storage**: Files encrypted by default
 
 #### Encryption in Transit
@@ -322,10 +314,7 @@ Staff → Trigger Reconciliation → POST /reconcile (Edge Function)
 ```
 Environment Variables (never committed):
 ├─ SUPABASE_SERVICE_ROLE_KEY (server-only)
-├─ KMS_DATA_KEY_BASE64 (encryption)
-├─ HMAC_SHARED_SECRET (webhook verification)
-├─ MFA_SESSION_SECRET (session signing)
-└─ BACKUP_PEPPER (password hashing)
+└─ Other service-specific keys
 ```
 
 ### 3. Row-Level Security (RLS)
@@ -510,7 +499,6 @@ CREATE POLICY "admin_full_access" ON allocations
 **Provider**: Resend
 
 **Usage**:
-- MFA email verification
 - Password reset
 - Transactional notifications
 - Reports delivery

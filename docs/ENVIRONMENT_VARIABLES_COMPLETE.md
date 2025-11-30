@@ -14,8 +14,7 @@ Edge Functions, and infrastructure.
 | Category                | Required Vars | Optional Vars | Total  |
 | ----------------------- | ------------- | ------------- | ------ |
 | Supabase                | 5             | 2             | 7      |
-| Security & Secrets      | 8             | 6             | 14     |
-| MFA & Auth              | 5             | 7             | 12     |
+| Security & Secrets      | 2             | 3             | 5      |
 | Email                   | 2             | 8             | 10     |
 | Logging & Observability | 0             | 11            | 11     |
 | Analytics               | 0             | 3             | 3      |
@@ -23,7 +22,7 @@ Edge Functions, and infrastructure.
 | Edge Functions          | 0             | 3             | 3      |
 | CI/CD                   | 0             | 5             | 5      |
 | Other                   | 2             | 12            | 14     |
-| **TOTAL**               | **22**        | **61**        | **83** |
+| **TOTAL**               | **11**        | **51**        | **62** |
 
 ## Environment Matrix
 
@@ -119,59 +118,6 @@ Edge Functions, and infrastructure.
 
 ### Required
 
-#### `KMS_DATA_KEY_BASE64`
-
-- **Required**: ✅ Yes
-- **Sensitivity**: 🔴 CRITICAL
-- **Description**: Base64-encoded 32-byte key for field-level encryption
-- **Format**: Base64 string (44 characters)
-- **Example**: `YourBase64EncodedKeyHere==`
-- **Generation**: `openssl rand -base64 32`
-- **Used In**: Encrypted fields in database
-- **Rotation**: Requires re-encryption migration
-- **Notes**: Cannot rotate without data migration
-
-#### `BACKUP_PEPPER`
-
-- **Required**: ✅ Yes
-- **Sensitivity**: 🔴 CRITICAL
-- **Description**: Hex-encoded pepper for MFA backup code hashing
-- **Format**: 64-character hex string
-- **Example**: `a1b2c3d4e5f6...` (64 chars)
-- **Generation**: `openssl rand -hex 32`
-- **Used In**: MFA backup code verification
-- **Rotation**: Monthly, invalidates old backup codes
-
-#### `MFA_SESSION_SECRET`
-
-- **Required**: ✅ Yes
-- **Sensitivity**: 🔴 CRITICAL
-- **Description**: Secret for signing MFA session cookies
-- **Format**: 64-character hex string
-- **Generation**: `openssl rand -hex 32`
-- **Used In**: MFA authentication flow
-- **Rotation**: Monthly, invalidates active MFA sessions
-
-#### `TRUSTED_COOKIE_SECRET`
-
-- **Required**: ✅ Yes
-- **Sensitivity**: 🔴 CRITICAL
-- **Description**: Secret for signing trusted device cookies
-- **Format**: 64-character hex string
-- **Generation**: `openssl rand -hex 32`
-- **Used In**: Trusted device authentication
-- **Rotation**: Monthly, invalidates trusted devices
-
-#### `HMAC_SHARED_SECRET`
-
-- **Required**: ✅ Yes (for Edge Functions)
-- **Sensitivity**: 🔴 CRITICAL
-- **Description**: Shared secret for HMAC signature verification on webhooks
-- **Format**: 64-character hex string
-- **Generation**: `openssl rand -hex 32`
-- **Used In**: Edge Functions (ingest-sms, etc.), webhook verification
-- **Rotation**: Quarterly, requires telco partner coordination
-
 #### `OPENAI_API_KEY`
 
 - **Required**: ✅ Yes (if AI agent enabled)
@@ -184,13 +130,6 @@ Edge Functions, and infrastructure.
 
 ### Optional
 
-#### `KMS_DATA_KEY`
-
-- **Required**: ⚪ Optional (alternative to KMS_DATA_KEY_BASE64)
-- **Sensitivity**: 🔴 CRITICAL
-- **Description**: Hex-encoded alternative to base64 KMS key
-- **Notes**: Use either this OR KMS_DATA_KEY_BASE64, not both
-
 #### `RATE_LIMIT_SECRET`
 
 - **Required**: ⚪ Optional
@@ -199,16 +138,6 @@ Edge Functions, and infrastructure.
 - **Format**: 64-character hex string
 - **Generation**: `openssl rand -hex 32`
 - **Used In**: Rate limiting calculations
-- **Default**: Derived from HMAC_SHARED_SECRET if not set
-
-#### `EMAIL_OTP_PEPPER`
-
-- **Required**: ⚪ Optional
-- **Sensitivity**: 🔒 Private
-- **Description**: Pepper for email OTP hashing
-- **Format**: 64-character hex string
-- **Generation**: `openssl rand -hex 32`
-- **Default**: Derived from BACKUP_PEPPER if not set
 
 #### `REPORT_SIGNING_KEY`
 
@@ -228,80 +157,7 @@ Edge Functions, and infrastructure.
 
 ---
 
-## 3. MFA & Authentication
-
-### Required
-
-#### `MFA_EMAIL_FROM`
-
-- **Required**: ✅ Yes
-- **Sensitivity**: 🔓 Public
-- **Description**: From email address for MFA emails
-- **Format**: Email address
-- **Example**: `security@sacco-plus.com`
-- **Used In**: MFA email sending
-
-#### `MFA_EMAIL_LOCALE`
-
-- **Required**: ✅ Yes
-- **Sensitivity**: 🔓 Public
-- **Description**: Default locale for MFA emails
-- **Format**: Locale code (en, rw, fr)
-- **Example**: `rw`
-- **Default**: `en`
-- **Used In**: MFA email templates
-
-### Optional
-
-#### `MFA_RP_ID`
-
-- **Required**: ⚪ Optional (auto-detected)
-- **Sensitivity**: 🔓 Public
-- **Description**: Relying Party ID for WebAuthn/passkeys
-- **Format**: Domain name
-- **Example**: `staff.sacco-plus.com`
-- **Default**: Derived from request host
-- **Used In**: Passkey registration/authentication
-- **Notes**: Must match domain exactly
-
-#### `MFA_ORIGIN`
-
-- **Required**: ⚪ Optional (auto-detected)
-- **Sensitivity**: 🔓 Public
-- **Description**: Origin for WebAuthn/passkeys
-- **Format**: Full URL with protocol
-- **Example**: `https://staff.sacco-plus.com`
-- **Default**: Derived from request
-- **Used In**: Passkey registration/authentication
-
-#### `MFA_RP_NAME`
-
-- **Required**: ⚪ Optional
-- **Sensitivity**: 🔓 Public
-- **Description**: Friendly name shown in authenticator prompts
-- **Example**: `SACCO+ Staff Console`
-- **Default**: `Ibimina Staff Console`
-- **Used In**: Passkey registration UI
-
-#### `MFA_SESSION_TTL_SECONDS`
-
-- **Required**: ⚪ Optional
-- **Sensitivity**: 🔓 Public
-- **Description**: MFA session lifetime in seconds
-- **Default**: `43200` (12 hours)
-- **Used In**: MFA cookie expiration
-
-#### `TRUSTED_DEVICE_TTL_SECONDS`
-
-- **Required**: ⚪ Optional
-- **Sensitivity**: 🔓 Public
-- **Description**: Trusted device cookie lifetime in seconds
-- **Default**: `2592000` (30 days)
-- **Used In**: Trusted device cookie expiration
-
----
-
-## 4. Email Configuration
+## 3. Email Configuration
 
 ### Required
 
