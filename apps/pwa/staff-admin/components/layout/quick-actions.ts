@@ -159,29 +159,13 @@ function translateQuickAction(
 
 export function createQuickActionGroups(
   t: Translator,
-  profile: Pick<ProfileRow, "failed_mfa_count" | "mfa_enabled">
+  _profile?: Pick<ProfileRow, "id">
 ): QuickActionGroupDefinition[] {
-  const opsAlertBadge =
-    (profile.failed_mfa_count ?? 0) > 0
-      ? {
-          label: t("dashboard.quick.alerts", String(profile.failed_mfa_count ?? 0)),
-          tone: "critical" as const,
-        }
-      : undefined;
-  const securityBadge = profile.mfa_enabled
-    ? { label: t("dashboard.quick.secured", "Secured"), tone: "success" as const }
-    : { label: t("dashboard.quick.setup", "Setup"), tone: "critical" as const };
 
   return QUICK_ACTION_GROUP_ORDER.map((groupId) => {
     const meta = QUICK_ACTION_GROUP_META[groupId];
     const actions = meta.actions.map((actionKey) => {
-      const badge =
-        actionKey === "reviewRecon" || actionKey === "operationsCenter"
-          ? opsAlertBadge
-          : actionKey === "accountSecurity"
-            ? securityBadge
-            : undefined;
-      return translateQuickAction(t, actionKey, badge);
+      return translateQuickAction(t, actionKey, undefined);
     });
 
     return {

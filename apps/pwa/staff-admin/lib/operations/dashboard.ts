@@ -5,10 +5,8 @@ const QUEUE_STATUSES = ["PENDING", "QUEUED"] as const;
 const RECON_STATUSES = ["UNALLOCATED", "PENDING", "REJECTED"] as const;
 
 const TREND_WINDOW_HOURS = 12;
-const TREND_WINDOW_DAYS = 14;
 
 const HOUR_IN_MS = 60 * 60 * 1000;
-const DAY_IN_MS = 24 * HOUR_IN_MS;
 
 export interface OperationsSnapshot {
   notifications: {
@@ -21,11 +19,6 @@ export interface OperationsSnapshot {
     oldestOpen: string | null;
     escalated: number;
   };
-  mfa: {
-    enabled: number;
-    stale: number;
-    lastSuccessSample: string | null;
-  };
   incidents: Array<{
     id: string;
     action: string;
@@ -37,7 +30,6 @@ export interface OperationsSnapshot {
   trends: {
     notifications: TrendPoint[];
     reconciliation: TrendPoint[];
-    mfaSuccesses: TrendPoint[];
   };
 }
 
@@ -62,15 +54,8 @@ type AuditRow = Pick<
   Database["app"]["Tables"]["audit_logs"]["Row"],
   "id" | "action" | "entity" | "entity_id" | "created_at" | "diff"
 >;
-type AuditTimestampRow = Pick<Database["app"]["Tables"]["audit_logs"]["Row"], "created_at">;
-type UserRow = Pick<
-  Database["public"]["Tables"]["users"]["Row"],
-  "id" | "sacco_id" | "last_mfa_success_at"
->;
 
 const INCIDENT_ACTIONS = [
-  "MFA_FAILED",
-  "MFA_RESET_BULK",
   "RECON_ESCALATED",
   "NOTIFICATION_PIPELINE_ERROR",
   "SMS_GATEWAY_FAILURE",
@@ -122,28 +107,6 @@ export async function getOperationsSnapshot({
   const oldestOpen = reconEntries[0]?.occurred_at ?? null;
   const escalated = reconEntries.filter((row) => row.status === "REJECTED").length;
 
-  let mfaQuery = supabase
-    .from("users")
-    .select("id, sacco_id, last_mfa_success_at", { count: "exact" })
-    .eq("mfa_enabled", true)
-    .limit(500);
-
-  if (saccoId) {
-    mfaQuery = mfaQuery.eq("sacco_id", saccoId);
-  }
-
-  const { data: mfaRows, count: mfaCount } = await mfaQuery.returns<UserRow[]>();
-  const staleThreshold = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  const stale = (mfaRows ?? []).filter((row) => {
-    if (!row.last_mfa_success_at) return true;
-    return new Date(row.last_mfa_success_at).getTime() < staleThreshold;
-  }).length;
-  const lastSample =
-    (mfaRows ?? [])
-      .map((row) => row.last_mfa_success_at)
-      .filter((value): value is string => Boolean(value))
-      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
-
   const incidentQuery = supabase
     .from("audit_logs")
     .select("id, action, entity, entity_id, created_at, diff")
@@ -161,16 +124,6 @@ export async function getOperationsSnapshot({
     diff: (row.diff as Record<string, unknown> | null) ?? null,
   }));
 
-  const mfaAuditSince = new Date(Date.now() - TREND_WINDOW_DAYS * DAY_IN_MS).toISOString();
-  const { data: mfaAuditRows } = await supabase
-    .from("audit_logs")
-    .select("created_at")
-    .eq("action", "MFA_SUCCESS")
-    .gte("created_at", mfaAuditSince)
-    .order("created_at", { ascending: true })
-    .limit(720)
-    .returns<AuditTimestampRow[]>();
-
   return {
     notifications: {
       pending: notificationCount ?? notifications.length,
@@ -182,11 +135,6 @@ export async function getOperationsSnapshot({
       oldestOpen,
       escalated,
     },
-    mfa: {
-      enabled: mfaCount ?? (mfaRows ?? []).length,
-      stale,
-      lastSuccessSample: lastSample,
-    },
     incidents,
     trends: {
       notifications: buildHourlyTrend(
@@ -194,7 +142,6 @@ export async function getOperationsSnapshot({
         (row) => row.scheduled_for ?? row.created_at ?? null
       ),
       reconciliation: buildHourlyTrend(reconEntries, (row) => row.occurred_at ?? null),
-      mfaSuccesses: buildDailyTrend(mfaAuditRows ?? [], (row) => row.created_at ?? null),
     },
   };
 }
@@ -214,49 +161,6 @@ function buildHourlyTrend<T>(
   const formatter = new Intl.DateTimeFormat("en-RW", {
     hour: "2-digit",
     minute: "2-digit",
-  });
-
-  return buckets.map(({ start, end }) => {
-    const count = rows.reduce((accumulator, row) => {
-      const timestamp = getTimestamp(row);
-      if (!timestamp) {
-        return accumulator;
-      }
-
-      const value = new Date(timestamp).getTime();
-      if (Number.isNaN(value)) {
-        return accumulator;
-      }
-
-      if (value >= start && value < end) {
-        return accumulator + 1;
-      }
-
-      return accumulator;
-    }, 0);
-
-    return {
-      label: formatter.format(new Date(start)),
-      value: count,
-    } satisfies TrendPoint;
-  });
-}
-
-function buildDailyTrend<T>(
-  rows: T[],
-  getTimestamp: (row: T) => string | null,
-  days = TREND_WINDOW_DAYS
-): TrendPoint[] {
-  const now = Date.now();
-  const buckets = Array.from({ length: days }).map((_, index) => {
-    const start = now - (days - 1 - index) * DAY_IN_MS;
-    const end = start + DAY_IN_MS;
-    return { start, end };
-  });
-
-  const formatter = new Intl.DateTimeFormat("en-RW", {
-    month: "short",
-    day: "numeric",
   });
 
   return buckets.map(({ start, end }) => {

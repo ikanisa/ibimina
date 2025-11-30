@@ -27,8 +27,6 @@ export interface StaffRow {
   sacco_name: string | null;
   suspended?: boolean | null;
   created_at?: string | null;
-  mfa_enabled?: boolean | null;
-  mfa_passkey_enrolled?: boolean | null;
 }
 
 interface StaffDetailProps {
