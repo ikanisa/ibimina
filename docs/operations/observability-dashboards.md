@@ -90,9 +90,6 @@ Alertmanager fans out notifications as follows:
 - Import `infra/metrics/dashboards/supabase-health.json` to watch queue gauges
   and overlay auth-specific panels for login flow health.
 - Enable the new Prometheus alerts in `infra/metrics/rules/ibimina.rules.yml`:
-  - `SupabaseMfaFailureRate` (warning if failures >5% for 10 min) to catch
-    Resend/SMTP issues early.
-    login failures.
   - `AdminAppHealthDown` (critical if the metrics-exporter is unreachable for
     5 min) as a proxy for admin route outages; pair with the staff app
     `/api/healthz` check in external uptime monitors.
