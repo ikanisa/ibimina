@@ -1,7 +1,7 @@
 "use client";
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { nextThemeValueMap } from "../../../../src/design/theme";
+import { nextThemeValueMap } from "../lib/theme";
 
 type ForcedTheme = keyof typeof nextThemeValueMap;
 
