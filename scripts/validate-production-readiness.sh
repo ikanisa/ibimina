@@ -204,17 +204,11 @@ main() {
   check_env_var "NEXT_PUBLIC_SUPABASE_URL" true
   check_env_var "NEXT_PUBLIC_SUPABASE_ANON_KEY" true
   check_env_var "SUPABASE_SERVICE_ROLE_KEY" true
-  check_env_var "KMS_DATA_KEY_BASE64" true
-  check_env_var "BACKUP_PEPPER" true
-  check_env_var "MFA_SESSION_SECRET" true
-  check_env_var "TRUSTED_COOKIE_SECRET" true
-  check_env_var "HMAC_SHARED_SECRET" true
   
   # Optional but recommended
+  check_env_var "HMAC_SHARED_SECRET" false
   check_env_var "OPENAI_API_KEY" false
   check_env_var "LOG_DRAIN_URL" false
-  check_env_var "MFA_RP_ID" false
-  check_env_var "MFA_ORIGIN" false
   check_env_var "ANALYTICS_CACHE_TOKEN" false
   
   # 5. Check Supabase configuration

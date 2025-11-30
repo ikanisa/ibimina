@@ -1,4 +1,3 @@
-import { Buffer } from "node:buffer";
 import { z } from "zod";
 import { requiredEnvConfig } from "./data/requiredEnvConfig";
 
@@ -25,18 +24,7 @@ function buildRawEnv(source: ProcessEnvSource) {
     POSTHOG_API_KEY: source.POSTHOG_API_KEY,
     POSTHOG_HOST: source.POSTHOG_HOST,
     SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY,
-    BACKUP_PEPPER: source.BACKUP_PEPPER,
     RATE_LIMIT_SECRET: source.RATE_LIMIT_SECRET,
-    EMAIL_OTP_PEPPER: source.EMAIL_OTP_PEPPER,
-    MFA_SESSION_SECRET: source.MFA_SESSION_SECRET,
-    TRUSTED_COOKIE_SECRET: source.TRUSTED_COOKIE_SECRET,
-    MFA_SESSION_TTL_SECONDS: source.MFA_SESSION_TTL_SECONDS ?? "43200",
-    TRUSTED_DEVICE_TTL_SECONDS: source.TRUSTED_DEVICE_TTL_SECONDS ?? "2592000",
-    MFA_RP_ID: source.MFA_RP_ID,
-    MFA_ORIGIN: source.MFA_ORIGIN,
-    MFA_RP_NAME: source.MFA_RP_NAME ?? "SACCO+",
-    MFA_EMAIL_LOCALE: source.MFA_EMAIL_LOCALE ?? "en",
-    MFA_EMAIL_FROM: source.MFA_EMAIL_FROM ?? "security@example.com",
     ANALYTICS_CACHE_TOKEN:
       analyticsCacheToken && analyticsCacheToken.length > 0 ? analyticsCacheToken : undefined,
     REPORT_SIGNING_KEY: source.REPORT_SIGNING_KEY,
@@ -57,8 +45,6 @@ function buildRawEnv(source: ProcessEnvSource) {
     LOG_DRAIN_ALERT_COOLDOWN_MS: source.LOG_DRAIN_ALERT_COOLDOWN_MS ?? "300000",
     LOG_DRAIN_SILENT: source.LOG_DRAIN_SILENT,
     HMAC_SHARED_SECRET: source.HMAC_SHARED_SECRET,
-    KMS_DATA_KEY: source.KMS_DATA_KEY,
-    KMS_DATA_KEY_BASE64: source.KMS_DATA_KEY_BASE64,
     META_WHATSAPP_ACCESS_TOKEN: source.META_WHATSAPP_ACCESS_TOKEN,
     META_WHATSAPP_PHONE_NUMBER_ID: source.META_WHATSAPP_PHONE_NUMBER_ID,
     META_WHATSAPP_BUSINESS_ACCOUNT_ID: source.META_WHATSAPP_BUSINESS_ACCOUNT_ID,
@@ -68,11 +54,6 @@ function buildRawEnv(source: ProcessEnvSource) {
     ANALYZE_BUNDLE: source.ANALYZE_BUNDLE,
     AUTH_E2E_STUB: source.AUTH_E2E_STUB,
     AUTH_GUEST_MODE: source.AUTH_GUEST_MODE,
-    E2E_BACKUP_PEPPER: source.E2E_BACKUP_PEPPER,
-    E2E_MFA_SESSION_SECRET: source.E2E_MFA_SESSION_SECRET,
-    E2E_TRUSTED_COOKIE_SECRET: source.E2E_TRUSTED_COOKIE_SECRET,
-    E2E_RATE_LIMIT_SECRET: source.E2E_RATE_LIMIT_SECRET,
-    E2E_KMS_DATA_KEY: source.E2E_KMS_DATA_KEY,
     PLAYWRIGHT_BASE_URL: source.PLAYWRIGHT_BASE_URL,
     PLAYWRIGHT_SUPABASE_URL: source.PLAYWRIGHT_SUPABASE_URL,
     PLAYWRIGHT_SUPABASE_ANON_KEY: source.PLAYWRIGHT_SUPABASE_ANON_KEY,
@@ -146,18 +127,7 @@ const schema = z
       .string({ required_error: "SUPABASE_SERVICE_ROLE_KEY is required" })
       .trim()
       .min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
-    BACKUP_PEPPER: optionalString,
     RATE_LIMIT_SECRET: optionalString,
-    EMAIL_OTP_PEPPER: optionalString,
-    MFA_SESSION_SECRET: optionalString,
-    TRUSTED_COOKIE_SECRET: optionalString,
-    MFA_SESSION_TTL_SECONDS: positiveNumberString,
-    TRUSTED_DEVICE_TTL_SECONDS: positiveNumberString,
-    MFA_RP_ID: optionalString,
-    MFA_ORIGIN: optionalString,
-    MFA_RP_NAME: z.string().trim().min(1),
-    MFA_EMAIL_LOCALE: z.string().trim().min(1),
-    MFA_EMAIL_FROM: z.string().trim().min(3),
     ANALYTICS_CACHE_TOKEN: optionalString,
     REPORT_SIGNING_KEY: optionalString,
     OPENAI_API_KEY: optionalString,
@@ -177,8 +147,6 @@ const schema = z
     LOG_DRAIN_ALERT_COOLDOWN_MS: positiveNumberString,
     LOG_DRAIN_SILENT: optionalString,
     HMAC_SHARED_SECRET: optionalString,
-    KMS_DATA_KEY: optionalString,
-    KMS_DATA_KEY_BASE64: optionalString,
     META_WHATSAPP_ACCESS_TOKEN: optionalString,
     META_WHATSAPP_PHONE_NUMBER_ID: optionalString,
     META_WHATSAPP_BUSINESS_ACCOUNT_ID: optionalString,
@@ -188,11 +156,6 @@ const schema = z
     ANALYZE_BUNDLE: optionalString,
     AUTH_E2E_STUB: optionalString,
     AUTH_GUEST_MODE: optionalString,
-    E2E_BACKUP_PEPPER: optionalString,
-    E2E_MFA_SESSION_SECRET: optionalString,
-    E2E_TRUSTED_COOKIE_SECRET: optionalString,
-    E2E_RATE_LIMIT_SECRET: optionalString,
-    E2E_KMS_DATA_KEY: optionalString,
     PLAYWRIGHT_BASE_URL: optionalString,
     PLAYWRIGHT_SUPABASE_URL: optionalString,
     PLAYWRIGHT_SUPABASE_ANON_KEY: optionalString,
@@ -242,12 +205,8 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
     NEXT_PUBLIC_SUPABASE_URL: "https://stub.supabase.local",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "stub-anon-key",
     SUPABASE_SERVICE_ROLE_KEY: "stub-service-role-key",
-    BACKUP_PEPPER: "stub-backup-pepper",
-    MFA_SESSION_SECRET: "stub-mfa-session-secret",
-    TRUSTED_COOKIE_SECRET: "stub-trusted-cookie-secret",
     HMAC_SHARED_SECRET: "stub-hmac-shared-secret",
     OPENAI_API_KEY: "stub-openai-api-key",
-    KMS_DATA_KEY_BASE64: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
   } as const);
 
   const withFallback = (value: string | undefined, fallback: string) => {
@@ -273,27 +232,8 @@ function withStubFallbacks(raw: ProcessEnvSource): ProcessEnvSource {
   applyWithFallback("NEXT_PUBLIC_SUPABASE_URL");
   applyWithFallback("NEXT_PUBLIC_SUPABASE_ANON_KEY");
   applyWithFallback("SUPABASE_SERVICE_ROLE_KEY");
-  applyWithFallback("BACKUP_PEPPER");
-  applyWithFallback("MFA_SESSION_SECRET");
-  applyWithFallback("TRUSTED_COOKIE_SECRET");
   applyWithFallback("HMAC_SHARED_SECRET");
   applyWithFallback("OPENAI_API_KEY");
-
-  const hasKmsDataKey = Boolean(
-    raw.KMS_DATA_KEY && raw.KMS_DATA_KEY.trim().length > 0 && raw.KMS_DATA_KEY.trim() !== "-"
-  );
-  const hasKmsDataKeyBase64 = Boolean(
-    raw.KMS_DATA_KEY_BASE64 &&
-      raw.KMS_DATA_KEY_BASE64.trim().length > 0 &&
-      raw.KMS_DATA_KEY_BASE64.trim() !== "-"
-  );
-
-  if (!hasKmsDataKey && !hasKmsDataKeyBase64) {
-    augmented.KMS_DATA_KEY_BASE64 = stubbedDefaults.KMS_DATA_KEY_BASE64;
-    if (!process.env.KMS_DATA_KEY_BASE64) {
-      process.env.KMS_DATA_KEY_BASE64 = stubbedDefaults.KMS_DATA_KEY_BASE64;
-    }
-  }
 
   return augmented;
 }
@@ -324,17 +264,10 @@ function parseSampleRateValue(value: string | undefined, fallback: number): numb
 export type ServerEnv = ReturnType<typeof prepareServerEnv>;
 
 function prepareServerEnv(parsedEnv: RawEnv) {
-  const rateLimitSecret = parsedEnv.RATE_LIMIT_SECRET ?? parsedEnv.BACKUP_PEPPER;
-  const emailOtpPepper = parsedEnv.EMAIL_OTP_PEPPER ?? parsedEnv.BACKUP_PEPPER;
-  const kmsDataKey = parsedEnv.KMS_DATA_KEY ?? parsedEnv.KMS_DATA_KEY_BASE64!;
+  const rateLimitSecret = parsedEnv.RATE_LIMIT_SECRET ?? parsedEnv.HMAC_SHARED_SECRET;
 
   return Object.freeze({
     ...parsedEnv,
-    MFA_SESSION_TTL_SECONDS: parsePositiveInteger(parsedEnv.MFA_SESSION_TTL_SECONDS, 12 * 60 * 60),
-    TRUSTED_DEVICE_TTL_SECONDS: parsePositiveInteger(
-      parsedEnv.TRUSTED_DEVICE_TTL_SECONDS,
-      30 * 24 * 60 * 60
-    ),
     LOG_DRAIN_TIMEOUT_MS: parsePositiveInteger(parsedEnv.LOG_DRAIN_TIMEOUT_MS, 2000),
     LOG_DRAIN_ALERT_COOLDOWN_MS: parsePositiveInteger(
       parsedEnv.LOG_DRAIN_ALERT_COOLDOWN_MS,
@@ -350,8 +283,6 @@ function prepareServerEnv(parsedEnv: RawEnv) {
       parsedEnv.APP_ENV === "production" ? 0.1 : 1
     ),
     rateLimitSecret,
-    emailOtpPepper,
-    kmsDataKey,
   });
 }
 

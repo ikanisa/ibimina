@@ -61,23 +61,18 @@ The staff console will be available at `http://localhost:3100`.
 
 ## Required Environment Variables
 
-| Variable                        | Purpose                           |
-| ------------------------------- | --------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL              |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (RLS enforced)    |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Service role key (server-only)    |
-| `KMS_DATA_KEY_BASE64`           | Base64 32-byte encryption key     |
-| `BACKUP_PEPPER`                 | Hex pepper for backup code hashing|
-| `MFA_SESSION_SECRET`            | Hex secret for MFA session cookies|
-| `TRUSTED_COOKIE_SECRET`         | Hex secret for trusted device cookies|
-| `HMAC_SHARED_SECRET`            | Hex secret for webhook verification|
+| Variable                        | Purpose                              |
+| ------------------------------- | ------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL                 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (RLS enforced)       |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Service role key (server-only)       |
 
-Generate secrets with:
+### Optional Environment Variables
 
-```bash
-openssl rand -base64 32  # For KMS_DATA_KEY_BASE64
-openssl rand -hex 32     # For BACKUP_PEPPER, MFA_SESSION_SECRET, etc.
-```
+| Variable                        | Purpose                              |
+| ------------------------------- | ------------------------------------ |
+| `HMAC_SHARED_SECRET`            | Hex secret for webhook verification  |
+| `OPENAI_API_KEY`                | OpenAI API key for AI features       |
 
 ## Development Commands
 

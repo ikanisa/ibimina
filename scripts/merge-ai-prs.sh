@@ -162,11 +162,7 @@ run_tests() {
     export NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-placeholder}"
     export SUPABASE_SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY:-placeholder}"
     export OPENAI_API_KEY="${OPENAI_API_KEY:-placeholder}"
-    export BACKUP_PEPPER=$(openssl rand -hex 32)
-    export MFA_SESSION_SECRET=$(openssl rand -hex 32)
-    export TRUSTED_COOKIE_SECRET=$(openssl rand -hex 32)
     export HMAC_SHARED_SECRET=$(openssl rand -hex 32)
-    export KMS_DATA_KEY_BASE64=$(openssl rand -base64 32)
     
     log_info "Running AI agent tests..."
     pnpm --filter @ibimina/ai-agent test || log_warn "AI agent tests failed"

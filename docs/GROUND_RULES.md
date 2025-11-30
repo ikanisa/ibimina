@@ -162,17 +162,12 @@ All secrets must be:
 
 ```bash
 # Generate 32-byte secrets
-openssl rand -base64 32  # For base64 encoded keys
 openssl rand -hex 32     # For hex encoded keys
 ```
 
-**Required Secrets**:
+**Optional Secrets**:
 
-- `KMS_DATA_KEY_BASE64`: Encryption key (32 bytes base64)
-- `BACKUP_PEPPER`: Backup encryption pepper
-- `MFA_SESSION_SECRET`: MFA session signing
-- `TRUSTED_COOKIE_SECRET`: Trusted device tokens
-- `HMAC_SHARED_SECRET`: Webhook signatures
+- `HMAC_SHARED_SECRET`: Webhook signature verification
 
 **Validation**:
 

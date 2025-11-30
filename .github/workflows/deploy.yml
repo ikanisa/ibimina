@@ -72,12 +72,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          BACKUP_PEPPER: ${{ secrets.BACKUP_PEPPER }}
-          MFA_SESSION_SECRET: ${{ secrets.MFA_SESSION_SECRET }}
-          TRUSTED_COOKIE_SECRET: ${{ secrets.TRUSTED_COOKIE_SECRET }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           HMAC_SHARED_SECRET: ${{ secrets.HMAC_SHARED_SECRET }}
-          KMS_DATA_KEY_BASE64: ${{ secrets.KMS_DATA_KEY_BASE64 }}
 
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0
@@ -130,12 +126,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          BACKUP_PEPPER: ${{ secrets.BACKUP_PEPPER }}
-          MFA_SESSION_SECRET: ${{ secrets.MFA_SESSION_SECRET }}
-          TRUSTED_COOKIE_SECRET: ${{ secrets.TRUSTED_COOKIE_SECRET }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           HMAC_SHARED_SECRET: ${{ secrets.HMAC_SHARED_SECRET }}
-          KMS_DATA_KEY_BASE64: ${{ secrets.KMS_DATA_KEY_BASE64 }}
 
       - name: Comment PR
         uses: actions/github-script@v7
