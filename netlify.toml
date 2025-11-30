@@ -31,19 +31,5 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
-# Redirects for SPA fallback
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  conditions = {Role = ["admin"]}
-
-# Environment-specific contexts
-[context.production]
-  command = "cd ../../.. && pnpm install --frozen-lockfile && pnpm --filter @ibimina/staff-admin-pwa build"
-
-[context.deploy-preview]
-  command = "cd ../../.. && pnpm install --frozen-lockfile && pnpm --filter @ibimina/staff-admin-pwa build"
-
-[context.branch-deploy]
-  command = "cd ../../.. && pnpm install --frozen-lockfile && pnpm --filter @ibimina/staff-admin-pwa build"
+# SSR routing is handled by @netlify/plugin-nextjs
+# No SPA fallback redirect needed
