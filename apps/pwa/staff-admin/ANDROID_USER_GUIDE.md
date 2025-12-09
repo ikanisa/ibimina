@@ -1,3 +1,7 @@
+> **⚠️ DEPRECATION NOTICE**: This document has been consolidated into [docs/ANDROID.md](docs/ANDROID.md). Please refer to the consolidated guide for up-to-date information.
+
+---
+
 # Ibimina Staff Console - Android App
 
 ## Overview

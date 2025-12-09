@@ -1,3 +1,7 @@
+> **⚠️ DEPRECATION NOTICE**: This document has been consolidated into [docs/ANDROID.md](docs/ANDROID.md). Please refer to the consolidated guide for up-to-date information.
+
+---
+
 # Android SMS Ingestion - Deployment & Testing Guide
 
 ## Quick Start for Staff App Deployment
