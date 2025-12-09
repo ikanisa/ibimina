@@ -4,6 +4,7 @@
 
 # Next.js build output
 **/.next/
+**/.next-static/
 **/out/
 **/build/
 !scripts/build/
@@ -14,6 +15,20 @@
 # Misc
 .DS_Store
 *.pem
+*.swp
+*.swo
+*~
+
+# Backup files
+*.backup
+*.bak
+
+# IDE
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 
 # Logs
 default.profraw

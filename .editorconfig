@@ -33,3 +33,33 @@ trim_trailing_whitespace = false
 [*.sh]
 indent_style = space
 indent_size = 2
+
+# Kotlin
+[*.kt]
+indent_style = space
+indent_size = 4
+
+# Java
+[*.java]
+indent_style = space
+indent_size = 4
+
+# Gradle
+[*.gradle]
+indent_style = space
+indent_size = 4
+
+# XML (Android manifests, layouts)
+[*.xml]
+indent_style = space
+indent_size = 4
+
+# Properties files
+[*.properties]
+indent_style = space
+indent_size = 2
+
+# SQL
+[*.sql]
+indent_style = space
+indent_size = 2
