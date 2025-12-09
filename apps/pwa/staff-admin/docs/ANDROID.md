@@ -318,7 +318,7 @@ firebase appdistribution:distribute \
 
 ### SMS Ingestion
 - ✅ Automatic MTN/Airtel SMS processing
-- ✅ Whitelisted senders only
+- ✅ Allowlisted senders only
 - ✅ 99.4% faster payment reconciliation
 - ✅ Background sync worker
 - ✅ AES-256 encryption of phone numbers
@@ -426,7 +426,7 @@ npx cap sync android
 **Solutions:**
 - Check battery optimization (whitelist app)
 - Verify SMS permissions granted
-- Review sender whitelist in `SmsIngestPlugin.kt`
+- Review sender allowlist in `SmsIngestPlugin.kt`
 - Check logcat: `adb logcat | grep SmsIngest`
 
 ---
